@@ -516,8 +516,7 @@ object MillBuildBootstrap {
         buildOverrides.map{case (k, v) => (k, v.toString)},
         enableTicker,
       ),
-      scriptInitCls.getField("MODULE$").get(null),
-      buildOverrides.map{case (k, v) => (k, v.toString)}
+      scriptInitCls.getField("MODULE$").get(null)
     ).asInstanceOf[EvaluatorApi]
 
     evaluator

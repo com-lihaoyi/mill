@@ -26,10 +26,10 @@ final class EvaluatorImpl private[mill] (
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
     scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]],
-    private[mill] buildOverrides0: Map[String, String]
 ) extends Evaluator {
 
-  val buildOverrides = buildOverrides0.map{case (k, v) => (k, ujson.read(v))}
+  val buildOverrides = execution.buildOverrides
+
   private[mill] def workspace = execution.workspace
   private[mill] def baseLogger = execution.baseLogger
   private[mill] def outPath = execution.outPath
@@ -45,7 +45,6 @@ final class EvaluatorImpl private[mill] (
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
     scriptModuleResolver,
-    buildOverrides0
   )
 
   override private[mill] def resolveScriptModuleDep(s: String): Option[mill.Module] = {
