@@ -11,6 +11,9 @@ include::partial$Spring_Header.adoc[]
 
 include::partial$example/springboot/java/1-web-initializr.adoc[]
 
+== Spring Boot Websockets with Spring Reactive Web
+
+include::partial$example/springboot/java/2-web-socket-initializr.adoc[]
 
 [#_spring_boot_hello_world_app]
 == Spring Boot Hello World App

@@ -35,13 +35,14 @@ class WebsocketdemoApplicationTests {
   @Test
   void getMessage() throws Exception {
     AtomicReference<String> received = new AtomicReference<>();
-    String expectedMessage = "Hello World!";
+    String messageToSend = "Hello World!";
+    String expectedMessage = "Echo " + messageToSend;
     URI url = new URI("ws://localhost:" + port + "/echo-websocket");
 
     // Connect, send one message, await exactly one reply, and complete.
     client
         .execute(url, session -> session
-            .send(Mono.just(session.textMessage(expectedMessage)))
+            .send(Mono.just(session.textMessage(messageToSend)))
             .thenMany(session
                 .receive()
                 .map(WebSocketMessage::getPayloadAsText)

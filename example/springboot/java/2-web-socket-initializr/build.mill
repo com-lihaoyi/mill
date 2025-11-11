@@ -11,7 +11,7 @@ object `package` extends MavenModule {
   )
 
   def mvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-starter-websocket"
+    mvn"org.springframework.boot:spring-boot-starter-webflux"
   )
 
   object test extends MavenTests with TestModule.Junit5 {
@@ -21,11 +21,23 @@ object `package` extends MavenModule {
     )
 
     def mvnDeps = Seq(
-      mvn"org.springframework.boot:spring-boot-starter-webflux",
       mvn"org.springframework.boot:spring-boot-starter-test"
     )
   }
 }
+
+// This example demonstrates how to configure mill for a Websocket server using Spring Ractive Web via
+// the initializr project,
+// using https://start.spring.io/[https://start.spring.io/] by choosing:
+//
+//* Project: Maven or Gradle
+//* Language: Java
+//* Dependencies: Spring Reactive Web ,
+//
+// The structure of this project follows the MavenModule structure (i.e. the same structure
+// as generated from the initialzr tool).
+//
+// For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
 
 /** Usage
 

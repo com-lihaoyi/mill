@@ -1,23 +1,33 @@
 package com.example.websocketdemo;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.web.reactive.HandlerMapping;
+import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
+import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 
 @Configuration
-@EnableWebSocket
-public class WebConfig implements WebSocketConfigurer {
+public class WebConfig {
 
-  @Override
-  public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry.addHandler(myHandler(), "/echo-websocket");
+  @Bean
+  public WebSocketHandler echoHandler() {
+    return new ExampleHandler();
   }
 
   @Bean
-  public WebSocketHandler myHandler() {
-    return new MyHandler();
+  public HandlerMapping webSocketMapping(WebSocketHandler echoHandler) {
+    Map<String, WebSocketHandler> map = new HashMap<>();
+    map.put("/echo-websocket", new ExampleHandler());
+    int order = -1; // before annotated controllers
+
+    return new SimpleUrlHandlerMapping(map, order);
+  }
+
+  @Bean
+  public WebSocketHandlerAdapter handlerAdapter() {
+    return new WebSocketHandlerAdapter();
   }
 }
