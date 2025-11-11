@@ -21,7 +21,8 @@ object `package` extends MavenModule {
     )
 
     def mvnDeps = Seq(
-      mvn"org.springframework.boot:spring-boot-starter-test"
+      mvn"org.springframework.boot:spring-boot-starter-test",
+      mvn"io.projectreactor:reactor-test"
     )
   }
 }
