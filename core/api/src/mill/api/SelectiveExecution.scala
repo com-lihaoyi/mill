@@ -36,7 +36,21 @@ private[mill] trait SelectiveExecution {
   ): SelectiveExecution.Metadata.Computed
 }
 object SelectiveExecution {
-  case class Metadata(inputHashes: Map[String, Int], codeSignatures: Map[String, Int])
+  def getBuildOverrideSignatures(tasks: Seq[Task.Named[_]]) =
+    tasks.map { case n: Task.Named[_] => n.ctx.enclosingModule }
+      .distinct
+      .flatMap(m =>
+        m.moduleBuildOverrides.map { case (k, v) =>
+          ((m.moduleSegments ++ Segment.Label(k)).render, v.hashCode)
+        }
+      )
+      .toMap
+
+  case class Metadata(
+      inputHashes: Map[String, Int],
+      codeSignatures: Map[String, Int],
+      @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map()
+  )
   object Metadata {
     case class Computed(
         metadata: Metadata,

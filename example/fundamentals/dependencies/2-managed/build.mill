@@ -55,7 +55,7 @@ object baz extends JavaModule {
 
 // One can manage and publish Bill of Material (BOM) modules from Mill, by using `BomModule`:
 
-object myBom extends BomModule {
+object myBom extends JavaModule, BomModule {
   // Importing external BOMs from our BOM module with bomMvnDeps
   def bomMvnDeps = Seq(
     mvn"com.google.protobuf:protobuf-bom:4.28.1"

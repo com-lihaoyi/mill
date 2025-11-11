@@ -22,9 +22,7 @@ object foo extends JavaModule {
 
 object bar extends JavaModule {
   object test extends JavaTests, TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.mockito:mockito-core:4.6.1"
-    )
+    def mvnDeps = Seq(mvn"org.mockito:mockito-core:4.6.1")
   }
 }
 

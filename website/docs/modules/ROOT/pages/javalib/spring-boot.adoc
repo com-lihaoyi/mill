@@ -1,8 +1,6 @@
-= Spring Framework / Spring Boot Projects
+= Spring Boot Projects
 :page-aliases: Spring_Boot_Java.adoc
 :language-small: java
-
-include::partial$Spring_Header.adoc[]
 
 // This page contains examples of providing Mill as a build tool for Spring Boot applications, adapting the official Spring Boot documentation in increasing complexity.
 
@@ -11,18 +9,52 @@ include::partial$Spring_Header.adoc[]
 
 include::partial$example/springboot/java/1-web-initializr.adoc[]
 
-== Spring Boot Websockets with Spring Reactive Web
-
-include::partial$example/springboot/java/2-web-socket-initializr.adoc[]
 
 [#_spring_boot_hello_world_app]
 == Spring Boot Hello World App
 
-include::partial$example/javalib/web/2-hello-spring-boot.adoc[]
+include::partial$example/javalib/springboot/1-hello-spring-boot.adoc[]
 
 
-[#_spring_boot_todomvc_app]
 == Spring Boot TodoMvc App
 
 
-include::partial$example/javalib/web/3-todo-spring-boot.adoc[]
+include::partial$example/javalib/springboot/2-todo-spring-boot.adoc[]
+
+== Spring Boot Web with Initializr
+
+include::partial$example/javalib/springboot/3-web-initializr.adoc[]
+
+== Spring Boot Websockets with Spring Reactive Web
+
+include::partial$example/springboot/java/2-web-socket-initializr.adoc[]
+
+
+// Include this header in the entry page for the language-specific Spring Framework / Spring Boot page
+
+This page contains documentation and examples specific for Spring Framework and Spring Boot Projects.
+
+== General Information
+
+The Spring Framework and Spring Boot are JVM Runtime frameworks.
+What this means is that they provide all their features at runtime.
+
+The IoC container as the central core of the Spring Framework inspects the runtime environment at application startup.
+For that it uses mainly the classpath of the JVM.
+It collects all configurations, instantiates services and injects dependencies.
+Configurations can come from various places like Java Properties files, YAML files or Java `@Configuration` classes.
+
+The Spring Boot framework additionally scans the runtime classpath to auto-detect other frameworks and Spring Boot specific features. Based on it's finding it enables dedicated features. Additionally, you can configure Spring Boot programmatically and via configuration files.
+
+As a consequence, Spring projects typically don't need any special support from a build tool, which is nice, since you don't need to lean any new Mill-specific concepts when you want to use Mill for your Spring projects.
+Spring Boot is also not tied to use of Java. It is easily possible to use or mix different JVM languages in your Spring projects.
+
+Being a runtime framework also means, that most issues you may encounter like configuration problems, missing dependencies, dependency conflicts or unexpected application behavior, can't be easily detected at build-time. These often require inspection of the running or starting application and dealing with error messages and JVM stack traces. The use of a debugger can be sometimes necessary. When developing Spring projects, you should therefore also maintain a functional test suite.
+
+// That being said, there are some nice features a build tool can provide for Spring Framework / Spring Boot based projects.
+// TODO: list them here, once we have one
+
+Some tools provided by the Spring Boot project are also useful outside of Spring Boot projects, hence Mill makes them available even for non-Spring project. Those are linked below:
+
+* xref:{language-small}lib/publishing.adoc#_building_repackage_assemblies[`RepackageModule`] - Creates self-running application assemblies in a single-jar
+

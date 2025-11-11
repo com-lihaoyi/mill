@@ -2,8 +2,13 @@ package mill.api
 
 import mill.api.Logger
 import mill.api.Result
-import mill.api.daemon.internal.CompileProblemReporter
-import mill.api.daemon.internal.{NamedTaskApi, TaskApi, TestReporter}
+import mill.api.daemon.internal.{
+  CompileProblemReporter,
+  NamedTaskApi,
+  TaskApi,
+  TestReporter,
+  internal
+}
 import mill.api.internal.Applicative.Applyable
 import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.ReadWriter
@@ -289,9 +294,9 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
-  // The extra `(x: T) = null` parameter list is necessary to make type inference work
+  // The extra `(x: T = null)` parameter list is necessary to make type inference work
   // right, ensuring that `T` is fully inferred before implicit resolution starts
-  def Literal[T](s: String)(using
+  @internal def Stub[T]()(using
       x: T = null.asInstanceOf[T]
   )(using li: LiteralImplicit[T]): Task.Simple[T] = {
     assert(li.ctx != null, "Unable to resolve context")
@@ -302,12 +307,15 @@ object Task {
         PathRef
           .currentOverrideModulePath
           .withValue(li.ctx.enclosingModule.moduleCtx.millSourcePath) {
-            Result.Success(upickle.default.read[T](s)(using li.reader))
+            // Return null which will be overridden by buildOverrides
+            Result.Success(null.asInstanceOf[T])
           },
       li.ctx,
       li.writer,
       None
-    )
+    ) {
+      override def readWriterOpt = Some(upickle.ReadWriter.join(li.reader, li.writer))
+    }
   }
 
   class LiteralImplicit[T](
@@ -661,7 +669,18 @@ object Task {
     )(t: Expr[Result[T]])(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Worker[T]] = {
+      import quotes.reflect.*
+
       assertTaskShapeOwner("Task.Worker", 0)
+
+      // Warn if T does not extend AutoCloseable
+      if (!(TypeRepr.of[T] <:< TypeRepr.of[AutoCloseable])) {
+        report.warning(
+          s"Task.Worker body type ${TypeRepr.of[T].show} does not extend AutoCloseable. " +
+            "Workers should implement AutoCloseable to properly clean up resources when invalidated."
+        )
+      }
+
       val expr = appImpl[Worker, T](
         (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
         t

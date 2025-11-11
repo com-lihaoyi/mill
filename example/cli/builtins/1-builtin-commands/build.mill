@@ -382,10 +382,8 @@ javalib/basic/3-simple
 javalib/basic/10-realistic
 ...
 javalib/web/1-hello-jetty
-javalib/web/2-hello-spring-boot
-javalib/web/3-todo-spring-boot
-javalib/web/4-hello-micronaut
-javalib/web/5-todo-micronaut
+javalib/web/2-hello-micronaut
+javalib/web/3-todo-micronaut
 kotlinlib/basic/3-simple
 ...
 kotlinlib/basic/10-realistic

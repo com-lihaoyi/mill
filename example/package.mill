@@ -35,6 +35,7 @@ object `package` extends Module {
     object config extends Cross[ExampleCrossModuleJava](build.listCross)
     object script extends Cross[ExampleCrossModuleJava](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
+    object springboot extends Cross[ExampleCrossModule](build.listCross)
   }
   object kotlinlib extends Module {
     object basic extends Cross[ExampleCrossModuleKotlin](build.listCross)
@@ -46,10 +47,6 @@ object `package` extends Module {
     object config extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object script extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object web extends Cross[ExampleCrossModuleKotlin](build.listCross)
-  }
-  object springboot extends Module {
-    object java extends Cross[ExampleCrossModule](build.listCross)
-    object kotlin extends Cross[ExampleCrossModule](build.listCross)
   }
   object scalalib extends Module {
     object basic extends Cross[ExampleCrossModule](build.listCross)

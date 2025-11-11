@@ -1,8 +1,6 @@
 package mill.scalalib
 
-import mill.api.ExecResult
 import mill.testkit.UnitTester
-import sbt.testing.Status
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -20,11 +18,10 @@ object TestRunnerTests extends TestSuite {
           outStream = new PrintStream(outStream, true),
           sourceRoot = resourcePath
         ).scoped { eval =>
-          val Left(ExecResult.Failure(msg)) =
-            eval(testrunner.doneMessageFailure.testForked()): @unchecked
+          val Right(UnitTester.Result(("test failure done message", Nil), 90)) =
+            eval.apply(testrunner.doneMessageFailure.testForked()): @unchecked
           val stdout = new String(outStream.toByteArray)
           assert(stdout.contains("test failure done message"))
-          junitReportIn(eval.outPath, "doneMessageFailure").shouldHave(1 -> Status.Failure)
         }
       }
 

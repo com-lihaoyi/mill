@@ -20,6 +20,7 @@ object CodeGen {
       allScriptCode: Map[os.Path, String],
       wrappedDest: os.Path,
       supportDest: os.Path,
+      resourceDest: os.Path,
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
       parser: MillScalaParser
@@ -94,19 +95,60 @@ object CodeGen {
               |import _root_.mill.util.TokenReaders.given
               |""".stripMargin
 
-        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
-
-        def renderTemplate(prefix: String, data: HeaderData): String = {
-          val extendsConfig = data.`extends`
-          val definitions =
-            for {
-              (kString, v) <- data.rest
-              if !kString.startsWith("mill-")
-            } yield kString.split(" +") match {
-              case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
-              case Array("object", k) =>
-                renderTemplate(s"object $k", upickle.read[HeaderData](v))
+        def processDataRest[T](data: HeaderData)(
+            onProperty: String => T,
+            onNestedObject: (String, HeaderData) => T
+        ): Seq[T] = {
+          for ((kString, v) <- data.rest.toSeq if !kString.startsWith("mill-"))
+            yield kString.split(" +") match {
+              case Array(k) => onProperty(k)
+              case Array("object", k) => onNestedObject(k, upickle.read[HeaderData](v))
             }
+        }
+
+        def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
+          val buildOverridesJson = upickle.write(data.rest)
+          val resourcePath = resourceDest / path / "build-overrides.json"
+          os.write.over(resourcePath, buildOverridesJson, createFolders = true)
+
+          processDataRest(data)(
+            onProperty = _ => (),
+            onNestedObject = (k, nestedData) => writeBuildOverrides(nestedData, path :+ k)
+          )
+        }
+
+        writeBuildOverrides(parsedHeaderData, segments)
+
+        val miscInfoWithResource = {
+          val header = if (pkg.isBlank()) "" else s"package $pkg"
+          val miscInfoBody = if (segments.isEmpty) {
+            rootMiscInfo(scriptFolderPath, millTopLevelProjectRoot, output)
+          } else {
+            subfolderMiscInfo(scriptFolderPath, segments)
+          }
+          s"""|$generatedFileHeader
+              |$header
+              |
+              |$miscInfoBody
+              |""".stripMargin
+        }
+        os.write.over(
+          supportDestDir / "MillMiscInfo.scala",
+          miscInfoWithResource,
+          createFolders = true
+        )
+
+        def renderTemplate(
+            prefix: String,
+            data: HeaderData,
+            path: Seq[String]
+        ): String = {
+          val extendsConfig = data.`extends`
+          val definitions = processDataRest(data)(
+            onProperty = k => s"override def $k = Task.Stub()",
+            onNestedObject = (k, nestedData) =>
+              renderTemplate(s"object $k", nestedData, path :+ k)
+          )
 
           val moduleDepsSnippet =
             if (data.moduleDeps.isEmpty) ""
@@ -143,11 +185,11 @@ object CodeGen {
              |$aliasImports
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-             |object package_ extends $newParent, package_{
+             |object package_ extends $newParent, package_ {
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
              |  $childAliases
              |}
-             |${renderTemplate("trait package_", parsedHeaderData)}
+             |${renderTemplate("trait package_", parsedHeaderData, segments)}
              |""".stripMargin,
           createFolders = true
         )
@@ -400,7 +442,7 @@ object CodeGen {
       output: os.Path
   ): String = {
     s"""|@_root_.scala.annotation.nowarn
-        |object MillMiscInfo 
+        |object MillMiscInfo
         |    extends mill.api.internal.RootModule.Info(
         |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
         |  output0 = ${literalize(output.toString)},
