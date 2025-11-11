@@ -103,10 +103,6 @@ trait MillBuildRootModule()(using
     generatedScriptSources().support
   }
 
-  override def resources: T[Seq[PathRef]] = Task {
-    super.resources() ++ generatedScriptSources().resources
-  }
-
   /**
    * Additional script files, we generate, since not all Mill source
    * files (`*.mill` can be fed to the compiler as-is.
@@ -142,11 +138,23 @@ trait MillBuildRootModule()(using
   }
 
   def millBuildRootModuleResult = Task {
-    Tuple3(
-      runClasspath(),
-      compile().classes,
-      codeSignatures()
-    )
+    val buildOverrides: Map[String, String] = generatedScriptSources()
+      .resources
+      .map(_.path)
+      .filter(os.exists(_))
+      .flatMap { root =>
+        os.walk(root)
+          .filter(_.last == "build-overrides.json")
+          .flatMap { p =>
+            upickle.read[Map[String, ujson.Value]](os.read(p)).map { case (k, v) =>
+              (p.relativeTo(root).segments.dropRight(1).map(s => s"$s.").mkString + k, v.toString)
+            }
+          }
+      }
+      .toMap
+
+
+    Tuple4(runClasspath(), compile().classes, codeSignatures(), buildOverrides)
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {

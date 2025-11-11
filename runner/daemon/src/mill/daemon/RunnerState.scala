@@ -69,7 +69,8 @@ object RunnerState {
       classLoaderOpt: Option[MillURLClassLoader],
       runClasspath: Seq[PathRefApi],
       compileOutput: Option[PathRefApi],
-      evaluator: Option[EvaluatorApi]
+      evaluator: Option[EvaluatorApi],
+      buildOverrides: Map[String, ujson.Value]
   ) {
 
     def loggedData: Frame.Logged = {
@@ -111,7 +112,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map())
   }
 
 }

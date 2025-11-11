@@ -173,12 +173,7 @@ class MillBuildBootstrap(
 
                   mill.api.ExecResult.catchWrapException {
                     new MillBuildRootModule.BootstrapModule()(
-                      using
-                      new RootModule.Info(
-                        currentRoot,
-                        output,
-                        projectRoot
-                      )
+                      using new RootModule.Info(currentRoot, output, projectRoot)
                     )
                   } match {
                     case Result.Success(bootstrapModule) =>
@@ -239,7 +234,8 @@ class MillBuildBootstrap(
             // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
             // mainly because we didn't even construct (compile) its classpath
             None,
-            None
+            None,
+            Map()
           )
           nestedState.add(frame = evalState, errorOpt = None)
         } else {
@@ -290,7 +286,9 @@ class MillBuildBootstrap(
                 depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
-                buildOverrides = nestedState.buildOverrides
+                buildOverrides =
+                  if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule]) nestedState.buildOverrides
+                  else nestedState.frames.lastOption.fold(Map())(_.buildOverrides)
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -347,16 +345,18 @@ class MillBuildBootstrap(
           None,
           Nil,
           None,
-          Option(evaluator)
+          Option(evaluator),
+          Map()
         )
 
         nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Result.Success(Seq(Tuple3(
+            Result.Success(Seq(Tuple4(
               runClasspath: Seq[PathRefApi],
               compileClasses: PathRefApi,
-              codeSignatures: Map[String, Int]
+              codeSignatures: Map[String, Int],
+              buildOverrides0: Map[String, String]
             ))),
             evalWatches,
             moduleWatches
@@ -405,7 +405,8 @@ class MillBuildBootstrap(
           Some(classLoader),
           runClasspath,
           Some(compileClasses),
-          Option(evaluator)
+          Option(evaluator),
+          buildOverrides0.map{case (k, v) => (k, ujson.read(v))}
         )
 
         nestedState.add(frame = evalState)
@@ -442,7 +443,8 @@ class MillBuildBootstrap(
       None,
       Nil,
       None,
-      Option(evaluator)
+      Option(evaluator),
+      Map()
     )
 
     nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
@@ -511,11 +513,11 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
-        buildOverrides,
+        buildOverrides.map{case (k, v) => (k, v.toString)},
         enableTicker,
       ),
       scriptInitCls.getField("MODULE$").get(null),
-      buildOverrides
+      buildOverrides.map{case (k, v) => (k, v.toString)}
     ).asInstanceOf[EvaluatorApi]
 
     evaluator

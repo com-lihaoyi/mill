@@ -137,7 +137,7 @@ class UnitTester(
     getEvaluator = () => evaluator,
     offline = offline,
     enableTicker = false,
-    buildOverrides = Map()
+    buildOverrides0 = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
@@ -145,7 +145,7 @@ class UnitTester(
     selectiveExecution = false,
     execution = execution,
     scriptModuleResolver = (_, _) => Nil,
-    buildOverrides = Map()
+    buildOverrides0 = Map()
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {

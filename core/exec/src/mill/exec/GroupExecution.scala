@@ -37,7 +37,8 @@ trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
-  def buildOverrides: Map[String, ujson.Value]
+  def buildOverrides0: Map[String, String]
+  val buildOverrides = buildOverrides0.map{case (k, v) => (k, ujson.read(v))}
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
