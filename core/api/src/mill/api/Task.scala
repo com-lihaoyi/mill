@@ -303,13 +303,7 @@ object Task {
     assert(li.writer != null, "Unable to resolve JSON writer")
     assert(li.reader != null, "Unable to resolve JSON reader")
     new Task.Input[T](
-      (_, _) =>
-        PathRef
-          .currentOverrideModulePath
-          .withValue(li.ctx.enclosingModule.moduleCtx.millSourcePath) {
-            // Return null which will be overridden by buildOverrides
-            Result.Success(null.asInstanceOf[T])
-          },
+      (_, _) => throw new Exception("Not implemented"),
       li.ctx,
       li.writer,
       None
