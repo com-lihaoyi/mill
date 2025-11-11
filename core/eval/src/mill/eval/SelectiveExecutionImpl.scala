@@ -237,7 +237,11 @@ object SelectiveExecutionImpl {
         new SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
-          SelectiveExecution.getBuildOverrideSignatures(transitiveNamed, evaluator.buildOverrides)
+          SelectiveExecution.getBuildOverrideSignatures(
+            transitiveNamed,
+            evaluator.buildOverrides ++
+              transitiveNamed.flatMap(_.ctx.enclosingModule.moduleBuildOverrides)
+          )
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

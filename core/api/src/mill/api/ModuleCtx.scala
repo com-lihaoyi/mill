@@ -43,6 +43,7 @@ object ModuleCtx extends LowPriCtx {
     def moduleSegments: Segments = moduleCtx.segments
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
+    private[mill] def moduleBuildOverrides: Map[String, ujson.Value] = Map()
   }
 
   private[mill] case class HeaderData(

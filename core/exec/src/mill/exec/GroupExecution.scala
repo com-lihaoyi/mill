@@ -120,7 +120,9 @@ trait GroupExecution {
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
-        buildOverrides.get(labelled.ctx.segments.render) match {
+        val moduleBuildOverride = labelled.ctx.enclosingModule.moduleBuildOverrides
+        buildOverrides.get(labelled.ctx.segments.render)
+          .orElse(moduleBuildOverride.get(labelled.ctx.segments.render)) match {
 
           case Some(jsonData) => // apply build override
             val (execRes, serializedPaths) =
