@@ -61,3 +61,38 @@ If you want to start with an example project, you can use the `init` command as 
 You can use Android Studio to open and work with your Mill project.
 
 image::android/AndroidStudio.png[AndroidStudio.png]
+
+== 5. Run your application on an Android Virtual Device (AVD)
+
+
+Create an Android Virtual Device (AVD):
+[source,console]
+----
+> ./mill app.createAndroidVirtualDevice
+----
+
+Start the Android Emulator:
+[source,console]
+----
+# Run with default arguments
+> ./mill app.startAndroidEmulator
+
+# Run with additional arguments
+> ./mill app.startAndroidEmulator -noaudio
+
+# Exclude default arguments
+> ./mill app.startAndroidEmulator --excludeDefaultArgs -avd test_avd
+----
+
+Install your application on the running emulator:
+[source,console]
+----
+> ./mill app.androidInstall
+----
+
+When done, you can stop and delete the AVD:
+[source,console]
+----
+> ./mill app.stopAndroidEmulator
+> ./mill app.deleteAndroidVirtualDevice
+----
