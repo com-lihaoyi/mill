@@ -302,21 +302,17 @@ object Task {
     assert(li.ctx != null, "Unable to resolve context")
     assert(li.writer != null, "Unable to resolve JSON writer")
     assert(li.reader != null, "Unable to resolve JSON reader")
-    new Task.Input[T](
-      (_, _) =>
-        PathRef
-          .currentOverrideModulePath
-          .withValue(li.ctx.enclosingModule.moduleCtx.millSourcePath) {
-            // Return null which will be overridden by buildOverrides
-            Result.Success(null.asInstanceOf[T])
-          },
-      li.ctx,
-      li.writer,
-      None
-    ) {
-      override def readWriterOpt = Some(upickle.ReadWriter.join(li.reader, li.writer))
-    }
+    new Stub(li)
   }
+
+  @internal class Stub[T](li: LiteralImplicit[T]) extends Task.Computed[T](
+        Nil,
+        (_, _) => Result.Failure("Not implemented"),
+        li.ctx,
+        upickle.ReadWriter.join(li.reader, li.writer),
+        None,
+        false
+      )
 
   class LiteralImplicit[T](
       val reader: upickle.default.Reader[T],

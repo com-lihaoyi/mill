@@ -109,19 +109,12 @@ object Watching {
     val watchedValueStr =
       if (watchedValueCount == 0) "" else s" and $watchedValueCount other values"
 
-    log {
-      val viaFsNotify = if (watchArgs.useNotify) " (via fsnotify)" else ""
-      watchArgs.colors.info(
-        s"Watching for changes to ${watchedPathsSeq.size} paths$viaFsNotify$watchedValueStr...$extraMessage"
-      ).toString
-    }
+    val msg =
+      s"Watching for changes to ${watchedPathsSeq.size} paths$watchedValueStr...$extraMessage"
+    log(watchArgs.colors.info(msg).toString)
 
     def doWatch(notifiablesChanged: () => Boolean) =
-      statWatchWait(
-        watchedValues,
-        notifiablesChanged,
-        sideChannel
-      )
+      statWatchWait(watchedValues, notifiablesChanged, sideChannel)
 
     def doWatchPolling() =
       doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !haveNotChanged(p)))
@@ -240,8 +233,7 @@ object Watching {
       )
     }
 
-    if (watchArgs.useNotify) doWatchFsNotify()
-    else doWatchPolling()
+    if (watchArgs.useNotify) doWatchFsNotify() else doWatchPolling()
   }
 
   /**

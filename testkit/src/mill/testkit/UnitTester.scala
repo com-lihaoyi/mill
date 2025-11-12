@@ -136,7 +136,8 @@ class UnitTester(
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
-    enableTicker = false
+    enableTicker = false,
+    buildOverrides0 = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

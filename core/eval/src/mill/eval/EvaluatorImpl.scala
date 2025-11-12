@@ -25,8 +25,13 @@ final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
-    scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]]
+    private[mill] override val scriptModuleResolver: (
+        String,
+        String => Option[Module]
+    ) => Seq[Result[ExternalModule]]
 ) extends Evaluator {
+
+  override val staticBuildOverrides = execution.staticBuildOverrides
 
   private[mill] def workspace = execution.workspace
   private[mill] def baseLogger = execution.baseLogger
@@ -238,15 +243,19 @@ final class EvaluatorImpl private[mill] (
       .toSeq
 
     maybeNewMetadata.foreach { newMetadata =>
-      val allInputHashes = newMetadata.inputHashes
+      val enclosingModules = PlanImpl
+        .plan(tasks)
+        .transitive
+        .collect { case n: Task.Named[_] => n.ctx.enclosingModule }
+        .distinct
+
+      val scriptBuildOverrides = enclosingModules.flatMap(_.moduleDynamicBuildOverrides)
+
+      val allBuildOverrides = (staticBuildOverrides ++ scriptBuildOverrides)
+        .map { case (k, v) => (k, v.##) }
+
       this.selective.saveMetadata(
-        SelectiveExecution.Metadata(
-          allInputHashes,
-          codeSignatures,
-          SelectiveExecution.getBuildOverrideSignatures(tasks.collect { case n: Task.Named[_] =>
-            n
-          })
-        )
+        SelectiveExecution.Metadata(newMetadata.inputHashes, codeSignatures, allBuildOverrides)
       )
     }
 
