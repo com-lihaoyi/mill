@@ -22,7 +22,6 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app
     extends AndroidAppKotlinModule,
       AndroidR8AppModule,
-      AndroidBuildConfig,
       AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
