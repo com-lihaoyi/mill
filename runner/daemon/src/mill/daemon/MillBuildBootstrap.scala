@@ -112,14 +112,16 @@ class MillBuildBootstrap(
                     frames,
                     Some(error),
                     None,
-                    bootstrapEvalWatched
+                    bootstrapEvalWatched,
+                    staticBuildOverrides
                   ) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(
                   bootstrapModuleOpt,
                   frames,
                   Some(msg + "\n" + error),
-                  bootstrapEvalWatched = bootstrapEvalWatched
+                  bootstrapEvalWatched = bootstrapEvalWatched,
+                  staticBuildOverrides = Map()
                 )
               case state => state
             }
@@ -150,35 +152,37 @@ class MillBuildBootstrap(
                     Nil,
                     Some(msg),
                     Some(foundRootBuildFileName),
-                    Seq(bootstrapEvalWatched)
+                    Seq(bootstrapEvalWatched),
+                    Map()
                   )
-                case Result.Success(parsedHeaderData) =>
-                  val metaBuildData =
+                case Result.Success(buildOverrides0) =>
+                  val staticBuildOverrides =
                     if (
-                      foundRootBuildFileName.endsWith(".yaml") || foundRootBuildFileName.endsWith(
-                        ".yml"
-                      )
+                      foundRootBuildFileName.endsWith(".yaml") ||
+                      foundRootBuildFileName.endsWith(".yml")
                     ) {
                       // For YAML files, extract the mill-build key if it exists, otherwise use empty map
-                      parsedHeaderData.obj.get("mill-build") match {
+                      buildOverrides0.obj.get("mill-build") match {
                         case Some(millBuildValue: ujson.Obj) => millBuildValue
                         case _ => ujson.Obj()
                       }
                     } else {
                       // For non-YAML files (build.mill), use the entire parsed header data
-                      parsedHeaderData
+                      buildOverrides0
                     }
+
                   mill.api.ExecResult.catchWrapException {
-                    new MillBuildRootModule.BootstrapModule(
-                      upickle.read[Map[String, ujson.Value]](metaBuildData)
-                    )(
-                      using
-                      new RootModule.Info(
-                        currentRoot,
-                        output,
-                        projectRoot
-                      )
+                    val bootstrapModule = new MillBuildRootModule.BootstrapModule()(
+                      using new RootModule.Info(currentRoot, output, projectRoot)
                     )
+
+                    mill.internal.Util.validateBuildHeaderKeys(
+                      staticBuildOverrides.obj.keys.toSet,
+                      bootstrapModule.millDiscover.allTaskNames,
+                      os.sub / foundRootBuildFileName
+                    )
+
+                    bootstrapModule
                   } match {
                     case Result.Success(bootstrapModule) =>
                       RunnerState(
@@ -186,7 +190,8 @@ class MillBuildBootstrap(
                         Nil,
                         None,
                         Some(foundRootBuildFileName),
-                        Seq(bootstrapEvalWatched)
+                        Seq(bootstrapEvalWatched),
+                        upickle.read[Map[String, ujson.Value]](staticBuildOverrides)
                       )
                     case Result.Failure(msg) =>
                       RunnerState(
@@ -194,7 +199,8 @@ class MillBuildBootstrap(
                         Nil,
                         Some(msg),
                         Some(foundRootBuildFileName),
-                        Seq(bootstrapEvalWatched)
+                        Seq(bootstrapEvalWatched),
+                        Map()
                       )
                   }
               }
@@ -236,7 +242,8 @@ class MillBuildBootstrap(
             // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
             // mainly because we didn't even construct (compile) its classpath
             None,
-            None
+            None,
+            Map()
           )
           nestedState.add(frame = evalState, errorOpt = None)
         } else {
@@ -284,7 +291,11 @@ class MillBuildBootstrap(
                   .getOrElse(0),
                 depth,
                 actualBuildFileName = nestedState.buildFile,
-                enableTicker = enableTicker
+                enableTicker = enableTicker,
+                staticBuildOverrides =
+                  if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
+                    nestedState.staticBuildOverrides
+                  else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -341,16 +352,18 @@ class MillBuildBootstrap(
           None,
           Nil,
           None,
-          Option(evaluator)
+          Option(evaluator),
+          Map()
         )
 
         nestedState.add(frame = evalState, errorOpt = Some(error))
 
       case (
-            Result.Success(Seq(Tuple3(
+            Result.Success(Seq(Tuple4(
               runClasspath: Seq[PathRefApi],
               compileClasses: PathRefApi,
-              codeSignatures: Map[String, Int]
+              codeSignatures: Map[String, Int],
+              buildOverrides0: Map[String, String]
             ))),
             evalWatches,
             moduleWatches
@@ -399,7 +412,8 @@ class MillBuildBootstrap(
           Some(classLoader),
           runClasspath,
           Some(compileClasses),
-          Option(evaluator)
+          Option(evaluator),
+          buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
         )
 
         nestedState.add(frame = evalState)
@@ -436,7 +450,8 @@ class MillBuildBootstrap(
       None,
       Nil,
       None,
-      Option(evaluator)
+      Option(evaluator),
+      Map()
     )
 
     nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
@@ -466,7 +481,8 @@ object MillBuildBootstrap {
       millClassloaderIdentityHash: Int,
       depth: Int,
       actualBuildFileName: Option[String] = None,
-      enableTicker: Boolean
+      enableTicker: Boolean,
+      staticBuildOverrides: Map[String, ujson.Value]
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -481,7 +497,7 @@ object MillBuildBootstrap {
     val cl = rootModule.getClass.getClassLoader
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
-    val scriptInitCls = cl.loadClass("mill.script.ScriptModuleInit$")
+    val scriptInitCls = cl.loadClass("mill.script.ScriptModuleInit")
     lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
       allowPositionalCommandArgs,
       selectiveExecution,
@@ -504,9 +520,10 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
+        staticBuildOverrides.map { case (k, v) => (k, v.toString) },
         enableTicker
       ),
-      scriptInitCls.getField("MODULE$").get(null)
+      scriptInitCls.getConstructor().newInstance()
     ).asInstanceOf[EvaluatorApi]
 
     evaluator

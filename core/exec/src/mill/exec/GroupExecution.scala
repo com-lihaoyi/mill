@@ -37,6 +37,8 @@ trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
+  def buildOverrides0: Map[String, String]
+  val staticBuildOverrides = buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -118,11 +120,11 @@ trait GroupExecution {
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
-        labelled.ctx.segments.last.value match {
-          // apply build override
-          case single if labelled.ctx.enclosingModule.moduleBuildOverrides.contains(single) =>
+        val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
+        staticBuildOverrides.get(labelled.ctx.segments.render)
+          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
-            val jsonData = labelled.ctx.enclosingModule.moduleBuildOverrides(single)
+          case Some(jsonData) => // apply build override
             val (execRes, serializedPaths) =
               try {
                 val (resultData, serializedPaths) = PathRef.withSerializedPaths {
@@ -158,8 +160,7 @@ trait GroupExecution {
               serializedPaths = serializedPaths
             )
 
-          // no build overrides
-          case _ =>
+          case None => // no build overrides
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
             // `cached.isEmpty` means worker metadata file removed by user so recompute the worker

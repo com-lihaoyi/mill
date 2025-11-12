@@ -138,16 +138,11 @@ object CodeGen {
           createFolders = true
         )
 
-        def renderTemplate(
-            prefix: String,
-            data: HeaderData,
-            path: Seq[String]
-        ): String = {
+        def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`
           val definitions = processDataRest(data)(
             onProperty = k => s"override def $k = Task.Stub()",
-            onNestedObject = (k, nestedData) =>
-              renderTemplate(s"object $k", nestedData, path :+ k)
+            onNestedObject = (k, nestedData) => renderTemplate(s"object $k", nestedData, path :+ k)
           )
 
           val moduleDepsSnippet =

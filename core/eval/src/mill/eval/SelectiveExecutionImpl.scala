@@ -210,6 +210,10 @@ object SelectiveExecutionImpl {
         evaluator: Evaluator,
         transitiveNamed: Seq[Task.Named[?]]
     ): SelectiveExecution.Metadata.Computed = {
+      val allBuildOverrides =
+        evaluator.staticBuildOverrides ++
+          transitiveNamed.flatMap(_.ctx.enclosingModule.moduleDynamicBuildOverrides)
+
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>
           val ctx = new mill.api.TaskCtx.Impl(
@@ -226,7 +230,17 @@ object SelectiveExecutionImpl {
             jobs = evaluator.effectiveThreadCount,
             offline = evaluator.offline
           )
-          task -> task.evaluate(ctx).map(Val(_))
+          val result: Result[Val] = allBuildOverrides.get(task.ctx.segments.render) match {
+            case None => task.evaluate(ctx).map(Val(_))
+            case Some(v) => mill.api.Result.create(Val(
+                upickle.read(v)(
+                  using
+                  task.asInstanceOf[Task.Stub[_]].readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+                )
+              ))
+          }
+
+          task -> result
         }
         .toMap
 
@@ -237,7 +251,7 @@ object SelectiveExecutionImpl {
         new SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
-          SelectiveExecution.getBuildOverrideSignatures(transitiveNamed)
+          allBuildOverrides.map { case (k, v) => (k, v.##) }
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

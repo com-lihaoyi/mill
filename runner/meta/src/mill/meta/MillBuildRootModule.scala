@@ -103,10 +103,6 @@ trait MillBuildRootModule()(using
     generatedScriptSources().support
   }
 
-  override def resources: T[Seq[PathRef]] = Task {
-    super.resources() ++ generatedScriptSources().resources
-  }
-
   /**
    * Additional script files, we generate, since not all Mill source
    * files (`*.mill` can be fed to the compiler as-is.
@@ -142,11 +138,22 @@ trait MillBuildRootModule()(using
   }
 
   def millBuildRootModuleResult = Task {
-    Tuple3(
-      runClasspath(),
-      compile().classes,
-      codeSignatures()
-    )
+    val staticBuildOverrides: Map[String, String] = generatedScriptSources()
+      .resources
+      .map(_.path)
+      .filter(os.exists(_))
+      .flatMap { root =>
+        os.walk(root)
+          .filter(_.last == "build-overrides.json")
+          .flatMap { p =>
+            upickle.read[Map[String, ujson.Value]](os.read(p)).map { case (k, v) =>
+              (p.relativeTo(root).segments.dropRight(1).map(s => s"$s.").mkString + k, v.toString)
+            }
+          }
+      }
+      .toMap
+
+    Tuple4(runClasspath(), compile().classes, codeSignatures(), staticBuildOverrides)
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
@@ -337,14 +344,6 @@ trait MillBuildRootModule()(using
   }
 
   def millDiscover: Discover
-
-  for (scriptSourcesPath <- scriptSourcesPaths.headOption) {
-    mill.internal.Util.validateBuildHeaderKeys(
-      moduleBuildOverrides.keySet,
-      millDiscover.allTaskNames,
-      scriptSourcesPath.subRelativeTo(BuildCtx.workspaceRoot)
-    )
-  }
 }
 
 object MillBuildRootModule {
@@ -383,7 +382,7 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule(override val moduleBuildOverrides: Map[String, ujson.Value])(using
+  class BootstrapModule()(using
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
