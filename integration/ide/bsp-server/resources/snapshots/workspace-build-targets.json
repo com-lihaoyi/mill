@@ -640,6 +640,35 @@
     },
     {
       "id": {
+        "uri": "file:///workspace/scripts/folder2/FooTest.java"
+      },
+      "displayName": "./scripts/folder2/FooTest.java",
+      "baseDirectory": "file:///workspace/scripts/folder2/FooTest.java",
+      "tags": [
+        "test"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [
+        {
+          "uri": "file:///workspace/scripts/folder2/Foo.java"
+        }
+      ],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": true,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "21.0.8"
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/scripts/foldershared/Foo.java"
       },
       "displayName": "./scripts/foldershared/Foo.java",

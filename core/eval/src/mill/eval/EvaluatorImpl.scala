@@ -25,7 +25,7 @@ final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
-    scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]]
+    private[mill] val scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]]
 ) extends Evaluator {
 
   val staticBuildOverrides = execution.staticBuildOverrides

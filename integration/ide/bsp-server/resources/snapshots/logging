@@ -17,7 +17,6 @@
 [bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
 [2-workspaceBuildTargets] Evaluating * tasks
 [2-workspaceBuildTargets] Done
-[2-workspaceBuildTargets] Request 'workspaceBuildTargets' failed for file:///workspace/scripts/folder2/FooTest.java: java.util.NoSuchElementException: key not found: ./scripts/folder2/Foo.java
 [2-workspaceBuildTargets] Evaluating 1 task
 [2-workspaceBuildTargets] Done
 [2-workspaceBuildTargets] Evaluating 1 task
