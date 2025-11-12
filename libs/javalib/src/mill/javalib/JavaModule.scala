@@ -29,7 +29,6 @@ import mill.util.{JarManifest, Jvm}
 import os.Path
 
 import java.io.File
-import java.nio.file.Files
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
