@@ -86,6 +86,8 @@ trait JavaModule
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
+    override def annotationProcessorsJavacOptions: T[Seq[String]] =
+      outer.annotationProcessorsJavacOptions()
     override def javacOptions = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
@@ -295,18 +297,9 @@ trait JavaModule
   }
 
   /**
-   * Arguments for annotation processor to pass to [[javacOptions]]
-   */
-  def annotationProcessorArgs: T[Seq[String]] = Task {
-    Seq.empty[String]
-  }
-
-  /**
    * Options to pass to the java compiler
    */
-  override def javacOptions: T[Seq[String]] = Task {
-    annotationProcessorsJavacOptions() ++ annotationProcessorArgs()
-  }
+  override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Additional options for the java compiler derived from other module settings.
@@ -906,7 +899,7 @@ trait JavaModule
     val jOpts = JavaCompilerOptions.split(Seq(
       "-s",
       compileGenSources.toString
-    ) ++ javacOptions() ++ mandatoryJavacOptions())
+    ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
 
     val worker = jvmWorker().internalWorker()
 
@@ -1600,6 +1593,8 @@ object JavaModule {
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
+    override def annotationProcessorsJavacOptions: T[Seq[String]] =
+      outer.annotationProcessorsJavacOptions()
     override def javacOptions = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 

@@ -53,7 +53,7 @@ trait MicronautModule extends MavenModule {
     mvn"io.micronaut:micronaut-inject-java"
   )
 
-  override def annotationProcessorArgs = Seq(
+  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
     "-Amicronaut.processing.module=todo",
