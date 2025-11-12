@@ -14,7 +14,7 @@ import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileMixed}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -103,6 +103,10 @@ trait MillBuildRootModule()(using
     generatedScriptSources().support
   }
 
+  override def resources: T[Seq[PathRef]] = Task {
+    super.resources() ++ generatedScriptSources().resources
+  }
+
   /**
    * Additional script files, we generate, since not all Mill source
    * files (`*.mill` can be fed to the compiler as-is.
@@ -110,9 +114,11 @@ trait MillBuildRootModule()(using
    * The `wrapped` files aren't supposed to appear under [[generatedSources]] and [[allSources]],
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
    */
-  def generatedScriptSources: T[(wrapped: Seq[PathRef], support: Seq[PathRef])] = Task {
+  def generatedScriptSources
+      : T[(wrapped: Seq[PathRef], support: Seq[PathRef], resources: Seq[PathRef])] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
+    val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
@@ -122,11 +128,16 @@ trait MillBuildRootModule()(using
         parsed.seenScripts,
         wrapped,
         support,
+        resources,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
         MillScalaParser.current.value
       )
-      (wrapped = Seq(PathRef(wrapped)), support = Seq(PathRef(support)))
+      (
+        wrapped = Seq(PathRef(wrapped)),
+        support = Seq(PathRef(support)),
+        resources = Seq(PathRef(resources))
+      )
     }
   }
 
@@ -288,49 +299,48 @@ trait MillBuildRootModule()(using
     }
 
     // copied from `ScalaModule`
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
-    jvmWorker()
-      .internalWorker()
-      .compileMixed(
-        ZincCompileMixed(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = Seq.from(allSourceFiles().map(_.path)),
-          compileClasspath = compileClasspath().map(_.path),
-          javacOptions = jOpts.compiler,
-          scalaVersion = scalaVersion(),
-          scalaOrganization = scalaOrganization(),
-          scalacOptions = allScalacOptions(),
-          compilerClasspath = scalaCompilerClasspath(),
-          scalacPluginClasspath = scalacPluginClasspath(),
-          incrementalCompilation = zincIncrementalCompilation(),
-          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      ).map {
-        res =>
-          // Perform the line-number updating in a copy of the classfiles, because
-          // mangling the original class files messes up zinc incremental compilation
-          val transformedClasses = Task.dest / "transformed-classes"
-          os.remove.all(transformedClasses)
-          os.copy(res.classes.path, transformedClasses)
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val worker = jvmWorker().internalWorker()
+    worker.apply(
+      ZincOp.CompileMixed(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = Seq.from(allSourceFiles().map(_.path)),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = jOpts.compiler,
+        scalaVersion = scalaVersion(),
+        scalaOrganization = scalaOrganization(),
+        scalacOptions = allScalacOptions(),
+        compilerClasspath = scalaCompilerClasspath(),
+        scalacPluginClasspath = scalacPluginClasspath(),
+        incrementalCompilation = zincIncrementalCompilation(),
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    ).map {
+      res =>
+        // Perform the line-number updating in a copy of the classfiles, because
+        // mangling the original class files messes up zinc incremental compilation
+        val transformedClasses = Task.dest / "transformed-classes"
+        os.remove.all(transformedClasses)
+        os.copy(res.classes.path, transformedClasses)
 
-          MillBuildRootModule.updateLineNumbers(
-            transformedClasses,
-            generatedScriptSources().wrapped.head.path
-          )
+        MillBuildRootModule.updateLineNumbers(
+          transformedClasses,
+          generatedScriptSources().wrapped.head.path
+        )
 
-          res.copy(classes = PathRef(transformedClasses))
-      }
+        res.copy(classes = PathRef(transformedClasses))
+    }
   }
 
   def millDiscover: Discover
 
   for (scriptSourcesPath <- scriptSourcesPaths.headOption) {
     mill.internal.Util.validateBuildHeaderKeys(
-      buildOverrides.keySet,
+      moduleBuildOverrides.keySet,
       millDiscover.allTaskNames,
       scriptSourcesPath.subRelativeTo(BuildCtx.workspaceRoot)
     )
@@ -373,7 +383,7 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule()(using
+  class BootstrapModule(override val moduleBuildOverrides: Map[String, ujson.Value])(using
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]

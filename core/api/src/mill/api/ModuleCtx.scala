@@ -40,10 +40,10 @@ trait ModuleCtx extends ModuleCtx.Nested {
 
 object ModuleCtx extends LowPriCtx {
   trait Wrapper {
+    def moduleSegments: Segments = moduleCtx.segments
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
-    private[mill] def buildOverrides: Map[String, ujson.Value] = Map()
-    private[mill] def buildOverridePaths: Seq[os.Path] = Nil
+    private[mill] def moduleBuildOverrides: Map[String, ujson.Value] = Map()
   }
 
   private[mill] case class HeaderData(

@@ -14,6 +14,9 @@ object `package` extends ScoverageModule {
     mvn"com.lihaoyi::mainargs:0.7.7"
   )
 
+  def statementCoverageMin = Some(10.00)
+  def branchCoverageMin = Some(90.00)
+
   object test extends ScoverageTests /*with TestModule.Utest */ {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
     def testFramework = "utest.runner.Framework"
@@ -50,9 +53,24 @@ scoverage.xmlCoberturaReport
 ...
 scoverage.xmlReport
 ...
+scoverage.validateCoverageMinimums
+
+> ./mill scoverage.validateCoverageMinimums
+...
+Coverage Minimums Met. Minimums set: {Statements: 10.00% Branches: 90.00%}
+Statement coverage.: 10.53%
+Branch coverage....: 100.00%
 
 > ./mill scoverage.consoleReport
 ...
 Statement coverage.: 10.53%
 Branch coverage....: 100.00%
+
+> sed -i 's/10.00/15.00/' build.mill
+
+> ./mill scoverage.validateCoverageMinimums
+error: Exception while validating coverage minimums. Coverage minimums violated:
+error: This project's statement coverage (10.53) did not meet the minimum desired by the project. (15.0)
+error: 1 tasks failed
+
 */

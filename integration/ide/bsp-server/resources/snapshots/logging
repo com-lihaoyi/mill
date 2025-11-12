@@ -3,12 +3,12 @@
 [1-buildInitialize] Entered buildInitialize
 [1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 [1-buildInitialize] buildInitialize took * msec
-[bsp-init-mill-build/build.mill-59] [info] compiling * Scala sources to * ...
-[bsp-init-mill-build/build.mill-59] [info] done compiling
-[bsp-init-build.mill-59] [info] compiling * Scala sources to * ...
-[bsp-init-build.mill-59] [info] done compiling
-[bsp-init-106] [info] compiling * Scala source to * ...
-[bsp-init-106] [info] done compiling
+[bsp-init-mill-build/build.mill-61] [info] compiling * Scala sources to * ...
+[bsp-init-mill-build/build.mill-61] [info] done compiling
+[bsp-init-build.mill-61] [info] compiling * Scala sources to * ...
+[bsp-init-build.mill-61] [info] done compiling
+[bsp-init-107] [info] compiling * Scala source to * ...
+[bsp-init-107] [info] done compiling
 [bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
 [bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
 [bsp-init] SNAPSHOT
@@ -37,12 +37,12 @@
 [4-compile] buildTargetCompile took * msec
 [5-compile] Entered buildTargetCompile
 [5-compile] Evaluating 1 task
-[5-compile-55] [info] compiling * Scala source to * ...
-[5-compile-55] [error] *:2:3: not found: value nope
-[5-compile-55] [error]   nope
-[5-compile-55] [error]   ^
-[5-compile-55] [error] one error found
-[5-compile-55] errored.compilation-error.semanticDbDataDetailed task failed
+[5-compile-56] [info] compiling * Scala source to * ...
+[5-compile-56] [error] *:2:3: not found: value nope
+[5-compile-56] [error]   nope
+[5-compile-56] [error]   ^
+[5-compile-56] [error] one error found
+[5-compile-56] errored.compilation-error.semanticDbDataDetailed task failed
 [5-compile] Done
 [5-compile] buildTargetCompile took * msec
 [6-compile] Entered buildTargetCompile

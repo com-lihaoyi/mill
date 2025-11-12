@@ -68,6 +68,11 @@ trait GroupExecution {
     rec(json)
   }
 
+  // the JVM running this code currently
+  val javaHomeHash = sys.props("java.home").hashCode
+
+  val invalidateAllHashes = classLoaderSigHash + javaHomeHash
+
   // those result which are inputs but not contained in this terminal group
   def executeGroupCached(
       terminal: Task[?],
@@ -105,22 +110,19 @@ trait GroupExecution {
           }
           .flatten
       )
-      // the JVM running this code currently
-      val javaHomeHash = sys.props("java.home").hashCode
 
-      externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash + javaHomeHash
+      externalInputsHash + sideHashes + scriptsHash + invalidateAllHashes
     }
 
     terminal match {
-
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         labelled.ctx.segments.last.value match {
           // apply build override
-          case single if labelled.ctx.enclosingModule.buildOverrides.contains(single) =>
+          case single if labelled.ctx.enclosingModule.moduleBuildOverrides.contains(single) =>
 
-            val jsonData = labelled.ctx.enclosingModule.buildOverrides(single)
+            val jsonData = labelled.ctx.enclosingModule.moduleBuildOverrides(single)
             val (execRes, serializedPaths) =
               try {
                 val (resultData, serializedPaths) = PathRef.withSerializedPaths {
@@ -134,7 +136,7 @@ trait GroupExecution {
                 }
 
                 // Write build header override JSON to meta `.json` file to support `show`
-                writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash)
+                writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash + jsonData.##)
                 (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
               } catch {
                 case e: upickle.core.TraceVisitor.TraceException =>
@@ -483,7 +485,7 @@ trait GroupExecution {
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##
+    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
   }
   private def loadUpToDateWorker(
       logger: Logger,

@@ -101,7 +101,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
   private def renderBaseModuleImports(baseModule: ModuleSpec) = {
     val wildcards = mutable.SortedSet.empty[String]
     import baseModule.*
-    configs.foreach(addImports(wildcards, _))
+    wildcards ++= configs.flatMap(imports)
     renderLines(wildcards.map(s => s"import $s.*"))
   }
 
@@ -111,22 +111,22 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
       import spec.*
       if (supertypes.isEmpty || crossConfigs.nonEmpty) wildcards += "mill"
       if (configs.nonEmpty) wildcards ++= build.metaBuild.map(_.rootModuleName)
-      configs.foreach(addImports(wildcards, _))
+      wildcards ++= configs.flatMap(imports)
     }
     renderLines(wildcards.map(s => s"import $s.*"))
   }
 
-  private def addImports(wildcards: mutable.SortedSet[String], config: ModuleConfig) =
+  private def imports(config: ModuleConfig): Set[String] = {
     config match {
-      case _: PublishModule => wildcards += "mill.javalib" += "mill.javalib.publish"
-      case _: ErrorProneModule => wildcards += "mill.javalib" += "mill.javalib.errorprone"
-      case _: ScalaModule => wildcards += "mill.scalalib"
-      case _: ScalaJSModule =>
-        wildcards += "mill.scalalib" += "mill.scalajslib" += "mill.scalajslib.api"
-      case _: ScalaNativeModule => wildcards += "mill.scalalib" += "mill.scalanativelib"
-      case _: SbtPlatformModule => wildcards += "mill.scalalib"
-      case _ => wildcards += "mill.javalib"
+      case _: PublishModule => Set("mill.javalib", "mill.javalib.publish")
+      case _: ErrorProneModule => Set("mill.javalib", "mill.javalib.errorprone")
+      case _: ScalaModule => Set("mill.scalalib")
+      case _: ScalaJSModule => Set("mill.scalalib", "mill.scalajslib", "mill.scalajslib.api")
+      case _: ScalaNativeModule => Set("mill.scalalib", "mill.scalanativelib")
+      case _: SbtPlatformModule => Set("mill.scalalib")
+      case _ => Set("mill.javalib")
     }
+  }
 
   private def renderModule(module: ModuleSpec, isPackageRoot: Boolean = false): String = {
     import module.*

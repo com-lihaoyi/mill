@@ -1,7 +1,5 @@
 /** Usage
 
-> rm build.mill # remove any existing build file
-
 > git init .
 > git remote add -f origin https://github.com/mockito/mockito.git
 > git checkout v5.19.0 # multi-module Java project

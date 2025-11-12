@@ -51,9 +51,7 @@ object app extends AndroidR8AppModule { // <2>
 
   // Unit tests for the application
   object test extends AndroidAppTests, TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"junit:junit:4.13.2"
-    )
+    def mvnDeps = Seq(mvn"junit:junit:4.13.2")
   }
 
   // Instrumented tests (runs on emulator)
@@ -72,7 +70,7 @@ object app extends AndroidR8AppModule { // <2>
       "test-proguard-rules.pro"
     )
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"androidx.test.ext:junit:1.2.1",
       mvn"androidx.test:runner:1.6.2",
       mvn"androidx.test.espresso:espresso-core:3.5.1",

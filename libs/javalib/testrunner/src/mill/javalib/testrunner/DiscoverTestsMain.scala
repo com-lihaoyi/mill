@@ -3,13 +3,8 @@ package mill.javalib.testrunner
 import mill.api.daemon.internal.internal
 
 @internal object DiscoverTestsMain {
-  import mill.api.JsonFormatters.PathTokensReader
-
-  @mainargs.main
-  def main(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String): Unit = {
-    main0(runCp, testCp, framework).foreach(println)
-  }
-  def main0(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String): Seq[String] = {
+  def apply(args0: mill.javalib.api.internal.ZincOp.DiscoverTests): Seq[String] = {
+    import args0.*
     mill.util.Jvm.withClassLoader(
       classPath = runCp,
       sharedPrefixes = Seq("sbt.testing.")
@@ -24,6 +19,4 @@ import mill.api.daemon.internal.internal
         }
     }
   }
-
-  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 }

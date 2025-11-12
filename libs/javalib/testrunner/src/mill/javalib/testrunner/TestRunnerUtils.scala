@@ -196,8 +196,7 @@ import scala.math.Ordering.Implicits.*
 
   def parseRunTaskResults(events: Iterator[Event]): Iterator[TestResult] = {
     for (e <- events) yield {
-      val ex =
-        if (e.throwable().isDefined) Some(e.throwable().get) else None
+      val ex = Option.when(e.throwable().isDefined) { e.throwable().get }
       testrunner.TestResult(
         e.fullyQualifiedName(),
         e.selector() match {
@@ -393,7 +392,7 @@ import scala.math.Ordering.Implicits.*
     val framework = frameworkInstances(cl)
     val ( /*runner*/ _, tasksArr) =
       getTestTasks(framework, args, classFilter, cl, testClassfilePath)
-    tasksArr.flatten.map(_.taskDef().fullyQualifiedName())
+    tasksArr.flatten.map(_.taskDef()).filter(_ != null).map(_.fullyQualifiedName())
   }
 
   def matchesGlob(glob: String): String => Boolean =

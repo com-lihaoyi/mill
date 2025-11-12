@@ -19,7 +19,7 @@ object `package` extends KotlinModule {
 
   trait HelloTests extends KotlinTests, TestModule.Junit5 {
     def mainClass = Some("com.example.TodomvcApplicationKt")
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }

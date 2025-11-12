@@ -81,37 +81,81 @@ private[mill] object Util {
   }
 
   def parseYaml(fileName: String, headerData: String): Result[ujson.Value] =
-    try Result.Success {
-        import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
-        val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
+    parseYaml0(fileName, headerData).map(upickle.core.BufferedValue.transform(_, ujson.Value))
 
-        // recursively convert java data structure to ujson.Value
-        def rec(x: Any): ujson.Value = {
-          x match {
-            case d: java.util.Date => ujson.Str(d.toString)
-            case s: String => ujson.Str(s)
-            case d: Double => ujson.Num(d)
-            case d: Int => ujson.Num(d)
-            case d: Long => ujson.Num(d)
-            case true => ujson.True
-            case false => ujson.False
-            case null => ujson.Null
-            case m: java.util.Map[Object, Object] =>
-              import scala.jdk.CollectionConverters._
-              val scalaMap = m.asScala
-              ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
-            case l: java.util.List[Object] =>
-              import scala.jdk.CollectionConverters._
-              val scalaList: collection.Seq[Object] = l.asScala
-              ujson.Arr.from(scalaList.map(rec))
+  def parseYaml0(fileName: String, headerData: String): Result[upickle.core.BufferedValue] =
+    try Result.Success {
+        import org.snakeyaml.engine.v2.api.{LoadSettings}
+        import org.snakeyaml.engine.v2.composer.Composer
+        import org.snakeyaml.engine.v2.parser.ParserImpl
+        import org.snakeyaml.engine.v2.scanner.StreamReader
+        import org.snakeyaml.engine.v2.nodes._
+        import scala.jdk.CollectionConverters._
+        import scala.collection.mutable.ArrayBuffer
+
+        val settings = LoadSettings.builder().build()
+        val reader = new StreamReader(settings, headerData)
+        val parser = new ParserImpl(settings, reader)
+        val composer = new Composer(settings, parser)
+
+        // recursively convert Node to upickle.core.BufferedValue, preserving character offsets
+        def rec(node: Node): upickle.core.BufferedValue = {
+          val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
+
+          node match {
+            case scalar: ScalarNode =>
+              val value = scalar.getValue
+              val tag = scalar.getTag.getValue
+              tag match {
+                case "tag:yaml.org,2002:null" => upickle.core.BufferedValue.Null(index)
+                case "tag:yaml.org,2002:bool" =>
+                  if (value == "true") upickle.core.BufferedValue.True(index)
+                  else upickle.core.BufferedValue.False(index)
+                case "tag:yaml.org,2002:int" =>
+                  upickle.core.BufferedValue.Num(value, -1, -1, index)
+                case "tag:yaml.org,2002:float" =>
+                  upickle.core.BufferedValue.Num(value, -1, -1, index)
+                case _ => upickle.core.BufferedValue.Str(value, index)
+              }
+
+            case mapping: MappingNode =>
+              val pairs = mapping.getValue.asScala.map { tuple =>
+                val keyNode = tuple.getKeyNode
+                val valueNode = tuple.getValueNode
+                val key = keyNode match {
+                  case s: ScalarNode => upickle.core.BufferedValue.Str(
+                      s.getValue,
+                      keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                    )
+                  case _ => upickle.core.BufferedValue.Str(
+                      keyNode.toString,
+                      keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                    )
+                }
+                (key, rec(valueNode))
+              }
+              upickle.core.BufferedValue.Obj(ArrayBuffer.from(pairs), jsonableKeys = true, index)
+
+            case sequence: SequenceNode =>
+              val items = sequence.getValue.asScala.map(rec)
+              upickle.core.BufferedValue.Arr(ArrayBuffer.from(items), index)
           }
         }
 
-        // Treat a top-level `null` as an empty object, so that an empty YAML header
-        // block is treated gracefully rather than blowing up with a NPE
-        rec(loaded) match {
-          case ujson.Null => ujson.Obj()
-          case v => v
+        // Treat a top-level `null` or empty document as an empty object
+        if (composer.hasNext) {
+          val node = composer.next()
+          rec(node) match {
+            case nullValue @ upickle.core.BufferedValue.Null(_) =>
+              upickle.core.BufferedValue.Obj(
+                ArrayBuffer.empty,
+                jsonableKeys = true,
+                nullValue.index
+              )
+            case v => v
+          }
+        } else {
+          upickle.core.BufferedValue.Obj(ArrayBuffer.empty, jsonableKeys = true, 0)
         }
       }
     catch {
