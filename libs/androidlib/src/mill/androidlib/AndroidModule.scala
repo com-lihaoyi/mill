@@ -594,8 +594,7 @@ trait AndroidModule extends JavaModule { outer =>
     Seq(
       s"boolean DEBUG = ${androidIsDebug()}",
       s"""String BUILD_TYPE = "$buildType"""",
-      s"int VERSION_CODE = ${androidVersionCode()}",
-      s"""String VERSION_NAME = "${androidVersionName()}""""
+      s"""String LIBRARY_PACKAGE_NAME = "$androidNamespace""""
     )
   }
 

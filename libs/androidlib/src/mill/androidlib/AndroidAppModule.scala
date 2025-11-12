@@ -120,8 +120,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   override def androidBuildConfigMembers: T[Seq[String]] = Task {
-    super.androidBuildConfigMembers() ++ Seq(
-      s"""String APPLICATION_ID = "${androidApplicationId}""""
+    val buildType = if (androidIsDebug()) "debug" else "release"
+    Seq(
+      s"boolean DEBUG = ${androidIsDebug()}",
+      s"""String BUILD_TYPE = "$buildType"""",
+      s"""String APPLICATION_ID = "$androidApplicationId"""",
+      s"""int VERSION_CODE = ${androidVersionCode()}""",
+      s"""String VERSION_NAME = "${androidVersionName()}""""
     )
   }
 
