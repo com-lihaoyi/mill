@@ -264,7 +264,8 @@ trait JavaModule
   def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
 
   /**
-   * Java annotation processor mvn deps
+   * The Java annotation processors to pass to the Java compilation in the form of
+   * mvn deps, e.g. mvn"org.projectlombok:lombok:1.18.34"
    */
   def annotationProcessorsMvnDeps: T[Seq[Dep]] = Task {
     Seq.empty[Dep]
