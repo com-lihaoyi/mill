@@ -28,7 +28,7 @@ final class EvaluatorImpl private[mill] (
     scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]]
 ) extends Evaluator {
 
-  val buildOverrides = execution.buildOverrides
+  val staticBuildOverrides = execution.staticBuildOverrides
 
   private[mill] def workspace = execution.workspace
   private[mill] def baseLogger = execution.baseLogger
@@ -246,9 +246,9 @@ final class EvaluatorImpl private[mill] (
         .collect { case n: Task.Named[_] => n.ctx.enclosingModule }
         .distinct
 
-      val scriptBuildOverrides = enclosingModules.flatMap(_.moduleLoadBuildOverrides)
+      val scriptBuildOverrides = enclosingModules.flatMap(_.moduleDynamicBuildOverrides)
 
-      val allBuildOverrides = (buildOverrides ++ scriptBuildOverrides)
+      val allBuildOverrides = (staticBuildOverrides ++ scriptBuildOverrides)
         .map { case (k, v) => (k, v.##) }
 
       this.selective.saveMetadata(

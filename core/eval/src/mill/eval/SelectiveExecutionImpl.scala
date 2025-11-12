@@ -211,8 +211,8 @@ object SelectiveExecutionImpl {
         transitiveNamed: Seq[Task.Named[?]]
     ): SelectiveExecution.Metadata.Computed = {
       val allBuildOverrides =
-        evaluator.buildOverrides ++
-          transitiveNamed.flatMap(_.ctx.enclosingModule.moduleLoadBuildOverrides)
+        evaluator.staticBuildOverrides ++
+          transitiveNamed.flatMap(_.ctx.enclosingModule.moduleDynamicBuildOverrides)
 
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>

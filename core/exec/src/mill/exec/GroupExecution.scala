@@ -38,7 +38,7 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def buildOverrides0: Map[String, String]
-  val buildOverrides = buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
+  val staticBuildOverrides = buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -120,9 +120,9 @@ trait GroupExecution {
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
-        val moduleBuildOverride = labelled.ctx.enclosingModule.moduleLoadBuildOverrides
-        buildOverrides.get(labelled.ctx.segments.render)
-          .orElse(moduleBuildOverride.get(labelled.ctx.segments.render)) match {
+        val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
+        staticBuildOverrides.get(labelled.ctx.segments.render)
+          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
           case Some(jsonData) => // apply build override
             val (execRes, serializedPaths) =

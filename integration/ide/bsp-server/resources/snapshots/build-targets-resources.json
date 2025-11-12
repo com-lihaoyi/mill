@@ -104,12 +104,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/scripts/folder2/FooTest.java"
-      },
-      "resources": []
-    },
-    {
-      "target": {
         "uri": "file:///workspace/scripts/foldershared/Foo.java"
       },
       "resources": []

@@ -138,7 +138,7 @@ trait MillBuildRootModule()(using
   }
 
   def millBuildRootModuleResult = Task {
-    val buildOverrides: Map[String, String] = generatedScriptSources()
+    val staticBuildOverrides: Map[String, String] = generatedScriptSources()
       .resources
       .map(_.path)
       .filter(os.exists(_))
@@ -153,7 +153,7 @@ trait MillBuildRootModule()(using
       }
       .toMap
 
-    Tuple4(runClasspath(), compile().classes, codeSignatures(), buildOverrides)
+    Tuple4(runClasspath(), compile().classes, codeSignatures(), staticBuildOverrides)
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
@@ -347,7 +347,7 @@ trait MillBuildRootModule()(using
 
   for (scriptSourcesPath <- scriptSourcesPaths.headOption) {
     mill.internal.Util.validateBuildHeaderKeys(
-      moduleLoadBuildOverrides.keySet,
+      moduleDynamicBuildOverrides.keySet,
       millDiscover.allTaskNames,
       scriptSourcesPath.subRelativeTo(BuildCtx.workspaceRoot)
     )

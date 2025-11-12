@@ -113,7 +113,7 @@ class MillBuildBootstrap(
                     Some(error),
                     None,
                     bootstrapEvalWatched,
-                    buildOverrides
+                    staticBuildOverrides
                   ) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(
@@ -121,7 +121,7 @@ class MillBuildBootstrap(
                   frames,
                   Some(msg + "\n" + error),
                   bootstrapEvalWatched = bootstrapEvalWatched,
-                  buildOverrides = Map()
+                  staticBuildOverrides = Map()
                 )
               case state => state
             }
@@ -156,7 +156,7 @@ class MillBuildBootstrap(
                     Map()
                   )
                 case Result.Success(buildOverrides0) =>
-                  val buildOverrides =
+                  val staticBuildOverrides =
                     if (
                       foundRootBuildFileName.endsWith(".yaml") ||
                       foundRootBuildFileName.endsWith(".yml")
@@ -183,7 +183,7 @@ class MillBuildBootstrap(
                         None,
                         Some(foundRootBuildFileName),
                         Seq(bootstrapEvalWatched),
-                        upickle.read[Map[String, ujson.Value]](buildOverrides)
+                        upickle.read[Map[String, ujson.Value]](staticBuildOverrides)
                       )
                     case Result.Failure(msg) =>
                       RunnerState(
@@ -284,10 +284,10 @@ class MillBuildBootstrap(
                 depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
-                buildOverrides =
+                staticBuildOverrides =
                   if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
-                    nestedState.buildOverrides
-                  else nestedState.frames.lastOption.fold(Map())(_.buildOverrides)
+                    nestedState.staticBuildOverrides
+                  else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -474,7 +474,7 @@ object MillBuildBootstrap {
       depth: Int,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
-      buildOverrides: Map[String, ujson.Value]
+      staticBuildOverrides: Map[String, ujson.Value]
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -512,7 +512,7 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
-        buildOverrides.map { case (k, v) => (k, v.toString) },
+        staticBuildOverrides.map { case (k, v) => (k, v.toString) },
         enableTicker
       ),
       scriptInitCls.getConstructor().newInstance()

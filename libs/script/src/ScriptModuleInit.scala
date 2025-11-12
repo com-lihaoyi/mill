@@ -98,7 +98,7 @@ class ScriptModuleInit
   ): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
     // Add a synthetic watch on `scriptFile`, representing the special handling
-    // of `buildOverrides` which is read from the script file build header
+    // of `staticBuildOverrides` which is read from the script file build header
     mill.api.BuildCtx.evalWatch(scriptFile)
 
     Option.when(os.isFile(scriptFile)) {

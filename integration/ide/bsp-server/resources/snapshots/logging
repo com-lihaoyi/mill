@@ -3,10 +3,10 @@
 [1-buildInitialize] Entered buildInitialize
 [1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 [1-buildInitialize] buildInitialize took * msec
-[bsp-init-mill-build/build.mill-61] [info] compiling * Scala sources to * ...
-[bsp-init-mill-build/build.mill-61] [info] done compiling
-[bsp-init-build.mill-61] [info] compiling * Scala sources to * ...
-[bsp-init-build.mill-61] [info] done compiling
+[bsp-init-mill-build/build.mill-60] [info] compiling * Scala sources to * ...
+[bsp-init-mill-build/build.mill-60] [info] done compiling
+[bsp-init-build.mill-60] [info] compiling * Scala sources to * ...
+[bsp-init-build.mill-60] [info] done compiling
 [bsp-init-107] [info] compiling * Scala source to * ...
 [bsp-init-107] [info] done compiling
 [bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
@@ -17,6 +17,7 @@
 [bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
 [2-workspaceBuildTargets] Evaluating * tasks
 [2-workspaceBuildTargets] Done
+[2-workspaceBuildTargets] Request 'workspaceBuildTargets' failed for file:///workspace/scripts/folder2/FooTest.java: java.util.NoSuchElementException: key not found: ./scripts/folder2/Foo.java
 [2-workspaceBuildTargets] Evaluating 1 task
 [2-workspaceBuildTargets] Done
 [2-workspaceBuildTargets] Evaluating 1 task

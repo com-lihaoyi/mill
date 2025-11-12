@@ -5,9 +5,6 @@
         <content url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedScriptSources.dest/support">
             <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedScriptSources.dest/support" isTestSource="false" generated="true"/>
         </content>
-        <content url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedScriptSources.dest/resources">
-            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedScriptSources.dest/resources" type="java-resource"/>
-        </content>
         <content url="file://$MODULE_DIR$/../../mill-build">
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/build.mill" isTestSource="false"/>
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/mill-build/src" isTestSource="false"/>
