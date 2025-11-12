@@ -28,7 +28,10 @@ Test foo.HelloWorldTest.testSimple finished...
 //
 // However, in future versions of Javac, annotation processing may be disabled without explicitly
 // naming at least one processor or explicitly enabling processing.
-
+//
+// You may also need annotation processors that are not on the compilation classpath, or you need finer control
+// over exactly which annotation processors are active.
+//
 // Mill provides an easy way to add these processors via the annotationProcessorsMvnDeps
 
 object bar extends JavaModule {
