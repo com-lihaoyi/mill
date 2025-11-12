@@ -1,6 +1,5 @@
 package mill.javalib
 
-import com.lihaoyi.unroll
 import mill.*
 import mill.api.*
 import mill.javalib.PublishModule.PublishData
@@ -16,8 +15,8 @@ trait MavenPublishModule extends PublishModule, MavenWorkerSupport, SonatypeCred
   def publishMaven(
       username: String = "",
       password: String = "",
-      @unroll sources: Boolean = true,
-      @unroll docs: Boolean = true
+      sources: Boolean = true,
+      docs: Boolean = true
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
     val credentials = getSonatypeCredentials(username, password)()
