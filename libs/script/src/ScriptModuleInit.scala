@@ -73,17 +73,10 @@ class ScriptModuleInit
 
     clsOrErr.flatMap(cls =>
       mill.api.ExecResult.catchWrapException {
-        scriptModuleCache.get(scriptFile).filter { v =>
-          Result.Success(v.scriptConfig.headerData) ==
-            mill.internal.Util.parseHeaderData(scriptFile)
-        } match {
-          case Some(v) => v
-          case None =>
-            val newScriptModule =
-              cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ScriptModule]
-            scriptModuleCache(scriptFile) = newScriptModule
-            newScriptModule
-        }
+        scriptModuleCache.getOrElseUpdate(
+          scriptFile,
+          cls.getDeclaredConstructors.head.newInstance(args*).asInstanceOf[ScriptModule]
+        )
       }
     )
   }
