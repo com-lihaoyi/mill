@@ -1,5 +1,4 @@
 package mill.script
-import mill.*
 import mill.api.{ExternalModule, Result}
 
 // Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
