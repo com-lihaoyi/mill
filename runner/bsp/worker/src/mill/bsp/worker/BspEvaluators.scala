@@ -126,7 +126,7 @@ private[mill] class BspEvaluators(
           .getClassLoader
           .loadClass("mill.api.Evaluator")
       )
-      .invoke(null, nonScriptSources, eval)
+      .invoke(scriptModuleInitClass.getConstructor().newInstance(), nonScriptSources, eval)
       .asInstanceOf[Seq[(java.nio.file.Path, mill.api.Result[BspModuleApi])]]
 
     result.flatMap {

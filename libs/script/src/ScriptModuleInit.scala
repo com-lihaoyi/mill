@@ -2,13 +2,14 @@ package mill.script
 import mill.*
 import mill.api.{ExternalModule, Result}
 
-object ScriptModuleInit
+// Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
+// we don't duplicate script modules when e.g. multiple downstream modules refer to the
+// same upstream module. But we cannot cache them for longer because between evaluations
+// the `headerData` might change requiring some modules to be re-instantiated, and it is
+// hard to do that on a per-module basis so we just re-instantiate all modules every time
+class ScriptModuleInit
     extends ((String, String => Option[mill.Module]) => Seq[Result[mill.api.ExternalModule]]) {
 
-  // Cache instantiated script modules on a per-classloader basis. This lets us avoid
-  // instantiating the same script twice, e.g. once directly and once when resolving a
-  // downstream script's `moduleDeps`. This is kept on the `ScriptModuleInit` object scoped
-  // to the build classloader and is garbage collected when the classloader is discarded.
   val scriptModuleCache: collection.mutable.Map[os.Path, ScriptModule] =
     collection.mutable.Map.empty
 
@@ -157,7 +158,6 @@ object ScriptModuleInit
   /**
    * Checks if a file starts with a `//|` build header comment.
    */
-
   def apply(
       scriptFileString: String,
       resolveModuleDep: String => Option[mill.Module]

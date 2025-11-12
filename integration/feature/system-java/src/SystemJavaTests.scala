@@ -17,8 +17,6 @@ object SystemJavaTests extends UtestIntegrationTestSuite {
         s => "//| mill-jvm-version: system\n" + s
       )
       val updatedHome = tester.eval("printJavaHome")
-      pprint.log(updatedHome.out)
-      pprint.log(defaultHome.out)
       assert(updatedHome.out != defaultHome.out)
     }
 

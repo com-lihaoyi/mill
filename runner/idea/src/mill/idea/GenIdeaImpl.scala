@@ -333,7 +333,7 @@ class GenIdeaImpl(
 
     // Discover script files
     val outDir = evaluators.headOption.map(e => os.Path(e.outPathJava)).getOrElse(workDir / "out")
-    val scriptFiles = mill.script.ScriptModuleInit.discoverScriptFiles(workDir, outDir)
+    val scriptFiles = new mill.script.ScriptModuleInit().discoverScriptFiles(workDir, outDir)
 
     val fixedFiles: Seq[(os.SubPath, Elem)] = Seq(
       Tuple2(os.sub / "misc.xml", miscXmlTemplate(jdkInfo)),
