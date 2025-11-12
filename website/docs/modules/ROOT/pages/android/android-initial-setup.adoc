@@ -84,6 +84,12 @@ Start the Android Emulator:
 > ./mill app.startAndroidEmulator --excludeDefaultArgs -avd test_avd
 ----
 
+[CAUTION]
+====
+If setting the `--excludeDefaultArgs` flag, make sure to provide it first before any additional arguments.
+====
+
+
 Install your application on the running emulator:
 [source,console]
 ----
