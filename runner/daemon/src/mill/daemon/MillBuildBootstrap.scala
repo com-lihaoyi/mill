@@ -159,7 +159,7 @@ class MillBuildBootstrap(
                   val buildOverrides =
                     if (
                       foundRootBuildFileName.endsWith(".yaml") ||
-                        foundRootBuildFileName.endsWith(".yml")
+                      foundRootBuildFileName.endsWith(".yml")
                     ) {
                       // For YAML files, extract the mill-build key if it exists, otherwise use empty map
                       buildOverrides0.obj.get("mill-build") match {
@@ -285,7 +285,8 @@ class MillBuildBootstrap(
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
                 buildOverrides =
-                  if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule]) nestedState.buildOverrides
+                  if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
+                    nestedState.buildOverrides
                   else nestedState.frames.lastOption.fold(Map())(_.buildOverrides)
               )) { evaluator =>
                 if (depth == requestedDepth) {
@@ -404,7 +405,7 @@ class MillBuildBootstrap(
           runClasspath,
           Some(compileClasses),
           Option(evaluator),
-          buildOverrides0.map{case (k, v) => (k, ujson.read(v))}
+          buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
         )
 
         nestedState.add(frame = evalState)
@@ -511,8 +512,8 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
-        buildOverrides.map{case (k, v) => (k, v.toString)},
-        enableTicker,
+        buildOverrides.map { case (k, v) => (k, v.toString) },
+        enableTicker
       ),
       scriptInitCls.getField("MODULE$").get(null)
     ).asInstanceOf[EvaluatorApi]

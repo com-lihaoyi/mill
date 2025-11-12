@@ -298,19 +298,21 @@ object Task {
   // right, ensuring that `T` is fully inferred before implicit resolution starts
   @internal def Stub[T]()(using
       x: T = null.asInstanceOf[T]
-  )(using li: LiteralImplicit[T]): Task.Simple[T] = new Stub(li)
-
-  @internal class Stub[T](li: LiteralImplicit[T]) extends Task.Input[T](
-    (_, _) => Result.Failure("Not implemented"),
-    li.ctx,
-    li.writer,
-    None
-  ) {
+  )(using li: LiteralImplicit[T]): Task.Simple[T] = {
     assert(li.ctx != null, "Unable to resolve context")
     assert(li.writer != null, "Unable to resolve JSON writer")
     assert(li.reader != null, "Unable to resolve JSON reader")
-    override def readWriterOpt = Some(upickle.ReadWriter.join(li.reader, li.writer))
+    new Stub(li)
   }
+
+  @internal class Stub[T](li: LiteralImplicit[T]) extends Task.Computed[T](
+        Nil,
+        (_, _) => Result.Failure("Not implemented"),
+        li.ctx,
+        upickle.ReadWriter.join(li.reader, li.writer),
+        None,
+        false
+      )
 
   class LiteralImplicit[T](
       val reader: upickle.default.Reader[T],

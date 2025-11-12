@@ -123,8 +123,14 @@ private[mill] object Util {
                 val keyNode = tuple.getKeyNode
                 val valueNode = tuple.getValueNode
                 val key = keyNode match {
-                  case s: ScalarNode => upickle.core.BufferedValue.Str(s.getValue, keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0))
-                  case _ => upickle.core.BufferedValue.Str(keyNode.toString, keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0))
+                  case s: ScalarNode => upickle.core.BufferedValue.Str(
+                      s.getValue,
+                      keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                    )
+                  case _ => upickle.core.BufferedValue.Str(
+                      keyNode.toString,
+                      keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                    )
                 }
                 (key, rec(valueNode))
               }
@@ -141,7 +147,11 @@ private[mill] object Util {
           val node = composer.next()
           rec(node) match {
             case nullValue @ upickle.core.BufferedValue.Null(_) =>
-              upickle.core.BufferedValue.Obj(ArrayBuffer.empty, jsonableKeys = true, nullValue.index)
+              upickle.core.BufferedValue.Obj(
+                ArrayBuffer.empty,
+                jsonableKeys = true,
+                nullValue.index
+              )
             case v => v
           }
         } else {

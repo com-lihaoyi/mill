@@ -25,7 +25,7 @@ final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
-    scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]],
+    scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]]
 ) extends Evaluator {
 
   val buildOverrides = execution.buildOverrides
@@ -44,7 +44,7 @@ final class EvaluatorImpl private[mill] (
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
-    scriptModuleResolver,
+    scriptModuleResolver
   )
 
   override private[mill] def resolveScriptModuleDep(s: String): Option[mill.Module] = {
@@ -243,10 +243,12 @@ final class EvaluatorImpl private[mill] (
       val scriptBuildOverrides = evaluated
         .transitiveResults
         .keys
-        .collect{case n: Task.Named[_] => n.ctx.enclosingModule.moduleLoadBuildOverrides}
+        .collect { case n: Task.Named[_] => n.ctx.enclosingModule.moduleLoadBuildOverrides }
         .flatten
 
-      val allBuildOverrides = (buildOverrides ++ scriptBuildOverrides).map { case (k, v) => (k, v.##) }
+      val allBuildOverrides = (buildOverrides ++ scriptBuildOverrides).map { case (k, v) =>
+        (k, v.##)
+      }
 
       pprint.log(allBuildOverrides)
       this.selective.saveMetadata(

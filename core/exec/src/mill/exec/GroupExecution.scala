@@ -38,7 +38,7 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def buildOverrides0: Map[String, String]
-  val buildOverrides = buildOverrides0.map{case (k, v) => (k, ujson.read(v))}
+  val buildOverrides = buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -159,7 +159,6 @@ trait GroupExecution {
               valueHashChanged = false,
               serializedPaths = serializedPaths
             )
-
 
           case None => // no build overrides
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)

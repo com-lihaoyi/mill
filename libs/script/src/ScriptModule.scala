@@ -18,7 +18,7 @@ trait ScriptModule extends ExternalModule {
   private[mill] override def moduleLoadBuildOverrides = scriptConfig
     .headerData
     .rest
-    .map{case (k, v) => ((moduleSegments ++ mill.api.Segment.Label(k)).render, v)}
+    .map { case (k, v) => ((moduleSegments ++ mill.api.Segment.Label(k)).render, v) }
 
 //  mill.internal.Util.validateBuildHeaderKeys(
 //    moduleLoadBuildOverrides.keySet,
