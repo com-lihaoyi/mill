@@ -344,14 +344,6 @@ trait MillBuildRootModule()(using
   }
 
   def millDiscover: Discover
-
-  for (scriptSourcesPath <- scriptSourcesPaths.headOption) {
-    mill.internal.Util.validateBuildHeaderKeys(
-      moduleDynamicBuildOverrides.keySet,
-      millDiscover.allTaskNames,
-      scriptSourcesPath.subRelativeTo(BuildCtx.workspaceRoot)
-    )
-  }
 }
 
 object MillBuildRootModule {

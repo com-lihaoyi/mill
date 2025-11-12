@@ -172,9 +172,17 @@ class MillBuildBootstrap(
                     }
 
                   mill.api.ExecResult.catchWrapException {
-                    new MillBuildRootModule.BootstrapModule()(
+                    val bootstrapModule = new MillBuildRootModule.BootstrapModule()(
                       using new RootModule.Info(currentRoot, output, projectRoot)
                     )
+
+                    mill.internal.Util.validateBuildHeaderKeys(
+                      staticBuildOverrides.obj.keys.toSet,
+                      bootstrapModule.millDiscover.allTaskNames,
+                      os.sub / foundRootBuildFileName
+                    )
+
+                    bootstrapModule
                   } match {
                     case Result.Success(bootstrapModule) =>
                       RunnerState(
