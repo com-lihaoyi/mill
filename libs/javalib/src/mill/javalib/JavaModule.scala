@@ -28,6 +28,8 @@ import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
 import os.Path
 
+import java.io.File
+import java.nio.file.Files
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
@@ -261,9 +263,46 @@ trait JavaModule
   def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
 
   /**
+   * Java annotation processor mvn deps
+   */
+  def annotationProcessorsMvnDeps: T[Seq[Dep]] = Task {
+    Seq.empty[Dep]
+  }
+
+  /**
+   * Resolves the Java annotation processor mvn deps [[annotationProcessorsMvnDeps]].
+   * By default, it passes the BOMs via [[allBomDeps]] to the resolution.
+   */
+  def annotationProcessorsResolvedMvnDeps: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      annotationProcessorsMvnDeps(),
+      boms = allBomDeps()
+    )
+  }
+
+  /**
+   * Constructs the -processorpath compiler flag using [[annotationProcessorsResolvedMvnDeps]]
+   */
+  def annotationProcessorsJavacOptions: T[Seq[String]] = Task {
+    Seq(
+      "-processorpath",
+      annotationProcessorsResolvedMvnDeps().map(_.path).mkString(File.pathSeparator)
+    )
+  }
+
+  /**
+   * Arguments for annotation processor to pass to [[javacOptions]]
+   */
+  def annotationProcessorArgs: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
+  /**
    * Options to pass to the java compiler
    */
-  override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def javacOptions: T[Seq[String]] = Task {
+    annotationProcessorsJavacOptions() ++ annotationProcessorArgs()
+  }
 
   /**
    * Additional options for the java compiler derived from other module settings.
