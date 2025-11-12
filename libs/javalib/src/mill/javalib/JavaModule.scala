@@ -283,10 +283,15 @@ trait JavaModule
    * Constructs the -processorpath compiler flag using [[annotationProcessorsResolvedMvnDeps]]
    */
   def annotationProcessorsJavacOptions: T[Seq[String]] = Task {
-    Seq(
-      "-processorpath",
-      annotationProcessorsResolvedMvnDeps().map(_.path).mkString(File.pathSeparator)
-    )
+    if (annotationProcessorsMvnDeps().nonEmpty)
+      Seq(
+        "-processorpath",
+        annotationProcessorsResolvedMvnDeps()
+          .map(_.path).mkString(File.pathSeparator)
+      )
+    else
+      Seq.empty
+
   }
 
   /**
