@@ -8,9 +8,7 @@ import Flags.*
 import Types.*
 import Decorators.*
 import ast.tpd
-import dotty.tools.dotc.util.Spans.NoSpan
 import plugins.*
-import typer.Implicits
 
 /**
  * Scala 3 compiler plugin that automatically implements abstract methods
@@ -40,125 +38,61 @@ class AutoOverridePhase extends PluginPhase {
 
   override def transformTypeDef(tree: TypeDef)(using Context): Tree = {
     tree match {
-      case td @ TypeDef(_, template: Template) =>
+      case td @ TypeDef(_, template: Template) if td.symbol.is(ModuleClass) =>
         val cls = td.symbol
-
-        // Only process module classes (objects)
-        if (!cls.is(ModuleClass)) return tree
-
-        // Check if this class extends AutoOverride[_]
-        val autoOverrideOpt = findAutoOverrideTrait(cls)
-        if (autoOverrideOpt.isEmpty) return tree
-
-        val (_, typeArg) = autoOverrideOpt.get
-
-        // Find the autoOverrideImpl method
-        val autoOverrideImplSym = cls.info.member("autoOverrideImpl".toTermName).symbol
-        if (!autoOverrideImplSym.exists) {
-          report.error(s"Object ${cls.name} extends AutoOverride but does not implement autoOverrideImpl()", tree.sourcePos)
-          return tree
+        findAutoOverrideTrait(cls) match{
+          case None => tree
+          case Some(typeArg) =>
+            val abstractMethods = findAbstractMethodsToImplement(cls, typeArg)
+            if (abstractMethods.isEmpty) tree
+            else {
+              val autoOverrideImplSym = cls.info.member("autoOverrideImpl".toTermName).symbol
+              val newDefs = abstractMethods.map(generateMethodImpl(_, autoOverrideImplSym, cls))
+              val newTemplate = cpy.Template(template)(body = template.body ++ newDefs)
+              cpy.TypeDef(tree)(rhs = newTemplate)
+            }
         }
-
-        // Find all abstract methods that need to be implemented
-        val abstractMethods = findAbstractMethodsToImplement(cls, typeArg)
-
-        if (abstractMethods.isEmpty) return tree
-
-        // Generate implementations for each abstract method
-        val newDefs = abstractMethods.map { method =>
-          println("GENERATING " + method)
-          val res = generateMethodImpl(method, autoOverrideImplSym, cls)
-          println("GENERATED " + res)
-
-          res
-        }
-
-        // Add the new method implementations to the template
-        val newTemplate = cpy.Template(template)(body = template.body ++ newDefs)
-        cpy.TypeDef(tree)(rhs = newTemplate)
-
       case _ => tree
     }
   }
 
-  /**
-   * Finds the AutoOverride trait in the class hierarchy and extracts its type argument.
-   */
-  private def findAutoOverrideTrait(cls: Symbol)(using Context): Option[(Symbol, Type)] = {
-    // First check direct parents
-    cls.info.parents.collectFirst {
-      case AppliedType(tycon, args) if tycon.typeSymbol.name.toString.contains("AutoOverride") && args.nonEmpty =>
-        (tycon.typeSymbol, args.head)
-    }.orElse {
-      // If not found in direct parents, check all base classes
-      cls.info.baseClasses.find { base =>
-        base.name.toString.contains("AutoOverride")
-      }.flatMap { baseClass =>
-        // Get the type argument from AutoOverride[T] via baseType
+  private def findAutoOverrideTrait(cls: Symbol)(using Context): Option[Type] = {
+    cls.info.baseClasses
+      .find(_.name.toString.endsWith("AutoOverride"))
+      .flatMap { baseClass =>
         val baseTypeRef = cls.asClass.typeRef.baseType(baseClass)
         baseTypeRef match {
           case AppliedType(tycon, args) if args.nonEmpty =>
-            Some((baseClass, args.head))
+            Some(args.head)
           case _ => None
         }
       }
-    }
   }
 
-  /**
-   * Finds all abstract methods with return type <: T that need to be implemented.
-   */
   private def findAbstractMethodsToImplement(cls: Symbol, returnType: Type)(using Context): List[Symbol] = {
     cls.info.abstractTermMembers.filter { member =>
       val name = member.name.toString
-      // Must be a method
-      member.symbol.is(Method) &&
-      // Must be abstract
-      member.symbol.is(Deferred) &&
-      // Must not be autoOverrideImpl itself
-      name != "autoOverrideImpl" &&
-      // Filter out synthetic super methods
-      !name.contains("$super") &&
-      // Return type must be a subtype of T
-      member.info.finalResultType <:< returnType
+      member.symbol.is(Method) && // Must be a method
+      member.symbol.is(Deferred) && // Must be abstract
+      name != "autoOverrideImpl" && // Must not be autoOverrideImpl itself
+      !name.contains("$super") && // Filter out synthetic super methods
+      member.info.finalResultType <:< returnType // Return type must be a subtype of T
     }.toList.map(_.symbol)
   }
 
-  /**
-   * Generates the implementation for an abstract method that calls autoOverrideImpl[T]().
-   * Since autoOverrideImpl is now an inline def macro, it will resolve LiteralImplicit[T]
-   * during macro expansion.
-   */
   private def generateMethodImpl(method: Symbol, autoOverrideImplSym: Symbol, cls: Symbol)(using Context): DefDef = {
     val meth = method.asTerm
 
-    // Extract the type parameter from the method's return type
-    // For methods returning Task.Simple[T], extract T
-    val typeParam = meth.localReturnType match {
-      case AppliedType(_, Seq(param)) => param
-    }
-
-    // Create a new symbol for the concrete implementation (remove Deferred flag)
     val newFlags = (meth.flags &~ Deferred) | Override
-    val newSym = newSymbol(
-      cls,
-      meth.name,
-      newFlags,
-      meth.info,
-      coord = meth.coord
-    ).asTerm
+    val newSym = newSymbol(cls, meth.name, newFlags, meth.info, coord = meth.coord).asTerm
 
-    // Enter the symbol in the owner's scope
     cls.asClass.enter(newSym)
 
-    // Generate the method body: this.autoOverrideImpl[T]()
-    // The inline macro will handle implicit resolution during expansion
     val thisRef = This(cls.asClass)
     val callAutoOverride = thisRef.select(autoOverrideImplSym)
-      .appliedToTypes(List(typeParam))
+      .appliedToTypes(List(meth.localReturnType))
       .appliedToNone
 
-    // Create the DefDef with the generated body
     DefDef(newSym, callAutoOverride)
   }
 }

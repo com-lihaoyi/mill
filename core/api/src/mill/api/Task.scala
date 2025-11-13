@@ -295,16 +295,19 @@ object Task {
   }
 
 
-  def stubImpl[T: Type](using Quotes): Expr[mill.api.Task.Simple[T]] = {
+  def stubImpl[TaskT: Type](using quotes: Quotes): Expr[TaskT] = {
     import quotes.reflect.*
 
-    // Summon the implicit LiteralImplicit[T]
-    Expr.summon[Task.LiteralImplicit[T]] match {
-      case Some(lit) =>
-        // Call Task.Stub[T]() with the summoned implicit
-        '{ Task.Stub0[T]()(using null.asInstanceOf[T])(using ${lit}) }
-      case None =>
-        report.errorAndAbort(s"Could not find implicit LiteralImplicit[${Type.show[T]}]")
+    Type.of[TaskT] match {
+      case '[Task.Simple[t]] =>
+        // Summon the implicit LiteralImplicit[t]
+        Expr.summon[Task.LiteralImplicit[t]] match {
+          case Some(lit) =>
+            // Call Task.Stub0[t]() with the summoned implicit
+            '{ Task.Stub0[t]().asInstanceOf[TaskT] }
+          case None =>
+            report.errorAndAbort(s"Could not find implicit LiteralImplicit[${TypeRepr.of[t].show}]")
+        }
     }
   }
   // The extra `(x: T = null)` parameter list is necessary to make type inference work

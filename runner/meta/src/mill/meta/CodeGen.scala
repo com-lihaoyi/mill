@@ -174,7 +174,7 @@ object CodeGen {
             moduleDepsSnippet,
             compileModuleDepsSnippet,
             runModuleDepsSnippet,
-              "inline def autoOverrideImpl[T](): mill.api.Task.Simple[T] = ${ mill.api.Task.stubImpl[T] }"
+              "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.stubImpl[T] }"
           ).filter(_.nonEmpty) ++ definitions
 
           s"""$prefix$extendsSnippet {
