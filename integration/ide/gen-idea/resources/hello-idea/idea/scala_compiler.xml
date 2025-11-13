@@ -3,14 +3,17 @@
         <profile name="mill 1" modules="">
             <parameters>
                 <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.3/0.11.10/scalac-mill-moduledefs-plugin_3.7.3-0.11.10.jar"/>
+                <parameter value="-Xplugin:/Users/lihaoyi/Github/mill/out/dist/localRepo.dest/com/lihaoyi/mill-runner-autooverride-plugin_3.7.3/SNAPSHOT/mill-runner-autooverride-plugin_3.7.3-SNAPSHOT.jar"/>
                 <parameter value="-deprecation"/>
                 <parameter value="-Wconf:msg=will be encoded on the classpath:silent"/>
             </parameters>
             <plugins>
                 <plugin path=".../com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.3/0.11.10/scalac-mill-moduledefs-plugin_3.7.3-0.11.10.jar"/>
+                <plugin path=".../out/dist/localRepo.dest/com/lihaoyi/mill-runner-autooverride-plugin_3.7.3/SNAPSHOT/mill-runner-autooverride-plugin_3.7.3-SNAPSHOT.jar"/>
                 <plugin path=".../org/scala-lang/scala3-compiler_3/3.7.3/scala3-compiler_3-3.7.3.jar"/>
                 <plugin path=".../org/scala-lang/scala3-library_3/3.7.3/scala3-library_3-3.7.3.jar"/>
                 <plugin path=".../com/lihaoyi/mill-moduledefs_3/0.11.10/mill-moduledefs_3-0.11.10.jar"/>
+                <plugin path=".../com/lihaoyi/unroll-annotation_3/0.2.0/unroll-annotation_3-0.2.0.jar"/>
                 <plugin path=".../org/scala-lang/scala3-interfaces/3.7.3/scala3-interfaces-3.7.3.jar"/>
                 <plugin path=".../org/scala-lang/tasty-core_3/3.7.3/tasty-core_3-3.7.3.jar"/>
                 <plugin path=".../org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar"/>
@@ -19,6 +22,7 @@
                 <plugin path=".../org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar"/>
                 <plugin path=".../org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar"/>
                 <plugin path=".../org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"/>
+                <plugin path=".../com/lihaoyi/sourcecode_3/0.3.0/sourcecode_3-0.3.0.jar"/>
                 <plugin path=".../org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar"/>
                 <plugin path=".../org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"/>
             </plugins>

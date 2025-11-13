@@ -15,7 +15,6 @@ object `package` extends Module {
    */
   object api extends MillPublishScalaModule {
     def scalaVersion = millbuild.Deps.scalaVersion
-    def moduleDeps = Seq(build.core.api)
   }
 
   /**
@@ -24,7 +23,6 @@ object `package` extends Module {
   object plugin extends MillPublishScalaModule {
     def scalaVersion = millbuild.Deps.scalaVersion
     def crossFullScalaVersion = true
-    def moduleDeps = Seq(api)
 
     def mvnDeps = Seq(
       mvn"org.scala-lang::scala3-compiler:${scalaVersion()}"
