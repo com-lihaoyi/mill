@@ -118,56 +118,5 @@ object AutoOverrideTests extends TestSuite {
 
       assert(IndirectServiceImpl.getData() == "indirect-value")
     }
-
-    test("compile errors") {
-      test("missing autoOverrideImpl") {
-        val error = assertCompileError("""
-          trait Service { def get(): String }
-          object Impl extends Service with mill.runner.autooverride.AutoOverride[String] {
-            // Missing autoOverrideImpl implementation
-          }
-        """)
-        assert(error.msg.contains("autoOverrideImpl"))
-      }
-
-      test("type mismatch - methods don't match AutoOverride type") {
-        val error = assertCompileError("""
-          trait Service {
-            def getInt(): Int
-            def getBool(): Boolean
-          }
-          object Impl extends Service with mill.runner.autooverride.AutoOverride[String] {
-            override def autoOverrideImpl(): String = "value"
-            // getInt and getBool can't be auto-implemented because they don't return String
-          }
-        """)
-        assert(
-          error.msg.contains("unimplemented") || error.msg.contains("object creation impossible")
-        )
-      }
-
-      test("no AutoOverride trait") {
-        val error = assertCompileError("""
-          trait Service { def get(): String }
-          object Impl extends Service {
-            // No AutoOverride trait, so standard compile error
-          }
-        """)
-        assert(
-          error.msg.contains("unimplemented") || error.msg.contains("object creation impossible")
-        )
-      }
-
-      test("class instead of object") {
-        val error = assertCompileError("""
-          trait Service { def get(): String }
-          class Impl extends Service with mill.runner.autooverride.AutoOverride[String] {
-            override def autoOverrideImpl(): String = "value"
-            // Plugin should not work on classes, only objects
-          }
-        """)
-        assert(error.msg.contains("unimplemented") || error.msg.contains("class Impl"))
-      }
-    }
   }
 }

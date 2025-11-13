@@ -24,19 +24,16 @@ class AutoOverridePlugin extends StandardPlugin {
   }
 }
 
-/**
- * Compiler phase that implements the auto-override logic.
- * This phase runs after typer but before refchecks to ensure abstract methods
- * are implemented before the compiler checks for unimplemented members.
- */
 class AutoOverridePhase extends PluginPhase {
   import tpd.*
 
   val phaseName = "auto-override"
 
+  // Needs to run between typer and inlining, because we generate macro calls that
+  // inlining will then expand. This helps minimize the complexity of this plugin
   override val runsAfter = Set("typer")
   override val runsBefore = Set("inlining")
-
+  
   override def transformTypeDef(tree: TypeDef)(using Context): Tree = {
     tree match {
       case td @ TypeDef(_, template: Template) if td.symbol.is(ModuleClass) =>
@@ -48,6 +45,7 @@ class AutoOverridePhase extends PluginPhase {
             if (abstractMethods.isEmpty) tree
             else {
               val autoOverrideImplSym = cls.info.member("autoOverrideImpl".toTermName).symbol
+
               val newDefs = abstractMethods.map(generateMethodImpl(_, autoOverrideImplSym, cls))
               val newTemplate = cpy.Template(template)(body = template.body ++ newDefs)
               cpy.TypeDef(tree)(rhs = newTemplate)
