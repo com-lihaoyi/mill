@@ -275,6 +275,7 @@ trait MillBuildRootModule()(using
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3"),
     mvn"com.lihaoyi:::mill-runner-autooverride-plugin:${Versions.millVersion}"
+      .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
   override def scalacOptions: T[Seq[String]] = Task {
