@@ -27,7 +27,7 @@ object `package` extends MavenModule {
 //
 //* Project: maven
 //* Language: Java
-//* Dependencies: Spring Web,
+//* Dependencies: Spring Web
 //
 // The structure of this project follows the MavenModule structure (i.e. the same structure
 // as generated from the initialzr tool).

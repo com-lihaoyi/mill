@@ -18,6 +18,10 @@ include::partial$example/javalib/springboot/2-todo-spring-boot.adoc[]
 
 include::partial$example/javalib/springboot/3-web-initializr.adoc[]
 
+== Spring Reactive Web, Websocket example with Initializr
+
+include::partial$example/javalib/springboot/4-web-socket-initializr.adoc[]
+
 // Include this header in the entry page for the language-specific Spring Framework / Spring Boot page
 
 This page contains documentation and examples specific for Spring Framework and Spring Boot Projects.
