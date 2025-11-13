@@ -31,6 +31,7 @@ private[mill] case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
+    buildOverrides0: Map[String, String],
     enableTicker: Boolean
 ) extends GroupExecution with AutoCloseable {
 
@@ -52,6 +53,7 @@ private[mill] case class Execution(
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
+      buildOverrides0: Map[String, String],
       enableTicker: Boolean
   ) = this(
     baseLogger,
@@ -71,6 +73,7 @@ private[mill] case class Execution(
     exclusiveSystemStreams,
     getEvaluator,
     offline,
+    buildOverrides0,
     enableTicker
   )
 

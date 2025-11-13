@@ -139,11 +139,7 @@ object CodeGen {
           createFolders = true
         )
 
-        def renderTemplate(
-            prefix: String,
-            data: HeaderData,
-            path: Seq[String]
-        ): String = {
+        def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`
           val definitions = processDataRest(data)(
             onProperty = k => "", // Properties will be auto-implemented by AutoOverride
