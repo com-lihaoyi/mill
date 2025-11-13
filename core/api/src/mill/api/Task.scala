@@ -295,73 +295,29 @@ object Task {
   }
 
 
-  def stubImpl[TaskT: Type](using quotes: Quotes): Expr[TaskT] = {
+  @internal def notImplementedImpl[TaskT: Type](using quotes: Quotes): Expr[TaskT] = {
     import quotes.reflect.*
-
+    import scala.compiletime.summonInline
     Type.of[TaskT] match {
       case '[Task.Simple[t]] =>
-        // Summon the implicit LiteralImplicit[t]
-        Expr.summon[Task.LiteralImplicit[t]] match {
-          case Some(lit) =>
-            // Call Task.Stub0[t]() with the summoned implicit
-            '{ Task.Stub0[t]().asInstanceOf[TaskT] }
-          case None =>
-            report.errorAndAbort(s"Could not find implicit LiteralImplicit[${TypeRepr.of[t].show}]")
+        '{
+          new NotImplemented[t](summonInline[ModuleCtx], summonInline[ReadWriter[t]])
+            .asInstanceOf[TaskT]
         }
     }
   }
-  // The extra `(x: T = null)` parameter list is necessary to make type inference work
-  // right, ensuring that `T` is fully inferred before implicit resolution starts
-  @internal def Stub0[T]()(using
-      x: T = null.asInstanceOf[T]
-  )(using li: LiteralImplicit[T]): Task.Simple[T] = {
-    assert(li.ctx != null, "Unable to resolve context")
-    assert(li.writer != null, "Unable to resolve JSON writer")
-    assert(li.reader != null, "Unable to resolve JSON reader")
-    new Task.Input[T](
-      (_, _) =>
-        PathRef
-          .currentOverrideModulePath
-          .withValue(li.ctx.enclosingModule.moduleCtx.millSourcePath) {
-            // Return null which will be overridden by buildOverrides
-            Result.Success(null.asInstanceOf[T])
-          },
-      li.ctx,
-      li.writer,
-      None
-    ) {
-      override def readWriterOpt = Some(upickle.ReadWriter.join(li.reader, li.writer))
-    }
-  }
 
-  class LiteralImplicit[T](
-      val reader: upickle.default.Reader[T],
-      val writer: upickle.default.Writer[T],
-      val ctx: ModuleCtx
-  )
-  object LiteralImplicit {
-    // Use a custom macro to perform the implicit lookup so we have more control over implicit
-    // resolution failures. In this case, we want to fall back to `null` if an implicit search
-    // fails so we can provide a good error message
-    implicit inline def create[T]: LiteralImplicit[T] = ${ createImpl[T] }
+  @internal class NotImplemented[T](val ctx0: ModuleCtx, rw: ReadWriter[T])
+    extends Task.Simple[T] {
 
-    private def createImpl[T: Type](using Quotes): Expr[LiteralImplicit[T]] = {
-      import quotes.reflect.*
+    override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
+      (_, _) => Result.Failure("Not Implemented")
 
-      def summonOrNull[U: Type]: Expr[U] = {
-        Implicits.search(TypeRepr.of[U]) match {
-          case s: ImplicitSearchSuccess => s.tree.asExprOf[U] // Use the found given
-          case _: ImplicitSearchFailure =>
-            '{ null.asInstanceOf[U] } // Includes both NoMatchingImplicits and AmbiguousImplicits
-        }
-      }
+    def isPrivate = None
 
-      val readerExpr = summonOrNull[upickle.default.Reader[T]]
-      val writerExpr = summonOrNull[upickle.default.Writer[T]]
-      val ctxExpr = summonOrNull[ModuleCtx]
+    val inputs = Nil
 
-      '{ new LiteralImplicit[T]($readerExpr, $writerExpr, $ctxExpr) }
-    }
+    override def readWriterOpt = Some(rw)
   }
 
   abstract class Ops[+T] { this: Task[T] =>

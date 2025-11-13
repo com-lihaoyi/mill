@@ -16,7 +16,7 @@ object AutoOverrideTests extends TestSuite {
 
   // Test object that should have methods auto-implemented
   object TestServiceImpl extends TestService with AutoOverride[String] {
-    override def autoOverrideImpl(): String = "auto-generated"
+    def autoOverrideImpl[T](): T = "auto-generated".asInstanceOf[T]
     // getName, getDescription, and getVersion should be automatically implemented
   }
 
@@ -29,7 +29,7 @@ object AutoOverrideTests extends TestSuite {
 
   // Only methods returning String should be auto-implemented
   object MixedServiceImpl extends MixedService with AutoOverride[String] {
-    override def autoOverrideImpl(): String = "default-value"
+     def autoOverrideImpl[T](): T = "default-value".asInstanceOf[T]
     // getValue should be auto-implemented
     // getCount and isActive must be manually implemented
     override def getCount(): Int = 42
@@ -44,7 +44,7 @@ object AutoOverrideTests extends TestSuite {
   }
 
   object GenericServiceImpl extends GenericService with AutoOverride[Any] {
-    override def autoOverrideImpl(): Any = null
+     def autoOverrideImpl[T](): T = null.asInstanceOf[T]
     // All methods should be auto-implemented since Any is a supertype of all
   }
 
@@ -56,7 +56,7 @@ object AutoOverrideTests extends TestSuite {
   }
 
   object PartialServiceImpl extends PartialService with AutoOverride[String] {
-    override def autoOverrideImpl(): String = "auto"
+     def autoOverrideImpl[T](): T = "auto".asInstanceOf[T]
     override def manual(): String = "manual"
     // auto1 and auto2 should be auto-implemented
   }
@@ -109,7 +109,7 @@ object AutoOverrideTests extends TestSuite {
       }
 
       abstract class BaseService extends IndirectService with AutoOverride[String] {
-        override def autoOverrideImpl(): String = "indirect-value"
+         def autoOverrideImpl[T](): String = "indirect-value"
       }
 
       object IndirectServiceImpl extends BaseService {
