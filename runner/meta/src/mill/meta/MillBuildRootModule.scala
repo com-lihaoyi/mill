@@ -76,7 +76,10 @@ trait MillBuildRootModule()(using
   }
 
   override def mandatoryMvnDeps = Task {
-    Seq(mvn"com.lihaoyi::mill-libs:${Versions.millVersion}") ++
+    Seq(
+      mvn"com.lihaoyi::mill-libs:${Versions.millVersion}",
+      mvn"com.lihaoyi::mill-runner-autooverride-api:${Versions.millVersion}"
+    ) ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
         mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
@@ -269,7 +272,11 @@ trait MillBuildRootModule()(using
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
+    // Somehow these sourcecode exclusions are necessary otherwise the
+    // SOURCECODE_ORIGINAL_FILE_PATH comments aren't handled properly
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+      .exclude("com.lihaoyi" -> "sourcecode_3"),
+    mvn"com.lihaoyi:::mill-runner-autooverride-plugin:${Versions.millVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 

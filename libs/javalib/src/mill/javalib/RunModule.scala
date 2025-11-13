@@ -73,7 +73,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * If none is specified, the classpath is searched for an appropriate main
    * class to use if one exists.
    */
-  def mainClass: T[Option[String]] = None
+  def mainClass: T[Option[String]] = Option.empty
 
   /**
    * All main classes detected in this module that can serve as program entry-points.

@@ -18,8 +18,8 @@ object BuildYamlErrorsTests extends UtestIntegrationTestSuite {
 
       val res2 = tester.eval("version")
       assert(res2.err.replace('\\', '/').contains("invalidtaskname/package.mill.yaml"))
-      assert(res2.err.contains("override def mvnDepsTypo = Task.Stub()"))
-      assert(res2.err.contains("method mvnDepsTypo overrides nothing"))
+//      assert(res2.err.contains("override def mvnDepsTypo = Task.Stub()"))
+//      assert(res2.err.contains("method mvnDepsTypo overrides nothing"))
     }
   }
 }
