@@ -272,6 +272,8 @@ trait MillBuildRootModule()(using
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
+    // Somehow these sourcecode exclusions are necessary otherwise the
+    // SOURCECODE_ORIGINAL_FILE_PATH comments aren't handled properly
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3"),
     mvn"com.lihaoyi:::mill-runner-autooverride-plugin:${Versions.millVersion}"
