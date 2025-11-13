@@ -22,7 +22,6 @@
                 <plugin path=".../org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar"/>
                 <plugin path=".../org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar"/>
                 <plugin path=".../org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"/>
-                <plugin path=".../com/lihaoyi/sourcecode_3/0.3.0/sourcecode_3-0.3.0.jar"/>
                 <plugin path=".../org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar"/>
                 <plugin path=".../org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"/>
             </plugins>
