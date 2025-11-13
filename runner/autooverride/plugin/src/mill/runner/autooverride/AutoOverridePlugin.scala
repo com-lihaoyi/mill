@@ -36,7 +36,7 @@ class AutoOverridePhase extends PluginPhase {
   val phaseName = "auto-override"
 
   override val runsAfter = Set("typer")
-  override val runsBefore = Set("refchecks")
+  override val runsBefore = Set("inlining")
 
   override def transformTypeDef(tree: TypeDef)(using Context): Tree = {
     tree match {
@@ -126,24 +126,17 @@ class AutoOverridePhase extends PluginPhase {
 
   /**
    * Generates the implementation for an abstract method that calls autoOverrideImpl[T]().
+   * Since autoOverrideImpl is now an inline def macro, it will resolve LiteralImplicit[T]
+   * during macro expansion.
    */
   private def generateMethodImpl(method: Symbol, autoOverrideImplSym: Symbol, cls: Symbol)(using Context): DefDef = {
-    // Search for the implicit LiteralImplicit[T] parameter
-    val literalImplicitClass = requiredClass("mill.api.Task.LiteralImplicit")
     val meth = method.asTerm
-    val returnType = meth.info.finalResultType
-    println("method " + method)
-    println("meth " + meth)
-    println("meth.info " + meth.info)
 
-    println("returnType.typeParams " + returnType.typeParams)
-    val typeParam = meth.info match{
+    // Extract the type parameter from the method's return type
+    // For methods returning Task.Simple[T], extract T
+    val typeParam = meth.info match {
       case ExprType(AppliedType(_, Seq(param))) => param
     }
-    println("typeParams " + typeParam)
-
-
-
 
     // Create a new symbol for the concrete implementation (remove Deferred flag)
     val newFlags = (meth.flags &~ Deferred) | Override
@@ -155,23 +148,17 @@ class AutoOverridePhase extends PluginPhase {
       coord = meth.coord
     ).asTerm
 
+    // Enter the symbol in the owner's scope
     cls.asClass.enter(newSym)
-    // Set the symbol as entered in the owner's scope
-    val inferred = ctx.typer.inferImplicit(literalImplicitClass.typeRef.appliedTo(typeParam), EmptyTree, newSym.span).tree
 
-    // Generate the method body: this.autoOverrideImpl[ReturnType]()(using implicitArg)
+    // Generate the method body: this.autoOverrideImpl[T]()
+    // The inline macro will handle implicit resolution during expansion
     val thisRef = This(cls.asClass)
-
-
-    // Apply type argument [T] and explicit parameter list ()
-    val withTypeAndExplicitArgs = thisRef.select(autoOverrideImplSym)
+    val callAutoOverride = thisRef.select(autoOverrideImplSym)
       .appliedToTypes(List(typeParam))
       .appliedToNone
-      .appliedTo(inferred)
-
-    sys.error("withTypeAndExplicitArgs " + withTypeAndExplicitArgs)
 
     // Create the DefDef with the generated body
-    DefDef(newSym, withTypeAndExplicitArgs)
+    DefDef(newSym, callAutoOverride)
   }
 }

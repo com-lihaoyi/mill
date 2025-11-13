@@ -1,5 +1,7 @@
 package mill.runner.autooverride
 
+import scala.quoted.*
+
 /**
  * A trait that enables automatic implementation of abstract methods.
  *
@@ -7,8 +9,8 @@ package mill.runner.autooverride
  * abstract methods with return type <: T automatically implemented by calling
  * this.autoOverrideImpl[T]().
  *
- * The implementing class must provide autoOverrideImpl[T]()(using LiteralImplicit[T])
- * to supply the implementation.
+ * The implementing class must provide an inline def autoOverrideImpl[T] macro
+ * that resolves LiteralImplicit[T] during macro expansion.
  *
  * @tparam T the return type that will be automatically implemented
  */

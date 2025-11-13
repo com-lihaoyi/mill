@@ -15,6 +15,7 @@ object `package` extends Module {
    */
   object api extends MillPublishScalaModule {
     def scalaVersion = millbuild.Deps.scalaVersion
+    def moduleDeps = Seq(build.core.api)
   }
 
   /**
