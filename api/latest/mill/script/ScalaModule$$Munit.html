@@ -1233,6 +1233,137 @@ node43 -> node36;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="annotationProcessorsJavacOptions-0" data-f-keywords="override" data-f-inherited="JavaTests0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="ScalaModule$$Munit.html#annotationProcessorsJavacOptions-0" t="n" class="documentableName ">annotationProcessorsJavacOptions</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Constructs the -processorpath compiler flag using <a href="../javalib/JavaModule$$JavaTests0.html#annotationProcessorsResolvedMvnDeps-0">annotationProcessorsResolvedMvnDeps</a></p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Constructs the -processorpath compiler flag using <a href="../javalib/JavaModule$$JavaTests0.html#annotationProcessorsResolvedMvnDeps-0">annotationProcessorsResolvedMvnDeps</a></p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="../javalib/JavaModule$$JavaTests0.html#annotationProcessorsJavacOptions-0">JavaTests0</a> -&gt; <a href="../javalib/JavaModule.html">JavaModule</a>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../javalib/JavaModule$$JavaTests0.html#annotationProcessorsJavacOptions-0">JavaTests0</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="annotationProcessorsMvnDeps-0" data-f-inherited="JavaModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaModule$$Munit.html#annotationProcessorsMvnDeps-0" t="n" class="documentableName ">annotationProcessorsMvnDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/Dep.html" t="t">Dep</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The Java annotation processors to pass to the Java compilation in the form of mvn deps, e.g. mvn"org.projectlombok:lombok:1.18.34"</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The Java annotation processors to pass to the Java compilation in the form of mvn deps, e.g. mvn"org.projectlombok:lombok:1.18.34"</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../javalib/JavaModule.html#annotationProcessorsMvnDeps-0">JavaModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="annotationProcessorsResolvedMvnDeps-0" data-f-inherited="JavaModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="ScalaModule$$Munit.html#annotationProcessorsResolvedMvnDeps-0" t="n" class="documentableName ">annotationProcessorsResolvedMvnDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Resolves the Java annotation processor mvn deps <a href="../javalib/JavaModule.html#annotationProcessorsMvnDeps-0">annotationProcessorsMvnDeps</a>. By default, it passes the BOMs via <a href="../javalib/JavaModule.html#allBomDeps-0">allBomDeps</a> to the resolution.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Resolves the Java annotation processor mvn deps <a href="../javalib/JavaModule.html#annotationProcessorsMvnDeps-0">annotationProcessorsMvnDeps</a>. By default, it passes the BOMs via <a href="../javalib/JavaModule.html#allBomDeps-0">allBomDeps</a> to the resolution.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="../javalib/JavaModule.html#annotationProcessorsResolvedMvnDeps-0">JavaModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="artifactId-0" data-f-keywords="override" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
