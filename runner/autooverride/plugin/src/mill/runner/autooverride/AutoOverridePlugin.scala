@@ -33,7 +33,7 @@ class AutoOverridePhase extends PluginPhase {
   // inlining will then expand. This helps minimize the complexity of this plugin
   override val runsAfter = Set("typer")
   override val runsBefore = Set("inlining")
-  
+
   override def transformTypeDef(tree: TypeDef)(using Context): Tree = {
     tree match {
       case td @ TypeDef(_, template: Template) if td.symbol.is(ModuleClass) =>
