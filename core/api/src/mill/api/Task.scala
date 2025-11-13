@@ -294,9 +294,22 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
+
+  def stubImpl[T: Type](using Quotes): Expr[mill.api.Task.Simple[T]] = {
+    import quotes.reflect.*
+
+    // Summon the implicit LiteralImplicit[T]
+    Expr.summon[Task.LiteralImplicit[T]] match {
+      case Some(lit) =>
+        // Call Task.Stub[T]() with the summoned implicit
+        '{ Task.Stub0[T]()(using null.asInstanceOf[T])(using ${lit}) }
+      case None =>
+        report.errorAndAbort(s"Could not find implicit LiteralImplicit[${Type.show[T]}]")
+    }
+  }
   // The extra `(x: T = null)` parameter list is necessary to make type inference work
   // right, ensuring that `T` is fully inferred before implicit resolution starts
-  @internal def Stub[T]()(using
+  @internal def Stub0[T]()(using
       x: T = null.asInstanceOf[T]
   )(using li: LiteralImplicit[T]): Task.Simple[T] = {
     assert(li.ctx != null, "Unable to resolve context")
