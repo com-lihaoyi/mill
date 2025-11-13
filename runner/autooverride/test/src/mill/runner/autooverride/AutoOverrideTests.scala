@@ -29,7 +29,7 @@ object AutoOverrideTests extends TestSuite {
 
   // Only methods returning String should be auto-implemented
   object MixedServiceImpl extends MixedService with AutoOverride[String] {
-     def autoOverrideImpl[T](): T = "default-value".asInstanceOf[T]
+    def autoOverrideImpl[T](): T = "default-value".asInstanceOf[T]
     // getValue should be auto-implemented
     // getCount and isActive must be manually implemented
     override def getCount(): Int = 42
@@ -44,7 +44,7 @@ object AutoOverrideTests extends TestSuite {
   }
 
   object GenericServiceImpl extends GenericService with AutoOverride[Any] {
-     def autoOverrideImpl[T](): T = null.asInstanceOf[T]
+    def autoOverrideImpl[T](): T = null.asInstanceOf[T]
     // All methods should be auto-implemented since Any is a supertype of all
   }
 
@@ -56,7 +56,7 @@ object AutoOverrideTests extends TestSuite {
   }
 
   object PartialServiceImpl extends PartialService with AutoOverride[String] {
-     def autoOverrideImpl[T](): T = "auto".asInstanceOf[T]
+    def autoOverrideImpl[T](): T = "auto".asInstanceOf[T]
     override def manual(): String = "manual"
     // auto1 and auto2 should be auto-implemented
   }
@@ -109,7 +109,7 @@ object AutoOverrideTests extends TestSuite {
       }
 
       abstract class BaseService extends IndirectService with AutoOverride[String] {
-         def autoOverrideImpl[T](): String = "indirect-value"
+        def autoOverrideImpl[T](): String = "indirect-value"
       }
 
       object IndirectServiceImpl extends BaseService {
@@ -141,7 +141,9 @@ object AutoOverrideTests extends TestSuite {
             // getInt and getBool can't be auto-implemented because they don't return String
           }
         """)
-        assert(error.msg.contains("unimplemented") || error.msg.contains("object creation impossible"))
+        assert(
+          error.msg.contains("unimplemented") || error.msg.contains("object creation impossible")
+        )
       }
 
       test("no AutoOverride trait") {
@@ -151,7 +153,9 @@ object AutoOverrideTests extends TestSuite {
             // No AutoOverride trait, so standard compile error
           }
         """)
-        assert(error.msg.contains("unimplemented") || error.msg.contains("object creation impossible"))
+        assert(
+          error.msg.contains("unimplemented") || error.msg.contains("object creation impossible")
+        )
       }
 
       test("class instead of object") {

@@ -294,9 +294,7 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
-
   @internal def notImplementedImpl[TaskT: Type](using quotes: Quotes): Expr[TaskT] = {
-    import quotes.reflect.*
     import scala.compiletime.summonInline
     Type.of[TaskT] match {
       case '[Task.Simple[t]] =>
@@ -308,7 +306,7 @@ object Task {
   }
 
   @internal class NotImplemented[T](val ctx0: ModuleCtx, rw: ReadWriter[T])
-    extends Task.Simple[T] {
+      extends Task.Simple[T] {
 
     override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
       (_, _) => Result.Failure("Not Implemented")

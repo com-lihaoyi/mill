@@ -167,14 +167,15 @@ object CodeGen {
               s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
 
           val extendsSnippet =
-            if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[_]]"
+            if (extendsConfig.nonEmpty)
+              s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[_]]"
             else " extends AutoOverride[_root_.mill.T[_]]"
 
           val allSnippets = Seq(
             moduleDepsSnippet,
             compileModuleDepsSnippet,
             runModuleDepsSnippet,
-              "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
+            "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
           ).filter(_.nonEmpty) ++ definitions
 
           s"""$prefix$extendsSnippet {

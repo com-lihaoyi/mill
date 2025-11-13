@@ -42,7 +42,7 @@ object `package` extends Module {
       millbuild.Deps.TestDeps.utest
     )
 
-    def scalacOptions = Seq(
+    def scalacOptions = super.scalacOptions() ++ Seq(
       s"-Xplugin:${plugin.jar().path}",
       s"-Xplugin-require:auto-override"
     )

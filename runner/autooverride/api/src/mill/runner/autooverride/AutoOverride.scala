@@ -1,7 +1,5 @@
 package mill.runner.autooverride
 
-import scala.quoted.*
-
 /**
  * A trait that enables automatic implementation of abstract methods.
  *

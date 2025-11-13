@@ -16,7 +16,8 @@ import plugins.*
  */
 class AutoOverridePlugin extends StandardPlugin {
   val name: String = "auto-override"
-  val description: String = "Automatically implements abstract methods by delegating to autoOverrideImpl()"
+  val description: String =
+    "Automatically implements abstract methods by delegating to autoOverrideImpl()"
 
   override def init(options: List[String]): List[PluginPhase] = {
     new AutoOverridePhase :: Nil
@@ -40,7 +41,7 @@ class AutoOverridePhase extends PluginPhase {
     tree match {
       case td @ TypeDef(_, template: Template) if td.symbol.is(ModuleClass) =>
         val cls = td.symbol
-        findAutoOverrideTrait(cls) match{
+        findAutoOverrideTrait(cls) match {
           case None => tree
           case Some(typeArg) =>
             val abstractMethods = findAbstractMethodsToImplement(cls, typeArg)
@@ -69,7 +70,9 @@ class AutoOverridePhase extends PluginPhase {
       }
   }
 
-  private def findAbstractMethodsToImplement(cls: Symbol, returnType: Type)(using Context): List[Symbol] = {
+  private def findAbstractMethodsToImplement(cls: Symbol, returnType: Type)(using
+      Context
+  ): List[Symbol] = {
     cls.info.abstractTermMembers.filter { member =>
       val name = member.name.toString
       member.symbol.is(Method) && // Must be a method
@@ -80,7 +83,9 @@ class AutoOverridePhase extends PluginPhase {
     }.toList.map(_.symbol)
   }
 
-  private def generateMethodImpl(method: Symbol, autoOverrideImplSym: Symbol, cls: Symbol)(using Context): DefDef = {
+  private def generateMethodImpl(method: Symbol, autoOverrideImplSym: Symbol, cls: Symbol)(using
+      Context
+  ): DefDef = {
     val meth = method.asTerm
 
     val newFlags = (meth.flags &~ Deferred) | Override
