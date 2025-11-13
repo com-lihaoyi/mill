@@ -8,7 +8,9 @@ import Flags.*
 import Types.*
 import Decorators.*
 import ast.tpd
+import dotty.tools.dotc.util.Spans.NoSpan
 import plugins.*
+import typer.Implicits
 
 /**
  * Scala 3 compiler plugin that automatically implements abstract methods
@@ -64,7 +66,11 @@ class AutoOverridePhase extends PluginPhase {
 
         // Generate implementations for each abstract method
         val newDefs = abstractMethods.map { method =>
-          generateMethodImpl(method, autoOverrideImplSym, cls)
+          println("GENERATING " + method)
+          val res = generateMethodImpl(method, autoOverrideImplSym, cls)
+          println("GENERATED " + res)
+
+          res
         }
 
         // Add the new method implementations to the template
@@ -104,22 +110,40 @@ class AutoOverridePhase extends PluginPhase {
    */
   private def findAbstractMethodsToImplement(cls: Symbol, returnType: Type)(using Context): List[Symbol] = {
     cls.info.abstractTermMembers.filter { member =>
+      val name = member.name.toString
       // Must be a method
       member.symbol.is(Method) &&
       // Must be abstract
       member.symbol.is(Deferred) &&
       // Must not be autoOverrideImpl itself
-      member.name.toString != "autoOverrideImpl" &&
+      name != "autoOverrideImpl" &&
+      // Filter out synthetic super methods
+      !name.contains("$super") &&
       // Return type must be a subtype of T
       member.info.finalResultType <:< returnType
     }.toList.map(_.symbol)
   }
 
   /**
-   * Generates the implementation for an abstract method that calls autoOverrideImpl().
+   * Generates the implementation for an abstract method that calls autoOverrideImpl[T]().
    */
   private def generateMethodImpl(method: Symbol, autoOverrideImplSym: Symbol, cls: Symbol)(using Context): DefDef = {
+    // Search for the implicit LiteralImplicit[T] parameter
+    val literalImplicitClass = requiredClass("mill.api.Task.LiteralImplicit")
     val meth = method.asTerm
+    val returnType = meth.info.finalResultType
+    println("method " + method)
+    println("meth " + meth)
+    println("meth.info " + meth.info)
+
+    println("returnType.typeParams " + returnType.typeParams)
+    val typeParam = meth.info match{
+      case ExprType(AppliedType(_, Seq(param))) => param
+    }
+    println("typeParams " + typeParam)
+
+
+
 
     // Create a new symbol for the concrete implementation (remove Deferred flag)
     val newFlags = (meth.flags &~ Deferred) | Override
@@ -131,14 +155,23 @@ class AutoOverridePhase extends PluginPhase {
       coord = meth.coord
     ).asTerm
 
-    // Set the symbol as entered in the owner's scope
     cls.asClass.enter(newSym)
+    // Set the symbol as entered in the owner's scope
+    val inferred = ctx.typer.inferImplicit(literalImplicitClass.typeRef.appliedTo(typeParam), EmptyTree, newSym.span).tree
 
-    // Generate the method body: this.autoOverrideImpl()
+    // Generate the method body: this.autoOverrideImpl[ReturnType]()(using implicitArg)
     val thisRef = This(cls.asClass)
-    val callAutoOverride = thisRef.select(autoOverrideImplSym).appliedToNone
+
+
+    // Apply type argument [T] and explicit parameter list ()
+    val withTypeAndExplicitArgs = thisRef.select(autoOverrideImplSym)
+      .appliedToTypes(List(typeParam))
+      .appliedToNone
+      .appliedTo(inferred)
+
+    sys.error("withTypeAndExplicitArgs " + withTypeAndExplicitArgs)
 
     // Create the DefDef with the generated body
-    DefDef(newSym, callAutoOverride)
+    DefDef(newSym, withTypeAndExplicitArgs)
   }
 }

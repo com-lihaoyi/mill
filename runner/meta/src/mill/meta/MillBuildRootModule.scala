@@ -76,7 +76,10 @@ trait MillBuildRootModule()(using
   }
 
   override def mandatoryMvnDeps = Task {
-    Seq(mvn"com.lihaoyi::mill-libs:${Versions.millVersion}") ++
+    Seq(
+      mvn"com.lihaoyi::mill-libs:${Versions.millVersion}",
+      mvn"com.lihaoyi::mill-runner-autooverride-api:${Versions.millVersion}"
+    ) ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
         mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
@@ -258,8 +261,7 @@ trait MillBuildRootModule()(using
   }
 
   def compileMvnDeps = Seq(
-    mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}",
-    mvn"com.lihaoyi::mill-runner-autooverride-api:${Versions.millVersion}"
+    mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}"
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
