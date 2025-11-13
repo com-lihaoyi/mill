@@ -9,25 +9,28 @@ object `package` extends MicronautModule {
   )
 
   def mvnDeps = Seq(
-    mvn"io.micronaut:micronaut-http-server-netty:$micronautVersion",
-    mvn"io.micronaut.serde:micronaut-serde-jackson:2.9.0",
-    mvn"io.micronaut.data:micronaut-data-jdbc:4.7.0",
-    mvn"io.micronaut.sql:micronaut-jdbc-hikari:5.6.0",
-    mvn"io.micronaut.validation:micronaut-validation:4.5.0",
-    mvn"io.micronaut.views:micronaut-views-htmx:5.2.0",
-    mvn"io.micronaut.views:micronaut-views-thymeleaf:5.2.0",
+    mvn"io.micronaut:micronaut-http-server-netty",
+    mvn"io.micronaut.serde:micronaut-serde-jackson",
+    mvn"io.micronaut.data:micronaut-data-jdbc",
+    mvn"io.micronaut.sql:micronaut-jdbc-hikari",
+    mvn"io.micronaut.validation:micronaut-validation",
+    mvn"io.micronaut.views:micronaut-views-htmx",
+    mvn"io.micronaut.views:micronaut-views-thymeleaf",
     mvn"org.webjars.npm:todomvc-common:1.0.5",
     mvn"org.webjars.npm:todomvc-app-css:2.4.1",
     mvn"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
   )
 
   object test extends MavenTests, TestModule.Junit5 {
+
+    override def bomMvnDeps = Seq(
+      mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
+    )
+
     def mvnDeps = Seq(
       mvn"com.h2database:h2:2.2.224",
-      mvn"io.micronaut:micronaut-http-client:$micronautVersion",
-      mvn"io.micronaut.test:micronaut-test-junit5:4.4.0",
-      mvn"org.junit.jupiter:junit-jupiter-api:5.8.1",
-      mvn"org.junit.jupiter:junit-jupiter-engine:5.8.1"
+      mvn"io.micronaut:micronaut-http-client",
+      mvn"io.micronaut.test:micronaut-test-junit5"
     )
 
     // Micronaut test not compatible with running in parallel
@@ -38,26 +41,27 @@ object `package` extends MicronautModule {
 trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
-  def processors = Task {
-    defaultResolver().classpath(
-      Seq(
-        mvn"io.micronaut.data:micronaut-data-processor:4.7.0",
-        mvn"io.micronaut:micronaut-http-validation:$micronautVersion",
-        mvn"io.micronaut.serde:micronaut-serde-processor:2.9.0",
-        mvn"io.micronaut.validation:micronaut-validation-processor:4.5.0",
-        mvn"io.micronaut:micronaut-inject-java:$micronautVersion"
-      )
-    )
-  }
+  override def bomMvnDeps = Seq(
+    mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
+  )
 
-  def javacOptions = Seq(
-    "-processorpath",
-    processors().map(_.path).mkString(":"),
-    "-parameters",
+  override def annotationProcessorsMvnDeps = Seq(
+    mvn"io.micronaut.data:micronaut-data-processor",
+    mvn"io.micronaut:micronaut-http-validation",
+    mvn"io.micronaut.serde:micronaut-serde-processor",
+    mvn"io.micronaut.validation:micronaut-validation-processor",
+    mvn"io.micronaut:micronaut-inject-java"
+  )
+
+  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
     "-Amicronaut.processing.module=todo",
     "-Amicronaut.processing.annotations=example.micronaut.*"
+  )
+
+  def javacOptions = super.javacOptions() ++ Seq(
+    "-parameters"
   )
 }
 
