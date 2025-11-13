@@ -134,8 +134,8 @@ class AutoOverridePhase extends PluginPhase {
 
     // Extract the type parameter from the method's return type
     // For methods returning Task.Simple[T], extract T
-    val typeParam = meth.info match {
-      case ExprType(AppliedType(_, Seq(param))) => param
+    val typeParam = meth.localReturnType match {
+      case AppliedType(_, Seq(param)) => param
     }
 
     // Create a new symbol for the concrete implementation (remove Deferred flag)
