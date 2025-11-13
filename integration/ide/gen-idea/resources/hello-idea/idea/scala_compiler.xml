@@ -3,7 +3,7 @@
         <profile name="mill 1" modules="">
             <parameters>
                 <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.3/0.11.10/scalac-mill-moduledefs-plugin_3.7.3-0.11.10.jar"/>
-                <parameter value="-Xplugin:/Users/lihaoyi/Github/mill/out/dist/localRepo.dest/com/lihaoyi/mill-runner-autooverride-plugin_3.7.3/SNAPSHOT/mill-runner-autooverride-plugin_3.7.3-SNAPSHOT.jar"/>
+                <parameter value="-Xplugin:.../dist/localRepo.dest/com/lihaoyi/mill-runner-autooverride-plugin_3.7.3/SNAPSHOT/mill-runner-autooverride-plugin_3.7.3-SNAPSHOT.jar"/>
                 <parameter value="-deprecation"/>
                 <parameter value="-Wconf:msg=will be encoded on the classpath:silent"/>
             </parameters>
