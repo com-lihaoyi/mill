@@ -65,7 +65,7 @@ image::android/AndroidStudio.png[AndroidStudio.png]
 == 5. Run your application on an Android Virtual Device (AVD)
 
 
-=== Create an Android Virtual Device (AVD)s
+=== Create the AVD
 [source,console]
 ----
 > ./mill app.createAndroidVirtualDevice
