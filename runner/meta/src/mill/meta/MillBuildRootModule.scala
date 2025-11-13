@@ -258,12 +258,14 @@ trait MillBuildRootModule()(using
   }
 
   def compileMvnDeps = Seq(
-    mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}"
+    mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}",
+    mvn"com.lihaoyi::mill-runner-autooverride-api:${Versions.millVersion}"
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
-      .exclude("com.lihaoyi" -> "sourcecode_3")
+      .exclude("com.lihaoyi" -> "sourcecode_3"),
+    mvn"com.lihaoyi:::mill-runner-autooverride-plugin:${Versions.millVersion}"
   )
 
   override def scalacOptions: T[Seq[String]] = Task {

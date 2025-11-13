@@ -93,6 +93,7 @@ object CodeGen {
         val prelude =
           s"""|import MillMiscInfo._
               |import _root_.mill.util.TokenReaders.given
+              |import _root_.mill.runner.autooverride.AutoOverride
               |""".stripMargin
 
         def processDataRest[T](data: HeaderData)(
@@ -145,10 +146,10 @@ object CodeGen {
         ): String = {
           val extendsConfig = data.`extends`
           val definitions = processDataRest(data)(
-            onProperty = k => s"override def $k = Task.Stub()",
+            onProperty = k => "", // Properties will be auto-implemented by AutoOverride
             onNestedObject = (k, nestedData) =>
               renderTemplate(s"object $k", nestedData, path :+ k)
-          )
+          ).filter(_.nonEmpty)
 
           val moduleDepsSnippet =
             if (data.moduleDeps.isEmpty) ""
@@ -166,14 +167,18 @@ object CodeGen {
               s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
 
           val extendsSnippet =
-            if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
-            else ""
+            if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[_]]"
+            else " extends AutoOverride[_root_.mill.T[_]]"
+
+          val allSnippets = Seq(
+            moduleDepsSnippet,
+            compileModuleDepsSnippet,
+            runModuleDepsSnippet,
+            "override def autoOverrideImpl() = _root_.mill.Task.Stub()"
+          ).filter(_.nonEmpty) ++ definitions
 
           s"""$prefix$extendsSnippet {
-             |  $moduleDepsSnippet
-             |  $compileModuleDepsSnippet
-             |  $runModuleDepsSnippet
-             |  ${definitions.mkString("\n  ")}
+             |  ${allSnippets.mkString("\n  ")}
              |}
              |""".stripMargin
         }

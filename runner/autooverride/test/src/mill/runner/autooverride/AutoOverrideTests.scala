@@ -1,0 +1,169 @@
+package mill.runner.autooverride
+
+import utest.*
+
+/**
+ * Test suite for the AutoOverride compiler plugin
+ */
+object AutoOverrideTests extends TestSuite {
+
+  // Test trait with abstract methods returning String
+  trait TestService {
+    def getName(): String
+    def getDescription(): String
+    def getVersion(): String
+  }
+
+  // Test object that should have methods auto-implemented
+  object TestServiceImpl extends TestService with AutoOverride[String] {
+    override def autoOverrideImpl(): String = "auto-generated"
+    // getName, getDescription, and getVersion should be automatically implemented
+  }
+
+  // Test trait with mixed return types
+  trait MixedService {
+    def getValue(): String
+    def getCount(): Int
+    def isActive(): Boolean
+  }
+
+  // Only methods returning String should be auto-implemented
+  object MixedServiceImpl extends MixedService with AutoOverride[String] {
+    override def autoOverrideImpl(): String = "default-value"
+    // getValue should be auto-implemented
+    // getCount and isActive must be manually implemented
+    override def getCount(): Int = 42
+    override def isActive(): Boolean = true
+  }
+
+  // Test with Any type (should implement all abstract methods)
+  trait GenericService {
+    def getString(): String
+    def getInt(): Int
+    def getBoolean(): Boolean
+  }
+
+  object GenericServiceImpl extends GenericService with AutoOverride[Any] {
+    override def autoOverrideImpl(): Any = null
+    // All methods should be auto-implemented since Any is a supertype of all
+  }
+
+  // Test with partial manual implementation
+  trait PartialService {
+    def auto1(): String
+    def auto2(): String
+    def manual(): String
+  }
+
+  object PartialServiceImpl extends PartialService with AutoOverride[String] {
+    override def autoOverrideImpl(): String = "auto"
+    override def manual(): String = "manual"
+    // auto1 and auto2 should be auto-implemented
+  }
+
+  val tests = Tests {
+    test("basic auto-implementation") {
+      assert(TestServiceImpl.getName() == "auto-generated")
+      assert(TestServiceImpl.getDescription() == "auto-generated")
+      assert(TestServiceImpl.getVersion() == "auto-generated")
+    }
+
+    test("mixed return types") {
+      // Auto-implemented String method
+      assert(MixedServiceImpl.getValue() == "default-value")
+
+      // Manually implemented methods
+      assert(MixedServiceImpl.getCount() == 42)
+      assert(MixedServiceImpl.isActive() == true)
+    }
+
+    test("generic Any type") {
+      // All methods should be implemented with null from autoOverrideImpl
+      assert(GenericServiceImpl.getString() == null)
+      // For primitives, null gets converted to default values (0, false)
+      // This is expected JVM behavior when unboxing null
+      assert(GenericServiceImpl.getInt() == 0)
+      assert(GenericServiceImpl.getBoolean() == false)
+    }
+
+    test("partial manual implementation") {
+      // Auto-implemented methods
+      assert(PartialServiceImpl.auto1() == "auto")
+      assert(PartialServiceImpl.auto2() == "auto")
+
+      // Manually implemented method
+      assert(PartialServiceImpl.manual() == "manual")
+    }
+
+    test("methods are callable multiple times") {
+      val first = TestServiceImpl.getName()
+      val second = TestServiceImpl.getName()
+      assert(first == second)
+      assert(first == "auto-generated")
+    }
+
+    test("indirect inheritance") {
+      // Test that AutoOverride works when inherited through a base class
+      trait IndirectService {
+        def getData(): String
+      }
+
+      abstract class BaseService extends IndirectService with AutoOverride[String] {
+        override def autoOverrideImpl(): String = "indirect-value"
+      }
+
+      object IndirectServiceImpl extends BaseService {
+        // getData should be auto-implemented via BaseService
+      }
+
+      assert(IndirectServiceImpl.getData() == "indirect-value")
+    }
+
+    test("compile errors") {
+      test("missing autoOverrideImpl") {
+        val error = assertCompileError("""
+          trait Service { def get(): String }
+          object Impl extends Service with mill.runner.autooverride.AutoOverride[String] {
+            // Missing autoOverrideImpl implementation
+          }
+        """)
+        assert(error.msg.contains("autoOverrideImpl"))
+      }
+
+      test("type mismatch - methods don't match AutoOverride type") {
+        val error = assertCompileError("""
+          trait Service {
+            def getInt(): Int
+            def getBool(): Boolean
+          }
+          object Impl extends Service with mill.runner.autooverride.AutoOverride[String] {
+            override def autoOverrideImpl(): String = "value"
+            // getInt and getBool can't be auto-implemented because they don't return String
+          }
+        """)
+        assert(error.msg.contains("unimplemented") || error.msg.contains("object creation impossible"))
+      }
+
+      test("no AutoOverride trait") {
+        val error = assertCompileError("""
+          trait Service { def get(): String }
+          object Impl extends Service {
+            // No AutoOverride trait, so standard compile error
+          }
+        """)
+        assert(error.msg.contains("unimplemented") || error.msg.contains("object creation impossible"))
+      }
+
+      test("class instead of object") {
+        val error = assertCompileError("""
+          trait Service { def get(): String }
+          class Impl extends Service with mill.runner.autooverride.AutoOverride[String] {
+            override def autoOverrideImpl(): String = "value"
+            // Plugin should not work on classes, only objects
+          }
+        """)
+        assert(error.msg.contains("unimplemented") || error.msg.contains("class Impl"))
+      }
+    }
+  }
+}

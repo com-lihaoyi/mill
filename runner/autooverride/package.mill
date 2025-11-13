@@ -1,0 +1,49 @@
+package build.runner.autooverride
+
+import mill.*
+import mill.scalalib.*
+import millbuild.*
+
+/**
+ * AutoOverride compiler plugin for Scala 3 that automatically implements
+ * abstract methods by delegating to autoOverrideImpl()
+ */
+object `package` extends Module {
+
+  /**
+   * API module containing the AutoOverride trait
+   */
+  object api extends MillPublishScalaModule {
+    def scalaVersion = millbuild.Deps.scalaVersion
+  }
+
+  /**
+   * Compiler plugin implementation
+   */
+  object plugin extends MillPublishScalaModule {
+    def scalaVersion = millbuild.Deps.scalaVersion
+    def crossFullScalaVersion = true
+    def moduleDeps = Seq(api)
+
+    def mvnDeps = Seq(
+      mvn"org.scala-lang::scala3-compiler:${scalaVersion()}"
+    )
+  }
+
+  /**
+   * Test suite for the compiler plugin
+   */
+  object test extends MillScalaModule with TestModule.Utest {
+    def scalaVersion = millbuild.Deps.scalaVersion
+    def moduleDeps = Seq(api)
+
+    def mvnDeps = Seq(
+      millbuild.Deps.TestDeps.utest
+    )
+
+    def scalacOptions = Seq(
+      s"-Xplugin:${plugin.jar().path}",
+      s"-Xplugin-require:auto-override"
+    )
+  }
+}
