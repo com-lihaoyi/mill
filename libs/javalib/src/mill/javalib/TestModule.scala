@@ -370,14 +370,14 @@ object TestModule {
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
 
     override def bomMvnDeps: T[Seq[Dep]] = Task {
-      super.bomMvnDeps() ++
-        Seq(jupiterVersion())
-          .filter(!_.isBlank() && useJupiterBom())
-          .flatMap(v =>
-            Seq(
-              mvn"org.junit:junit-bom:${v.trim()}"
-            )
+      // cannot call super.bomMvnDeps because it will break mima compat
+      Seq(jupiterVersion())
+        .filter(!_.isBlank() && useJupiterBom())
+        .flatMap(v =>
+          Seq(
+            mvn"org.junit:junit-bom:${v.trim()}"
           )
+        )
     }
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
