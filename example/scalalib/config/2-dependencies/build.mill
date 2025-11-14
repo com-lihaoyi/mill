@@ -1,5 +1,5 @@
 // This example shows some of the common configuration options
-// related to declaring dependencies in `.mill.yaml` files:`
+// related to declaring dependencies in `.mill.yaml` files:
 
 /** See Also: build.mill.yaml */
 
