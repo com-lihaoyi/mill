@@ -299,3 +299,11 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
     override def mandatoryMvnDeps: Task.Simple[Seq[Dep]] = outer.mandatoryMvnDeps
   }
 }
+
+object GroovyModule {
+  // Keep in sync with GroovyModule#KotlinTests, duplicated due to binary compatibility concerns
+  trait GroovyTests0 extends JavaModule.JavaTests0 with GroovyModule {
+    private val outer: GroovyModule = moduleDeps.head.asInstanceOf[GroovyModule]
+    override def groovyLanguageVersion: T[String] = outer.groovyLanguageVersion()
+  }
+}
