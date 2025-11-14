@@ -9,7 +9,6 @@
 Key: name, Value: John
 Key: age, Value: 30
 
-
 > ./mill runMainBackground bar.Bar
 
 > curl http://localhost:8079
