@@ -6,6 +6,7 @@ import mill.api.daemon.internal.*
 import mill.api.internal.*
 
 final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
+  private[mill] override def scriptModuleResolver: Any = delegate.scriptModuleResolver
   private def delegate = delegate0()
   override def allowPositionalCommandArgs = delegate.allowPositionalCommandArgs
   override def selectiveExecution = delegate.selectiveExecution
@@ -18,7 +19,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def env = delegate.env
   override def effectiveThreadCount = delegate.effectiveThreadCount
   override def offline: Boolean = delegate.offline
-
+  override def staticBuildOverrides: Map[String, ujson.Value] = delegate.staticBuildOverrides
   def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
   def resolveSegments(
@@ -114,4 +115,6 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   def close = delegate0 = null
 
   def selective = delegate.selective
+  override private[mill] def resolveScriptModuleDep(s: String): Option[mill.api.Module] =
+    delegate.resolveScriptModuleDep(s)
 }

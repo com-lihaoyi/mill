@@ -3,7 +3,6 @@ package mill.resolve
 import mill.api.*
 import mill.api.internal.{Reflect, Resolved, RootModule0}
 
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 /**
@@ -50,18 +49,17 @@ private object ResolveCore {
    * same module
    */
   class Cache(
-      val instantiatedModules: collection.mutable.Map[Segments, mill.api.Result[Module]] =
+      val instantiatedModules: collection.mutable.Map[
+        (RootModule0, Segments),
+        mill.api.Result[Module]
+      ] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
       methods: collection.mutable.Map[(Class[?], Boolean, Class[?]), Array[(
           java.lang.reflect.Method,
           String
       )]] =
-        collection.mutable.Map(),
-      val scriptModuleChildResolver: (
-          String,
-          Option[String]
-      ) => Seq[mill.api.Result[mill.api.ExternalModule]]
+        collection.mutable.Map()
   ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
@@ -73,16 +71,6 @@ private object ResolveCore {
         Reflect.getMethods(cls, noParams, inner, decode)
       )
 
-    }
-  }
-
-  def catchWrapException[T](t: => T): mill.api.Result[T] = {
-    try mill.api.Result.Success(t)
-    catch {
-      case e: InvocationTargetException =>
-        mill.api.Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
-      case e: Exception =>
-        mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
     }
   }
 
@@ -103,7 +91,7 @@ private object ResolveCore {
   ): Result = {
 
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[?]] = {
-      resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
+      resolved.collect { case Resolved.Module(_, _, cls) => cls }.toSet
     }
 
     remainingQuery match {
@@ -151,7 +139,7 @@ private object ResolveCore {
           case (Segment.Label(singleLabel), m: Resolved.Module) =>
             val resOrErr: mill.api.Result[Seq[Resolved]] = singleLabel match {
               case "__" =>
-                val self = Seq(Resolved.Module(m.segments, m.cls))
+                val self = Seq(Resolved.Module(rootModule, m.segments, m.cls))
                 val transitiveOrErr =
                   resolveTransitiveChildren(
                     rootModule,
@@ -175,7 +163,7 @@ private object ResolveCore {
 
               case pattern if pattern.startsWith("__:") =>
                 val typePattern = pattern.split(":").drop(1)
-                val self = Seq(Resolved.Module(m.segments, m.cls))
+                val self = Seq(Resolved.Module(rootModule, m.segments, m.cls))
 
                 val transitiveOrErr = resolveTransitiveChildren(
                   rootModule,
@@ -188,7 +176,7 @@ private object ResolveCore {
 
                 transitiveOrErr.map(transitive =>
                   (self ++ transitive).collect {
-                    case r @ Resolved.Module(segments, cls)
+                    case r @ Resolved.Module(_, segments, cls)
                         if classMatchesTypePred(typePattern)(cls) =>
                       r
                   }
@@ -204,7 +192,7 @@ private object ResolveCore {
                   cache
                 ).map {
                   _.collect {
-                    case r @ Resolved.Module(segments, cls)
+                    case r @ Resolved.Module(_, segments, cls)
                         if classMatchesTypePred(typePattern)(cls) => r
                   }
                 }
@@ -228,7 +216,7 @@ private object ResolveCore {
             if (classOf[Cross[?]].isAssignableFrom(m.cls)) {
               instantiateModule(rootModule, current.segments, cache).flatMap {
                 case c: Cross[_] =>
-                  catchWrapException(
+                  mill.api.ExecResult.catchWrapException(
                     if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
                     else if (cross.contains("_")) {
                       for {
@@ -249,7 +237,7 @@ private object ResolveCore {
                 case mill.api.Result.Success(searchModules) =>
                   recurse(
                     searchModules
-                      .map(m => Resolved.Module(m.moduleSegments, m.getClass))
+                      .map(m => Resolved.Module(rootModule, m.moduleSegments, m.getClass))
                   )
               }
 
@@ -265,7 +253,7 @@ private object ResolveCore {
       segments: Segments,
       cache: Cache
   ): mill.api.Result[Module] = cache.instantiatedModules.getOrElseUpdate(
-    segments, {
+    (rootModule, segments), {
       segments.value.foldLeft[mill.api.Result[Module]](mill.api.Result.Success(rootModule)) {
         case (mill.api.Result.Success(current), Segment.Label(s)) =>
           assert(s != "_", s)
@@ -288,7 +276,7 @@ private object ResolveCore {
         case (mill.api.Result.Success(current), Segment.Cross(vs)) =>
           assert(!vs.contains("_"), vs)
 
-          catchWrapException(
+          mill.api.ExecResult.catchWrapException(
             current
               .asInstanceOf[Cross[?]]
               .segmentsToModules(vs.toList)
@@ -388,7 +376,7 @@ private object ResolveCore {
       instantiateModule(rootModule, segments, cache).map {
         case cross: Cross[_] =>
           for (item <- cross.items) yield {
-            Resolved.Module(segments ++ Segment.Cross(item.crossSegments), item.cls)
+            Resolved.Module(rootModule, segments ++ Segment.Cross(item.crossSegments), item.cls)
           }
 
         case _ => Nil
@@ -397,9 +385,12 @@ private object ResolveCore {
 
     def expandSegments(direct: Seq[(Resolved, Option[Module => mill.api.Result[Module]])]) = {
       direct.map {
-        case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
-        case (Resolved.NamedTask(s, enclosing), _) => Resolved.NamedTask(segments ++ s, enclosing)
-        case (Resolved.Command(s, enclosing), _) => Resolved.Command(segments ++ s, enclosing)
+        case (Resolved.Module(rootModule, s, cls), _) =>
+          Resolved.Module(rootModule, segments ++ s, cls)
+        case (Resolved.NamedTask(rootModule, s, enclosing), _) =>
+          Resolved.NamedTask(rootModule, segments ++ s, enclosing)
+        case (Resolved.Command(rootModule, s, enclosing), _) =>
+          Resolved.Command(rootModule, segments ++ s, enclosing)
       }
     }
 
@@ -429,6 +420,7 @@ private object ResolveCore {
               .map(c =>
                 (
                   Resolved.Module(
+                    rootModule,
                     Segments.labels(c.moduleSegments.last.value),
                     c.getClass
                   ),
@@ -437,41 +429,31 @@ private object ResolveCore {
               )
         }
       } else mill.api.Result.Success {
-        val reflectMemberObjects = Reflect
+        Reflect
           .reflectNestedObjects02[Module](cls, namePred, cache.getMethods)
           .collect {
             case (name, memberCls, getter) =>
-              val resolved = Resolved.Module(Segments.labels(cache.decode(name)), memberCls)
-              val getter2 = Some((mod: Module) => catchWrapException(getter(mod)))
+              val resolved =
+                Resolved.Module(rootModule, Segments.labels(cache.decode(name)), memberCls)
+              val getter2 =
+                Some((mod: Module) => mill.api.ExecResult.catchWrapException(getter(mod)))
               (resolved, getter2)
           }
           .toSeq
-
-        val simpleModuleObjects =
-          if (!segments.value.forall(_.isInstanceOf[Segment.Label])) Nil
-          else {
-            val scriptKey = segments.value.flatMap(_.pathSegments).mkString("/")
-            val resolvedScript = cache.scriptModuleChildResolver(scriptKey, nameOpt)
-            for (mod <- resolvedScript) yield {
-              val newSegments = Segments.labels(mod.get.moduleSegments.last.value)
-              (Resolved.Module(newSegments, mod.get.getClass), Some((_: Module) => mod))
-            }
-          }
-        reflectMemberObjects ++ simpleModuleObjects
       }
     }
 
     val namedTasks = Reflect
       .reflect(cls, classOf[Task.Named[?]], namePred, noParams = true, cache.getMethods)
       .map { m =>
-        Resolved.NamedTask(Segments.labels(cache.decode(m.getName)), cls) ->
+        Resolved.NamedTask(rootModule, Segments.labels(cache.decode(m.getName)), cls) ->
           None
       }
 
     val commands = Reflect
       .reflect(cls, classOf[Task.Command[?]], namePred, noParams = false, cache.getMethods)
       .map(m => cache.decode(m.getName))
-      .map { name => Resolved.Command(Segments.labels(name), cls) -> None }
+      .map { name => Resolved.Command(rootModule, Segments.labels(name), cls) -> None }
 
     modulesOrErr.map(_ ++ namedTasks ++ commands)
   }

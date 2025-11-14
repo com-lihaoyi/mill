@@ -1,0 +1,54 @@
+= Scala Single-File Scripts
+
+:language: Scala
+:language-small: scala
+:language-ext: scala
+
+include::partial$Script_Header.adoc[]
+
+Mill Scala scripts typically make use of their xref:#_bundled_libraries[Bundled Libraries]
+to provide an easy-to-get-started experience writing Scala scripts.
+
+== Script Use Cases
+
+include::partial$example/scalalib/script/1-html-scraper.adoc[]
+include::partial$example/scalalib/script/2-json-api-client.adoc[]
+include::partial$example/scalalib/script/3-web-server.adoc[]
+include::partial$example/scalalib/script/4-database.adoc[]
+include::partial$example/scalalib/script/5-static-site.adoc[]
+
+== Packaging Assemblies and Native Binaries
+
+include::partial$example/scalalib/script/6-packaging.adoc[]
+
+== Opening a Script REPL
+
+To open a Scala REPL with your script loaded and available, you can use the following command.
+This can be useful to interactively exercise and experiment with the code defined in
+your script.
+
+```scala
+./mill -i Foo.scala:console
+```
+
+== Custom Script Module Classes
+
+include::partial$example/scalalib/script/7-custom-class.adoc[]
+
+
+== Relative and Absolute Script moduleDeps
+
+include::partial$example/scalalib/script/8-relative-imports.adoc[]
+
+
+== Project `moduleDeps`
+
+include::partial$example/scalalib/script/9-programmatic-module-deps.adoc[]
+
+== Script Resources
+
+include::partial$example/scalalib/script/10-resources.adoc[]
+
+== Bundled Libraries
+
+include::partial$example/scalalib/script/11-raw.adoc[]

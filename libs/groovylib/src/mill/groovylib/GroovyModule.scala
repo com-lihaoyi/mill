@@ -10,7 +10,7 @@ import mill.*
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.groovylib.worker.api.GroovyCompilerConfiguration
-import mill.javalib.api.internal.{JavaCompilerOptions, JvmWorkerApi, ZincCompileJava}
+import mill.javalib.api.internal.{InternalJvmWorkerApi, JavaCompilerOptions, ZincOp}
 import mill.util.Version
 
 /**
@@ -246,7 +246,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
     }
 
   private[groovylib] def internalCompileJavaFiles(
-      worker: JvmWorkerApi,
+      worker: InternalJvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
       compileCp: Seq[os.Path],
@@ -255,9 +255,9 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
   )(implicit ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
-    val jOpts = JavaCompilerOptions(javacOptions)
-    worker.compileJava(
-      ZincCompileJava(
+    val jOpts = JavaCompilerOptions.split(javacOptions)
+    worker.apply(
+      ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = javaSourceFiles,
         compileClasspath = compileCp,

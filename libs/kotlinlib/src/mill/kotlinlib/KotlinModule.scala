@@ -13,7 +13,7 @@ import mill.api.ModuleRef
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
-import mill.javalib.api.internal.JvmWorkerApi
+import mill.javalib.api.internal.InternalJvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.{Jvm, Version}
@@ -22,7 +22,7 @@ import mill.*
 import java.io.File
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 /**
  * Core configuration required to compile a single Kotlin module
@@ -426,7 +426,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
-      worker: JvmWorkerApi,
+      worker: InternalJvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
       compileCp: Seq[os.Path],
@@ -435,9 +435,9 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
   )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
-    val jOpts = JavaCompilerOptions(javacOptions)
-    worker.compileJava(
-      ZincCompileJava(
+    val jOpts = JavaCompilerOptions.split(javacOptions)
+    worker.apply(
+      ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = javaSourceFiles,
         compileClasspath = compileCp,
@@ -477,7 +477,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
-
+    // Keep in sync with KotlinModule.KotlinTests0, duplicated due to binary compatibility concerns
     override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
     override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
@@ -497,7 +497,24 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 }
 
 object KotlinModule {
-
+  // Keep in sync with KotlinModule#KotlinTests, duplicated due to binary compatibility concerns
+  trait KotlinTests0 extends JavaModule.JavaTests0 with KotlinModule {
+    private val outer: KotlinModule = moduleDeps.head.asInstanceOf[KotlinModule]
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
+    override def kotlinExplicitApi: T[Boolean] = false
+    override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginMvnDeps() }
+    // TODO: make Xfriend-path an explicit setting
+    override def kotlincOptions: T[Seq[String]] = Task {
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+    }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
+      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
+  }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
     params.addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),

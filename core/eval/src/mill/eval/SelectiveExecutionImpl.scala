@@ -27,11 +27,11 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       .map { namedTask =>
         namedTask.ctx.segments.render -> CodeSigUtils
           .codeSigForTask(
-            namedTask,
-            classToTransitiveClasses,
-            allTransitiveClassMethods,
-            codeSignatures,
-            constructorHashSignatures
+            namedTask = namedTask,
+            classToTransitiveClasses = classToTransitiveClasses,
+            allTransitiveClassMethods = allTransitiveClassMethods,
+            codeSignatures = codeSignatures,
+            constructorHashSignatures = constructorHashSignatures
           )
           .sum
       }
@@ -58,8 +58,12 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
       computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
     )
+    val changedBuildOverrides = diffMap(
+      oldHashes.buildOverrideSignatures,
+      newHashes.buildOverrideSignatures
+    )
 
-    val changedRootTasks = (changedInputNames ++ changedCodeNames)
+    val changedRootTasks = (changedInputNames ++ changedCodeNames ++ changedBuildOverrides)
       .flatMap(namesToTasks.get(_): Option[Task[?]])
 
     val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
@@ -206,6 +210,10 @@ object SelectiveExecutionImpl {
         evaluator: Evaluator,
         transitiveNamed: Seq[Task.Named[?]]
     ): SelectiveExecution.Metadata.Computed = {
+      val allBuildOverrides =
+        evaluator.staticBuildOverrides ++
+          transitiveNamed.flatMap(_.ctx.enclosingModule.moduleDynamicBuildOverrides)
+
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>
           val ctx = new mill.api.TaskCtx.Impl(
@@ -222,17 +230,19 @@ object SelectiveExecutionImpl {
             jobs = evaluator.effectiveThreadCount,
             offline = evaluator.offline
           )
+
           task -> task.evaluate(ctx).map(Val(_))
         }
         .toMap
 
       val inputHashes = results.map {
-        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.hashCode)
+        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
       }
       SelectiveExecution.Metadata.Computed(
         new SelectiveExecution.Metadata(
           inputHashes,
-          evaluator.codeSignatures
+          evaluator.codeSignatures,
+          allBuildOverrides.map { case (k, v) => (k, v.##) }
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

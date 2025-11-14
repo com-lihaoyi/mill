@@ -22,7 +22,6 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app
     extends AndroidAppKotlinModule,
       AndroidR8AppModule,
-      AndroidBuildConfig,
       AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
@@ -65,9 +64,8 @@ object app
     mvn"androidx.compose:compose-bom:2024.12.01"
   )
 
-  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
+  def mvnDeps: T[Seq[Dep]] = Seq(
     mvn"androidx.core:core-ktx:1.15.0",
-    mvn"androidx.appcompat:appcompat:1.7.0",
     mvn"androidx.annotation:annotation:1.9.1",
     mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
     mvn"com.jakewharton.timber:timber:5.0.1",
@@ -130,7 +128,7 @@ object app
       mvn"androidx.compose.ui:ui-test-junit4"
     )
 
-    def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
+    def mvnDeps = composeDeps ++ Seq(
       mvn"junit:junit:4.13.2",
       mvn"androidx.arch.core:core-testing:2.2.0",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
@@ -145,7 +143,7 @@ object app
 
   object androidTest
       extends AndroidAppKotlinInstrumentedTests,
-        AndroidR8AppModule,
+        AndroidR8InstrumentedTestsModule,
         AndroidHiltSupport {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
@@ -164,7 +162,6 @@ object app
     }
 
     override def androidProjectProguardFiles = Task.Sources(
-      "proguard-rules.pro",
       "proguardTest-rules.pro"
     )
     override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
@@ -180,10 +177,11 @@ object app
       mvn"androidx.compose.ui:ui-test-junit4"
     )
 
-    def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
+    def mvnDeps = composeDeps ++ Seq(
       // Dependencies for Android unit tests
       mvn"junit:junit:4.13.2",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
+      mvn"androidx.appcompat:appcompat:1.7.0",
       // AndroidX Test - Instrumented testing
       mvn"androidx.test:core-ktx:1.6.1",
       mvn"androidx.test.ext:junit-ktx:1.2.1",
@@ -232,7 +230,7 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
+  def mvnDeps = Seq(
     mvn"junit:junit:4.13.2",
     mvn"androidx.arch.core:core-testing:2.2.0",
     mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",

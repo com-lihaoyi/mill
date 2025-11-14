@@ -1,7 +1,6 @@
 package mill.daemon
 
 import mill.api.{BuildCtx, SystemStreams}
-import mill.client.ClientUtil
 import mill.client.lock.{Lock, Locks}
 import mill.constants.{OutFiles, OutFolderMode}
 import mill.server.Server
@@ -30,7 +29,6 @@ object MillDaemonMain {
   }
 
   def main(args0: Array[String]): Unit = {
-
     // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
@@ -38,11 +36,12 @@ object MillDaemonMain {
     val args =
       Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
-    if (Properties.isWin)
-      // temporarily disabling FFM use by coursier, which has issues with the way
-      // Mill manages class loaders, throwing things like
-      // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
-      sys.props("coursier.windows.disable-ffm") = "true"
+    // temporarily disabling FFM use by coursier, which has issues with the way
+    // Mill manages class loaders, throwing things like
+    // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
+    if (Properties.isWin) sys.props("coursier.windows.disable-ffm") = "true"
+
+    coursier.Resolve.proxySetup() // Take into account proxy-related Java properties
 
     mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
       Server.overrideSigIntHandling()
@@ -50,17 +49,18 @@ object MillDaemonMain {
       val acceptTimeout =
         Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
 
-      new MillDaemonMain(
+      val exitCode = new MillDaemonMain(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
         Locks.files(args.daemonDir.toString),
         outMode = args.outMode
-      ).run()
+      ).run().getOrElse(0)
 
-      System.exit(ClientUtil.ExitServerCodeWhenIdle())
+      System.exit(exitCode)
     }
   }
 }
+
 class MillDaemonMain(
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
@@ -72,11 +72,11 @@ class MillDaemonMain(
       locks
     ) {
 
-  def stateCache0 = RunnerState.empty
+  def initialStateCache = RunnerState.empty
 
-  val out: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
+  val outFolder: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
-  val outLock = MillMain0.doubleLock(out)
+  val outLock = MillMain0.doubleLock(outFolder)
 
   def main0(
       args: Array[String],

@@ -400,7 +400,7 @@ object Jvm {
            |  JAVACMD="$$JAVA_HOME/bin/java"
            |fi
            |
-           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" $mainClass "$$@"
+           |exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS -cp "$classpathStr" '$mainClass' "$$@"
            |""".stripMargin
       },
       cmdCommands = {
@@ -410,7 +410,7 @@ object Jvm {
            |set "JAVACMD=java.exe"
            |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
            |
-           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" $mainClass %*
+           |"%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "$classpathStr" "$mainClass" %*
            |
            |endlocal
            |""".stripMargin
@@ -478,7 +478,8 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
-      @unroll config: CoursierConfig = CoursierConfig.default()
+      @unroll config: CoursierConfig = CoursierConfig.default(),
+      @unroll boms: IterableOnce[BomDependency] = Nil
   ): Result[coursier.Artifacts.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
@@ -489,6 +490,7 @@ object Jvm {
       ctx,
       coursierCacheCustomizer,
       resolutionParams,
+      boms = boms,
       checkGradleModules = checkGradleModules,
       config = config
     )
@@ -543,7 +545,8 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
-      @unroll config: CoursierConfig = CoursierConfig.default()
+      @unroll config: CoursierConfig = CoursierConfig.default(),
+      @unroll boms: IterableOnce[BomDependency] = Nil
   ): Result[Seq[PathRef]] =
     getArtifacts(
       repositories,
@@ -557,7 +560,8 @@ object Jvm {
       artifactTypes,
       resolutionParams,
       checkGradleModules = checkGradleModules,
-      config = config
+      config = config,
+      boms = boms
     ).map { res =>
       BuildCtx.withFilesystemCheckerDisabled {
         res.files
@@ -612,7 +616,7 @@ object Jvm {
         // On Windows, prefer to use System.getenv over sys.env (or ctx.env for
         // now), as the former respects the case-insensitiveness of env vars on
         // Windows, while the latter doesn't
-        os.Path(System.getenv("UserProfile")) / ".mill/cache/jvm"
+        os.Path(System.getenv("UserProfile")) / ".cache/mill/jvm"
       else {
         val cacheBase = ctx.map(_.env)
           .getOrElse(sys.env)

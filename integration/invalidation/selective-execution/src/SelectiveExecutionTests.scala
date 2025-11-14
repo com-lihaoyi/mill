@@ -1,7 +1,5 @@
 package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 import utest._
@@ -149,12 +147,11 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
         stderr = os.Inherit
       )
       modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
-      val cached1 =
-        eval(
-          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
-          check = true,
-          stderr = os.Inherit
-        )
+      val cached1 = eval(
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
 
       assert(!cached1.out.contains("Computing fooCommand"))
       assert(cached1.out.contains("Computing barCommand"))
@@ -169,12 +166,11 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
         workspacePath / "build.mill",
         _.replace("object foo extends Module {", "object foo extends Module { println(123)")
       )
-      val cached2 =
-        eval(
-          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
-          check = true,
-          stderr = os.Inherit
-        )
+      val cached2 = eval(
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
+        check = true,
+        stderr = os.Inherit
+      )
 
       assert(cached2.out.contains("Computing fooCommand"))
       assert(!cached2.out.contains("Computing barCommand"))
@@ -192,79 +188,61 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
       test("changed-inputs") - retry(1) {
         integrationTest { tester =>
           import tester._
-          @volatile var output0 = List.empty[String]
+          val spawned = spawn(("--watch", "{foo.fooCommand,bar.barCommand}"))
 
-          def output = output0.mkString("\n")
-
-          Future {
-            eval(
-              ("--watch", "{foo.fooCommand,bar.barCommand}"),
-              check = true,
-              stdout = os.ProcessOutput.Readlines { line =>
-                println("stdout " + line)
-                output0 = output0 :+ line
-              },
-              stderr = os.ProcessOutput.Readlines { line =>
-                println("stderr " + line)
-              }
-            )
+          assertEventually {
+            spawned.out.text().contains("Computing fooCommand") &&
+            spawned.out.text().contains("Computing barCommand")
           }
-
-          assertEventually(
-            output.contains("Computing fooCommand") && output.contains("Computing barCommand")
-          )
 
           // Make sure editing each individual input results in the corresponding downstream
           // command being re-run, and watches on both are maintained even if in a prior run
           // one set of tasks was ignored.
-          output0 = Nil
+          spawned.clear()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
-            !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+            !spawned.out.text().contains("Computing fooCommand") &&
+            spawned.out.text().contains("Computing barCommand")
           }
 
           // Test for a bug where modifying the sources 2nd time would run tasks from both modules.
-          output0 = Nil
+          spawned.clear()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           assertEventually {
-            !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+            !spawned.out.text().contains("Computing fooCommand") &&
+            spawned.out.text().contains("Computing barCommand")
           }
 
-          output0 = Nil
+          spawned.clear()
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
           assertEventually {
-            output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+            spawned.out.text().contains("Computing fooCommand") &&
+            !spawned.out.text().contains("Computing barCommand")
           }
         }
       }
       test("show-changed-inputs") - retry(1) {
         integrationTest { tester =>
           import tester._
-          @volatile var output0 = List.empty[String]
-          def output = output0.mkString("\n")
-          Future {
-            eval(
-              ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
-              check = true,
-              stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
-              stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
-            )
-          }
+          val spawned = spawn(("--watch", "show", "{foo.fooCommand,bar.barCommand}"))
 
           assertEventually {
-            output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+            spawned.err.text().contains("Computing fooCommand") &&
+            spawned.err.text().contains("Computing barCommand")
           }
-          output0 = Nil
+
+          spawned.clear()
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-
           assertEventually {
-            !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+            !spawned.err.text().contains("Computing fooCommand") &&
+            spawned.err.text().contains("Computing barCommand")
           }
 
-          output0 = Nil
+          spawned.clear()
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
           assertEventually {
-            output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+            spawned.err.text().contains("Computing fooCommand") &&
+            !spawned.err.text().contains("Computing barCommand")
           }
         }
       }
@@ -273,38 +251,31 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
         integrationTest { tester =>
           import tester._
 
-          @volatile var output0 = List.empty[String]
-          def output = output0.mkString("\n")
-          Future {
-            eval(
-              ("--watch", "{foo.fooCommand,bar.barCommand}"),
-              check = true,
-              stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
-              stderr = os.ProcessOutput.Readlines { line => System.err.println(line) }
-            )
-          }
+          val spawned = spawn(("--watch", "{foo.fooCommand,bar.barCommand}"))
 
           assertEventually {
-            output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+            spawned.out.text().contains(
+              "Computing fooCommand"
+            ) && spawned.out.text().contains("Computing barCommand")
           }
-          output0 = Nil
 
           // Check method body code changes correctly trigger downstream evaluation
+          spawned.clear()
           modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
-
           assertEventually {
-            !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+            !spawned.out.text().contains("Computing fooCommand") &&
+            spawned.out.text().contains("Computing barCommand")
           }
-          output0 = Nil
 
           // Check module body code changes correctly trigger downstream evaluation
+          spawned.clear()
           modifyFile(
             workspacePath / "build.mill",
             _.replace("object foo extends Module {", "object foo extends Module { println(123)")
           )
-
           assertEventually {
-            output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
+            spawned.out.text().contains("Computing fooCommand") &&
+            !spawned.out.text().contains("Computing barCommand")
           }
         }
       }

@@ -28,17 +28,14 @@ object MillVersionFrontmatterTests extends TestSuite {
         check = false
       )
       val output = res.out.text().trim
-      val errOutput = res.err.text().trim
 
       if (res.exitCode != 0) {
-        println(s"stdout:\n$output\n\n")
-        println(s"stderr:\n$errOutput\n\n")
         throw new IllegalStateException(s"exitCode != 0 (actual = ${res.exitCode}")
       }
 
       expectedVersion match {
         case Some(expected) => assert(output.contains(s"/$expected/"))
-        case None => assert(errOutput.contains("No mill version specified."))
+        case None => assert(output.contains(s"/SNAPSHOT/"))
       }
     }
 

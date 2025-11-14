@@ -166,6 +166,118 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.3/pprint_3-0.9.3.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.1/upickle_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.7/mainargs_3-0.7.7.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/0.12.0/scalatags_3-0.12.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.1/fansi_3-0.5.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/0.11.5/os-zip-0.11.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.4.1/ujson_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.1/upack_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.1/upickle-implicits_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar"
+      ],
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/folder1/script.scala/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/Foo.java"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar"
+      ],
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/folder2/Foo.java/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/FooTest.java"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.2/junit-interface-0.13.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/guava/guava/33.3.0-jre/guava-33.3.0-jre.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
+        "file:///workspace/out/mill-bsp-out/scripts/folder2/Foo.java/compile.dest/classes"
+      ],
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/folder2/FooTest.java/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/Foo.java"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/3.1.1.RELEASE/thymeleaf-3.1.1.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ognl/ognl/3.3.4/ognl-3.3.4.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/attoparser/attoparser/2.0.6.RELEASE/attoparser-2.0.6.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar"
+      ],
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/foldershared/Foo.java/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.3/pprint_3-0.9.3.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.1/upickle_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.7/mainargs_3-0.7.7.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/0.12.0/scalatags_3-0.12.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.1/fansi_3-0.5.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/0.11.5/os-zip-0.11.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.4.1/ujson_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.1/upack_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.1/upickle-implicits_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar"
+      ],
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/foldershared/script.scala/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "options": [],

@@ -1,3 +1,5 @@
+//| mill-jvm-version: 17
+
 // This example demonstrates a simple multi-langauge project,
 // running a `spring boot webserver` serving a `react client` and interacting with a `python binary`
 // through the web-server api.
@@ -30,7 +32,7 @@ object server extends JavaModule {
   }
 
   object test extends JavaTests, javalib.TestModule.Junit5 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }

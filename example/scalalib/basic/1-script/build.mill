@@ -1,0 +1,141 @@
+// Mill allows you to run single-file {language} programs
+// easily from the command-line, even those that contain third-party dependencies, specific
+// JVM versions, or other such build configuration. Unlike {language} programs built with other
+// tools, Mill scripts run  via a `./mill`
+// xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script] run reproducibly
+// xref:blog::16-zero-setup.adoc[without needing any prior installation or setup].
+// This can be useful for several purposes:
+//
+// - A replacement for Bash scripts: Mill instead lets you write small {language} scripts or programs
+//   in {language} with full access to third-party libraries that run in a reproducible way
+//   across diverse dev/test/prod environments
+//
+// - Self-contained examples or issue reproductions, as you can include both the code and
+//   dependencies necessary in a self-contained file that can be run using `./mill` without
+//   manual setup or installation
+//
+// - Small projects or experiments, where setting up and maintaining a separate build file
+//   can be a hassle, and putting both code and config in a single file makes things easier
+//   to manage
+//
+// See the documentation on xref:{language-small}lib/script.adoc#_script_use_cases[Script Use Cases]
+// for more example of what you can do with them.
+//
+// The small example {language} program below demonstrates a simple single-file script. It
+// can be run directly using Mill, which will automatically download and cache the specified
+// third-party dependencies as necessary:
+
+//// SNIPPET:FILE
+/** See Also: Foo.scala */
+
+// In this example we use the `@mainargs.main` method from https://github.com/com-lihaoyi/mainargs[MainArgs],
+// one of the xref:scalalib/script.adoc#_bundled_libraries[Bundled Libraries] and is imported automatically
+// in scripts, but you can define an explicit `def main(args: Array[String]): Unit` or `@scala.main def main`
+// method if you prefer.
+//
+//// SNIPPET:END
+//
+// Apart from the `mvnDeps` config that allows you to use third-party libraries in
+// your script, the `jvmId` config lets you specify exactly what JVM version you wish
+// to use in this script. Like other Mill modules, Mill scripts will default to a Mill's
+// own default JVM version of `{default-mill-jvm-version}` if a `jvmId` is not provided.
+// If you want to use the environmentally installed `java` command available on your path,
+// you must explicitly set `jvmId: system`.
+//
+// This script can be run as shown below:
+//// SNIPPET:CMD
+/** Usage
+> ./mill Foo.scala --text hello
+compiling 1 Scala source to...
+<h1>hello</h1>
+Jvm Version: 11.0.28
+*/
+
+//// SNIPPET:END
+
+// Mill will automatically download and cache the necessary artifacts
+// on your behalf, allowing you run these scripts via `./mill` and have them behave
+// the same regardless of what environment it is running in without needing any setup.
+//
+// The `./mill Foo.{language-ext}` syntax is shorthand for `./mill Foo.{language-ext}:run`.
+// You can also call other tasks on your script modules, such as `Foo.{language-ext}:assembly`
+// below:
+
+//// SNIPPET:MORE
+
+/** Usage
+> ./mill Foo.scala:run --text hello
+<h1>hello</h1>
+*/
+
+/** Usage
+> ./mill show Foo.scala:assembly # show the output of the assembly task
+".../out/Foo.scala/assembly.dest/out.jar"
+
+> java -jar ./out/Foo.scala/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/Foo.scala/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+*/
+
+//// SNIPPET:END
+
+// {language} scripts support the same configuration keys as
+// xref:#_config_based_modules[] as part of their `//|` header comment, and support most
+// the tasks via the `:run` `:assembly` etc. command-line syntax shown above. You can list
+// these tasks via `./mill resolve` as shown below:
+//// SNIPPET:RESOLVE
+/** Usage
+
+> ./mill resolve Foo.scala:_
+./Foo.scala:run
+./Foo.scala:runMain
+./Foo.scala:compile
+./Foo.scala:assembly
+...
+
+*/
+//// SNIPPET:END
+//
+// === Testing Scripts
+//
+// Script files can have test suites, usually written in a separate test script. The test script
+// configuration specifies
+//
+// - What test framework it uses via `extends`
+// - What script it tests via `moduleDeps`
+// - Any `mvnDeps` needed by the code, in addition to those of the upstream script.
+//
+// The test script can then run tests that exercise the upstream script as shown below:
+
+//// SNIPPET:TEST
+/** See Also: FooTests.scala */
+
+/** Usage
+> ./mill FooTests.scala
++ FooTests.simple ...  "<h1>hello</h1>"
++ FooTests.escaping ...  "<h1>&lt;hello&gt;</h1>"
+
+*/
+
+// Again, you can pass the name of the task explicitly via `:`, e.g. `:testForked` below,
+// or any other task that is available on a test module:
+
+/** Usage
+> ./mill FooTests.scala:testForked # specifying the test task explicitly
++ FooTests.simple ...  "<h1>hello</h1>"
++ FooTests.escaping ...  "<h1>&lt;hello&gt;</h1>"
+*/
+
+//// SNIPPET:END
+
+// The testing framework used in a script is defined by the class specified in the
+// `extends` clause. The different testing frameworks supported in xref:{language-small}lib/testing.adoc[]
+// can be used for your scripts: `Junit4`, `Junit5`, `TestNg`, `Munit`, `ScalaTest`, `Specs2`,
+// `Utest`, `Weaver`, `ZioTest`. If you need something not on this list, you can define
+// a xref:{language-small}lib/script.adoc#_custom_script_module_classes[Custom Script Module Class].
+//
+// For scripts that grow larger than a single file, you should convert them
+// to xref:#_config_based_modules[].

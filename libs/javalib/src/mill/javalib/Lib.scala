@@ -79,7 +79,8 @@ object Lib {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
-      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default()
+      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default(),
+      @unroll boms: IterableOnce[BomDependency] = Nil
   ): Result[Seq[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
@@ -94,7 +95,8 @@ object Lib {
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
       checkGradleModules = checkGradleModules,
-      config = config
+      config = config,
+      boms = boms
     )
 
     res.map(_.map(_.withRevalidateOnce))

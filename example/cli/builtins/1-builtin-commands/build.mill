@@ -368,7 +368,7 @@ Run `mill init <example-id>` with one of these examples as an argument to downlo
 Run `mill init --show-all` to see full list of examples.
 Run `mill init <Giter8 template>` to generate project from Giter8 template.
 ...
-scalalib/basic/1-simple
+scalalib/basic/3-simple
 ...
 scalalib/web/1-todo-webapp
 scalalib/web/2-webapp-cache-busting
@@ -377,18 +377,16 @@ scalalib/web/4-scalajs-module
 scalalib/web/5-webapp-scalajs
 scalalib/web/6-webapp-scalajs-shared
 ...
-javalib/basic/1-simple
+javalib/basic/3-simple
 ...
-javalib/basic/7-realistic
+javalib/basic/10-realistic
 ...
 javalib/web/1-hello-jetty
-javalib/web/2-hello-spring-boot
-javalib/web/3-todo-spring-boot
-javalib/web/4-hello-micronaut
-javalib/web/5-todo-micronaut
-kotlinlib/basic/1-simple
+javalib/web/2-hello-micronaut
+javalib/web/3-todo-micronaut
+kotlinlib/basic/3-simple
 ...
-kotlinlib/basic/7-realistic
+kotlinlib/basic/10-realistic
 ...
 kotlinlib/web/1-hello-ktor
 */

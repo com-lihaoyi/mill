@@ -2,7 +2,8 @@ package mill.api
 
 import mill.api.internal.OverrideMapping
 
-import scala.annotation.{compileTimeOnly, implicitNotFound}
+import scala.annotation.implicitNotFound
+import scala.quoted.*
 
 /**
  * The contextual information provided to a [[mill.api.Module]] or [[mill.api.Task]]
@@ -39,10 +40,20 @@ trait ModuleCtx extends ModuleCtx.Nested {
 
 object ModuleCtx extends LowPriCtx {
   trait Wrapper {
+    def moduleSegments: Segments = moduleCtx.segments
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
-    private[mill] def buildOverrides: Map[String, ujson.Value] = Map()
+    private[mill] def moduleDynamicBuildOverrides: Map[String, ujson.Value] = Map()
   }
+
+  private[mill] case class HeaderData(
+      `extends`: Seq[String] = Nil,
+      moduleDeps: Seq[String] = Nil,
+      compileModuleDeps: Seq[String] = Nil,
+      runModuleDeps: Seq[String] = Nil,
+      @upickle.implicits.flatten rest: Map[String, ujson.Value]
+  ) derives upickle.ReadWriter
+
   private case class Impl(
       enclosing: String,
       lineNum: Int,
@@ -153,11 +164,27 @@ object ModuleCtx extends LowPriCtx {
 }
 
 trait LowPriCtx {
+  // Binary compatibility stub
+  def dummyInfo: ModuleCtx = throw new Exception(LowPriCtx.errorMessage)
+
   // Dummy `Ctx` available in implicit scope but never actually used.
   // as it is provided by the codegen. Defined for IDEs to think that one is available
   // and not show errors in build.mill/package.mill even though they can't see the codegen
-  @compileTimeOnly(
+  inline implicit def dummyInfo2: ModuleCtx = ${ LowPriCtx.dummyInfoImpl }
+}
+
+object LowPriCtx {
+  private def errorMessage =
     "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
-  )
-  implicit def dummyInfo: ModuleCtx = sys.error("implicit Ctx must be provided")
+
+  def dummyInfoImpl(using quotes: Quotes): Expr[ModuleCtx] = {
+    import quotes.reflect.*
+
+    if (
+      sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
+      sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
+    ) {
+      report.errorAndAbort(errorMessage)
+    } else '{ throw new Exception(${ Expr(errorMessage) }) }
+  }
 }

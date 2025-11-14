@@ -1,6 +1,6 @@
 package foo
 
-import mainargs.{main, ParserForMethods}
+import mainargs.{main, Parser}
 
 object Foo {
   @main
@@ -10,5 +10,5 @@ object Foo {
     println("my.line.count: " + sys.props("my.line.count"))
   }
 
-  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
+  def main(args: Array[String]): Unit = Parser(this).runOrExit(args)
 }

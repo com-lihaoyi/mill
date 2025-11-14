@@ -22,10 +22,26 @@ object foo extends JavaModule {
 
 object bar extends JavaModule {
   object test extends JavaTests, TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.mockito:mockito-core:4.6.1"
-    )
+    def mvnDeps = Seq(mvn"org.mockito:mockito-core:4.6.1")
   }
 }
 
 //// SNIPPET:RUNSINGLE
+// e.g. the https://github.com/sbt/junit-interface[Junit4 test interface]
+// used in this example lets you pass in a selector to decide which individual test to run via:
+
+/** Usage
+
+> ./mill foo.test 'foo.FooMoreTests.*'
+...foo.FooMoreTests...hello ...
+Test run finished: 0 failed, 0 ignored, 3 total...
+
+> ./mill bar.test 'bar.BarTests.hello*'
+...bar.BarTests...hello ...
+Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total...
+
+*/
+
+// Note the trailing `*` that is necessary for the per-test selector to match.
+
+//// SNIPPET:END

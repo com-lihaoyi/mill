@@ -1,7 +1,5 @@
 = Kotlin Web Project Examples
 
-
-
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server with a variety of server frameworks
 
@@ -32,3 +30,10 @@ include::partial$example/kotlinlib/web/6-hello-spring-boot.adoc[]
 == Spring Boot TodoMvc App
 
 include::partial$example/kotlinlib/web/7-todo-spring-boot.adoc[]
+
+== Micronaut App
+
+include::partial$example/kotlinlib/web/8-hello-micronaut.adoc[]
+
+
+

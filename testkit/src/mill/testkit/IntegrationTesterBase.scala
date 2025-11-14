@@ -10,9 +10,14 @@ trait IntegrationTesterBase {
 
   def propagateJavaHome: Boolean
 
-  def millTestSuiteEnv: Map[String, String] = (
-    Option.when(propagateJavaHome)("JAVA_HOME" -> sys.props("java.home"))
-  ).toMap
+  def millTestSuiteEnv: Map[String, String] = {
+    val javaHomeBin = sys.props("java.home") + "/bin"
+    if (!propagateJavaHome) Map.empty
+    else Map(
+      "JAVA_HOME" -> sys.props("java.home"),
+      "PATH" -> s"$javaHomeBin${System.getProperty("path.separator")}${sys.env("PATH")}"
+    )
+  }
 
   /**
    * The working directory of the integration test suite, which is the root of the
@@ -39,7 +44,7 @@ trait IntegrationTesterBase {
    * Initializes the workspace in preparation for integration testing
    */
   def initWorkspace(): Unit = {
-    println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
+    println(s"Preparing integration test in $workspacePath")
     os.makeDir.all(workspacePath)
     if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR"))
       Retry(logger = Retry.printStreamLogger(System.err)) {

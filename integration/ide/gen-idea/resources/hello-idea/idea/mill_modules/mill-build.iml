@@ -49,40 +49,41 @@
         <orderEntry type="library" scope="RUNTIME" name="jul-to-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="logback-classic-1.5.18.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="logback-core-1.5.18.jar" level="project"/>
-        <orderEntry type="library" name="mainargs_3-0.7.6.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-api-daemon_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal-cli_3.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-androidlib-databinding_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-androidlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-daemon-client.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-daemon-server_3.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-libs-init_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-javalib-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-javalib-testrunner-entrypoint.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-javalib-testrunner_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-javalib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-javascriptlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-kotlinlib-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-kotlinlib-ksp2-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-kotlinlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-pythonlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-rpc_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-scalajslib-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-scalajslib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-scalalib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-scalanativelib-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-scalanativelib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-script_3.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-libs-tabcomplete_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-util_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
+        <orderEntry type="library" name="mainargs_3-0.7.7.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-api-daemon_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-api_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-constants-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal-cli_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-androidlib-databinding_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-androidlib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-daemon-client-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-daemon-server_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-libs-init_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-javalib-api_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-javalib-testrunner_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-javalib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-javascriptlib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-kotlinlib-api_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-kotlinlib-ksp2-api_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-kotlinlib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-pythonlib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-rpc_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-scalajslib-api_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-scalajslib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-scalalib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-scalanativelib-api_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-scalanativelib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-script_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="mill-libs-tabcomplete_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-util_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.10.jar" level="project"/>
+        <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-0.11.5.jar" level="project"/>
         <orderEntry type="library" name="os-zip-0.11.5.jar" level="project"/>
@@ -103,21 +104,21 @@
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
         <orderEntry type="library" name="scala3-library_3-3.7.3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="slf4j-api-2.0.17.jar" level="project"/>
-        <orderEntry type="library" name="snakeyaml-engine-2.10.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.5.0.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-requests_3-0.5.0.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-0.5.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-2.10.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.6.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-requests_3-0.6.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-0.6.0.jar" level="project"/>
         <orderEntry type="library" name="sourcecode_3-0.4.4.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.8.5.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="tika-core-3.2.2.jar" level="project"/>
-        <orderEntry type="library" name="ujson_3-4.3.0.jar" level="project"/>
+        <orderEntry type="library" name="ujson_3-4.4.1.jar" level="project"/>
         <orderEntry type="library" name="unroll-annotation_3-0.2.0.jar" level="project"/>
-        <orderEntry type="library" name="upack_3-4.3.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-core_3-4.3.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.3.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits_3-4.3.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle_3-4.3.0.jar" level="project"/>
+        <orderEntry type="library" name="upack_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-core_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle_3-4.4.1.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-ansi-0.0.6.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-0.3.3.jar" level="project"/>

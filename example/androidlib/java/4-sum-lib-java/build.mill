@@ -51,9 +51,7 @@ object lib extends AndroidLibModule, PublishModule {
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   object test extends AndroidLibTests, TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"junit:junit:4.13.2"
-    )
+    def mvnDeps = Seq(mvn"junit:junit:4.13.2")
   }
 
 }
@@ -73,16 +71,14 @@ object app extends AndroidAppModule {
     )
   }
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
-    mvn"com.example.sumlib:lib:0.0.1"
-  )
+  def mvnDeps = Seq(mvn"com.example.sumlib:lib:0.0.1")
 
   object test extends AndroidAppTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
 }
 
-////SNIPPET:END
+//// SNIPPET:END
 
 // This command triggers the build process, which create the library AAR and publish it locally at ~/.m2/repository
 //

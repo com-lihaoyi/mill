@@ -10,7 +10,7 @@ object `package` extends KotlinModule, KoverModule {
       super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
     }
-    override def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
@@ -65,9 +65,9 @@ kover.xmlReport
 
 > ./mill show mill.kotlinlib.kover/htmlReportAll # collect reports from all modules
 ...
-...out/mill/kotlinlib/kover/Kover/htmlReportAll.dest/kover-report...
+...out/mill.kotlinlib.kover.Kover/htmlReportAll.dest/kover-report...
 
-> cat out/mill/kotlinlib/kover/Kover/htmlReportAll.dest/kover-report/index.html
+> cat out/mill.kotlinlib.kover.Kover/htmlReportAll.dest/kover-report/index.html
 ...
 ...Kover HTML Report: Overall Coverage Summary...
 

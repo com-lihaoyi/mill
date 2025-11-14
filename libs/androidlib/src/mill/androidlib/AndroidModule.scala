@@ -9,7 +9,7 @@ import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import mill.javalib.api.CompilationResult
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 import scala.collection.immutable
 import scala.xml.*
@@ -192,14 +192,39 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
-   * Gets all the compiled Android resources (typically in res/ directory)
-   * from the [[transitiveModuleRunModuleDeps]]
+   * Gets all the direct compiled android resources (typically in res/ directory)
+   * from the [[moduleDepsChecked]]
+   * @return a sequence of PathRef to the compiled resources
+   */
+  def androidDirectCompiledResources: T[Seq[PathRef]] = Task {
+    Task.traverse(moduleDepsChecked) {
+      case m: AndroidModule =>
+        m.androidCompiledModuleResources
+      case _ =>
+        Task.Anon(Seq.empty)
+    }().flatten.distinct
+  }
+
+  /**
+   * The transitive module dependencies of this module.
+   * This does not include direct dependencies, meaning
+   * these are only the dependencies of the dependencies.
+   */
+  def androidTransitiveModuleDeps: Seq[JavaModule] = {
+    val moduleDepsCheckedSet = moduleDepsChecked.toSet
+    val isDirectDependency = (m: JavaModule) => moduleDepsCheckedSet.contains(m)
+    transitiveModuleRunModuleDeps.filterNot(isDirectDependency)
+  }
+
+  /**
+   * Gets all the transitive compiled Android resources (typically in res/ directory)
+   * from the [[androidTransitiveModuleDeps]]
    * @return a sequence of PathRef to the compiled resources
    */
   def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleRunModuleDeps) {
+    Task.traverse(androidTransitiveModuleDeps) {
       case m: AndroidModule =>
-        Task.Anon(m.androidCompiledModuleResources())
+        m.androidCompiledModuleResources
       case _ =>
         Task.Anon(Seq.empty)
     }().flatten.distinct
@@ -220,6 +245,10 @@ trait AndroidModule extends JavaModule { outer =>
 
   override def checkGradleModules: T[Boolean] = true
   override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    val buildTypeAttr = if (androidIsDebug())
+      "debug"
+    else
+      "release"
     super.resolutionParams().addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" ->
         VariantMatcher.AnyOf(Seq(
@@ -233,6 +262,14 @@ trait AndroidModule extends JavaModule { outer =>
           VariantMatcher.Equals("android"),
           VariantMatcher.Equals("common"),
           VariantMatcher.Equals("standard-jvm")
+        )),
+      "com.android.build.api.attributes.BuildTypeAttr" ->
+        VariantMatcher.AnyOf(Seq(
+          VariantMatcher.Equals(buildTypeAttr)
+        )),
+      "com.android.build.api.attributes.VariantAttr" ->
+        VariantMatcher.AnyOf(Seq(
+          VariantMatcher.Equals(buildTypeAttr)
         ))
     )
   }
@@ -491,22 +528,21 @@ trait AndroidModule extends JavaModule { outer =>
    * The Java compiled classes of [[androidResources]]
    */
   def androidCompiledRClasses: T[CompilationResult] = Task(persistent = true) {
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
-    jvmWorker()
-      .internalWorker()
-      .compileJava(
-        ZincCompileJava(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = androidLibsRClasses().map(_.path),
-          compileClasspath = Seq.empty,
-          javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val worker = jvmWorker().internalWorker()
+    worker.apply(
+      ZincOp.CompileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = androidLibsRClasses().map(_.path),
+        compileClasspath = Seq.empty,
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = true
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    )
   }
 
   def androidLibRClasspath: T[Seq[PathRef]] = Task {
@@ -516,7 +552,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidTransitiveLibRClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleDeps) {
       case m: AndroidModule =>
-        Task.Anon(m.androidLibRClasspath())
+        m.androidLibRClasspath
       case _ =>
         Task.Anon(Seq.empty[PathRef])
     }().flatten
@@ -545,6 +581,67 @@ trait AndroidModule extends JavaModule { outer =>
    * Used in manifest package and also used as the package to place the generated R sources
    */
   def androidNamespace: String
+
+  /**
+   * If true, a BuildConfig.java file will be generated.
+   * Defaults to true.
+   *
+   * [[https://developer.android.com/reference/tools/gradle-api/7.4/com/android/build/api/dsl/BuildFeatures#buildConfig()]]
+   */
+  def enableBuildConfig: Boolean = true
+
+  /**
+   * The package name where the BuildInfo.java file will be generated.
+   * Defaults to [[androidNamespace]].
+   */
+  def androidBuildInfoPackageName: String = androidNamespace
+
+  /**
+   * The members to include in the generated BuildConfig.java file.
+   * Format is "type NAME = value"
+   */
+  def androidBuildConfigMembers: T[Seq[String]] = Task {
+    val buildType = if (androidIsDebug()) "debug" else "release"
+    Seq(
+      s"boolean DEBUG = ${androidIsDebug()}",
+      s"""String BUILD_TYPE = "$buildType"""",
+      s"""String LIBRARY_PACKAGE_NAME = "$androidBuildInfoPackageName""""
+    )
+  }
+
+  /**
+   * Generates a BuildConfig.java file in the [[androidBuildInfoPackageName]] package
+   * This is a basic implementation of AGP's build config feature!
+   */
+  def androidGeneratedBuildConfigSources: T[Seq[PathRef]] = Task {
+    val parsedMembers: Seq[String] = androidBuildConfigMembers().map { member =>
+      s"public static final $member;"
+    }
+    val content: String =
+      s"""
+         |package $androidBuildInfoPackageName;
+         |public final class BuildConfig {
+         |  ${parsedMembers.mkString("\n  ")}
+         |}
+          """.stripMargin
+
+    val destination = Task.dest / "source" / os.SubPath(androidBuildInfoPackageName.replace(
+      ".",
+      "/"
+    )) / "BuildConfig.java"
+
+    os.write(destination, content, createFolders = true)
+
+    Seq(PathRef(destination))
+  }
+
+  override def generatedSources: T[Seq[PathRef]] = if enableBuildConfig then
+    Task {
+      super.generatedSources() ++ androidGeneratedBuildConfigSources()
+    }
+  else {
+    super.generatedSources()
+  }
 
   /**
    * Gets the extracted android resources from the dependencies using [[androidLibraryResources]]
@@ -576,9 +673,34 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
+   * If true, only direct module dependencies will be used to
+   * compile android resources for R class generation.
+   * Corresponds to `android.nonTransitiveRClass` in Gradle.
+   *
+   * Default is true.
+   *
+   * When overridden, make sure to override all modules
+   * in the project to have consistent behavior.
+   */
+  def androidNonTransitiveRClass: Boolean = true
+
+  /**
+   * Gets the [[androidCompiledModuleResources]] from
+   * from dependencies based on
+   * [[androidNonTransitiveRClass]] setting.
+   * @return
+   */
+  def androidDepCompiledResources: T[Seq[PathRef]] =
+    androidNonTransitiveRClass match {
+      case true => Task { androidDirectCompiledResources() }
+      case false =>
+        Task { androidDirectCompiledResources() ++ androidTransitiveCompiledResources() }
+    }
+
+  /**
    * Gets all the android resources from this module,
    * compiles them into flata files and collects
-   * transitive compiled resources from dependencies.
+   * compiled resources from dependencies.
    * @return a sequence of PathRef to the compiled resources
    */
   def androidCompiledModuleResources: T[Seq[PathRef]] = Task {
@@ -602,7 +724,8 @@ trait AndroidModule extends JavaModule { outer =>
 
       os.call(aapt2Compile ++ aapt2Args)
     }
-    androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
+
+    Seq(PathRef(Task.dest))
   }
 
   /**
@@ -613,7 +736,7 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidLinkedResources: T[PathRef] = Task {
     val compiledLibResDir = androidCompiledLibResources().path
-    val moduleResDirs = androidCompiledModuleResources()
+    val moduleResDirs = (androidCompiledModuleResources() ++ androidDepCompiledResources())
       .map(_.path)
 
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
@@ -678,11 +801,11 @@ trait AndroidModule extends JavaModule { outer =>
 
     val rJar = Task.dest / "R.jar"
 
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
-    val classesDest = jvmWorker()
-      .internalWorker()
-      .compileJava(
-        ZincCompileJava(
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val worker = jvmWorker().internalWorker()
+    val classesDest = worker
+      .apply(
+        ZincOp.CompileJava(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = sources.map(_.path),
           compileClasspath = androidTransitiveLibRClasspath().map(_.path),

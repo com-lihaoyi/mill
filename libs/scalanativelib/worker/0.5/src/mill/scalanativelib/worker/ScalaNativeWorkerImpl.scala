@@ -25,19 +25,23 @@ import java.nio.file.Files
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
   implicit val scope: Scope = Scope.forever
 
-  def logger(level: NativeLogLevel): Logger =
+  def logger(level: NativeLogLevel): Logger = {
+    // Console.err needs to be stored at instantiation time so it saves the right threadlocal
+    // value and can be used by the Scala Native toolchain's threads without losing logs
+    val err = Console.err
     Logger(
       traceFn =
-        msg => if (level.value >= NativeLogLevel.Trace.value) System.err.println(s"[trace] $msg"),
+        msg => if (level.value >= NativeLogLevel.Trace.value) err.println(s"[trace] $msg"),
       debugFn =
-        msg => if (level.value >= NativeLogLevel.Debug.value) System.err.println(s"[debug] $msg"),
+        msg => if (level.value >= NativeLogLevel.Debug.value) err.println(s"[debug] $msg"),
       infoFn =
-        msg => if (level.value >= NativeLogLevel.Info.value) System.err.println(s"[info] $msg"),
+        msg => if (level.value >= NativeLogLevel.Info.value) err.println(s"[info] $msg"),
       warnFn =
-        msg => if (level.value >= NativeLogLevel.Warn.value) System.err.println(s"[warn] $msg"),
+        msg => if (level.value >= NativeLogLevel.Warn.value) err.println(s"[warn] $msg"),
       errorFn =
-        msg => if (level.value >= NativeLogLevel.Error.value) System.err.println(s"[error] $msg")
+        msg => if (level.value >= NativeLogLevel.Error.value) err.println(s"[error] $msg")
     )
+  }
 
   def discoverClang(): File = Discover.clang().toFile
   def discoverClangPP(): File = Discover.clangpp().toFile

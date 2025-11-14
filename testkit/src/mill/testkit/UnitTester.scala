@@ -136,14 +136,15 @@ class UnitTester(
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
-    enableTicker = false
+    enableTicker = false,
+    buildOverrides0 = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
     execution = execution,
-    scriptModuleResolver = (_, _, _, _) => Nil
+    scriptModuleResolver = (_, _) => Nil
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
@@ -152,7 +153,7 @@ class UnitTester(
         evaluator.rootModule,
         args,
         SelectMode.Separated,
-        scriptModuleResolver = (_, _, _) => Nil
+        scriptModuleResolver = _ => Nil
       )
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))

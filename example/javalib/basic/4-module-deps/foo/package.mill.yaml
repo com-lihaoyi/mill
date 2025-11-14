@@ -1,0 +1,4 @@
+extends: [mill.javalib.JavaModule]
+moduleDeps: [bar]
+mvnDeps:
+- net.sourceforge.argparse4j:argparse4j:0.9.0

@@ -31,6 +31,7 @@ private[mill] case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
+    buildOverrides0: Map[String, String],
     enableTicker: Boolean
 ) extends GroupExecution with AutoCloseable {
 
@@ -52,6 +53,7 @@ private[mill] case class Execution(
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
+      buildOverrides0: Map[String, String],
       enableTicker: Boolean
   ) = this(
     baseLogger,
@@ -71,6 +73,7 @@ private[mill] case class Execution(
     exclusiveSystemStreams,
     getEvaluator,
     offline,
+    buildOverrides0,
     enableTicker
   )
 
@@ -170,7 +173,15 @@ private[mill] case class Execution(
               .toMap
 
             futures(terminal) = Future.successful(
-              Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false, Nil))
+              Some(GroupExecution.Results(
+                newResults = taskResults,
+                newEvaluated = group.toSeq,
+                cached = false,
+                inputsHash = -1,
+                previousInputsHash = -1,
+                valueHashChanged = false,
+                serializedPaths = Nil
+              ))
             )
           } else {
             futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -218,11 +229,11 @@ private[mill] case class Execution(
                       testReporter = testReporter,
                       logger = contextLogger,
                       deps = deps,
-                      classToTransitiveClasses,
-                      allTransitiveClassMethods,
-                      forkExecutionContext,
-                      exclusive,
-                      upstreamPathRefs
+                      classToTransitiveClasses = classToTransitiveClasses,
+                      allTransitiveClassMethods = allTransitiveClassMethods,
+                      executionContext = forkExecutionContext,
+                      exclusive = exclusive,
+                      upstreamPathRefs = upstreamPathRefs
                     )
 
                     // Count new failures - if there are upstream failures, tasks should be skipped, not failed
@@ -296,11 +307,11 @@ private[mill] case class Execution(
       val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
       ExecutionLogs.logInvalidationTree(
-        interGroupDeps,
-        indexToTerminal,
-        outPath,
-        uncached,
-        changedValueHash
+        interGroupDeps = interGroupDeps,
+        indexToTerminal = indexToTerminal,
+        outPath = outPath,
+        uncached = uncached,
+        changedValueHash = changedValueHash
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal

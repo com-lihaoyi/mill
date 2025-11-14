@@ -82,14 +82,14 @@ object BspWorkerImpl {
         }
       }
 
-      new Thread(() => {
+      mill.api.daemon.StartThread("BSP-Shutdown-Listener-Thread", daemon = true) {
         try listening.get()
         catch {
           case _: CancellationException => // normal exit
         }
         streams.err.println("Shutting down executor")
         executor.shutdown()
-      }).start()
+      }
 
       Result.Success((bspServerHandle, client))
     } catch {

@@ -81,6 +81,7 @@ public class MillProcessLauncher {
     Files.createDirectories(sandbox);
 
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
+    builder.environment().put(EnvVars.MILL_ENABLE_STATIC_CHECKS, "true");
     if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
       builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
 
@@ -124,8 +125,16 @@ public class MillProcessLauncher {
               mill.constants.Util.readBuildHeader(
                   buildFile, buildFile.getFileName().toString()),
               () -> {
-                Object conf = mill.launcher.ConfigReader.readYaml(
-                    buildFile, buildFile.getFileName().toString());
+                Object conf = null;
+                try {
+                  conf = mill.launcher.ConfigReader.readYaml(
+                      buildFile, buildFile.getFileName().toString());
+                } catch (org.snakeyaml.engine.v2.exceptions.ParserException e) {
+                  System.err.println("Failed de-serializing build header in "
+                      + buildFile.getFileName() + ": " + e.getMessage());
+                  System.exit(1);
+                }
+
                 if (!(conf instanceof Map)) return new String[] {};
                 @SuppressWarnings("unchecked")
                 var conf2 = (Map<String, Object>) conf;
@@ -166,6 +175,12 @@ public class MillProcessLauncher {
     else return res.get(0);
   }
 
+  static String millJvmIndexVersion(OutFolderMode outMode) throws Exception {
+    List<String> res = loadMillConfig(outMode, "mill-jvm-index-version");
+    if (res.isEmpty()) return null;
+    else return res.get(0);
+  }
+
   static String millServerTimeout() {
     return System.getenv(EnvVars.MILL_SERVER_TIMEOUT_MILLIS);
   }
@@ -176,33 +191,35 @@ public class MillProcessLauncher {
 
   static String javaHome(OutFolderMode outMode) throws Exception {
     var jvmId = millJvmVersion(outMode);
+    var jvmIndexVersion = millJvmIndexVersion(outMode);
 
     String javaHome = null;
     if (jvmId == null) {
-      boolean systemJavaExists =
-          new ProcessBuilder(isWin() ? "where" : "which", "java").start().waitFor() == 0;
-      if (systemJavaExists && System.getenv("MILL_TEST_SUITE_IGNORE_SYSTEM_JAVA") == null) {
-        jvmId = null;
-      } else {
-        jvmId = mill.client.BuildInfo.defaultJvmId;
-      }
+      jvmId = mill.client.BuildInfo.defaultJvmId;
     }
 
     if (jvmId != null) {
       final String jvmIdFinal = jvmId;
+      final String jvmIndexVersionFinal = jvmIndexVersion;
+      // Include JVM index version in the cache key to invalidate cache when index version changes
+      String cacheKey = jvmIndexVersion != null ? jvmId + ":" + jvmIndexVersion : jvmId;
       javaHome = cachedComputedValue0(
           outMode,
           "java-home",
-          jvmId,
-          () -> new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()},
+          cacheKey,
+          () -> new String[] {
+            CoursierClient.resolveJavaHome(jvmIdFinal, jvmIndexVersionFinal).getAbsolutePath()
+          },
           // Make sure we check to see if the saved java home exists before using
           // it, since it may have been since uninstalled, or the `out/` folder
           // may have been transferred to a different machine
           arr -> Files.exists(Paths.get(arr[0])))[0];
     }
 
-    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
-    if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
+    if (jvmId == "system") {
+      if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
+      if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
+    }
     return javaHome;
   }
 
@@ -235,10 +252,12 @@ public class MillProcessLauncher {
     String serverTimeout = millServerTimeout();
     if (serverTimeout != null) vmOptions.add("-Dmill.server_timeout=" + serverTimeout);
 
+    // Set UTF-8 encoding to fix Unicode character display issues on Windows
+    vmOptions.add("-Dfile.encoding=UTF-8");
+
     // extra opts
     vmOptions.addAll(millJvmOpts(outMode));
 
-    vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
 
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));

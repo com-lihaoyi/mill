@@ -796,8 +796,10 @@ private class MillBuildServer(
     handlerEvaluators() { (state, logger) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
-        val (m, ev) = state.bspModulesById(id)
-        tasks.lift.apply(m).map(ts => (ts, (ev, id, m)))
+        // If modules or scripts are removed or moved, just ignore them rather than blowing up
+        state.bspModulesById.get(id).flatMap { (m, ev) =>
+          tasks.lift.apply(m).map(ts => (ts, (ev, id, m)))
+        }
       }
 
       // group by evaluator (different root module)
@@ -850,51 +852,45 @@ private class MillBuildServer(
   private val queue = new LinkedBlockingQueue[(BspEvaluators => Unit, Logger, String)]
   private var stopped = false
   private val evaluatorRequestsThread: Thread =
-    new Thread("mill-bsp-evaluator") {
-      setDaemon(true)
-      def waitForEvaluators(): Unit =
-        Await.result(bspEvaluators.future, Duration.Inf)
-      override def run(): Unit =
-        try {
-          var elemOpt = Option.empty[(BspEvaluators => Unit, Logger, String)]
-          while (!stopped) {
-            if (elemOpt.isEmpty)
-              elemOpt = Option(queue.poll(1L, TimeUnit.SECONDS))
-            for ((block, logger, name) <- elemOpt) {
-              waitForEvaluators()
-              MillDaemonServer.withOutLock(
-                noBuildLock = false,
-                noWaitForBuildLock = false,
-                out = out,
-                millActiveCommandMessage = s"IDE:$name",
-                streams = logger.streams,
-                outLock = outLock
-              ) {
-                for (evaluator <- bspEvaluatorsOpt())
-                  if (evaluator.watched.forall(WatchSig.haveNotChanged)) {
-                    elemOpt = None
-                    try block(evaluator)
-                    catch {
-                      case t: Throwable =>
-                        logger.error(s"Could not process request: $t")
-                        t.printStackTrace(logger.streams.err)
-                    }
-                  } else {
-                    resetEvaluator()
-                    sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
+    // Make this a daemon thread so if the main thread exits this doesn't keep the process alive
+    mill.api.daemon.StartThread("mill-bsp-evaluator", daemon = true) {
+      try {
+        var elemOpt = Option.empty[(BspEvaluators => Unit, Logger, String)]
+        while (!stopped) {
+          if (elemOpt.isEmpty)
+            elemOpt = Option(queue.poll(1L, TimeUnit.SECONDS))
+          for ((block, logger, name) <- elemOpt) {
+            Await.result(bspEvaluators.future, Duration.Inf)
+            MillDaemonServer.withOutLock(
+              noBuildLock = false,
+              noWaitForBuildLock = false,
+              out = out,
+              millActiveCommandMessage = s"IDE:$name",
+              streams = logger.streams,
+              outLock = outLock,
+              setIdle = _ => ()
+            ) {
+              for (evaluator <- bspEvaluatorsOpt())
+                if (evaluator.watched.forall(WatchSig.haveNotChanged)) {
+                  elemOpt = None
+                  try block(evaluator)
+                  catch {
+                    case t: Throwable =>
+                      logger.error(s"Could not process request: $t")
+                      t.printStackTrace(logger.streams.err)
                   }
-              }
+                } else {
+                  resetEvaluator()
+                  sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
+                }
             }
           }
-        } catch {
-          case _: InterruptedException =>
-          // ignored, normal exit
         }
+      } catch {
+        case _: InterruptedException =>
+        // ignored, normal exit
+      }
     }
-
-  // Make this a daemon thread so if the main thread exits this doesn't keep the process alive
-  evaluatorRequestsThread.setDaemon(true)
-  evaluatorRequestsThread.start()
 
   protected def handlerEvaluators[V](
       checkInitialized: Boolean = true
