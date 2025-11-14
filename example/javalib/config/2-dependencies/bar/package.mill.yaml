@@ -1,5 +1,0 @@
-extends: [mill.javalib.JavaModule]
-compileMvnDeps:
-- javax.servlet:servlet-api:2.5
-- org.eclipse.jetty:jetty-server:9.4.42.v20210604
-- org.eclipse.jetty:jetty-servlet:9.4.42.v20210604
