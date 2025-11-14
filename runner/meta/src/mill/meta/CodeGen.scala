@@ -97,25 +97,25 @@ object CodeGen {
               |""".stripMargin
 
         def processDataRest[T](data: HeaderData)(
-            onProperty: String => T,
+            onProperty: (String, ujson.Value) => T,
             onNestedObject: (String, HeaderData) => T
         ): Seq[T] = {
           for ((kString, v) <- data.rest.toSeq if !kString.startsWith("mill-"))
             yield kString.split(" +") match {
-              case Array(k) => onProperty(k)
+              case Array(k) => onProperty(k, v)
               case Array("object", k) => onNestedObject(k, upickle.read[HeaderData](v))
             }
         }
 
         def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
-          val buildOverridesJson = upickle.write(data.rest)
           val resourcePath = resourceDest / path / "build-overrides.json"
-          os.write.over(resourcePath, buildOverridesJson, createFolders = true)
+          val out = collection.mutable.Map.empty[String, ujson.Value]
 
           processDataRest(data)(
-            onProperty = _ => (),
+            onProperty = (k, v) => out(k) = v,
             onNestedObject = (k, nestedData) => writeBuildOverrides(nestedData, path :+ k)
           )
+          os.write.over(resourcePath, upickle.write(out), createFolders = true)
         }
 
         writeBuildOverrides(parsedHeaderData, segments)
@@ -142,7 +142,7 @@ object CodeGen {
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`
           val definitions = processDataRest(data)(
-            onProperty = k => "", // Properties will be auto-implemented by AutoOverride
+            onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
             onNestedObject = (k, nestedData) =>
               renderTemplate(s"object $k", nestedData, path :+ k)
           ).filter(_.nonEmpty)
