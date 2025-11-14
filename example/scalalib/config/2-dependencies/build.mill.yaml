@@ -10,6 +10,7 @@ compileMvnDeps:
 - org.eclipse.jetty:jetty-servlet:9.4.42.v20210604
 
 # Add library dependencies that are visible at runtime but not at compile-time.
+# Typically used for code invoked reflectively or via classpath scanning
 runMvnDeps:
 - javax.servlet:servlet-api:2.5
 - org.eclipse.jetty:jetty-server:9.4.42.v20210604
