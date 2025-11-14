@@ -14,8 +14,8 @@
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-3.7.3" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
-        <orderEntry type="library" name="asm-9.8.jar" level="project"/>
-        <orderEntry type="library" name="asm-tree-9.8.jar" level="project"/>
+        <orderEntry type="library" name="asm-9.9.jar" level="project"/>
+        <orderEntry type="library" name="asm-tree-9.9.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="cache-util-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-compress-1.26.2.jar" level="project"/>

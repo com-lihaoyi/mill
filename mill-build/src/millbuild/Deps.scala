@@ -83,7 +83,7 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.18"
   val ammoniteVersion = "3.0.4"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.8"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.9"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
