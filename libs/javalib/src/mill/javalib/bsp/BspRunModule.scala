@@ -13,7 +13,7 @@ import mill.{Args, Task}
 private[mill] object BspRunModule extends ExternalModule {
 
   // Requirement of ExternalModule's
-  override protected def millDiscover: Discover = Discover[this.type]
+  override def millDiscover: Discover = Discover[this.type]
 
   // Hack-ish way to have some BSP state in the module context
   @internal

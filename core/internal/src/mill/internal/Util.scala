@@ -163,20 +163,4 @@ private[mill] object Util {
         Result.Failure(s"Failed de-serializing build header in $fileName: " + e.getMessage)
     }
 
-  def validateBuildHeaderKeys(
-      buildOverridesKeys: Set[String],
-      allTaskNames: Set[String],
-      relativeScriptFilePath: os.SubPath
-  ) = {
-    val invalidBuildOverrides = buildOverridesKeys
-      .filter(!allTaskNames.contains(_))
-      .filter(!_.contains('-'))
-
-    if (invalidBuildOverrides.nonEmpty) {
-      val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-      throw new Exception(
-        s"invalid build config in `$relativeScriptFilePath`: key $pretty does not override any task"
-      )
-    }
-  }
 }

@@ -298,10 +298,10 @@ object Task {
     import scala.compiletime.summonInline
     Type.of[TaskT] match {
       case '[Task.Simple[t]] =>
-        '{
+        Cacher.impl0('{
           new NotImplemented[t](summonInline[ModuleCtx], summonInline[ReadWriter[t]])
             .asInstanceOf[TaskT]
-        }
+        })
     }
   }
 
