@@ -1,4 +1,4 @@
-// == Run-time Dependencies
+// === Run-time Dependencies
 // If you want to use additional dependencies at runtime or override
 // dependencies and their versions at runtime, you can do so with
 // `runMvnDeps`.
@@ -25,7 +25,7 @@ object foo extends ScalaModule {
 // of a module it will include the runtime dependencies of all upstream modules on the
 // classpath
 
-// == Compile-time Dependencies
+// === Compile-time Dependencies
 
 // You can also declare compile-time-only dependencies with `compileMvnDeps`.
 // These are present in the compile classpath, but will not propagate to the
@@ -67,7 +67,7 @@ object bar extends ScalaModule {
 // a `trait` that the module inherits from.
 //
 //// SNIPPET:SCALASTEWARD
-// === Keeping up-to-date with Scala Steward
+// == Keeping up-to-date with Scala Steward
 //
 // It's always a good idea to keep your dependencies up-to-date.
 //
