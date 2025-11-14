@@ -1,9 +1,12 @@
 package mill.script
 import mill.*
-import mill.api.ExternalModule
+import mill.api.{ExternalModule, ModuleCtx}
 import mill.api.daemon.Segments
 import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
+  override def moduleCtx: ModuleCtx = super.moduleCtx
+    .withFileName(scriptConfig.scriptFile.toString)
+    .withLineNum(0)
   def scriptConfig: ScriptModule.Config
 
   override def moduleDir = scriptConfig.scriptFile

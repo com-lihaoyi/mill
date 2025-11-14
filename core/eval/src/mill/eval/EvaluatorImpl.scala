@@ -123,8 +123,12 @@ final class EvaluatorImpl private[mill] (
         val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
 
         val errors = allModules.flatMap{module =>
-          val moduleTaskNames = rootModule
-            .millDiscover
+          val discover = module match{
+            case x: ExternalModule => x.millDiscover
+            case _ => rootModule.millDiscover
+          }
+
+          val moduleTaskNames = discover
             .resolveClassInfos(module.getClass)
             .flatMap(_._2.declaredTaskNameSet)
             .toSet
