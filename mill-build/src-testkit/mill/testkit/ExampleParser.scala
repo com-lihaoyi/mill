@@ -57,8 +57,8 @@ object ExampleParser {
 
       if (
         result.isEmpty ||
-          newChunkType.getClass != result.last.getClass ||
-          newChunkType.isInstanceOf[Chunk.See]
+        newChunkType.getClass != result.last.getClass ||
+        newChunkType.isInstanceOf[Chunk.See]
       ) {
         result.append(newChunkType)
       }
