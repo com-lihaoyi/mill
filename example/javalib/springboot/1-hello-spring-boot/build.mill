@@ -1,20 +1,19 @@
-//| mill-jvm-version: 17
-package build
-import mill.*, javalib.*
-
-object `package` extends JavaModule {
-  def mvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-starter-web:2.5.6",
-    mvn"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
-  )
-
-  object test extends JavaTests, TestModule.Junit5 {
-    def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-test:2.5.6")
-  }
-}
-
 // This example demonstrates how to set up a simple Spring Boot webserver,
-// able to handle a single HTTP request at `/` and reply with a single response.
+// using Mill's xref:javalib/intro.adoc#_config_based_modules[config-based build.mill.yaml]
+// syntax.
+
+/** See Also: build.mill.yaml */
+
+/** See Also: resources/application.properties */
+
+/** See Also: src/com/example/HelloSpringBoot.java */
+
+// This server is able to handle a single HTTP request at `/` and reply with a
+// single response. It also contains a simple test suite:
+
+/** See Also: test/src/com/example/HelloSpringBootTest.java */
+
+// This can be tested via `curl`, or by running the test suite as shown below:
 
 /** Usage
 

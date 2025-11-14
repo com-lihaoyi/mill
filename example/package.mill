@@ -300,7 +300,7 @@ ${lines.mkString("\n")}
 ----
 """
             case Chunk.Comment(lines) => lines.mkString("\n") + "\n"
-            case Chunk.Example(lines) =>
+            case Chunk.Usage(lines) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
 [source,console,subs="attributes,verbatim"]
