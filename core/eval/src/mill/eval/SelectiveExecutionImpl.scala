@@ -230,17 +230,8 @@ object SelectiveExecutionImpl {
             jobs = evaluator.effectiveThreadCount,
             offline = evaluator.offline
           )
-          val result: Result[Val] = allBuildOverrides.get(task.ctx.segments.render) match {
-            case None => task.evaluate(ctx).map(Val(_))
-            case Some(v) => mill.api.Result.create(Val(
-                upickle.read(v)(
-                  using
-                  task.asInstanceOf[Task.Stub[_]].readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-                )
-              ))
-          }
 
-          task -> result
+          task -> task.evaluate(ctx).map(Val(_))
         }
         .toMap
 
