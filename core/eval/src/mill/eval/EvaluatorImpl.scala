@@ -117,13 +117,13 @@ final class EvaluatorImpl private[mill] (
           resolveToModuleTasks = resolveToModuleTasks,
           scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
         )
-      }.flatMap{ f =>
+      }.flatMap { f =>
         val allModules = f.map(_.ctx.enclosingModule).distinct
         val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
         val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
 
-        val errors = allModules.flatMap{module =>
-          val discover = module match{
+        val errors = allModules.flatMap { module =>
+          val discover = module match {
             case x: ExternalModule => x.millDiscover
             case _ => rootModule.millDiscover
           }
@@ -134,14 +134,14 @@ final class EvaluatorImpl private[mill] (
             .toSet
 
           val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
-            val (prefix, taskSel) = k match{
+            val (prefix, taskSel) = k match {
               case s"./$script:$rest" => (Seq(Segment.Label(s"./$script")), rest)
               case _ => (Nil, k)
             }
 
             val (None, Some(rest)) = ParseArgs.extractSegments(taskSel).get
 
-            Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))){
+            Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
               rest.last.value
             }
           }
