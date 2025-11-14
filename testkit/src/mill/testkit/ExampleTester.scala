@@ -237,7 +237,7 @@ class ExampleTester(
     val parsed = ExampleParser(workspaceSourcePath)
     val ignoreErrors = System.getenv("CI") != null &&
       os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
-    val usageComment = parsed.collect { case Chunk.Example(lines) =>
+    val usageComment = parsed.collect { case Chunk.Usage(lines) =>
       lines.mkString("\n")
     }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)

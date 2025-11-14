@@ -33,9 +33,10 @@ object `package` extends JavaModule {
   }
 }
 
-// This is a larger example using Spring Boot, implementing the well known
-// https://todomvc.com/[TodoMVC] example app. Apart from running a webserver,
-// this example also demonstrates:
+// This is a larger example using Spring Boot, using Mill's
+// xref:javalib/intro.adoc#_programmatic_modules[programmatic build.mill] syntax,
+// implementing the well known https://todomvc.com/[TodoMVC] example app. Apart from
+// running a webserver, this example also demonstrates:
 //
 // * Serving HTML templates using Thymeleaf
 // * Serving static Javascript and CSS using Webjars
