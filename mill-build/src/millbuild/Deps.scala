@@ -86,7 +86,7 @@ object Deps {
   val asmTree = mvn"org.ow2.asm:asm-tree:9.8"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.181"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
   val coursierVersion = "2.1.25-M18"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
