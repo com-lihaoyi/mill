@@ -708,29 +708,95 @@
 <div class="sect1">
 <h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>This example demonstrates how to set up a simple Spring Boot webserver,
+using Mill’s <a href="intro.html#_config_based_modules" class="xref page">config-based build.mill.yaml</a>
+syntax.</p>
+</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-52-f51980/mill-dist-1.1.0-RC1-52-f51980-example-javalib-springboot-1-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/1-hello-spring-boot">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-53-f33738/mill-dist-1.1.0-RC1-53-f33738-example-javalib-springboot-1-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/1-hello-spring-boot/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 17
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: 17
+extends: [mill.javalib.JavaModule]
+mvnDeps:
+- org.springframework.boot:spring-boot-starter-web:2.5.6
+- org.springframework.boot:spring-boot-starter-actuator:2.5.6
 
-package build
-import mill.*, javalib.*
+object test:
+  extends: [JavaTests, mill.javalib.TestModule.Junit5]
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test:2.5.6</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">resources/application.properties (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-53-f33738/mill-dist-1.1.0-RC1-53-f33738-example-javalib-springboot-1-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/1-hello-spring-boot/resources/application.properties">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">server.port=8086</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/com/example/HelloSpringBoot.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-53-f33738/mill-dist-1.1.0-RC1-53-f33738-example-javalib-springboot-1-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/1-hello-spring-boot/src/com/example/HelloSpringBoot.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.example;
 
-object `package` extends JavaModule {
-  def mvnDeps = Seq(
-    mvn&quot;org.springframework.boot:spring-boot-starter-web:2.5.6&quot;,
-    mvn&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
-  )
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-  object test extends JavaTests, TestModule.Junit5 {
-    def mvnDeps = Seq(mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;)
+@SpringBootApplication
+public class HelloSpringBoot {
+
+  public static void main(String[] args) {
+    SpringApplication.run(HelloSpringBoot.class, args);
+  }
+
+  @RestController
+  class HelloController {
+    @GetMapping(&quot;/&quot;)
+    public String hello() {
+      return &quot;&lt;h1&gt;Hello, World!&lt;/h1&gt;&quot;;
+    }
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This example demonstrates how to set up a simple Spring Boot webserver,
-able to handle a single HTTP request at <code>/</code> and reply with a single response.</p>
+<p>This server is able to handle a single HTTP request at <code>/</code> and reply with a
+single response. It also contains a simple test suite:</p>
+</div>
+<div class="listingblock">
+<div class="title">test/src/com/example/HelloSpringBootTest.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-53-f33738/mill-dist-1.1.0-RC1-53-f33738-example-javalib-springboot-1-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/1-hello-spring-boot/test/src/com/example/HelloSpringBootTest.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.example;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class HelloSpringBootTest {
+
+  @LocalServerPort
+  private int port;
+
+  @Autowired
+  private TestRestTemplate restTemplate;
+
+  @Test
+  public void shouldReturnDefaultMessage() {
+    String response = restTemplate.getForObject(&quot;http://localhost:&quot; + port + &quot;/&quot;, String.class);
+    assertEquals(&quot;&lt;h1&gt;Hello, World!&lt;/h1&gt;&quot;, response);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This can be tested via <code>curl</code>, or by running the test suite as shown below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -751,7 +817,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-52-f51980/mill-dist-1.1.0-RC1-52-f51980-example-javalib-springboot-2-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/2-todo-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-53-f33738/mill-dist-1.1.0-RC1-53-f33738-example-javalib-springboot-2-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/2-todo-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 17
 
@@ -791,9 +857,10 @@ object `package` extends JavaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>This is a larger example using Spring Boot, implementing the well known
-<a href="https://todomvc.com/">TodoMVC</a> example app. Apart from running a webserver,
-this example also demonstrates:</p>
+<p>This is a larger example using Spring Boot, using Mill’s
+<a href="intro.html#_programmatic_modules" class="xref page">programmatic build.mill</a> syntax,
+implementing the well known <a href="https://todomvc.com/">TodoMVC</a> example app. Apart from
+running a webserver, this example also demonstrates:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -838,7 +905,7 @@ this example also demonstrates:</p>
 <h2 id="_spring_boot_web_with_initializr"><a class="anchor" href="#_spring_boot_web_with_initializr"></a>Spring Boot Web with Initializr</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-52-f51980/mill-dist-1.1.0-RC1-52-f51980-example-javalib-springboot-3-web-initializr.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/3-web-initializr">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-53-f33738/mill-dist-1.1.0-RC1-53-f33738-example-javalib-springboot-3-web-initializr.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/3-web-initializr">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -914,7 +981,7 @@ as generated from the initialzr tool).</p>
 <h2 id="_spring_reactive_web_websocket_example_with_initializr"><a class="anchor" href="#_spring_reactive_web_websocket_example_with_initializr"></a>Spring Reactive Web, Websocket example with Initializr</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-52-f51980/mill-dist-1.1.0-RC1-52-f51980-example-javalib-springboot-4-web-socket-initializr.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/4-web-socket-initializr">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1-53-f33738/mill-dist-1.1.0-RC1-53-f33738-example-javalib-springboot-4-web-socket-initializr.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/springboot/4-web-socket-initializr">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
