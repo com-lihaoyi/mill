@@ -173,7 +173,7 @@ class MillBuildBootstrap(
 
                   mill.api.ExecResult.catchWrapException {
                     val bootstrapModule = new MillBuildRootModule.BootstrapModule(
-                      (currentRoot / foundRootBuildFileName).toString
+                      (currentRoot / ".." / foundRootBuildFileName).toString
                     )(
                       using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
                     )
