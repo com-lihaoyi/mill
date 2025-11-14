@@ -8,7 +8,7 @@ import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
-import mill.resolve.Resolve
+import mill.resolve.{ParseArgs, Resolve}
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -117,6 +117,48 @@ final class EvaluatorImpl private[mill] (
           resolveToModuleTasks = resolveToModuleTasks,
           scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
         )
+      }.flatMap { f =>
+        val allModules = f.map(_.ctx.enclosingModule).distinct
+        val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
+        val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
+
+        val errors = allModules.flatMap { module =>
+          val discover = module match {
+            case x: ExternalModule => x.millDiscover
+            case _ => rootModule.millDiscover
+          }
+
+          val moduleTaskNames = discover
+            .resolveClassInfos(module.getClass)
+            .flatMap(_._2.declaredTaskNameSet)
+            .toSet
+
+          val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
+            val (prefix, taskSel) = k match {
+              case s"./$script:$rest" => (Seq(Segment.Label(s"./$script")), rest)
+              case _ => (Nil, k)
+            }
+
+            val (None, Some(rest)) = ParseArgs.extractSegments(taskSel).get
+
+            Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
+              rest.last.value
+            }
+          }
+
+          val invalidBuildOverrides = moduleBuildOverrides
+            .filter(!moduleTaskNames.contains(_))
+            .filter(!_.contains('-'))
+
+          Option.when(invalidBuildOverrides.nonEmpty) {
+            val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
+            val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
+            s"invalid build config in `$filePath`: key $pretty does not override any task"
+          }
+        }
+
+        if (errors.isEmpty) Result.Success(f)
+        else Result.Failure(errors.mkString("\n"))
       }
     }
   }
@@ -295,17 +337,7 @@ final class EvaluatorImpl private[mill] (
     )
 
     val resolved = promptLineLogger.withPromptLine {
-      os.checker.withValue(ResolveChecker(workspace)) {
-        Evaluator.withCurrentEvaluator(this) {
-          Resolve.Tasks.resolve(
-            rootModule = rootModule,
-            scriptArgs = scriptArgs,
-            selectMode = selectMode,
-            allowPositionalCommandArgs = allowPositionalCommandArgs,
-            scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
-          )
-        }
-      }
+      resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs)
     }
     for (tasks <- resolved)
       yield execute(Seq.from(tasks), reporter = reporter, selectiveExecution = selectiveExecution)

@@ -1,9 +1,12 @@
 package mill.script
 import mill.*
-import mill.api.ExternalModule
+import mill.api.{ExternalModule, ModuleCtx}
 import mill.api.daemon.Segments
 import mill.api.ModuleCtx.HeaderData
 trait ScriptModule extends ExternalModule {
+  override def moduleCtx: ModuleCtx = super.moduleCtx
+    .withFileName(scriptConfig.scriptFile.toString)
+    .withLineNum(0)
   def scriptConfig: ScriptModule.Config
 
   override def moduleDir = scriptConfig.scriptFile
@@ -19,12 +22,6 @@ trait ScriptModule extends ExternalModule {
     .headerData
     .rest
     .map { case (k, v) => ((moduleSegments ++ mill.api.Segment.Label(k)).render, v) }
-
-  mill.internal.Util.validateBuildHeaderKeys(
-    scriptConfig.headerData.rest.keySet,
-    millDiscover.allTaskNames,
-    relativeScriptFilePath
-  )
 }
 
 object ScriptModule {

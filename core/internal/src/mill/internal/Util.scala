@@ -61,15 +61,17 @@ private[mill] object Util {
   }
 
   private[mill] def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
-    val headerData = mill.api.BuildCtx.withFilesystemCheckerDisabled {
+    val headerDataOpt = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       // If the module file got deleted, handle that gracefully
-      if (!os.exists(scriptFile)) ""
-      else mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
+      if (!os.exists(scriptFile)) Result.Success("")
+      else mill.api.ExecResult.catchWrapException {
+        mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
+      }
     }
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
 
-    parseYaml(relativePath.toString, headerData).flatMap { parsed =>
+    headerDataOpt.flatMap(parseYaml(relativePath.toString, _)).flatMap { parsed =>
       try Result.Success(upickle.read[HeaderData](parsed))
       catch {
         case e: upickle.core.TraceVisitor.TraceException =>
@@ -163,20 +165,4 @@ private[mill] object Util {
         Result.Failure(s"Failed de-serializing build header in $fileName: " + e.getMessage)
     }
 
-  def validateBuildHeaderKeys(
-      buildOverridesKeys: Set[String],
-      allTaskNames: Set[String],
-      relativeScriptFilePath: os.SubPath
-  ) = {
-    val invalidBuildOverrides = buildOverridesKeys
-      .filter(!allTaskNames.contains(_))
-      .filter(!_.contains('-'))
-
-    if (invalidBuildOverrides.nonEmpty) {
-      val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-      throw new Exception(
-        s"invalid build config in `$relativeScriptFilePath`: key $pretty does not override any task"
-      )
-    }
-  }
 }

@@ -298,10 +298,10 @@ object Task {
     import scala.compiletime.summonInline
     Type.of[TaskT] match {
       case '[Task.Simple[t]] =>
-        '{
+        Cacher.impl0('{
           new NotImplemented[t](summonInline[ModuleCtx], summonInline[ReadWriter[t]])
             .asInstanceOf[TaskT]
-        }
+        })
     }
   }
 
@@ -309,7 +309,10 @@ object Task {
       extends Task.Simple[T] {
 
     override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
-      (_, _) => Result.Failure("Not Implemented")
+      (_, ctx) => {
+        val relPath = os.Path(ctx0.fileName).relativeTo(mill.api.BuildCtx.workspaceRoot)
+        Result.Failure(s"configuration missing in $relPath")
+      }
 
     def isPrivate = None
 
