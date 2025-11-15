@@ -251,19 +251,12 @@ private[mill] class PromptLogger(
   def debug(s: String): Unit = if (debugEnabled) streams.err.println(s)
 
   override def close(): Unit = {
-//    Thread.sleep(1000)
     synchronized {
       if (enableTicker) refreshPrompt(ending = true)
     }
 
-    // flush these streams to make sure everything gets into `streamManager`
-    // before it closing and waiting for its thread to terminate
-    streams.err.flush()
-    streams.out.flush()
-//    Thread.sleep(1000)
     // Has to be outside the synchronized block so it can allow the pumper thread
     // to continue pumping out the last data in the streams and terminate
-
     streamManager.close()
     synchronized {
       runningState.stop()
@@ -439,16 +432,9 @@ private[mill] object PromptLogger {
     pumperThread.start()
 
     def close(): Unit = {
-      // flush these streams to make sure everything gets into `streamManager`
-      // before it closing and waiting for its thread to terminate
-      proxySystemStreams.err.flush()
-      proxySystemStreams.out.flush()
-      proxyErr.flush()
-      proxyOut.flush()
       // Close the write side of the pipe first but do not close the read side, so
       // the `pumperThread` can continue reading remaining text in the pipe buffer
       // before terminating on its own
-      Thread.sleep(1)
       ProxyStream.sendEnd(
         pipe.output,
         0 // exit code value is not used since this ProxyStream doesn't wrap a subprocess
