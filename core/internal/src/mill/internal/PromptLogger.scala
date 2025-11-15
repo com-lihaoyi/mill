@@ -169,7 +169,8 @@ private[mill] class PromptLogger(
           }
 
         val lines = for (line <- lines0) yield {
-          val coloredCurrentLine = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + new String(line)
+          val coloredCurrentLine =
+            fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + new String(line)
 
           // Make sure we add a suffix "x" to the `bufferString` before computing the last
           // color. This ensures that any trailing colors in the original `bufferString` do not
