@@ -39,11 +39,9 @@ private[mill] class PrefixLogger(
     s"PrefixLogger($logger0, $key0)"
 
   def prefixPrintStream(stream: java.io.OutputStream, logToOut: Boolean) = {
-    new PrintStream(new LinePrefixOutputStream(
-      prompt.infoColor(linePrefix),
-      stream,
-      logMsg => prompt.reportKey(logKey, logMsg, logToOut)
-    ))
+    new PrintStream(
+      new LinePrefixOutputStream(logMsg => prompt.reportKey(logKey, logMsg, logToOut))
+    )
   }
   val streams = new SystemStreams(
     out = prefixPrintStream(logger0.unprefixedStreams.out, true),

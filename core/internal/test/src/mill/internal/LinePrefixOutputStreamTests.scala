@@ -8,7 +8,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
   val tests = Tests {
     test("charByChar") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LinePrefixOutputStream("PREFIX", baos)
+      val lpos = new LinePrefixOutputStream(s => baos.write(("PREFIX" + s).getBytes))
       for (b <- "hello\nworld\n!".getBytes()) lpos.write(b)
       lpos.flush()
       assert(baos.toString == "PREFIXhello\nPREFIXworld\nPREFIX!")
@@ -16,7 +16,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
 
     test("charByCharTrailingNewline") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LinePrefixOutputStream("PREFIX", baos)
+      val lpos = new LinePrefixOutputStream(s => baos.write(("PREFIX" + s).getBytes))
       for (b <- "hello\nworld\n".getBytes()) lpos.write(b)
       lpos.flush()
       assert(baos.toString == "PREFIXhello\nPREFIXworld\n")
@@ -24,7 +24,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
 
     test("allAtOnce") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LinePrefixOutputStream("PREFIX", baos)
+      val lpos = new LinePrefixOutputStream(s => baos.write(("PREFIX" + s).getBytes))
       val arr = "hello\nworld\n!".getBytes()
       lpos.write(arr)
       lpos.flush()
@@ -34,7 +34,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
 
     test("allAtOnceTrailingNewline") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LinePrefixOutputStream("PREFIX", baos)
+      val lpos = new LinePrefixOutputStream(s => baos.write(("PREFIX" + s).getBytes))
       val arr = "hello\nworld\n".getBytes()
       lpos.write(arr)
       lpos.flush()
@@ -44,7 +44,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
 
     test("allAtOnceDoubleNewline") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LinePrefixOutputStream("PREFIX", baos)
+      val lpos = new LinePrefixOutputStream(s => baos.write(("PREFIX" + s).getBytes))
       val arr = "hello\n\nworld\n\n".getBytes()
       lpos.write(arr)
       lpos.flush()
@@ -60,7 +60,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
           for (i2 <- Range(i1, arr.length)) {
             for (i3 <- Range(i2, arr.length)) {
               val baos = new ByteArrayOutputStream()
-              val lpos = new LinePrefixOutputStream("PREFIX", baos)
+              val lpos = new LinePrefixOutputStream(s => baos.write(("PREFIX" + s).getBytes))
               lpos.write(arr, 0, i1)
               lpos.write(arr, i1, i2 - i1)
               lpos.write(arr, i2, i3 - i2)
@@ -76,7 +76,7 @@ object LinePrefixOutputStreamTests extends TestSuite {
 
     test("colors") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LinePrefixOutputStream("PREFIX", baos)
+      val lpos = new LinePrefixOutputStream(s => baos.write(("PREFIX" + s).getBytes))
       lpos.write(fansi.Color.Red("hello").render.getBytes)
       lpos.write('\n')
       lpos.flush()

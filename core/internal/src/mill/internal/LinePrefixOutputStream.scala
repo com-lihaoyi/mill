@@ -10,14 +10,7 @@ import java.io.{ByteArrayOutputStream, FilterOutputStream, OutputStream}
  * @param linePrefix The function to provide the prefix.
  * @param out The underlying output stream.
  */
-private[mill] class LinePrefixOutputStream(
-    linePrefix: String,
-    out: OutputStream,
-    reportPrefix: String => Unit
-) extends FilterOutputStream(out) {
-  def this(linePrefix: String, out: OutputStream) = this(linePrefix, out, _ => ())
-  private val linePrefixBytes = linePrefix.getBytes("UTF-8")
-  private val linePrefixNonEmpty = linePrefixBytes.length != 0
+private[mill] class LinePrefixOutputStream(reportPrefix: String => Unit) extends OutputStream {
   private var isNewLine = true
   val buffer = new ByteArrayOutputStream()
 
@@ -26,36 +19,16 @@ private[mill] class LinePrefixOutputStream(
   // not muck up the rendering of color sequences that affect multiple lines in the terminal
   private var endOfLastLineColor: Long = 0
   override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
-  private def writeLinePrefixIfNecessary(): Unit = {
-    if (isNewLine && linePrefixNonEmpty) {
-      isNewLine = false
-      buffer.write(fansi.Attrs.emitAnsiCodes(endOfLastLineColor, 0).getBytes())
-
-      buffer.write(linePrefixBytes)
-      if (linePrefixNonEmpty) {
-        buffer.write(fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes())
-      }
-    }
-  }
 
   def writeOutBuffer(): Unit = {
-    if (linePrefixNonEmpty) {
-      val bufferString = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + buffer.toString
-      // Make sure we add a suffix "x" to the `bufferString` before computing the last
-      // color. This ensures that any trailing colors in the original `bufferString` do not
-      // get ignored since they would affect zero characters.
-      val s = fansi.Str.apply(bufferString + "x", errorMode = fansi.ErrorMode.Sanitize)
-      endOfLastLineColor = s.getColor(s.length - 1)
-    }
+    val bufferString = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + buffer.toString
+    // Make sure we add a suffix "x" to the `bufferString` before computing the last
+    // color. This ensures that any trailing colors in the original `bufferString` do not
+    // get ignored since they would affect zero characters.
+    val s = fansi.Str.apply(bufferString + "x", errorMode = fansi.ErrorMode.Sanitize)
+    endOfLastLineColor = s.getColor(s.length - 1)
 
-    if (buffer.size() > 0) {
-      val str0 = new String(buffer.toByteArray)
-      val str = // Hack to get rid of the line prefix so the PromptLogger has a chance to skip it
-        if (linePrefixNonEmpty) str0.dropWhile(_ != ' ').drop(1)
-        else str0
-
-      reportPrefix(str)
-    }
+    if (buffer.size() > 0) reportPrefix(new String(buffer.toByteArray))
 
     buffer.reset()
   }
@@ -65,7 +38,6 @@ private[mill] class LinePrefixOutputStream(
     var i = off
     val max = off + len
     while (i < max) {
-      writeLinePrefixIfNecessary()
       if (b(i) == '\n') {
         i += 1 // +1 to include the newline
         buffer.write(b, start, i - start)
@@ -78,7 +50,6 @@ private[mill] class LinePrefixOutputStream(
     }
 
     if (math.min(i, max) - start > 0) {
-      writeLinePrefixIfNecessary()
       buffer.write(b, start, math.min(i, max) - start)
       if (b(max - 1) == '\n') writeOutBuffer()
     }
@@ -86,7 +57,6 @@ private[mill] class LinePrefixOutputStream(
   }
 
   override def write(b: Int): Unit = synchronized {
-    writeLinePrefixIfNecessary()
     buffer.write(b)
     if (b == '\n') {
       writeOutBuffer()
@@ -96,11 +66,9 @@ private[mill] class LinePrefixOutputStream(
 
   override def flush(): Unit = synchronized {
     writeOutBuffer()
-    out.flush()
   }
 
   override def close(): Unit = {
     flush()
-    out.close()
   }
 }
