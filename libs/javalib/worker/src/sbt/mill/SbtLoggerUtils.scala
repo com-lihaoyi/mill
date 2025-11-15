@@ -51,7 +51,7 @@ object SbtLoggerUtils {
 
             case s"compiling $n Java $sources to $path ..."
                 if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
-              maybeTruncate(n, "java", sources, path)
+              maybeTruncate(n, "Java", sources, path)
 
             case _ => message0
           }

@@ -10,8 +10,7 @@ import utest.*
 object FullRunLogsTests extends UtestIntegrationTestSuite {
 
   def normalize(s: String) = s.replace('\\', '/')
-    .replaceAll(" \\d+", " <digits>")
-    .replaceAll("--+", " <dashes>")
+    .replaceAll("\\d+", "<digits>")
     .linesIterator
     .toList
 
@@ -30,7 +29,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         List(
           "compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
           "done compiling",
-          "compiling <digits> java source to out/compile.dest/classes ...",
+          "compiling <digits> Java source to out/compile.dest/classes ...",
           "done compiling"
         )
       )
@@ -40,20 +39,24 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       val res = eval(("--ticker", "true", "run", "--text", "hello"))
       res.isSuccess ==> true
-      assert("\\[\\d+\\] <h1>hello</h1>".r.matches(res.out))
+
+      assertGoldenLiteral(
+        normalize(res.out),
+        List("<digits>] <h<digits>>hello</h<digits>>")
+      )
 
       assertGoldenLiteral(
         normalize(res.err),
         List(
-          "============================== run  <dashes>text hello ==============================",
-          "[build.mill-60/65] compile",
-          "[build.mill-60] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
-          "[build.mill-60] done compiling",
-          "[56/63] compile",
-          "[56] compiling <digits> java source to out/compile.dest/classes ...",
-          "[56] done compiling",
-          "[63/63] run",
-          "[63/63] ============================== run  <dashes>text hello ============================== <digits>s"
+          "============================== run --text hello ==============================",
+          "build.mill-<digits>] compile",
+          "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          "<digits>] compile",
+          "<digits>] compiling <digits> Java source to out/compile.dest/classes ...",
+          "<digits>] done compiling",
+          "<digits>] run",
+          "<digits>/<digits>] ============================== run --text hello ============================== <digits>s"
         )
       )
     }
@@ -68,17 +71,17 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res.err),
         List(
           "============================== jar ==============================",
-          "[build.mill-60/65] compile",
-          "[build.mill-60] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
-          "[build.mill-60] done compiling",
-          "[47/54] compile",
-          "[47] compiling <digits> java source to out/compile.dest/classes ...",
-          "[47] [error] src/foo/Foo.java:36:10",
-          "[47] reached end of file while parsing",
-          "[47] compile task failed",
-          "[54/54, <digits> failed] ============================== jar ============================== <digits>s",
-          "1 tasks failed",
-          "[47] compile javac returned non-zero exit code"
+          "build.mill-<digits>] compile",
+          "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          "<digits>] compile",
+          "<digits>] compiling <digits> Java source to out/compile.dest/classes ...",
+          "<digits>] [error] src/foo/Foo.java:<digits>:<digits>",
+          "<digits>] reached end of file while parsing",
+          "<digits>] compile task failed",
+          "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
+          "<digits> tasks failed",
+          "<digits>] compile javac returned non-zero exit code"
         )
       )
 
@@ -94,15 +97,15 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res2.err),
         List(
           "============================== jar ==============================",
-          "[build.mill-60/65] compile",
-          "[build.mill-60] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
-          "[build.mill-60] [error] [E103] build.mill:12:1",
-          "[build.mill-60] Illegal start of toplevel definition",
-          "[build.mill-60] [error] one error found",
-          "[build.mill-60] compile task failed",
-          "[65/65, <digits> failed] ============================== jar ============================== <digits>s",
-          "1 tasks failed",
-          "[build.mill-60] compile Compilation failed"
+          "build.mill-<digits>] compile",
+          "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] [error] [E<digits>] build.mill:<digits>:<digits>",
+          "build.mill-<digits>] Illegal start of toplevel definition",
+          "build.mill-<digits>] [error] one error found",
+          "build.mill-<digits>] compile task failed",
+          "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
+          "<digits> tasks failed",
+          "build.mill-<digits>] compile Compilation failed"
         )
       )
     }
