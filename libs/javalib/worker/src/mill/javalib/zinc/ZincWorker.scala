@@ -333,12 +333,10 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
     reporter.foreach(_.start())
 
-    val consoleAppender = ConsoleAppender(
+    val consoleAppender = SbtLoggerUtils.createNoLabelAppender(
       name = "ZincLogAppender",
-      deps.consoleOut,
-      ansiCodesSupported = ctx.logPromptColored,
-      useFormat = ctx.logPromptColored,
-      suppressedMessage = _ => None
+      consoleOut = deps.consoleOut,
+      ansiCodesSupported = ctx.logPromptColored
     )
     val loggerId = Thread.currentThread().getId.toString
     val zincLogLevel = if (ctx.logDebugEnabled) sbt.util.Level.Debug else sbt.util.Level.Info

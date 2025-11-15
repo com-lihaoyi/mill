@@ -10,10 +10,9 @@ private trait TransformingReporter(
   // of Actions and DiagnosticRelatedInformation
   abstract override def log(problem0: xsbti.Problem): Unit = {
     val localMapper = optPositionMapper
-    val problem = {
-      if localMapper == null then problem0
-      else TransformingReporter.transformProblem(color, problem0, localMapper, workspaceRoot)
-    }
+    // Always transform to apply path relativization, even if there's no position mapper for build files
+    val mapper = if localMapper == null then (pos: xsbti.Position) => pos else localMapper
+    val problem = TransformingReporter.transformProblem(color, problem0, mapper, workspaceRoot)
     super.log(problem)
   }
 }
@@ -80,33 +79,35 @@ private object TransformingReporter {
         }
       else msg
 
+    val prefixName = severity match {
+      case xsbti.Severity.Error => "error"
+      case xsbti.Severity.Warn => "warn"
+      case xsbti.Severity.Info => "info"
+    }
     val normCode = {
-      problem0.diagnosticCode().filter(_.code() != "-1").map({ inner =>
-        val prefix = s"[E${inner.code()}] "
-        inner.explanation().map(e =>
-          s"$prefix$e: "
-        ).orElse(prefix)
-      }).orElse("")
+      problem0.diagnosticCode()
+        .filter(_.code() != "-1")
+        .map{ inner =>
+          val prefix = s"[${shade(s"E${inner.code()}")}] "
+          inner.explanation().map(e => s"$prefix$e: ").orElse(prefix)
+        }
+        .orElse("")
     }
 
     val optPath = InterfaceUtil.jo2o(pos.sourcePath()).map { path =>
       val absPath = os.Path(path)
       val displayPath =
-        if absPath.startsWith(workspaceRoot) then
-          absPath.subRelativeTo(workspaceRoot)
-        else
-          path
+        if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot)
+        else path
+
       val line0 = intValue(pos.line(), -1)
       val pointer0 = intValue(pos.pointer(), -1)
       if line0 >= 0 && pointer0 >= 0 then
-        s"$displayPath:$line0:${pointer0 + 1}"
-      else
-        displayPath
+        s"${shade(displayPath.toString)}:${shade(line0.toString)}:${shade((pointer0 + 1).toString)}"
+      else displayPath
     }
 
-    val normHeader = optPath.map(path =>
-      s"${shade(s"-- $normCode$path")}\n"
-    ).getOrElse("")
+    val normHeader = optPath.map(path => s"[${shade(prefixName)}] $normCode$path\n").getOrElse("")
 
     val optSnippet = {
       val snip = pos.lineContent()

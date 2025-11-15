@@ -22,7 +22,7 @@ public class Foo {
         .defaultHelp(true)
         .description("Inserts text into a HTML template");
 
-    parser.addArgument("-t", "--text").required(true).help("text to insert");
+    parser.addArument("-t", "--text").required(true).help("text to insert");
 
     Namespace ns = null;
     ns = parser.parseArgs(args);
