@@ -30,7 +30,7 @@ private[mill] case class PrefixLogger(
     redirectOutToErr0: Option[Boolean] = None
 ) extends Logger {
 
-  override val redirectOutToErr = redirectOutToErr0 match{
+  override val redirectOutToErr = redirectOutToErr0 match {
     case None => logger0.redirectOutToErr
     case Some(b) => b
   }
