@@ -110,14 +110,16 @@ private object TransformingReporter {
       if (space.nonEmpty && pointer >= 0 && endCol >= 0) {
         // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
         // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
-        val codeSnippet = InterfaceUtil.jo2o(problem0.rendered())
+        val codeSnippet0 = InterfaceUtil.jo2o(problem0.rendered())
           .iterator
           .flatMap(_.linesIterator)
-          .collectFirst {
+          .collect {
             case s"$pre |$rest" if fansi.Str(pre).plainText.forall(_.isDigit) =>
               rest.drop(rest.indexOf('|'))
           }
-          .getOrElse(pos.lineContent()) // fall back to plaintext line if no colored line found
+        val codeSnippet =
+          if (codeSnippet0.nonEmpty) codeSnippet0.mkString("\n")
+          else pos.lineContent() // fall back to plaintext line if no colored line found
 
         val arrowCount = math.max(1, math.min(endCol - pointer, codeSnippet.length - space.length))
         s"""
