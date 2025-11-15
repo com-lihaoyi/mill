@@ -58,7 +58,7 @@ object SbtLoggerUtils {
         }
       val severityPrefix = level match {
         case Level.Error => "[" + fansi.Color.Red("error") + "] "
-        case Level.Warn => "[" + fansi.Color.Yellow("warn") + " ] "
+        case Level.Warn => "[" + fansi.Color.Yellow("warn") + "] "
         case _ => ""
       }
 
