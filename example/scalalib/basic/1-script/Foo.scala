@@ -10,5 +10,5 @@ def generateHtml(text: String) = {
 @main
 def main(text: String) = {
   println("Jvm Version: " + System.getProperty("java.version"))
-  val x = println(generateHtml(123))
+  println(generateHtml(text))
 }
