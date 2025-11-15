@@ -8,7 +8,7 @@ object `package` extends JavaModule {
     mvn"org.slf4j:slf4j-simple:2.0.9"
   )
   object test extends JavaTests with TestModule.Junit4 {
-    def printColors() = Task.Command{
+    def printColors() = Task.Command {
       val RED = "\u001b[31m"
       val GREEN = "\u001B[32m"
       val BLUE = "\u001b[34m"

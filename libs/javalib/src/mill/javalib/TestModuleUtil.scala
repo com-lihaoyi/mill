@@ -163,8 +163,8 @@ final class TestModuleUtil(
       // the process as well as the pumper threads, since those threads may take some time
       // to finish pumping even after the process exits
       proc.isAlive() ||
-        proc.errorPumperThread.map(_.isAlive).getOrElse(false) ||
-        proc.outputPumperThread.map(_.isAlive).getOrElse(false)
+      proc.errorPumperThread.map(_.isAlive).getOrElse(false) ||
+      proc.outputPumperThread.map(_.isAlive).getOrElse(false)
     ) {
       Thread.sleep(10)
       poll()

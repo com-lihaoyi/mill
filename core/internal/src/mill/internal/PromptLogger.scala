@@ -168,16 +168,22 @@ private[mill] class PromptLogger(
             seenIdentifiers.get(key)
           }
 
-        val lines = for(line <- lines0) yield {
+        val lines = for (line <- lines0) yield {
           val bufferString = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + new String(line)
+
           // Make sure we add a suffix "x" to the `bufferString` before computing the last
           // color. This ensures that any trailing colors in the original `bufferString` do not
           // get ignored since they would affect zero characters.
           val s = fansi.Str.apply(bufferString + "x", errorMode = fansi.ErrorMode.Sanitize)
-          val result = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes() ++ line ++ scala.Console.RESET.getBytes
+
+          val result =
+            fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes() ++
+              line ++ scala.Console.RESET.getBytes
+
           endOfLastLineColor = s.getColor(s.length - 1)
           result
         }
+
         (lines, seenBefore, res)
       }
 
@@ -201,7 +207,8 @@ private[mill] class PromptLogger(
 
           if (!seenBefore) {
             val combineMessageAndLog =
-              longPrefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
+              longPrefix.length + 1 + lines.head.length <
+                termDimensions._1.getOrElse(defaultTermWidth)
 
             if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), lines.head)
             else {
