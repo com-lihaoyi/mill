@@ -46,11 +46,10 @@ final case class Segments private (value: Seq[Segment]) {
     }
 
     value.toList match {
-      // ScriptModule segments always starts with `./`
-      case Segment.Label(s"$first:") :: Nil => s"./$first"
-      case Segment.Label(s"$first:") :: next :: rest => s"$first:${renderValue(next :: rest)}"
+      // ScriptModule segments always ends with `:`
+      case Segment.Label(s"$first:") :: rest => s"$first:${renderValue(rest)}"
       // ExternalModule segments always ends with '/'
-      case Segment.Label(s"$first/") :: next :: rest => s"$first/${renderValue(next :: rest)}"
+      case Segment.Label(s"$first/") :: rest => s"$first/${renderValue(rest)}"
       case valueList => renderValue(valueList)
     }
   }
