@@ -126,5 +126,167 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assert(millProfile.exists(_.obj("label").str == "show"))
       assert(millChromeProfile.exists(_.obj.get("name") == Some(ujson.Str("show"))))
     }
+
+    test("colors") - integrationTest { tester =>
+      import tester._
+      // Make sure that running tests and tasks that print long multi-line colored output
+      // doesn't accidentally truncate the output or mess up the colors
+
+      val res = eval(("-i", "--ticker", "true", "test"))
+
+      def normalize(s: String) = s
+        .replace(Console.RESET, "(X)")
+        .replace(Console.RED, "(R)")
+        .replace(Console.GREEN, "(G)")
+        .replace(Console.BLUE, "(B)")
+        .replace(Console.CYAN, "(C)")
+        .replace(Console.MAGENTA, "(M)")
+        .replace(Console.YELLOW, "(Y)")
+        .replaceAll("\\d\\.\\d", "...")
+        .linesIterator
+        .toList
+
+      assertGoldenLiteral(
+        normalize(res.out0),
+        List(
+          "(B)Test run (X)foo.(Y)FooTest(X)(B) started(X)",
+          "(X)Test foo.(Y)FooTest(X).(C)testSimple(X) started",
+          "(X)(R)1",
+          "(X)(R)2",
+          "(X)(R)3",
+          "(X)(R)4",
+          "(X)(R)5",
+          "(X)(R)6",
+          "(X)(R)7",
+          "(X)(R)8",
+          "(X)(R)9",
+          "(X)(R)10",
+          "(X)(R)(G)11",
+          "(X)(G)12",
+          "(X)(G)13",
+          "(X)(G)14",
+          "(X)(G)15",
+          "(X)(G)16",
+          "(X)(G)17",
+          "(X)(G)18",
+          "(X)(G)19",
+          "(X)(G)20",
+          "(X)(G)(B)21",
+          "(X)(B)22",
+          "(X)(B)23",
+          "(X)(B)24",
+          "(X)(B)25",
+          "(X)(B)26",
+          "(X)(B)27",
+          "(X)(B)28",
+          "(X)(B)29",
+          "(X)(B)30",
+          "(X)(B)(C)31",
+          "(X)(C)32",
+          "(X)(C)33",
+          "(X)(C)34",
+          "(X)(C)35",
+          "(X)(C)36",
+          "(X)(C)37",
+          "(X)(C)38",
+          "(X)(C)39",
+          "(X)(C)40",
+          "(X)(C)(M)41",
+          "(X)(M)42",
+          "(X)(M)43",
+          "(X)(M)44",
+          "(X)(M)45",
+          "(X)(M)46",
+          "(X)(M)47",
+          "(X)(M)48",
+          "(X)(M)49",
+          "(X)(M)50",
+          "(X)(M)(Y)51",
+          "(X)(Y)52",
+          "(X)(Y)53",
+          "(X)(Y)54",
+          "(X)(Y)55",
+          "(X)(Y)56",
+          "(X)(Y)57",
+          "(X)(Y)58",
+          "(X)(Y)59",
+          "(X)(Y)60",
+          "(X)(Y)(X)",
+          "(X)Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took ...05 sec",
+          "(X)(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total, ...06s(X)",
+          "(X)"
+        )
+      )
+
+      val res2 = eval(("-i", "--ticker", "true", "test.printColors"))
+
+      assertGoldenLiteral(
+        normalize(res2.out0),
+        List(
+          "(C)1",
+          "(X)(C)2",
+          "(X)(C)3",
+          "(X)(C)4",
+          "(X)(C)5",
+          "(X)(C)6",
+          "(X)(C)7",
+          "(X)(C)8",
+          "(X)(C)9",
+          "(X)(C)10",
+          "(X)(C)(M)11",
+          "(X)(M)12",
+          "(X)(M)13",
+          "(X)(M)14",
+          "(X)(M)15",
+          "(X)(M)16",
+          "(X)(M)17",
+          "(X)(M)18",
+          "(X)(M)19",
+          "(X)(M)20",
+          "(X)(M)(Y)21",
+          "(X)(Y)22",
+          "(X)(Y)23",
+          "(X)(Y)24",
+          "(X)(Y)25",
+          "(X)(Y)26",
+          "(X)(Y)27",
+          "(X)(Y)28",
+          "(X)(Y)29",
+          "(X)(Y)30",
+          "(X)(Y)(R)31",
+          "(X)(R)32",
+          "(X)(R)33",
+          "(X)(R)34",
+          "(X)(R)35",
+          "(X)(R)36",
+          "(X)(R)37",
+          "(X)(R)38",
+          "(X)(R)39",
+          "(X)(R)40",
+          "(X)(R)(G)41",
+          "(X)(G)42",
+          "(X)(G)43",
+          "(X)(G)44",
+          "(X)(G)45",
+          "(X)(G)46",
+          "(X)(G)47",
+          "(X)(G)48",
+          "(X)(G)49",
+          "(X)(G)50",
+          "(X)(G)(B)51",
+          "(X)(B)52",
+          "(X)(B)53",
+          "(X)(B)54",
+          "(X)(B)55",
+          "(X)(B)56",
+          "(X)(B)57",
+          "(X)(B)58",
+          "(X)(B)59",
+          "(X)(B)60",
+          "(X)(B)(X)",
+          "(X)"
+        )
+      )
+    }
   }
 }

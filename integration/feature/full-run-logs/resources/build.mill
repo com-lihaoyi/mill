@@ -7,4 +7,49 @@ object `package` extends JavaModule {
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
     mvn"org.slf4j:slf4j-simple:2.0.9"
   )
+  object test extends JavaTests with TestModule.Junit4 {
+    def printColors() = Task.Command{
+      val RED = "\u001b[31m"
+      val GREEN = "\u001B[32m"
+      val BLUE = "\u001b[34m"
+      val CYAN = "\u001b[36m"
+      val MAGENTA = "\u001b[35m"
+      val YELLOW = "\u001b[33m"
+      val RESET = "\u001B[0m"
+      var out = CYAN
+      val n = 10
+      var m = 0
+      for (i <- 0 until n) {
+        m += 1
+        out += m + "\n"
+      }
+      out += MAGENTA
+      for (i <- 0 until n) {
+        m += 1
+        out += m + "\n"
+      }
+      out += YELLOW
+      for (i <- 0 until n) {
+        m += 1
+        out += m + "\n"
+      }
+      out += RED
+      for (i <- 0 until n) {
+        m += 1
+        out += m + "\n"
+      }
+      out += GREEN
+      for (i <- 0 until n) {
+        m += 1
+        out += m + "\n"
+      }
+      out += BLUE
+      for (i <- 0 until n) {
+        m += 1
+        out += m + "\n"
+      }
+      out += RESET
+      System.out.println(out)
+    }
+  }
 }
