@@ -7,7 +7,7 @@ import utest._
 
 // Make sure that changes in `build.mill.yaml` configs and related
 // sources properly trigger selective execution and cache invalidation
-object ConfigHeaderChange extends UtestIntegrationTestSuite {
+object YamlConfigChange extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
