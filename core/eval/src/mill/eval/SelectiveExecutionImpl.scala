@@ -237,7 +237,7 @@ object SelectiveExecutionImpl {
         new SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
-          for{
+          for {
             (k, _) <- allBuildOverrides
             // Make sure we deserialize the actual value to hash, rather than hashing the JSON,
             // since a JSON string may deserialize into a `PathRef` that changes depending on
