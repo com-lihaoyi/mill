@@ -16,7 +16,7 @@ private[mill] class SimpleLogger(
     new PrintStream(new LinePrefixOutputStream(
       linePrefix,
       stream,
-      () => ()
+      _ => ()
     ))
   }
 

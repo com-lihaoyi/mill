@@ -38,16 +38,16 @@ private[mill] class PrefixLogger(
   override def toString: String =
     s"PrefixLogger($logger0, $key0)"
 
-  def prefixPrintStream(stream: java.io.OutputStream) = {
+  def prefixPrintStream(stream: java.io.OutputStream, logToOut: Boolean) = {
     new PrintStream(new LinePrefixOutputStream(
       prompt.infoColor(linePrefix),
       stream,
-      () => prompt.reportKey(logKey)
+      logMsg => prompt.reportKey(logKey, logMsg, logToOut)
     ))
   }
   val streams = new SystemStreams(
-    out = prefixPrintStream(logger0.unprefixedStreams.out),
-    err = prefixPrintStream(logger0.unprefixedStreams.err),
+    out = prefixPrintStream(logger0.unprefixedStreams.out, true),
+    err = prefixPrintStream(logger0.unprefixedStreams.err, false),
     logger0.streams.in
   )
 
@@ -61,15 +61,15 @@ private[mill] class PrefixLogger(
     s.linesWithSeparators.map(prefix + _).mkString
 
   override def info(s: String): Unit = {
-    prompt.reportKey(logKey)
+    prompt.reportKey(logKey, s, false)
     unprefixedStreams.err.println(addPrefix(prompt.infoColor(linePrefix), s))
   }
   override def warn(s: String): Unit = {
-    prompt.reportKey(logKey)
+    prompt.reportKey(logKey, s, false)
     unprefixedStreams.err.println(addPrefix(prompt.warnColor(linePrefix), s))
   }
   override def error(s: String): Unit = {
-    prompt.reportKey(logKey)
+    prompt.reportKey(logKey, s, false)
     unprefixedStreams.err.println(addPrefix(prompt.errorColor(linePrefix), s))
   }
   override def ticker(s: String): Unit = prompt.setPromptDetail(logKey, s)
@@ -78,7 +78,7 @@ private[mill] class PrefixLogger(
 
   override def debug(s: String): Unit = {
     if (debugEnabled) {
-      if (prompt.debugEnabled) prompt.reportKey(logKey)
+      if (prompt.debugEnabled) prompt.reportKey(logKey, s, false)
       unprefixedStreams.err.println(addPrefix(prompt.infoColor(linePrefix), s))
     }
   }

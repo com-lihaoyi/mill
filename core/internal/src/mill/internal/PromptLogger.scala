@@ -148,7 +148,12 @@ private[mill] class PromptLogger(
         promptLineState.setDetail(key, s)
       }
 
-    override def reportKey(key: Seq[String]): Unit = {
+    override def reportKey(key: Seq[String], logMsg: String, logToOut: Boolean): Unit = {
+      mill.constants.DebugLog("")
+      mill.constants.DebugLog("key " + pprint.apply(key))
+      mill.constants.DebugLog(logMsg)
+      val lines = logMsg.linesIterator.toList
+
       val res = PromptLogger.this.synchronized {
         if (reportedIdentifiers(key)) None
         else {
@@ -156,13 +161,29 @@ private[mill] class PromptLogger(
           seenIdentifiers.get(key)
         }
       }
+
       for ((keySuffix, message) <- res) {
+        val prefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
+        val logStream = if (logToOut) streams.out else streams.err
         if (prompt.enableTicker) {
-          streams.err.println(
-            infoColor(Logger.formatPrefix0(key) + spaceNonEmpty(message))
-          )
-          streamManager.awaitPumperEmpty()
+          if (
+            prefix.length + 1 + lines.head.length <
+              termDimensions._1.getOrElse(defaultTermWidth)
+          ) {
+
+            streams.err.print(infoColor(prefix))
+            streams.err.print(" ")
+            logStream.println(lines.head)
+          } else {
+            streams.err.println(infoColor(prefix))
+            logStream.println(lines.head)
+          }
+
+          lines.tail.foreach(logStream.println(_))
+        }else {
+          lines.foreach(logStream.println(_))
         }
+        streamManager.awaitPumperEmpty()
       }
     }
 

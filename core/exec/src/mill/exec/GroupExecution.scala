@@ -659,7 +659,7 @@ object GroupExecution {
             mill.api.ClassLoader.withContextClassLoader(classLoader) {
               if (!exclusive) t
               else {
-                logger.prompt.reportKey(Seq(counterMsg))
+                logger.prompt.reportKey(Seq(counterMsg), "", false)
                 logger.prompt.withPromptPaused {
                   t
                 }

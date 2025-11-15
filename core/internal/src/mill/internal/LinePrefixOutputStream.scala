@@ -13,9 +13,9 @@ import java.io.{ByteArrayOutputStream, FilterOutputStream, OutputStream}
 private[mill] class LinePrefixOutputStream(
     linePrefix: String,
     out: OutputStream,
-    reportPrefix: () => Unit
+    reportPrefix: String => Unit
 ) extends FilterOutputStream(out) {
-  def this(linePrefix: String, out: OutputStream) = this(linePrefix, out, () => ())
+  def this(linePrefix: String, out: OutputStream) = this(linePrefix, out, _ => ())
   private val linePrefixBytes = linePrefix.getBytes("UTF-8")
   private val linePrefixNonEmpty = linePrefixBytes.length != 0
   private var isNewLine = true
@@ -39,8 +39,6 @@ private[mill] class LinePrefixOutputStream(
   }
 
   def writeOutBuffer(): Unit = {
-    if (buffer.size() > 0) reportPrefix()
-
     if (linePrefixNonEmpty) {
       val bufferString = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + buffer.toString
       // Make sure we add a suffix "x" to the `bufferString` before computing the last
@@ -50,7 +48,11 @@ private[mill] class LinePrefixOutputStream(
       endOfLastLineColor = s.getColor(s.length - 1)
     }
 
-    out.synchronized { buffer.writeTo(out) }
+    if (buffer.size() > 0) {
+      // Hack to get rid of the line prefix so the PromptLogger has a chance to skip it
+      reportPrefix(new String(buffer.toByteArray).dropWhile(_ != ' ').drop(1))
+    }
+
     buffer.reset()
   }
 

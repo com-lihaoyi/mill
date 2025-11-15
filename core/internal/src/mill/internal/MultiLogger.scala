@@ -55,9 +55,9 @@ private[mill] class MultiLogger(
       logger2.prompt.setPromptLine(key, keySuffix, message)
     }
 
-    private[mill] override def reportKey(key: Seq[String]): Unit = {
-      logger1.prompt.reportKey(key)
-      logger2.prompt.reportKey(key)
+    private[mill] override def reportKey(key: Seq[String], logMsg: String, logToOut: Boolean): Unit = {
+      logger1.prompt.reportKey(key, logMsg, logToOut)
+      logger2.prompt.reportKey(key, logMsg, logToOut)
     }
 
     private[mill] override def clearPromptStatuses(): Unit = {
