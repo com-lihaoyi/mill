@@ -4,9 +4,9 @@ import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.api.*
 
 /**
-  * Internal module to Retrieve credentials for publishing to Maven repositories
-  * (e.g. `central.sonatype.org` or a private Maven repository).
-  */
+ * Internal module to Retrieve credentials for publishing to Maven repositories
+ * (e.g. `central.sonatype.org` or a private Maven repository).
+ */
 private[mill] trait PublishCredentialsModule extends Module {
   def getPublishCredentials(
       envVariablePrefix: String,
