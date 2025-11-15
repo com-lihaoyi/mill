@@ -122,13 +122,12 @@ private object TransformingReporter {
           else pos.lineContent() // fall back to plaintext line if no colored line found
 
         val arrowCount = math.max(1, math.min(endCol - pointer, codeSnippet.length - space.length))
-        s"""
-           |$codeSnippet
+        s"""$codeSnippet
            |$space${shade("^" * arrowCount)}
            |""".stripMargin
       } else ""
 
-    header + codeSnippet + message + "\n"
+    header + codeSnippet + message
   }
 
   /** Implements a transformation that returns the same list if the mapper has no effect */
