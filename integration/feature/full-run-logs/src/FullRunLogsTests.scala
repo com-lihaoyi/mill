@@ -288,7 +288,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "101] (Y)(X)",
           "101] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec",
           "101] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)",
-          "101/101] ============================== test ============================== 1s"
+          "101/101] ============================== test ============================== 2s"
         )
       )
 
@@ -428,7 +428,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "1] (B)59(X)",
           "1] (B)60(X)",
           "1] (B)(X)",
-          "1/1] ============================== test.printColors =============================="
+          "1/1] ============================== test.printColors ============================== 1s"
         )
       )
     }

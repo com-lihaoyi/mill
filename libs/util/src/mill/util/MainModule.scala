@@ -339,7 +339,6 @@ object MainModule {
       .withRedirectOutToErr()
       .asInstanceOf[Logger]
 
-    mill.constants.DebugLog.println("redirectLogger " + pprint.apply(redirectLogger))
     evaluator.withBaseLogger(redirectLogger)
       .evaluate(
         tasks,

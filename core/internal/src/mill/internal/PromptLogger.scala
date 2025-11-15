@@ -161,43 +161,41 @@ private[mill] class PromptLogger(
         logMsg: ByteArrayOutputStream,
         logToOut: Boolean
     ): Unit = {
+      val logStream = if (logToOut) streams.out else streams.err
+      if (enableTicker) {
+        val (lines, seenBefore, res) = PromptLogger.this.synchronized {
+          val lines0 = Util.splitBytesDropEOL(logMsg.toByteArray)
+          val seenBefore = reportedIdentifiers(key)
+          val res =
+            if (reportedIdentifiers(key) && lines0.isEmpty) None
+            else {
+              reportedIdentifiers.add(key)
+              seenIdentifiers.get(key)
+            }
 
-      val (lines, seenBefore, res) = PromptLogger.this.synchronized {
-        val lines0 = Util.splitBytesDropEOL(logMsg.toByteArray)
-        val seenBefore = reportedIdentifiers(key)
-        val res =
-          if (reportedIdentifiers(key) && lines0.isEmpty) None
-          else {
-            reportedIdentifiers.add(key)
-            seenIdentifiers.get(key)
+          val lines = for (line <- lines0) yield {
+            val continuationColoredLine =
+              fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes ++ line
+
+            // Make sure we add a suffix "x" to the `bufferString` before computing the last
+            // color. This ensures that any trailing colors in the original `bufferString` do not
+            // get ignored since they would affect zero characters.
+            val extendedString = fansi.Str.apply(
+              new String(continuationColoredLine) + "x",
+              fansi.ErrorMode.Sanitize
+            )
+
+            val endOfCurrentLineColor = extendedString.getColor(extendedString.length - 1)
+
+            endOfLastLineColor = endOfCurrentLineColor
+
+            if (endOfCurrentLineColor == 0) continuationColoredLine ++ eol
+            else continuationColoredLine ++ resetEol
           }
 
-        val lines = for (line <- lines0) yield {
-          val continuationColoredLine =
-            fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes ++ line
-
-          // Make sure we add a suffix "x" to the `bufferString` before computing the last
-          // color. This ensures that any trailing colors in the original `bufferString` do not
-          // get ignored since they would affect zero characters.
-          val extendedString = fansi.Str.apply(
-            new String(continuationColoredLine) + "x",
-            fansi.ErrorMode.Sanitize
-          )
-
-          val endOfCurrentLineColor = extendedString.getColor(extendedString.length - 1)
-
-          endOfLastLineColor = endOfCurrentLineColor
-
-          if (endOfCurrentLineColor == 0) continuationColoredLine ++ eol
-          else continuationColoredLine ++ resetEol
+          (lines, seenBefore, res)
         }
 
-        (lines, seenBefore, res)
-      }
-
-      val logStream = if (logToOut) streams.out else streams.err
-
-      if (prompt.enableTicker) {
         for ((keySuffix, message) <- res) {
           val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
           val prefix = Logger.formatPrefix0(key)
@@ -230,7 +228,7 @@ private[mill] class PromptLogger(
           }
         }
       } else {
-        lines.foreach(logStream.write(_))
+        logMsg.writeTo(logStream)
       }
 
       streamManager.awaitPumperEmpty()
