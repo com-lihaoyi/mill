@@ -143,7 +143,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         .replace(Console.CYAN, "(C)")
         .replace(Console.MAGENTA, "(M)")
         .replace(Console.YELLOW, "(Y)")
-        .replaceAll("\\d\\.\\d", "...")
+        .replaceAll(" \\d+\\\\.\\d+", " ...")
         .linesIterator
         .toList
 

@@ -12,25 +12,25 @@ object ScriptExternalTaskRendering extends UtestIntegrationTestSuite {
       import tester._
 
       val resolveRun = eval(("resolve", "Script.java:run"))
-      assert(resolveRun.out.linesIterator.toSeq == Seq("./Script.java:run"))
+      assert(resolveRun.out.linesIterator.toSeq == Seq("Script.java:run"))
 
       val resolveAll = eval(("resolve", "Script.java:_"))
-      assert(resolveAll.out.linesIterator.toSeq.contains("./Script.java:run"))
-      assert(resolveAll.out.linesIterator.toSeq.contains("./Script.java:compile"))
+      assert(resolveAll.out.linesIterator.toSeq.contains("Script.java:run"))
+      assert(resolveAll.out.linesIterator.toSeq.contains("Script.java:compile"))
 
       val planMvnDeps = eval(("plan", "Script.java:mvnDeps"))
-      assert(planMvnDeps.out.linesIterator.toSeq == Seq("./Script.java:mvnDeps"))
+      assert(planMvnDeps.out.linesIterator.toSeq == Seq("Script.java:mvnDeps"))
 
       val planRun = eval(("plan", "Script.java:run"))
-      assert(planRun.out.linesIterator.toSeq.contains("./Script.java:run"))
-      assert(planRun.out.linesIterator.toSeq.contains("./Script.java:compile"))
+      assert(planRun.out.linesIterator.toSeq.contains("Script.java:run"))
+      assert(planRun.out.linesIterator.toSeq.contains("Script.java:compile"))
 
       val resolveScript = eval(("resolve", "Script.java"))
-      assert(resolveScript.out.linesIterator.toSeq.contains("./Script.java"))
+      assert(resolveScript.out.linesIterator.toSeq.contains("Script.java"))
 
       val planScript = eval(("plan", "Script.java"))
-      assert(planScript.out.linesIterator.toSeq.contains("./Script.java:run"))
-      assert(planScript.out.linesIterator.toSeq.contains("./Script.java:compile"))
+      assert(planScript.out.linesIterator.toSeq.contains("Script.java:run"))
+      assert(planScript.out.linesIterator.toSeq.contains("Script.java:compile"))
 
       val resolveExternalTask =
         eval(("resolve", "mill.scalalib.scalafmt.ScalafmtModule:reformatAll"))
