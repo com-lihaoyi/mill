@@ -34,6 +34,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         )
       )
     }
+
     test("ticker") - integrationTest { tester =>
       import tester._
 
