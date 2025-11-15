@@ -327,7 +327,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
           "\n1 tasks failed",
           // Ensure the file path in the compile error is properly adjusted to point
           // at the original source file and not the generated file
-          (workspacePath / "build.mill").toString,
+          "build.mill",
           "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester))
@@ -337,7 +337,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
         evalCheckErr(
           tester,
           "\n1 tasks failed",
-          (workspacePath / "mill-build/build.mill").toString,
+          "mill-build/build.mill",
           "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester))
@@ -347,7 +347,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
         evalCheckErr(
           tester,
           "\n1 tasks failed",
-          (workspacePath / "build.mill").toString,
+          "build.mill",
           "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester))

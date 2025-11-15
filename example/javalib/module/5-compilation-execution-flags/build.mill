@@ -13,7 +13,8 @@ object `package` extends JavaModule {
 /** Usage
 
 > ./mill compile
-.../src/foo/Foo.java... stop() in java.lang.Thread has been deprecated...
+[warn] src/foo/Foo.java...
+stop() in java.lang.Thread has been deprecated...
 
 > ./mill run
 hello WORLD

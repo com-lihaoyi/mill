@@ -436,12 +436,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
         snapshotsPath / "logging",
         ignoreLine = {
           // ignore watcher logs
-          val watchGlob = TestRunnerUtils.matchesGlob("[bsp-watch] *")
+          val watchGlob = TestRunnerUtils.matchesGlob("bsp-watch] *")
           // ignoring compilation warnings that might go away in the future
-          val warnGlob = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
-          val waitingGlob = TestRunnerUtils.matchesGlob("[*] Another Mill process is running *")
+          val waitingGlob = TestRunnerUtils.matchesGlob("*] Another Mill process is running *")
           s =>
-            watchGlob(s) || warnGlob(s) || waitingGlob(s) ||
+            watchGlob(s) || waitingGlob(s) ||
               // Ignoring this one, that sometimes comes out of order.
               // If the request hasn't been cancelled, we'd see extra lines making the
               // test fail anyway.

@@ -79,7 +79,7 @@ private object TransformingReporter {
       problem0.diagnosticCode()
         .filter(_.code() != "-1")
         .map { inner =>
-          val prefix = shade(s"E${inner.code()} ")
+          val prefix = "[" + shade(s"E${inner.code()}") + "] "
           inner.explanation().map(e => s"$prefix$e: ").orElse(prefix)
         }
         .orElse("")

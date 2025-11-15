@@ -163,7 +163,7 @@ private[mill] class PromptLogger(
       }
 
       for ((keySuffix, message) <- res) {
-        val prefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
+        val prefix = Logger.formatPrefix0(key, keySuffix) + spaceNonEmpty(message)
         val logStream = if (logToOut) streams.out else streams.err
         if (prompt.enableTicker) {
           if (
