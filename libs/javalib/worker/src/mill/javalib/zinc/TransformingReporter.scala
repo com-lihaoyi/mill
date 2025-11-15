@@ -39,11 +39,7 @@ private object TransformingReporter {
     val actions = transformActions(actions0, mapper)
     val posIsNew = pos ne pos0
     if posIsNew || (related ne related0) || (actions ne actions0) then
-      val rendered = {
-        // if we transformed the position, then we must re-render the message
-        if posIsNew then Some(dottyStyleMessage(color, problem0, pos, workspaceRoot))
-        else InterfaceUtil.jo2o(problem0.rendered())
-      }
+      val rendered = dottyStyleMessage(color, problem0, pos, workspaceRoot)
       InterfaceUtil.problem(
         cat = problem0.category(),
         pos = pos,
