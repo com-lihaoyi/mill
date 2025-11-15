@@ -173,8 +173,8 @@ private[mill] class PromptLogger(
           val prefix = Logger.formatPrefix0(key)
 
           val combineMessageAndLog =
-            prefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
-
+            longPrefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
+          mill.constants.DebugLog.println("combineMessageAndLog " + pprint.apply(combineMessageAndLog))
           def printPrefixed(prefix: String, line: Array[Byte]) = {
             streams.err.print(infoColor(prefix))
             if (line.nonEmpty) streams.err.print(" ")
@@ -189,7 +189,8 @@ private[mill] class PromptLogger(
           if (!seenBefore) {
             if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), lines.head)
             else {
-              printPrefixed(infoColor(longPrefix), Array())
+              streams.err.print(infoColor(longPrefix))
+              streams.err.print('\n')
               printPrefixed(infoColor(prefix), lines.head)
             }
             lines.tail.foreach { l => printPrefixed(infoColor(prefix), l) }
