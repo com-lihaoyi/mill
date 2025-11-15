@@ -15,10 +15,13 @@ import scala.util.Using
  * re-run when the user presses Enter, printing status messages, etc.
  */
 object Watching {
-  case class Result[T](watched: Seq[Watchable], error: Option[String], result: T)
+  trait Result {
+    def watched: Seq[Watchable]
+    def errorOpt: Option[String]
+  }
 
-  trait Evaluate[T] {
-    def apply(skipSelectiveExecution: Boolean, previousState: Option[T]): Result[T]
+  trait Evaluate[T <: Result] {
+    def apply(skipSelectiveExecution: Boolean, previousState: Option[T]): T
   }
 
   /**
@@ -36,7 +39,7 @@ object Watching {
    * @param ringBell whether to emit bells
    * @param watch if [[None]] just runs once and returns
    */
-  def watchLoop[T](
+  def watchLoop[T <: Result](
       ringBell: Boolean,
       watch: Option[WatchArgs],
       streams: SystemStreams,
@@ -60,25 +63,24 @@ object Watching {
 
     watch match {
       case None =>
-        val Result(_, errorOpt, result) =
-          evaluate(skipSelectiveExecution = false, previousState = None)
-        handleError(errorOpt)
-        (errorOpt.isEmpty, result)
+        val result = evaluate(skipSelectiveExecution = false, previousState = None)
+        handleError(result.errorOpt)
+        (result.errorOpt.isEmpty, result)
 
       case Some(watchArgs) =>
         var prevState: Option[T] = None
         var skipSelectiveExecution = true // Always skip selective execution for first run
 
-        // Exits when the thread gets interruped.
+        // Exits when the thread gets interrupted.
         while (true) {
-          val Result(watchables, errorOpt, result) = evaluate(skipSelectiveExecution, prevState)
+          val result = evaluate(skipSelectiveExecution, prevState)
           prevState = Some(result)
-          handleError(errorOpt)
+          handleError(result.errorOpt)
 
           try {
             watchArgs.setIdle(true)
             skipSelectiveExecution = watchAndWait(
-              watchables,
+              result.watched,
               watchArgs,
               () => Option.when(lookForEnterKey(streams.in))(()),
               "  (Enter to re-run, Ctrl-C to exit)",

@@ -66,7 +66,7 @@ class MillBuildBootstrap(
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
-  def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
+  def evaluate(): RunnerState = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
@@ -77,11 +77,7 @@ class MillBuildBootstrap(
       )
     }
 
-    Watching.Result(
-      watched = runnerState.watched,
-      error = runnerState.errorOpt,
-      result = runnerState
-    )
+    runnerState
   }
 
   def evaluateRec(depth: Int): RunnerState = {
@@ -634,12 +630,8 @@ object MillBuildBootstrap {
     }
   }
 
-  def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / Seq.fill(depth)(millBuild)
-  }
+  def recRoot(projectRoot: os.Path, depth: Int): os.Path = projectRoot / Seq.fill(depth)(millBuild)
 
-  def recOut(output: os.Path, depth: Int): os.Path = {
-    output / Seq.fill(depth)(millBuild)
-  }
+  def recOut(output: os.Path, depth: Int): os.Path = output / Seq.fill(depth)(millBuild)
 
 }
