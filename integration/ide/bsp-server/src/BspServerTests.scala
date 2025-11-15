@@ -423,11 +423,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
       val workspaceUri = tester.workspacePath.toURI.toASCIIString.stripSuffix("/") + "/"
       val logs = stderr.toString
         .linesWithSeparators
-        .filter(_.startsWith("["))
+        .filter { case s"$d] $_" if d.forall(_ != ' ') => true; case _ => false }
         .map(_.replace(workspaceUri, "file:///workspace/"))
         .mkString
 
-      val expectedCancelledLine = "[7-compile] buildTargetCompile was cancelled"
+      val expectedCancelledLine = "7-compile] buildTargetCompile was cancelled"
 
       assert(logs.linesIterator.contains(expectedCancelledLine))
 

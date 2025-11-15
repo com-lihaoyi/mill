@@ -1,53 +1,38 @@
-[bsp] Trying to load BSP server...
-[bsp] BSP server started
-[1-buildInitialize] Entered buildInitialize
-[1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
-[1-buildInitialize] buildInitialize took * msec
-[bsp-init-mill-build/build.mill-60] [info] compiling * Scala sources to * ...
-[bsp-init-mill-build/build.mill-60] [info] done compiling
-[bsp-init-build.mill-60] [info] compiling * Scala sources to * ...
-[bsp-init-build.mill-60] [info] done compiling
-[bsp-init-107] [info] compiling * Scala source to * ...
-[bsp-init-107] [info] done compiling
-[bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
-[bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
-[bsp-init] SNAPSHOT
-[2-workspaceBuildTargets] Entered workspaceBuildTargets
-[bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
-[bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
-[2-workspaceBuildTargets] Evaluating * tasks
-[2-workspaceBuildTargets] Done
-[2-workspaceBuildTargets] Evaluating 1 task
-[2-workspaceBuildTargets] Done
-[2-workspaceBuildTargets] Evaluating 1 task
-[2-workspaceBuildTargets] Done
-[2-workspaceBuildTargets] workspaceBuildTargets took * msec
-[3-loggingTest] Entered loggingTest
-[3-loggingTest] Evaluating 1 task
-[3-loggingTest-1] bspLoggingTest from System.out
-[3-loggingTest-1] bspLoggingTest from System.err
-[3-loggingTest-1] bspLoggingTest from Console.out
-[3-loggingTest-1] bspLoggingTest from Console.err
-[3-loggingTest-1] bspLoggingTest from Task.log.info
-[3-loggingTest] Done
-[3-loggingTest] loggingTest took * msec
-[4-compile] Entered buildTargetCompile
-[4-compile] Evaluating 1 task
-[4-compile] Done
-[4-compile] buildTargetCompile took * msec
-[5-compile] Entered buildTargetCompile
-[5-compile] Evaluating 1 task
-[5-compile-56] [info] compiling * Scala source to * ...
-[5-compile-56] [error] *:2:3: not found: value nope
-[5-compile-56] [error]   nope
-[5-compile-56] [error]   ^
-[5-compile-56] [error] one error found
-[5-compile-56] errored.compilation-error.semanticDbDataDetailed task failed
-[5-compile] Done
-[5-compile] buildTargetCompile took * msec
-[6-compile] Entered buildTargetCompile
-[6-compile] Evaluating 1 task
-[6-compile] Done
-[6-compile] buildTargetCompile took * msec
-[8-buildShutdown] Entered buildShutdown
-[9-onBuildExit] Entered onBuildExit
+bsp] Trying to load BSP server...
+bsp] BSP server started
+1-buildInitialize] Entered buildInitialize
+1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
+1-buildInitialize] buildInitialize took * msec
+bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
+bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
+bsp-watch] Watching for changes to 11 paths and 11 other values...
+2-workspaceBuildTargets] Entered workspaceBuildTargets
+bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
+bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
+2-workspaceBuildTargets] Evaluating * tasks
+2-workspaceBuildTargets] Done
+2-workspaceBuildTargets] Evaluating 1 task
+2-workspaceBuildTargets] Done
+2-workspaceBuildTargets] Evaluating 1 task
+2-workspaceBuildTargets] Done
+2-workspaceBuildTargets] workspaceBuildTargets took * msec
+3-loggingTest] Entered loggingTest
+3-loggingTest] Evaluating 1 task
+3-loggingTest-1] bspLoggingTest from Task.log.info
+3-loggingTest] Done
+3-loggingTest] loggingTest took * msec
+4-compile] Entered buildTargetCompile
+4-compile] Evaluating 1 task
+4-compile] Done
+4-compile] buildTargetCompile took * msec
+5-compile] Entered buildTargetCompile
+5-compile] Evaluating 1 task
+5-compile-56] errored.compilation-error.semanticDbDataDetailed task failed
+5-compile] Done
+5-compile] buildTargetCompile took * msec
+6-compile] Entered buildTargetCompile
+6-compile] Evaluating 1 task
+6-compile] Done
+6-compile] buildTargetCompile took * msec
+8-buildShutdown] Entered buildShutdown
+9-onBuildExit] Entered onBuildExit
