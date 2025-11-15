@@ -92,7 +92,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
     ).map { tasks =>
-      computeChangedTasks0(tasks, SelectiveExecutionImpl.Metadata.compute(evaluator, tasks))
+      computeChangedTasks0(tasks, computeMetadata(tasks))
         // If we did not have the metadata, presume everything was changed.
         .getOrElse(ChangedTasks.all(tasks))
     }
@@ -195,17 +195,11 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
   def computeMetadata(
       tasks: Seq[Task.Named[?]]
   ): SelectiveExecution.Metadata.Computed =
-    SelectiveExecutionImpl.Metadata.compute(evaluator, tasks)
+    SelectiveExecutionImpl.Metadata.compute0(evaluator, PlanImpl.transitiveNamed(tasks))
 }
+
 object SelectiveExecutionImpl {
   object Metadata {
-    def compute(
-        evaluator: Evaluator,
-        tasks: Seq[Task.Named[?]]
-    ): SelectiveExecution.Metadata.Computed = {
-      compute0(evaluator, PlanImpl.transitiveNamed(tasks))
-    }
-
     def compute0(
         evaluator: Evaluator,
         transitiveNamed: Seq[Task.Named[?]]
@@ -230,20 +224,12 @@ object SelectiveExecutionImpl {
             jobs = evaluator.effectiveThreadCount,
             offline = evaluator.offline
           )
-          val result: Result[Val] = allBuildOverrides.get(task.ctx.segments.render) match {
-            case None => task.evaluate(ctx).map(Val(_))
-            case Some(v) => mill.api.Result.create(Val(
-                upickle.read(v)(
-                  using
-                  task.asInstanceOf[Task.Stub[_]].readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-                )
-              ))
-          }
 
-          task -> result
+          task -> task.evaluate(ctx).map(Val(_))
         }
         .toMap
 
+      val transitiveNamedMap = transitiveNamed.map(t => (t.ctx.segments.render, t)).toMap
       val inputHashes = results.map {
         case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
       }
@@ -251,7 +237,13 @@ object SelectiveExecutionImpl {
         new SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
-          allBuildOverrides.map { case (k, v) => (k, v.##) }
+          for {
+            (k, _) <- allBuildOverrides
+            // Make sure we deserialize the actual value to hash, rather than hashing the JSON,
+            // since a JSON string may deserialize into a `PathRef` that changes depending on
+            // the files and folders on disk
+            value <- transitiveNamedMap.get(k)
+          } yield (k, value.##)
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

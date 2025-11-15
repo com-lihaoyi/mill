@@ -10,7 +10,7 @@
 
 *Dependency Management*
 
-* xref:javalib/dependencies.adoc#_adding_ivy_dependencies[Adding Dependencies]
+* xref:javalib/dependencies.adoc#_compile_and_runtime_dependencies[Compile & Runtime Dependencies]
 * xref:fundamentals/library-deps.adoc#_dependency_management[Dependency Version Management and BOMs]
 * xref:javalib/dependencies.adoc#_unmanaged_jars[Unmanaged Dependencies]
 * xref:fundamentals/configuring-jvm-versions.adoc[JVM Version Management]

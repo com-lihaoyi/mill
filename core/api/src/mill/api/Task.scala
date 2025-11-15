@@ -294,54 +294,31 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
-  // The extra `(x: T = null)` parameter list is necessary to make type inference work
-  // right, ensuring that `T` is fully inferred before implicit resolution starts
-  @internal def Stub[T]()(using
-      x: T = null.asInstanceOf[T]
-  )(using li: LiteralImplicit[T]): Task.Simple[T] = {
-    assert(li.ctx != null, "Unable to resolve context")
-    assert(li.writer != null, "Unable to resolve JSON writer")
-    assert(li.reader != null, "Unable to resolve JSON reader")
-    new Stub(li)
+  @internal def notImplementedImpl[TaskT: Type](using quotes: Quotes): Expr[TaskT] = {
+    import scala.compiletime.summonInline
+    Type.of[TaskT] match {
+      case '[Task.Simple[t]] =>
+        Cacher.impl0('{
+          new NotImplemented[t](summonInline[ModuleCtx], summonInline[ReadWriter[t]])
+            .asInstanceOf[TaskT]
+        })
+    }
   }
 
-  @internal class Stub[T](li: LiteralImplicit[T]) extends Task.Computed[T](
-        Nil,
-        (_, _) => Result.Failure("Not implemented"),
-        li.ctx,
-        upickle.ReadWriter.join(li.reader, li.writer),
-        None,
-        false
-      )
+  @internal class NotImplemented[T](val ctx0: ModuleCtx, rw: ReadWriter[T])
+      extends Task.Simple[T] {
 
-  class LiteralImplicit[T](
-      val reader: upickle.default.Reader[T],
-      val writer: upickle.default.Writer[T],
-      val ctx: ModuleCtx
-  )
-  object LiteralImplicit {
-    // Use a custom macro to perform the implicit lookup so we have more control over implicit
-    // resolution failures. In this case, we want to fall back to `null` if an implicit search
-    // fails so we can provide a good error message
-    implicit inline def create[T]: LiteralImplicit[T] = ${ createImpl[T] }
-
-    private def createImpl[T: Type](using Quotes): Expr[LiteralImplicit[T]] = {
-      import quotes.reflect.*
-
-      def summonOrNull[U: Type]: Expr[U] = {
-        Implicits.search(TypeRepr.of[U]) match {
-          case s: ImplicitSearchSuccess => s.tree.asExprOf[U] // Use the found given
-          case _: ImplicitSearchFailure =>
-            '{ null.asInstanceOf[U] } // Includes both NoMatchingImplicits and AmbiguousImplicits
-        }
+    override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
+      (_, ctx) => {
+        val relPath = os.Path(ctx0.fileName).relativeTo(mill.api.BuildCtx.workspaceRoot)
+        Result.Failure(s"configuration missing in $relPath")
       }
 
-      val readerExpr = summonOrNull[upickle.default.Reader[T]]
-      val writerExpr = summonOrNull[upickle.default.Writer[T]]
-      val ctxExpr = summonOrNull[ModuleCtx]
+    def isPrivate = None
 
-      '{ new LiteralImplicit[T]($readerExpr, $writerExpr, $ctxExpr) }
-    }
+    val inputs = Nil
+
+    override def readWriterOpt = Some(rw)
   }
 
   abstract class Ops[+T] { this: Task[T] =>

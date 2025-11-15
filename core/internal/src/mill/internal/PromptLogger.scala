@@ -159,7 +159,7 @@ private[mill] class PromptLogger(
       for ((keySuffix, message) <- res) {
         if (prompt.enableTicker) {
           streams.err.println(
-            infoColor(s"[${key.mkString("-")}$keySuffix]${spaceNonEmpty(message)}")
+            infoColor(Logger.formatPrefix0(key, keySuffix) + spaceNonEmpty(message))
           )
           streamManager.awaitPumperEmpty()
         }
@@ -169,7 +169,7 @@ private[mill] class PromptLogger(
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
         if (message != "") beginChromeProfileEntry(message)
-        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
+        promptLineState.setCurrent(key, Some(Logger.formatPrefix0(key) + spaceNonEmpty(message)))
         seenIdentifiers(key) = (keySuffix, message)
       }
 
@@ -434,7 +434,7 @@ private[mill] object PromptLogger {
         termHeight0.getOrElse(defaultTermHeight),
         now,
         startTimeMillis,
-        if (headerPrefix.isEmpty) "" else s"[$headerPrefix]",
+        if (headerPrefix.isEmpty) "" else s"$headerPrefix]",
         titleText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,

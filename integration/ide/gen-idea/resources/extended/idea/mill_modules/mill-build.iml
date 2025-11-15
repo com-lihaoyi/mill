@@ -86,6 +86,7 @@
         <orderEntry type="library" name="mill-libs-util_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.10.jar" level="project"/>
+        <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="munit_3-0.7.29.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-0.11.5.jar" level="project"/>
@@ -108,9 +109,9 @@
         <orderEntry type="library" name="scala3-library_3-3.7.3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="slf4j-api-2.0.17.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-2.10.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.5.0.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-requests_3-0.5.0.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-0.5.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.6.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-requests_3-0.6.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-0.6.0.jar" level="project"/>
         <orderEntry type="library" name="sourcecode_3-0.4.4.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.8.5.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>

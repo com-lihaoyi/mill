@@ -12,10 +12,10 @@ import mill.javalib.api.internal.ZincOp
 trait UnidocModule extends ScalaModule {
 
   /** The URL of the source code of this module. */
-  def unidocSourceUrl: T[Option[String]] = None
+  def unidocSourceUrl: T[Option[String]] = Option.empty
 
   /** Passed as `-doc-version` to scaladoc. */
-  def unidocVersion: T[Option[String]] = None
+  def unidocVersion: T[Option[String]] = Option.empty
 
   def unidocCompileClasspath: T[Seq[PathRef]] = Task {
     Seq(

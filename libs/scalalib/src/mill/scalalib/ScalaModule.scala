@@ -271,6 +271,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   // Keep in sync with [[bspCompileClassesPath]]
   override def compile: T[CompilationResult] = Task(persistent = true) {
+    compileTask()
+  }
+
+  private[mill] def compileTask = Task.Anon {
     val sv = scalaVersion()
     if (sv == "2.12.4") Task.log.warn(
       """Attention: Zinc is known to not work properly for Scala version 2.12.4.

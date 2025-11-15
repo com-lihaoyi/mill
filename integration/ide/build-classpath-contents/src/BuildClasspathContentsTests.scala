@@ -50,7 +50,8 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-script_3-SNAPSHOT.jar",
             "mill-libs-util_3-SNAPSHOT.jar",
             "mill-libs_3-SNAPSHOT.jar",
-            "mill-moduledefs_3-0.11.10.jar"
+            "mill-moduledefs_3-0.11.10.jar",
+            "mill-runner-autooverride-api_3-SNAPSHOT.jar"
           )
         )
         assert(millLocalClasspath == Nil)

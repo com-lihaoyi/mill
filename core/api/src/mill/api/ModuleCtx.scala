@@ -35,6 +35,8 @@ trait ModuleCtx extends ModuleCtx.Nested {
   private[mill] def withMillSourcePath(millSourcePath: os.Path): ModuleCtx
   private[mill] def withSegments(segments: Segments): ModuleCtx
   private[mill] def withEnclosingModule(enclosingModule: ModuleCtx.Wrapper): ModuleCtx
+  private[mill] def withFileName(fileName: String): ModuleCtx = this
+  private[mill] def withLineNum(line: Int): ModuleCtx = this
   private[mill] def withDiscover(discover: Discover): ModuleCtx
 }
 
@@ -72,6 +74,9 @@ object ModuleCtx extends LowPriCtx {
     def withSegments(segments: Segments): ModuleCtx = copy(segments = segments)
     def withEnclosingModule(enclosingModule: ModuleCtx.Wrapper): ModuleCtx =
       copy(enclosingModule = enclosingModule)
+
+    override def withFileName(fileName: String) = copy(fileName = fileName)
+    override def withLineNum(lineNum: Int) = copy(lineNum = lineNum)
     def withDiscover(discover: Discover): ModuleCtx = copy(discover = discover)
   }
 

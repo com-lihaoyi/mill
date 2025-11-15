@@ -43,7 +43,7 @@ import scala.collection.mutable.Buffer
  * affecting behavior.
  */
 class MillBuildBootstrap(
-    projectRoot: os.Path,
+    topLevelProjectRoot: os.Path,
     output: os.Path,
     keepGoing: Boolean,
     imports: Seq[String],
@@ -66,7 +66,7 @@ class MillBuildBootstrap(
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
-  def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
+  def evaluate(): RunnerState = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
@@ -77,17 +77,13 @@ class MillBuildBootstrap(
       )
     }
 
-    Watching.Result(
-      watched = runnerState.watched,
-      error = runnerState.errorOpt,
-      result = runnerState
-    )
+    runnerState
   }
 
   def evaluateRec(depth: Int): RunnerState = {
     logger.withChromeProfile(s"meta-level $depth") {
       // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
-      val currentRoot = recRoot(projectRoot, depth)
+      val currentRoot = recRoot(topLevelProjectRoot, depth)
       val prevFrameOpt = prevRunnerState.frames.lift(depth)
       val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
@@ -104,7 +100,7 @@ class MillBuildBootstrap(
           else {
             val rootFileNamesStr = rootBuildFileNames.asScala.mkString(", ")
             val msg =
-              s"No build file ($rootFileNamesStr) found in $projectRoot. Are you in a Mill project directory?"
+              s"No build file ($rootFileNamesStr) found in $topLevelProjectRoot. Are you in a Mill project directory?"
 
             state match {
               case RunnerState(
@@ -127,18 +123,18 @@ class MillBuildBootstrap(
             }
           }
         } else {
-          val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+          val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
 
-          val bootstrapEvalWatched0 = PathRef(projectRoot / foundRootBuildFileName)
+          val bootstrapEvalWatched0 = PathRef(topLevelProjectRoot / foundRootBuildFileName)
           val bootstrapEvalWatched = Watchable.Path(
             bootstrapEvalWatched0.path.toNIO,
             bootstrapEvalWatched0.quick,
             bootstrapEvalWatched0.sig
           )
           val headerData =
-            if (!os.exists(projectRoot / foundRootBuildFileName)) ""
+            if (!os.exists(topLevelProjectRoot / foundRootBuildFileName)) ""
             else mill.constants.Util.readBuildHeader(
-              (projectRoot / foundRootBuildFileName).toNIO,
+              (topLevelProjectRoot / foundRootBuildFileName).toNIO,
               foundRootBuildFileName
             )
 
@@ -172,14 +168,10 @@ class MillBuildBootstrap(
                     }
 
                   mill.api.ExecResult.catchWrapException {
-                    val bootstrapModule = new MillBuildRootModule.BootstrapModule()(
-                      using new RootModule.Info(currentRoot, output, projectRoot)
-                    )
-
-                    mill.internal.Util.validateBuildHeaderKeys(
-                      staticBuildOverrides.obj.keys.toSet,
-                      bootstrapModule.millDiscover.allTaskNames,
-                      os.sub / foundRootBuildFileName
+                    val bootstrapModule = new MillBuildRootModule.BootstrapModule(
+                      (currentRoot / ".." / foundRootBuildFileName).toString
+                    )(
+                      using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
                     )
 
                     bootstrapModule
@@ -255,10 +247,15 @@ class MillBuildBootstrap(
 
           rootModuleRes match {
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
-            case Result.Success((buildFileApi)) =>
+            case Result.Success(buildFileApi) =>
+
+              val staticBuildOverrides =
+                if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
+                  nestedState.staticBuildOverrides
+                else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
 
               Using.resource(makeEvaluator(
-                projectRoot,
+                topLevelProjectRoot,
                 output,
                 keepGoing,
                 env,
@@ -292,10 +289,7 @@ class MillBuildBootstrap(
                 depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
-                staticBuildOverrides =
-                  if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
-                    nestedState.staticBuildOverrides
-                  else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
+                staticBuildOverrides = staticBuildOverrides
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -636,12 +630,8 @@ object MillBuildBootstrap {
     }
   }
 
-  def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / Seq.fill(depth)(millBuild)
-  }
+  def recRoot(projectRoot: os.Path, depth: Int): os.Path = projectRoot / Seq.fill(depth)(millBuild)
 
-  def recOut(output: os.Path, depth: Int): os.Path = {
-    output / Seq.fill(depth)(millBuild)
-  }
+  def recOut(output: os.Path, depth: Int): os.Path = output / Seq.fill(depth)(millBuild)
 
 }
