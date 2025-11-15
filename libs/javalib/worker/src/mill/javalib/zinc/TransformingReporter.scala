@@ -78,7 +78,7 @@ private object TransformingReporter {
     val errorCodeString = {
       problem0.diagnosticCode()
         .filter(_.code() != "-1")
-        .map{ inner =>
+        .map { inner =>
           val prefix = s"[${shade(s"E${inner.code()}")}] "
           inner.explanation().map(e => s"$prefix$e: ").orElse(prefix)
         }
@@ -107,13 +107,14 @@ private object TransformingReporter {
     val pointer = intValue(pos.pointer(), -99)
     val endCol = intValue(pos.endColumn(), pointer + 1)
     val codeSnippet =
-      if (space.nonEmpty && pointer >= 0 && endCol >= 0){
+      if (space.nonEmpty && pointer >= 0 && endCol >= 0) {
         // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
         // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
         val codeSnippet = InterfaceUtil.jo2o(problem0.rendered())
           .iterator
           .flatMap(_.linesIterator)
-          .collectFirst { case s"$pre |$rest" if fansi.Str(pre).plainText.forall(_.isDigit) =>
+          .collectFirst {
+            case s"$pre |$rest" if fansi.Str(pre).plainText.forall(_.isDigit) =>
               rest.drop(rest.indexOf('|'))
           }
           .getOrElse(pos.lineContent()) // fall back to plaintext line if no colored line found
@@ -124,7 +125,6 @@ private object TransformingReporter {
            |$space${shade("^" * arrowCount)}
            |""".stripMargin
       } else ""
-
 
     header + codeSnippet + message
   }

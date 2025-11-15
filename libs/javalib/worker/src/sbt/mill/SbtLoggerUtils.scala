@@ -22,10 +22,10 @@ object SbtLoggerUtils {
       consoleOut: ConsoleOut,
       ansiCodesSupported0: Boolean
   ) extends ConsoleAppender(
-      name,
-      ConsoleAppender.Properties.from(consoleOut, ansiCodesSupported0, false),
-      suppressedMessage = _ => None
-  ) {
+        name,
+        ConsoleAppender.Properties.from(consoleOut, ansiCodesSupported0, false),
+        suppressedMessage = _ => None
+      ) {
     override def appendLog(level: Level.Value, message0: => String): Unit = {
       import mill.api.BuildCtx.workspaceRoot
       val message =
@@ -41,14 +41,14 @@ object SbtLoggerUtils {
             }
           }
           val sourcesWords = Set("source", "sources")
-          message0 match{
+          message0 match {
             case s"compiling $n Scala $sources to $path ..."
-              if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
+                if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
 
               maybeTruncate(n, "Scala", sources, path)
 
             case s"compiling $n Java $sources to $path ..."
-              if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
+                if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
               maybeTruncate(n, "java", sources, path)
 
             case _ => message0

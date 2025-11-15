@@ -40,6 +40,12 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     Jvm.createClassLoader(classPath = asmWorkerClasspath().map(_.path), parent = null)
   }
 
+  // avoid calling super just to the CLI logging is prettier, with `out/Foo.scala/compile0.dest/`
+  // rather than `out/Foo.scala/compile0.super/blah/blah/blah`
+  def compile0 = Task {
+    compileTask()
+  }
+
   override def compile: T[CompilationResult] = Task {
     val result = compile0()
 
@@ -58,7 +64,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     asmWorkerClassloader()
       .loadClass("mill.script.asm.AsmWorkerImpl")
       .getMethod("findMainArgsMethods", classOf[java.nio.file.Path])
-      .invoke(null, super.compile().classes.path.toNIO)
+      .invoke(null, compile0().classes.path.toNIO)
       .asInstanceOf[Array[String]]
       .toSeq
   }
