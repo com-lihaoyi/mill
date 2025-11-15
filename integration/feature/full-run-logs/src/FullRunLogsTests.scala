@@ -9,10 +9,8 @@ import utest.*
 // slipping in and the important parts of the logs and output files are present
 object FullRunLogsTests extends UtestIntegrationTestSuite {
 
-  def normalize(s: String, workspacePath: os.Path) = s.replace('\\', '/')
-    .replace(workspacePath.toString, "...")
+  def normalize(s: String) = s.replace('\\', '/')
     .replaceAll("\\d+", "<digits>")
-    .replaceAll("--+", " <dashes>")
     .linesIterator
     .toList
 
@@ -24,37 +22,42 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       res.isSuccess ==> true
       assert(res.out == "<h1>hello</h1>")
-      val normalized = normalize(res.err, tester.workspacePath)
+      val normalized = normalize(res.err)
 
       assertGoldenLiteral(
         normalized,
         List(
-          "[info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
-          "[info] done compiling",
-          "[info] compiling <digits> Java source to .../out/compile.dest/classes ...",
-          "[info] done compiling"
+          "compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "done compiling",
+          "compiling <digits> Java source to out/compile.dest/classes ...",
+          "done compiling"
         )
       )
     }
+
     test("ticker") - integrationTest { tester =>
       import tester._
 
       val res = eval(("--ticker", "true", "run", "--text", "hello"))
       res.isSuccess ==> true
-      assert("\\[\\d+\\] <h1>hello</h1>".r.matches(res.out))
 
       assertGoldenLiteral(
-        normalize(res.err, workspacePath),
+        normalize(res.out),
+        List("<digits>] <h<digits>>hello</h<digits>>")
+      )
+
+      assertGoldenLiteral(
+        normalize(res.err),
         List(
-          "============================== run  <dashes>text hello ==============================",
-          "[build.mill-<digits>/<digits>] compile",
-          "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
-          "[build.mill-<digits>] [info] done compiling",
-          "[<digits>/<digits>] compile",
-          "[<digits>] [info] compiling <digits> Java source to .../out/compile.dest/classes ...",
-          "[<digits>] [info] done compiling",
-          "[<digits>/<digits>] run",
-          "[<digits>/<digits>] ============================== run  <dashes>text hello ============================== <digits>s"
+          "============================== run --text hello ==============================",
+          "build.mill-<digits>/<digits>] compile",
+          "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          "<digits>/<digits>] compile",
+          "<digits>] compiling <digits> Java source to out/compile.dest/classes ...",
+          "<digits>] done compiling",
+          "<digits>/<digits>] run",
+          "<digits>/<digits>] ============================== run --text hello ============================== <digits>s"
         )
       )
     }
@@ -66,19 +69,20 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       res.isSuccess ==> false
 
       assertGoldenLiteral(
-        normalize(res.err, workspacePath),
+        normalize(res.err),
         List(
           "============================== jar ==============================",
-          "[build.mill-<digits>/<digits>] compile",
-          "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
-          "[build.mill-<digits>] [info] done compiling",
-          "[<digits>/<digits>] compile",
-          "[<digits>] [info] compiling <digits> Java source to .../out/compile.dest/classes ...",
-          "[<digits>] [error] .../src/foo/Foo.java:<digits>:<digits>: reached end of file while parsing",
-          "[<digits>] compile task failed",
-          "[<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
+          "build.mill-<digits>/<digits>] compile",
+          "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          "<digits>/<digits>] compile",
+          "<digits>] compiling <digits> Java source to out/compile.dest/classes ...",
+          "<digits>] [error] src/foo/Foo.java:<digits>:<digits>",
+          "<digits>] reached end of file while parsing",
+          "<digits>] compile task failed",
+          "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
-          "[<digits>] compile javac returned non-zero exit code"
+          "<digits>] compile javac returned non-zero exit code"
         )
       )
 
@@ -91,18 +95,18 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       res2.isSuccess ==> false
 
       assertGoldenLiteral(
-        normalize(res2.err, workspacePath),
+        normalize(res2.err),
         List(
           "============================== jar ==============================",
-          "[build.mill-<digits>/<digits>] compile",
-          "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
-          "[build.mill-<digits>] [error]  <dashes> [E<digits>] .../build.mill:<digits>:<digits>",
-          "[build.mill-<digits>] [error] Illegal start of toplevel definition",
-          "[build.mill-<digits>] [error] one error found",
-          "[build.mill-<digits>] compile task failed",
-          "[<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
+          "build.mill-<digits>/<digits>] compile",
+          "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] [error] build.mill:<digits>:<digits>",
+          "build.mill-<digits>] [E<digits>] Illegal start of toplevel definition",
+          "build.mill-<digits>] [error] one error found",
+          "build.mill-<digits>] compile task failed",
+          "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
-          "[build.mill-<digits>] compile Compilation failed"
+          "build.mill-<digits>] compile Compilation failed"
         )
       )
     }

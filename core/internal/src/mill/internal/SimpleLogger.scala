@@ -11,9 +11,7 @@ private[mill] class SimpleLogger(
 ) extends Logger {
   override def toString: String = s"SimpleLogger($unprefixedStreams, $debugEnabled)"
 
-  private val linePrefix: String =
-    if (logKey.isEmpty) ""
-    else s"[${logKey.mkString("-")}] "
+  private val linePrefix: String = Logger.formatPrefix(logKey)
   private def prefixPrintStream(stream: java.io.OutputStream) = {
     new PrintStream(new LinePrefixOutputStream(
       linePrefix,

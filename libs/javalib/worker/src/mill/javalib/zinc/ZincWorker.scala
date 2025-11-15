@@ -16,7 +16,7 @@ import sbt.internal.inc
 import sbt.internal.inc.*
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
-import sbt.internal.util.{ConsoleAppender, ConsoleOut}
+import sbt.internal.util.ConsoleOut
 import sbt.mill.SbtLoggerUtils
 import xsbti.compile.*
 import xsbti.compile.analysis.ReadWriteMappers
@@ -333,12 +333,10 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
     reporter.foreach(_.start())
 
-    val consoleAppender = ConsoleAppender(
+    val consoleAppender = SbtLoggerUtils.ConciseLevelConsoleAppender(
       name = "ZincLogAppender",
-      deps.consoleOut,
-      ansiCodesSupported = ctx.logPromptColored,
-      useFormat = ctx.logPromptColored,
-      suppressedMessage = _ => None
+      consoleOut = deps.consoleOut,
+      ansiCodesSupported0 = ctx.logPromptColored
     )
     val loggerId = Thread.currentThread().getId.toString
     val zincLogLevel = if (ctx.logDebugEnabled) sbt.util.Level.Debug else sbt.util.Level.Info
@@ -405,12 +403,12 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     val newReporter = reporter match {
       case None =>
         new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull) {}
+          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull, ctx.workspaceRoot) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull) {}
+          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull, ctx.workspaceRoot) {}
     }
 
     val inputs = incrementalCompiler.inputs(
@@ -575,7 +573,8 @@ object ZincWorker {
   case class LocalConfig(
       dest: os.Path,
       logDebugEnabled: Boolean,
-      logPromptColored: Boolean
+      logPromptColored: Boolean,
+      workspaceRoot: os.Path
   ) derives upickle.ReadWriter
 
   private case class ScalaCompilerCacheKey(
