@@ -9,7 +9,6 @@ private[mill] trait MavenPublish {
 
   def mavenPublishDatas(
       publishDatas: Seq[PublishData],
-      bundleName: Option[String],
       credentials: SonatypeCredentials,
       releaseUri: String,
       snapshotUri: String,
@@ -21,13 +20,6 @@ private[mill] trait MavenPublish {
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
     val (snapshots, releases) = publishDatas.partition(_.meta.isSnapshot)
-
-    bundleName.filter(_ => snapshots.nonEmpty).foreach { bundleName =>
-      throw new IllegalArgumentException(
-        s"Publishing SNAPSHOT versions when bundle name ($bundleName) is specified is not supported.\n\n" +
-          s"SNAPSHOT versions: ${pprint.apply(snapshots)}"
-      )
-    }
 
     releases.map(_ -> false).appendedAll(snapshots.map(_ -> true)).foreach { (data, isSnapshot) =>
       mavenPublishData(

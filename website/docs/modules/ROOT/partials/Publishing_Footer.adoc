@@ -158,6 +158,20 @@ workflows. See
 https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions[Using Secrets in Github Actions]
 for more details.
 
+== Instructions for Publishing to Generic Maven Repositories
+
+=== Publishing
+
+You can publish all eligible modules in your Mill project using the
+xref:fundamentals/modules.adoc#_default_tasks[Default Task] of the
+xref:fundamentals/modules.adoc#_external_modules[External Module] `mill.javalib.MavenPublishModule`: 
+
+[source,console]
+----
+> mill mill.javalib.MavenPublishModule/ \
+        --releaseUri https://example.company.com/release
+        --snapshotUri https://example.company.com/snapshot
+----
 
 == Instructions for Publishing to Maven Central via Legacy OSSHR (Deprecated)
 
@@ -174,7 +188,7 @@ publishing via the legacy OSSHR(OSS Repository Hosting) also requires them.
 === Publishing
 
 You can publish all eligible modules in your Mill project using
-the xref:fundamentals/modules.adoc#_default_tasks[default task] of the
+the xref:fundamentals/modules.adoc#_default_tasks[Default Task] of the
 xref:fundamentals/modules.adoc#_external_modules[External Module] `mill.scalalib.PublishModule`:
 
 [source,console]

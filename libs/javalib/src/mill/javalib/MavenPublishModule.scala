@@ -18,18 +18,15 @@ object MavenPublishModule extends ExternalModule, DefaultTaskModule, MavenWorker
         Tasks.resolveMainDefault("__:PublishModule.publishArtifacts"),
       username: String = "",
       password: String = "",
-      bundleName: String = "",
       releaseUri: String,
       snapshotUri: String
   ): Command[Unit] = Task.Command {
     val artifacts = Task.sequence(publishArtifacts.value)()
 
-    val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val credentials = getPublishCredentials("MILL_MAVEN", username, password)()
 
     mavenPublishDatas(
       artifacts,
-      finalBundleName,
       credentials,
       releaseUri = releaseUri,
       snapshotUri = snapshotUri,
