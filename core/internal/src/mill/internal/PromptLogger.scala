@@ -159,7 +159,7 @@ private[mill] class PromptLogger(
       for ((keySuffix, message) <- res) {
         if (prompt.enableTicker) {
           streams.err.println(
-            infoColor(Logger.formatPrefix0(key) + spaceNonEmpty(message))
+            infoColor(Logger.formatPrefix0(key, keySuffix) + spaceNonEmpty(message))
           )
           streamManager.awaitPumperEmpty()
         }

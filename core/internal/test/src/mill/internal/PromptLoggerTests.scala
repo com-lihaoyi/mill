@@ -137,7 +137,7 @@ object PromptLoggerTests extends TestSuite {
         "1/456] my-task",
         "1] HELLO",
         "1] WORLD",
-        "123/456] ============================= TITLE ============================= 10s",
+        "123/456] ============================== TITLE ============================= 10s",
         "1] my-task 10s",
         ""
       )
@@ -169,7 +169,7 @@ object PromptLoggerTests extends TestSuite {
         "3/456] my-task-short-lived",
         "3] hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================= TITLE ============================= 10s",
+        "123/456] ============================== TITLE ============================= 10s",
         "1] my-task 10s",
         ""
       )
@@ -190,7 +190,7 @@ object PromptLoggerTests extends TestSuite {
         "3/456] my-task-short-lived",
         "3] hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================= TITLE ============================= 11s",
+        "123/456] ============================== TITLE ============================= 11s",
         "1] my-task 11s",
         "2] my-task-new 1s",
         ""
@@ -212,7 +212,7 @@ object PromptLoggerTests extends TestSuite {
         "3/456] my-task-short-lived",
         "3] hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================= TITLE ============================= 11s",
+        "123/456] ============================== TITLE ============================= 11s",
         "1] my-task 11s",
         "2] my-task-new 1s",
         ""
@@ -233,7 +233,7 @@ object PromptLoggerTests extends TestSuite {
         "3/456] my-task-short-lived",
         "3] hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================= TITLE ============================= 12s",
+        "123/456] ============================== TITLE ============================= 12s",
         "2] my-task-new 2s",
         "",
         ""
@@ -253,7 +253,7 @@ object PromptLoggerTests extends TestSuite {
         "3/456] my-task-short-lived",
         "3] hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================= TITLE ============================= 22s",
+        "123/456] ============================== TITLE ============================= 22s",
         "2] my-task-new 12s",
         ""
       )
@@ -269,7 +269,7 @@ object PromptLoggerTests extends TestSuite {
         "3/456] my-task-short-lived",
         "3] hello short lived",
         "3] goodbye short lived",
-        "123/456] ============================= TITLE ============================= 32s",
+        "123/456] ============================== TITLE ============================= 32s",
         ""
       )
     }
