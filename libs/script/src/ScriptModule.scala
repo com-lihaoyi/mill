@@ -16,7 +16,7 @@ trait ScriptModule extends ExternalModule {
   private def relativeScriptFilePath =
     scriptConfig.scriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot)
 
-  override def moduleSegments: Segments = Segments.labels(s"./$relativeScriptFilePath")
+  override def moduleSegments: Segments = Segments.labels(relativeScriptFilePath + ":")
 
   private[mill] override def moduleDynamicBuildOverrides = scriptConfig
     .headerData
