@@ -50,13 +50,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res.err),
         List(
           "============================== run --text hello ==============================",
-          "build.mill-<digits>] compile",
+          "build.mill-<digits>/<digits>] compile",
           "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
-          "<digits>] compile",
+          "<digits>/<digits>] compile",
           "<digits>] compiling <digits> Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
-          "<digits>] run",
+          "<digits>/<digits>] run",
           "<digits>/<digits>] ============================== run --text hello ============================== <digits>s"
         )
       )
@@ -72,10 +72,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res.err),
         List(
           "============================== jar ==============================",
-          "build.mill-<digits>] compile",
+          "build.mill-<digits>/<digits>] compile",
           "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
-          "<digits>] compile",
+          "<digits>/<digits>] compile",
           "<digits>] compiling <digits> Java source to out/compile.dest/classes ...",
           "<digits>] [error] src/foo/Foo.java:<digits>:<digits>",
           "<digits>] reached end of file while parsing",
@@ -98,10 +98,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res2.err),
         List(
           "============================== jar ==============================",
-          "build.mill-<digits>] compile",
+          "build.mill-<digits>/<digits>] compile",
           "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] [E<digits>] build.mill:<digits>:<digits>",
-          "build.mill-<digits>] Illegal start of toplevel definition",
+          "build.mill-<digits>] [error] build.mill:<digits>:<digits>",
+          "build.mill-<digits>] E<digits> Illegal start of toplevel definition",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] compile task failed",
           "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
