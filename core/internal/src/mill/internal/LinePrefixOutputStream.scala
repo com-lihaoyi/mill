@@ -54,7 +54,6 @@ private[mill] class LinePrefixOutputStream(
         if (linePrefixNonEmpty) str0.dropWhile(_ != ' ').drop(1)
         else str0
 
-
       reportPrefix(str)
     }
 
