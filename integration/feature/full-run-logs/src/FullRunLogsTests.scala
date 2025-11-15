@@ -143,7 +143,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         .replace(Console.CYAN, "(C)")
         .replace(Console.MAGENTA, "(M)")
         .replace(Console.YELLOW, "(Y)")
-        .replaceAll(" \\d+\\\\.\\d+", " ...")
+        .replaceAll("\\d+\\.\\d+", " ...")
         .linesIterator
         .toList
 
@@ -213,8 +213,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "(Y)59(X)",
           "(Y)60(X)",
           "(Y)(X)(X)",
-          "Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took ...05 sec(X)",
-          "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total, ...06s(X)(X)"
+          "Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec(X)",
+          "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)(X)"
         )
       )
       val res2 = eval(("-i", "--ticker", "true", "test"), mergeErrIntoOut = true)
@@ -286,8 +286,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "101] (Y)59(X)",
           "101] (Y)60(X)",
           "101] (Y)(X)(X)",
-          "101] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took ...05 sec(X)",
-          "101] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total, ...06s(X)(X)",
+          "101] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec(X)",
+          "101] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)(X)",
           "101/101] ============================== test ============================== 1s"
         )
       )
