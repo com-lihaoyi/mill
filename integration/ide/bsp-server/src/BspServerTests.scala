@@ -423,11 +423,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
       val workspaceUri = tester.workspacePath.toURI.toASCIIString.stripSuffix("/") + "/"
       val logs = stderr.toString
         .linesWithSeparators
-        .filter(_.startsWith("["))
+        .filter{case s"$d] $rest" if d.forall(_ != ' ') => true; case _ => false}
         .map(_.replace(workspaceUri, "file:///workspace/"))
         .mkString
 
-      val expectedCancelledLine = "[7-compile] buildTargetCompile was cancelled"
+      val expectedCancelledLine = "7-compile] buildTargetCompile was cancelled"
 
       assert(logs.linesIterator.contains(expectedCancelledLine))
 
@@ -436,10 +436,10 @@ object BspServerTests extends UtestIntegrationTestSuite {
         snapshotsPath / "logging",
         ignoreLine = {
           // ignore watcher logs
-          val watchGlob = TestRunnerUtils.matchesGlob("[bsp-watch] *")
+          val watchGlob = TestRunnerUtils.matchesGlob("bsp-watch] *")
           // ignoring compilation warnings that might go away in the future
-          val warnGlob = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
-          val waitingGlob = TestRunnerUtils.matchesGlob("[*] Another Mill process is running *")
+          val warnGlob = TestRunnerUtils.matchesGlob("bsp-init-build.mill-*] [warn] *")
+          val waitingGlob = TestRunnerUtils.matchesGlob("*] Another Mill process is running *")
           s =>
             watchGlob(s) || warnGlob(s) || waitingGlob(s) ||
               // Ignoring this one, that sometimes comes out of order.
