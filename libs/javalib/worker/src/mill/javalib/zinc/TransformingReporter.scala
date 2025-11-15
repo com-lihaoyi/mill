@@ -75,11 +75,18 @@ private object TransformingReporter {
         }
       else msg
 
-    val prefixName = severity match {
-      case xsbti.Severity.Error => "error"
-      case xsbti.Severity.Warn => "warn"
-      case xsbti.Severity.Info => "info"
+    // Mill disables most of the log level prefixes in favor of colored text, but
+    // we should add these prefixes ourselves to the main compiler messages so they
+    // are easy to grep for
+    val severityPrefix = {
+      val prefixName = severity match {
+        case xsbti.Severity.Error => "error"
+        case xsbti.Severity.Warn => "warn"
+        case xsbti.Severity.Info => "info"
+      }
+      s"[${shade(prefixName)}]"
     }
+
     val normCode = {
       problem0.diagnosticCode()
         .filter(_.code() != "-1")
@@ -103,26 +110,32 @@ private object TransformingReporter {
       else displayPath
     }
 
-    val normHeader = optPath.map(path => s"[${shade(prefixName)}] $normCode$path\n").getOrElse("")
+    val normHeader = optPath.map(path => s"$severityPrefix $normCode$path\n").getOrElse("")
 
-    val optSnippet = {
-      val snip = pos.lineContent()
-      val space = pos.pointerSpace().orElse("")
-      val pointer = intValue(pos.pointer(), -99)
-      val endCol = intValue(pos.endColumn(), pointer + 1)
-      if snip.nonEmpty && space.nonEmpty && pointer >= 0 && endCol >= 0 then
-        val arrowCount = math.max(1, math.min(endCol - pointer, snip.length - space.length))
-        Some(
-          s"""$snip
-             |$space${"^" * arrowCount}""".stripMargin
-        )
-      else
-        None
+    val space = pos.pointerSpace().orElse("")
+    val pointer = intValue(pos.pointer(), -99)
+    val endCol = intValue(pos.endColumn(), pointer + 1)
+    val optSnippet = Option.when(space.nonEmpty && pointer >= 0 && endCol >= 0){
+      // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
+      // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
+      val codeSnippet = InterfaceUtil.jo2o(problem0.rendered())
+        .iterator
+        .flatMap(_.linesIterator)
+        .collectFirst { case s"$pre |$rest" if fansi.Str(pre).plainText.forall(_.isDigit) =>
+            rest.drop(rest.indexOf('|'))
+        }
+        .getOrElse(pos.lineContent()) // fall back to plaintext line if no colored line found
+
+      val arrowCount = math.max(1, math.min(endCol - pointer, codeSnippet.length - space.length))
+      s"""
+         |$codeSnippet
+         |$space${shade("^" * arrowCount)}
+         |""".stripMargin
     }
 
     val content = optSnippet.fold("")(_ + "\n") + base
 
-    normHeader + content
+    (normHeader + content).linesWithSeparators.map(Console.RESET + _).mkString
   }
 
   /** Implements a transformation that returns the same list if the mapper has no effect */

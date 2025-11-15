@@ -20,17 +20,25 @@ object SbtLoggerUtils {
   def createNoLabelAppender(
       name: String,
       consoleOut: ConsoleOut,
-      ansiCodesSupported: Boolean
+      ansiCodesSupported0: Boolean
   ): Appender = {
     new ConsoleAppender(
       name,
-      ConsoleAppender.Properties.from(consoleOut, ansiCodesSupported, false),
+      ConsoleAppender.Properties.from(consoleOut, ansiCodesSupported0, false),
       suppressedMessage = _ => None
     ) {
       override def appendLog(level: Level.Value, message: => String): Unit = {
         // Override to skip adding the [level] prefix
         // Write message directly without the label prefix
-        message.linesIterator.foreach(consoleOut.println)
+        message.linesIterator.foreach(l =>
+          consoleOut.println(
+            level match{
+              case Level.Warn if ansiCodesSupported0 => Console.YELLOW + l + Console.RESET
+              case Level.Error if ansiCodesSupported0 => Console.RED + l + Console.RESET
+              case _ => l
+            }
+          )
+        )
       }
     }
   }

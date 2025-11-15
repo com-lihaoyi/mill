@@ -29,34 +29,24 @@ object PositionMapper {
 
   def create(sources: Array[VirtualFile])
       : (Map[os.Path, os.Path], Option[xsbti.Position => xsbti.Position]) = {
-    val buildSources0 = {
-      def isBuild(vf: VirtualFile) =
-        CodeGenConstants.buildFileExtensions.asScala.exists(ex =>
-          vf.id().endsWith(s".$ex")
-        )
-
-      sources.collect({
-        case vf if isBuild(vf) =>
-          val str = new String(vf.input().readAllBytes(), StandardCharsets.UTF_8)
-
-          val lines = str.linesWithSeparators.toVector
-          val adjustedFile = lines
-            .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => rest.trim }
-            .getOrElse(sys.error(vf.id()))
-
+    val buildSources0 = sources.flatMap{ vf =>
+      val str = new String(vf.input().readAllBytes(), StandardCharsets.UTF_8)
+      val lines = str.linesWithSeparators.toVector
+      lines
+        .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => rest.trim }
+        .map{adjustedFile =>
           (vf.id(), adjustedFile, remap(lines, adjustedFile))
-      })
+        }
     }
 
     val map = buildSources0
-      .map {
-        case (generated, original, _) =>
-          os.Path(generated) -> os.Path(original)
-      }
+      .map { case (generated, original, _) => os.Path(generated) -> os.Path(original) }
       .toMap
+
     val lookupOpt = Option.when(buildSources0.nonEmpty) {
       lookup(buildSources0.map { case (generated, _, f) => (generated, f) }.toMap)
     }
+
     (map, lookupOpt)
   }
 
