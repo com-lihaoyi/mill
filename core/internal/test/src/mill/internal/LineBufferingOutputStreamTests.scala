@@ -8,7 +8,8 @@ object LineBufferingOutputStreamTests extends TestSuite {
   val tests = Tests {
     test("charByChar") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LineBufferingOutputStream(s => {baos.write("PREFIX".getBytes()); s.writeTo(baos)})
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
       for (b <- "hello\nworld\n!".getBytes()) lpos.write(b)
       lpos.flush()
       assert(baos.toString == "PREFIXhello\nPREFIXworld\nPREFIX!")
@@ -16,7 +17,8 @@ object LineBufferingOutputStreamTests extends TestSuite {
 
     test("charByCharTrailingNewline") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LineBufferingOutputStream(s => {baos.write("PREFIX".getBytes()); s.writeTo(baos)})
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
       for (b <- "hello\nworld\n".getBytes()) lpos.write(b)
       lpos.flush()
       assert(baos.toString == "PREFIXhello\nPREFIXworld\n")
@@ -24,7 +26,8 @@ object LineBufferingOutputStreamTests extends TestSuite {
 
     test("allAtOnce") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LineBufferingOutputStream(s => {baos.write("PREFIX".getBytes()); s.writeTo(baos)})
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
       val arr = "hello\nworld\n!".getBytes()
       lpos.write(arr)
       lpos.flush()
@@ -34,7 +37,8 @@ object LineBufferingOutputStreamTests extends TestSuite {
 
     test("allAtOnceTrailingNewline") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LineBufferingOutputStream(s => {baos.write("PREFIX".getBytes()); s.writeTo(baos)})
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
       val arr = "hello\nworld\n".getBytes()
       lpos.write(arr)
       lpos.flush()
@@ -44,7 +48,8 @@ object LineBufferingOutputStreamTests extends TestSuite {
 
     test("allAtOnceDoubleNewline") {
       val baos = new ByteArrayOutputStream()
-      val lpos = new LineBufferingOutputStream(s => {baos.write("PREFIX".getBytes()); s.writeTo(baos)})
+      val lpos =
+        new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
       val arr = "hello\n\nworld\n\n".getBytes()
       lpos.write(arr)
       lpos.flush()
@@ -60,7 +65,9 @@ object LineBufferingOutputStreamTests extends TestSuite {
           for (i2 <- Range(i1, arr.length)) {
             for (i3 <- Range(i2, arr.length)) {
               val baos = new ByteArrayOutputStream()
-              val lpos = new LineBufferingOutputStream(s => {baos.write("PREFIX".getBytes()); s.writeTo(baos)})
+              val lpos = new LineBufferingOutputStream(s => {
+                baos.write("PREFIX".getBytes()); s.writeTo(baos)
+              })
               lpos.write(arr, 0, i1)
               lpos.write(arr, i1, i2 - i1)
               lpos.write(arr, i2, i3 - i2)

@@ -148,7 +148,11 @@ private[mill] class PromptLogger(
         promptLineState.setDetail(key, s)
       }
 
-    override def logPrefixedLine(key: Seq[String], logMsg: ByteArrayOutputStream, logToOut: Boolean): Unit = {
+    override def logPrefixedLine(
+        key: Seq[String],
+        logMsg: ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit = {
 
       val lines = Util.splitBytesPreserveEOL(logMsg.toByteArray)
 
@@ -167,9 +171,7 @@ private[mill] class PromptLogger(
       val logStream = if (logToOut) streams.out else streams.err
       if (prompt.enableTicker) {
         for ((keySuffix, message) <- res) {
-          val prefix =
-            if (seenBefore) Logger.formatPrefix0(key)
-            else Logger.formatPrefix0(key, keySuffix) + spaceNonEmpty(message)
+          val prefix = Logger.formatPrefix0(key) + (if (seenBefore) "" else spaceNonEmpty(message))
 
           val combineMessageAndLog =
             prefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
@@ -185,7 +187,7 @@ private[mill] class PromptLogger(
 
           lines.tail.foreach(logStream.write(_))
         }
-      }else {
+      } else {
         lines.foreach(logStream.write(_))
       }
 

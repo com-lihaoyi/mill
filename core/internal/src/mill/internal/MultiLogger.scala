@@ -55,7 +55,11 @@ private[mill] class MultiLogger(
       logger2.prompt.setPromptLine(key, keySuffix, message)
     }
 
-    private[mill] override def logPrefixedLine(key: Seq[String], logMsg: ByteArrayOutputStream, logToOut: Boolean): Unit = {
+    private[mill] override def logPrefixedLine(
+        key: Seq[String],
+        logMsg: ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit = {
       logger1.prompt.logPrefixedLine(key, logMsg, logToOut)
       logger2.prompt.logPrefixedLine(key, logMsg, logToOut)
     }

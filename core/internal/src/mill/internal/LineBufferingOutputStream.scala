@@ -1,6 +1,6 @@
 package mill.internal
 
-import java.io.{ByteArrayOutputStream, FilterOutputStream, OutputStream}
+import java.io.{ByteArrayOutputStream, OutputStream}
 
 /**
  * Prefixes the first and each new line with a dynamically provided prefix,
@@ -10,8 +10,9 @@ import java.io.{ByteArrayOutputStream, FilterOutputStream, OutputStream}
  * @param linePrefix The function to provide the prefix.
  * @param out The underlying output stream.
  */
-private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit) extends OutputStream {
-  private var isNewLine = true
+private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit)
+    extends OutputStream {
+
   val buffer = new ByteArrayOutputStream()
 
   // Make sure we preserve the end-of-line ANSI colors every time we write out the buffer, and
@@ -41,7 +42,6 @@ private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStr
       if (b(i) == '\n') {
         i += 1 // +1 to include the newline
         buffer.write(b, start, i - start)
-        isNewLine = true
         start = i
         writeOutBuffer()
       } else {
@@ -58,10 +58,7 @@ private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStr
 
   override def write(b: Int): Unit = synchronized {
     buffer.write(b)
-    if (b == '\n') {
-      writeOutBuffer()
-      isNewLine = true
-    }
+    if (b == '\n') writeOutBuffer()
   }
 
   override def flush(): Unit = synchronized {

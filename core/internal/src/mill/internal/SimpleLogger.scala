@@ -34,7 +34,11 @@ private[mill] class SimpleLogger(
     unprefixedStreams.err.println(s)
 
   val prompt = new Logger.Prompt.NoOp {
-    override def logPrefixedLine(key: Seq[String], logMsg: java.io.ByteArrayOutputStream, logToOut: Boolean): Unit = {
+    override def logPrefixedLine(
+        key: Seq[String],
+        logMsg: java.io.ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit = {
       val bytes = Logger.formatPrefix(key).getBytes ++ logMsg.toByteArray
       if (logToOut) unprefixedStreams.out.write(bytes)
       else unprefixedStreams.err.write(bytes)

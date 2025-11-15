@@ -55,9 +55,6 @@ private[mill] class PrefixLogger(
     logger0.unprefixedStreams.in
   )
 
-  private def addPrefix(prefix: String, s: String): String =
-    s.linesWithSeparators.map(prefix + _).mkString
-
   override def info(s: String): Unit = {
     val baos = new java.io.ByteArrayOutputStream()
     baos.write(s.getBytes)

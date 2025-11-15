@@ -159,7 +159,11 @@ object Logger {
    */
   private[mill] trait Prompt {
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
-    private[mill] def logPrefixedLine(key: Seq[String], logMsg: ByteArrayOutputStream, logToOut: Boolean): Unit
+    private[mill] def logPrefixedLine(
+        key: Seq[String],
+        logMsg: ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit
     private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit
     private[mill] def setPromptHeaderPrefix(s: String): Unit
     private[mill] def clearPromptStatuses(): Unit
@@ -185,7 +189,11 @@ object Logger {
   private[mill] object Prompt {
     class NoOp extends Prompt {
       private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ()
-      private[mill] def logPrefixedLine(key: Seq[String], logMsg: ByteArrayOutputStream, logToOut: Boolean): Unit = ()
+      private[mill] def logPrefixedLine(
+          key: Seq[String],
+          logMsg: ByteArrayOutputStream,
+          logToOut: Boolean
+      ): Unit = ()
       private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
         ()
       private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
