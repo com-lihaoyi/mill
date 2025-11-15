@@ -16,7 +16,7 @@ import sbt.internal.inc
 import sbt.internal.inc.*
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
-import sbt.internal.util.{ConsoleAppender, ConsoleOut}
+import sbt.internal.util.ConsoleOut
 import sbt.mill.SbtLoggerUtils
 import xsbti.compile.*
 import xsbti.compile.analysis.ReadWriteMappers
@@ -333,7 +333,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
     reporter.foreach(_.start())
 
-    val consoleAppender = SbtLoggerUtils.createNoLabelAppender(
+    val consoleAppender = SbtLoggerUtils.ConciseLevelConsoleAppender(
       name = "ZincLogAppender",
       consoleOut = deps.consoleOut,
       ansiCodesSupported0 = ctx.logPromptColored

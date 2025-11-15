@@ -12,34 +12,55 @@ object SbtLoggerUtils {
     val logger = context.logger(name = name, channelName = None, execId = None)
     context.clearAppenders(name)
     context.addAppender(name, (appender, level))
-
     logger
   }
 
-  /** Creates a ConsoleAppender that skips the [error]/[warning]/[info] label prefixes */
-  def createNoLabelAppender(
+  // Appender that prints the log level only once per message, rather than once
+  // per line, and skips it for INFO logging where it is usually unhelpful
+  class ConciseLevelConsoleAppender(
       name: String,
       consoleOut: ConsoleOut,
       ansiCodesSupported0: Boolean
-  ): Appender = {
-    new ConsoleAppender(
+  ) extends ConsoleAppender(
       name,
       ConsoleAppender.Properties.from(consoleOut, ansiCodesSupported0, false),
       suppressedMessage = _ => None
-    ) {
-      override def appendLog(level: Level.Value, message: => String): Unit = {
-        // Override to skip adding the [level] prefix
-        // Write message directly without the label prefix
-        message.linesIterator.foreach(l =>
-          consoleOut.println(
-            level match{
-              case Level.Warn if ansiCodesSupported0 => Console.YELLOW + l + Console.RESET
-              case Level.Error if ansiCodesSupported0 => Console.RED + l + Console.RESET
-              case _ => l
+  ) {
+    override def appendLog(level: Level.Value, message0: => String): Unit = {
+      import mill.api.BuildCtx.workspaceRoot
+      val message =
+        if (level != Level.Info) message0
+        else {
+          def maybeTruncate(n: String, lang: String, sources: String, path0: String): String = {
+            val path = os.Path(path0, workspaceRoot)
+
+            if (!path.startsWith(workspaceRoot)) path.toString
+            else {
+              val truncated = path.subRelativeTo(workspaceRoot).toString
+              s"compiling $n $lang $sources to $truncated ..."
             }
-          )
-        )
+          }
+          val sourcesWords = Set("source", "sources")
+          message0 match{
+            case s"compiling $n Scala $sources to $path ..."
+              if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
+
+              maybeTruncate(n, "Scala", sources, path)
+
+            case s"compiling $n Java $sources to $path ..."
+              if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
+              maybeTruncate(n, "java", sources, path)
+
+            case _ => message0
+          }
+        }
+      val severityPrefix = level match {
+        case Level.Error => "[" + fansi.Color.Red("error") + "] "
+        case Level.Warn => "[" + fansi.Color.Yellow("warn") + " ] "
+        case _ => ""
       }
+
+      consoleOut.println(severityPrefix + message)
     }
   }
 }

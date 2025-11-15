@@ -1,10 +1,8 @@
 package mill.javalib.zinc
 
-import mill.constants.CodeGenConstants
 import xsbti.VirtualFile
 
 import java.nio.charset.StandardCharsets
-import scala.jdk.CollectionConverters.*
 
 object PositionMapper {
 
@@ -29,12 +27,12 @@ object PositionMapper {
 
   def create(sources: Array[VirtualFile])
       : (Map[os.Path, os.Path], Option[xsbti.Position => xsbti.Position]) = {
-    val buildSources0 = sources.flatMap{ vf =>
+    val buildSources0 = sources.flatMap { vf =>
       val str = new String(vf.input().readAllBytes(), StandardCharsets.UTF_8)
       val lines = str.linesWithSeparators.toVector
       lines
         .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => rest.trim }
-        .map{adjustedFile =>
+        .map { adjustedFile =>
           (vf.id(), adjustedFile, remap(lines, adjustedFile))
         }
     }

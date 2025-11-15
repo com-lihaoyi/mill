@@ -22,8 +22,8 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     os.write(
       modified,
       s"//SOURCECODE_ORIGINAL_FILE_PATH=$original\n" +
-      "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n" +
-      os.read(original) +
+        "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n" +
+        os.read(original) +
         System.lineSeparator +
         // Squeeze this onto one line so as not to affect line counts too much
         """type main = mainargs.main; def _millScriptMainSelf = this; object _MillScriptMain { def main(args: Array[String]): Unit = this.getClass.getMethods.find(m => m.getName == "main" && m.getParameters.map(_.getType) == Seq(classOf[Array[String]]) && m.getReturnType == classOf[Unit]) match{ case Some(m) => m.invoke(_millScriptMainSelf, args); case None => mainargs.Parser(_millScriptMainSelf).runOrExit(args) }}""".stripMargin
@@ -41,7 +41,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
   }
 
   override def compile: T[CompilationResult] = Task {
-    val result = super.compile()
+    val result = compile0()
 
     val classesDir = Task.dest / "classes"
     os.copy(result.classes.path, classesDir, createFolders = true)
