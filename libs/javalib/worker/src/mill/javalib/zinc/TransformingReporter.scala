@@ -113,7 +113,7 @@ private object TransformingReporter {
         val codeSnippet0 = InterfaceUtil.jo2o(problem0.rendered())
           .iterator
           .flatMap(_.linesIterator)
-          .collect {
+          .collectFirst {
             case s"$pre |$rest" if fansi.Str(pre).plainText.forall(_.isDigit) =>
               rest.drop(rest.indexOf('|'))
           }
