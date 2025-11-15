@@ -162,10 +162,6 @@ private[mill] class PromptLogger(
           seenIdentifiers.get(key)
         }
       }
-      mill.constants.DebugLog.println("")
-      mill.constants.DebugLog.println("enableTicker " + pprint.apply(prompt.enableTicker))
-      mill.constants.DebugLog.println("logMsg " + pprint.apply(logMsg))
-      mill.constants.DebugLog.println("logToOut " + pprint.apply(logToOut))
 
       val logStream = if (logToOut) streams.out else streams.err
       if (prompt.enableTicker) {
