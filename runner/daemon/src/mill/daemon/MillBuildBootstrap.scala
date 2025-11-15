@@ -251,7 +251,12 @@ class MillBuildBootstrap(
 
           rootModuleRes match {
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
-            case Result.Success((buildFileApi)) =>
+            case Result.Success(buildFileApi) =>
+
+              val staticBuildOverrides =
+                if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
+                  nestedState.staticBuildOverrides
+                else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
 
               Using.resource(makeEvaluator(
                 topLevelProjectRoot,
@@ -288,10 +293,7 @@ class MillBuildBootstrap(
                 depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
-                staticBuildOverrides =
-                  if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
-                    nestedState.staticBuildOverrides
-                  else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
+                staticBuildOverrides = staticBuildOverrides
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
