@@ -2,7 +2,8 @@ package mill.javalib.zinc
 
 private trait TransformingReporter(
     color: Boolean,
-    optPositionMapper: (xsbti.Position => xsbti.Position) | Null
+    optPositionMapper: (xsbti.Position => xsbti.Position) | Null,
+    workspaceRoot: os.Path
 ) extends xsbti.Reporter {
 
   // Overriding this is necessary because for some reason the LoggedReporter doesn't transform positions
@@ -11,7 +12,7 @@ private trait TransformingReporter(
     val localMapper = optPositionMapper
     val problem = {
       if localMapper == null then problem0
-      else TransformingReporter.transformProblem(color, problem0, localMapper)
+      else TransformingReporter.transformProblem(color, problem0, localMapper, workspaceRoot)
     }
     super.log(problem)
   }
@@ -27,7 +28,8 @@ private object TransformingReporter {
   private def transformProblem(
       color: Boolean,
       problem0: xsbti.Problem,
-      mapper: xsbti.Position => xsbti.Position
+      mapper: xsbti.Position => xsbti.Position,
+      workspaceRoot: os.Path
   ): xsbti.Problem = {
     val pos0 = problem0.position()
     val related0 = problem0.diagnosticRelatedInformation()
@@ -39,7 +41,7 @@ private object TransformingReporter {
     if posIsNew || (related ne related0) || (actions ne actions0) then
       val rendered = {
         // if we transformed the position, then we must re-render the message
-        if posIsNew then Some(dottyStyleMessage(color, problem0, pos))
+        if posIsNew then Some(dottyStyleMessage(color, problem0, pos, workspaceRoot))
         else InterfaceUtil.jo2o(problem0.rendered())
       }
       InterfaceUtil.problem(
@@ -67,7 +69,8 @@ private object TransformingReporter {
   private def dottyStyleMessage(
       color: Boolean,
       problem0: xsbti.Problem,
-      pos: xsbti.Position
+      pos: xsbti.Position,
+      workspaceRoot: os.Path
   ): String = {
     val base = problem0.message()
     val severity = problem0.severity()
@@ -91,12 +94,18 @@ private object TransformingReporter {
     }
 
     val optPath = InterfaceUtil.jo2o(pos.sourcePath()).map { path =>
+      val absPath = os.Path(path)
+      val displayPath =
+        if absPath.startsWith(workspaceRoot) then
+          absPath.subRelativeTo(workspaceRoot)
+        else
+          path
       val line0 = intValue(pos.line(), -1)
       val pointer0 = intValue(pos.pointer(), -1)
       if line0 >= 0 && pointer0 >= 0 then
-        s"$path:$line0:${pointer0 + 1}"
+        s"$displayPath:$line0:${pointer0 + 1}"
       else
-        path
+        displayPath
     }
 
     val normHeader = optPath.map(path =>

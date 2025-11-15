@@ -405,12 +405,12 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     val newReporter = reporter match {
       case None =>
         new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull) {}
+          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull, ctx.workspaceRoot) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull) {}
+          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull, ctx.workspaceRoot) {}
     }
 
     val inputs = incrementalCompiler.inputs(
@@ -575,7 +575,8 @@ object ZincWorker {
   case class LocalConfig(
       dest: os.Path,
       logDebugEnabled: Boolean,
-      logPromptColored: Boolean
+      logPromptColored: Boolean,
+      workspaceRoot: os.Path
   ) derives upickle.ReadWriter
 
   private case class ScalaCompilerCacheKey(
