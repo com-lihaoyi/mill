@@ -27,10 +27,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalized,
         List(
-          "<digits> Scala sources to out/mill-build/compile.dest/classes ...",
-          "compiling",
-          "<digits> Java source to out/compile.dest/classes ...",
-          "compiling"
+          "compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "done compiling",
+          "compiling <digits> Java source to out/compile.dest/classes ...",
+          "done compiling"
         )
       )
     }
@@ -75,7 +75,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "<digits>] [error] src/foo/Foo.java:<digits>:<digits>",
           "<digits>] reached end of file while parsing",
           "<digits>] compile task failed",
-          "<digits>] compile task failed",
           "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
           "<digits>] compile javac returned non-zero exit code"
@@ -98,7 +97,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] [error] build.mill:<digits>:<digits>",
           "build.mill-<digits>] [E<digits>] Illegal start of toplevel definition",
           "build.mill-<digits>] [error] one error found",
-          "build.mill-<digits>] compile task failed",
           "build.mill-<digits>] compile task failed",
           "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",

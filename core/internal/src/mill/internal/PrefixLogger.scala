@@ -23,7 +23,7 @@ private[mill] class PrefixLogger(
     key0: Seq[String],
     override val keySuffix: String = "",
     override val message: String = "",
-    // Disable printing the prefix, but continue reporting the `key` to `reportKey`. Used
+    // Disable printing the prefix, but continue reporting the `key` to `logPrefixedLine`. Used
     // for `exclusive` commands where we don't want the prefix, but we do want the header
     // above the output of every command that gets run so we can see who the output belongs to
     noPrefix: Boolean = false
@@ -40,7 +40,7 @@ private[mill] class PrefixLogger(
 
   def prefixPrintStream(stream: java.io.OutputStream, logToOut: Boolean) = {
     new PrintStream(
-      new LinePrefixOutputStream(logMsg => prompt.reportKey(logKey, logMsg, logToOut))
+      new LineBufferingOutputStream(logMsg => prompt.logPrefixedLine(logKey, logMsg, logToOut))
     )
   }
   val streams = new SystemStreams(
@@ -59,16 +59,22 @@ private[mill] class PrefixLogger(
     s.linesWithSeparators.map(prefix + _).mkString
 
   override def info(s: String): Unit = {
-    prompt.reportKey(logKey, s, false)
-    unprefixedStreams.err.println(addPrefix(prompt.infoColor(linePrefix), s))
+    val baos = new java.io.ByteArrayOutputStream()
+    baos.write(s.getBytes)
+    baos.write('\n')
+    prompt.logPrefixedLine(logKey, baos, false)
   }
   override def warn(s: String): Unit = {
-    prompt.reportKey(logKey, s, false)
-    unprefixedStreams.err.println(addPrefix(prompt.warnColor(linePrefix), s))
+    val baos = new java.io.ByteArrayOutputStream()
+    baos.write(s.getBytes)
+    baos.write('\n')
+    prompt.logPrefixedLine(logKey, baos, false)
   }
   override def error(s: String): Unit = {
-    prompt.reportKey(logKey, s, false)
-    unprefixedStreams.err.println(addPrefix(prompt.errorColor(linePrefix), s))
+    val baos = new java.io.ByteArrayOutputStream()
+    baos.write(s.getBytes)
+    baos.write('\n')
+    prompt.logPrefixedLine(logKey, baos, false)
   }
   override def ticker(s: String): Unit = prompt.setPromptDetail(logKey, s)
 
@@ -76,10 +82,15 @@ private[mill] class PrefixLogger(
 
   override def debug(s: String): Unit = {
     if (debugEnabled) {
-      if (prompt.debugEnabled) prompt.reportKey(logKey, s, false)
-      unprefixedStreams.err.println(addPrefix(prompt.infoColor(linePrefix), s))
+      if (prompt.debugEnabled) {
+        val baos = new java.io.ByteArrayOutputStream()
+        baos.write(s.getBytes)
+        baos.write('\n')
+        prompt.logPrefixedLine(logKey, baos, false)
+      }
     }
   }
+
   override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger {
     override lazy val unprefixedStreams = new SystemStreams(
       outStream,

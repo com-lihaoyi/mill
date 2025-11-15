@@ -148,15 +148,45 @@ private[mill] class PromptLogger(
         promptLineState.setDetail(key, s)
       }
 
-    override def reportKey(key: Seq[String], logMsg: String, logToOut: Boolean): Unit = {
-      val lines = logMsg.linesIterator.toList
+    override def logPrefixedLine(key: Seq[String], logMsg: ByteArrayOutputStream, logToOut: Boolean): Unit = {
+      def splitPreserveEOL(bytes: Array[Byte]): Seq[Array[Byte]] = {
+        val out = scala.collection.mutable.ArrayBuffer[Array[Byte]]()
+        var i = 0
+        val n = bytes.length
+
+        while (i < n) {
+          val start = i
+
+          while (i < n && bytes(i) != '\n' && bytes(i) != '\r') i += 1 // Move to end-of-line
+
+          if (i >= n) out += java.util.Arrays.copyOfRange(bytes, start, n) // Last line with no newline
+          else { // Found either '\n' or '\r'
+            if (bytes(i) == '\r') { // CR
+              if (i + 1 < n && bytes(i + 1) == '\n') { // CRLF
+                i += 2
+                out += java.util.Arrays.copyOfRange(bytes, start, i)
+              } else { // Lone CR
+                i += 1
+                out += java.util.Arrays.copyOfRange(bytes, start, i)
+              }
+            } else { // LF
+              i += 1
+              out += java.util.Arrays.copyOfRange(bytes, start, i)
+            }
+          }
+        }
+
+        out.toSeq
+      }
+
+      val lines = splitPreserveEOL(logMsg.toByteArray)
 
       val seenBefore = PromptLogger.this.synchronized {
         reportedIdentifiers(key)
       }
 
       val res = PromptLogger.this.synchronized {
-        if (reportedIdentifiers(key) && logMsg.isEmpty) None
+        if (reportedIdentifiers(key) && lines.isEmpty) None
         else {
           reportedIdentifiers.add(key)
           seenIdentifiers.get(key)
@@ -176,16 +206,16 @@ private[mill] class PromptLogger(
           if (combineMessageAndLog) {
             streams.err.print(infoColor(prefix))
             streams.err.print(" ")
-            logStream.println(lines.head)
+            logStream.write(lines.head)
           } else {
             streams.err.println(infoColor(prefix))
-            logStream.println(lines.head)
+            logStream.write(lines.head)
           }
 
-          lines.tail.foreach(logStream.println(_))
+          lines.tail.foreach(logStream.write(_))
         }
       }else {
-        lines.foreach(logStream.println(_))
+        lines.foreach(logStream.write(_))
       }
 
       streamManager.awaitPumperEmpty()

@@ -10,7 +10,7 @@ import java.io.{ByteArrayOutputStream, FilterOutputStream, OutputStream}
  * @param linePrefix The function to provide the prefix.
  * @param out The underlying output stream.
  */
-private[mill] class LineBufferingOutputStream(onLineComplete: (Array[Byte], Int) => Unit) extends OutputStream {
+private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit) extends OutputStream {
   private var isNewLine = true
   val buffer = new ByteArrayOutputStream()
 
@@ -28,7 +28,7 @@ private[mill] class LineBufferingOutputStream(onLineComplete: (Array[Byte], Int)
     val s = fansi.Str.apply(bufferString + "x", errorMode = fansi.ErrorMode.Sanitize)
     endOfLastLineColor = s.getColor(s.length - 1)
 
-    if (buffer.size() > 0) onLineComplete(buffer.toByteArray))
+    if (buffer.size() > 0) onLineComplete(buffer)
 
     buffer.reset()
   }
