@@ -237,11 +237,13 @@ object SelectiveExecutionImpl {
         new SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
-          allBuildOverrides.flatMap { case (k, _) =>
-            transitiveNamedMap.get(k).map { value =>
-              (k, value.##)
-            }
-          }
+          for{
+            (k, _) <- allBuildOverrides
+            // Make sure we deserialize the actual value to hash, rather than hashing the JSON,
+            // since a JSON string may deserialize into a `PathRef` that changes depending on
+            // the files and folders on disk
+            value <- transitiveNamedMap.get(k)
+          } yield (k, value.##)
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )
