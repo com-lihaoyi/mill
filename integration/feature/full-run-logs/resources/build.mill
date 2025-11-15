@@ -21,32 +21,32 @@ object `package` extends JavaModule {
       var m = 0
       for (i <- 0 until n) {
         m += 1
-        out += m + "\n"
+        out += "" + m + "\n"
       }
       out += MAGENTA
       for (i <- 0 until n) {
         m += 1
-        out += m + "\n"
+        out += "" + m + "\n"
       }
       out += YELLOW
       for (i <- 0 until n) {
         m += 1
-        out += m + "\n"
+        out += "" + m + "\n"
       }
       out += RED
       for (i <- 0 until n) {
         m += 1
-        out += m + "\n"
+        out += "" + m + "\n"
       }
       out += GREEN
       for (i <- 0 until n) {
         m += 1
-        out += m + "\n"
+        out += "" + m + "\n"
       }
       out += BLUE
       for (i <- 0 until n) {
         m += 1
-        out += m + "\n"
+        out += "" + m + "\n"
       }
       out += RESET
       System.out.println(out)
