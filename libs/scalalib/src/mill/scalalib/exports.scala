@@ -44,8 +44,6 @@ export mill.javalib.RunModule
 
 export mill.javalib.SonatypeCentralPublisher
 
-type MavenPublishModule = mill.javalib.MavenPublishModule
-
 type SonatypeCentralPublishModule = mill.javalib.SonatypeCentralPublishModule
 
 export mill.javalib.TestModule

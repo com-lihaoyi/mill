@@ -2,43 +2,14 @@ package mill.javalib
 
 import mill.*
 import mill.api.*
-import mill.javalib.PublishModule.PublishData
 import mill.util.Tasks
 
-trait MavenPublishModule extends PublishModule, MavenWorkerSupport, SonatypeCredentialsModule,
-      MavenPublish {
-
-  def mavenReleaseUri: T[String]
-
-  def mavenSnapshotUri: T[String]
-
-  def publishMaven(
-      username: String = "",
-      password: String = "",
-      sources: Boolean = true,
-      docs: Boolean = true
-  ): Task.Command[Unit] = Task.Command {
-    val artifact = artifactMetadata()
-    val credentials = getSonatypeCredentials(username, password)()
-    val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
-
-    mavenPublishDatas(
-      Seq(PublishData(artifact, publishData)),
-      bundleName = None,
-      credentials,
-      releaseUri = mavenReleaseUri(),
-      snapshotUri = mavenSnapshotUri(),
-      taskDest = Task.dest,
-      log = Task.log,
-      env = Task.env,
-      worker = mavenWorker()
-    )
-  }
-
-}
-
+/**
+ * External module to publish artifactes to Maven repositories other than `central.sonatype.org`
+ * (e.g. a private Maven repository).
+ */
 object MavenPublishModule extends ExternalModule, DefaultTaskModule, MavenWorkerSupport,
-      SonatypeCredentialsModule, MavenPublish {
+      PublishCredentialsModule, MavenPublish {
 
   def defaultTask(): String = "publishAll"
 
@@ -54,7 +25,7 @@ object MavenPublishModule extends ExternalModule, DefaultTaskModule, MavenWorker
     val artifacts = Task.sequence(publishArtifacts.value)()
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
-    val credentials = getSonatypeCredentials(username, password)()
+    val credentials = getPublishCredentials("MILL_MAVEN", username, password)()
 
     mavenPublishDatas(
       artifacts,

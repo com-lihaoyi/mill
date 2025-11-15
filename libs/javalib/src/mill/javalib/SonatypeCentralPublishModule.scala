@@ -18,12 +18,13 @@ import mill.javalib.SonatypeCentralPublishModule.defaultReadTimeout
 import mill.javalib.SonatypeCentralPublishModule.getPublishingTypeFromReleaseFlag
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.publish.Artifact
+import mill.javalib.publish.SonatypeHelpers.CREDENTIALS_ENV_VARIABLE_PREFIX
 import mill.util.Tasks
 
 import javalib.*
 
 trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
-      SonatypeCredentialsModule {
+      PublishCredentialsModule {
 
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "Mill 1.0.1")
   def sonatypeCentralGpgArgs: T[String] =
@@ -63,7 +64,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       @unroll docs: Boolean = true
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
-    val credentials = getSonatypeCredentials(username, password)()
+    val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
     val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
     val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
 
@@ -98,7 +99,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
  * External module to publish artifacts to `central.sonatype.org`
  */
 object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, MavenWorkerSupport,
-      SonatypeCredentialsModule, MavenPublish {
+      PublishCredentialsModule, MavenPublish {
   private final val sonatypeCentralGpgArgsSentinelValue = "<user did not override this method>"
 
   def self = this
@@ -127,7 +128,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     val artifacts = Task.sequence(publishArtifacts.value)()
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
-    val credentials = getSonatypeCredentials(username, password)()
+    val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
     def makeGpgArgs() = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
