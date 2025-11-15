@@ -336,9 +336,10 @@ object MainModule {
     // When using `show`, redirect all stdout of the evaluated tasks so the
     // printed JSON is the only thing printed to stdout.
     val redirectLogger = log
-      .withOutStream(evaluator.baseLogger.streams.err)
+      .withRedirectOutToErr()
       .asInstanceOf[Logger]
 
+    mill.constants.DebugLog.println("redirectLogger " + pprint.apply(redirectLogger))
     evaluator.withBaseLogger(redirectLogger)
       .evaluate(
         tasks,

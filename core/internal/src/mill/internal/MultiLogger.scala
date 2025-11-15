@@ -130,6 +130,12 @@ private[mill] class MultiLogger(
 
   private[mill] override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
+  override def redirectOutToErr: Boolean = logger1.redirectOutToErr || logger1.redirectOutToErr
+  override def withRedirectOutToErr() = new MultiLogger(
+    logger1.withRedirectOutToErr(),
+    logger2.withRedirectOutToErr(),
+    inStream0
+  )
   override def withOutStream(outStream: PrintStream): Logger = {
     new MultiLogger(
       logger1.withOutStream(outStream),

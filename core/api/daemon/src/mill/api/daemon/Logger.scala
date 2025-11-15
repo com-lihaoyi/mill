@@ -75,8 +75,12 @@ trait Logger extends Logger.Actions {
 
   /**
    * Creates a new logger identical to this one but with stdout redirected
-   * to the given stream; typically used to redirect out to err in `mill show`
+   * to stderr; typically used to redirect out to err in `mill show`
    */
+  def withRedirectOutToErr(): Logger = this
+  def redirectOutToErr: Boolean = false
+
+  @deprecated
   def withOutStream(outStream: PrintStream): Logger = this
 
   /**
