@@ -218,7 +218,7 @@ final class EvaluatorImpl private[mill] (
       else {
         val (named, unnamed) =
           tasks.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
-        val newComputedMetadata = SelectiveExecutionImpl.Metadata.compute(this, named)
+        val newComputedMetadata = this.selective.computeMetadata(named)
 
         val selectiveExecutionStoredData = for {
           _ <- Option.when(os.exists(outPath / OutFiles.millSelectiveExecution))(())

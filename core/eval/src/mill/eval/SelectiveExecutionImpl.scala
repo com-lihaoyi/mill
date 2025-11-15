@@ -92,7 +92,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
     ).map { tasks =>
-      computeChangedTasks0(tasks, SelectiveExecutionImpl.Metadata.compute(evaluator, tasks))
+      computeChangedTasks0(tasks, computeMetadata(tasks))
         // If we did not have the metadata, presume everything was changed.
         .getOrElse(ChangedTasks.all(tasks))
     }
@@ -195,17 +195,11 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
   def computeMetadata(
       tasks: Seq[Task.Named[?]]
   ): SelectiveExecution.Metadata.Computed =
-    SelectiveExecutionImpl.Metadata.compute(evaluator, tasks)
+    SelectiveExecutionImpl.Metadata.compute0(evaluator, PlanImpl.transitiveNamed(tasks))
 }
+
 object SelectiveExecutionImpl {
   object Metadata {
-    def compute(
-        evaluator: Evaluator,
-        tasks: Seq[Task.Named[?]]
-    ): SelectiveExecution.Metadata.Computed = {
-      compute0(evaluator, PlanImpl.transitiveNamed(tasks))
-    }
-
     def compute0(
         evaluator: Evaluator,
         transitiveNamed: Seq[Task.Named[?]]
@@ -235,6 +229,7 @@ object SelectiveExecutionImpl {
         }
         .toMap
 
+      val transitiveNamedMap = transitiveNamed.map(t => (t.ctx.segments.render, t)).toMap
       val inputHashes = results.map {
         case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
       }
@@ -242,7 +237,11 @@ object SelectiveExecutionImpl {
         new SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
-          allBuildOverrides.map { case (k, v) => (k, v.##) }
+          allBuildOverrides.flatMap { case (k, _) =>
+            transitiveNamedMap.get(k).map { value =>
+              (k, value.##)
+            }
+          }
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )
