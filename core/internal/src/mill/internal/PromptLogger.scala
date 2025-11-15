@@ -154,6 +154,7 @@ private[mill] class PromptLogger(
     private var endOfLastLineColor: Long = 0
 
     val resetEol = scala.Console.RESET.getBytes ++ "\n".getBytes
+    val eol = "\n".getBytes
 
     override def logPrefixedLine(
         key: Seq[String],
@@ -187,7 +188,8 @@ private[mill] class PromptLogger(
 
           endOfLastLineColor = endOfCurrentLineColor
 
-          continuationColoredLine ++ resetEol
+          if (endOfCurrentLineColor == 0) continuationColoredLine ++ eol
+          else continuationColoredLine ++ resetEol
         }
 
         (lines, seenBefore, res)

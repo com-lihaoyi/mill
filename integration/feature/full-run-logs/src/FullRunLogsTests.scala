@@ -150,8 +150,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.out0),
         List(
-          "(B)Test run (X)foo.(Y)FooTest(X)(B) started(X)(X)",
-          "Test foo.(Y)FooTest(X).(C)testSimple(X) started(X)",
+          "(B)Test run (X)foo.(Y)FooTest(X)(B) started(X)",
+          "Test foo.(Y)FooTest(X).(C)testSimple(X) started",
           "(R)1(X)",
           "(R)2(X)",
           "(R)3(X)",
@@ -212,9 +212,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "(Y)58(X)",
           "(Y)59(X)",
           "(Y)60(X)",
-          "(Y)(X)(X)",
-          "Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec(X)",
-          "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)(X)"
+          "(Y)(X)",
+          "Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec",
+          "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)"
         )
       )
       val res2 = eval(("-i", "--ticker", "true", "test"), mergeErrIntoOut = true)
@@ -222,9 +222,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res2.out0),
         List(
           "============================== test ==============================",
-          "101] test.testForked Running Test Class foo.FooTest(X)",
-          "101] (B)Test run (X)foo.(Y)FooTest(X)(B) started(X)(X)",
-          "101] Test foo.(Y)FooTest(X).(C)testSimple(X) started(X)",
+          "101] test.testForked Running Test Class foo.FooTest",
+          "101] (B)Test run (X)foo.(Y)FooTest(X)(B) started(X)",
+          "101] Test foo.(Y)FooTest(X).(C)testSimple(X) started",
           "101] (R)1(X)",
           "101] (R)2(X)",
           "101] (R)3(X)",
@@ -285,9 +285,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "101] (Y)58(X)",
           "101] (Y)59(X)",
           "101] (Y)60(X)",
-          "101] (Y)(X)(X)",
-          "101] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec(X)",
-          "101] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)(X)",
+          "101] (Y)(X)",
+          "101] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec",
+          "101] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)",
           "101/101] ============================== test ============================== 1s"
         )
       )
@@ -357,7 +357,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "(B)58(X)",
           "(B)59(X)",
           "(B)60(X)",
-          "(B)(X)(X)"
+          "(B)(X)"
         )
       )
 
@@ -427,7 +427,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "1] (B)58(X)",
           "1] (B)59(X)",
           "1] (B)60(X)",
-          "1] (B)(X)(X)",
+          "1] (B)(X)",
           "1/1] ============================== test.printColors =============================="
         )
       )
