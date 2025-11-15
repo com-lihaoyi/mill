@@ -31,6 +31,8 @@ object SbtLoggerUtils {
       val message =
         if (level != Level.Info) message0
         else {
+          // Hackily scrape the `compiling` messages logged by SBT to rewrite them in a
+          // less verbose format by converting absolute paths to relative to workspaceRoot
           def maybeTruncate(n: String, lang: String, sources: String, path0: String): String = {
             val path = os.Path(path0, workspaceRoot)
 
