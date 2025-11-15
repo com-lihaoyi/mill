@@ -35,10 +35,10 @@ compiling 1 Java source to...
 /** Usage
 
 > ./mill resolve Foo.java:_
-./Foo.java:run
-./Foo.java:runMain
-./Foo.java:compile
-./Foo.java:assembly
+Foo.java:run
+Foo.java:runMain
+Foo.java:compile
+Foo.java:assembly
 ...
 
 */

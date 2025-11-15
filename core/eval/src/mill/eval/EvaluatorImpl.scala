@@ -135,7 +135,7 @@ final class EvaluatorImpl private[mill] (
 
           val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
             val (prefix, taskSel) = k match {
-              case s"./$script:$rest" => (Seq(Segment.Label(s"./$script")), rest)
+              case s"$script:$rest" => (Seq(Segment.Label(s"$script:")), rest)
               case _ => (Nil, k)
             }
 

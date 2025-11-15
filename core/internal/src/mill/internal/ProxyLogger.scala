@@ -21,4 +21,8 @@ private[mill] class ProxyLogger(logger: Logger) extends Logger {
 
   private[mill] override def logKey: Seq[String] = logger.logKey
   private[mill] override def unprefixedStreams: SystemStreams = logger.unprefixedStreams
+
+  override def redirectOutToErr: Boolean = logger.redirectOutToErr
+
+  override def withRedirectOutToErr() = new ProxyLogger(logger.withRedirectOutToErr())
 }

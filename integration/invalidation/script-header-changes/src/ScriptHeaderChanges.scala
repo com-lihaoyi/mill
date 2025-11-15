@@ -29,7 +29,7 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
       val res3 = tester.eval("./Foo.java")
       assert(!res3.isSuccess)
       assert(res3.err.contains(
-        "./Foo.java:mvnDeps Failed de-serializing config override: expected sequence got string"
+        "Foo.java:mvnDeps Failed de-serializing config override: expected sequence got string"
       ))
 
       tester.modifyFile(tester.workspacePath / "Foo.java", _.replace("//|", "//"))
@@ -45,7 +45,7 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
       val res5 = tester.eval("./Foo.java")
       assert(!res5.isSuccess)
       assert(res5.err.contains(
-        "./Foo.java:mvnDeps Failed de-serializing config override: Unable to parse signature: [key]"
+        "Foo.java:mvnDeps Failed de-serializing config override: Unable to parse signature: [key]"
       ))
 
       tester.modifyFile(tester.workspacePath / "Foo.java", _.replace("//|", "//"))

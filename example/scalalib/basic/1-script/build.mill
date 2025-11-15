@@ -90,10 +90,10 @@ Jvm Version: 11.0.28
 /** Usage
 
 > ./mill resolve Foo.scala:_
-./Foo.scala:run
-./Foo.scala:runMain
-./Foo.scala:compile
-./Foo.scala:assembly
+Foo.scala:run
+Foo.scala:runMain
+Foo.scala:compile
+Foo.scala:assembly
 ...
 
 */

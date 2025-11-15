@@ -79,11 +79,9 @@ object PromptLoggerTests extends TestSuite {
 
       check(promptLogger, baos, width = 999 /*log file has no line wrapping*/ )(
         "============================== TITLE ==============================",
-        // Make sure that the first time a prefix is reported,
-        // we print the verbose prefix along with the ticker string
-        "1/456] my-task",
-        // Further `println`s come with the prefix
-        "1] HELLO",
+        // Make sure that the first time a task prints a log line,
+        // we print the task name along with the log line
+        "1] my-task HELLO",
         // Calling `refreshPrompt()` prints the header with the given `globalTicker` without
         // the double space prefix (since it's non-interactive and we don't need space for a cursor),
         // the time elapsed, the reported title and ticker, the list of active tickers, followed by the
@@ -122,8 +120,7 @@ object PromptLoggerTests extends TestSuite {
       // First time we log with the prefix `[1]`, make sure we print out the title line
       // `[1/456] my-task` so the viewer knows what `[1]` refers to
       check(promptLogger, baos)(
-        "1/456] my-task",
-        "1] HELLO",
+        "1] my-task HELLO",
         "123/456] ============================== TITLE ============================= 10s",
         "1] my-task 10s",
         ""
@@ -134,8 +131,7 @@ object PromptLoggerTests extends TestSuite {
       // re-rendered below the latest prefixed output. Subsequent log line with `[1]`
       // prefix does not re-render title line `[1/456] ...`
       check(promptLogger, baos)(
-        "1/456] my-task",
-        "1] HELLO",
+        "1] my-task HELLO",
         "1] WORLD",
         "123/456] ============================== TITLE ============================= 10s",
         "1] my-task 10s",
@@ -160,14 +156,11 @@ object PromptLoggerTests extends TestSuite {
       // my-task-new does not appear yet because it is too new
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "1/456] my-task",
-        "1] HELLO",
+        "1] my-task HELLO",
         "1] WORLD",
-        "2/456] my-task-new",
-        "2] I AM COW",
+        "2] my-task-new I AM COW",
         "2] HEAR ME MOO",
-        "3/456] my-task-short-lived",
-        "3] hello short lived",
+        "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
         "123/456] ============================== TITLE ============================= 10s",
         "1] my-task 10s",
@@ -181,14 +174,11 @@ object PromptLoggerTests extends TestSuite {
       // my-task-new appears by now, but my-task-short-lived has already ended and never appears
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "1/456] my-task",
-        "1] HELLO",
+        "1] my-task HELLO",
         "1] WORLD",
-        "2/456] my-task-new",
-        "2] I AM COW",
+        "2] my-task-new I AM COW",
         "2] HEAR ME MOO",
-        "3/456] my-task-short-lived",
-        "3] hello short lived",
+        "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
         "123/456] ============================== TITLE ============================= 11s",
         "1] my-task 11s",
@@ -203,14 +193,11 @@ object PromptLoggerTests extends TestSuite {
       // Even after ending my-task, it remains on the ticker for a moment before being removed
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "1/456] my-task",
-        "1] HELLO",
+        "1] my-task HELLO",
         "1] WORLD",
-        "2/456] my-task-new",
-        "2] I AM COW",
+        "2] my-task-new I AM COW",
         "2] HEAR ME MOO",
-        "3/456] my-task-short-lived",
-        "3] hello short lived",
+        "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
         "123/456] ============================== TITLE ============================= 11s",
         "1] my-task 11s",
@@ -224,14 +211,11 @@ object PromptLoggerTests extends TestSuite {
       // moment to preserve the height of the prompt
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "1/456] my-task",
-        "1] HELLO",
+        "1] my-task HELLO",
         "1] WORLD",
-        "2/456] my-task-new",
-        "2] I AM COW",
+        "2] my-task-new I AM COW",
         "2] HEAR ME MOO",
-        "3/456] my-task-short-lived",
-        "3] hello short lived",
+        "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
         "123/456] ============================== TITLE ============================= 12s",
         "2] my-task-new 2s",
@@ -244,14 +228,11 @@ object PromptLoggerTests extends TestSuite {
       // Only after more time does the prompt shrink back
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "1/456] my-task",
-        "1] HELLO",
+        "1] my-task HELLO",
         "1] WORLD",
-        "2/456] my-task-new",
-        "2] I AM COW",
+        "2] my-task-new I AM COW",
         "2] HEAR ME MOO",
-        "3/456] my-task-short-lived",
-        "3] hello short lived",
+        "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
         "123/456] ============================== TITLE ============================= 22s",
         "2] my-task-new 12s",
@@ -260,14 +241,11 @@ object PromptLoggerTests extends TestSuite {
       now += 10000
       promptLogger.close()
       check(promptLogger, baos)(
-        "1/456] my-task",
-        "1] HELLO",
+        "1] my-task HELLO",
         "1] WORLD",
-        "2/456] my-task-new",
-        "2] I AM COW",
+        "2] my-task-new I AM COW",
         "2] HEAR ME MOO",
-        "3/456] my-task-short-lived",
-        "3] hello short lived",
+        "3] my-task-short-lived hello short lived",
         "3] goodbye short lived",
         "123/456] ============================== TITLE ============================= 32s",
         ""
