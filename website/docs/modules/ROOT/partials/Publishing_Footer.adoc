@@ -12,7 +12,7 @@ has the instructions on how to do this
 === Publishing Secrets
 
 Mill uses the following environment variables as a way to pass the necessary secrets
-for publishing:
+for publishing to Maven Central:
 
 
 [,sh]
@@ -160,6 +160,20 @@ for more details.
 
 == Instructions for Publishing to Generic Maven Repositories
 
+Apart from publishing your project's modules to Maven Central, you may also want to publish them to a generic
+Maven repository (such as a privately hosted one).
+
+=== Publishing Secrets
+
+Mill uses the following environment variables as a way to pass the necessary secrets for publishing:
+
+[,sh]
+----
+# Credentials for publishing to the repository
+export MILL_MAVEN_USERNAME=...
+export MILL_MAVEN_PASSWORD=...
+----
+
 === Publishing
 
 You can publish all eligible modules in your Mill project using the
@@ -169,9 +183,15 @@ xref:fundamentals/modules.adoc#_external_modules[External Module] `mill.javalib.
 [source,console]
 ----
 > mill mill.javalib.MavenPublishModule/ \
-        --releaseUri https://example.company.com/release
+        --username myusername \
+        --password mypassword \
+        --releaseUri https://example.company.com/release \
         --snapshotUri https://example.company.com/snapshot
 ----
+
+When you do not provide the username and password parameters, Mill will instead look for the `MILL_MAVEN_USERNAME` and
+`MILL_MAVEN_PASSWORD` environment variables. Providing the credentials via environment variables is the recommended
+approach due to security considerations.
 
 == Instructions for Publishing to Maven Central via Legacy OSSHR (Deprecated)
 
