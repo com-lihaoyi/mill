@@ -153,13 +153,16 @@ private[mill] class PromptLogger(
     // not muck up the rendering of color sequences that affect multiple lines in the terminal
     private var endOfLastLineColor: Long = 0
 
+    val resetEol = scala.Console.RESET.getBytes ++ "\n".getBytes
+
     override def logPrefixedLine(
         key: Seq[String],
         logMsg: ByteArrayOutputStream,
         logToOut: Boolean
     ): Unit = {
+
       val (lines, seenBefore, res) = PromptLogger.this.synchronized {
-        val lines0 = Util.splitBytesPreserveEOL(logMsg.toByteArray)
+        val lines0 = Util.splitBytesDropEOL(logMsg.toByteArray)
         val seenBefore = reportedIdentifiers(key)
         val res =
           if (reportedIdentifiers(key) && lines0.isEmpty) None
@@ -169,22 +172,22 @@ private[mill] class PromptLogger(
           }
 
         val lines = for (line <- lines0) yield {
-          val coloredCurrentLine = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + new String(line)
+          val continuationColoredLine =
+            fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes ++ line
 
           // Make sure we add a suffix "x" to the `bufferString` before computing the last
           // color. This ensures that any trailing colors in the original `bufferString` do not
           // get ignored since they would affect zero characters.
           val extendedString = fansi.Str.apply(
-            coloredCurrentLine + "x",
-            errorMode = fansi.ErrorMode.Sanitize
+            new String(continuationColoredLine) + "x",
+            fansi.ErrorMode.Sanitize
           )
 
           val endOfCurrentLineColor = extendedString.getColor(extendedString.length - 1)
 
-          val result = (coloredCurrentLine + scala.Console.RESET).getBytes
-
           endOfLastLineColor = endOfCurrentLineColor
-          result
+
+          continuationColoredLine ++ resetEol
         }
 
         (lines, seenBefore, res)

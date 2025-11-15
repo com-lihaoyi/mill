@@ -165,7 +165,7 @@ private[mill] object Util {
         Result.Failure(s"Failed de-serializing build header in $fileName: " + e.getMessage)
     }
 
-  def splitBytesPreserveEOL(bytes: Array[Byte]): Seq[Array[Byte]] = {
+  def splitBytesDropEOL(bytes: Array[Byte]): Seq[Array[Byte]] = {
     val out = scala.collection.mutable.ArrayBuffer[Array[Byte]]()
     var i = 0
     val n = bytes.length
@@ -177,17 +177,18 @@ private[mill] object Util {
 
       if (i >= n) out += java.util.Arrays.copyOfRange(bytes, start, n) // Last line with no newline
       else { // Found either '\n' or '\r'
+        val i0 = i
         if (bytes(i) == '\r') { // CR
           if (i + 1 < n && bytes(i + 1) == '\n') { // CRLF
             i += 2
-            out += java.util.Arrays.copyOfRange(bytes, start, i)
+            out += java.util.Arrays.copyOfRange(bytes, start, i0)
           } else { // Lone CR
             i += 1
-            out += java.util.Arrays.copyOfRange(bytes, start, i)
+            out += java.util.Arrays.copyOfRange(bytes, start, i0)
           }
         } else { // LF
           i += 1
-          out += java.util.Arrays.copyOfRange(bytes, start, i)
+          out += java.util.Arrays.copyOfRange(bytes, start, i0)
         }
       }
     }
