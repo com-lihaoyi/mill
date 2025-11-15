@@ -1598,7 +1598,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/eval/EvaluatorImpl.html#withBaseLogger-1d","e":false,"i":"","n":"withBaseLogger","t":"withBaseLogger(newBaseLogger: Logger): Evaluator","d":"mill.eval.EvaluatorImpl","k":"def","x":""},
 {"l":"mill/eval/SelectiveExecutionImpl$.html#","e":false,"i":"","n":"SelectiveExecutionImpl","t":"SelectiveExecutionImpl","d":"mill.eval","k":"object","x":""},
 {"l":"mill/eval/SelectiveExecutionImpl$$Metadata$.html#","e":false,"i":"","n":"Metadata","t":"Metadata","d":"mill.eval.SelectiveExecutionImpl","k":"object","x":""},
-{"l":"mill/eval/SelectiveExecutionImpl$$Metadata$.html#compute-fffffc1e","e":false,"i":"","n":"compute","t":"compute(evaluator: Evaluator, tasks: Seq[Named[_]]): Computed","d":"mill.eval.SelectiveExecutionImpl.Metadata","k":"def","x":""},
 {"l":"mill/eval/SelectiveExecutionImpl$$Metadata$.html#compute0-fffffc1e","e":false,"i":"","n":"compute0","t":"compute0(evaluator: Evaluator, transitiveNamed: Seq[Named[_]]): Computed","d":"mill.eval.SelectiveExecutionImpl.Metadata","k":"def","x":""},
 {"l":"mill/exec.html#","e":false,"i":"","n":"mill.exec","t":"mill.exec","d":"","k":"package","x":""},
 {"l":"mill/exec/ExecutionContexts$.html#","e":false,"i":"","n":"ExecutionContexts","t":"ExecutionContexts","d":"mill.exec","k":"object","x":""},
