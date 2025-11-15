@@ -27,10 +27,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalized,
         List(
-          "compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
-          "done compiling",
-          "compiling <digits> Java source to out/compile.dest/classes ...",
-          "done compiling"
+          "<digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "compiling",
+          "<digits> Java source to out/compile.dest/classes ...",
+          "compiling"
         )
       )
     }
@@ -43,21 +43,18 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       assertGoldenLiteral(
         normalize(res.out),
-        List("<digits>] <h<digits>>hello</h<digits>>")
+        List("<h<digits>>hello</h<digits>>")
       )
 
       assertGoldenLiteral(
         normalize(res.err),
         List(
           "============================== run --text hello ==============================",
-          "build.mill-<digits>/<digits>] compile",
-          "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>/<digits>] compile compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
-          "<digits>/<digits>] compile",
-          "<digits>] compiling <digits> Java source to out/compile.dest/classes ...",
+          "<digits>/<digits>] compile compiling <digits> Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
-          "<digits>/<digits>] run",
-          "<digits>/<digits>] ============================== run --text hello ============================== <digits>s"
+          "<digits>/<digits>] run <digits>/<digits>] ============================== run --text hello ============================== <digits>s"
         )
       )
     }
@@ -72,13 +69,12 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res.err),
         List(
           "============================== jar ==============================",
-          "build.mill-<digits>/<digits>] compile",
-          "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>/<digits>] compile compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
-          "<digits>/<digits>] compile",
-          "<digits>] compiling <digits> Java source to out/compile.dest/classes ...",
+          "<digits>/<digits>] compile compiling <digits> Java source to out/compile.dest/classes ...",
           "<digits>] [error] src/foo/Foo.java:<digits>:<digits>",
           "<digits>] reached end of file while parsing",
+          "<digits>] compile task failed",
           "<digits>] compile task failed",
           "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
@@ -98,11 +94,11 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res2.err),
         List(
           "============================== jar ==============================",
-          "build.mill-<digits>/<digits>] compile",
-          "build.mill-<digits>] compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>/<digits>] compile compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] [error] build.mill:<digits>:<digits>",
           "build.mill-<digits>] [E<digits>] Illegal start of toplevel definition",
           "build.mill-<digits>] [error] one error found",
+          "build.mill-<digits>] compile task failed",
           "build.mill-<digits>] compile task failed",
           "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",

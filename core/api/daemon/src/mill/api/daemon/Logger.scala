@@ -88,7 +88,6 @@ trait Logger extends Logger.Actions {
 }
 
 object Logger {
-
   private[mill] def formatPrefix0(s: Seq[String], keySuffix: String = "") =
     if (s == Nil) "" else s"${s.mkString("-")}$keySuffix]"
 

@@ -149,28 +149,35 @@ private[mill] class PromptLogger(
       }
 
     override def reportKey(key: Seq[String], logMsg: String, logToOut: Boolean): Unit = {
-      mill.constants.DebugLog("")
-      mill.constants.DebugLog("key " + pprint.apply(key))
-      mill.constants.DebugLog(logMsg)
       val lines = logMsg.linesIterator.toList
 
+      val seenBefore = PromptLogger.this.synchronized {
+        reportedIdentifiers(key)
+      }
+
       val res = PromptLogger.this.synchronized {
-        if (reportedIdentifiers(key)) None
+        if (reportedIdentifiers(key) && logMsg.isEmpty) None
         else {
           reportedIdentifiers.add(key)
           seenIdentifiers.get(key)
         }
       }
+      mill.constants.DebugLog.println("")
+      mill.constants.DebugLog.println("enableTicker " + pprint.apply(prompt.enableTicker))
+      mill.constants.DebugLog.println("logMsg " + pprint.apply(logMsg))
+      mill.constants.DebugLog.println("logToOut " + pprint.apply(logToOut))
 
-      for ((keySuffix, message) <- res) {
-        val prefix = Logger.formatPrefix0(key, keySuffix) + spaceNonEmpty(message)
-        val logStream = if (logToOut) streams.out else streams.err
-        if (prompt.enableTicker) {
-          if (
-            prefix.length + 1 + lines.head.length <
-              termDimensions._1.getOrElse(defaultTermWidth)
-          ) {
+      val logStream = if (logToOut) streams.out else streams.err
+      if (prompt.enableTicker) {
+        for ((keySuffix, message) <- res) {
+          val prefix =
+            if (seenBefore) Logger.formatPrefix0(key)
+            else Logger.formatPrefix0(key, keySuffix) + spaceNonEmpty(message)
 
+          val combineMessageAndLog =
+            prefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
+
+          if (combineMessageAndLog) {
             streams.err.print(infoColor(prefix))
             streams.err.print(" ")
             logStream.println(lines.head)
@@ -180,11 +187,12 @@ private[mill] class PromptLogger(
           }
 
           lines.tail.foreach(logStream.println(_))
-        }else {
-          lines.foreach(logStream.println(_))
         }
-        streamManager.awaitPumperEmpty()
+      }else {
+        lines.foreach(logStream.println(_))
       }
+
+      streamManager.awaitPumperEmpty()
     }
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
