@@ -148,20 +148,36 @@ private[mill] class PromptLogger(
         promptLineState.setDetail(key, s)
       }
 
+    // Make sure we preserve the end-of-line ANSI colors every time we write out the buffer, and
+    // re-apply them after every line prefix. This helps ensure the line prefix color/resets does
+    // not muck up the rendering of color sequences that affect multiple lines in the terminal
+    private var endOfLastLineColor: Long = 0
+
     override def logPrefixedLine(
         key: Seq[String],
         logMsg: ByteArrayOutputStream,
         logToOut: Boolean
     ): Unit = {
       val (lines, seenBefore, res) = PromptLogger.this.synchronized {
-        val lines = Util.splitBytesPreserveEOL(logMsg.toByteArray)
+        val lines0 = Util.splitBytesPreserveEOL(logMsg.toByteArray)
         val seenBefore = reportedIdentifiers(key)
         val res =
-          if (reportedIdentifiers(key) && lines.isEmpty) None
+          if (reportedIdentifiers(key) && lines0.isEmpty) None
           else {
             reportedIdentifiers.add(key)
             seenIdentifiers.get(key)
           }
+
+        val lines = for(line <- lines0) yield {
+          val bufferString = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + new String(line)
+          // Make sure we add a suffix "x" to the `bufferString` before computing the last
+          // color. This ensures that any trailing colors in the original `bufferString` do not
+          // get ignored since they would affect zero characters.
+          val s = fansi.Str.apply(bufferString + "x", errorMode = fansi.ErrorMode.Sanitize)
+          val result = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes() ++ line ++ scala.Console.RESET.getBytes
+          endOfLastLineColor = s.getColor(s.length - 1)
+          result
+        }
         (lines, seenBefore, res)
       }
 
@@ -172,9 +188,6 @@ private[mill] class PromptLogger(
           val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
           val prefix = Logger.formatPrefix0(key)
 
-          val combineMessageAndLog =
-            longPrefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
-          mill.constants.DebugLog.println("combineMessageAndLog " + pprint.apply(combineMessageAndLog))
           def printPrefixed(prefix: String, line: Array[Byte]) = {
             streams.err.print(infoColor(prefix))
             if (line.nonEmpty) streams.err.print(" ")
@@ -187,6 +200,9 @@ private[mill] class PromptLogger(
           }
 
           if (!seenBefore) {
+            val combineMessageAndLog =
+              longPrefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
+
             if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), lines.head)
             else {
               streams.err.print(infoColor(longPrefix))
@@ -235,6 +251,7 @@ private[mill] class PromptLogger(
   def debug(s: String): Unit = if (debugEnabled) streams.err.println(s)
 
   override def close(): Unit = {
+//    Thread.sleep(1000)
     synchronized {
       if (enableTicker) refreshPrompt(ending = true)
     }
@@ -243,11 +260,11 @@ private[mill] class PromptLogger(
     // before it closing and waiting for its thread to terminate
     streams.err.flush()
     streams.out.flush()
-
+//    Thread.sleep(1000)
     // Has to be outside the synchronized block so it can allow the pumper thread
     // to continue pumping out the last data in the streams and terminate
-    streamManager.close()
 
+    streamManager.close()
     synchronized {
       runningState.stop()
     }
@@ -329,7 +346,7 @@ private[mill] object PromptLogger {
     // print the prompt at the bottom
     val pipe = new PipeStreams()
     val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
-    val proxyErr: ProxyStream.Output = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
+    val proxyErr = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
     val proxySystemStreams = new SystemStreams(
       new PrintStream(proxyOut),
       new PrintStream(proxyErr),
@@ -422,13 +439,21 @@ private[mill] object PromptLogger {
     pumperThread.start()
 
     def close(): Unit = {
+      // flush these streams to make sure everything gets into `streamManager`
+      // before it closing and waiting for its thread to terminate
+      proxySystemStreams.err.flush()
+      proxySystemStreams.out.flush()
+      proxyErr.flush()
+      proxyOut.flush()
       // Close the write side of the pipe first but do not close the read side, so
       // the `pumperThread` can continue reading remaining text in the pipe buffer
       // before terminating on its own
+      Thread.sleep(1)
       ProxyStream.sendEnd(
         pipe.output,
         0 // exit code value is not used since this ProxyStream doesn't wrap a subprocess
       )
+
       pipe.output.close()
       pumperThread.join()
     }

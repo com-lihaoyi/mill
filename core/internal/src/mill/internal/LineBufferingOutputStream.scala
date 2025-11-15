@@ -15,23 +15,13 @@ private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStr
 
   val buffer = new ByteArrayOutputStream()
 
-  // Make sure we preserve the end-of-line ANSI colors every time we write out the buffer, and
-  // re-apply them after every line prefix. This helps ensure the line prefix color/resets does
-  // not muck up the rendering of color sequences that affect multiple lines in the terminal
-  private var endOfLastLineColor: Long = 0
   override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
 
   def writeOutBuffer(): Unit = {
-    val bufferString = fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor) + buffer.toString
-    // Make sure we add a suffix "x" to the `bufferString` before computing the last
-    // color. This ensures that any trailing colors in the original `bufferString` do not
-    // get ignored since they would affect zero characters.
-    val s = fansi.Str.apply(bufferString + "x", errorMode = fansi.ErrorMode.Sanitize)
-    endOfLastLineColor = s.getColor(s.length - 1)
-
-    if (buffer.size() > 0) onLineComplete(buffer)
-
-    buffer.reset()
+    if (buffer.size() > 0) {
+      onLineComplete(buffer)
+      buffer.reset()
+    }
   }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
