@@ -128,7 +128,7 @@ private object TransformingReporter {
            |""".stripMargin
       } else ""
 
-    header + codeSnippet + message
+    header + codeSnippet + message + "\n"
   }
 
   /** Implements a transformation that returns the same list if the mapper has no effect */
