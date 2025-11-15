@@ -423,7 +423,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       val workspaceUri = tester.workspacePath.toURI.toASCIIString.stripSuffix("/") + "/"
       val logs = stderr.toString
         .linesWithSeparators
-        .filter{case s"$d] $rest" if d.forall(_ != ' ') => true; case _ => false}
+        .filter { case s"$d] $rest" if d.forall(_ != ' ') => true; case _ => false }
         .map(_.replace(workspaceUri, "file:///workspace/"))
         .mkString
 
