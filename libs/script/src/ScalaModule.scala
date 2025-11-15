@@ -21,6 +21,8 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     val modified = Task.dest / original.last
     os.write(
       modified,
+      s"//SOURCECODE_ORIGINAL_FILE_PATH=$original\n" +
+      "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n" +
       os.read(original) +
         System.lineSeparator +
         // Squeeze this onto one line so as not to affect line counts too much

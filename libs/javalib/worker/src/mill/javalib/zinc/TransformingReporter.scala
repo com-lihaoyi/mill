@@ -36,21 +36,17 @@ private object TransformingReporter {
     val pos = mapper(pos0)
     val related = transformRelateds(related0, mapper)
     val actions = transformActions(actions0, mapper)
-    val posIsNew = pos ne pos0
-    if posIsNew || (related ne related0) || (actions ne actions0) then
-      val rendered = dottyStyleMessage(color, problem0, pos, workspaceRoot)
-      InterfaceUtil.problem(
-        cat = problem0.category(),
-        pos = pos,
-        msg = problem0.message(),
-        sev = problem0.severity(),
-        rendered = rendered,
-        diagnosticCode = InterfaceUtil.jo2o(problem0.diagnosticCode()),
-        diagnosticRelatedInformation = anyToList(related),
-        actions = anyToList(actions)
-      )
-    else
-      problem0
+    val rendered = dottyStyleMessage(color, problem0, pos, workspaceRoot)
+    InterfaceUtil.problem(
+      cat = problem0.category(),
+      pos = pos,
+      msg = problem0.message(),
+      sev = problem0.severity(),
+      rendered = Some(rendered),
+      diagnosticCode = InterfaceUtil.jo2o(problem0.diagnosticCode()),
+      diagnosticRelatedInformation = anyToList(related),
+      actions = anyToList(actions)
+    )
   }
 
   private type JOrSList[T] = java.util.List[T] | List[T]
@@ -124,27 +120,7 @@ private object TransformingReporter {
         None
     }
 
-    val content = optSnippet.match {
-      case Some(snippet) =>
-        val initial = {
-          s"""$snippet
-             |$base
-             |""".stripMargin
-        }
-        val snippetLine = intValue(pos.line(), -1)
-        if snippetLine >= 0 then {
-          // add margin with line number
-          val lines = initial.linesWithSeparators.toVector
-          val pre = snippetLine.toString
-          val rest0 = " " * pre.length
-          val rest = pre +: Vector.fill(lines.size - 1)(rest0)
-          rest.lazyZip(lines).map((pre, line) => shade(s"$pre |") + line).mkString
-        } else {
-          initial
-        }
-      case None =>
-        base
-    }
+    val content = optSnippet.fold("")(_ + "\n") + base
 
     normHeader + content
   }
