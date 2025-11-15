@@ -44,7 +44,7 @@ case class RunnerState(
     // need to track them separately
     bootstrapEvalWatched: Seq[Watchable] = Nil,
     staticBuildOverrides: Map[String, ujson.Value] = Map()
-) {
+) extends Watching.Result {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
       errorOpt: Option[String] = None

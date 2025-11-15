@@ -66,7 +66,7 @@ class MillBuildBootstrap(
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
-  def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
+  def evaluate(): RunnerState = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
 
     for ((frame, depth) <- runnerState.frames.zipWithIndex) {
@@ -77,11 +77,7 @@ class MillBuildBootstrap(
       )
     }
 
-    Watching.Result(
-      watched = runnerState.watched,
-      error = runnerState.errorOpt,
-      result = runnerState
-    )
+    runnerState
   }
 
   def evaluateRec(depth: Int): RunnerState = {
@@ -251,7 +247,12 @@ class MillBuildBootstrap(
 
           rootModuleRes match {
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
-            case Result.Success((buildFileApi)) =>
+            case Result.Success(buildFileApi) =>
+
+              val staticBuildOverrides =
+                if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
+                  nestedState.staticBuildOverrides
+                else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
 
               Using.resource(makeEvaluator(
                 topLevelProjectRoot,
@@ -288,10 +289,7 @@ class MillBuildBootstrap(
                 depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
-                staticBuildOverrides =
-                  if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
-                    nestedState.staticBuildOverrides
-                  else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
+                staticBuildOverrides = staticBuildOverrides
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -632,12 +630,8 @@ object MillBuildBootstrap {
     }
   }
 
-  def recRoot(projectRoot: os.Path, depth: Int): os.Path = {
-    projectRoot / Seq.fill(depth)(millBuild)
-  }
+  def recRoot(projectRoot: os.Path, depth: Int): os.Path = projectRoot / Seq.fill(depth)(millBuild)
 
-  def recOut(output: os.Path, depth: Int): os.Path = {
-    output / Seq.fill(depth)(millBuild)
-  }
+  def recOut(output: os.Path, depth: Int): os.Path = output / Seq.fill(depth)(millBuild)
 
 }
