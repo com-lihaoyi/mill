@@ -153,7 +153,7 @@ private[mill] class PromptLogger(
         logMsg: ByteArrayOutputStream,
         logToOut: Boolean
     ): Unit = {
-      PromptLogger.this.synchronized {
+      val (lines, seenBefore, res) = PromptLogger.this.synchronized {
         val lines = Util.splitBytesPreserveEOL(logMsg.toByteArray)
         val seenBefore = reportedIdentifiers(key)
         val res =
@@ -162,32 +162,45 @@ private[mill] class PromptLogger(
             reportedIdentifiers.add(key)
             seenIdentifiers.get(key)
           }
-
-        val logStream = if (logToOut) streams.out else streams.err
-
-        if (prompt.enableTicker) {
-          for ((keySuffix, message) <- res) {
-            val prefix =
-              Logger.formatPrefix0(key) + (if (seenBefore) "" else spaceNonEmpty(message))
-
-            val combineMessageAndLog =
-              prefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
-
-            if (combineMessageAndLog) {
-              streams.err.print(infoColor(prefix))
-              streams.err.print(" ")
-              logStream.write(lines.head)
-            } else {
-              streams.err.println(infoColor(prefix))
-              logStream.write(lines.head)
-            }
-
-            lines.tail.foreach(logStream.write(_))
-          }
-        } else {
-          lines.foreach(logStream.write(_))
-        }
+        (lines, seenBefore, res)
       }
+
+      val logStream = if (logToOut) streams.out else streams.err
+
+      if (prompt.enableTicker) {
+        for ((keySuffix, message) <- res) {
+          val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
+          val prefix = Logger.formatPrefix0(key)
+
+          val combineMessageAndLog =
+            prefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
+
+          def printPrefixed(prefix: String, line: Array[Byte]) = {
+            streams.err.print(infoColor(prefix))
+            if (line.nonEmpty) streams.err.print(" ")
+            // Make sur we flush after each write, because we are possibly writing to stdout
+            // and stderr in quick succession so we want to try our best to ensure the order
+            // is preserved and doesn't get messed up by buffering in the streams
+            streams.err.flush()
+            logStream.write(line)
+            logStream.flush()
+          }
+
+          if (!seenBefore) {
+            if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), lines.head)
+            else {
+              printPrefixed(infoColor(longPrefix), Array())
+              printPrefixed(infoColor(prefix), lines.head)
+            }
+            lines.tail.foreach { l => printPrefixed(infoColor(prefix), l) }
+          } else {
+            lines.foreach { l => printPrefixed(infoColor(prefix), l) }
+          }
+        }
+      } else {
+        lines.foreach(logStream.write(_))
+      }
+
       streamManager.awaitPumperEmpty()
     }
 
@@ -224,6 +237,11 @@ private[mill] class PromptLogger(
     synchronized {
       if (enableTicker) refreshPrompt(ending = true)
     }
+
+    // flush these streams to make sure everything gets into `streamManager`
+    // before it closing and waiting for its thread to terminate
+    streams.err.flush()
+    streams.out.flush()
 
     // Has to be outside the synchronized block so it can allow the pumper thread
     // to continue pumping out the last data in the streams and terminate
