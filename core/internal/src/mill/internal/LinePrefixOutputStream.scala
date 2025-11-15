@@ -50,11 +50,11 @@ private[mill] class LinePrefixOutputStream(
 
     if (buffer.size() > 0) {
       val str0 = new String(buffer.toByteArray)
-      val str =
+      val str = // Hack to get rid of the line prefix so the PromptLogger has a chance to skip it
         if (linePrefixNonEmpty) str0.dropWhile(_ != ' ').drop(1)
         else str0
 
-      // Hack to get rid of the line prefix so the PromptLogger has a chance to skip it
+
       reportPrefix(str)
     }
 
