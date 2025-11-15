@@ -63,7 +63,7 @@ private object TransformingReporter {
       pos: xsbti.Position,
       workspaceRoot: os.Path
   ): String = {
-    val message = problem0.message()
+
     val severity = problem0.severity()
 
     def shade(msg: String) =
@@ -79,11 +79,13 @@ private object TransformingReporter {
       problem0.diagnosticCode()
         .filter(_.code() != "-1")
         .map { inner =>
-          val prefix = s"[${shade(s"E${inner.code()}")}] "
+          val prefix = shade(s"E${inner.code()} ")
           inner.explanation().map(e => s"$prefix$e: ").orElse(prefix)
         }
         .orElse("")
     }
+
+    val message = errorCodeString + problem0.message()
 
     val positionString = InterfaceUtil.jo2o(pos.sourcePath()).map { path =>
       val absPath = os.Path(path)
@@ -100,7 +102,7 @@ private object TransformingReporter {
     }
 
     val header = positionString
-      .map(path => s"$errorCodeString$path\n")
+      .map(path => s"$path\n")
       .getOrElse("")
 
     val space = pos.pointerSpace().orElse("")
