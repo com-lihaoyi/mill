@@ -24,7 +24,6 @@ import mill.api.daemon.internal.bsp.BspServerResult
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
-import java.util.Locale
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
 import scala.jdk.CollectionConverters.*
 import scala.concurrent.Await
