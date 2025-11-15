@@ -153,44 +153,41 @@ private[mill] class PromptLogger(
         logMsg: ByteArrayOutputStream,
         logToOut: Boolean
     ): Unit = {
-
-      val lines = Util.splitBytesPreserveEOL(logMsg.toByteArray)
-
-      val seenBefore = PromptLogger.this.synchronized {
-        reportedIdentifiers(key)
-      }
-
-      val res = PromptLogger.this.synchronized {
-        if (reportedIdentifiers(key) && lines.isEmpty) None
-        else {
-          reportedIdentifiers.add(key)
-          seenIdentifiers.get(key)
-        }
-      }
-
-      val logStream = if (logToOut) streams.out else streams.err
-      if (prompt.enableTicker) {
-        for ((keySuffix, message) <- res) {
-          val prefix = Logger.formatPrefix0(key) + (if (seenBefore) "" else spaceNonEmpty(message))
-
-          val combineMessageAndLog =
-            prefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
-
-          if (combineMessageAndLog) {
-            streams.err.print(infoColor(prefix))
-            streams.err.print(" ")
-            logStream.write(lines.head)
-          } else {
-            streams.err.println(infoColor(prefix))
-            logStream.write(lines.head)
+      PromptLogger.this.synchronized {
+        val lines = Util.splitBytesPreserveEOL(logMsg.toByteArray)
+        val seenBefore = reportedIdentifiers(key)
+        val res =
+          if (reportedIdentifiers(key) && lines.isEmpty) None
+          else {
+            reportedIdentifiers.add(key)
+            seenIdentifiers.get(key)
           }
 
-          lines.tail.foreach(logStream.write(_))
-        }
-      } else {
-        lines.foreach(logStream.write(_))
-      }
+        val logStream = if (logToOut) streams.out else streams.err
 
+        if (prompt.enableTicker) {
+          for ((keySuffix, message) <- res) {
+            val prefix =
+              Logger.formatPrefix0(key) + (if (seenBefore) "" else spaceNonEmpty(message))
+
+            val combineMessageAndLog =
+              prefix.length + 1 + lines.head.length < termDimensions._1.getOrElse(defaultTermWidth)
+
+            if (combineMessageAndLog) {
+              streams.err.print(infoColor(prefix))
+              streams.err.print(" ")
+              logStream.write(lines.head)
+            } else {
+              streams.err.println(infoColor(prefix))
+              logStream.write(lines.head)
+            }
+
+            lines.tail.foreach(logStream.write(_))
+          }
+        } else {
+          lines.foreach(logStream.write(_))
+        }
+      }
       streamManager.awaitPumperEmpty()
     }
 
