@@ -23,7 +23,7 @@ public class FooTest {
     String out = "";
     int m = 0;
     int n = 3;
-    String prefix = "01234567890123456789012345678901234567890123456789012345678901234567890123456789";
+    String prefix = "ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ";
     for(String color : colors){
       out += color;
       for(int i = 0; i < n; i += 1) {
