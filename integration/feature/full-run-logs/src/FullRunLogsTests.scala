@@ -172,12 +172,12 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       def normalize(s: String) = FullRunLogsTests.normalize(s)
         .map(
           _.replace(Console.RESET, "(X)")
-          .replace(Console.RED, "(R)")
-          .replace(Console.GREEN, "(G)")
-          .replace(Console.BLUE, "(B)")
-          .replace(Console.CYAN, "(C)")
-          .replace(Console.MAGENTA, "(M)")
-          .replace(Console.YELLOW, "(Y)")
+            .replace(Console.RED, "(R)")
+            .replace(Console.GREEN, "(G)")
+            .replace(Console.BLUE, "(B)")
+            .replace(Console.CYAN, "(C)")
+            .replace(Console.MAGENTA, "(M)")
+            .replace(Console.YELLOW, "(Y)")
         )
 
       assertGoldenLiteral(
