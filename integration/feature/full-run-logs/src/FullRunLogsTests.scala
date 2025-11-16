@@ -10,7 +10,9 @@ import utest.*
 object FullRunLogsTests extends UtestIntegrationTestSuite {
 
   def normalize(s: String) = s.replace('\\', '/')
-    .replaceAll("\\d+", "<digits>")
+    .replaceAll("\\d+]", "<digits>]")
+    .replaceAll("\\d+\\.\\d+", " ...")
+    .replaceAll(" \\d+s", "")
     .linesIterator
     .toList
 
@@ -27,9 +29,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalized,
         List(
-          "compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "done compiling",
-          "compiling <digits> Java source to out/compile.dest/classes ...",
+          "compiling 1 Java source to out/compile.dest/classes ...",
           "done compiling"
         )
       )
@@ -43,18 +45,18 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       assertGoldenLiteral(
         normalize(res.out),
-        List("<h<digits>>hello</h<digits>>")
+        List("<h1>hello</h1>")
       )
 
       assertGoldenLiteral(
         normalize(res.err),
         List(
           "============================== run --text hello ==============================",
-          "build.mill-<digits>] compile compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
-          "<digits>] compile compiling <digits> Java source to out/compile.dest/classes ...",
+          "<digits>] compile compiling 1 Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
-          "<digits>] run <digits>/<digits>] ============================== run --text hello ============================== <digits>s"
+          "<digits>] run 63/<digits>] ============================== run --text hello =============================="
         )
       )
     }
@@ -74,7 +76,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res.out),
         List(
           "============================== exclusives.printingC ==============================",
-          "build.mill-<digits>] compile compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] exclusives.printingA",
           "Hello A",
@@ -86,7 +88,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "Hello C",
           "World C",
           "Exclusive C",
-          "<digits>/<digits>] ============================== exclusives.printingC ============================== <digits>s"
+          "4/<digits>] ============================== exclusives.printingC =============================="
         )
       )
     }
@@ -101,14 +103,14 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res.err),
         List(
           "============================== jar ==============================",
-          "build.mill-<digits>] compile compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
-          "<digits>] compile compiling <digits> Java source to out/compile.dest/classes ...",
-          "<digits>] [error] src/foo/Foo.java:<digits>:<digits>",
+          "<digits>] compile compiling 1 Java source to out/compile.dest/classes ...",
+          "<digits>] [error] src/foo/Foo.java:36:10",
           "<digits>] reached end of file while parsing",
           "<digits>] compile task failed",
-          "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
-          "<digits> tasks failed",
+          "54/54, 1 failed] ============================== jar ==============================",
+          "1 tasks failed",
           "<digits>] compile javac returned non-zero exit code"
         )
       )
@@ -125,13 +127,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res2.err),
         List(
           "============================== jar ==============================",
-          "build.mill-<digits>] compile compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] build.mill:<digits>:<digits>",
+          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] [error] build.mill:79:1",
           "build.mill-<digits>] [E<digits>] Illegal start of toplevel definition",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] compile task failed",
-          "<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
-          "<digits> tasks failed",
+          "65/65, 1 failed] ============================== jar ==============================",
+          "1 tasks failed",
           "build.mill-<digits>] compile Compilation failed"
         )
       )
@@ -167,18 +169,16 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       val res = eval(("-i", "--ticker", "true", "test"))
 
-      def normalize(s: String) = s
-        .replace(Console.RESET, "(X)")
-        .replace(Console.RED, "(R)")
-        .replace(Console.GREEN, "(G)")
-        .replace(Console.BLUE, "(B)")
-        .replace(Console.CYAN, "(C)")
-        .replace(Console.MAGENTA, "(M)")
-        .replace(Console.YELLOW, "(Y)")
-        .replaceAll("\\d+\\.\\d+", " ...")
-        .replaceAll(" \\d+s", "")
-        .linesIterator
-        .toList
+      def normalize(s: String) = FullRunLogsTests.normalize(s)
+        .map(
+          _.replace(Console.RESET, "(X)")
+          .replace(Console.RED, "(R)")
+          .replace(Console.GREEN, "(G)")
+          .replace(Console.BLUE, "(B)")
+          .replace(Console.CYAN, "(C)")
+          .replace(Console.MAGENTA, "(M)")
+          .replace(Console.YELLOW, "(Y)")
+        )
 
       assertGoldenLiteral(
         normalize(res.out0),
@@ -257,73 +257,73 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           normalize(res2.out0),
           List(
             "============================== test ==============================",
-            "101] test.testForked Running Test Class foo.FooTest",
-            "101] (B)Test run (X)foo.(Y)FooTest(X)(B) started(X)",
-            "101] Test foo.(Y)FooTest(X).(C)testSimple(X) started",
-            "101] (R)1(X)",
-            "101] (R)2(X)",
-            "101] (R)3(X)",
-            "101] (R)4(X)",
-            "101] (R)5(X)",
-            "101] (R)6(X)",
-            "101] (R)7(X)",
-            "101] (R)8(X)",
-            "101] (R)9(X)",
-            "101] (R)10(X)",
-            "101] (R)(G)11(X)",
-            "101] (G)12(X)",
-            "101] (G)13(X)",
-            "101] (G)14(X)",
-            "101] (G)15(X)",
-            "101] (G)16(X)",
-            "101] (G)17(X)",
-            "101] (G)18(X)",
-            "101] (G)19(X)",
-            "101] (G)20(X)",
-            "101] (G)(B)21(X)",
-            "101] (B)22(X)",
-            "101] (B)23(X)",
-            "101] (B)24(X)",
-            "101] (B)25(X)",
-            "101] (B)26(X)",
-            "101] (B)27(X)",
-            "101] (B)28(X)",
-            "101] (B)29(X)",
-            "101] (B)30(X)",
-            "101] (B)(C)31(X)",
-            "101] (C)32(X)",
-            "101] (C)33(X)",
-            "101] (C)34(X)",
-            "101] (C)35(X)",
-            "101] (C)36(X)",
-            "101] (C)37(X)",
-            "101] (C)38(X)",
-            "101] (C)39(X)",
-            "101] (C)40(X)",
-            "101] (C)(M)41(X)",
-            "101] (M)42(X)",
-            "101] (M)43(X)",
-            "101] (M)44(X)",
-            "101] (M)45(X)",
-            "101] (M)46(X)",
-            "101] (M)47(X)",
-            "101] (M)48(X)",
-            "101] (M)49(X)",
-            "101] (M)50(X)",
-            "101] (M)(Y)51(X)",
-            "101] (Y)52(X)",
-            "101] (Y)53(X)",
-            "101] (Y)54(X)",
-            "101] (Y)55(X)",
-            "101] (Y)56(X)",
-            "101] (Y)57(X)",
-            "101] (Y)58(X)",
-            "101] (Y)59(X)",
-            "101] (Y)60(X)",
-            "101] (Y)(X)",
-            "101] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec",
-            "101] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)",
-            "101/101] ============================== test =============================="
+            "<digits>] test.testForked Running Test Class foo.FooTest",
+            "<digits>] (B)Test run (X)foo.(Y)FooTest(X)(B) started(X)",
+            "<digits>] Test foo.(Y)FooTest(X).(C)testSimple(X) started",
+            "<digits>] (R)1(X)",
+            "<digits>] (R)2(X)",
+            "<digits>] (R)3(X)",
+            "<digits>] (R)4(X)",
+            "<digits>] (R)5(X)",
+            "<digits>] (R)6(X)",
+            "<digits>] (R)7(X)",
+            "<digits>] (R)8(X)",
+            "<digits>] (R)9(X)",
+            "<digits>] (R)10(X)",
+            "<digits>] (R)(G)11(X)",
+            "<digits>] (G)12(X)",
+            "<digits>] (G)13(X)",
+            "<digits>] (G)14(X)",
+            "<digits>] (G)15(X)",
+            "<digits>] (G)16(X)",
+            "<digits>] (G)17(X)",
+            "<digits>] (G)18(X)",
+            "<digits>] (G)19(X)",
+            "<digits>] (G)20(X)",
+            "<digits>] (G)(B)21(X)",
+            "<digits>] (B)22(X)",
+            "<digits>] (B)23(X)",
+            "<digits>] (B)24(X)",
+            "<digits>] (B)25(X)",
+            "<digits>] (B)26(X)",
+            "<digits>] (B)27(X)",
+            "<digits>] (B)28(X)",
+            "<digits>] (B)29(X)",
+            "<digits>] (B)30(X)",
+            "<digits>] (B)(C)31(X)",
+            "<digits>] (C)32(X)",
+            "<digits>] (C)33(X)",
+            "<digits>] (C)34(X)",
+            "<digits>] (C)35(X)",
+            "<digits>] (C)36(X)",
+            "<digits>] (C)37(X)",
+            "<digits>] (C)38(X)",
+            "<digits>] (C)39(X)",
+            "<digits>] (C)40(X)",
+            "<digits>] (C)(M)41(X)",
+            "<digits>] (M)42(X)",
+            "<digits>] (M)43(X)",
+            "<digits>] (M)44(X)",
+            "<digits>] (M)45(X)",
+            "<digits>] (M)46(X)",
+            "<digits>] (M)47(X)",
+            "<digits>] (M)48(X)",
+            "<digits>] (M)49(X)",
+            "<digits>] (M)50(X)",
+            "<digits>] (M)(Y)51(X)",
+            "<digits>] (Y)52(X)",
+            "<digits>] (Y)53(X)",
+            "<digits>] (Y)54(X)",
+            "<digits>] (Y)55(X)",
+            "<digits>] (Y)56(X)",
+            "<digits>] (Y)57(X)",
+            "<digits>] (Y)58(X)",
+            "<digits>] (Y)59(X)",
+            "<digits>] (Y)60(X)",
+            "<digits>] (Y)(X)",
+            "<digits>] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec",
+            "<digits>] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)",
+            "101/<digits>] ============================== test =============================="
           )
         )
       }
@@ -405,68 +405,68 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           normalize(res4.out0),
           List(
             "============================== test.printColors ==============================",
-            "1] test.printColors (C)1(X)",
-            "1] (C)2(X)",
-            "1] (C)3(X)",
-            "1] (C)4(X)",
-            "1] (C)5(X)",
-            "1] (C)6(X)",
-            "1] (C)7(X)",
-            "1] (C)8(X)",
-            "1] (C)9(X)",
-            "1] (C)10(X)",
-            "1] (C)(M)11(X)",
-            "1] (M)12(X)",
-            "1] (M)13(X)",
-            "1] (M)14(X)",
-            "1] (M)15(X)",
-            "1] (M)16(X)",
-            "1] (M)17(X)",
-            "1] (M)18(X)",
-            "1] (M)19(X)",
-            "1] (M)20(X)",
-            "1] (M)(Y)21(X)",
-            "1] (Y)22(X)",
-            "1] (Y)23(X)",
-            "1] (Y)24(X)",
-            "1] (Y)25(X)",
-            "1] (Y)26(X)",
-            "1] (Y)27(X)",
-            "1] (Y)28(X)",
-            "1] (Y)29(X)",
-            "1] (Y)30(X)",
-            "1] (Y)(R)31(X)",
-            "1] (R)32(X)",
-            "1] (R)33(X)",
-            "1] (R)34(X)",
-            "1] (R)35(X)",
-            "1] (R)36(X)",
-            "1] (R)37(X)",
-            "1] (R)38(X)",
-            "1] (R)39(X)",
-            "1] (R)40(X)",
-            "1] (R)(G)41(X)",
-            "1] (G)42(X)",
-            "1] (G)43(X)",
-            "1] (G)44(X)",
-            "1] (G)45(X)",
-            "1] (G)46(X)",
-            "1] (G)47(X)",
-            "1] (G)48(X)",
-            "1] (G)49(X)",
-            "1] (G)50(X)",
-            "1] (G)(B)51(X)",
-            "1] (B)52(X)",
-            "1] (B)53(X)",
-            "1] (B)54(X)",
-            "1] (B)55(X)",
-            "1] (B)56(X)",
-            "1] (B)57(X)",
-            "1] (B)58(X)",
-            "1] (B)59(X)",
-            "1] (B)60(X)",
-            "1] (B)(X)",
-            "1/1] ============================== test.printColors =============================="
+            "<digits>] test.printColors (C)1(X)",
+            "<digits>] (C)2(X)",
+            "<digits>] (C)3(X)",
+            "<digits>] (C)4(X)",
+            "<digits>] (C)5(X)",
+            "<digits>] (C)6(X)",
+            "<digits>] (C)7(X)",
+            "<digits>] (C)8(X)",
+            "<digits>] (C)9(X)",
+            "<digits>] (C)10(X)",
+            "<digits>] (C)(M)11(X)",
+            "<digits>] (M)12(X)",
+            "<digits>] (M)13(X)",
+            "<digits>] (M)14(X)",
+            "<digits>] (M)15(X)",
+            "<digits>] (M)16(X)",
+            "<digits>] (M)17(X)",
+            "<digits>] (M)18(X)",
+            "<digits>] (M)19(X)",
+            "<digits>] (M)20(X)",
+            "<digits>] (M)(Y)21(X)",
+            "<digits>] (Y)22(X)",
+            "<digits>] (Y)23(X)",
+            "<digits>] (Y)24(X)",
+            "<digits>] (Y)25(X)",
+            "<digits>] (Y)26(X)",
+            "<digits>] (Y)27(X)",
+            "<digits>] (Y)28(X)",
+            "<digits>] (Y)29(X)",
+            "<digits>] (Y)30(X)",
+            "<digits>] (Y)(R)31(X)",
+            "<digits>] (R)32(X)",
+            "<digits>] (R)33(X)",
+            "<digits>] (R)34(X)",
+            "<digits>] (R)35(X)",
+            "<digits>] (R)36(X)",
+            "<digits>] (R)37(X)",
+            "<digits>] (R)38(X)",
+            "<digits>] (R)39(X)",
+            "<digits>] (R)40(X)",
+            "<digits>] (R)(G)41(X)",
+            "<digits>] (G)42(X)",
+            "<digits>] (G)43(X)",
+            "<digits>] (G)44(X)",
+            "<digits>] (G)45(X)",
+            "<digits>] (G)46(X)",
+            "<digits>] (G)47(X)",
+            "<digits>] (G)48(X)",
+            "<digits>] (G)49(X)",
+            "<digits>] (G)50(X)",
+            "<digits>] (G)(B)51(X)",
+            "<digits>] (B)52(X)",
+            "<digits>] (B)53(X)",
+            "<digits>] (B)54(X)",
+            "<digits>] (B)55(X)",
+            "<digits>] (B)56(X)",
+            "<digits>] (B)57(X)",
+            "<digits>] (B)58(X)",
+            "<digits>] (B)59(X)",
+            "<digits>] (B)60(X)",
+            "<digits>] (B)(X)",
+            "1/<digits>] ============================== test.printColors =============================="
           )
         )
       }
