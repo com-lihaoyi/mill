@@ -202,7 +202,7 @@ private[mill] class PromptLogger(
 
           def printPrefixed(prefix: String, line: Array[Byte]) = {
             streams.err.print(infoColor(prefix))
-            if (line.nonEmpty) streams.err.print(" ")
+            if (line.nonEmpty && prefix.nonEmpty) streams.err.print(" ")
             // Make sur we flush after each write, because we are possibly writing to stdout
             // and stderr in quick succession so we want to try our best to ensure the order
             // is preserved and doesn't get messed up by buffering in the streams
