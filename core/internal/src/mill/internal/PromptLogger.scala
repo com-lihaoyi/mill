@@ -152,9 +152,7 @@ private[mill] class PromptLogger(
     // re-apply them after every line prefix. This helps ensure the line prefix color/resets does
     // not muck up the rendering of color sequences that affect multiple lines in the terminal
     private var endOfLastLineColor: Long = 0
-
-    val resetEol = scala.Console.RESET.getBytes ++ "\n".getBytes
-    val eol = "\n".getBytes
+    val resetBytes = fansi.Color.Reset.escape.getBytes
 
     override def logPrefixedLine(
         key: Seq[String],
@@ -164,7 +162,7 @@ private[mill] class PromptLogger(
       val logStream = if (logToOut) streams.out else streams.err
       if (enableTicker) {
         val (lines, seenBefore, res) = PromptLogger.this.synchronized {
-          val lines0 = Util.splitBytesDropEOL(logMsg.toByteArray)
+          val lines0 = Util.splitPreserveEOL(logMsg.toByteArray)
           val seenBefore = reportedIdentifiers(key)
           val res =
             if (reportedIdentifiers(key) && lines0.isEmpty) None
@@ -174,8 +172,14 @@ private[mill] class PromptLogger(
             }
 
           val lines = for (line <- lines0) yield {
+            val (lineNoEol, eol) = line.indexWhere(c => c == '\n' || c == '\r') match {
+              // Some lines may not have an EOL, in which case eol is empty string
+              case -1 => (line, Array.empty[Byte])
+              case eolIndex => line.splitAt(eolIndex)
+            }
+
             val continuationColoredLine =
-              fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes ++ line
+              fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes ++ lineNoEol
 
             // Make sure we add a suffix "x" to the `bufferString` before computing the last
             // color. This ensures that any trailing colors in the original `bufferString` do not
@@ -190,7 +194,7 @@ private[mill] class PromptLogger(
             endOfLastLineColor = endOfCurrentLineColor
 
             if (endOfCurrentLineColor == 0) continuationColoredLine ++ eol
-            else continuationColoredLine ++ resetEol
+            else continuationColoredLine ++ resetBytes ++ eol
           }
 
           (lines, seenBefore, res)

@@ -14,7 +14,7 @@ object YamlBuildKeyTests extends UtestIntegrationTestSuite {
 
       assert(res.isSuccess == false)
       val expectedError =
-        "invalid build config in `build.mill`: key \"invalidKey\" does not override any task"
+        "invalid build config in `mill-build/build.mill`: key \"invalidKey\" does not override any task"
       assert(res.err.contains(expectedError))
       // make sure we truncate the exception to the relevant bits
       assert(res.err.linesIterator.toList.length < 20)

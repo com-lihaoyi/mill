@@ -39,9 +39,11 @@ private[mill] class SimpleLogger(
         logMsg: java.io.ByteArrayOutputStream,
         logToOut: Boolean
     ): Unit = {
-      val bytes = Logger.formatPrefix(key).getBytes ++ logMsg.toByteArray
-      if (logToOut) unprefixedStreams.out.write(bytes)
-      else unprefixedStreams.err.write(bytes)
+      if (logMsg.size() != 0) {
+        val bytes = Logger.formatPrefix(key).getBytes ++ logMsg.toByteArray
+        if (logToOut) unprefixedStreams.out.write(bytes)
+        else unprefixedStreams.err.write(bytes)
+      }
     }
     override def enableTicker = true
   }

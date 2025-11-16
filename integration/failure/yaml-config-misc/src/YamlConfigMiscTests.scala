@@ -14,6 +14,18 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       assert(res.err.contains("trait package_ extends mill.javalib.JavaModuleTypod"))
       assert(res.err.contains("type JavaModuleTypod is not a member of mill.javalib"))
 
+      tester.modifyFile(
+        tester.workspacePath / "mispelledextends/package.mill.yaml",
+        _ => "mill-version: 1.0.0\nextends: [mill.javalib.JavaModule]"
+      )
+
+      val res2 = tester.eval("mispelledextends.compile")
+      assert(res2.err.contains(
+        "invalid build config in `mispelledextends/package.mill.yaml`: key \"mill-version\" does not override any task"
+      ))
+      assert(res2.err.contains(
+        "Note that key \"mill-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"
+      ))
     }
   }
 }

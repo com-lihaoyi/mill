@@ -56,6 +56,6 @@ private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStr
   }
 
   override def close(): Unit = {
-    flush()
+    writeOutBuffer()
   }
 }
