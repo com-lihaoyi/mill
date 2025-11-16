@@ -72,7 +72,9 @@ trait IntegrationTesterBase {
 
     // In case someone manually ran stuff in the integration test workspace earlier,
     // remove any leftover `out/` folder so it does not interfere with the test
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) os.remove.all(workspacePath / "out")
+    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
+      os.remove.all(workspacePath / "out")
+    }
   }
 
   /**

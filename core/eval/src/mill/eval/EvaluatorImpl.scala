@@ -148,7 +148,6 @@ final class EvaluatorImpl private[mill] (
 
           val invalidBuildOverrides = moduleBuildOverrides
             .filter(!moduleTaskNames.contains(_))
-            .filter(!_.contains('-'))
 
           Option.when(invalidBuildOverrides.nonEmpty) {
             val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")

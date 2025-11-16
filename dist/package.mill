@@ -239,7 +239,7 @@ object `package` extends MillJavaModule with DistModule {
       case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.run")
       case wd0 +: rest =>
         val wd = os.Path(wd0, BuildCtx.workspaceRoot)
-        os.makeDir.all(wd)
+        assert(os.exists(wd))
         try {
           os.call(
             cmd = (launcher().path.toString, rest),
