@@ -18,16 +18,22 @@ import java.io.PrintStream
  *
  * [$parentKeys-$key0] $message
  */
-private[mill] class PrefixLogger(
-    val logger0: Logger,
+private[mill] case class PrefixLogger(
+    logger0: Logger,
     key0: Seq[String],
     override val keySuffix: String = "",
     override val message: String = "",
-    // Disable printing the prefix, but continue reporting the `key` to `reportKey`. Used
+    // Disable printing the prefix, but continue reporting the `key` to `logPrefixedLine`. Used
     // for `exclusive` commands where we don't want the prefix, but we do want the header
     // above the output of every command that gets run so we can see who the output belongs to
-    noPrefix: Boolean = false
+    noPrefix: Boolean = false,
+    redirectOutToErr0: Option[Boolean] = None
 ) extends Logger {
+
+  override val redirectOutToErr = redirectOutToErr0 match {
+    case None => logger0.redirectOutToErr
+    case Some(b) => b
+  }
   private[mill] override val logKey = logger0.logKey ++ key0
 
   assert(key0.forall(_.nonEmpty))
@@ -38,61 +44,56 @@ private[mill] class PrefixLogger(
   override def toString: String =
     s"PrefixLogger($logger0, $key0)"
 
-  def prefixPrintStream(stream: java.io.OutputStream) = {
-    new PrintStream(new LinePrefixOutputStream(
-      prompt.infoColor(linePrefix),
-      stream,
-      () => prompt.reportKey(logKey)
-    ))
+  def prefixPrintStream(logToOut: Boolean) = {
+    new PrintStream(
+      new LineBufferingOutputStream(logMsg => prompt.logPrefixedLine(logKey, logMsg, logToOut))
+    )
   }
   val streams = new SystemStreams(
-    out = prefixPrintStream(logger0.unprefixedStreams.out),
-    err = prefixPrintStream(logger0.unprefixedStreams.err),
+    out = prefixPrintStream(true && !redirectOutToErr),
+    err = prefixPrintStream(false),
     logger0.streams.in
   )
 
   private[mill] override val unprefixedStreams = new SystemStreams(
-    logger0.unprefixedStreams.out,
+    if (redirectOutToErr) logger0.unprefixedStreams.err else logger0.unprefixedStreams.out,
     logger0.unprefixedStreams.err,
     logger0.unprefixedStreams.in
   )
 
-  private def addPrefix(prefix: String, s: String): String =
-    s.linesWithSeparators.map(prefix + _).mkString
+  def baosFor(s: String) = {
+    val baos = new java.io.ByteArrayOutputStream()
+    baos.write(s.getBytes)
+    baos.write('\n')
+    baos
+  }
 
   override def info(s: String): Unit = {
-    prompt.reportKey(logKey)
-    unprefixedStreams.err.println(addPrefix(prompt.infoColor(linePrefix), s))
+    prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
   }
+
   override def warn(s: String): Unit = {
-    prompt.reportKey(logKey)
-    unprefixedStreams.err.println(addPrefix(prompt.warnColor(linePrefix), s))
+    prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
   }
+
   override def error(s: String): Unit = {
-    prompt.reportKey(logKey)
-    unprefixedStreams.err.println(addPrefix(prompt.errorColor(linePrefix), s))
+    prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
   }
+
   override def ticker(s: String): Unit = prompt.setPromptDetail(logKey, s)
 
   def prompt = logger0.prompt
 
   override def debug(s: String): Unit = {
     if (debugEnabled) {
-      if (prompt.debugEnabled) prompt.reportKey(logKey)
-      unprefixedStreams.err.println(addPrefix(prompt.infoColor(linePrefix), s))
+      if (prompt.debugEnabled) {
+        val baos = new java.io.ByteArrayOutputStream()
+        baos.write(s.getBytes)
+        baos.write('\n')
+        prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
+      }
     }
   }
-  override def withOutStream(outStream: PrintStream): Logger = new ProxyLogger(this) with Logger {
-    override lazy val unprefixedStreams = new SystemStreams(
-      outStream,
-      PrefixLogger.this.unprefixedStreams.err,
-      PrefixLogger.this.unprefixedStreams.in
-    )
 
-    override lazy val streams = new SystemStreams(
-      outStream,
-      PrefixLogger.this.streams.err,
-      PrefixLogger.this.streams.in
-    )
-  }
+  override def withRedirectOutToErr() = this.copy(redirectOutToErr0 = Some(true))
 }

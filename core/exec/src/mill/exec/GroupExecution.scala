@@ -658,12 +658,7 @@ object GroupExecution {
             // using java.util.ServiceLoader for example.
             mill.api.ClassLoader.withContextClassLoader(classLoader) {
               if (!exclusive) t
-              else {
-                logger.prompt.reportKey(Seq(counterMsg))
-                logger.prompt.withPromptPaused {
-                  t
-                }
-              }
+              else logger.prompt.withPromptPaused { t }
             }
           }
         }
