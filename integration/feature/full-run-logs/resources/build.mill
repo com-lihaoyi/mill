@@ -42,7 +42,7 @@ object `package` extends JavaModule {
       var out = ""
       val n = 10
       var m = 0
-      for(color <- colors){
+      for (color <- colors) {
         out += color
         for (i <- 0 until n) {
           m += 1

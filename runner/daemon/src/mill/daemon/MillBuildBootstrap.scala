@@ -108,7 +108,7 @@ class MillBuildBootstrap(
                     frames,
                     Some(error),
                     None,
-                    bootstrapEvalWatched,
+                    bootstrapEvalWatched
                   ) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(
@@ -223,9 +223,10 @@ class MillBuildBootstrap(
                       )
                     ).get
                   )
-                }else if (os.exists(currentRoot / "../build.mill.yaml")){
+                } else if (os.exists(currentRoot / "../build.mill.yaml")) {
                   val parsed = mill.internal.Util.parseYaml(
-                    "build.mill.yaml", os.read(currentRoot / "../build.mill.yaml")
+                    "build.mill.yaml",
+                    os.read(currentRoot / "../build.mill.yaml")
                   ).get
 
                   // For YAML files, extract the mill-build key if it exists, otherwise use empty map
@@ -237,7 +238,9 @@ class MillBuildBootstrap(
                 } else Map()
 
               val staticBuildOverrides =
-                staticBuildOverrides0 ++ nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
+                staticBuildOverrides0 ++ nestedState.frames.lastOption.fold(Map())(
+                  _.staticBuildOverrides
+                )
               Using.resource(makeEvaluator(
                 topLevelProjectRoot,
                 output,

@@ -9,7 +9,6 @@ import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
 import mill.resolve.{ParseArgs, Resolve}
-import pprint.Util.literalize
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -150,9 +149,11 @@ final class EvaluatorImpl private[mill] (
           val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
 
           val invalidBuildOverrides =
-            if (filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "mill-build/build.mill.yaml"){
+            if (
+              filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "mill-build/build.mill.yaml"
+            ) {
               invalidBuildOverrides0.filter(!_.startsWith("mill-"))
-            }else invalidBuildOverrides0
+            } else invalidBuildOverrides0
 
           Option.when(invalidBuildOverrides.nonEmpty) {
             val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
