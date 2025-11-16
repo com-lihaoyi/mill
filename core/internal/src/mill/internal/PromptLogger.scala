@@ -212,17 +212,25 @@ private[mill] class PromptLogger(
           }
 
           if (!seenBefore) {
-            val combineMessageAndLog =
-              longPrefix.length + 1 + lines.head.length <
-                termDimensions._1.getOrElse(defaultTermWidth)
+            lines match {
+              case Seq(firstLine, restLines*) =>
+                val combineMessageAndLog =
+                  longPrefix.length + 1 + firstLine.length <
+                    termDimensions._1.getOrElse(defaultTermWidth)
 
-            if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), lines.head)
-            else {
-              streams.err.print(infoColor(longPrefix))
-              streams.err.print('\n')
-              printPrefixed(infoColor(prefix), lines.head)
+                if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), firstLine)
+                else {
+                  streams.err.print(infoColor(longPrefix))
+                  streams.err.print('\n')
+                  printPrefixed(infoColor(prefix), firstLine)
+                }
+                restLines.foreach { l => printPrefixed(infoColor(prefix), l) }
+
+              case Seq() =>
+                streams.err.print(infoColor(longPrefix))
+                streams.err.print("\n")
+                streams.err.flush()
             }
-            lines.tail.foreach { l => printPrefixed(infoColor(prefix), l) }
           } else {
             lines.foreach { l => printPrefixed(infoColor(prefix), l) }
           }

@@ -4,8 +4,14 @@ import org.junit.Test;
 
 
 public class FooTest {
+  public static void main(String[] args){
+    printAll();
+  }
   @Test
   public void testSimple() {
+    printAll();
+  }
+  public static void printAll(){
     final String RED = "\u001b[31m";
     final String GREEN = "\u001B[32m";
     final String BLUE = "\u001b[34m";
@@ -13,38 +19,19 @@ public class FooTest {
     final String MAGENTA = "\u001b[35m";
     final String YELLOW = "\u001b[33m";
     final String RESET = "\u001B[0m";
-    String out = RED;
+    final String[] colors = {RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW};
+    String out = "";
     int m = 0;
     int n = 10;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
+    String prefix = "ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_";
+    for(String color : colors){
+      out += color;
+      for(int i = 0; i < n; i += 1) {
+        m += 1;
+        out += prefix + m + "\n";
+      }
     }
-    out += GREEN;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
-    out += BLUE;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
-    out += CYAN;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
-    out += MAGENTA;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
-    out += YELLOW;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
+
     out += RESET;
     System.out.println(out);
   }
