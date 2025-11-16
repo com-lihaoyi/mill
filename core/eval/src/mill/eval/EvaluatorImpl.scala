@@ -152,7 +152,16 @@ final class EvaluatorImpl private[mill] (
           Option.when(invalidBuildOverrides.nonEmpty) {
             val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
             val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
-            s"invalid build config in `$filePath`: key $pretty does not override any task"
+            val millKeys = invalidBuildOverrides
+              .filter(_.startsWith("mill-"))
+              .map(pprint.Util.literalize(_))
+
+            val suffix =
+              if (millKeys.isEmpty) ""
+              else
+                s"\nNote that key ${millKeys.mkString(", ")} can only be used in your root `build.mill` or `build.mill.yaml` file"
+
+            s"invalid build config in `$filePath`: key $pretty does not override any task$suffix"
           }
         }
 
