@@ -11,7 +11,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
   def normalize(s: String) = s.replace('\\', '/')
     .replaceAll("\\d+]", "<digits>]")
-    .replaceAll("\\d+\\.\\d+", " ...")
+    .replaceAll("\\d+]", "<digits>]")
+    .replaceAll("\\d+/\\d+", ".../...")
     .replaceAll(" \\d+s", "")
     .linesIterator
     .toList
@@ -109,7 +110,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "<digits>] [error] src/foo/Foo.java:36:10",
           "<digits>] reached end of file while parsing",
           "<digits>] compile task failed",
-          "54/54, 1 failed] ============================== jar ==============================",
+          ".../..., 1 failed] ============================== jar ==============================",
           "1 tasks failed",
           "<digits>] compile javac returned non-zero exit code"
         )
@@ -132,7 +133,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] [E<digits>] Illegal start of toplevel definition",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] compile task failed",
-          "65/65, 1 failed] ============================== jar ==============================",
+          ".../..., 1 failed] ============================== jar ==============================",
           "1 tasks failed",
           "build.mill-<digits>] compile Compilation failed"
         )
@@ -246,8 +247,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "(Y)59(X)",
           "(Y)60(X)",
           "(Y)(X)",
-          "Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec",
-          "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)"
+          "Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took 0.005 sec",
+          "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total, 0.007s(X)"
         )
       )
       // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
@@ -321,8 +322,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "<digits>] (Y)59(X)",
             "<digits>] (Y)60(X)",
             "<digits>] (Y)(X)",
-            "<digits>] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took  ... sec",
-            "<digits>] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)",
+            "<digits>] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took 0.005 sec",
+            "<digits>] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total, 0.006s(X)",
             "101/<digits>] ============================== test =============================="
           )
         )
