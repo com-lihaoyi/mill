@@ -157,7 +157,7 @@ ${expectedSnippets.mkString("\n")}
 
       validateEval(
         expectedSnippets,
-        IntegrationTester.EvalResult(res),
+        res,
         check,
         debugCommandStr
       )
@@ -175,13 +175,13 @@ ${expectedSnippets.mkString("\n")}
 
   def validateEval(
       expectedSnippets: Vector[String],
-      evalResult: IntegrationTester.EvalResult,
+      evalResult: os.CommandResult,
       check: Boolean = true,
       command: String = ""
   ): Unit = {
     if (check) {
-      if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
-      else assert(evalResult.isSuccess)
+      if (expectedSnippets.exists(_.startsWith("error: "))) assert(evalResult.exitCode != 0)
+      else assert(evalResult.exitCode == 0)
     }
 
     val unwrappedExpected = expectedSnippets
@@ -192,7 +192,7 @@ ${expectedSnippets.mkString("\n")}
       .mkString("\n")
 
     def plainTextLines(s: String) =
-      s
+      fansi.Str(s, fansi.ErrorMode.Strip).plainText
         .replace("\\\\", "/") // Convert windows paths in JSON strings to Unix
         .linesIterator
         // Don't bother checking empty lines
@@ -204,7 +204,7 @@ ${expectedSnippets.mkString("\n")}
         )
         .toVector
 
-    val filteredOut = plainTextLines(evalResult.out).mkString("\n")
+    val filteredOut = plainTextLines(evalResult.out.text()).mkString("\n")
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
       Predef.assert(
