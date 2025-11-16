@@ -13,6 +13,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+/\\d+", ".../...")
+    .replaceAll("\\d+\\.\\d+", ".../...")
     .replaceAll(" \\d+s", "")
     .linesIterator
     .toList
@@ -247,8 +248,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "(Y)59(X)",
           "(Y)60(X)",
           "(Y)(X)",
-          "Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took 0.005 sec",
-          "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total, 0.007s(X)"
+          "Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took .../... sec",
+          "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total, .../...s(X)"
         )
       )
       // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
@@ -322,8 +323,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "<digits>] (Y)59(X)",
             "<digits>] (Y)60(X)",
             "<digits>] (Y)(X)",
-            "<digits>] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took 0.005 sec",
-            "<digits>] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total, 0.006s(X)",
+            "<digits>] Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took .../... sec",
+            "<digits>] (B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total, .../...s(X)",
             "101/<digits>] ============================== test =============================="
           )
         )
