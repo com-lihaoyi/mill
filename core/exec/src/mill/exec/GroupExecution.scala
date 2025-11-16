@@ -1,7 +1,6 @@
 package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
-
 import mill.api.*
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
@@ -12,6 +11,8 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+
+import java.io.ByteArrayOutputStream
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -658,7 +659,12 @@ object GroupExecution {
             // using java.util.ServiceLoader for example.
             mill.api.ClassLoader.withContextClassLoader(classLoader) {
               if (!exclusive) t
-              else logger.prompt.withPromptPaused { t }
+              else {
+                logger.prompt.logPrefixedLine(Seq(counterMsg), new ByteArrayOutputStream(), false)
+                logger.prompt.withPromptPaused {
+                  t
+                }
+              }
             }
           }
         }

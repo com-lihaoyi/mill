@@ -2,6 +2,14 @@ package build
 import mill._, javalib._
 
 object `package` extends JavaModule {
+  def exclusiveCommand1() = Task.Command(exclusive = true){
+//    println("Hello")
+//    println("Exclusive")
+  }
+  def exclusiveCommand2() = Task.Command(exclusive = true){
+    println("Hello")
+    println("Exclusive")
+  }
   def mvnDeps = Seq(
     mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",

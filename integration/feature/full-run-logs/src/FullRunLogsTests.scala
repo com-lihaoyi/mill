@@ -58,6 +58,29 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         )
       )
     }
+    test("exclusive") - integrationTest { tester =>
+      import tester._
+
+      val res = eval(("--ticker", "true", "{exclusiveCommand1,exclusiveCommand2}"))
+      res.isSuccess ==> true
+
+      assertGoldenLiteral(
+        normalize(res.out),
+        List("<h<digits>>hello</h<digits>>")
+      )
+
+      assertGoldenLiteral(
+        normalize(res.err),
+        List(
+          "============================== run --text hello ==============================",
+          "build.mill-<digits>] compile compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          "<digits>] compile compiling <digits> Java source to out/compile.dest/classes ...",
+          "<digits>] done compiling",
+          "<digits>] run <digits>/<digits>] ============================== run --text hello ============================== <digits>s"
+        )
+      )
+    }
     test("keepGoingFailure") - integrationTest { tester =>
       import tester._
 
