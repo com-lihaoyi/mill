@@ -122,7 +122,6 @@ final class EvaluatorImpl private[mill] (
         val allModules = f.map(_.ctx.enclosingModule).distinct
         val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
         val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
-
         val errors = allModules.flatMap { module =>
           val discover = module match {
             case x: ExternalModule => x.millDiscover
@@ -151,7 +150,7 @@ final class EvaluatorImpl private[mill] (
           val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
 
           val invalidBuildOverrides =
-            if (filePath == os.sub / "build.mill" || filePath == os.sub / "build.mill.yaml"){
+            if (filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "mill-build/build.mill.yaml"){
               invalidBuildOverrides0.filter(!_.startsWith("mill-"))
             }else invalidBuildOverrides0
 

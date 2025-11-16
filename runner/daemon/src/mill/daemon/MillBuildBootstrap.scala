@@ -137,7 +137,7 @@ class MillBuildBootstrap(
             else {
               mill.api.ExecResult.catchWrapException {
                 new MillBuildRootModule.BootstrapModule(
-                  (currentRoot / ".." / foundRootBuildFileName).toString
+                  (currentRoot / foundRootBuildFileName).toString
                 )(
                   using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
                 )
@@ -215,22 +215,21 @@ class MillBuildBootstrap(
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
             case Result.Success(buildFileApi) =>
 
-
-              val staticBuildOverrides: Map[String, ujson.Value] =
-                if (os.exists(currentRoot / "build.mill")) {
+              val staticBuildOverrides0: Map[String, ujson.Value] =
+                if (os.exists(currentRoot / "../build.mill")) {
                   // For non-YAML files (build.mill), use the entire parsed header data
                   upickle.read[Map[String, ujson.Value]](
                     mill.internal.Util.parseYaml(
                       "build.mill",
                       mill.constants.Util.readBuildHeader(
-                        (currentRoot / "build.mill").toNIO,
+                        (currentRoot / "../build.mill").toNIO,
                         "build.mill"
                       )
                     ).get
                   )
-                }else if (os.exists(currentRoot / "build.mill.yaml")){
+                }else if (os.exists(currentRoot / "../build.mill.yaml")){
                   val parsed = mill.internal.Util.parseYaml(
-                    "build.mill.yaml", os.read(currentRoot / "build.mill.yaml")
+                    "build.mill.yaml", os.read(currentRoot / "../build.mill.yaml")
                   ).get
 
                   // For YAML files, extract the mill-build key if it exists, otherwise use empty map
@@ -241,8 +240,8 @@ class MillBuildBootstrap(
                   }
                 } else Map()
 
-              pprint.log(staticBuildOverrides)
-
+              val staticBuildOverrides =
+                staticBuildOverrides0 ++ nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
               Using.resource(makeEvaluator(
                 topLevelProjectRoot,
                 output,
