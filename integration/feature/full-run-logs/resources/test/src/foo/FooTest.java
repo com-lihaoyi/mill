@@ -22,8 +22,8 @@ public class FooTest {
     final String[] colors = {RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW};
     String out = "";
     int m = 0;
-    int n = 3;
-    String prefix = "ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ";
+    int n = 10;
+    String prefix = "ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_";
     for(String color : colors){
       out += color;
       for(int i = 0; i < n; i += 1) {

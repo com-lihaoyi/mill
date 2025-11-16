@@ -46,7 +46,7 @@ object `package` extends JavaModule {
         out += color
         for (i <- 0 until n) {
           m += 1
-          out += "ABCDEFGHIJ" * 8 + m + "\n"
+          out += "ABCDEFGHIJ" * 5 + "_" + m + "\n"
         }
       }
       out += RESET
