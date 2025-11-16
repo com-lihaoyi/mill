@@ -9,6 +9,7 @@ import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
 import mill.resolve.{ParseArgs, Resolve}
+import pprint.Util.literalize
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -146,20 +147,25 @@ final class EvaluatorImpl private[mill] (
             }
           }
 
-          val invalidBuildOverrides = moduleBuildOverrides
-            .filter(!moduleTaskNames.contains(_))
+          val invalidBuildOverrides0 = moduleBuildOverrides.filter(!moduleTaskNames.contains(_))
+          val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
+
+          val invalidBuildOverrides =
+            if (filePath == os.sub / "build.mill" || filePath == os.sub / "build.mill.yaml"){
+              invalidBuildOverrides0.filter(!_.startsWith("mill-"))
+            }else invalidBuildOverrides0
 
           Option.when(invalidBuildOverrides.nonEmpty) {
             val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-            val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
-            val millKeys = invalidBuildOverrides
+
+            val invalidMillKeys = invalidBuildOverrides
               .filter(_.startsWith("mill-"))
               .map(pprint.Util.literalize(_))
 
             val suffix =
-              if (millKeys.isEmpty) ""
+              if (invalidMillKeys.isEmpty) ""
               else
-                s"\nNote that key ${millKeys.mkString(", ")} can only be used in your root `build.mill` or `build.mill.yaml` file"
+                s"\nNote that key ${invalidMillKeys.mkString(", ")} can only be used in your root `build.mill` or `build.mill.yaml` file"
 
             s"invalid build config in `$filePath`: key $pretty does not override any task$suffix"
           }
