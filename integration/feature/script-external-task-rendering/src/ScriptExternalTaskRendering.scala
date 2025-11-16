@@ -26,7 +26,7 @@ object ScriptExternalTaskRendering extends UtestIntegrationTestSuite {
       assert(planRun.out.linesIterator.toSeq.contains("Script.java:compile"))
 
       val resolveScript = eval(("resolve", "Script.java"))
-      assert(resolveScript.out.linesIterator.toSeq.contains("Script.java"))
+      assert(resolveScript.out.linesIterator.toSeq.contains("Script.java:"))
 
       val planScript = eval(("plan", "Script.java"))
       assert(planScript.out.linesIterator.toSeq.contains("Script.java:run"))

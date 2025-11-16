@@ -160,7 +160,8 @@ ${expectedSnippets.mkString("\n")}
         IntegrationTester.EvalResult(
           res.exitCode,
           fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
-          fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
+          fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText,
+          trim = false
         ),
         check,
         debugCommandStr
