@@ -440,7 +440,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       retry(3) { // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
         val res4 = eval(("-i", "--ticker", "true", "test.printColorsExclusive"), mergeErrIntoOut = true)
 
-        pprint.log(res4.err)
         assertGoldenLiteral(
           normalize(res4.out0),
           List(
