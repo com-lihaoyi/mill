@@ -150,7 +150,7 @@ final class EvaluatorImpl private[mill] (
 
           val invalidBuildOverrides =
             if (
-              filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "mill-build/build.mill.yaml"
+              filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
             ) {
               invalidBuildOverrides0.filter(!_.startsWith("mill-"))
             } else invalidBuildOverrides0
