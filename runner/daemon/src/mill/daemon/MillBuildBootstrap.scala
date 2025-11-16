@@ -109,15 +109,13 @@ class MillBuildBootstrap(
                     Some(error),
                     None,
                     bootstrapEvalWatched,
-                    staticBuildOverrides
                   ) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(
                   bootstrapModuleOpt,
                   frames,
                   Some(msg + "\n" + error),
-                  bootstrapEvalWatched = bootstrapEvalWatched,
-                  staticBuildOverrides = Map()
+                  bootstrapEvalWatched = bootstrapEvalWatched
                 )
               case state => state
             }
@@ -148,8 +146,7 @@ class MillBuildBootstrap(
                     Nil,
                     None,
                     Some(foundRootBuildFileName),
-                    Seq(bootstrapEvalWatched),
-                    Map()
+                    Seq(bootstrapEvalWatched)
                   )
                 case Result.Failure(msg) =>
                   RunnerState(
@@ -157,8 +154,7 @@ class MillBuildBootstrap(
                     Nil,
                     Some(msg),
                     Some(foundRootBuildFileName),
-                    Seq(bootstrapEvalWatched),
-                    Map()
+                    Seq(bootstrapEvalWatched)
                   )
               }
 

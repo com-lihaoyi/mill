@@ -57,7 +57,7 @@ case class RunnerState(
 
 object RunnerState {
 
-  def empty: RunnerState = RunnerState(None, Nil, None, staticBuildOverrides = Map())
+  def empty: RunnerState = RunnerState(None, Nil, None)
 
   @internal
   case class Frame(
