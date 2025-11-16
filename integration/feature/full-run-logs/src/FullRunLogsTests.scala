@@ -250,9 +250,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)"
         )
       )
-      retry(
-        3
-      ) { // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
+      // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
+      retry(3) {
         val res2 = eval(("-i", "--ticker", "true", "test"), mergeErrIntoOut = true)
         assertGoldenLiteral(
           normalize(res2.out0),
@@ -398,9 +397,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         )
       )
 
-      retry(
-        3
-      ) { // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
+      // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
+      retry(3) {
         val res4 = eval(("-i", "--ticker", "true", "test.printColors"), mergeErrIntoOut = true)
 
         assertGoldenLiteral(
