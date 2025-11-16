@@ -38,37 +38,16 @@ object `package` extends JavaModule {
       val MAGENTA = "\u001b[35m"
       val YELLOW = "\u001b[33m"
       val RESET = "\u001B[0m"
-      var out = CYAN
+      val colors = Seq(RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW)
+      var out = ""
       val n = 10
       var m = 0
-      for (i <- 0 until n) {
-        m += 1
-        out += "" + m + "\n"
-      }
-      out += MAGENTA
-      for (i <- 0 until n) {
-        m += 1
-        out += "" + m + "\n"
-      }
-      out += YELLOW
-      for (i <- 0 until n) {
-        m += 1
-        out += "" + m + "\n"
-      }
-      out += RED
-      for (i <- 0 until n) {
-        m += 1
-        out += "" + m + "\n"
-      }
-      out += GREEN
-      for (i <- 0 until n) {
-        m += 1
-        out += "" + m + "\n"
-      }
-      out += BLUE
-      for (i <- 0 until n) {
-        m += 1
-        out += "" + m + "\n"
+      for(color <- colors){
+        out += color
+        for (i <- 0 until n) {
+          m += 1
+          out += "0123456789" * 8 + m + "\n"
+        }
       }
       out += RESET
       System.out.println(out)

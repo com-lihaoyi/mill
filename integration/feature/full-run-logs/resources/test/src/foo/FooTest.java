@@ -13,38 +13,19 @@ public class FooTest {
     final String MAGENTA = "\u001b[35m";
     final String YELLOW = "\u001b[33m";
     final String RESET = "\u001B[0m";
-    String out = RED;
+    final String[] colors = {RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW};
+    String out = "";
     int m = 0;
     int n = 10;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
+    String prefix = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+    for(String color : colors){
+      out += color;
+      for(int i = 0; i < n; i += 1) {
+        m += 1;
+        out += prefix + m + "\n";
+      }
     }
-    out += GREEN;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
-    out += BLUE;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
-    out += CYAN;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
-    out += MAGENTA;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
-    out += YELLOW;
-    for(int i = 0; i < n; i += 1) {
-      m += 1;
-      out += m + "\n";
-    }
+
     out += RESET;
     System.out.println(out);
   }
