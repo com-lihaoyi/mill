@@ -134,8 +134,8 @@ class ExampleTester(
     Console.err.println(debugCommandStr)
     Console.err.println(
       s"""--- Expected output ----------
-         |${expectedSnippets.mkString("\n")}
-         |------------------------------""".stripMargin
+${expectedSnippets.mkString("\n")}
+------------------------------"""
     )
 
     val windowsPathEnv =
@@ -215,9 +215,9 @@ class ExampleTester(
         filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
         (if (command == "") "" else s"==== command:\n$command\n") +
           s"""==== filteredOut:
-             |$filteredOut
-             |==== Missing expectedLine:
-             |$expectedLine""".stripMargin
+$filteredOut
+==== Missing expectedLine:
+$expectedLine"""
       )
     }
   }
