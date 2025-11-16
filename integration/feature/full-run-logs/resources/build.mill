@@ -2,13 +2,35 @@ package build
 import mill._, javalib._
 
 object `package` extends JavaModule {
+
+  object exclusives extends Module {
+
+    def printingA() = Task.Command(exclusive = true) {
+      println("Hello A")
+    }
+    def empty() = Task.Command(exclusive = true) {
+      printingA()()
+    }
+    def printingB() = Task.Command(exclusive = true) {
+      empty()()
+      println("Hello B")
+      println("World B")
+    }
+    def printingC() = Task.Command(exclusive = true) {
+      printingB()()
+      println("Hello C")
+      println("World C")
+      println("Exclusive C")
+    }
+  }
+
   def mvnDeps = Seq(
     mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
     mvn"org.slf4j:slf4j-simple:2.0.9"
   )
   object test extends JavaTests with TestModule.Junit4 {
-    def printColors() = Task.Command {
+    def printColors() = Task.Command() {
       val RED = "\u001b[31m"
       val GREEN = "\u001B[32m"
       val BLUE = "\u001b[34m"
