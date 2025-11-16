@@ -16,7 +16,7 @@ bsp-init-107] compiling * Scala source to * ...
 bsp-init-107] done compiling
 bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
 bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
-1] bsp-init] SNAPSHOT
+bsp-init] SNAPSHOT
 2-workspaceBuildTargets] Entered workspaceBuildTargets
 bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
 bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
