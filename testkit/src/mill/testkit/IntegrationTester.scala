@@ -38,10 +38,11 @@ object IntegrationTester {
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
    */
-  case class EvalResult(exitCode: Int, out0: String, err0: String, trim: Boolean) {
+  case class EvalResult(result: os.CommandResult) {
+    def exitCode: Int = result.exitCode
     private def cleanup(s: String) = fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
-    def out = if (trim) cleanup(out0).trim else cleanup(out0)
-    def err = if (trim) cleanup(err0).trim else cleanup(err0)
+    def out = cleanup(result.out.trim())
+    def err = cleanup(result.err.trim())
     def isSuccess: Boolean = exitCode == 0
 
     def debugString: String = {
@@ -157,12 +158,7 @@ object IntegrationTester {
           shutdownGracePeriod = timeoutGracePeriod
         )
 
-        IntegrationTester.EvalResult(
-          res0.exitCode,
-          res0.out.text(),
-          res0.err.text(),
-          true
-        )
+        IntegrationTester.EvalResult(res0)
       }
       def spawn() = os.spawn(
         cmd = shellable,

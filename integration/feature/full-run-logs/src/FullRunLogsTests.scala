@@ -181,7 +181,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         )
 
       assertGoldenLiteral(
-        normalize(res.out0),
+        normalize(res.result.out.text()),
         List(
           "(B)Test run (X)foo.(Y)FooTest(X)(B) started(X)",
           "Test foo.(Y)FooTest(X).(C)testSimple(X) started",
@@ -254,7 +254,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       retry(3) {
         val res2 = eval(("-i", "--ticker", "true", "test"), mergeErrIntoOut = true)
         assertGoldenLiteral(
-          normalize(res2.out0),
+          normalize(res2.result.out.text()),
           List(
             "============================== test ==============================",
             "<digits>] test.testForked Running Test Class foo.FooTest",
@@ -331,7 +331,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       val res3 = eval(("-i", "--ticker", "true", "test.printColors"))
 
       assertGoldenLiteral(
-        normalize(res3.out0),
+        normalize(res3.result.out.text()),
         List(
           "(C)1(X)",
           "(C)2(X)",
@@ -402,7 +402,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         val res4 = eval(("-i", "--ticker", "true", "test.printColors"), mergeErrIntoOut = true)
 
         assertGoldenLiteral(
-          normalize(res4.out0),
+          normalize(res4.result.out.text()),
           List(
             "============================== test.printColors ==============================",
             "<digits>] test.printColors (C)1(X)",
