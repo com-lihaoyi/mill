@@ -1,0 +1,1223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Play Framework :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/contrib/playlib.html" />
+    <link rel="prev" href="jmh.html" />
+    <link rel="next" href="proguard.html" />
+    <meta name="generator" content="Antora 3.1.12" />
+    <link rel="stylesheet" href="../../../_/css/site.css" />
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
+  
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style></head><body class="article">
+  
+<header class="header">
+  
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs" />
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.1.0-RC1-62-864778">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="3">
+    <a class="nav-link" href="playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.1.0-RC1-62-864778</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.1.0-RC1-62-864778</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.1.0-RC1</a>
+        </li>
+        <li class="version">
+          <a href="../../1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Play Framework</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This module adds basic Play Framework support to mill:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>configures mill for Play default directory layout,</p>
+</li>
+<li>
+<p>integrates the Play routes compiler,</p>
+</li>
+<li>
+<p>provides helpers for commonly used framework libraries,</p>
+</li>
+<li>
+<p>optionally: integrates the Twirl template engine,</p>
+</li>
+<li>
+<p>optionally: configures mill for single module play applications.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>There is no specific Play Java support, building a Play Java application will require a bit
+of customization (mostly adding the proper dependencies).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_the_plugin"><a class="anchor" href="#_using_the_plugin"></a>Using the plugin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are 2 base modules and 2 helper traits in this plugin, all of which can be found
+in <code>mill.playlib</code>.</p>
+</div>
+<div class="paragraph">
+<p>The base modules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>PlayModule</code> applies the default Play configuration (layout, dependencies, routes compilation,
+Twirl compilation and Akka HTTP server)</p>
+</li>
+<li>
+<p><code>PlayApiModule</code> applies the default Play configuration without <code>Twirl</code> templating. This is useful
+if your Play app is a pure API server or if you want to use a different templating engine.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The helper trait:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>RouterModule</code> allows you to use the Play router without the rest of the configuration (see
+<a href="#_using_the_router_module_directly">Using the router module directly</a>.)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_playmodule"><a class="anchor" href="#_using_playmodule"></a>Using <code>PlayModule</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to use the <code>PlayModule</code> for your application, you need to provide the scala, Play and
+Twirl versions. You also need to define your own test object which extends the provided
+<code>PlayTests</code> trait.</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
+import mill._
+import mill.playlib._
+
+object core extends PlayModule {
+    // config
+    override def scalaVersion = Task { &quot;2.13.12&quot; }
+    override def playVersion = Task { &quot;2.8.20&quot; }
+
+    object test extends PlayTests
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Using the above definition, your build will be configured to use the default Play layout:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">.
+├── build.mill
+└── core
+    ├── app
+    │&nbsp;&nbsp; ├── controllers
+    │&nbsp;&nbsp; └── views
+    ├── conf
+    │&nbsp;&nbsp; └── application.conf
+    │&nbsp;&nbsp; └── routes
+    │&nbsp;&nbsp; └── ...
+    ├── logs
+    ├── public
+    │&nbsp;&nbsp; ├── images
+    │&nbsp;&nbsp; ├── javascripts
+    │&nbsp;&nbsp; └── stylesheets
+    └── test
+        └── controllers</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following compile dependencies will automatically be added to your build:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Seq(
+  mvn&quot;com.typesafe.play::play:${playVersion()}&quot;,
+  mvn&quot;com.typesafe.play::play-guice:${playVersion()}&quot;,
+  mvn&quot;com.typesafe.play::play-server:${playVersion()}&quot;,
+  mvn&quot;com.typesafe.play::play-logback:${playVersion()}&quot;
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Scala test will be setup as the default test framework and the following test dependencies will be
+added (the actual version depends on the version of Play you are pulling <code>2.6.x</code> or <code>2.7.x</code>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">mvn&quot;org.scalatestplus.play::scalatestplus-play::5.1.0&quot;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In order to have a working <code>start</code> command the following runtime dependency is also added:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>mvn&quot;com.typesafe.play::play-akka-http-server:${playVersion()}&quot;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>mvn&quot;com.typesafe.play::play-pekko-http-server:${playVersion()}&quot;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>depending on the play version</p>
+</div>
+<div class="sect2">
+<h3 id="_using_playapimodule"><a class="anchor" href="#_using_playapimodule"></a>Using <code>PlayApiModule</code></h3>
+<div class="paragraph">
+<p>The <code>PlayApiModule</code> trait behaves the same as the <code>PlayModule</code> trait but it won’t process .scala
+.html files:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
+import mill._
+import mill.playlib._
+
+object core extends PlayApiModule {
+    // config
+    override def scalaVersion = Task { &quot;2.13.12&quot; }
+    override def playVersion = Task { &quot;2.8.20&quot; }
+
+    object test extends PlayTests
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_play_configuration_options"><a class="anchor" href="#_play_configuration_options"></a>Play configuration options</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Play modules themselves don’t have specific configuration options at this point but the <a href="#_router_configuration_options">router
+module configuration options</a> and the <a href="twirllib.html#_twirl_configuration_options" class="xref page">contrib/twirllib.adoc#_twirl_configuration_options</a> are applicable.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_additional_play_libraries"><a class="anchor" href="#_additional_play_libraries"></a>Additional play libraries</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following helpers are available to provide additional Play Framework dependencies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>core()</code> - added by default ,</p>
+</li>
+<li>
+<p><code>guice()</code> - added by default,</p>
+</li>
+<li>
+<p><code>server()</code> - added by default,</p>
+</li>
+<li>
+<p><code>logback()</code> - added by default,</p>
+</li>
+<li>
+<p><code>evolutions()</code> - optional,</p>
+</li>
+<li>
+<p><code>jdbc()</code> - optional,</p>
+</li>
+<li>
+<p><code>filters()</code> - optional,</p>
+</li>
+<li>
+<p><code>ws()</code> - optional,</p>
+</li>
+<li>
+<p><code>caffeine()</code> - optional.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you want to add an optional library using the helper you can do so by overriding <code>mvnDeps</code>
+like in the following example build:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
+import mill._
+import mill.playlib._
+
+object core extends PlayApiModule {
+    // config
+    override def scalaVersion = Task { &quot;2.13.12&quot; }
+    override def playVersion = Task { &quot;2.8.20&quot; }
+
+    object test extends PlayTests
+
+    override def mvnDeps = Task { super.mvnDeps() ++ Seq(ws(), filters()) }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_commands_equivalence"><a class="anchor" href="#_commands_equivalence"></a>Commands equivalence</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill commands are tasks on a named build. For example if your build is called <code>core</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>compile: <code>core.compile</code></p>
+</li>
+<li>
+<p>run: <em>NOT Implemented yet</em>. It can be approximated with <code>mill -w core.runBackground</code> but this
+starts a server in <em>PROD</em> mode which:</p>
+</li>
+<li>
+<p>doesn’t do any kind of classloading magic (meaning potentially slower restarts)</p>
+</li>
+<li>
+<p>returns less detailed error messages (no source code extract and line numbers)</p>
+</li>
+<li>
+<p>can sometimes fail because of a leftover RUNNING_PID file</p>
+</li>
+<li>
+<p>start: <code>core.start</code> or <code>core.run</code> both start the server in <em>PROD</em> mode.</p>
+</li>
+<li>
+<p>test: <code>core.test</code></p>
+</li>
+<li>
+<p>dist: <em>NOT Implemented yet</em>. However you can use the equivalent <code>core.assembly</code>
+command to get a runnable fat jar of the project. The packaging is slightly different but should
+be find for a production deployment.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_rootmodule"><a class="anchor" href="#_using_rootmodule"></a>Using <code>RootModule</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>RootModule</code> abstract class allows you to have the build descriptor at the same level as the
+source code on the filesystem. You can move from there to a multi-module build either by refactoring
+your directory layout into multiple subdirectories or by using mill’s nested modules feature.</p>
+</div>
+<div class="paragraph">
+<p>Looking back at the sample build definition in <a href="#_using_playmodule">Using <code>PlayModule</code></a>:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
+import mill._
+import mill.playlib._
+
+object core extends PlayModule {
+    // config
+    override def scalaVersion = Task { &quot;2.13.12&quot; }
+    override def playVersion = Task { &quot;2.8.20&quot; }
+
+    object test extends PlayTests
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The directory layout was:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">.
+├── build.mill
+└── core
+    ├── app
+    │&nbsp;&nbsp; ├── controllers
+    │&nbsp;&nbsp; └── views
+    ├── conf
+    │&nbsp;&nbsp; └── application.conf
+    │&nbsp;&nbsp; └── routes
+    │&nbsp;&nbsp; └── ...
+    ├── logs
+    ├── public
+    │&nbsp;&nbsp; ├── images
+    │&nbsp;&nbsp; ├── javascripts
+    │&nbsp;&nbsp; └── stylesheets
+    └── test
+        └── controllers</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>by extending <code>RootModule</code> in your build:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
+import mill._
+import mill.playlib._
+
+object build extends RootModule with PlayModule {
+ // config
+ override def scalaVersion = Task { &quot;2.13.12&quot; }
+ override def playVersion = Task { &quot;2.8.20&quot; }
+
+ object test extends PlayTests
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>the layout becomes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">.
+├── build.mill
+├── app
+│&nbsp;&nbsp; ├── controllers
+│&nbsp;&nbsp; └── views
+├── conf
+│&nbsp;&nbsp; └── application.conf
+│&nbsp;&nbsp; └── routes
+│&nbsp;&nbsp; └── ...
+├── logs
+├── public
+│&nbsp;&nbsp; ├── images
+│&nbsp;&nbsp; ├── javascripts
+│&nbsp;&nbsp; └── stylesheets
+└── test
+    └── controllers</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_the_router_module_directly"><a class="anchor" href="#_using_the_router_module_directly"></a>Using the router module directly</h3>
+<div class="paragraph">
+<p>If you want to use the router module in a project which doesn’t use the default Play layout, you
+can mix-in the <code>mill.playlib.routesModule</code> trait directly when defining your module. Your app must
+define <code>playVersion</code> and <code>scalaVersion</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
+import mill._
+import mill.playlib._
+
+object app extends ScalaModule with RouterModule {
+  def playVersion = Task { &quot;2.8.20&quot; }
+  def scalaVersion = Task { &quot;2.13.12&quot; }
+}</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_router_configuration_options"><a class="anchor" href="#_router_configuration_options"></a>Router Configuration options</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><code>def playVersion: T[String]</code> (mandatory) - The version of Play to use to compile the routes file.</p>
+</li>
+<li>
+<p><code>def scalaVersion: T[String]</code> - The scalaVersion in use in your project.</p>
+</li>
+<li>
+<p><code>def routes: T[Seq[Sources]]</code> - The directory which contains your route files. (Defaults to : <code>routes/</code>)</p>
+</li>
+<li>
+<p><code>def routesAdditionalImport: Seq[String]</code> - Additional imports to use in the generated routers.
+(Defaults to <code>Seq(&quot;controllers.Assets.Asset&quot;, &quot;play.libs.F&quot;)</code></p>
+</li>
+<li>
+<p><code>def generateForwardsRouter: Boolean = true</code> - Enables the forward router generation.</p>
+</li>
+<li>
+<p><code>def generateReverseRouter: Boolean = true</code> - Enables the reverse router generation.</p>
+</li>
+<li>
+<p><code>def namespaceReverseRouter: Boolean = false</code> - Enables the namespacing of reverse routers.</p>
+</li>
+<li>
+<p><code>def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator</code> - The routes
+compiler type, one of RouteCompilerType.InjectedGenerator or RouteCompilerType.StaticGenerator</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_details"><a class="anchor" href="#_details"></a>Details</h4>
+<div class="paragraph">
+<p>The following filesystem layout is expected by default:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">.
+├── app
+│&nbsp;&nbsp; └── routes
+│&nbsp;&nbsp;     └── routes
+└── build.mill</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>RouterModule</code> adds the <code>compileRouter</code> task to the module:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill app.compileRouter</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>(it will be automatically run whenever you compile your module)</p>
+</div>
+<div class="paragraph">
+<p>This task will compile <code>routes</code> templates into the <code>out/app/compileRouter/dest</code>
+directory. This directory must be added to the generated sources of the module to be compiled and
+made accessible from the rest of the code. This is done by default in the trait, but if you need
+to have a custom override for <code>generatedSources</code> you can get the list of files from <code>routerClasses</code></p>
+</div>
+<div class="paragraph">
+<p>To add additional imports to all of the routes:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::mill-contrib-playlib:$MILL_VERSION&quot;]
+package build
+
+import mill.scalalib.*
+import mill.playlib.*
+
+object app extends ScalaModule with RouterModule {
+  def playVersion = &quot;2.8.20&quot;
+  override def routesAdditionalImport = Seq(&quot;my.additional.stuff._&quot;, &quot;my.other.stuff._&quot;)
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="jmh.html">JMH</a></span>
+  <span class="next"><a href="proguard.html">Proguard</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async="async" src="../../../search-index.js"></script>
+  
+</body></html>

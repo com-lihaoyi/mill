@@ -618,6 +618,9 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
+        <li class="version">
+          <a href="../../dev-1.1.0-RC1-62-864778/index.html">dev-1.1.0-RC1-62-864778</a>
+        </li>
         <li class="version is-latest">
           <a href="../../index.html">1.1.0-RC1</a>
         </li>
@@ -697,6 +700,11 @@ trait FooModule extends Cross.Module[String] {
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-360 310.83,-360 310.83,4 -4,4"/>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"/>
+<text text-anchor="middle" x="153.41" y="-99.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 298.83,-232 298.83,-124 8,-124"/>
@@ -706,11 +714,6 @@ trait FooModule extends Cross.Module[String] {
 <title>cluster_0</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 298.83,-348 298.83,-240 8,-240"/>
 <text text-anchor="middle" x="153.41" y="-331.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 298.83,-116 298.83,-8 8,-8"/>
-<text text-anchor="middle" x="153.41" y="-99.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -991,15 +994,15 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"/>
 <text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
 </g>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"/>
-<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_0</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"/>
 <text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 128.64,-146 128.64,-81 8,-81"/>
+<text text-anchor="middle" x="68.32" y="-129.4" font-family="Times,serif" font-size="14.00">foo[2.11]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
@@ -1104,15 +1107,15 @@ trait BarModule extends Cross.Module[String] {
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 300.72,-231 300.72,4 -4,4"/>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"/>
+<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
+</g>
 <g id="clust1" class="cluster">
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 128.64,-73 128.64,-8 8,-8"/>
 <text text-anchor="middle" x="68.32" y="-56.4" font-family="Times,serif" font-size="14.00">foo[2.12]</text>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"/>
-<text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
@@ -1124,15 +1127,15 @@ trait BarModule extends Cross.Module[String] {
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-81 148.64,-146 288.72,-146 288.72,-81 148.64,-81"/>
 <text text-anchor="middle" x="218.68" y="-129.4" font-family="Times,serif" font-size="14.00">bar[2.11]</text>
 </g>
+<g id="clust5" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-8 148.64,-73 288.72,-73 288.72,-8 148.64,-8"/>
+<text text-anchor="middle" x="218.68" y="-56.4" font-family="Times,serif" font-size="14.00">bar[2.12]</text>
+</g>
 <g id="clust6" class="cluster">
 <title>cluster_3</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="148.64,-154 148.64,-219 288.72,-219 288.72,-154 148.64,-154"/>
 <text text-anchor="middle" x="218.68" y="-202.4" font-family="Times,serif" font-size="14.00">bar[2.10]</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 128.64,-219 128.64,-154 8,-154"/>
-<text text-anchor="middle" x="68.32" y="-202.4" font-family="Times,serif" font-size="14.00">foo[2.10]</text>
 </g>
 <!-- foo[2.12].suffix -->
 <g id="node1" class="node">
