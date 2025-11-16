@@ -131,17 +131,26 @@ class MillBuildBootstrap(
             bootstrapEvalWatched0.quick,
             bootstrapEvalWatched0.sig
           )
-          val headerData =
-            if (!os.exists(topLevelProjectRoot / foundRootBuildFileName)) ""
-            else mill.constants.Util.readBuildHeader(
-              (topLevelProjectRoot / foundRootBuildFileName).toNIO,
-              foundRootBuildFileName
-            )
 
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
-              mill.internal.Util.parseYaml(foundRootBuildFileName, headerData) match {
+              mill.api.ExecResult.catchWrapException {
+                new MillBuildRootModule.BootstrapModule(
+                  (currentRoot / ".." / foundRootBuildFileName).toString
+                )(
+                  using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
+                )
+              } match {
+                case Result.Success(bootstrapModule) =>
+                  RunnerState(
+                    Some(bootstrapModule),
+                    Nil,
+                    None,
+                    Some(foundRootBuildFileName),
+                    Seq(bootstrapEvalWatched),
+                    Map()
+                  )
                 case Result.Failure(msg) =>
                   RunnerState(
                     None,
@@ -151,51 +160,8 @@ class MillBuildBootstrap(
                     Seq(bootstrapEvalWatched),
                     Map()
                   )
-                case Result.Success(buildOverrides0) =>
-                  val staticBuildOverrides =
-                    if (
-                      foundRootBuildFileName.endsWith(".yaml") ||
-                      foundRootBuildFileName.endsWith(".yml")
-                    ) {
-                      // For YAML files, extract the mill-build key if it exists, otherwise use empty map
-                      buildOverrides0.obj.get("mill-build") match {
-                        case Some(millBuildValue: ujson.Obj) => millBuildValue
-                        case _ => ujson.Obj()
-                      }
-                    } else {
-                      // For non-YAML files (build.mill), use the entire parsed header data
-                      buildOverrides0
-                    }
-
-                  mill.api.ExecResult.catchWrapException {
-                    val bootstrapModule = new MillBuildRootModule.BootstrapModule(
-                      (currentRoot / ".." / foundRootBuildFileName).toString
-                    )(
-                      using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
-                    )
-
-                    bootstrapModule
-                  } match {
-                    case Result.Success(bootstrapModule) =>
-                      RunnerState(
-                        Some(bootstrapModule),
-                        Nil,
-                        None,
-                        Some(foundRootBuildFileName),
-                        Seq(bootstrapEvalWatched),
-                        upickle.read[Map[String, ujson.Value]](staticBuildOverrides)
-                      )
-                    case Result.Failure(msg) =>
-                      RunnerState(
-                        None,
-                        Nil,
-                        Some(msg),
-                        Some(foundRootBuildFileName),
-                        Seq(bootstrapEvalWatched),
-                        Map()
-                      )
-                  }
               }
+
             }
 
           state
@@ -249,10 +215,33 @@ class MillBuildBootstrap(
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
             case Result.Success(buildFileApi) =>
 
-              val staticBuildOverrides =
-                if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
-                  nestedState.staticBuildOverrides
-                else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
+
+              val staticBuildOverrides: Map[String, ujson.Value] =
+                if (os.exists(currentRoot / "build.mill")) {
+                  // For non-YAML files (build.mill), use the entire parsed header data
+                  upickle.read[Map[String, ujson.Value]](
+                    mill.internal.Util.parseYaml(
+                      "build.mill",
+                      mill.constants.Util.readBuildHeader(
+                        (currentRoot / "build.mill").toNIO,
+                        "build.mill"
+                      )
+                    ).get
+                  )
+                }else if (os.exists(currentRoot / "build.mill.yaml")){
+                  val parsed = mill.internal.Util.parseYaml(
+                    "build.mill.yaml", os.read(currentRoot / "build.mill.yaml")
+                  ).get
+
+                  // For YAML files, extract the mill-build key if it exists, otherwise use empty map
+                  parsed.obj.get("mill-build") match {
+                    case Some(millBuildValue: ujson.Obj) =>
+                      upickle.read[Map[String, ujson.Value]](millBuildValue)
+                    case _ => Map()
+                  }
+                } else Map()
+
+              pprint.log(staticBuildOverrides)
 
               Using.resource(makeEvaluator(
                 topLevelProjectRoot,
