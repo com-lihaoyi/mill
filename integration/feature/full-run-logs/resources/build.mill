@@ -2,27 +2,35 @@ package build
 import mill._, javalib._
 
 object `package` extends JavaModule {
-  def exclusiveCommand1() = Task.Command(exclusive = true){
-//    println("Hello")
-//    println("Exclusive")
+
+  object exclusives extends Module {
+
+    def printingA() = Task.Command(exclusive = true) {
+      println("Hello A")
+    }
+    def empty() = Task.Command(exclusive = true) {
+      printingA()()
+    }
+    def printingB() = Task.Command(exclusive = true) {
+      empty()()
+      println("Hello B")
+      println("World B")
+    }
+    def printingC() = Task.Command(exclusive = true) {
+      printingB()()
+      println("Hello C")
+      println("World C")
+      println("Exclusive C")
+    }
   }
-  def exclusiveCommand2() = Task.Command(exclusive = true){
-    println("Hello")
-    println("Exclusive")
-  }
+
   def mvnDeps = Seq(
     mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
     mvn"org.slf4j:slf4j-simple:2.0.9"
   )
   object test extends JavaTests with TestModule.Junit4 {
-    def printColorsExclusive() = Task.Command(exclusive = true){
-      printColors0("exclusive")
-    }
-    def printColors() = Task.Command{
-      printColors0("")
-    }
-    def printColors0(prefix: String) = {
+    def printColors() = Task.Command(exclusive = true) {
       val RED = "\u001b[31m"
       val GREEN = "\u001B[32m"
       val BLUE = "\u001b[34m"
@@ -35,32 +43,32 @@ object `package` extends JavaModule {
       var m = 0
       for (i <- 0 until n) {
         m += 1
-        out += prefix + m + "\n"
+        out += "" + m + "\n"
       }
       out += MAGENTA
       for (i <- 0 until n) {
         m += 1
-        out += prefix + m + "\n"
+        out += "" + m + "\n"
       }
       out += YELLOW
       for (i <- 0 until n) {
         m += 1
-        out += prefix + m + "\n"
+        out += "" + m + "\n"
       }
       out += RED
       for (i <- 0 until n) {
         m += 1
-        out += prefix + m + "\n"
+        out += "" + m + "\n"
       }
       out += GREEN
       for (i <- 0 until n) {
         m += 1
-        out += prefix + m + "\n"
+        out += "" + m + "\n"
       }
       out += BLUE
       for (i <- 0 until n) {
         m += 1
-        out += prefix + m + "\n"
+        out += "" + m + "\n"
       }
       out += RESET
       System.out.println(out)

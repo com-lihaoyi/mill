@@ -61,23 +61,32 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("exclusive") - integrationTest { tester =>
       import tester._
 
-      val res = eval(("--ticker", "true", "{exclusiveCommand1,exclusiveCommand2}"))
-      res.isSuccess ==> true
+      val res = eval(
+        ("--ticker", "true", "exclusives.printingC"),
+        mergeErrIntoOut = true
+      )
+      assert(res.isSuccess)
 
+      // Make sure when running `exclusive` tasks, we always print the name of the task
+      // before it starts, we turn off the ticker and otherwise there's no way to know what
+      // task each section of logs belongs to
       assertGoldenLiteral(
         normalize(res.out),
-        List("<h<digits>>hello</h<digits>>")
-      )
-
-      assertGoldenLiteral(
-        normalize(res.err),
         List(
-          "============================== run --text hello ==============================",
+          "============================== exclusives.printingC ==============================",
           "build.mill-<digits>] compile compiling <digits> Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
-          "<digits>] compile compiling <digits> Java source to out/compile.dest/classes ...",
-          "<digits>] done compiling",
-          "<digits>] run <digits>/<digits>] ============================== run --text hello ============================== <digits>s"
+          "<digits>] exclusives.printingA",
+          "Hello A",
+          "<digits>] exclusives.empty",
+          "<digits>] exclusives.printingB",
+          "Hello B",
+          "World B",
+          "<digits>] exclusives.printingC",
+          "Hello C",
+          "World C",
+          "Exclusive C",
+          "<digits>/<digits>] ============================== exclusives.printingC ============================== <digits>s"
         )
       )
     }
@@ -241,7 +250,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "(B)Test run (X)foo.(Y)FooTest(X)(B) finished: (X)(B)0 failed(X)(B), (X)(B)0 ignored(X)(B), 1 total,  ...s(X)"
         )
       )
-      retry(3) { // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
+      retry(
+        3
+      ) { // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
         val res2 = eval(("-i", "--ticker", "true", "test"), mergeErrIntoOut = true)
         assertGoldenLiteral(
           normalize(res2.out0),
@@ -387,81 +398,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         )
       )
 
-      retry(3) { // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
+      retry(
+        3
+      ) { // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
         val res4 = eval(("-i", "--ticker", "true", "test.printColors"), mergeErrIntoOut = true)
-
-        assertGoldenLiteral(
-          normalize(res4.out0),
-          List(
-            "============================== test.printColors ==============================",
-            "1] test.printColors (C)1(X)",
-            "1] (C)2(X)",
-            "1] (C)3(X)",
-            "1] (C)4(X)",
-            "1] (C)5(X)",
-            "1] (C)6(X)",
-            "1] (C)7(X)",
-            "1] (C)8(X)",
-            "1] (C)9(X)",
-            "1] (C)10(X)",
-            "1] (C)(M)11(X)",
-            "1] (M)12(X)",
-            "1] (M)13(X)",
-            "1] (M)14(X)",
-            "1] (M)15(X)",
-            "1] (M)16(X)",
-            "1] (M)17(X)",
-            "1] (M)18(X)",
-            "1] (M)19(X)",
-            "1] (M)20(X)",
-            "1] (M)(Y)21(X)",
-            "1] (Y)22(X)",
-            "1] (Y)23(X)",
-            "1] (Y)24(X)",
-            "1] (Y)25(X)",
-            "1] (Y)26(X)",
-            "1] (Y)27(X)",
-            "1] (Y)28(X)",
-            "1] (Y)29(X)",
-            "1] (Y)30(X)",
-            "1] (Y)(R)31(X)",
-            "1] (R)32(X)",
-            "1] (R)33(X)",
-            "1] (R)34(X)",
-            "1] (R)35(X)",
-            "1] (R)36(X)",
-            "1] (R)37(X)",
-            "1] (R)38(X)",
-            "1] (R)39(X)",
-            "1] (R)40(X)",
-            "1] (R)(G)41(X)",
-            "1] (G)42(X)",
-            "1] (G)43(X)",
-            "1] (G)44(X)",
-            "1] (G)45(X)",
-            "1] (G)46(X)",
-            "1] (G)47(X)",
-            "1] (G)48(X)",
-            "1] (G)49(X)",
-            "1] (G)50(X)",
-            "1] (G)(B)51(X)",
-            "1] (B)52(X)",
-            "1] (B)53(X)",
-            "1] (B)54(X)",
-            "1] (B)55(X)",
-            "1] (B)56(X)",
-            "1] (B)57(X)",
-            "1] (B)58(X)",
-            "1] (B)59(X)",
-            "1] (B)60(X)",
-            "1] (B)(X)",
-            "1/1] ============================== test.printColors =============================="
-          )
-        )
-      }
-
-      retry(3) { // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
-        val res4 = eval(("-i", "--ticker", "true", "test.printColorsExclusive"), mergeErrIntoOut = true)
 
         assertGoldenLiteral(
           normalize(res4.out0),

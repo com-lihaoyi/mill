@@ -212,7 +212,7 @@ private[mill] class PromptLogger(
           }
 
           if (!seenBefore) {
-            lines match{
+            lines match {
               case Seq(firstLine, restLines*) =>
                 val combineMessageAndLog =
                   longPrefix.length + 1 + firstLine.length <
@@ -227,7 +227,9 @@ private[mill] class PromptLogger(
                 restLines.foreach { l => printPrefixed(infoColor(prefix), l) }
 
               case Seq() =>
-                printPrefixed(infoColor(longPrefix), Array())
+                streams.err.print(infoColor(longPrefix))
+                streams.err.print("\n")
+                streams.err.flush()
             }
           } else {
             lines.foreach { l => printPrefixed(infoColor(prefix), l) }

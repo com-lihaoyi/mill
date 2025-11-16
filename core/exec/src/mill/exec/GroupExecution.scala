@@ -660,6 +660,9 @@ object GroupExecution {
             mill.api.ClassLoader.withContextClassLoader(classLoader) {
               if (!exclusive) t
               else {
+                // For exclusive tasks, we print the task name once and then we disable the
+                // prompt/ticker so the output of the exclusive task can "clean" while still
+                // being identifiable
                 logger.prompt.logPrefixedLine(Seq(counterMsg), new ByteArrayOutputStream(), false)
                 logger.prompt.withPromptPaused {
                   t
