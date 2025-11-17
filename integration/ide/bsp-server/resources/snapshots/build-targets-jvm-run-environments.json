@@ -383,24 +383,10 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/scripts/ignored-folder-2/also-ignored-2.java"
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
       },
       "classpath": [
-        "file:///workspace/out/mill-bsp-out/scripts$slashignored-folder-2$slashalso-ignored-2.java/compile.dest/classes"
-      ],
-      "jvmOptions": [],
-      "workingDirectory": "/workspace",
-      "environmentVariables": {
-        "MILL_WORKSPACE_ROOT": "/workspace"
-      },
-      "mainClasses": []
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/scripts/ignored-folder-2/overriden-not-ignored.java"
-      },
-      "classpath": [
-        "file:///workspace/out/mill-bsp-out/scripts$slashignored-folder-2$slashoverriden-not-ignored.java/compile.dest/classes"
+        "file:///workspace/out/mill-bsp-out/scripts$slashignored-folder-2$slashnegated-not-ignored.java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",

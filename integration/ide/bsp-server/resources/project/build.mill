@@ -2,7 +2,7 @@
 //| - "scripts/ignored.java"
 //| - "scripts/ignored-folder"
 //| - "scripts/ignored-folder-2"
-//| - "!scripts/ignored-folder-2/overidden-not-ignored.java"
+//| - "!scripts/ignored-folder-2/negated-not-ignored.java"
 package build
 
 import mill._

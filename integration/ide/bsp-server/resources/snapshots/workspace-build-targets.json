@@ -742,36 +742,10 @@
     },
     {
       "id": {
-        "uri": "file:///workspace/scripts/ignored-folder-2/also-ignored-2.java"
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
       },
-      "displayName": "scripts/ignored-folder-2/also-ignored-2.java:",
-      "baseDirectory": "file:///workspace/scripts/ignored-folder-2/also-ignored-2.java",
-      "tags": [
-        "library",
-        "application"
-      ],
-      "languageIds": [
-        "java"
-      ],
-      "dependencies": [],
-      "capabilities": {
-        "canCompile": true,
-        "canTest": false,
-        "canRun": true,
-        "canDebug": false
-      },
-      "dataKind": "jvm",
-      "data": {
-        "javaHome": "java-home",
-        "javaVersion": "21.0.8"
-      }
-    },
-    {
-      "id": {
-        "uri": "file:///workspace/scripts/ignored-folder-2/overriden-not-ignored.java"
-      },
-      "displayName": "scripts/ignored-folder-2/overriden-not-ignored.java:",
-      "baseDirectory": "file:///workspace/scripts/ignored-folder-2/overriden-not-ignored.java",
+      "displayName": "scripts/ignored-folder-2/negated-not-ignored.java:",
+      "baseDirectory": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java",
       "tags": [
         "library",
         "application"

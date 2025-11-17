@@ -138,6 +138,25 @@ private[mill] class BspEvaluators(
       .toSet
 
     mill.constants.DebugLog.println("negationPatternDirs " + pprint.apply(negationPatternDirs))
+    // Helper function to recursively check if a path should be ignored
+    def isPathIgnored(relativePath: String, isDirectory: Boolean): Boolean = {
+      val matchResult = ignoreNode.isIgnored(relativePath, isDirectory)
+      matchResult match {
+        case IgnoreNode.MatchResult.IGNORED =>
+          true
+        case IgnoreNode.MatchResult.NOT_IGNORED =>
+          false
+        case IgnoreNode.MatchResult.CHECK_PARENT =>
+          // No direct match, need to check if parent directory is ignored
+          val parentPath = relativePath.split('/').dropRight(1).mkString("/")
+          if (parentPath.isEmpty) false // root level, not ignored by default
+          else isPathIgnored(parentPath, true) // recursively check parent
+        case _ =>
+          // Handle any other potential match results
+          false
+      }
+    }
+
     // Create filter function that checks both files and directories
     val skipPath: (String, Boolean) => Boolean = { (relativePath, isDirectory) =>
       // If this is a directory that contained in negation patterns, don't skip it
@@ -147,15 +166,8 @@ private[mill] class BspEvaluators(
         false
       }
       else {
-        val matchResult = ignoreNode.isIgnored(relativePath, isDirectory)
-        val isIgnored = matchResult match {
-          case IgnoreNode.MatchResult.IGNORED =>
-            mill.constants.DebugLog.println("true B")
-            true
-          case _ =>
-            mill.constants.DebugLog.println("false B")
-            false
-        }
+        val isIgnored = isPathIgnored(relativePath, isDirectory)
+        mill.constants.DebugLog.println(s"isIgnored=$isIgnored")
 
         if (isIgnored) {
           // Find which rule caused the ignore
