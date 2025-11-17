@@ -203,53 +203,51 @@ private[mill] class PromptLogger(
           (lines, seenBefore, res)
         }
 
-        for ((keySuffix, message) <- res) {
-          val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
-          val prefix = Logger.formatPrefix0(key)
+        // Synchronize this whole block on the stream manager output pipe to avoid
+        // interleaving with other writes to the streams.
+        streamManager.pipe.output.synchronized {
+          for ((keySuffix, message) <- res) {
+            val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
+            val prefix = Logger.formatPrefix0(key)
 
-          def printPrefixed(prefix: String, line: Array[Byte]) = {
-            if (!incompleteLine) {
-              streams.err.print(infoColor(prefix))
-              if (line.nonEmpty && prefix.nonEmpty) streams.err.print(" ")
+            def printPrefixed(prefix: String, line: Array[Byte]) = {
+              if (!incompleteLine) {
+                streams.err.print(infoColor(prefix))
+                if (line.nonEmpty && prefix.nonEmpty) streams.err.print(" ")
+              }
+              // Make sur we flush after each write, because we are possibly writing to stdout
+              // and stderr in quick succession so we want to try our best to ensure the order
+              // is preserved and doesn't get messed up by buffering in the streams
+              streams.err.flush()
+              logStream.write(line)
+              logStream.flush()
+              incompleteLine = line.lastOption.exists(last => last != '\n' && last != '\r')
             }
-            // Make sur we flush after each write, because we are possibly writing to stdout
-            // and stderr in quick succession so we want to try our best to ensure the order
-            // is preserved and doesn't get messed up by buffering in the streams
-            streams.err.flush()
-            logStream.write(line)
-            logStream.flush()
-            for (last <- line.lastOption) {
-              incompleteLine = last != '\n' && last != '\r'
-            }
-          }
 
-          if (!seenBefore) {
-            lines match {
-              case Seq(firstLine, restLines*) =>
-                val combineMessageAndLog =
-                  longPrefix.length + 1 + firstLine.length <
-                    termDimensions._1.getOrElse(defaultTermWidth)
+            if (!seenBefore) {
+              lines match {
+                case Seq(firstLine, restLines*) =>
+                  val combineMessageAndLog =
+                    longPrefix.length + 1 + firstLine.length <
+                      termDimensions._1.getOrElse(defaultTermWidth)
 
-                if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), firstLine)
-                else {
+                  if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), firstLine)
+                  else {
+                    streams.err.print(infoColor(longPrefix))
+                    streams.err.print('\n')
+                    printPrefixed(infoColor(prefix), firstLine)
+                  }
+                  restLines.foreach(printPrefixed(infoColor(prefix), _))
+
+                case Seq() =>
                   streams.err.print(infoColor(longPrefix))
-                  streams.err.print('\n')
-                  printPrefixed(infoColor(prefix), firstLine)
-                }
-                restLines.foreach(printPrefixed(infoColor(prefix), _))
-
-              case Seq() =>
-                streams.err.print(infoColor(longPrefix))
-                streams.err.print("\n")
-                streams.err.flush()
-            }
-          } else {
-            lines.foreach(printPrefixed(infoColor(prefix), _))
+                  streams.err.print("\n")
+                  streams.err.flush()
+              }
+            } else lines.foreach(printPrefixed(infoColor(prefix), _))
           }
         }
-      } else {
-        logMsg.writeTo(logStream)
-      }
+      } else streamManager.pipe.output.synchronized { logMsg.writeTo(logStream) }
 
       streamManager.awaitPumperEmpty()
     }
