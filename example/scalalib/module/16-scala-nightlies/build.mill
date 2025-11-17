@@ -32,6 +32,6 @@ object foo extends ScalaModule {
 /** Usage
 
 > mill foo.run You
-Hello You, this is Scala ''
+Hello You!
 
 */
