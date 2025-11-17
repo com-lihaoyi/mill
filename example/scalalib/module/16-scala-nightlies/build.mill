@@ -11,13 +11,15 @@
 package build
 
 import mill.*
+import mill.api.*
+import mill.scalalib.*
 
 object JvmWorker extends JvmWorkerModule {
   override def repositories =
     super.repositories() ++ Seq(CoursierModule.KnownRepositories.ScalaLangNightlies)
 }
 
-object `package` extends ScalaModule {
+object foo extends ScalaModule {
   override def jvmWorker: ModuleRef[JvmWorkerModule] = ModuleRef(JvmWorker)
   override def repositories =
     super.repositories() ++ Seq(CoursierModule.KnownRepositories.ScalaLangNightlies)
@@ -26,3 +28,10 @@ object `package` extends ScalaModule {
     mvn"org.scala-lang.modules::scala-xml:2.4.0"
   )
 }
+
+/** Usage
+
+> mill foo.run You
+Hello You, this is Scala ''
+
+*/
