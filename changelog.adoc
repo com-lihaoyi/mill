@@ -31,7 +31,7 @@ Changes since 1.1.0-RC1:
 - Improve handling of cancellation daemon shutdown in the presence of multiple connected launchers {link-pr}/6136[#6136]
 - `millBinPlatform` should be `1` for `1.1.0-RCx` {link-pr}/6134[#6134]
 - Overhaul of `.mill.yaml` and `//|` builder header handling, reducing recompilation latencies
-  and improvig error messages {link-pr}/6155[#6155] {link-pr}/6170[#6170]
+  and improving error messages {link-pr}/6155[#6155] {link-pr}/6170[#6170]
 - Make selective execution trigger on changes to build overrides {link-pr}/6158[#6158]
 - Shift the responsibility of setting up annotation processors from the
   user (via javacOptions) to mill (via a new annotationProcessor API) {link-pr}/6168[#6168]
