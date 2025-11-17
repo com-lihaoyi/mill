@@ -2,7 +2,14 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import mill.api.daemon.internal.bsp.BspModuleApi
-import mill.api.daemon.internal.{BaseModuleApi, EvaluatorApi, JavaModuleApi, MillBuildRootModuleApi, ModuleApi, TaskApi}
+import mill.api.daemon.internal.{
+  BaseModuleApi,
+  EvaluatorApi,
+  JavaModuleApi,
+  MillBuildRootModuleApi,
+  ModuleApi,
+  TaskApi
+}
 import mill.api.daemon.Watchable
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 
@@ -84,6 +91,15 @@ private[mill] class BspEvaluators(
       }
     } yield (new BuildTargetIdentifier(uri), (bspModule, eval))
 
+  val nonScriptSources = evaluators.flatMap { ev =>
+    val bspSourceTasks: Seq[TaskApi[(sources: Seq[Path], generatedSources: Seq[Path])]] =
+      transitiveModules(ev.rootModule)
+        .collect { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetSources }
+    ev.executeApi(bspSourceTasks)
+      .values
+      .get
+      .flatMap { case (sources: Seq[Path], _: Seq[Path]) => sources }
+  }
 
   val bspScriptIgnore: Seq[String] = {
     // look for this in the first meta-build frame, which would be the meta-build configured
@@ -128,7 +144,7 @@ private[mill] class BspEvaluators(
     // These directories need to be walked even if they're ignored, because they contain
     // negated (un-ignored) files
     val negationPatternDirs: Set[String] = bspScriptIgnore
-      .collect{case s"!$withoutNegation" =>
+      .collect { case s"!$withoutNegation" =>
         // Extract all parent directory paths
         val pathParts = withoutNegation.split('/').dropRight(1) // Remove filename
         if (pathParts.nonEmpty) pathParts.inits.map(_.mkString("/"))
@@ -137,34 +153,25 @@ private[mill] class BspEvaluators(
       .flatten
       .toSet
 
-    mill.constants.DebugLog.println("negationPatternDirs " + pprint.apply(negationPatternDirs))
     // Helper function to recursively check if a path should be ignored
     def isPathIgnored(relativePath: String, isDirectory: Boolean): Boolean = {
       val matchResult = ignoreNode.isIgnored(relativePath, isDirectory)
       matchResult match {
-        case IgnoreNode.MatchResult.IGNORED =>
-          true
-        case IgnoreNode.MatchResult.NOT_IGNORED =>
-          false
+        case IgnoreNode.MatchResult.IGNORED => true
+        case IgnoreNode.MatchResult.NOT_IGNORED => false
         case IgnoreNode.MatchResult.CHECK_PARENT =>
           // No direct match, need to check if parent directory is ignored
           val parentPath = relativePath.split('/').dropRight(1).mkString("/")
           if (parentPath.isEmpty) false // root level, not ignored by default
           else isPathIgnored(parentPath, true) // recursively check parent
-        case _ =>
-          // Handle any other potential match results
-          false
+        case _ => false // Handle any other potential match results
       }
     }
 
     // Create filter function that checks both files and directories
     val skipPath: (String, Boolean) => Boolean = { (relativePath, isDirectory) =>
       // If this is a directory that contained in negation patterns, don't skip it
-      mill.constants.DebugLog.println("relativePath " + pprint.apply(relativePath) + " isDirectory " + isDirectory)
-      if (isDirectory && negationPatternDirs.contains(relativePath)) {
-        mill.constants.DebugLog.println("false A")
-        false
-      }
+      if (isDirectory && negationPatternDirs.contains(relativePath)) false
       else {
         val isIgnored = isPathIgnored(relativePath, isDirectory)
         mill.constants.DebugLog.println(s"isIgnored=$isIgnored")
