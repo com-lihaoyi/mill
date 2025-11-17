@@ -74,6 +74,14 @@ private object TransformingReporter {
           case xsbti.Severity.Info => Console.BLUE + msg + Console.RESET
         }
       else msg
+    def unshade(msg: String) =
+      if color then
+        severity match {
+          case xsbti.Severity.Error => Console.RESET + msg + Console.RED
+          case xsbti.Severity.Warn => Console.RESET + msg + Console.YELLOW
+          case xsbti.Severity.Info => Console.RESET + msg + Console.BLUE
+        }
+      else msg
 
     val errorCodeString = {
       problem0.diagnosticCode()
@@ -96,9 +104,13 @@ private object TransformingReporter {
 
       val line0 = intValue(pos.line(), -1)
       val pointer0 = intValue(pos.pointer(), -1)
+      val shadedPath = shade(
+        displayPath.toString.replace("/", unshade("/")).replace("\\", unshade("\\"))
+      )
+
       if line0 >= 0 && pointer0 >= 0 then
-        s"${shade(displayPath.toString)}:${shade(line0.toString)}:${shade((pointer0 + 1).toString)}"
-      else shade(displayPath.toString)
+        s"$shadedPath:${shade(line0.toString)}:${shade((pointer0 + 1).toString)}"
+      else shadedPath
     }
 
     val header = positionString
