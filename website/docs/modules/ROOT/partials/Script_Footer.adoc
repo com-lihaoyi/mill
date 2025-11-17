@@ -8,6 +8,7 @@ into your IDE, Mill recursively walks your workspace folder looking for
 - The `sources`
 - `out/`
 - `**/src/`
+- `**/src-*/`
 - `**/resources/`
 - `**/out/`
 - `**/target/`

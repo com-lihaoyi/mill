@@ -31,8 +31,15 @@ trait MillBuildRootModule()(using
 ) extends ScalaModule with MillBuildRootModuleApi {
 
   def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
+
+  /**
+   * Default set of BSP ignores, meant to catch the common case of `.java`, `.scala`, or `.kt`
+   * files that definitely aren't scripts, but for some reason aren't recognized as being in
+   * a module's `def sources` task (e.g. maybe module import failed or something)
+   */
   def bspScriptIgnoreDefault: T[Seq[String]] = Seq(
     "**/src/",
+    "**/src-*/",
     "**/resources/",
     "**/out/",
     "**/target/"

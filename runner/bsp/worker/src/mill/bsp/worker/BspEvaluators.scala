@@ -172,7 +172,7 @@ private[mill] class BspEvaluators(
       def insideModuleSources = (
         nonScriptSources.find(relativePath2.startsWith(_)) orElse
           nonScriptResources.find(relativePath2.startsWith(_))
-        ).map("Inside module source folder" + _)
+      ).map("Inside module source folder " + _)
 
       ignoreNode.isIgnored(relativePath, isDirectory) match {
         case IgnoreNode.MatchResult.IGNORED => Some("Ignored due to `bspScriptIgnore`")
@@ -182,7 +182,7 @@ private[mill] class BspEvaluators(
           val parentPath = relativePath.split('/').dropRight(1).mkString("/")
           if (parentPath.isEmpty) None // root level, not ignored by default
           // if this is inside a module's sources, ignore it
-          else insideModuleSources.orElse{
+          else insideModuleSources.orElse {
             isPathIgnored(parentPath, true) // recursively check parent
           }
         case _ => insideModuleSources
@@ -194,7 +194,7 @@ private[mill] class BspEvaluators(
       // If this is a directory that contained in negation patterns, don't skip it
       if (isDirectory && negationPatternDirs.contains(relativePath)) false
       else {
-        isPathIgnored(relativePath, isDirectory) match{
+        isPathIgnored(relativePath, isDirectory) match {
           case None => false
           case Some(msg) =>
             println(s"Skipping script discovery in $relativePath: $msg")
