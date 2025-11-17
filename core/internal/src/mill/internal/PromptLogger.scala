@@ -208,7 +208,7 @@ private[mill] class PromptLogger(
           val prefix = Logger.formatPrefix0(key)
 
           def printPrefixed(prefix: String, line: Array[Byte]) = {
-            if (!incompleteLine){
+            if (!incompleteLine) {
               streams.err.print(infoColor(prefix))
               if (line.nonEmpty && prefix.nonEmpty) streams.err.print(" ")
             }
@@ -218,7 +218,7 @@ private[mill] class PromptLogger(
             streams.err.flush()
             logStream.write(line)
             logStream.flush()
-            for(last <- line.lastOption){
+            for (last <- line.lastOption) {
               incompleteLine = last != '\n' && last != '\r'
             }
           }
@@ -236,7 +236,7 @@ private[mill] class PromptLogger(
                   streams.err.print('\n')
                   printPrefixed(infoColor(prefix), firstLine)
                 }
-                restLines.foreach { l => printPrefixed(infoColor(prefix), l) }
+                restLines.foreach(printPrefixed(infoColor(prefix), _))
 
               case Seq() =>
                 streams.err.print(infoColor(longPrefix))
@@ -244,10 +244,7 @@ private[mill] class PromptLogger(
                 streams.err.flush()
             }
           } else {
-            lines.foreach { l =>
-
-              printPrefixed(infoColor(prefix), l)
-            }
+            lines.foreach(printPrefixed(infoColor(prefix), _))
           }
         }
       } else {
