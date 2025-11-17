@@ -13,6 +13,34 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1-1-0-RC2]
+=== 1.1.0-RC2
+:version: 1.1.0-RC2
+:milestone-name: 1.1.0-RC2
+:milestone: 133
+:prev-version: 1.1.0
+_2025-11-17_
+
+Changes since 1.1.0-RC1:
+
+- Improvements to example `.zip` file downloads to make them more user-friendly {link-pr}/6122[#6122]
+- Improvements and cleanup of Mill bootstrap scripts {link-pr}/6117[#6117]
+- Fix Junit5 test discovery when using custom JVM version {link-pr}/6127[#6127]
+- Improve performance of test discovery and test initialization when using custom JVM
+  versions by running this logic in ZincWorker rather than spawning a subprocess {link-pr}/6125[#6125]
+- Improve handling of cancellation daemon shutdown in the presence of multiple connected launchers {link-pr}/6136[#6136]
+- `millBinPlatform` should be `1` for `1.1.0-RCx` {link-pr}/6134[#6134]
+- Overhaul of `.mill.yaml` and `//|` builder header handling, reducing recompilation latencies
+  and improvig error messages {link-pr}/6155[#6155] {link-pr}/6170[#6170]
+- Make selective execution trigger on changes to build overrides {link-pr}/6158[#6158]
+- Shift the responsibility of setting up annotation processors from the
+  user (via javacOptions) to mill (via a new annotationProcessor API) {link-pr}/6168[#6168]
+- Improvements to Mill Spring-Boot docs and examples {link-pr}/6181[#6181] {link-pr}/6099[#6099]
+- Greatly reduced verbosity of command line logging to make errors easier to skim and understand
+  {link-pr}/6186[#6186] {link-pr}/6187[#6187]
+- More aggressively skip files when discovering scripts for BSP import {link-pr}/6194[#6194]
+
+
 [#1-1-0-RC1]
 === 1.1.0-RC1
 :version: 1.1.0-RC1
