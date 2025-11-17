@@ -3,7 +3,6 @@ bsp] BSP server started
 1-buildInitialize] Entered buildInitialize
 1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 1-buildInitialize] buildInitialize took * msec
-bsp-init] Skipping script discovery in mill-build/build.mill: Inside module source folder mill-build/build.mill
 bsp-init-mill-build/build.mill-60] compiling * Scala sources to * ...
 bsp-init-mill-build/build.mill-60] done compiling
 bsp-init-build.mill-60] compiling * Scala sources to * ...
@@ -15,15 +14,6 @@ bsp-init-build.mill-60] [warn] one warning found
 bsp-init-build.mill-60] done compiling
 bsp-init-113] compiling * Scala source to * ...
 bsp-init-113] done compiling
-bsp-init] Skipping script discovery in diag/many/src: Inside module source folder diag/many/src
-bsp-init] Skipping script discovery in diag/src: Inside module source folder diag/src
-bsp-init] Skipping script discovery in app/src: Inside module source folder app/src
-bsp-init] Skipping script discovery in errored/compilation-error/src: Inside module source folder errored/compilation-error/src
-bsp-init] Skipping script discovery in hello-java/test/src: Inside module source folder hello-java/test/src
-bsp-init] Skipping script discovery in scripts/custom-src: Inside module source folder scripts/custom-src
-bsp-init] Skipping script discovery in scripts/src: Inside module source folder scripts/src
-bsp-init] Skipping script discovery in hello-scala/test/src: Inside module source folder hello-scala/test/src
-bsp-init] Skipping script discovery in hello-scala/src: Inside module source folder hello-scala/src
 bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
 bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
 bsp-init] SNAPSHOT

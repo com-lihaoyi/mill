@@ -443,6 +443,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
           val waitingGlob = TestRunnerUtils.matchesGlob("*] Another Mill process is running *")
           s =>
             watchGlob(s) || waitingGlob(s) ||
+              // These can happen in different orders due to filesystem ordering, not stable to
+              // assert against
+              s.contains("Skipping script discovery") ||
               // Ignoring this one, that sometimes comes out of order.
               // If the request hasn't been cancelled, we'd see extra lines making the
               // test fail anyway.
