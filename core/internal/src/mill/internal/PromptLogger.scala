@@ -152,6 +152,9 @@ private[mill] class PromptLogger(
     // re-apply them after every line prefix. This helps ensure the line prefix color/resets does
     // not muck up the rendering of color sequences that affect multiple lines in the terminal
     private var endOfLastLineColor: Long = 0
+    // Track whether we last printed an incomplete line, because if we did then next
+    // time a line is reported we shouldn't print the prefix
+    private var incompleteLine = false
     val resetBytes = fansi.Color.Reset.escape.getBytes
 
     override def logPrefixedLine(
@@ -205,14 +208,19 @@ private[mill] class PromptLogger(
           val prefix = Logger.formatPrefix0(key)
 
           def printPrefixed(prefix: String, line: Array[Byte]) = {
-            streams.err.print(infoColor(prefix))
-            if (line.nonEmpty && prefix.nonEmpty) streams.err.print(" ")
+            if (!incompleteLine){
+              streams.err.print(infoColor(prefix))
+              if (line.nonEmpty && prefix.nonEmpty) streams.err.print(" ")
+            }
             // Make sur we flush after each write, because we are possibly writing to stdout
             // and stderr in quick succession so we want to try our best to ensure the order
             // is preserved and doesn't get messed up by buffering in the streams
             streams.err.flush()
             logStream.write(line)
             logStream.flush()
+            for(last <- line.lastOption){
+              incompleteLine = last != '\n' && last != '\r'
+            }
           }
 
           if (!seenBefore) {
@@ -236,7 +244,10 @@ private[mill] class PromptLogger(
                 streams.err.flush()
             }
           } else {
-            lines.foreach { l => printPrefixed(infoColor(prefix), l) }
+            lines.foreach { l =>
+
+              printPrefixed(infoColor(prefix), l)
+            }
           }
         }
       } else {
