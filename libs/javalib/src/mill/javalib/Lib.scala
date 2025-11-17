@@ -114,7 +114,7 @@ object Lib {
       )
 
   def scalaConsoleMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] = {
-    if(mill.util.Version.isAtLeast(scalaVersion, "3.8")(using mill.util.Version.MavenOrdering)) {
+    if (mill.util.Version.isAtLeast(scalaVersion, "3.8")(using mill.util.Version.MavenOrdering)) {
       // Since Scala 3.8, the repl is no longer part of the compiler jar
       Seq(mvn"$scalaOrganization::scala3-repl:$scalaVersion")
     } else {
