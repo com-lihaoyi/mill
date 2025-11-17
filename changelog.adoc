@@ -17,39 +17,41 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 === 1.1.0-RC2
 :version: 1.1.0-RC2
 :milestone-name: 1.1.0-RC2
-:milestone: 133
-:prev-version: 1.1.0
+:milestone: 134
+:prev-version: 1.1.0-RC1
 _2025-11-17_
 
-Changes since 1.1.0-RC1:
+_Changes since {prev-version}:_
 
-- Improvements to example `.zip` file downloads to make them more user-friendly {link-pr}/6122[#6122]
-- Improvements and cleanup of Mill bootstrap scripts {link-pr}/6117[#6117]
-- Fix Junit5 test discovery when using custom JVM version {link-pr}/6127[#6127]
-- Improve performance of test discovery and test initialization when using custom JVM
+* Improvements to example `.zip` file downloads to make them more user-friendly {link-pr}/6122[#6122]
+* Improvements and cleanup of Mill bootstrap scripts {link-pr}/6117[#6117]
+* Fix Junit5 test discovery when using custom JVM version {link-pr}/6127[#6127]
+* Improve performance of test discovery and test initialization when using custom JVM
   versions by running this logic in ZincWorker rather than spawning a subprocess {link-pr}/6125[#6125]
-- Improve handling of cancellation daemon shutdown in the presence of multiple connected launchers {link-pr}/6136[#6136]
-- `millBinPlatform` should be `1` for `1.1.0-RCx` {link-pr}/6134[#6134]
-- Overhaul of `.mill.yaml` and `//|` builder header handling, reducing recompilation latencies
+* Improve handling of cancellation daemon shutdown in the presence of multiple connected launchers {link-pr}/6136[#6136]
+* `millBinPlatform` should be `1` for `1.1.0-RCx` {link-pr}/6134[#6134]
+* Overhaul of `.mill.yaml` and `//|` builder header handling, reducing recompilation latencies
   and improving error messages {link-pr}/6155[#6155] {link-pr}/6170[#6170]
-- Make selective execution trigger on changes to build overrides {link-pr}/6158[#6158]
-- Shift the responsibility of setting up annotation processors from the
+* Make selective execution trigger on changes to build overrides {link-pr}/6158[#6158]
+* Shift the responsibility of setting up annotation processors from the
   user (via javacOptions) to mill (via a new annotationProcessor API) {link-pr}/6168[#6168]
-- Improvements to Mill Spring-Boot docs and examples {link-pr}/6181[#6181] {link-pr}/6099[#6099]
-- Greatly reduced verbosity of command line logging to make errors easier to skim and understand
+* Improvements to Mill Spring-Boot docs and examples {link-pr}/6181[#6181] {link-pr}/6099[#6099]
+* Greatly reduced verbosity of command line logging to make errors easier to skim and understand
   {link-pr}/6186[#6186] {link-pr}/6187[#6187]
-- More aggressively skip files when discovering scripts for BSP import {link-pr}/6194[#6194]
+* More aggressively skip files when discovering scripts for BSP import {link-pr}/6194[#6194]
 
 
 [#1-1-0-RC1]
 === 1.1.0-RC1
 :version: 1.1.0-RC1
 :milestone-name: 1.1.0-RC1
-:milestone: 132
+:milestone: 133
 :prev-version: 1.0.6
 _2025-11-04_
 
 * https://github.com/com-lihaoyi/mill/discussions/6116[1.1.0-RC1 Discussion Thread]
+
+_Changes since {prev-version}:_
 
 `1.1.0-RC1` is the first release candidate of the upcoming `1.1.0` release, due December 2025.
 `1.1.0` contains locally-breaking changes but preserves plugin compatibility: you may need to update
@@ -67,21 +69,22 @@ build.
 
 For example, you can define a simple `JavaModule` an it's test submodule via:
 
-`build.mill.yaml`
-
-```yaml
+.`build.mill.yaml`
+[,yaml]
+----
 extends: [mill.javalib.JavaModule]
 mvnDeps:
 - "net.sourceforge.argparse4j:argparse4j:0.9.0"
 - "org.thymeleaf:thymeleaf:3.1.1.RELEASE"
-```
+----
 
-`test/package.mill.yaml`
-```yaml
+.`test/package.mill.yaml`
+[,yaml]
+----
 extends: [build.JavaTests, mill.javalib.TestModule.Junit4]
 mvnDeps:
 - "com.google.guava:guava:33.3.0-jre"
-```
+----
 
 This is equivalent to Mill's existing `object foo extends JavaModule{ def mvnDeps = ... }` syntax.
 All the normal Mill commands still apply: `./mill compile`, `./mill test`, `./mill assembly`, etc.
@@ -102,9 +105,11 @@ scripts to replace the Bash and Python scripts common throughout the ecosystem.
 For example, a single-file script to spawn a simple
 https://spring.io/projects/spring-boot/[Spring-Boot] webserver can be defined as shown below:
 
-```java
+[,java]
+----
 //| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]
 package example;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
@@ -122,14 +127,15 @@ public class WebServer {
     return new StringBuilder(body).reverse().toString();
   }
 }
-```
+----
 
-```console
+[,console]
+----
 > ./mill WebServer.java:runBackground
 
 > curl -d 'helloworld' localhost:8080/reverse-string
 dlrowolleh
-```
+----
 
 See the docs for https://mill-build.org/mill/main-branch/javalib/script.html[Java Single-File Scripts]
 for more information.
@@ -138,7 +144,8 @@ Single-file scripts support the three main JVM languages: Java, Scala, and Kotli
 is an example single-file Scala script implementing a recursive web scraper with
 https://jsoup.org/[JSoup]:
 
-```scala
+[,scala]
+----
 //| mvnDeps: [org.jsoup:jsoup:1.7.2]
 import org.jsoup._
 import scala.collection.JavaConverters._
@@ -161,9 +168,10 @@ def main(startArticle: String, depth: Int) = {
 
   pprint.log(seen)
 }
-```
+----
 
-```console
+[,console]
+----
 >  ./mill HtmlScraper.scala --start-article singapore --depth 1
 ...
   "Hokkien",
@@ -171,7 +179,7 @@ def main(startArticle: String, depth: Int) = {
   "Malaysia_Agreement",
   "Government_of_Singapore",
 ...
-```
+----
 
 Mill's single-file Scala script modules are an alternative to
 http://scala-cli.virtuslab.org/[Scala-CLI] scripts. They are also a replacement for
@@ -220,6 +228,8 @@ for more information
 :milestone: 131
 :prev-version: 1.0.5
 _2025-10-01_
+
+_Changes since {prev-version}:_
 
 * Support Playwright testing for Scala-JS ({link-pr}/5777[#5777])
 * Clean Linker caches when ScalaJSWorker is closed ({link-pr}/5933[#5933])
