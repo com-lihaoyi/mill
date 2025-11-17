@@ -118,3 +118,7 @@ object foo extends ScalaModule {
   def zincIncrementalCompilation = false
 }
 ----
+
+== Using a Scala nightly version
+
+include::partial$example/scalalib/module/16-scala-nightlies.adoc[]
