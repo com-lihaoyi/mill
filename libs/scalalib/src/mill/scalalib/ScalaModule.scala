@@ -423,9 +423,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             "dotty.tools.repl.Main"
           else
             "scala.tools.nsc.MainGenericRunner",
-        classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(
-          _.path
-        ),
+        classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
         jvmArgs = forkArgs(),
         env = allForkEnv(),
         mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
@@ -435,6 +433,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       )
       ()
     }
+  }
+
+  /**
+   * The classpath used to run the Scala console with [[console]].
+   */
+  def scalaConsoleClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      Lib.scalaConsoleMvnDeps(scalaOrganization(), scalaVersion())
+    )
   }
 
   /**
