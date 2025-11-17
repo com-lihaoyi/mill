@@ -349,6 +349,30 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/also-ignored-2.java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/ignored-folder-2/also-ignored-2.java",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/overriden-not-ignored.java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/ignored-folder-2/overriden-not-ignored.java",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "sources": [

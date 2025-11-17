@@ -503,6 +503,18 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/also-ignored-2.java"
+      },
+      "modules": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/overriden-not-ignored.java"
+      },
+      "modules": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "modules": [

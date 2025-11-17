@@ -337,10 +337,12 @@ object BspServerTests extends UtestIntegrationTestSuite {
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
               "scripts/folder2/FooTest.java" -> Seq("scripts/folder2/FooTest.java.semanticdb"),
+              "scripts/ignored-folder-2/also-ignored-2.java" -> Seq(),
               "mill-build" -> Seq("build.mill.semanticdb"),
               "hello-kotlin" -> Seq(),
               "hello-java" -> Seq(),
               "hello-java/test" -> Seq("hello-java/test/src/HelloJavaTest.java.semanticdb"),
+              "scripts/ignored-folder-2/overriden-not-ignored.java" -> Seq(),
               "app" -> Seq("app/src/App.java.semanticdb"),
               "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
               "scripts/folder1/script.scala" -> Seq(),

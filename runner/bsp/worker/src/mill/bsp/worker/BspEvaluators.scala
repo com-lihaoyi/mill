@@ -128,32 +128,36 @@ private[mill] class BspEvaluators(
     // These directories need to be walked even if they're ignored, because they contain
     // negated (un-ignored) files
     val negationPatternDirs: Set[String] = bspScriptIgnore
-      .filter(l => !l.startsWith("#") && l.startsWith("!"))
-      .flatMap { pattern =>
-        val withoutNegation = pattern.drop(1) // Remove the '!' prefix
+      .collect{case s"!$withoutNegation" =>
         // Extract all parent directory paths
         val pathParts = withoutNegation.split('/').dropRight(1) // Remove filename
-        if (pathParts.nonEmpty) {
-          pathParts.indices.map { i =>
-            pathParts.take(i + 1).mkString("/")
-          }
-        } else Nil
+        if (pathParts.nonEmpty) pathParts.inits.map(_.mkString("/"))
+        else Nil
       }
+      .flatten
       .toSet
 
+    mill.constants.DebugLog.println("negationPatternDirs " + pprint.apply(negationPatternDirs))
     // Create filter function that checks both files and directories
     val skipPath: (String, Boolean) => Boolean = { (relativePath, isDirectory) =>
-      // If this is a directory that contains negation patterns, don't skip it
+      // If this is a directory that contained in negation patterns, don't skip it
+      mill.constants.DebugLog.println("relativePath " + pprint.apply(relativePath) + " isDirectory " + isDirectory)
       if (isDirectory && negationPatternDirs.contains(relativePath)) {
+        mill.constants.DebugLog.println("false A")
         false
-      } else {
+      }
+      else {
         val matchResult = ignoreNode.isIgnored(relativePath, isDirectory)
         val isIgnored = matchResult match {
-          case IgnoreNode.MatchResult.IGNORED => true
-          case _ => false
+          case IgnoreNode.MatchResult.IGNORED =>
+            mill.constants.DebugLog.println("true B")
+            true
+          case _ =>
+            mill.constants.DebugLog.println("false B")
+            false
         }
 
-        if (isIgnored && ignoreRules.nonEmpty) {
+        if (isIgnored) {
           // Find which rule caused the ignore
           val matchingRule = ignoreRules
             .find { case (_, rule) => rule.isMatch(relativePath, isDirectory) }

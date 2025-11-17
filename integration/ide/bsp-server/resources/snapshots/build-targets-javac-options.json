@@ -278,6 +278,22 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/also-ignored-2.java"
+      },
+      "options": [],
+      "classpath": [],
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts$slashignored-folder-2$slashalso-ignored-2.java/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/overriden-not-ignored.java"
+      },
+      "options": [],
+      "classpath": [],
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts$slashignored-folder-2$slashoverriden-not-ignored.java/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "options": [],

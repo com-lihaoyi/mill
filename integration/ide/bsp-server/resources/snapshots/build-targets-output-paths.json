@@ -157,6 +157,18 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/also-ignored-2.java"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/overriden-not-ignored.java"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "outputPaths": []
