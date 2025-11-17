@@ -149,6 +149,11 @@ object `package` extends mill.Module {
   object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
   object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
+    override lazy val test: MillScalaTests = new MillScalaTests {
+      // This `test` module isn't used, since `this` contains the test code we want to
+      // compile and the `ModeModule`s contain the entrypoints to run that code
+      def enableBsp = false
+    }
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkArgs: T[Seq[String]] = Task(List.empty[String])
     def forkEnv = super.forkEnv() ++ Seq(

@@ -166,6 +166,16 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "options": [],
+      "classpath": [
+        "file:///workspace/scripts/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "options": [],
@@ -275,6 +285,14 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar"
       ],
       "classDirectory": "file:///workspace/out/mill-bsp-out/scripts$slashfoldershared$slashscript.scala/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
+      },
+      "options": [],
+      "classpath": [],
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts$slashignored-folder-2$slashnegated-not-ignored.java/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {

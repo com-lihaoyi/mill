@@ -345,6 +345,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
               "scripts/folder1/script.scala" -> Seq(),
               "errored/exception" -> List(),
+              "scripts/ignored-folder-2/negated-not-ignored.java" -> Seq(),
               "app/test" -> Seq(),
               "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
               "scripts/folder2/Foo.java" -> Seq("scripts/folder2/Foo.java.semanticdb"),
@@ -353,10 +354,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "delayed" -> List(),
               "lib" -> Seq(),
               "scripts/foldershared/Foo.java" -> Seq("scripts/foldershared/Foo.java.semanticdb"),
-              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> Seq(),
-              "sourcesNeedCompile" -> Seq()
+              "sourcesNeedCompile" -> Seq(),
+              "scripts" -> Seq(),
+              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb")
             )
           )
         }
@@ -441,6 +443,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
           val waitingGlob = TestRunnerUtils.matchesGlob("*] Another Mill process is running *")
           s =>
             watchGlob(s) || waitingGlob(s) ||
+              // These can happen in different orders due to filesystem ordering, not stable to
+              // assert against
+              s.contains("Skipping script discovery") ||
               // Ignoring this one, that sometimes comes out of order.
               // If the request hasn't been cancelled, we'd see extra lines making the
               // test fail anyway.
