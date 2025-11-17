@@ -98,7 +98,20 @@ private[mill] class BspEvaluators(
     ev.executeApi(bspSourceTasks)
       .values
       .get
-      .flatMap { case (sources: Seq[Path], _: Seq[Path]) => sources }
+      .flatMap { case (sources: Seq[Path], _: Seq[Path]) =>
+        sources.map(os.Path(_, workspaceDir).subRelativeTo(workspaceDir))
+      }
+  }
+  val nonScriptResources = evaluators.flatMap { ev =>
+    val bspSourceTasks: Seq[TaskApi[Seq[Path]]] =
+      transitiveModules(ev.rootModule)
+        .collect { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetResources }
+    ev.executeApi(bspSourceTasks)
+      .values
+      .get
+      .flatMap { case resources: Seq[Path] =>
+        resources.map(os.Path(_, workspaceDir).subRelativeTo(workspaceDir))
+      }
   }
 
   val bspScriptIgnore: Seq[String] = {
@@ -154,17 +167,25 @@ private[mill] class BspEvaluators(
       .toSet
 
     // Helper function to recursively check if a path should be ignored
-    def isPathIgnored(relativePath: String, isDirectory: Boolean): Boolean = {
-      val matchResult = ignoreNode.isIgnored(relativePath, isDirectory)
-      matchResult match {
-        case IgnoreNode.MatchResult.IGNORED => true
-        case IgnoreNode.MatchResult.NOT_IGNORED => false
+    def isPathIgnored(relativePath: String, isDirectory: Boolean): Option[String] = {
+      val relativePath2 = os.SubPath(relativePath)
+      def insideModuleSources = (
+        nonScriptSources.find(relativePath2.startsWith(_)) orElse
+          nonScriptResources.find(relativePath2.startsWith(_))
+        ).map("Inside module source folder" + _)
+
+      ignoreNode.isIgnored(relativePath, isDirectory) match {
+        case IgnoreNode.MatchResult.IGNORED => Some("Ignored due to `bspScriptIgnore`")
+        case IgnoreNode.MatchResult.NOT_IGNORED => None
         case IgnoreNode.MatchResult.CHECK_PARENT =>
           // No direct match, need to check if parent directory is ignored
           val parentPath = relativePath.split('/').dropRight(1).mkString("/")
-          if (parentPath.isEmpty) false // root level, not ignored by default
-          else isPathIgnored(parentPath, true) // recursively check parent
-        case _ => false // Handle any other potential match results
+          if (parentPath.isEmpty) None // root level, not ignored by default
+          // if this is inside a module's sources, ignore it
+          else insideModuleSources.orElse{
+            isPathIgnored(parentPath, true) // recursively check parent
+          }
+        case _ => insideModuleSources
       }
     }
 
@@ -173,20 +194,12 @@ private[mill] class BspEvaluators(
       // If this is a directory that contained in negation patterns, don't skip it
       if (isDirectory && negationPatternDirs.contains(relativePath)) false
       else {
-        val isIgnored = isPathIgnored(relativePath, isDirectory)
-        mill.constants.DebugLog.println(s"isIgnored=$isIgnored")
-
-        if (isIgnored) {
-          // Find which rule caused the ignore
-          val matchingRule = ignoreRules
-            .find { case (_, rule) => rule.isMatch(relativePath, isDirectory) }
-            .map(_._1)
-            .getOrElse("unknown")
-
-          println(s"BSP: Skipping path $relativePath (matched rule: $matchingRule)")
+        isPathIgnored(relativePath, isDirectory) match{
+          case None => false
+          case Some(msg) =>
+            println(s"Skipping script discovery in $relativePath: $msg")
+            true
         }
-
-        isIgnored
       }
     }
 

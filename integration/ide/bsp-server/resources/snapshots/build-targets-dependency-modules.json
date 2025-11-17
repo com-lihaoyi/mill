@@ -196,6 +196,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "modules": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "modules": [

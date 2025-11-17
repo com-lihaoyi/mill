@@ -33,7 +33,6 @@ trait MillBuildRootModule()(using
   def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
   def bspScriptIgnoreDefault: T[Seq[String]] = Seq(
     "**/src/",
-    "**/src-*/",
     "**/resources/",
     "**/out/",
     "**/target/"

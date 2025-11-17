@@ -1,13 +1,13 @@
 == Script IDE Integration
 
 Mill's Intellij/VSCode BSP support treats scripts as single-file modules,
-but differ in how they are discovered. Typically when importing a project
-into your IDE, Mill recursively walks your workspace folder to discover
-scripts, skipping certain folders by default:
+but differ in how they are discovered. When importing a project
+into your IDE, Mill recursively walks your workspace folder looking for
+`.java`, `.scala`, or `.kt` files that may be scripts, skipping those in:
 
+- The `sources`
 - `out/`
 - `**/src/`
-- `**/src-*/`
 - `**/resources/`
 - `**/out/`
 - `**/target/`

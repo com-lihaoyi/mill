@@ -567,6 +567,32 @@
     },
     {
       "id": {
+        "uri": "file:///workspace/scripts"
+      },
+      "displayName": "scripts",
+      "baseDirectory": "file:///workspace/scripts",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "21.0.8"
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "displayName": "scripts/folder1/script.scala:",

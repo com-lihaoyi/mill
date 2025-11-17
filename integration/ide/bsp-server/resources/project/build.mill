@@ -130,3 +130,8 @@ object dependsOnSkipped extends scalalib.ScalaModule {
   def moduleDeps = Seq(skipped)
   def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
 }
+
+object scripts extends scalalib.JavaModule {
+  def customSources = Task.Sources("custom-src")
+  def sources = Task { super.sources() ++ customSources() }
+}

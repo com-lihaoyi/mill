@@ -289,6 +289,28 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/scripts/custom-src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/out/mill-bsp-out/scripts/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "sources": [

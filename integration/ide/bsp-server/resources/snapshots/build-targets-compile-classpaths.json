@@ -140,6 +140,14 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "classpath": [
+        "file:///workspace/scripts/compile-resources"
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "classpath": [

@@ -224,6 +224,22 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "classpath": [
+        "file:///workspace/scripts/compile-resources",
+        "file:///workspace/scripts/resources",
+        "file:///workspace/out/mill-bsp-out/scripts/compile.dest/classes"
+      ],
+      "jvmOptions": [],
+      "workingDirectory": "/workspace",
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace"
+      },
+      "mainClasses": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "classpath": [

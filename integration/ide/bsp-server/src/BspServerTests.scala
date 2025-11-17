@@ -354,10 +354,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "delayed" -> List(),
               "lib" -> Seq(),
               "scripts/foldershared/Foo.java" -> Seq("scripts/foldershared/Foo.java.semanticdb"),
-              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> Seq(),
-              "sourcesNeedCompile" -> Seq()
+              "sourcesNeedCompile" -> Seq(),
+              "scripts" -> Seq(),
+              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb")
             )
           )
         }

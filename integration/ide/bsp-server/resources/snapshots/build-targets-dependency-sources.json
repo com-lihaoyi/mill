@@ -116,6 +116,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "sources": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "sources": [
