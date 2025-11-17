@@ -113,15 +113,17 @@ class ScriptModuleInit
    * This method must be called reflectively from the evaluator's classloader.
    */
   def discoverAndInstantiateScriptModules(
-      nonScriptSourceFolders0: Seq[java.nio.file.Path],
-      eval: mill.api.Evaluator
+      eval: mill.api.Evaluator,
+      skipPath: (String, Boolean) => Boolean
   )
       : Seq[(java.nio.file.Path, Result[ExternalModule])] = {
     // For now, we don't resolve moduleDeps as that would require access to other modules
     import mill.api.BuildCtx.workspaceRoot
-    val nonScriptSourceFolders = nonScriptSourceFolders0.map(os.Path(_))
-    discoverScriptFiles(workspaceRoot, os.Path(mill.constants.OutFiles.out, workspaceRoot))
-      .filter(p => !nonScriptSourceFolders.exists(p.startsWith(_)))
+    discoverScriptFiles(
+      workspaceRoot,
+      os.Path(mill.constants.OutFiles.out, workspaceRoot),
+      skipPath
+    )
       .flatMap { scriptPath =>
         resolveScriptModule(scriptPath.toString, eval.resolveScriptModuleDep).map { result =>
           (scriptPath.toNIO, result)
@@ -136,14 +138,29 @@ class ScriptModuleInit
    *
    * @param workspaceDir The root workspace directory to search
    * @param outDir The output directory to exclude (typically `workspaceDir / "out"`)
+   * @param skipPath Function to determine if a path should be skipped (receives relative path and isDirectory flag)
    * @return A sequence of paths to script files
    */
-  def discoverScriptFiles(workspaceDir: os.Path, outDir: os.Path): Seq[os.Path] = {
-    os.walk(workspaceDir)
+  def discoverScriptFiles(
+      workspaceDir: os.Path,
+      outDir: os.Path,
+      skipPath: (String, Boolean) => Boolean
+  ): Seq[os.Path] = {
+    os.walk(
+      workspaceDir,
+      skip = { path =>
+        if (path.startsWith(outDir)) {
+          true
+        } else {
+          val relativePath = path.relativeTo(workspaceDir).toString
+          val isDirectory = os.isDir(path)
+          skipPath(relativePath, isDirectory)
+        }
+      }
+    )
       .filter { path =>
         os.isFile(path) &&
-        scriptExtensions.contains(path.ext) && // Check if it's a file with the right extension
-        !path.startsWith(outDir) // Exclude files in the out/ directory
+        scriptExtensions.contains(path.ext) // Check if it's a file with the right extension
       }
   }
 

@@ -2,11 +2,13 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import mill.api.daemon.internal.bsp.BspModuleApi
-import mill.api.daemon.internal.{BaseModuleApi, EvaluatorApi, JavaModuleApi, ModuleApi, TaskApi}
+import mill.api.daemon.internal.{BaseModuleApi, EvaluatorApi, JavaModuleApi, MillBuildRootModuleApi, ModuleApi, TaskApi}
 import mill.api.daemon.Watchable
+import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
+import scala.jdk.CollectionConverters._
 
 private[mill] class BspEvaluators(
     workspaceDir: os.Path,
@@ -82,15 +84,20 @@ private[mill] class BspEvaluators(
       }
     } yield (new BuildTargetIdentifier(uri), (bspModule, eval))
 
-  val nonScriptSources = evaluators.flatMap { ev =>
-    val bspSourceTasks: Seq[TaskApi[(sources: Seq[Path], generatedSources: Seq[Path])]] =
-      transitiveModules(ev.rootModule)
-        .collect { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetSources }
 
-    ev.executeApi(bspSourceTasks)
-      .values
-      .get
-      .flatMap { case (sources: Seq[Path], _: Seq[Path]) => sources }
+  val bspScriptIgnore: Seq[String] = {
+    // look for this in the first meta-build frame, which would be the meta-build configured
+    // by a `//|` build header in the main `build.mill` file in the project root folder
+    evaluators.lift(1).toSeq.flatMap { ev =>
+      val bspScriptIgnore: Seq[TaskApi[Seq[String]]] =
+        Seq(ev.rootModule).collect { case m: MillBuildRootModuleApi => m.bspScriptIgnoreAll }
+
+      ev.executeApi(bspScriptIgnore)
+        .values
+        .get
+        .flatMap { case sources: Seq[String] => sources }
+
+    }
   }
 
   lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
@@ -110,20 +117,72 @@ private[mill] class BspEvaluators(
       outDir: os.Path,
       eval: EvaluatorApi
   ): Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
+    // Create IgnoreNode from bspScriptIgnore patterns
+    val ignoreRules = bspScriptIgnore
+      .filter(l => !l.startsWith("#"))
+      .map(pattern => (pattern, new FastIgnoreRule(pattern)))
+
+    val ignoreNode = new IgnoreNode(ignoreRules.map(_._2).asJava)
+
+    // Extract directory prefixes from negation patterns (patterns starting with !)
+    // These directories need to be walked even if they're ignored, because they contain
+    // negated (un-ignored) files
+    val negationPatternDirs: Set[String] = bspScriptIgnore
+      .filter(l => !l.startsWith("#") && l.startsWith("!"))
+      .flatMap { pattern =>
+        val withoutNegation = pattern.drop(1) // Remove the '!' prefix
+        // Extract all parent directory paths
+        val pathParts = withoutNegation.split('/').dropRight(1) // Remove filename
+        if (pathParts.nonEmpty) {
+          pathParts.indices.map { i =>
+            pathParts.take(i + 1).mkString("/")
+          }
+        } else Nil
+      }
+      .toSet
+
+    // Create filter function that checks both files and directories
+    val skipPath: (String, Boolean) => Boolean = { (relativePath, isDirectory) =>
+      // If this is a directory that contains negation patterns, don't skip it
+      if (isDirectory && negationPatternDirs.contains(relativePath)) {
+        false
+      } else {
+        val matchResult = ignoreNode.isIgnored(relativePath, isDirectory)
+        val isIgnored = matchResult match {
+          case IgnoreNode.MatchResult.IGNORED => true
+          case _ => false
+        }
+
+        if (isIgnored && ignoreRules.nonEmpty) {
+          // Find which rule caused the ignore
+          val matchingRule = ignoreRules
+            .find { case (_, rule) => rule.isMatch(relativePath, isDirectory) }
+            .map(_._1)
+            .getOrElse("unknown")
+
+          println(s"BSP: Skipping path $relativePath (matched rule: $matchingRule)")
+        }
+
+        isIgnored
+      }
+    }
+
+    // Convert Scala function to Function2 for reflection (String, Boolean) => Boolean
+    val function2Class = eval.getClass.getClassLoader.loadClass("scala.Function2")
+
     // Reflectively load and call `ScriptModuleInit.discoverAndInstantiateScriptModules`
     // from the evaluator's classloader
-
     val result = eval
       .scriptModuleResolver
       .getClass
       .getMethod(
         "discoverAndInstantiateScriptModules",
-        classOf[Seq[java.nio.file.Path]],
         eval.getClass
           .getClassLoader
-          .loadClass("mill.api.Evaluator")
+          .loadClass("mill.api.Evaluator"),
+        function2Class
       )
-      .invoke(eval.scriptModuleResolver, nonScriptSources, eval)
+      .invoke(eval.scriptModuleResolver, eval, skipPath)
       .asInstanceOf[Seq[(java.nio.file.Path, mill.api.Result[BspModuleApi])]]
 
     result.flatMap {

@@ -1,3 +1,7 @@
+//| bspScriptIgnore:
+//| - "ignored.scala"
+//| - "ignored-folder"
+//| - "!ignored-folder/overidden-not-ignored.scala"
 package build
 
 import mill._

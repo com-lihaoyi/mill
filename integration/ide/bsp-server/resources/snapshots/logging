@@ -6,14 +6,12 @@ bsp] BSP server started
 bsp-init-mill-build/build.mill-60] compiling * Scala sources to * ...
 bsp-init-mill-build/build.mill-60] done compiling
 bsp-init-build.mill-60] compiling * Scala sources to * ...
-bsp-init-build.mill-60] [warn] build.mill:102:18
+bsp-init-build.mill-60] [warn] build.mill:106:18
 bsp-init-build.mill-60]   def theThing = thing
 bsp-init-build.mill-60]                  ^^^^^
 bsp-init-build.mill-60] method thing in object diag is deprecated since 0.0.1: deprecated
 bsp-init-build.mill-60] [warn] one warning found
 bsp-init-build.mill-60] done compiling
-bsp-init-107] compiling * Scala source to * ...
-bsp-init-107] done compiling
 bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
 bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
 bsp-init] SNAPSHOT

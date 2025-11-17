@@ -12,6 +12,7 @@ import mill.api.daemon.internal.{
   EvaluatorApi,
   ExecutionResultsApi,
   JavaModuleApi,
+  MillBuildRootModuleApi,
   ModuleApi,
   ScalaJSModuleApi,
   ScalaModuleApi,
@@ -21,7 +22,9 @@ import mill.api.daemon.internal.{
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
 import mill.util.BuildInfo
+import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
+import scala.jdk.CollectionConverters._
 
 class GenIdeaImpl(
     private val evaluators: Seq[EvaluatorApi]
@@ -331,9 +334,69 @@ class GenIdeaImpl(
           r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
       }
 
+    // Get bspScriptIgnore rules (same as BSP integration)
+    val bspScriptIgnore: Seq[String] = {
+      if (evaluators.length > 1) {
+        // look for this in the first meta-build frame, which would be the meta-build configured
+        // by a `//|` build header in the main `build.mill` file in the project root folder
+        val ev = evaluators(1)
+        val bspScriptIgnoreTasks: Seq[TaskApi[Seq[String]]] =
+          Seq(ev.rootModule).collect { case m: MillBuildRootModuleApi => m.bspScriptIgnoreAll }
+
+        ev.executeApi(bspScriptIgnoreTasks)
+          .values
+          .get
+          .flatMap { case sources: Seq[String] => sources }
+      } else {
+        Seq.empty
+      }
+    }
+
+    // Create IgnoreNode from bspScriptIgnore patterns
+    val ignoreRules = bspScriptIgnore
+      .filter(l => !l.startsWith("#"))
+      .map(pattern => (pattern, new FastIgnoreRule(pattern)))
+
+    val ignoreNode = new IgnoreNode(ignoreRules.map(_._2).asJava)
+
+    // Extract directory prefixes from negation patterns (patterns starting with !)
+    // These directories need to be walked even if they're ignored, because they contain
+    // negated (un-ignored) files
+    val negationPatternDirs: Set[String] = bspScriptIgnore
+      .filter(l => !l.startsWith("#") && l.startsWith("!"))
+      .flatMap { pattern =>
+        val withoutNegation = pattern.drop(1) // Remove the '!' prefix
+        // Extract all parent directory paths
+        val pathParts = withoutNegation.split('/').dropRight(1) // Remove filename
+        if (pathParts.nonEmpty) {
+          pathParts.indices.map { i =>
+            pathParts.take(i + 1).mkString("/")
+          }
+        } else Nil
+      }
+      .toSet
+
+    // Create filter function that checks both files and directories
+    val skipPath: (String, Boolean) => Boolean = { (relativePath, isDirectory) =>
+      // If this is a directory that contains negation patterns, don't skip it
+      if (isDirectory && negationPatternDirs.contains(relativePath)) {
+        false
+      } else {
+        val matchResult = ignoreNode.isIgnored(relativePath, isDirectory)
+        matchResult match {
+          case IgnoreNode.MatchResult.IGNORED => true
+          case _ => false
+        }
+      }
+    }
+
     // Discover script files
     val outDir = evaluators.headOption.map(e => os.Path(e.outPathJava)).getOrElse(workDir / "out")
-    val scriptFiles = new mill.script.ScriptModuleInit().discoverScriptFiles(workDir, outDir)
+    val scriptFiles = new mill.script.ScriptModuleInit().discoverScriptFiles(
+      workDir,
+      outDir,
+      skipPath
+    )
 
     val fixedFiles: Seq[(os.SubPath, Elem)] = Seq(
       Tuple2(os.sub / "misc.xml", miscXmlTemplate(jdkInfo)),
