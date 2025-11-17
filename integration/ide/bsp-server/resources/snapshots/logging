@@ -6,7 +6,7 @@ bsp] BSP server started
 bsp-init-mill-build/build.mill-60] compiling * Scala sources to * ...
 bsp-init-mill-build/build.mill-60] done compiling
 bsp-init-build.mill-60] compiling * Scala sources to * ...
-bsp-init-build.mill-60] [warn] build.mill:106:18
+bsp-init-build.mill-60] [warn] build.mill:107:18
 bsp-init-build.mill-60]   def theThing = thing
 bsp-init-build.mill-60]                  ^^^^^
 bsp-init-build.mill-60] method thing in object diag is deprecated since 0.0.1: deprecated
