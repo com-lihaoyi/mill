@@ -172,7 +172,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -225,10 +225,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
-  </li>
 </ul>
   </li>
 
@@ -267,10 +263,6 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -661,7 +653,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC1</span>
+    <span class="version">1.1.0-RC2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -670,11 +662,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC1-62-864778/index.html">dev-1.1.0-RC1-62-864778</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC1</a>
+          <a href="../index.html">1.1.0-RC2</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -741,18 +730,18 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
-1.1.0-RC1</code></pre>
+1.1.0-RC2</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-mill.bat -o mill.bat
 &gt; ./mill version
-1.1.0-RC1</code></pre>
+1.1.0-RC2</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -1403,167 +1392,12 @@ will download it for you to try it out in your project.</p>
 <div class="sect1">
 <h2 id="_other_installation_methods"><a class="anchor" href="#_other_installation_methods"></a>Other installation methods</h2>
 <div class="sectionbody">
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-The installation methods listed below are maintained outside of Mill and may not have
-the same features as the <a href="#_bootstrap_scripts">bootstrap scripts</a>. You can try using them,
-but the officially supported way to use Mill is via the bootstrap script above, so the Mill
-maintainers may be unable to help you if you have issues with some alternate installation method.
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-Some of the installations via package managers install a fixed version of Mill and
-do not support project-specific selection of the preferred Mill version. If you want to use
-the <code>MILL_VERSION</code> environment variable or need support for <code>.mill-version</code> or
-<code>.config/mill-version</code> files to control the actual used Mill version, please use
-a <a href="#_bootstrap_scripts">bootstrap script</a> instead.
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="_os_x"><a class="anchor" href="#_os_x"></a>OS X</h3>
 <div class="paragraph">
-<p>Installation via <a href="https://github.com/Homebrew/homebrew-core/blob/master/Formula/m/mill.rb">homebrew</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; brew install mill</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_arch_linux"><a class="anchor" href="#_arch_linux"></a>Arch Linux</h3>
-<div class="paragraph">
-<p>Arch Linux has an <a href="https://archlinux.org/packages/extra/any/mill/">Extra package for mill</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; pacman -S mill</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_freebsd"><a class="anchor" href="#_freebsd"></a>FreeBSD</h3>
-<div class="paragraph">
-<p>Installation via <a href="http://man.freebsd.org/pkg/8">pkg(8)</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; pkg install mill</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_gentoo_linux"><a class="anchor" href="#_gentoo_linux"></a>Gentoo Linux</h3>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; emerge dev-java/mill-bin</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h3>
-<div class="paragraph">
-<p>To get started, download Mill from
-<a href="https://github.com/com-lihaoyi/mill/releases/download/{version}/{version}-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
-</div>
-<div class="paragraph">
-<p>If you&#8217;re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; scoop install mill</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_wsl_msys2_cycgin_git_bash"><a class="anchor" href="#_wsl_msys2_cycgin_git_bash"></a>WSL / MSYS2 / Cycgin / Git-Bash</h3>
-<div class="paragraph">
-<p>Mill also works on "sh" environments on Windows (e.g.,
-<a href="https://www.msys2.org">MSYS2</a>,
-<a href="https://www.cygwin.com">Cygwin</a>,
-<a href="https://gitforwindows.org">Git-Bash</a>,
-<a href="https://docs.microsoft.com/en-us/windows/wsl">WSL</a>); to get started, follow the instructions in the <a href="#_manual">Manual</a>
-section. Note that:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>In some environments (such as WSL), Mill might have to be run without a server (using <code>-i</code>, <code>--interactive</code>, or <code>--no-server</code>.)</p>
-</li>
-<li>
-<p>On Cygwin, run the following after downloading mill:</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_docker"><a class="anchor" href="#_docker"></a>Docker</h3>
-<div class="paragraph">
-<p>You can download and run
-a <a href="https://hub.docker.com/r/nightscape/scala-mill/">"Docker image containing OpenJDK, Scala and Mill"</a> using</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; docker pull nightscape/scala-mill
-&gt; docker run -it nightscape/scala-mill</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_manual"><a class="anchor" href="#_manual"></a>Manual</h3>
-<div class="paragraph">
-<p>To get started, download Mill and install it into your HOME ".local/bin" via the following
-<code>curl</code>/<code>chmod</code> command:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/{version}/{version} &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill"</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_coursier_unsupported"><a class="anchor" href="#_coursier_unsupported"></a>Coursier (unsupported)</h3>
-<div class="paragraph">
-<p>Installing mill via <code>coursier</code> or <code>cs</code> is currently not officially supported.
-There are various issues, especially with interactive mode.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_asdf_unsupported"><a class="anchor" href="#_asdf_unsupported"></a>Asdf (unsupported)</h3>
-<div class="paragraph">
-<p>You can install and manage Mill via the Multiple Runtime Version Manager - <a href="https://asdf-vm.com/"><code>asdf</code></a>.</p>
-</div>
-<div class="paragraph">
-<p>Support by <code>asdf</code> is currently possible by using the <a href="https://github.com/asdf-community/asdf-mill"><code>asdf-mill</code> plugin</a>:</p>
-</div>
-<div class="listingblock">
-<div class="title">Steps to install the <code>mill</code> plugin and Mill with <code>asdf</code></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; asdf plugin add mill
-&gt; asdf install mill latest
-&gt; asdf global mill latest</code></pre>
-</div>
-</div>
+<p>No other installation methods of Mill are officially supported. Homebrew, Pacman, Scoop,
+Docker, Coursier, etc. are maintained by third parties and cannot be guaranteed to work.
+Please use the bootstrap script installation described on this page. If you have issues
+with installing Mill from other package managers, please open an issue on their respective
+codebase</p>
 </div>
 </div>
 </div>

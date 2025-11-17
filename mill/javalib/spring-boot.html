@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Spring Framework / Spring Boot Projects :: The Mill Build Tool</title>
+    <title>Spring Boot Projects :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/javalib/spring-boot.html">
     <link rel="prev" href="web-examples.html">
     <link rel="next" href="../scalalib/intro.html">
@@ -172,7 +172,7 @@
   </li>
 
   <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="spring-boot.html">Spring Framework / Spring Boot Projects</a>
+    <a class="nav-link" href="spring-boot.html">Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -225,10 +225,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
-  </li>
 </ul>
   </li>
 
@@ -267,10 +263,6 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -661,7 +653,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC1</span>
+    <span class="version">1.1.0-RC2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -670,11 +662,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC1-62-864778/index.html">dev-1.1.0-RC1-62-864778</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC1</a>
+          <a href="../index.html">1.1.0-RC2</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -713,46 +702,200 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Spring Framework / Spring Boot Projects</h1>
-<div id="preamble">
+<h1 class="page">Spring Boot Projects</h1>
+<div class="sect1">
+<h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This page contains documentation and examples specific for Spring Framework and Spring Boot Projects.</p>
+<p>This example demonstrates how to set up a simple Spring Boot webserver,
+using Mill&#8217;s <a href="intro.html#_config_based_modules" class="xref page">config-based build.mill.yaml</a>
+syntax.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-springboot-1-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/springboot/1-hello-spring-boot/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: 17
+extends: [mill.javalib.JavaModule]
+mvnDeps:
+- org.springframework.boot:spring-boot-starter-web:2.5.6
+- org.springframework.boot:spring-boot-starter-actuator:2.5.6
+
+object test:
+  extends: [JavaTests, mill.javalib.TestModule.Junit5]
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test:2.5.6</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">resources/application.properties (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-springboot-1-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/springboot/1-hello-spring-boot/resources/application.properties">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties">server.port=8086</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/com/example/HelloSpringBoot.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-springboot-1-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/springboot/1-hello-spring-boot/src/com/example/HelloSpringBoot.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.example;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@SpringBootApplication
+public class HelloSpringBoot {
+
+  public static void main(String[] args) {
+    SpringApplication.run(HelloSpringBoot.class, args);
+  }
+
+  @RestController
+  class HelloController {
+    @GetMapping("/")
+    public String hello() {
+      return "&lt;h1&gt;Hello, World!&lt;/h1&gt;";
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This server is able to handle a single HTTP request at <code>/</code> and reply with a
+single response. It also contains a simple test suite:</p>
+</div>
+<div class="listingblock">
+<div class="title">test/src/com/example/HelloSpringBootTest.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-springboot-1-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/springboot/1-hello-spring-boot/test/src/com/example/HelloSpringBootTest.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package com.example;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class HelloSpringBootTest {
+
+  @LocalServerPort
+  private int port;
+
+  @Autowired
+  private TestRestTemplate restTemplate;
+
+  @Test
+  public void shouldReturnDefaultMessage() {
+    String response = restTemplate.getForObject("http://localhost:" + port + "/", String.class);
+    assertEquals("&lt;h1&gt;Hello, World!&lt;/h1&gt;", response);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This can be tested via <code>curl</code>, or by running the test suite as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
+
+&gt; ./mill runBackground
+
+&gt; curl http://localhost:8086
+...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_general_information"><a class="anchor" href="#_general_information"></a>General Information</h2>
+<h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>The Spring Framework and Spring Boot are JVM Runtime frameworks.
-What this means is that they provide all their features at runtime.</p>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-springboot-2-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/springboot/2-todo-spring-boot">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 17
+
+package build
+import mill.*, javalib.*
+
+object `package` extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-validation:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-web:2.5.4",
+    mvn"javax.xml.bind:jaxb-api:2.3.1",
+    mvn"org.webjars:webjars-locator:0.41",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1"
+  )
+
+  trait HelloTests extends JavaTests, TestModule.Junit5 {
+    def mainClass = Some("com.example.TodomvcApplication")
+    def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-test:2.5.6")
+  }
+
+  object test extends HelloTests {
+    def mvnDeps = super.mvnDeps() ++ Seq(mvn"com.h2database:h2:2.3.230")
+  }
+
+  object integration extends HelloTests {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.testcontainers:testcontainers:1.18.0",
+      mvn"org.testcontainers:junit-jupiter:1.18.0",
+      mvn"org.testcontainers:postgresql:1.18.0",
+      mvn"org.postgresql:postgresql:42.6.0"
+    )
+  }
+}</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>The IoC container as the central core of the Spring Framework inspects the runtime environment at application startup.
-For that it uses mainly the classpath of the JVM.
-It collects all configurations, instantiates services and injects dependencies.
-Configurations can come from various places like Java Properties files, YAML files or Java <code>@Configuration</code> classes.</p>
-</div>
-<div class="paragraph">
-<p>The Spring Boot framework additionally scans the runtime classpath to auto-detect other frameworks and Spring Boot specific features. Based on it&#8217;s finding it enables dedicated features. Additionally, you can configure Spring Boot programmatically and via configuration files.</p>
-</div>
-<div class="paragraph">
-<p>As a consequence, Spring projects typically don&#8217;t need any special support from a build tool, which is nice, since you don&#8217;t need to lean any new Mill-specific concepts when you want to use Mill for your Spring projects.
-Spring Boot is also not tied to use of Java. It is easily possible to use or mix different JVM languages in your Spring projects.</p>
-</div>
-<div class="paragraph">
-<p>Being a runtime framework also means, that most issues you may encounter like configuration problems, missing dependencies, dependency conflicts or unexpected application behavior, can&#8217;t be easily detected at build-time. These often require inspection of the running or starting application and dealing with error messages and JVM stack traces. The use of a debugger can be sometimes necessary. When developing Spring projects, you should therefore also maintain a functional test suite.</p>
-</div>
-<div class="paragraph">
-<p>Some tools provided by the Spring Boot project are also useful outside of Spring Boot projects, hence Mill makes them available even for non-Spring project. Those are linked below:</p>
+<p>This is a larger example using Spring Boot, using Mill&#8217;s
+<a href="intro.html#_programmatic_modules" class="xref page">programmatic build.mill</a> syntax,
+implementing the well known <a href="https://todomvc.com/">TodoMVC</a> example app. Apart from
+running a webserver, this example also demonstrates:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="publishing.html#_building_repackage_assemblies" class="xref page"><code>RepackageModule</code></a> - Creates self-running application assemblies in a single-jar</p>
+<p>Serving HTML templates using Thymeleaf</p>
+</li>
+<li>
+<p>Serving static Javascript and CSS using Webjars</p>
+</li>
+<li>
+<p>Querying a SQL database using JPA and H2</p>
+</li>
+<li>
+<p>Unit testing using a H2 in-memory database</p>
+</li>
+<li>
+<p>Integration testing using Testcontainers Postgres in Docker</p>
 </li>
 </ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...com.example.TodomvcTests#homePageLoads() finished...
+...com.example.TodomvcTests#addNewTodoItem() finished...
+
+&gt; ./mill integration
+...com.example.TodomvcIntegrationTests#homePageLoads() finished...
+...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
+
+&gt; ./mill test.runBackground
+
+&gt; curl http://localhost:8087
+...&lt;h1&gt;todos&lt;/h1&gt;...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -760,7 +903,7 @@ Spring Boot is also not tied to use of Java. It is easily possible to use or mix
 <h2 id="_spring_boot_web_with_initializr"><a class="anchor" href="#_spring_boot_web_with_initializr"></a>Spring Boot Web with Initializr</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-springboot-java-1-web-initializr.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/springboot/java/1-web-initializr">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-springboot-3-web-initializr.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/springboot/3-web-initializr">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -800,7 +943,7 @@ using <a href="https://start.spring.io/">https://start.spring.io/</a> by choosin
 <p>Language: Java</p>
 </li>
 <li>
-<p>Dependencies: Spring Web,</p>
+<p>Dependencies: Spring Web</p>
 </li>
 </ul>
 </div>
@@ -833,137 +976,110 @@ as generated from the initialzr tool).</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
+<h2 id="_spring_reactive_web_websocket_example_with_initializr"><a class="anchor" href="#_spring_reactive_web_websocket_example_with_initializr"></a>Spring Reactive Web, Websocket example with Initializr</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-web-2-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/web/2-hello-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-springboot-4-web-socket-initializr.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/springboot/4-web-socket-initializr">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 17
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-package build
-import mill.*, javalib.*
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
 
-object `package` extends JavaModule {
-  def mvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-starter-web:2.5.6",
-    mvn"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
+object `package` extends MavenModule {
+
+  def bomMvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
   )
 
-  object test extends JavaTests, TestModule.Junit5 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-webflux"
+  )
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def bomMvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
+    )
+
+    def mvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-starter-test",
+      mvn"io.projectreactor:reactor-test"
     )
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This example demonstrates how to set up a simple Spring Boot webserver,
-able to handle a single HTTP request at <code>/</code> and reply with a single response.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
-...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
-
-&gt; ./mill runBackground
-
-&gt; curl http://localhost:8086
-...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
-
-&gt; ./mill clean runBackground</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-web-3-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/web/3-todo-spring-boot">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 17
-
-package build
-import mill.*, javalib.*
-
-object `package` extends JavaModule {
-  def mvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
-    mvn"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
-    mvn"org.springframework.boot:spring-boot-starter-validation:2.5.4",
-    mvn"org.springframework.boot:spring-boot-starter-web:2.5.4",
-    mvn"javax.xml.bind:jaxb-api:2.3.1",
-    mvn"org.webjars:webjars-locator:0.41",
-    mvn"org.webjars.npm:todomvc-common:1.0.5",
-    mvn"org.webjars.npm:todomvc-app-css:2.4.1"
-  )
-
-  trait HelloTests extends JavaTests, TestModule.Junit5 {
-    def mainClass = Some("com.example.TodomvcApplication")
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
-    )
-  }
-
-  object test extends HelloTests {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"com.h2database:h2:2.3.230"
-    )
-  }
-
-  object integration extends HelloTests {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"org.testcontainers:testcontainers:1.18.0",
-      mvn"org.testcontainers:junit-jupiter:1.18.0",
-      mvn"org.testcontainers:postgresql:1.18.0",
-      mvn"org.postgresql:postgresql:42.6.0"
-    )
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This is a larger example using Spring Boot, implementing the well known
-<a href="https://todomvc.com/">TodoMVC</a> example app. Apart from running a webserver,
-this example also demonstrates:</p>
+<p>This example demonstrates how to configure mill for a Websocket server using Spring Ractive Web via
+the initializr project,
+using <a href="https://start.spring.io/">https://start.spring.io/</a> by choosing:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Serving HTML templates using Thymeleaf</p>
+<p>Project: Maven or Gradle</p>
 </li>
 <li>
-<p>Serving static Javascript and CSS using Webjars</p>
+<p>Language: Java</p>
 </li>
 <li>
-<p>Querying a SQL database using JPA and H2</p>
-</li>
-<li>
-<p>Unit testing using a H2 in-memory database</p>
-</li>
-<li>
-<p>Integration testing using Testcontainers Postgres in Docker</p>
+<p>Dependencies: Spring Reactive Web</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>The structure of this project follows the MavenModule structure (i.e. the same structure
+as generated from the initialzr tool).</p>
+</div>
+<div class="paragraph">
+<p>For more information visit <a href="https://spring.io/quickstart">https://spring.io/quickstart</a></p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
-...com.example.TodomvcTests#homePageLoads() finished...
-...com.example.TodomvcTests#addNewTodoItem() finished...
-
-&gt; ./mill integration
-...com.example.TodomvcIntegrationTests#homePageLoads() finished...
-...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
-
-&gt; ./mill test.runBackground
-
-&gt; curl http://localhost:8087
-...&lt;h1&gt;todos&lt;/h1&gt;...
-
-&gt; ./mill clean runBackground</code></pre>
+...Test com.example.websocketdemo.WebsocketdemoApplicationTests#getMessage() finished...
+...Test com.example.websocketdemo.WebsocketdemoApplicationTests finished...</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This page contains documentation and examples specific for Spring Framework and Spring Boot Projects.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_general_information"><a class="anchor" href="#_general_information"></a>General Information</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Spring Framework and Spring Boot are JVM Runtime frameworks.
+What this means is that they provide all their features at runtime.</p>
+</div>
+<div class="paragraph">
+<p>The IoC container as the central core of the Spring Framework inspects the runtime environment at application startup.
+For that it uses mainly the classpath of the JVM.
+It collects all configurations, instantiates services and injects dependencies.
+Configurations can come from various places like Java Properties files, YAML files or Java <code>@Configuration</code> classes.</p>
+</div>
+<div class="paragraph">
+<p>The Spring Boot framework additionally scans the runtime classpath to auto-detect other frameworks and Spring Boot specific features. Based on it&#8217;s finding it enables dedicated features. Additionally, you can configure Spring Boot programmatically and via configuration files.</p>
+</div>
+<div class="paragraph">
+<p>As a consequence, Spring projects typically don&#8217;t need any special support from a build tool, which is nice, since you don&#8217;t need to lean any new Mill-specific concepts when you want to use Mill for your Spring projects.
+Spring Boot is also not tied to use of Java. It is easily possible to use or mix different JVM languages in your Spring projects.</p>
+</div>
+<div class="paragraph">
+<p>Being a runtime framework also means, that most issues you may encounter like configuration problems, missing dependencies, dependency conflicts or unexpected application behavior, can&#8217;t be easily detected at build-time. These often require inspection of the running or starting application and dealing with error messages and JVM stack traces. The use of a debugger can be sometimes necessary. When developing Spring projects, you should therefore also maintain a functional test suite.</p>
+</div>
+<div class="paragraph">
+<p>Some tools provided by the Spring Boot project are also useful outside of Spring Boot projects, hence Mill makes them available even for non-Spring project. Those are linked below:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="publishing.html#_building_repackage_assemblies" class="xref page"><code>RepackageModule</code></a> - Creates self-running application assemblies in a single-jar</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

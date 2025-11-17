@@ -172,7 +172,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -225,10 +225,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
-  </li>
 </ul>
   </li>
 
@@ -267,10 +263,6 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -661,7 +653,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC1</span>
+    <span class="version">1.1.0-RC2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -670,11 +662,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC1-62-864778/index.html">dev-1.1.0-RC1-62-864778</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC1</a>
+          <a href="../index.html">1.1.0-RC2</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -757,7 +746,8 @@ modules introduce a few new tasks and changes the behavior of an existing one.</
 &gt; mill foo.test                           # tests your project and collects metrics on code coverage
 &gt; mill foo.scoverage.htmlReport           # uses the metrics collected by a previous test run to generate a coverage report in html format
 &gt; mill foo.scoverage.xmlReport            # uses the metrics collected by a previous test run to generate a coverage report in xml format
-&gt; mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format</code></pre>
+&gt; mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format
+&gt; mill foo.scoverage.validateCoverageMinimums # This allows for you to use the metrics collected by a previous test run to validate if the coverage minimums have been set. To use this, define the functions `branchCoverageMin` and/or `statementCoverageMin` in the ScoverageModule.</code></pre>
 </div>
 </div>
 <div class="paragraph">

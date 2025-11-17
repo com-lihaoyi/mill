@@ -172,7 +172,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="spring-boot.html">Spring Framework / Spring Boot Projects</a>
+    <a class="nav-link" href="spring-boot.html">Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -225,10 +225,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
-  </li>
 </ul>
   </li>
 
@@ -267,10 +263,6 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -661,7 +653,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC1</span>
+    <span class="version">1.1.0-RC2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -670,11 +662,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC1-62-864778/index.html">dev-1.1.0-RC1-62-864778</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC1</a>
+          <a href="../index.html">1.1.0-RC2</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -723,22 +712,25 @@ It covers setting up a basic backend server with a variety of server frameworks<
 </div>
 </div>
 <div class="sect1">
+<h2 id="_spring_boot"><a class="anchor" href="#_spring_boot"></a>Spring Boot</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="spring-boot.html" class="xref page">Mill with Spring Boot</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/web/1-hello-jetty">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/web/1-hello-jetty/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object `package` extends JavaModule {
-  def mvnDeps = Seq(
-    mvn"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
-    mvn"javax.servlet:javax.servlet-api:4.0.1"
-  )
-
-  object test extends JavaTests, TestModule.Junit4
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
+mvnDeps:
+- org.eclipse.jetty:jetty-server:9.4.43.v20210629
+- javax.servlet:javax.servlet-api:4.0.1
+object test:
+  extends: [JavaTests, mill.javalib.TestModule.Junit4]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -761,44 +753,29 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 </div>
 </div>
 <div class="sect1">
-<h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This section was moved to the <a href="spring-boot.html#_spring_boot_hello_world_app" class="xref page">Spring Boot page</a>.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This section was moved to the <a href="spring-boot.html#_spring_boot_todomvc_app" class="xref page">Spring Boot page</a>.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/web/4-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-web-2-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/web/2-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
 import mill.*, javalib.*
 
 object `package` extends MicronautModule {
-  def micronautVersion = "4.5.3"
+  def micronautVersion = "4.6.1"
+
   def mvnDeps = Seq(
-    mvn"io.micronaut:micronaut-http-server-netty:$micronautVersion",
-    mvn"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
+    mvn"io.micronaut:micronaut-http-server-netty",
+    mvn"io.micronaut.serde:micronaut-serde-jackson",
     mvn"ch.qos.logback:logback-classic:1.5.3"
   )
 
   object test extends MavenTests, TestModule.Junit5 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.micronaut:micronaut-http-client:$micronautVersion",
-      mvn"io.micronaut.test:micronaut-test-junit5:4.4.0",
-      mvn"org.junit.jupiter:junit-jupiter-api:5.8.1",
-      mvn"org.junit.jupiter:junit-jupiter-engine:5.8.1"
+
+    def mvnDeps = Seq(
+      mvn"io.micronaut:micronaut-http-client",
+      mvn"io.micronaut.test:micronaut-test-junit5"
     )
 
     // Micronaut test not compatible with running in parallel
@@ -809,26 +786,28 @@ object `package` extends MicronautModule {
 trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
-  def processors = Task {
-    defaultResolver().classpath(
-      Seq(
-        mvn"io.micronaut.data:micronaut-data-processor:4.7.0",
-        mvn"io.micronaut:micronaut-http-validation:$micronautVersion",
-        mvn"io.micronaut.serde:micronaut-serde-processor:2.9.0",
-        mvn"io.micronaut.validation:micronaut-validation-processor:4.5.0",
-        mvn"io.micronaut:micronaut-inject-java:$micronautVersion"
-      )
-    )
-  }
+  override def bomMvnDeps = Seq(
+    mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
+  )
 
-  def javacOptions = Seq(
-    "-processorpath",
-    processors().map(_.path).mkString(":"),
-    "-parameters",
+  override def annotationProcessorsMvnDeps =
+    Seq(
+      mvn"io.micronaut.data:micronaut-data-processor",
+      mvn"io.micronaut:micronaut-http-validation",
+      mvn"io.micronaut.serde:micronaut-serde-processor",
+      mvn"io.micronaut.validation:micronaut-validation-processor",
+      mvn"io.micronaut:micronaut-inject-java"
+    )
+
+  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
-    "-Amicronaut.processing.module=todo",
+    "-Amicronaut.processing.module=hello",
     "-Amicronaut.processing.annotations=example.micronaut.*"
+  )
+
+  def javacOptions = super.javacOptions() ++ Seq(
+    "-parameters"
   )
 }</code></pre>
 </div>
@@ -873,9 +852,10 @@ extended with more features as necessary.</p>
 <h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/javalib/web/5-todo-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-javalib-web-3-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/javalib/web/3-todo-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
 import mill.*, javalib.*
 
 object `package` extends MicronautModule {
@@ -886,25 +866,28 @@ object `package` extends MicronautModule {
   )
 
   def mvnDeps = Seq(
-    mvn"io.micronaut:micronaut-http-server-netty:$micronautVersion",
-    mvn"io.micronaut.serde:micronaut-serde-jackson:2.9.0",
-    mvn"io.micronaut.data:micronaut-data-jdbc:4.7.0",
-    mvn"io.micronaut.sql:micronaut-jdbc-hikari:5.6.0",
-    mvn"io.micronaut.validation:micronaut-validation:4.5.0",
-    mvn"io.micronaut.views:micronaut-views-htmx:5.2.0",
-    mvn"io.micronaut.views:micronaut-views-thymeleaf:5.2.0",
+    mvn"io.micronaut:micronaut-http-server-netty",
+    mvn"io.micronaut.serde:micronaut-serde-jackson",
+    mvn"io.micronaut.data:micronaut-data-jdbc",
+    mvn"io.micronaut.sql:micronaut-jdbc-hikari",
+    mvn"io.micronaut.validation:micronaut-validation",
+    mvn"io.micronaut.views:micronaut-views-htmx",
+    mvn"io.micronaut.views:micronaut-views-thymeleaf",
     mvn"org.webjars.npm:todomvc-common:1.0.5",
     mvn"org.webjars.npm:todomvc-app-css:2.4.1",
     mvn"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
   )
 
   object test extends MavenTests, TestModule.Junit5 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
+
+    override def bomMvnDeps = Seq(
+      mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
+    )
+
+    def mvnDeps = Seq(
       mvn"com.h2database:h2:2.2.224",
-      mvn"io.micronaut:micronaut-http-client:$micronautVersion",
-      mvn"io.micronaut.test:micronaut-test-junit5:4.4.0",
-      mvn"org.junit.jupiter:junit-jupiter-api:5.8.1",
-      mvn"org.junit.jupiter:junit-jupiter-engine:5.8.1"
+      mvn"io.micronaut:micronaut-http-client",
+      mvn"io.micronaut.test:micronaut-test-junit5"
     )
 
     // Micronaut test not compatible with running in parallel
@@ -915,26 +898,27 @@ object `package` extends MicronautModule {
 trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
-  def processors = Task {
-    defaultResolver().classpath(
-      Seq(
-        mvn"io.micronaut.data:micronaut-data-processor:4.7.0",
-        mvn"io.micronaut:micronaut-http-validation:$micronautVersion",
-        mvn"io.micronaut.serde:micronaut-serde-processor:2.9.0",
-        mvn"io.micronaut.validation:micronaut-validation-processor:4.5.0",
-        mvn"io.micronaut:micronaut-inject-java:$micronautVersion"
-      )
-    )
-  }
+  override def bomMvnDeps = Seq(
+    mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
+  )
 
-  def javacOptions = Seq(
-    "-processorpath",
-    processors().map(_.path).mkString(":"),
-    "-parameters",
+  override def annotationProcessorsMvnDeps = Seq(
+    mvn"io.micronaut.data:micronaut-data-processor",
+    mvn"io.micronaut:micronaut-http-validation",
+    mvn"io.micronaut.serde:micronaut-serde-processor",
+    mvn"io.micronaut.validation:micronaut-validation-processor",
+    mvn"io.micronaut:micronaut-inject-java"
+  )
+
+  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
     "-Amicronaut.processing.module=todo",
     "-Amicronaut.processing.annotations=example.micronaut.*"
+  )
+
+  def javacOptions = super.javacOptions() ++ Seq(
+    "-parameters"
   )
 }</code></pre>
 </div>
@@ -993,7 +977,7 @@ and can be extended to cover additional functionality in future</p>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="build-examples.html">Java Build Examples</a></span>
-  <span class="next"><a href="spring-boot.html">Spring Framework / Spring Boot Projects</a></span>
+  <span class="next"><a href="spring-boot.html">Spring Boot Projects</a></span>
 </nav>
 </article>
   </div>

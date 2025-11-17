@@ -172,7 +172,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -225,10 +225,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
-  </li>
 </ul>
   </li>
 
@@ -267,10 +263,6 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -661,7 +653,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC1</span>
+    <span class="version">1.1.0-RC2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -670,11 +662,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC1-62-864778/index.html">dev-1.1.0-RC1-62-864778</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC1</a>
+          <a href="../index.html">1.1.0-RC2</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -737,9 +726,7 @@ This means that while small projects can be expected to complete without issue:<
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
-
-&gt; git init .
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
 &gt; git remote add -f origin https://github.com/davidmoten/geo.git
 &gt; git checkout 0.8.1 # example multi-module Java project using JUnit4
 
@@ -765,9 +752,7 @@ Test run com.github.davidmoten.geo.DirectionTest finished: 0 failed, 0 ignored, 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
-
-&gt; git init .
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
 &gt; git remote add -f origin https://github.com/komamitsu/fluency.git
 &gt; git checkout 2.7.3 # multi-module Java project that requires Java 16+
 
@@ -793,9 +778,7 @@ Test org.komamitsu.fluency.recordformat.MessagePackRecordFormatterTest finished,
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
-
-&gt; git init .
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
 &gt; git remote add -f origin https://github.com/scala/scala3-example-project.git
 &gt; git checkout 853808c50601e88edaa7272bcfb887b96be0e22a
 
@@ -820,9 +803,7 @@ MySuite:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
-
-&gt; git init .
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
 &gt; git remote add -f origin https://github.com/dhatim/fastexcel.git
 &gt; git checkout 0.18.4
 &gt; # pom.xml has custom profiles for JPMS that mill init does not support
@@ -837,9 +818,12 @@ writing Mill build file to build.mill
 init completed, run "mill resolve _" to list available tasks
 
 &gt; ./mill -k __.compile # Compilation needs manual tweaking to pass
-error: ...fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress
-error: ...fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto
-error: ...fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip</code></pre>
+error: fastexcel-reader/src/main/java/module-info.java:3:32
+module not found: org.apache.commons.compress
+fastexcel-reader/src/main/java/module-info.java:4:27
+module not found: com.fasterxml.aalto
+fastexcel-writer/src/main/java/module-info.java:2:14
+module not found: opczip</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -847,9 +831,7 @@ error: ...fastexcel-writer/src/main/java/module-info.java:2:14: module not found
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
-
-&gt; git init .
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
 &gt; git remote add -f origin https://github.com/mockito/mockito.git
 &gt; git checkout v5.19.0 # multi-module Java project
 
@@ -866,9 +848,7 @@ error: java.lang.UnsupportedClassVersionError: com/google/errorprone/ErrorProneJ
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
-
-&gt; git init .
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
 &gt; git remote add -f origin https://github.com/fthomas/refined.git
 &gt; git checkout v0.11.3
 
@@ -892,9 +872,7 @@ compiling, and passing all tests in Mill:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
-
-&gt; git init .
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
 &gt; git remote add -f origin https://github.com/iluwatar/java-design-patterns
 &gt; git checkout ede37bd05568b1b8b814d8e9a1d2bbd71d9d615d
 

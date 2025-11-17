@@ -173,7 +173,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -226,10 +226,6 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="spark.html">Spark Examples</a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="spring-boot.html">Spring Framework / Spring Boot Projects</a>
-  </li>
 </ul>
   </li>
 
@@ -268,10 +264,6 @@
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/spring-boot.html">Spring Framework / Spring Boot Projects</a>
   </li>
 </ul>
   </li>
@@ -662,7 +654,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC1</span>
+    <span class="version">1.1.0-RC2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,11 +663,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC1-62-864778/index.html">dev-1.1.0-RC1-62-864778</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC1</a>
+          <a href="../index.html">1.1.0-RC2</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -724,82 +713,17 @@ for <code>ScalaModule</code>.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_adding_ivy_dependencies"><a class="anchor" href="#_adding_ivy_dependencies"></a>Adding Ivy Dependencies</h2>
+<h2 id="_compile_and_runtime_dependencies"><a class="anchor" href="#_compile_and_runtime_dependencies"></a>Compile and Runtime Dependencies</h2>
 <div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-dependencies-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/dependencies/1-mvn-deps">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-object `package` extends ScalaModule {
-  def scalaVersion = &quot;2.12.20&quot;
-  def mvnDeps = Seq(
-    mvn&quot;com.lihaoyi::upickle:4.3.0&quot;,
-    mvn&quot;com.lihaoyi::pprint:0.9.0&quot;,
-    mvn&quot;${scalaOrganization()}:scala-reflect:${scalaVersion()}&quot;
-  )
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can define the <code>mvnDeps</code> field to add ivy dependencies to your module,
-named after the Maven JVM package repository format.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Single <code>:</code> syntax (e.g. <code>&quot;mvn&quot;org.testng:testng:6.11&quot;</code>) defines Java
-dependencies</p>
-</li>
-</ul>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Double <code>::</code> syntax (e.g. <code>mvn&quot;com.lihaoyi::upickle:0.5.1&quot;</code>) defines Scala
-dependencies</p>
-</li>
-<li>
-<p>Triple <code>:::</code> syntax (e.g. <code>mvn&quot;org.scalamacros:::paradise:2.1.1&quot;</code>) defines
-dependencies cross-published against the full Scala version e.g. <code>2.12.4</code>
-instead of just <code>2.12</code>. These are typically Scala compiler plugins or
-similar.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>To select the test-jars from a dependency use the <code>;classifier=tests</code> syntax, e.g.:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>mvn&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Please consult the <a href="../fundamentals/library-deps.html" class="xref page">Library Dependencies in Mill</a> section for more details.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run i am cow
-pretty-printed using PPrint: Array(&quot;i&quot;, &quot;am&quot;, &quot;cow&quot;)
-serialized using uPickle: [&quot;i&quot;,&quot;am&quot;,&quot;cow&quot;]</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_run_time_dependencies"><a class="anchor" href="#_run_time_dependencies"></a>Run-time Dependencies</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_run_time_dependencies"><a class="anchor" href="#_run_time_dependencies"></a>Run-time Dependencies</h3>
 <div class="paragraph">
 <p>If you want to use additional dependencies at runtime or override
 dependencies and their versions at runtime, you can do so with
 <code>runMvnDeps</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/dependencies/2-run-compile-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-scalalib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/scalalib/dependencies/2-run-compile-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -823,10 +747,8 @@ of a module it will include the runtime dependencies of all upstream modules on 
 classpath</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_compile_time_dependencies"><a class="anchor" href="#_compile_time_dependencies"></a>Compile-time Dependencies</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_compile_time_dependencies"><a class="anchor" href="#_compile_time_dependencies"></a>Compile-time Dependencies</h3>
 <div class="paragraph">
 <p>You can also declare compile-time-only dependencies with <code>compileMvnDeps</code>.
 These are present in the compile classpath, but will not propagate to the
@@ -878,8 +800,12 @@ automatically aggregate them from its upstream dependencies. They must be
 defined in every module that they are required in, either explicitly or via
 a <code>trait</code> that the module inherits from.</p>
 </div>
-<div class="sect2">
-<h3 id="_keeping_up_to_date_with_scala_steward"><a class="anchor" href="#_keeping_up_to_date_with_scala_steward"></a>Keeping up-to-date with Scala Steward</h3>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_keeping_up_to_date_with_scala_steward"><a class="anchor" href="#_keeping_up_to_date_with_scala_steward"></a>Keeping up-to-date with Scala Steward</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>It’s always a good idea to keep your dependencies up-to-date.</p>
 </div>
@@ -901,7 +827,6 @@ Scala Steward can also keep your
 </td>
 </tr>
 </tbody></table>
-</div>
 </div>
 </div>
 </div>
@@ -928,7 +853,7 @@ from somewhere and need to include it in your project, <code>unmanagedClasspath<
 way to do it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/dependencies/3-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-scalalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/scalalib/dependencies/3-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -967,7 +892,7 @@ download from arbitrary URLs.
 library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-scalalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/scalalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -1039,7 +964,7 @@ the standard package repository for JVM languages like Java, Kotlin, or Scala. Y
 can also add your own resolvers by overriding the <code>repositories</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC1/mill-dist-1.1.0-RC1-example-scalalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC1/example/scalalib/dependencies/5-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-scalalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/scalalib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
