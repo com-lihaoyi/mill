@@ -327,7 +327,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) ",
             "(B)<digits>](X) Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took .../... sec",
             "(B)<digits>](X) (B)Test run (X)foo.(Y)FooTest(B) finished: 0 failed, 0 ignored, 1 total, .../...s(X)",
-            "101/<digits>] ============================== test =============================="
+            "102/<digits>] ============================== test =============================="
           )
         )
       }

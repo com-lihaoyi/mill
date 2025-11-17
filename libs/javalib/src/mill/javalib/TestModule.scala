@@ -74,14 +74,31 @@ trait TestModule
   }
 
   /**
+   * Default arguments to be passed to `testForked` and `testOnly`
+   *
+   * If you set this but would like to run `testForked` or `testOnly` without these default values,
+   * pass `--addDefault=false` as first argument to them.
+   */
+  def testArgsDefault: T[Seq[String]] = Task(Nil)
+
+  /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * @see [[testCached]]
    */
-  def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+  def testForked(
+      addDefault: Boolean = true,
+      args: String*
+  ): Task.Command[(msg: String, results: Seq[TestResult])] = {
+    val argsTask =
+      if (addDefault) Task.Anon { testArgsDefault() ++ args } else Task.Anon { args }
     Task.Command {
-      testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+      testTask(argsTask, Task.Anon { Seq.empty[String] })()
     }
+  }
+
+  def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+    testForked(addDefault = true, args*)
 
   def getTestEnvironmentVars(args: String*): Task.Command[(
       mainClass: String,
@@ -97,7 +114,7 @@ trait TestModule
   /**
    * Args to be used by [[testCached]].
    */
-  def testCachedArgs: T[Seq[String]] = Task { Seq[String]() }
+  def testCachedArgs: T[Seq[String]] = testArgsDefault
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -138,7 +155,10 @@ trait TestModule
    * (includes package name) 1. end with "foo", 2. exactly "foobar", 3. start
    * with "bar", with "arguments" as arguments passing to test framework.
    */
-  def testOnly(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] = {
+  def testOnly(
+      addDefault: Boolean = true,
+      args: String*
+  ): Task.Command[(msg: String, results: Seq[TestResult])] = {
     val (selector, testArgs) = args.indexOf("--") match {
       case -1 => (args, Seq.empty)
       case pos =>
@@ -146,10 +166,15 @@ trait TestModule
         (s, t.tail)
     }
 
+    val argsTask =
+      if (addDefault) Task.Anon { testArgsDefault() ++ testArgs } else Task.Anon { testArgs }
     Task.Command {
-      testTask(Task.Anon { testArgs }, Task.Anon { selector })()
+      testTask(argsTask, Task.Anon { selector })()
     }
   }
+
+  private[mill] def testOnly(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+    testOnly(addDefault = true, args*)
 
   /**
    * Controls whether the TestRunner should receive its arguments via an args-file instead of a long parameter list.
