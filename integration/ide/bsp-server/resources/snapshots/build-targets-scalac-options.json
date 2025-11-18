@@ -111,7 +111,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts$slashfolder1$slashscript.scala/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/folder1/script.scala/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -137,7 +137,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts$slashfoldershared$slashscript.scala/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/foldershared/script.scala/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {

@@ -260,7 +260,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.1/upickle-implicits_3-4.4.1.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar",
-        "file:///workspace/out/mill-bsp-out/scripts$slashfolder1$slashscript.scala/compile.dest/classes"
+        "file:///workspace/out/mill-bsp-out/scripts/folder1/script.scala/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -286,7 +286,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
-        "file:///workspace/out/mill-bsp-out/scripts$slashfolder2$slashFoo.java/compile.dest/classes"
+        "file:///workspace/out/mill-bsp-out/scripts/folder2/Foo.java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -323,9 +323,9 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
-        "file:///workspace/out/mill-bsp-out/scripts$slashfolder2$slashFoo.java/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/scripts/folder2/Foo.java/compile.dest/classes",
         "file:///workspace/scripts/folder2/FooTest.java/resources",
-        "file:///workspace/out/mill-bsp-out/scripts$slashfolder2$slashFooTest.java/compile.dest/classes"
+        "file:///workspace/out/mill-bsp-out/scripts/folder2/FooTest.java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -347,7 +347,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/1.1.6.RELEASE/unbescape-1.1.6.RELEASE.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
-        "file:///workspace/out/mill-bsp-out/scripts$slashfoldershared$slashFoo.java/compile.dest/classes"
+        "file:///workspace/out/mill-bsp-out/scripts/foldershared/Foo.java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -383,7 +383,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.1/upickle-implicits_3-4.4.1.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar",
-        "file:///workspace/out/mill-bsp-out/scripts$slashfoldershared$slashscript.scala/compile.dest/classes"
+        "file:///workspace/out/mill-bsp-out/scripts/foldershared/script.scala/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
@@ -402,7 +402,7 @@
         "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
       },
       "classpath": [
-        "file:///workspace/out/mill-bsp-out/scripts$slashignored-folder-2$slashnegated-not-ignored.java/compile.dest/classes"
+        "file:///workspace/out/mill-bsp-out/scripts/ignored-folder-2/negated-not-ignored.java/compile.dest/classes"
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
