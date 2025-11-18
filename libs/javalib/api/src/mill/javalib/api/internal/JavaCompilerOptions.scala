@@ -1,6 +1,7 @@
 package mill.javalib.api.internal
 
 object JavaCompilerOptions {
+
   /**
    * Extract JVM options out of the compiler options.
    * JVM options always start with `-J`.

@@ -450,7 +450,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       javaHome = javaHome,
       javaRuntimeOptions = jOpts.runtime,
       reporter = compileProblemReporter,
-      reportCachedProblems = reportOldProblems,
+      reportCachedProblems = reportOldProblems
     )
   }
 

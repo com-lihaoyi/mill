@@ -165,7 +165,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig,
+      deps: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
     val cacheKey = JavaCompilerCacheKey(op.javacOptions)
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
@@ -192,7 +192,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig,
+      deps: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
     withScalaCompilers(
       scalaVersion = op.scalaVersion,
@@ -232,7 +232,9 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
       mill.util.Retry(count = 2) {
-        if (JvmWorkerUtil.isDotty(op.scalaVersion) || JvmWorkerUtil.isScala3Milestone(op.scalaVersion)) {
+        if (
+          JvmWorkerUtil.isDotty(op.scalaVersion) || JvmWorkerUtil.isScala3Milestone(op.scalaVersion)
+        ) {
           // dotty 0.x and scala 3 milestones use the dotty-doc tool
           val dottydocClass =
             compilers.scalac().scalaInstance().loader().loadClass(
