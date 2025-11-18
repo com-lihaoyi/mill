@@ -7,9 +7,9 @@ import mill.api.{Evaluator, ExternalModule, Result}
 // same upstream module. But we cannot cache them for longer because between evaluations
 // the `headerData` might change requiring some modules to be re-instantiated, and it is
 // hard to do that on a per-module basis so we just re-instantiate all modules every time
-class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[mill.api.ExternalModule]]) {
+class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule]]) {
 
-  val scriptModuleCache: collection.mutable.Map[os.Path, ScriptModule] =
+  val scriptModuleCache: collection.mutable.Map[os.Path, ExternalModule] =
     collection.mutable.Map.empty
 
   def moduleFor(
@@ -20,7 +20,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[mill.api.Exter
       runModuleDepsStrings: Seq[String],
       eval: Evaluator,
       headerData: mill.api.ModuleCtx.HeaderData
-  ): mill.api.Result[mill.api.ExternalModule] = {
+  ): Result[ExternalModule] = {
     def relativize(s: String) = {
       if (s.startsWith("."))
         (scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.up / os.RelPath(s)).toString
@@ -34,7 +34,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[mill.api.Exter
     val (runModuleDepsErrors, runModuleDeps) = runModuleDepsStrings.partitionMap(resolveOrErr)
     val allErrors = moduleDepsErrors ++ compileModuleDepsErrors ++ runModuleDepsErrors
     if (allErrors.nonEmpty) {
-      mill.api.Result.Failure(
+      Result.Failure(
         "Unable to resolve modules: " + allErrors.map(pprint.Util.literalize(_)).mkString(", ")
       )
     } else instantiate(
@@ -58,12 +58,11 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[mill.api.Exter
       .collectFirst { case Left(m) => m }
   }
 
-
   def instantiate(
       scriptFile: os.Path,
       className: String,
       args: AnyRef*
-  ): mill.api.Result[ExternalModule] = {
+  ): Result[ExternalModule] = {
     val clsOrErr =
       try Result.Success(Class.forName(className))
       catch {
@@ -131,7 +130,6 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[mill.api.Exter
       skipPath
     )
       .flatMap { scriptPath =>
-
         resolveScriptModule(scriptPath.toString, eval).map { result =>
           (scriptPath.toNIO, result)
         }
