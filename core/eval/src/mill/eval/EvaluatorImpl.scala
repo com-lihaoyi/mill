@@ -25,10 +25,10 @@ final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
     private val execution: Execution,
-    private[mill] override val scriptModuleResolver: (
+    private[mill] override val scriptModuleInit: (
         String,
         Evaluator
-    ) => Seq[Result[ExternalModule]]
+    ) => Seq[Result[ExternalModule]] = new ScriptModuleInit()
 ) extends Evaluator {
 
   override val staticBuildOverrides = execution.staticBuildOverrides
@@ -47,7 +47,7 @@ final class EvaluatorImpl private[mill] (
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
-    scriptModuleResolver
+    scriptModuleInit
   )
 
   /**
@@ -67,7 +67,7 @@ final class EvaluatorImpl private[mill] (
         selectMode = selectMode,
         allowPositionalCommandArgs = allowPositionalCommandArgs,
         resolveToModuleTasks = resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, this)
+        scriptModuleResolver = scriptModuleInit(_, this)
       )
     }
   }
@@ -84,7 +84,7 @@ final class EvaluatorImpl private[mill] (
         selectMode = selectMode,
         allowPositionalCommandArgs = allowPositionalCommandArgs,
         resolveToModuleTasks = resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, this)
+        scriptModuleResolver = scriptModuleInit(_, this)
       )
     }
   }
@@ -107,7 +107,7 @@ final class EvaluatorImpl private[mill] (
           selectMode = selectMode,
           allowPositionalCommandArgs = allowPositionalCommandArgs,
           resolveToModuleTasks = resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, this)
+          scriptModuleResolver = scriptModuleInit(_, this)
         )
       }.flatMap { f =>
         val allModules = f.map(_.ctx.enclosingModule).distinct
@@ -182,7 +182,7 @@ final class EvaluatorImpl private[mill] (
           selectMode = selectMode,
           allowPositionalCommandArgs = allowPositionalCommandArgs,
           resolveToModuleTasks = resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, this)
+          scriptModuleResolver = scriptModuleInit(_, this)
         )
       }
     }

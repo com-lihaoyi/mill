@@ -1,7 +1,7 @@
-package mill.script
-import mill.api.daemon.SelectMode
-import mill.api.{Evaluator, ExternalModule, Result}
+package mill.eval
 
+import mill.api.daemon.SelectMode
+import mill.api.{Evaluator, ExternalModule, Result, ScriptModule}
 // Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
 // we don't duplicate script modules when e.g. multiple downstream modules refer to the
 // same upstream module. But we cannot cache them for longer because between evaluations

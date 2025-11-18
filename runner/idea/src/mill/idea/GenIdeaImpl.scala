@@ -407,7 +407,7 @@ class GenIdeaImpl(
 
     // Discover script files
     val outDir = evaluators.headOption.map(e => os.Path(e.outPathJava)).getOrElse(workDir / "out")
-    val scriptFiles = new mill.script.ScriptModuleInit().discoverScriptFiles(
+    val scriptFiles = new mill.eval.ScriptModuleInit().discoverScriptFiles(
       workDir,
       outDir,
       skipPath

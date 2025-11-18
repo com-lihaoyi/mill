@@ -144,7 +144,7 @@ class UnitTester(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
     execution = execution,
-    scriptModuleResolver = (_, _) => Nil
+    scriptModuleInit = (_, _) => Nil
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
