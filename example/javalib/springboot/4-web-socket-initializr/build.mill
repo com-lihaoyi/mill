@@ -1,45 +1,30 @@
 package build
 
-import mill.*
-import mill.api.Task.Simple as T
-import mill.api.{ModuleRef, PathRef, Task}
-import mill.javalib.*
-import mill.javalib.spring.boot.SpringBootModule
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
 
-object `package` extends SpringBootModule {
+object `package` extends MavenModule {
 
-  override def springBootPlatformVersion = "3.5.7"
+  def bomMvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
+  )
 
   def mvnDeps = Seq(
     mvn"org.springframework.boot:spring-boot-starter-webflux"
   )
 
-  object release extends SpringBootOptimisedBuildModule {}
-
   object test extends MavenTests with TestModule.Junit5 {
 
-    def agentDeps: T[Seq[Dep]] = Seq(
-      mvn"org.springframework:spring-core-test"
-    )
-
-    def resolvedAgentDeps: T[PathRef] = Task {
-      defaultResolver().classpath(
-        agentDeps(),
-        boms = allBomDeps()
-      ).head
-    }
-
-    override def forkArgs: Task.Simple[Seq[String]] = super.forkArgs() ++ Seq(
-      s"-javaagent:${resolvedAgentDeps().path}"
+    def bomMvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
     )
 
     def mvnDeps = Seq(
       mvn"org.springframework.boot:spring-boot-starter-test",
-      mvn"org.springframework:spring-core-test",
       mvn"io.projectreactor:reactor-test"
     )
   }
-
 }
 
 // This example demonstrates how to configure mill for a Websocket server using Spring Ractive Web via

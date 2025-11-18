@@ -2,7 +2,7 @@ package mill.javalib.spring.boot
 
 import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
-import mill.javalib.{Dep, DepSyntax, MavenModule}
+import mill.javalib.{Dep, DepSyntax, MavenModule, NativeImageModule}
 
 @mill.api.experimental
 trait SpringBootModule extends MavenModule { outer =>
@@ -26,10 +26,10 @@ trait SpringBootModule extends MavenModule { outer =>
   }
 
   /**
-   * The artifact id to be used for Spring's AOT processing. Default is out
+   * The artifact id to be used for Spring's AOT processing. Default is [[artifactName]]
    */
   def springBootArtifactId: T[String] = Task {
-    "out"
+    artifactName()
   }
 
   def springBootMainClass: T[String] = Task {
@@ -87,6 +87,28 @@ trait SpringBootModule extends MavenModule { outer =>
     override def compileClasspath: Task.Simple[Seq[PathRef]] = Task {
       val aotClasses = outer.springBootProcessAOT().map(_.path / "classes").map(PathRef(_))
       outer.compileClasspath() ++ aotClasses
+    }
+  }
+
+  trait NativeSpringBootBuildModule extends SpringBootOptimisedBuildModule, NativeImageModule {
+    override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
+      val aotDir: Option[os.Path] = springBootProcessAOT().map(_.path)
+      val groupId = if (springBootGroupId().isEmpty)
+        "unspecified"
+      else
+        springBootGroupId()
+
+      val props = aotDir.flatMap(p => {
+        val nativeImageProps =
+          p / "resources/META-INF/native-image" / groupId / artifactId() / "native-image.properties"
+        if (os.exists(nativeImageProps))
+          Some(os.read.lines(nativeImageProps))
+        else
+          None
+      }).toSeq.flatten
+
+      props.map(_.replaceAll("Args =", "").replace("\\", "").trim())
+
     }
   }
 
