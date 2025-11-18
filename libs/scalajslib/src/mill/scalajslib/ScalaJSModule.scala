@@ -28,6 +28,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
     override def esFeatures = outer.esFeatures()
     override def jsEnvConfig: T[JsEnvConfig] = outer.jsEnvConfig()
     override def scalaJSOptimizer: T[Boolean] = outer.scalaJSOptimizer()
+    override def scalaJSParallel: T[Boolean] = outer.scalaJSParallel()
   }
 
   def scalaJSBinaryVersion = Task { JvmWorkerUtil.scalaJSBinaryVersion(scalaJSVersion()) }
@@ -133,7 +134,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
-      experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
+      experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly(),
+      parallel = scalaJSParallel()
     )
   }
 
@@ -185,7 +187,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       outputPatterns: OutputPatterns,
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
-      experimentalUseWebAssembly: Boolean
+      experimentalUseWebAssembly: Boolean,
+      parallel: Boolean
   )(using ctx: mill.api.TaskCtx): Result[Report] = {
     val outputPath = ctx.dest
 
@@ -207,7 +210,8 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       outputPatterns = outputPatterns,
       minify = minify,
       importMap = importMap,
-      experimentalUseWebAssembly = experimentalUseWebAssembly
+      experimentalUseWebAssembly = experimentalUseWebAssembly,
+      parallel = parallel
     )
   }
 
@@ -280,6 +284,12 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   def moduleSplitStyle: T[ModuleSplitStyle] = Task { ModuleSplitStyle.FewestModules }
 
   def scalaJSOptimizer: T[Boolean] = Task { true }
+
+  /**
+   * Whether Scala.js operations that can be parallelized should be parallelized.
+   *  On the JavaScript platform, this does not have any effect.
+   */
+  def scalaJSParallel: T[Boolean] = Task { true }
 
   def scalaJSImportMap: T[Seq[ESModuleImportMapping]] = Task {
     Seq.empty[ESModuleImportMapping]
@@ -382,7 +392,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       outputPatterns = scalaJSOutputPatterns(),
       minify = scalaJSMinify(),
       importMap = scalaJSImportMap(),
-      experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly()
+      experimentalUseWebAssembly = scalaJSExperimentalUseWebAssembly(),
+      parallel = scalaJSParallel()
     )
   }
 

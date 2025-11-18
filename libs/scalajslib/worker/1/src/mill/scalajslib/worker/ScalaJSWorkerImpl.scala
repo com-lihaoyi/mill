@@ -37,7 +37,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
       outputPatterns: OutputPatterns,
       minify: Boolean,
       dest: File,
-      experimentalUseWebAssembly: Boolean
+      experimentalUseWebAssembly: Boolean,
+      parallel: Boolean
   )
   private def minorIsGreaterThanOrEqual(number: Int) = ScalaJSVersions.current match {
     case s"1.$n.$_" if n.toIntOption.exists(_ < number) => false
@@ -104,6 +105,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(scalaJSESFeatures)
         .withSourceMap(input.sourceMap)
+        .withParallel(input.parallel)
 
       def withModuleSplitStyle_1_3_plus(config: StandardConfig): StandardConfig = {
         config.withModuleSplitStyle(
@@ -192,7 +194,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
       outputPatterns: OutputPatterns,
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
-      experimentalUseWebAssembly: Boolean
+      experimentalUseWebAssembly: Boolean,
+      parallel: Boolean
   ): Either[String, Report] = ScalaJSLinker.withValue(LinkerInput(
     isFullLinkJS = isFullLinkJS,
     optimizer = optimizer,
@@ -203,7 +206,8 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
     outputPatterns = outputPatterns,
     minify = minify,
     dest = dest,
-    experimentalUseWebAssembly = experimentalUseWebAssembly
+    experimentalUseWebAssembly = experimentalUseWebAssembly,
+    parallel = parallel
   )) { (linker, irFileCacheCache) =>
     // On Scala.js 1.2- we want to use the legacy mode either way since
     // the new mode is not supported and in tests we always use legacy = false

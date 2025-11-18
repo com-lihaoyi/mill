@@ -19,7 +19,8 @@ private[scalajslib] trait ScalaJSWorkerApi extends AutoCloseable {
       outputPatterns: OutputPatterns,
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
-      experimentalUseWebAssembly: Boolean
+      experimentalUseWebAssembly: Boolean,
+      parallel: Boolean
   ): Either[String, Report]
 
   def run(config: JsEnvConfig, report: Report): Unit

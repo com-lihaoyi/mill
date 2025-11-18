@@ -206,7 +206,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       outputPatterns: api.OutputPatterns,
       minify: Boolean,
       importMap: Seq[api.ESModuleImportMapping],
-      experimentalUseWebAssembly: Boolean
+      experimentalUseWebAssembly: Boolean,
+      parallel: Boolean
   ): Result[api.Report] = {
     withValue(toolsClasspath) { case (_, bridge) =>
       bridge.link(
@@ -224,7 +225,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
         outputPatterns = toWorkerApi(outputPatterns),
         minify = minify,
         importMap = importMap.map(toWorkerApi),
-        experimentalUseWebAssembly = experimentalUseWebAssembly
+        experimentalUseWebAssembly = experimentalUseWebAssembly,
+        parallel = parallel
       ) match {
         case Right(report) => Result.Success(fromWorkerApi(report))
         case Left(message) => Result.Failure(message)
