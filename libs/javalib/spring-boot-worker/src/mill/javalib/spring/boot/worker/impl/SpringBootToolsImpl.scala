@@ -1,16 +1,9 @@
 package mill.javalib.spring.boot.worker.impl
 
-import mill.javalib.spring.boot.worker.SpringBootTools
-import org.springframework.boot.loader.tools.{
-  LaunchScript,
-  Libraries,
-  Library,
-  LibraryScope,
-  MainClassFinder,
-  Repackager
-}
-import os.Path
 import mill.api.TaskCtx
+import mill.javalib.spring.boot.worker.SpringBootTools
+import org.springframework.boot.loader.tools.*
+import os.Path
 
 class SpringBootToolsImpl() extends SpringBootTools {
 
@@ -61,6 +54,33 @@ class SpringBootToolsImpl() extends SpringBootTools {
     )
 
     ()
+  }
+
+  override def springBootProcessAOT(
+      classPath: Seq[Path],
+      applicationMainClass: String,
+      sourceOut: Path,
+      resourceOut: Path,
+      classOut: Path,
+      groupId: String,
+      artifactId: String,
+      applicationArgs: String*
+  ): Unit = {
+    val process = mill.util.Jvm.spawnProcess(
+      classPath = classPath,
+      mainClass = "org.springframework.boot.SpringApplicationAotProcessor",
+      mainArgs = Seq(
+        applicationMainClass,
+        sourceOut.toString,
+        resourceOut.toString,
+        classOut.toString,
+        groupId,
+        artifactId
+      ) ++ applicationArgs
+    )
+    process.stdout.buffered.lines().forEach(println)
+    process.stderr.buffered.lines().forEach(System.err.println(_))
+    process.waitFor()
   }
 
   override def close(): Unit = {

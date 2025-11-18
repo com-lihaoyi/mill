@@ -1,10 +1,13 @@
 package build
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
+import mill.*
+import mill.api.Task.Simple as T
+import mill.api.{ModuleRef, PathRef, Task}
+import mill.javalib.*
+import mill.javalib.spring.boot.SpringBootToolsModule
+import mill.javalib.repackage.RepackageModule
 
-object `package` extends MavenModule {
+object `package` extends MavenModule, RepackageModule {
 
   def bomMvnDeps = Seq(
     mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
@@ -20,11 +23,28 @@ object `package` extends MavenModule {
       mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
     )
 
+    def agentDeps: T[Seq[Dep]] = Seq(
+      mvn"org.springframework:spring-core-test"
+    )
+
+    def resolvedAgentDeps: T[PathRef] = Task {
+      defaultResolver().classpath(
+        agentDeps(),
+        boms = allBomDeps()
+      ).head
+    }
+
+    override def forkArgs: Task.Simple[Seq[String]] = super.forkArgs() ++ Seq(
+      s"-javaagent:${resolvedAgentDeps().path}"
+    )
+
     def mvnDeps = Seq(
       mvn"org.springframework.boot:spring-boot-starter-test",
+      mvn"org.springframework:spring-core-test",
       mvn"io.projectreactor:reactor-test"
     )
   }
+
 }
 
 // This example demonstrates how to configure mill for a Websocket server using Spring Ractive Web via

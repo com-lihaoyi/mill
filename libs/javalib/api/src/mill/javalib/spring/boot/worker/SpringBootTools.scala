@@ -17,4 +17,15 @@ trait SpringBootTools extends AutoCloseable {
    * @param classesPath
    */
   def findSpringBootApplicationClass(classesPath: Seq[os.Path]): Either[String, String]
+
+  def springBootProcessAOT(
+      classPath: Seq[os.Path],
+      applicationMainClass: String,
+      sourceOut: os.Path,
+      resourceOut: os.Path,
+      classOut: os.Path,
+      groupId: String,
+      artifactId: String,
+      applicationArgs: String*
+  ): Unit
 }
