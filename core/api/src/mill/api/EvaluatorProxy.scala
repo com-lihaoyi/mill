@@ -115,6 +115,4 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   def close = delegate0 = null
 
   def selective = delegate.selective
-  override private[mill] def resolveScriptModuleDep(s: String): Option[mill.api.Module] =
-    delegate.resolveScriptModuleDep(s)
 }

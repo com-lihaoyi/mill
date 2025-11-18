@@ -7,8 +7,7 @@ import mill.api.{Evaluator, ExternalModule, Result}
 // same upstream module. But we cannot cache them for longer because between evaluations
 // the `headerData` might change requiring some modules to be re-instantiated, and it is
 // hard to do that on a per-module basis so we just re-instantiate all modules every time
-class ScriptModuleInit
-    extends ((String, String => Option[mill.Module]) => Seq[Result[mill.api.ExternalModule]]) {
+class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[mill.api.ExternalModule]]) {
 
   val scriptModuleCache: collection.mutable.Map[os.Path, ScriptModule] =
     collection.mutable.Map.empty
@@ -19,7 +18,7 @@ class ScriptModuleInit
       moduleDepsStrings: Seq[String],
       compileModuleDepsStrings: Seq[String],
       runModuleDepsStrings: Seq[String],
-      resolveModuleDep: String => Option[mill.Module],
+      eval: Evaluator,
       headerData: mill.api.ModuleCtx.HeaderData
   ): mill.api.Result[mill.api.ExternalModule] = {
     def relativize(s: String) = {
@@ -28,7 +27,7 @@ class ScriptModuleInit
       else s
     }
 
-    def resolveOrErr(s: String) = resolveModuleDep(relativize(s)).toRight(s)
+    def resolveOrErr(s: String) = resolveModuleDep(eval, relativize(s)).toRight(s)
     val (moduleDepsErrors, moduleDeps) = moduleDepsStrings.partitionMap(resolveOrErr)
     val (compileModuleDepsErrors, compileModuleDeps) =
       compileModuleDepsStrings.partitionMap(resolveOrErr)
@@ -50,6 +49,15 @@ class ScriptModuleInit
       ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
     )
   }
+
+  def resolveModuleDep(eval: Evaluator, s: String): Option[mill.Module] = {
+    eval.resolveModulesOrTasks(Seq(s), SelectMode.Multi)
+      .toOption
+      .toSeq
+      .flatten
+      .collectFirst { case Left(m) => m }
+  }
+
 
   def instantiate(
       scriptFile: os.Path,
@@ -85,10 +93,7 @@ class ScriptModuleInit
    * Resolves a single script file to a module instance.
    * Exposed for use in BSP integration.
    */
-  def resolveScriptModule(
-      scriptFile0: String,
-      eval: Evaluator
-  ): Option[Result[ExternalModule]] = {
+  def resolveScriptModule(scriptFile0: String, eval: Evaluator): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
     // Add a synthetic watch on `scriptFile`, representing the special handling
     // of `staticBuildOverrides` which is read from the script file build header
@@ -102,12 +107,7 @@ class ScriptModuleInit
           parsedHeaderData.moduleDeps,
           parsedHeaderData.compileModuleDeps,
           parsedHeaderData.runModuleDeps,
-          resolveModuleDep = s =>
-            eval.resolveModulesOrTasks(Seq(s), SelectMode.Multi)
-              .toOption
-              .toSeq
-              .flatten
-              .collectFirst { case Left(m) => m },
+          eval,
           parsedHeaderData
         )
       )
@@ -131,6 +131,7 @@ class ScriptModuleInit
       skipPath
     )
       .flatMap { scriptPath =>
+
         resolveScriptModule(scriptPath.toString, eval).map { result =>
           (scriptPath.toNIO, result)
         }
@@ -173,12 +174,9 @@ class ScriptModuleInit
   /**
    * Checks if a file starts with a `//|` build header comment.
    */
-  def apply(
-      scriptFileString: String,
-      resolveModuleDep: String => Option[mill.Module]
-  ) = {
+  def apply(scriptFileString: String, eval: Evaluator) = {
     mill.api.BuildCtx.withFilesystemCheckerDisabled {
-      resolveScriptModule(scriptFileString, resolveModuleDep).toSeq
+      resolveScriptModule(scriptFileString, eval).toSeq
     }
   }
 }
