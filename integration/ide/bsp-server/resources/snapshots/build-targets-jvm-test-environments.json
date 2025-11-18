@@ -129,9 +129,9 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.5/slf4j-api-2.0.5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/3.29.0-GA/javassist-3.29.0-GA.jar",
-        "file:///workspace/out/mill-bsp-out/scripts$slashfolder2$slashFoo.java/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/scripts/folder2/Foo.java/compile.dest/classes",
         "file:///workspace/scripts/folder2/FooTest.java/resources",
-        "file:///workspace/out/mill-bsp-out/scripts$slashfolder2$slashFooTest.java/compile.dest/classes",
+        "file:///workspace/out/mill-bsp-out/scripts/folder2/FooTest.java/compile.dest/classes",
         "file:///mill-workspace/out/dist/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
@@ -146,7 +146,7 @@
           "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
           "arguments": [
             "",
-            "/workspace/out/mill-bsp-out/scripts$slashfolder2$slashFooTest.java/getTestEnvironmentVars.dest/testargs"
+            "/workspace/out/mill-bsp-out/scripts/folder2/FooTest.java/getTestEnvironmentVars.dest/testargs"
           ]
         }
       ]
