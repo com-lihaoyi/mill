@@ -1,5 +1,6 @@
 package mill.script
-import mill.api.{ExternalModule, Result}
+import mill.api.daemon.SelectMode
+import mill.api.{Evaluator, ExternalModule, Result}
 
 // Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
 // we don't duplicate script modules when e.g. multiple downstream modules refer to the
@@ -86,7 +87,7 @@ class ScriptModuleInit
    */
   def resolveScriptModule(
       scriptFile0: String,
-      resolveModuleDep: String => Option[mill.Module]
+      eval: Evaluator
   ): Option[Result[ExternalModule]] = {
     val scriptFile = os.Path(scriptFile0, mill.api.BuildCtx.workspaceRoot)
     // Add a synthetic watch on `scriptFile`, representing the special handling
@@ -101,7 +102,12 @@ class ScriptModuleInit
           parsedHeaderData.moduleDeps,
           parsedHeaderData.compileModuleDeps,
           parsedHeaderData.runModuleDeps,
-          resolveModuleDep,
+          resolveModuleDep = s =>
+            eval.resolveModulesOrTasks(Seq(s), SelectMode.Multi)
+              .toOption
+              .toSeq
+              .flatten
+              .collectFirst { case Left(m) => m },
           parsedHeaderData
         )
       )
@@ -125,7 +131,7 @@ class ScriptModuleInit
       skipPath
     )
       .flatMap { scriptPath =>
-        resolveScriptModule(scriptPath.toString, eval.resolveScriptModuleDep).map { result =>
+        resolveScriptModule(scriptPath.toString, eval).map { result =>
           (scriptPath.toNIO, result)
         }
       }

@@ -50,13 +50,6 @@ final class EvaluatorImpl private[mill] (
     scriptModuleResolver
   )
 
-  override private[mill] def resolveScriptModuleDep(s: String): Option[mill.Module] = {
-    resolveModulesOrTasks(Seq(s), SelectMode.Multi)
-      .toOption
-      .toSeq
-      .flatten
-      .collectFirst { case Left(m) => m }
-  }
 
   /**
    * Takes query selector tokens and resolves them to a list of [[Segments]]
