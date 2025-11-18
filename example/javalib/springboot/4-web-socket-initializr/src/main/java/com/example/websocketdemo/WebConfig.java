@@ -9,7 +9,7 @@ import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 
-@Configuration(proxyBeanMethods = false)
+@Configuration
 public class WebConfig {
 
   @Bean
