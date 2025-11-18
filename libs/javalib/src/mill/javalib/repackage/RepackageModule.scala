@@ -25,35 +25,6 @@ trait RepackageModule extends mill.api.Module {
   def springBootToolsModule: ModuleRef[SpringBootToolsModule] = ModuleRef(SpringBootToolsModule)
 
   /**
-   * Spring Boot AOT processing, generating "Fast classes".
-   *
-   * For more information go to [[https://docs.spring.io/spring-framework/reference/core/aot.html]]
-   */
-  def springBootProcessAOT: T[Option[PathRef]] = this match {
-    case m: JavaModule =>
-      Task {
-        val dest = Task.dest
-        val classPath = m.runClasspath().map(_.path)
-        val applicationMainClass = repackageMainClass()
-
-        springBootToolsModule().springBootToolsWorker().springBootProcessAOT(
-          classPath,
-          applicationMainClass,
-          dest / "sources",
-          dest / "resources",
-          dest / "classes",
-          "unspesified", // FIXME
-          "unspesified" // FIXME
-        )
-        Some(PathRef(dest))
-      }
-    case _ =>
-      Task {
-        None
-      }
-  }
-
-  /**
    * A script prepended to the resulting [[repackagedJar]] to make it executable.
    * This uses the same prepend script as Mill [[JavaModule]] does,
    * so it supports most Linux/Unix shells (probably not `fish`)

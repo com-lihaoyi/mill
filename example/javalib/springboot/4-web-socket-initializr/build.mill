@@ -4,24 +4,19 @@ import mill.*
 import mill.api.Task.Simple as T
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
-import mill.javalib.spring.boot.SpringBootToolsModule
-import mill.javalib.repackage.RepackageModule
+import mill.javalib.spring.boot.SpringBootModule
 
-object `package` extends MavenModule, RepackageModule {
+object `package` extends SpringBootModule {
 
-  def bomMvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
-  )
+  override def springBootPlatformVersion = "3.5.7"
 
   def mvnDeps = Seq(
     mvn"org.springframework.boot:spring-boot-starter-webflux"
   )
 
-  object test extends MavenTests with TestModule.Junit5 {
+  object release extends SpringBootOptimisedBuildModule {}
 
-    def bomMvnDeps = Seq(
-      mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
-    )
+  object test extends MavenTests with TestModule.Junit5 {
 
     def agentDeps: T[Seq[Dep]] = Seq(
       mvn"org.springframework:spring-core-test"
