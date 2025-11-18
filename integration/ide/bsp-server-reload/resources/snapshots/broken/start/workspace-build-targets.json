@@ -4,7 +4,7 @@
       "id": {
         "uri": "file:///workspace/app/src/milltests/TheApp.scala"
       },
-      "displayName": "./app/src/milltests/TheApp.scala",
+      "displayName": "app/src/milltests/TheApp.scala:",
       "baseDirectory": "file:///workspace/app/src/milltests/TheApp.scala",
       "tags": [
         "library",
@@ -51,7 +51,7 @@
       "id": {
         "uri": "file:///workspace/lib/src/milltests/Lib.scala"
       },
-      "displayName": "./lib/src/milltests/Lib.scala",
+      "displayName": "lib/src/milltests/Lib.scala:",
       "baseDirectory": "file:///workspace/lib/src/milltests/Lib.scala",
       "tags": [
         "library",

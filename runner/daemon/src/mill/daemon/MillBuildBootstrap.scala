@@ -19,6 +19,7 @@ import mill.meta.CliImports
 import mill.meta.FileImportGraph.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
+import mill.internal.Util.parseYaml
 
 import java.io.File
 import java.net.URLClassLoader
@@ -108,16 +109,14 @@ class MillBuildBootstrap(
                     frames,
                     Some(error),
                     None,
-                    bootstrapEvalWatched,
-                    staticBuildOverrides
+                    bootstrapEvalWatched
                   ) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(
                   bootstrapModuleOpt,
                   frames,
                   Some(msg + "\n" + error),
-                  bootstrapEvalWatched = bootstrapEvalWatched,
-                  staticBuildOverrides = Map()
+                  bootstrapEvalWatched = bootstrapEvalWatched
                 )
               case state => state
             }
@@ -131,71 +130,35 @@ class MillBuildBootstrap(
             bootstrapEvalWatched0.quick,
             bootstrapEvalWatched0.sig
           )
-          val headerData =
-            if (!os.exists(topLevelProjectRoot / foundRootBuildFileName)) ""
-            else mill.constants.Util.readBuildHeader(
-              (topLevelProjectRoot / foundRootBuildFileName).toNIO,
-              foundRootBuildFileName
-            )
 
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
-              mill.internal.Util.parseYaml(foundRootBuildFileName, headerData) match {
+              mill.api.ExecResult.catchWrapException {
+                new MillBuildRootModule.BootstrapModule(
+                  (currentRoot / foundRootBuildFileName).toString
+                )(
+                  using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
+                )
+              } match {
+                case Result.Success(bootstrapModule) =>
+                  RunnerState(
+                    Some(bootstrapModule),
+                    Nil,
+                    None,
+                    Some(foundRootBuildFileName),
+                    Seq(bootstrapEvalWatched)
+                  )
                 case Result.Failure(msg) =>
                   RunnerState(
                     None,
                     Nil,
                     Some(msg),
                     Some(foundRootBuildFileName),
-                    Seq(bootstrapEvalWatched),
-                    Map()
+                    Seq(bootstrapEvalWatched)
                   )
-                case Result.Success(buildOverrides0) =>
-                  val staticBuildOverrides =
-                    if (
-                      foundRootBuildFileName.endsWith(".yaml") ||
-                      foundRootBuildFileName.endsWith(".yml")
-                    ) {
-                      // For YAML files, extract the mill-build key if it exists, otherwise use empty map
-                      buildOverrides0.obj.get("mill-build") match {
-                        case Some(millBuildValue: ujson.Obj) => millBuildValue
-                        case _ => ujson.Obj()
-                      }
-                    } else {
-                      // For non-YAML files (build.mill), use the entire parsed header data
-                      buildOverrides0
-                    }
-
-                  mill.api.ExecResult.catchWrapException {
-                    val bootstrapModule = new MillBuildRootModule.BootstrapModule(
-                      (currentRoot / ".." / foundRootBuildFileName).toString
-                    )(
-                      using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
-                    )
-
-                    bootstrapModule
-                  } match {
-                    case Result.Success(bootstrapModule) =>
-                      RunnerState(
-                        Some(bootstrapModule),
-                        Nil,
-                        None,
-                        Some(foundRootBuildFileName),
-                        Seq(bootstrapEvalWatched),
-                        upickle.read[Map[String, ujson.Value]](staticBuildOverrides)
-                      )
-                    case Result.Failure(msg) =>
-                      RunnerState(
-                        None,
-                        Nil,
-                        Some(msg),
-                        Some(foundRootBuildFileName),
-                        Seq(bootstrapEvalWatched),
-                        Map()
-                      )
-                  }
               }
+
             }
 
           state
@@ -245,14 +208,38 @@ class MillBuildBootstrap(
             case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
           }
 
-          rootModuleRes match {
+          rootModuleRes.flatMap { buildFileApi =>
+            def tryReadParent(fileName: String) = {
+              val p = currentRoot / ".." / fileName
+              Option.when(os.exists(p)) { mill.constants.Util.readBuildHeader(p.toNIO, fileName) }
+            }
+
+            val jsonRes: Result[ujson.Value] =
+              tryReadParent("build.mill.yaml").map(s =>
+                parseYaml("build.mill.yaml", s).map(parsed =>
+                  // For YAML files, extract the mill-build key if it exists, otherwise use empty map
+                  parsed.obj.get("mill-build") match {
+                    case Some(millBuildValue: ujson.Obj) => millBuildValue
+                    case _ => ujson.Obj()
+                  }
+                )
+              ).orElse {
+                tryReadParent("build.mill").map { s =>
+                  parseYaml("build.mill", s)
+                }
+              }.getOrElse(Result.Success(ujson.Obj()))
+
+            jsonRes
+              .flatMap(json => upickle.read[Map[String, ujson.Value]](json))
+              .map((buildFileApi, _))
+
+          } match {
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
-            case Result.Success(buildFileApi) =>
+            case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
               val staticBuildOverrides =
-                if (buildFileApi.rootModule.isInstanceOf[MillBuildRootModule.BootstrapModule])
-                  nestedState.staticBuildOverrides
-                else nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
+                staticBuildOverrides0 ++
+                  nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
 
               Using.resource(makeEvaluator(
                 topLevelProjectRoot,

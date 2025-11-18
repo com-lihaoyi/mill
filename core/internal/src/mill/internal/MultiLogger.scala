@@ -2,7 +2,7 @@ package mill.internal
 
 import mill.api.{Logger, SystemStreams}
 
-import java.io.{InputStream, PrintStream}
+import java.io.{InputStream, PrintStream, ByteArrayOutputStream}
 
 private[mill] class MultiLogger(
     val logger1: Logger,
@@ -55,9 +55,13 @@ private[mill] class MultiLogger(
       logger2.prompt.setPromptLine(key, keySuffix, message)
     }
 
-    private[mill] override def reportKey(key: Seq[String]): Unit = {
-      logger1.prompt.reportKey(key)
-      logger2.prompt.reportKey(key)
+    private[mill] override def logPrefixedLine(
+        key: Seq[String],
+        logMsg: ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit = {
+      logger1.prompt.logPrefixedLine(key, logMsg, logToOut)
+      logger2.prompt.logPrefixedLine(key, logMsg, logToOut)
     }
 
     private[mill] override def clearPromptStatuses(): Unit = {
@@ -126,6 +130,12 @@ private[mill] class MultiLogger(
 
   private[mill] override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
+  override def redirectOutToErr: Boolean = logger1.redirectOutToErr || logger1.redirectOutToErr
+  override def withRedirectOutToErr() = new MultiLogger(
+    logger1.withRedirectOutToErr(),
+    logger2.withRedirectOutToErr(),
+    inStream0
+  )
   override def withOutStream(outStream: PrintStream): Logger = {
     new MultiLogger(
       logger1.withOutStream(outStream),

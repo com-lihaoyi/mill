@@ -121,7 +121,6 @@ final class EvaluatorImpl private[mill] (
         val allModules = f.map(_.ctx.enclosingModule).distinct
         val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
         val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
-
         val errors = allModules.flatMap { module =>
           val discover = module match {
             case x: ExternalModule => x.millDiscover
@@ -135,7 +134,7 @@ final class EvaluatorImpl private[mill] (
 
           val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
             val (prefix, taskSel) = k match {
-              case s"./$script:$rest" => (Seq(Segment.Label(s"./$script")), rest)
+              case s"$script:$rest" => (Seq(Segment.Label(s"$script:")), rest)
               case _ => (Nil, k)
             }
 
@@ -146,14 +145,29 @@ final class EvaluatorImpl private[mill] (
             }
           }
 
-          val invalidBuildOverrides = moduleBuildOverrides
-            .filter(!moduleTaskNames.contains(_))
-            .filter(!_.contains('-'))
+          val invalidBuildOverrides0 = moduleBuildOverrides.filter(!moduleTaskNames.contains(_))
+          val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
+
+          val invalidBuildOverrides =
+            if (
+              filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
+            ) {
+              invalidBuildOverrides0.filter(!_.startsWith("mill-"))
+            } else invalidBuildOverrides0
 
           Option.when(invalidBuildOverrides.nonEmpty) {
             val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-            val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
-            s"invalid build config in `$filePath`: key $pretty does not override any task"
+
+            val invalidMillKeys = invalidBuildOverrides
+              .filter(_.startsWith("mill-"))
+              .map(pprint.Util.literalize(_))
+
+            val suffix =
+              if (invalidMillKeys.isEmpty) ""
+              else
+                s"\nNote that key ${invalidMillKeys.mkString(", ")} can only be used in your root `build.mill` or `build.mill.yaml` file"
+
+            s"invalid build config in `$filePath`: key $pretty does not override any task$suffix"
           }
         }
 

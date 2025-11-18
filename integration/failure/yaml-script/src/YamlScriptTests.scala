@@ -27,7 +27,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
       locally {
         val res = tester.eval("./InvalidTaskType.java")
         assert(res.err.contains(
-          "./InvalidTaskType.java:mvnDeps Failed de-serializing config override: expected sequence got string"
+          "InvalidTaskType.java:mvnDeps Failed de-serializing config override: expected sequence got string"
         ))
         // make sure we truncate the exception to the relevant bits
         assert(res.err.linesIterator.toList.length < 20)
@@ -66,6 +66,14 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         val res = tester.eval("InvalidPosition.java")
         assert(res.err.contains(
           "Invalid YAML header comment at InvalidPosition.java:1: //| extends: [doesntExist]"
+        ))
+        // make sure we truncate the exception to the relevant bits
+        assert(res.err.linesIterator.toList.length < 20)
+      }
+      locally {
+        val res = tester.eval("InvalidJvmVersion.java")
+        assert(res.err.contains(
+          "invalid build config in `InvalidJvmVersion.java`: key \"mill-jvm-version\" does not override any task"
         ))
         // make sure we truncate the exception to the relevant bits
         assert(res.err.linesIterator.toList.length < 20)

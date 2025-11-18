@@ -27,14 +27,10 @@ object ExecutionPaths {
       task: Task.Named[?]
   ): ExecutionPaths = resolve(outPath, task.ctx.segments)
 
-  // case-insensitive match on reserved names
-  private val ReservedWinNames =
+  private val ReservedWinNames = // case-insensitive match on reserved names
     raw"^([cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][0-9¹²³]|[lL][pP][tT][0-9¹²³])($$|[.].*$$)".r
-  // Colons are not supported on Windows
-  private val Colon = "[:]".r
-  // Dollar sign `$` is our masking-character
-  private val Dollar = "[$]".r
-  // Forward-slashed are reserved for directory delimiters
+  private val Colon = "[:]".r // Colons are not supported on Windows
+  private val Dollar = "[$]".r // Dollar sign `$` is our masking-character
 
   private val steps: Seq[String => String] = Seq(
     // Step 1: mask all existing dollar signs, so we can use the dollar as masking character
@@ -42,6 +38,12 @@ object ExecutionPaths {
     // Step 2: mask reserved Windows names, like CON1 or LPT1
     _ match {
       case ReservedWinNames(keyword, rest) => s"${keyword}~${rest}"
+      case s => s
+    },
+    { // Strip any trailing `:` since those are markers that typically indicate script
+      // name segments,  and trailing `/` since those indicate external module segments
+      case s"$pre:" => pre
+      case s"$pre/" => pre
       case s => s
     },
     // Step 3: Replace colon (:) with $colon
