@@ -3,8 +3,9 @@ package mill.javalib.api.internal
 object JavaCompilerOptions {
 
   /**
-   * Extract JVM options out of the compiler options.
+   * Extract JVM (=runtime) options out of the compiler options.
    * JVM options always start with `-J`.
+   * The resulting `runtime` options have the `-J` prefix already stripped.
    */
   def split(options: Seq[String]): (runtime: Seq[String], compiler: Seq[String]) = {
     val prefix = "-J"
