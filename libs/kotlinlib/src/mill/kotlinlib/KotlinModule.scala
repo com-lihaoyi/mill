@@ -329,7 +329,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           javaHome = javaHome().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
-          reportOldProblems = internalReportOldProblems()
+          reportOldProblems = internalReportOldProblems(),
+          workDir = dest
         )
       }
 
@@ -433,7 +434,8 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
-      reportOldProblems: Boolean
+      reportOldProblems: Boolean,
+      workDir: os.Path
   )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions.split(javacOptions)
     worker.apply(
@@ -442,12 +444,13 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
         sources = javaSourceFiles,
         compileClasspath = compileCp,
         javacOptions = jOpts.compiler,
-        incrementalCompilation = true
+        incrementalCompilation = true,
+        workDir = workDir
       ),
       javaHome = javaHome,
       javaRuntimeOptions = jOpts.runtime,
       reporter = compileProblemReporter,
-      reportCachedProblems = reportOldProblems
+      reportCachedProblems = reportOldProblems,
     )
   }
 

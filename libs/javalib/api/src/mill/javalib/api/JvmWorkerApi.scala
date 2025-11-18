@@ -17,7 +17,8 @@ trait JvmWorkerApi {
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      incrementalCompilation: Boolean
+      incrementalCompilation: Boolean,
+      workDir: os.Path
   )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
@@ -35,7 +36,8 @@ trait JvmWorkerApi {
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String]
+      auxiliaryClassFileExtensions: Seq[String],
+      workDir: os.Path
   )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   /** Compiles a Scaladoc jar. */
@@ -45,6 +47,7 @@ trait JvmWorkerApi {
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       javaHome: Option[os.Path],
-      args: Seq[String]
+      args: Seq[String],
+      workDir: os.Path
   )(using ctx: JvmWorkerApi.Ctx): Boolean
 }

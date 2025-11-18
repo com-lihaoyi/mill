@@ -536,7 +536,8 @@ trait AndroidModule extends JavaModule { outer =>
         sources = androidLibsRClasses().map(_.path),
         compileClasspath = Seq.empty,
         javacOptions = jOpts.compiler,
-        incrementalCompilation = true
+        incrementalCompilation = true,
+        workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
       javaRuntimeOptions = jOpts.runtime,
@@ -810,7 +811,8 @@ trait AndroidModule extends JavaModule { outer =>
           sources = sources.map(_.path),
           compileClasspath = androidTransitiveLibRClasspath().map(_.path),
           javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
+          incrementalCompilation = zincIncrementalCompilation(),
+          workDir = Task.dest
         ),
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,

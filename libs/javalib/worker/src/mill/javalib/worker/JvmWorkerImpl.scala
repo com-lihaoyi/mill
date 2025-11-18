@@ -25,7 +25,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       javaHome: Option[os.Path],
       javaRuntimeOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
+      reportCachedProblems: Boolean,
   )(using ctx: InternalJvmWorkerApi.Ctx): op.Response = {
     val log = ctx.log
     val zincCtx = ZincWorker.LocalConfig(
