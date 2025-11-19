@@ -16,7 +16,7 @@ import scala.reflect.ClassTag
 
 object BspServerTestUtil {
 
-  private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
+  def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
   trait TestBuildClient extends b.BuildClient {
     // Whether to check the validity of some messages

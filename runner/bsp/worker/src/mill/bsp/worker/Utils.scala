@@ -17,7 +17,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
-private[mill] object Utils {
+object Utils {
 
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
