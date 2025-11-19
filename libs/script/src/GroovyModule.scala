@@ -24,7 +24,7 @@ object GroovyModule {
     override lazy val millDiscover = Discover[this.type]
   }
   class Spock(scriptConfig: ScriptModule.Config) extends GroovyModule(scriptConfig)
-    with TestModule.Spock with mill.groovylib.GroovyModule.GroovyTests0 {
+      with TestModule.Spock with mill.groovylib.GroovyModule.GroovyTests0 {
     override lazy val millDiscover = Discover[this.type]
   }
 
