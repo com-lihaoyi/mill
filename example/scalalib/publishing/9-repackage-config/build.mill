@@ -23,10 +23,7 @@ trait MyModule extends ScalaModule, PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  def mvnDeps = Seq(
-    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
-    mvn"org.slf4j:slf4j-nop:2.0.7"
-  )
+  def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
 
   object test extends ScalaTests, TestModule.Junit4
 }
