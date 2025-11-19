@@ -34,24 +34,5 @@ object foo extends GroovyMavenModule {
 // This is especially useful if you are migrating from Maven to Mill (or vice
 // versa), during which a particular module may be built using both Maven and
 // Mill at the same time
-
-/** Usage
-
-> ./mill foo.compile
-Compiling 1 Groovy source...
-
-> ./mill foo.test.compile
-Compiling 1 Groovy source...
-
-> ./mill foo.test.testForked
-...foo.FooTests hello ...
-
-> ./mill foo.test
-...foo.FooTests hello ...
-
-> ./mill foo.integration
-...foo.FooIntegrationTests hello ...
-
-*/
-
+//
 // For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]
