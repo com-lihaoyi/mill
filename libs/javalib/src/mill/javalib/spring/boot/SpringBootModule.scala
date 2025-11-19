@@ -4,6 +4,9 @@ import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
 import mill.javalib.{Dep, DepSyntax, MavenModule, NativeImageModule}
 
+import java.util.Properties
+import scala.util.Using
+
 @mill.api.experimental
 trait SpringBootModule extends MavenModule { outer =>
 
@@ -103,17 +106,21 @@ trait SpringBootModule extends MavenModule { outer =>
       else
         springBootGroupId()
 
-      val props = aotDir.flatMap(p => {
+      val nativeImageArgs: Seq[String] = aotDir.flatMap(p => {
         val nativeImageProps =
           p / "resources/META-INF/native-image" / groupId / artifactId() / "native-image.properties"
-        if (os.exists(nativeImageProps))
-          Some(os.read.lines(nativeImageProps))
-        else
+        if (os.exists(nativeImageProps) && os.isFile(nativeImageProps)) {
+          val properties = new Properties()
+          Using.resource[
+            java.io.InputStream,
+            Unit
+          ](os.read.inputStream(nativeImageProps))(properties.load)
+          Some(properties.getProperty("Args").split(" "))
+        } else
           None
       }).toSeq.flatten
 
-      props.map(_.replaceAll("Args =", "").replace("\\", "").trim())
-
+      nativeImageArgs
     }
   }
 
