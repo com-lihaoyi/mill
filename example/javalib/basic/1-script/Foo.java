@@ -1,7 +1,8 @@
 //| jvmId: 11.0.28
 //| mvnDeps:
-//| - "net.sourceforge.argparse4j:argparse4j:0.9.0"
-//| - "org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+//| - net.sourceforge.argparse4j:argparse4j:0.9.0
+//| - org.thymeleaf:thymeleaf:3.1.1.RELEASE
+//| - org.slf4j:slf4j-nop:2.0.7
 
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
