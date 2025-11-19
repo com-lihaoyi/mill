@@ -142,7 +142,7 @@ object `package` extends MillStableScalaModule {
   }
 
   object `spring-boot-worker` extends MillPublishScalaModule {
-    def moduleDeps = Seq(api, build.libs.util)
+    def moduleDeps = Seq(api)
     def compileMvnDeps = Seq(
       // we just bind against the API, will be loaded at Mill runtime by the module
       Deps.springBootTools
