@@ -298,7 +298,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+        workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
       javaRuntimeOptions = jOpts.runtime,
@@ -338,7 +339,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaOrganization(),
             scalaDocClasspath(),
             scalacPluginClasspath(),
-            options ++ compileCp ++ scalaDocOptions() ++ files.map(_.toString())
+            options ++ compileCp ++ scalaDocOptions() ++ files.map(_.toString()),
+            workDir = Task.dest
           ),
           javaHome = javaHome().map(_.path)
         ) match {
@@ -648,7 +650,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = semanticDbPluginClasspath(),
           incrementalCompilation = zincIncrementalCompilation(),
-          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+          workDir = Task.dest
         ),
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,

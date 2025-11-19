@@ -85,7 +85,7 @@ final class TestModuleUtil(
           selectors,
           args
         ),
-        javaHome
+        javaHome = javaHome
       ).toSet
 
       filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
