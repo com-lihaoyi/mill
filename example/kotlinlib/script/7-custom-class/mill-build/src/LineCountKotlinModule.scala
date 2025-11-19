@@ -1,5 +1,5 @@
 package millbuild
-import mill.*, kotlinlib.*, script.*
+import mill.*, kotlinlib.*
 
 class LineCountKotlinModule(scriptConfig: mill.api.ScriptModule.Config)
     extends mill.script.KotlinModule(scriptConfig) {

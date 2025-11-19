@@ -1,5 +1,5 @@
 package millbuild
-import mill.*, scalalib.*, script.*
+import mill.*, scalalib.*
 
 class LineCountScalaModule(scriptConfig: mill.api.ScriptModule.Config)
     extends mill.script.ScalaModule(scriptConfig) {
