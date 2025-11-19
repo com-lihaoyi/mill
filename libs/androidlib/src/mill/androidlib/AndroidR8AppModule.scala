@@ -208,9 +208,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       val seedsOut = destDir / "seeds.txt"
       val usageOut = destDir / "usage.txt"
       val configOut = destDir / "configuration.txt"
-      destDir / "missing_rules.txt"
       val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
-      destDir / "res"
 
       // Extra ProGuard rules
       val extraRules =
