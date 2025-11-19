@@ -7,8 +7,10 @@ import mill.javalib.{Dep, DepSyntax, MavenModule, NativeImageModule}
 @mill.api.experimental
 trait SpringBootModule extends MavenModule { outer =>
 
+  /** Spring boot version as can be found in [[https://start.spring.io/]] */
   def springBootPlatformVersion: T[String]
 
+  /** org.springframework.boot:spring-boot-dependencies with [[springBootPlatformVersion]] as the version */
   override def bomMvnDeps: T[Seq[Dep]] = Seq(
     mvn"org.springframework.boot:spring-boot-dependencies:${springBootPlatformVersion()}"
   )
@@ -32,6 +34,9 @@ trait SpringBootModule extends MavenModule { outer =>
     artifactName()
   }
 
+  /**
+   * Uses the [[springBootToolsModule]] to find the SpringBootApplicationClass from the [[localRunClasspath]]
+   */
   def springBootMainClass: T[String] = Task {
     mainClass()
       .toRight("No main class specified")

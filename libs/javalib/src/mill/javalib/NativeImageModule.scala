@@ -47,11 +47,20 @@ trait NativeImageModule extends WithJvmWorkerModule {
     PathRef(executable)
   }
 
+  /**
+   * Runs the Native Image from [[nativeImage]]
+   * @param args
+   */
   def nativeRun(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
     val runScript = nativeImage().path
     os.call(Seq(runScript.toString) ++ args().value, stdout = os.Inherit)
   }
 
+  /**
+   * Runs the Native Image from [[nativeImage]] in the background
+   *
+   * @param args
+   */
   def nativeRunBackground(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] =
     Task.Command(persistent = true) {
       val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
