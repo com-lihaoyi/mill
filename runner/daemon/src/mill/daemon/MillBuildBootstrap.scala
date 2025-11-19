@@ -479,7 +479,7 @@ object MillBuildBootstrap {
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
 
-    lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.head.newInstance(
+    lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.minBy(_.getParameterCount).newInstance(
       allowPositionalCommandArgs,
       selectiveExecution,
       // Use the shorter convenience constructor not the primary one
