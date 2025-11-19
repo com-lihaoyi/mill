@@ -39,8 +39,12 @@ object `package` extends MillPublishScalaModule {
 
     object cases extends Cross[CaseModule](caseKeys)
     trait CaseModule extends ScalaModule with Cross.Module[String] {
+      // Skip BSP export for these case modules because there are a lot of them which can slow
+      // down the IDE, and they're small enough editing them without IDE support is fine anyway
+      override def enableBsp = false
       def caseName = crossValue
       object external extends ScalaModule {
+        override def enableBsp = false
         def scalaVersion = Deps.scalaVersion
       }
 

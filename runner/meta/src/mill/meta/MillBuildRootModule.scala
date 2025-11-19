@@ -12,7 +12,7 @@ import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
-import mill.api.daemon.internal.MillScalaParser
+import mill.api.daemon.internal.{MillBuildRootModuleApi, MillScalaParser}
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
@@ -28,7 +28,25 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 @internal
 trait MillBuildRootModule()(using
     rootModuleInfo: RootModule.Info
-) extends ScalaModule {
+) extends ScalaModule with MillBuildRootModuleApi {
+
+  def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
+
+  /**
+   * Default set of BSP ignores, meant to catch the common case of `.java`, `.scala`, or `.kt`
+   * files that definitely aren't scripts, but for some reason aren't recognized as being in
+   * a module's `def sources` task (e.g. maybe module import failed or something)
+   */
+  def bspScriptIgnoreDefault: T[Seq[String]] = Seq(
+    "**/src/",
+    "**/src-*/",
+    "**/resources/",
+    "**/out/",
+    "**/target/"
+  )
+
+  def bspScriptIgnore: T[Seq[String]] = Nil
+
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
     .relativeTo(rootModuleInfo.topLevelProjectRoot)
@@ -327,7 +345,8 @@ trait MillBuildRootModule()(using
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+        workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
       javaRuntimeOptions = jOpts.runtime,
@@ -389,9 +408,10 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule()(using
+  class BootstrapModule(foundRootBuildFile: String)(using
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
+    override def moduleCtx = super.moduleCtx.withFileName(foundRootBuildFile)
     override lazy val millDiscover = Discover[this.type]
   }
 

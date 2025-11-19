@@ -31,7 +31,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
     val zincCtx = ZincWorker.LocalConfig(
       dest = ctx.dest,
       logDebugEnabled = log.debugEnabled,
-      logPromptColored = log.prompt.colored
+      logPromptColored = log.prompt.colored,
+      workspaceRoot = mill.api.BuildCtx.workspaceRoot
     )
 
     val zincApi =

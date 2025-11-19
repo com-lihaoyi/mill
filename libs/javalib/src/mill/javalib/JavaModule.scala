@@ -910,7 +910,8 @@ trait JavaModule
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = jOpts.compiler,
-        incrementalCompilation = zincIncrementalCompilation()
+        incrementalCompilation = zincIncrementalCompilation(),
+        workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
       javaRuntimeOptions = jOpts.runtime,

@@ -4,6 +4,6 @@ import mill.*
 import millbuild.*
 
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.libs.util, build.libs.script)
-  def mvnDeps = Seq(Deps.scalaXml)
+  def moduleDeps = Seq(build.libs.util, build.libs.script, build.core.eval)
+  def mvnDeps = Seq(Deps.scalaXml, Deps.jgit)
 }

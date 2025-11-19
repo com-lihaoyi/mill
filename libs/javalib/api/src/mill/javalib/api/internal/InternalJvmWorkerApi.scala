@@ -28,7 +28,8 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      incrementalCompilation: Boolean
+      incrementalCompilation: Boolean,
+      workDir: os.Path
   )(using ctx: Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions.split(javacOptions)
     apply(
@@ -37,7 +38,8 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
         sources = sources,
         compileClasspath = compileClasspath,
         javacOptions = jOpts.compiler,
-        incrementalCompilation = incrementalCompilation
+        incrementalCompilation = incrementalCompilation,
+        workDir = workDir
       ),
       javaHome = javaHome,
       javaRuntimeOptions = jOpts.runtime,
@@ -61,7 +63,8 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String]
+      auxiliaryClassFileExtensions: Seq[String],
+      workDir: os.Path
   )(using ctx: Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions.split(javacOptions)
     apply(
@@ -76,7 +79,8 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
         compilerClasspath = compilerClasspath,
         scalacPluginClasspath = scalacPluginClasspath,
         incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+        workDir = workDir
       ),
       javaHome = javaHome,
       javaRuntimeOptions = jOpts.runtime,
@@ -92,20 +96,22 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       javaHome: Option[Path],
-      args: Seq[String]
+      args: Seq[String],
+      workDir: os.Path
   )(using ctx: Ctx): Boolean = {
     apply(
-      ZincOp.ScaladocJar(
+      op = ZincOp.ScaladocJar(
         scalaVersion = scalaVersion,
         scalaOrganization = scalaOrganization,
         compilerClasspath = compilerClasspath,
         scalacPluginClasspath = scalacPluginClasspath,
-        args = args
+        args = args,
+        workDir = workDir
       ),
       javaHome = javaHome,
       javaRuntimeOptions = Nil,
-      None,
-      false
+      reporter = None,
+      reportCachedProblems = false
     )
   }
 }

@@ -22,7 +22,7 @@ object Deps {
   val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.19.0"
+    val scalaJsVersion = "1.20.1"
     val scalajsEnvJsdomNodejs =
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
@@ -81,7 +81,7 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.18"
+  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.19"
   val ammoniteVersion = "3.0.4"
   val asmTree = mvn"org.ow2.asm:asm-tree:9.9"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
@@ -150,7 +150,8 @@ object Deps {
   val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
   val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
   // can't use newer versions, as these need higher Java versions
-  val testng = mvn"org.testng:testng:7.5.1"
+  val testng_lowerBound = mvn"org.testng:testng:7.5.1"
+  val testng = mvn"org.testng:testng:7.11.0"
   val sbtTestInterface = mvn"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
@@ -217,7 +218,7 @@ object Deps {
       mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   }
 
-  val coursierJvmIndexVersion = "0.0.4-116-9b244a"
+  val coursierJvmIndexVersion = "0.0.4-125-77e06d"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"

@@ -15,8 +15,11 @@ writing Mill build file to build.mill
 init completed, run "mill resolve _" to list available tasks
 
 > ./mill -k __.compile # Compilation needs manual tweaking to pass
-error: ...fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress
-error: ...fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto
-error: ...fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip
+error: fastexcel-reader/src/main/java/module-info.java:3:32
+module not found: org.apache.commons.compress
+fastexcel-reader/src/main/java/module-info.java:4:27
+module not found: com.fasterxml.aalto
+fastexcel-writer/src/main/java/module-info.java:2:14
+module not found: opczip
 
 */

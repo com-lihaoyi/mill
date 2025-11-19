@@ -234,7 +234,7 @@ object `package` extends Module {
           (p.ext == "java" || p.ext == "kt") &&
             (p.segments.contains("linting") ||
               p.segments.contains("10-external-module-aliases") ||
-              p.segments.contains("3-linting"))
+              p.segments.contains("4-linting"))
         )
         .map(PathRef(_))
     }
@@ -305,7 +305,7 @@ ${lines.mkString("\n")}
 ----
 """
             case Chunk.Comment(lines) => lines.mkString("\n") + "\n"
-            case Chunk.Example(lines) =>
+            case Chunk.Usage(lines) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
 [source,console,subs="attributes,verbatim"]

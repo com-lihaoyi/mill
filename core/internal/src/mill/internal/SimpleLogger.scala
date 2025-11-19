@@ -11,15 +11,9 @@ private[mill] class SimpleLogger(
 ) extends Logger {
   override def toString: String = s"SimpleLogger($unprefixedStreams, $debugEnabled)"
 
-  private val linePrefix: String =
-    if (logKey.isEmpty) ""
-    else s"[${logKey.mkString("-")}] "
+  private val linePrefix: String = Logger.formatPrefix(logKey)
   private def prefixPrintStream(stream: java.io.OutputStream) = {
-    new PrintStream(new LinePrefixOutputStream(
-      linePrefix,
-      stream,
-      () => ()
-    ))
+    new PrintStream(new LineBufferingOutputStream(s => stream.write((linePrefix + s).getBytes)))
   }
 
   val streams = new SystemStreams(
@@ -40,6 +34,17 @@ private[mill] class SimpleLogger(
     unprefixedStreams.err.println(s)
 
   val prompt = new Logger.Prompt.NoOp {
+    override def logPrefixedLine(
+        key: Seq[String],
+        logMsg: java.io.ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit = {
+      if (logMsg.size() != 0) {
+        val bytes = Logger.formatPrefix(key).getBytes ++ logMsg.toByteArray
+        if (logToOut) unprefixedStreams.out.write(bytes)
+        else unprefixedStreams.err.write(bytes)
+      }
+    }
     override def enableTicker = true
   }
   def ticker(s: String): Unit = ()

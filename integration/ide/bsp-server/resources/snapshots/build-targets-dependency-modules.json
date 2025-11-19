@@ -196,6 +196,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "modules": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "modules": [
@@ -500,6 +506,12 @@
           "version": "4.4.1"
         }
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
+      },
+      "modules": []
     },
     {
       "target": {
