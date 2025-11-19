@@ -1,7 +1,7 @@
 package mill.javalib
 
 import mill.*
-import mill.constants.Util
+import mill.constants.{DaemonFiles, Util}
 
 import scala.util.Properties
 
@@ -46,6 +46,20 @@ trait NativeImageModule extends WithJvmWorkerModule {
     assert(os.exists(executable))
     PathRef(executable)
   }
+
+  def nativeRun(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
+    val runScript = nativeImage().path
+    os.call(Seq(runScript.toString) ++ args().value, stdout = os.Inherit)
+  }
+
+  def nativeRunBackground(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] =
+    Task.Command(persistent = true) {
+      val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
+      val stdout = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stdout)
+      val stderr = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stderr)
+      val runScript = nativeImage().path
+      os.spawn(Seq(runScript.toString) ++ args().value, stdout = stdout, stderr = stderr)
+    }
 
   /**
    * The classpath to use to generate the native image. Defaults to [[runClasspath]].

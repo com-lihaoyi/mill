@@ -10,7 +10,8 @@ object `package` extends SpringBootModule {
 
   override def artifactName: T[String] = "spring-boot-native-demo"
 
-  object prod extends SpringBootOptimisedBuildModule {}
+  object prod extends SpringBootOptimisedBuildModule
+
   object native extends NativeSpringBootBuildModule {
     def jvmId = "graalvm-community:23.0.1"
   }
@@ -40,5 +41,15 @@ object `package` extends SpringBootModule {
 
 > ./mill native.nativeImage
 ...out/native/nativeImage.dest/native-executable (executable)...
+
+> ./mill native.nativeRunBackground
+
+> curl http://localhost:8099/hello
+...Hello, World!...
+
+> curl http://localhost:8099/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean
 
 */
