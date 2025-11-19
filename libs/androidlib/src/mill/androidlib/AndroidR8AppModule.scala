@@ -222,7 +222,7 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
           (if (androidBuildSettings().isMinifyEnabled) then androidGeneratedMinifyKeepRules()
            else Seq())
       // Create an extra ProGuard config file
-      val extraRulesFile = destDir / "extra-rules.pro"
+      val extraRulesFile = Task.dest / "extra-rules.pro"
       val extraRulesContent = extraRules.mkString("\n")
       os.write.over(extraRulesFile, extraRulesContent)
 

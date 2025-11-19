@@ -235,6 +235,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * File names to be excluded from the APK package.
+   */
+  def excludePackageResources: T[Seq[String]] = Task {
+    Seq("configuration.txt", "seeds.txt", "mapping.txt")
+  }
+
+  /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
    * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
@@ -243,16 +250,18 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val unsignedApk = Task.dest / "app.unsigned.apk"
 
     os.copy(androidLinkedResources().path / "apk/res.apk", unsignedApk)
-    val dexFiles = os.walk(androidDex().path)
-      .filter(_.ext == "dex")
-      .map(os.zip.ZipSource.fromPath)
+
+    val androidDexPath = androidDex().path
+    val toExclude = excludePackageResources().map(androidDexPath / _).toSet
+    val resources =
+      os.walk(androidDexPath).filterNot(p => os.isDir(p) || toExclude.contains(p)).map(p =>
+        os.zip.ZipSource.fromPathTuple((p, p.subRelativeTo(androidDexPath)))
+      )
 
     def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
       os.zip.ZipSource.fromPathTuple(
         (androidPackageableExtraFile.source.path, androidPackageableExtraFile.destination.asSubPath)
       )
-
-    val metaInf = androidPackagedMetaInfFiles().map(asZipSource)
 
     val nativeDeps = androidPackageableNativeDeps().map(asZipSource)
 
@@ -271,8 +280,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // Example of app-metadata.properties:
     // appMetadataVersion=1.1
     // androidGradlePluginVersion=8.7.2
-    os.zip(unsignedApk, dexFiles)
-    os.zip(unsignedApk, metaInf)
+    os.zip(unsignedApk, resources)
     os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
