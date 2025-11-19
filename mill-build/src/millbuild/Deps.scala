@@ -73,10 +73,10 @@ object Deps {
     override def scalaVersion: String = Deps.scala2Version
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.6"
+    val playVersion = "2.9.9"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.6"
+    val playVersion = "3.0.9"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
