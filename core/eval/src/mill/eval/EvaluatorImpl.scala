@@ -31,14 +31,13 @@ final class EvaluatorImpl private[mill] (
     ) => Seq[Result[ExternalModule]]
 ) extends Evaluator {
 
-  def this(allowPositionalCommandArgs: Boolean,
-           selectiveExecution: Boolean,
-           execution: Execution) = this(
-    allowPositionalCommandArgs,
-    selectiveExecution,
-    execution,
-    new ScriptModuleInit()
-  )
+  def this(allowPositionalCommandArgs: Boolean, selectiveExecution: Boolean, execution: Execution) =
+    this(
+      allowPositionalCommandArgs,
+      selectiveExecution,
+      execution,
+      new ScriptModuleInit()
+    )
   override val staticBuildOverrides = execution.staticBuildOverrides
 
   private[mill] def workspace = execution.workspace

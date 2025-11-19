@@ -479,32 +479,33 @@ object MillBuildBootstrap {
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
 
-    lazy val evaluator: EvaluatorApi = evalImplCls.getConstructors.minBy(_.getParameterCount).newInstance(
-      allowPositionalCommandArgs,
-      selectiveExecution,
-      // Use the shorter convenience constructor not the primary one
-      // TODO: Check if named tuples could make this call more typesafe
-      execCls.getConstructors.minBy(_.getParameterCount).newInstance(
-        baseLogger,
-        projectRoot.toNIO,
-        outPath.toNIO,
-        outPath.toNIO,
-        rootModule,
-        millClassloaderSigHash,
-        millClassloaderIdentityHash,
-        workerCache.to(collection.mutable.Map),
-        env,
-        !keepGoing,
-        ec,
-        codeSignatures,
-        (reason: String, exitCode: Int) => systemExit(reason, exitCode),
-        streams0,
-        () => evaluator,
-        offline,
-        staticBuildOverrides.map { case (k, v) => (k, v.toString) },
-        enableTicker
-      )
-    ).asInstanceOf[EvaluatorApi]
+    lazy val evaluator: EvaluatorApi =
+      evalImplCls.getConstructors.minBy(_.getParameterCount).newInstance(
+        allowPositionalCommandArgs,
+        selectiveExecution,
+        // Use the shorter convenience constructor not the primary one
+        // TODO: Check if named tuples could make this call more typesafe
+        execCls.getConstructors.minBy(_.getParameterCount).newInstance(
+          baseLogger,
+          projectRoot.toNIO,
+          outPath.toNIO,
+          outPath.toNIO,
+          rootModule,
+          millClassloaderSigHash,
+          millClassloaderIdentityHash,
+          workerCache.to(collection.mutable.Map),
+          env,
+          !keepGoing,
+          ec,
+          codeSignatures,
+          (reason: String, exitCode: Int) => systemExit(reason, exitCode),
+          streams0,
+          () => evaluator,
+          offline,
+          staticBuildOverrides.map { case (k, v) => (k, v.toString) },
+          enableTicker
+        )
+      ).asInstanceOf[EvaluatorApi]
 
     evaluator
   }
