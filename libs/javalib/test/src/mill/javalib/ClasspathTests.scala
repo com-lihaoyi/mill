@@ -1,6 +1,6 @@
 package mill.javalib
 
-import mill.api.{Discover, Task}
+import mill.api.{Discover, PathRef, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 
@@ -11,7 +11,7 @@ import java.nio.file.Paths
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
-object RunClasspathTests extends TestSuite {
+object ClasspathTests extends TestSuite {
 
   object TestCase extends TestRootModule {
     object lib extends JavaModule
@@ -24,6 +24,7 @@ object RunClasspathTests extends TestSuite {
     object appAsJars extends JavaModule {
       def moduleDeps = Seq(app)
       def mainClass = app.mainClass
+      def compileClasspath = compileClasspathAsJars
       def runClasspath = runClasspathAsJars
     }
 
@@ -32,7 +33,38 @@ object RunClasspathTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("test") {
-      val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "run"
+      val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "classpath"
+
+      UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
+        def classPathTaskValue(task: Task[Seq[PathRef]]) =
+          eval(task)
+            .left.map(f => throw f.exception)
+            .merge
+            .value
+            .map(_.path.subRelativeTo(TestCase.moduleDir))
+
+        val libCompileCp = classPathTaskValue(TestCase.lib.compileClasspath)
+        val expectedLibCompileCp = Seq(
+          os.sub / "lib/compile-resources"
+        )
+        assert(expectedLibCompileCp == libCompileCp)
+
+        val appCompileCp = classPathTaskValue(TestCase.app.compileClasspath)
+        val expectedAppCompileCp = Seq(
+          os.sub / "lib/compile-resources",
+          os.sub / "out/lib/compile.dest/classes",
+          os.sub / "app/compile-resources"
+        )
+        assert(expectedAppCompileCp == appCompileCp)
+
+        val appAsJarsCompileCp = classPathTaskValue(TestCase.appAsJars.compileClasspath)
+        val expectedAppAsJarsCompileCp = Seq(
+          os.sub / "out/lib/jar.dest/out.jar",
+          os.sub / "out/app/jar.dest/out.jar",
+          os.sub / "out/appAsJars/compileResourcesAsJars.dest/0.jar"
+        )
+        assert(expectedAppAsJarsCompileCp == appAsJarsCompileCp)
+      }
 
       def locationFromOutput(kind: String, out: String): os.SubPath = {
         val uriStr =

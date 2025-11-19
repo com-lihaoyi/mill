@@ -493,6 +493,25 @@ trait JavaModule
   def unmanagedClasspath: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
+   * Same class path as [[unmanagedClasspath]], but ensures every entry is a JAR file.
+   *
+   * If you'd like to add unmanaged class path entries, add them to [[unmanagedClasspath]].
+   * `unmanagedClasspathAsJars` will pick them up automatically, and convert directory entries
+   * to JAR files if needed.
+   */
+  private[mill] def unmanagedClasspathAsJars: T[Seq[PathRef]] =
+    Task {
+      unmanagedClasspath().zipWithIndex.flatMap {
+        case (ref, refIdx) if os.isDir(ref.path) =>
+          val jar = Task.dest / s"$refIdx.jar"
+          Jvm.createJar(jar, Seq(ref.path))
+          Seq(PathRef(jar))
+        case (ref, _) if os.exists(ref.path) => Seq(ref)
+        case (_, _) => Nil
+      }
+    }
+
+  /**
    * The `coursier.Dependency` to use to refer to this module
    */
   @deprecated("Use coursierDependencyTask instead", "Mill 1.1.0")
@@ -836,6 +855,24 @@ trait JavaModule
   def compileResources: T[Seq[PathRef]] = Task.Sources { "compile-resources" }
 
   /**
+   * Same class path as [[compileResources]], but ensures every entry is a JAR file.
+   *
+   * If you'd like to add compile resources entries, add them to [[compileResources]].
+   * `compileResourcesAsJars` will pick them up automatically, and convert directory entries
+   * to JAR files if needed.
+   */
+  private[mill] def compileResourcesAsJars: T[Seq[PathRef]] = Task {
+    compileResources().zipWithIndex.flatMap {
+      case (ref, refIdx) if os.isDir(ref.path) =>
+        val jar = Task.dest / s"$refIdx.jar"
+        Jvm.createJar(jar, Seq(ref.path))
+        Seq(PathRef(jar))
+      case (ref, _) if os.exists(ref.path) => Seq(ref)
+      case (_, _) => Nil // filtering out non-existing entries, to only keep actual JAR files
+    }
+  }
+
+  /**
    * Folders containing source files that are generated rather than
    * handwritten; these files can be generated in this task itself,
    * or can refer to files generated from other tasks
@@ -1020,6 +1057,14 @@ trait JavaModule
 
   /**
    * All classfiles and resources from upstream modules and dependencies
+   * necessary to compile this module, all packaged as JAR files.
+   */
+  def compileClasspathAsJars: T[Seq[PathRef]] = Task {
+    resolvedMvnDeps() ++ transitiveJars() ++ localCompileClasspathAsJars()
+  }
+
+  /**
+   * All classfiles and resources from upstream modules and dependencies
    * necessary to compile this module.
    */
   override private[mill] def compileClasspathTask(compileFor: CompileFor): Task[Seq[PathRef]] =
@@ -1051,6 +1096,14 @@ trait JavaModule
    */
   def localCompileClasspath: T[Seq[PathRef]] = Task {
     compileResources() ++ unmanagedClasspath()
+  }
+
+  /**
+   * The *input* classfiles/resources from this module, used during compilation,
+   * excluding upstream modules and third-party dependencies, packaged as JAR files.
+   */
+  def localCompileClasspathAsJars: T[Seq[PathRef]] = Task {
+    compileResourcesAsJars() ++ unmanagedClasspathAsJars()
   }
 
   /**
