@@ -167,23 +167,22 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       ctx: ZincWorker.LocalConfig,
       deps: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
-    import op.*
-
-    val cacheKey = JavaCompilerCacheKey(javacOptions)
+    val cacheKey = JavaCompilerCacheKey(op.javacOptions)
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
       compileInternal(
-        upstreamCompileOutput = upstreamCompileOutput,
-        sources = sources,
-        compileClasspath = compileClasspath,
-        javacOptions = javacOptions,
+        upstreamCompileOutput = op.upstreamCompileOutput,
+        sources = op.sources,
+        compileClasspath = op.compileClasspath,
+        javacOptions = op.javacOptions,
         scalacOptions = Nil,
         compilers = compilers,
         reporter = reporter,
         reportCachedProblems = reportCachedProblems,
-        incrementalCompilation = incrementalCompilation,
+        incrementalCompilation = op.incrementalCompilation,
         auxiliaryClassFileExtensions = Seq.empty,
         ctx = ctx,
-        deps = deps
+        deps = deps,
+        workDir = op.workDir
       )
     }
   }
@@ -195,48 +194,47 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       ctx: ZincWorker.LocalConfig,
       deps: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
-    import op.*
-
     withScalaCompilers(
-      scalaVersion = scalaVersion,
-      scalaOrganization = scalaOrganization,
-      compilerClasspath = compilerClasspath,
-      scalacPluginClasspath = scalacPluginClasspath,
-      javacOptions = javacOptions,
+      scalaVersion = op.scalaVersion,
+      scalaOrganization = op.scalaOrganization,
+      compilerClasspath = op.compilerClasspath,
+      scalacPluginClasspath = op.scalacPluginClasspath,
+      javacOptions = op.javacOptions,
       deps.compilerBridge
     ) { compilers =>
       compileInternal(
-        upstreamCompileOutput = upstreamCompileOutput,
-        sources = sources,
-        compileClasspath = compileClasspath,
-        javacOptions = javacOptions,
-        scalacOptions = scalacOptions,
+        upstreamCompileOutput = op.upstreamCompileOutput,
+        sources = op.sources,
+        compileClasspath = op.compileClasspath,
+        javacOptions = op.javacOptions,
+        scalacOptions = op.scalacOptions,
         compilers = compilers,
         reporter = reporter,
         reportCachedProblems = reportCachedProblems,
-        incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+        incrementalCompilation = op.incrementalCompilation,
+        auxiliaryClassFileExtensions = op.auxiliaryClassFileExtensions,
         ctx = ctx,
-        deps = deps
+        deps = deps,
+        workDir = op.workDir
       )
     }
   }
 
   def scaladocJar(op: ZincOp.ScaladocJar, compilerBridge: ZincCompilerBridgeProvider): Boolean = {
-    import op.*
-
     withScalaCompilers(
-      scalaVersion,
-      scalaOrganization,
-      compilerClasspath,
-      scalacPluginClasspath,
-      Nil,
-      compilerBridge
+      scalaVersion = op.scalaVersion,
+      scalaOrganization = op.scalaOrganization,
+      compilerClasspath = op.compilerClasspath,
+      scalacPluginClasspath = op.scalacPluginClasspath,
+      javacOptions = Nil,
+      compilerBridge = compilerBridge
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
       mill.util.Retry(count = 2) {
-        if (JvmWorkerUtil.isDotty(scalaVersion) || JvmWorkerUtil.isScala3Milestone(scalaVersion)) {
+        if (
+          JvmWorkerUtil.isDotty(op.scalaVersion) || JvmWorkerUtil.isScala3Milestone(op.scalaVersion)
+        ) {
           // dotty 0.x and scala 3 milestones use the dotty-doc tool
           val dottydocClass =
             compilers.scalac().scalaInstance().loader().loadClass(
@@ -244,10 +242,10 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
             )
           val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
           val reporter =
-            dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
+            dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), op.args.toArray)
           val hasErrorsMethod = reporter.getClass.getMethod("hasErrors")
           !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
-        } else if (JvmWorkerUtil.isScala3(scalaVersion)) {
+        } else if (JvmWorkerUtil.isScala3(op.scalaVersion)) {
           // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
           // requires the ContextClassLoader to be set appropriately
           mill.api.ClassLoader.withContextClassLoader(this.getClass.getClassLoader) {
@@ -256,7 +254,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
             val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
             val reporter =
-              scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
+              scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), op.args.toArray)
             val hasErrorsMethod = reporter.getClass.getMethod("hasErrors")
             !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
           }
@@ -266,7 +264,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
           val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
           scaladocMethod.invoke(
             scaladocClass.getConstructor().newInstance(),
-            args.toArray
+            op.args.toArray
           ).asInstanceOf[Boolean]
         }
       }
@@ -312,12 +310,13 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       auxiliaryClassFileExtensions: Seq[String],
       zincCache: os.SubPath = os.sub / "zinc",
       ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig
+      deps: ZincWorker.ProcessConfig,
+      workDir: os.Path
   ): Result[CompilationResult] = {
 
-    os.makeDir.all(ctx.dest)
+    os.makeDir.all(workDir)
 
-    val classesDir = ctx.dest / "classes"
+    val classesDir = workDir / "classes"
 
     if (ctx.logDebugEnabled) {
       deps.log.debug(
@@ -359,7 +358,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
     val lookup = MockedLookup(analysisMap)
 
-    val store = fileAnalysisStore(ctx.dest / zincCache)
+    val store = fileAnalysisStore(workDir / zincCache)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
@@ -455,7 +454,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
       store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
 
-      Result.Success(CompilationResult(ctx.dest / zincCache, PathRef(classesDir)))
+      Result.Success(CompilationResult(workDir / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)

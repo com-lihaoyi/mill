@@ -4,7 +4,7 @@ import mill.api.daemon.*
 import scala.collection.mutable
 
 trait EvaluatorApi extends AutoCloseable {
-  private[mill] def scriptModuleResolver: Any = null
+  private[mill] def scriptModuleInit: Any = null
   def evaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
