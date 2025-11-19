@@ -81,7 +81,7 @@ object Deps {
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.18"
+  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.19"
   val ammoniteVersion = "3.0.4"
   val asmTree = mvn"org.ow2.asm:asm-tree:9.9"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
