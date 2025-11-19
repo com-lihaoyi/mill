@@ -57,4 +57,3 @@ object foo extends GroovyModule {
 // - Groovy-Xml for HTML templating and escaping
 // and uses them to wrap a given input string in HTML templates with proper escaping.
 //
-
