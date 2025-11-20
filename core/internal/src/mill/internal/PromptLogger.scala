@@ -212,13 +212,12 @@ class PromptLogger(
 
             def printPrefixed(prefix: String, line: Array[Byte]) = {
               if (!incompleteLine) {
-                streams.err.print(infoColor(prefix))
-                if (line.nonEmpty && prefix.nonEmpty) streams.err.print(" ")
+                logStream.print(infoColor(prefix))
+                if (line.nonEmpty && prefix.nonEmpty) logStream.print(" ")
               }
               // Make sur we flush after each write, because we are possibly writing to stdout
               // and stderr in quick succession so we want to try our best to ensure the order
               // is preserved and doesn't get messed up by buffering in the streams
-              streams.err.flush()
               logStream.write(line)
               logStream.flush()
               incompleteLine = line.lastOption.exists(last => last != '\n' && last != '\r')
@@ -233,16 +232,16 @@ class PromptLogger(
 
                   if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), firstLine)
                   else {
-                    streams.err.print(infoColor(longPrefix))
-                    streams.err.print('\n')
+                    logStream.print(infoColor(longPrefix))
+                    logStream.print('\n')
                     printPrefixed(infoColor(prefix), firstLine)
                   }
                   restLines.foreach(printPrefixed(infoColor(prefix), _))
 
                 case Seq() =>
-                  streams.err.print(infoColor(longPrefix))
-                  streams.err.print("\n")
-                  streams.err.flush()
+                  logStream.print(infoColor(longPrefix))
+                  logStream.print("\n")
+                  logStream.flush()
               }
             } else lines.foreach(printPrefixed(infoColor(prefix), _))
           }
