@@ -4,7 +4,7 @@ import java.io.{BufferedOutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 import java.util.concurrent.ArrayBlockingQueue
 
-private[mill] class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
+class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
   private var used = false
 
   @volatile var closed = false
@@ -64,9 +64,9 @@ private[mill] class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent:
   }
 }
 
-private[mill] object JsonArrayLogger {
+object JsonArrayLogger {
 
-  private[mill] class Profile(outPath: os.Path)
+  class Profile(outPath: os.Path)
       extends JsonArrayLogger[Profile.Timing](outPath, indent = 2) {
     def log(
         terminal: String,
@@ -107,7 +107,7 @@ private[mill] object JsonArrayLogger {
     }
   }
 
-  private[mill] class ChromeProfile(outPath: os.Path)
+  class ChromeProfile(outPath: os.Path)
       extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
 
     def logBegin(

@@ -7,7 +7,7 @@ import mill.api.{Segment, Segments, SelectMode}
 
 import scala.annotation.tailrec
 
-private[mill] object ParseArgs {
+object ParseArgs {
 
   type TasksWithParams = (Seq[(Option[Segments], Option[Segments])], Seq[String])
 
@@ -111,9 +111,9 @@ private[mill] object ParseArgs {
       case (h, rest) => Segments(h +: rest)
     }
 
-    P(simpleQuery ~ (("/" | ":") ~ simpleQuery.?).? ~ End).map {
+    P(simpleQuery ~ (("/" | ":").! ~ simpleQuery.?).? ~ End).map {
       case (q, None) => (None, Some(q))
-      case (q, Some(q2)) => (Some(q), q2)
+      case (q, Some((sep, q2))) => (Some(Segments.labels(q.render + sep)), q2)
     }
   }
 }

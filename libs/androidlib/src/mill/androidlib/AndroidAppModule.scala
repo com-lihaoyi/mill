@@ -284,8 +284,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
     val debugManifest = Seq(androidDebugManifestLocation()).filter(pr => os.exists(pr.path))
-    val libManifests = androidUnpackArchives().flatMap(_.manifest)
-    debugManifest ++ libManifests
+    super.androidMergeableManifests() ++ debugManifest
   }
 
   override def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {

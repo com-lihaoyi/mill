@@ -33,7 +33,7 @@ object ScriptExternalTaskRendering extends UtestIntegrationTestSuite {
       assert(planScript.out.linesIterator.toSeq.contains("Script.java:compile"))
 
       val resolveExternalTask =
-        eval(("resolve", "mill.scalalib.scalafmt.ScalafmtModule:reformatAll"))
+        eval(("resolve", "mill.scalalib.scalafmt.ScalafmtModule/reformatAll"))
       assert(resolveExternalTask.out.linesIterator.toSeq == Seq(
         "mill.scalalib.scalafmt.ScalafmtModule/reformatAll"
       ))
