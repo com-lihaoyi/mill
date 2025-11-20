@@ -10,7 +10,7 @@ object NonExclusiveDependsOnExclusive extends UtestIntegrationTestSuite {
       val res = tester.eval("cleanClientWrong")
       assert(res.isSuccess == false)
       assert(res.err.contains(
-        "Non-Command task cleanClientWrong cannot depend on exclusive task clean"
+        "cleanClientWrong Non-Command task cleanClientWrong cannot depend on exclusive command cleanClientRight"
       ))
       assert(!res.out.contains("cleanClientWrong done"))
     }
