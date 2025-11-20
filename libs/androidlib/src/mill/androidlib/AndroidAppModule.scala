@@ -238,7 +238,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Regex patterns of files to be excluded from packaging into the APK.
    */
-  def androidExcludePackageResources: T[Seq[Regex]] = Task {
+  def androidExcludePackageFiles: T[Seq[Regex]] = Task {
     Seq.empty[Regex]
   }
 
@@ -256,13 +256,18 @@ trait AndroidAppModule extends AndroidModule { outer =>
     os.zip(
       unsignedApk,
       Seq(androidDexPath),
-      excludePatterns = androidExcludePackageResources()
+      excludePatterns = androidExcludePackageFiles() ++ Seq(
+        // META-INF are added later from androidPackagedMetaInfFiles
+        "^META-INF/.*$".r
+      )
     )
 
     def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
       os.zip.ZipSource.fromPathTuple(
         (androidPackageableExtraFile.source.path, androidPackageableExtraFile.destination.asSubPath)
       )
+
+    val metaInf = androidPackagedMetaInfFiles().map(asZipSource)
 
     val nativeDeps = androidPackageableNativeDeps().map(asZipSource)
 
@@ -281,6 +286,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // Example of app-metadata.properties:
     // appMetadataVersion=1.1
     // androidGradlePluginVersion=8.7.2
+    os.zip(unsignedApk, metaInf)
     os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
