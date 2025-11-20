@@ -147,6 +147,11 @@ trait SpringBootModule extends JavaModule {
 
     override def moduleDir: os.Path = outer.moduleDir
 
+    /**
+     * Enables AOT for running the application under this module
+     */
+    override def forkArgs = super.forkArgs() ++ Seq("-Dspring.aot.enabled=true")
+
     override def generatedSources: Task.Simple[Seq[PathRef]] = Task {
       val aotGeneratedSources = Seq(PathRef(outer.springBootProcessAOT().path / "sources"))
       outer.generatedSources() ++ aotGeneratedSources
