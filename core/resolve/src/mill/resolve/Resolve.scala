@@ -340,11 +340,7 @@ trait Resolve[T] {
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache()
-    def handleScriptModule(
-        args: Seq[String],
-        rootModuleSegments: Segments,
-        fallback: => Result[Seq[T]]
-    ): Result[Seq[T]] = {
+    def handleScriptModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
       val (first, selector, remaining) = args match {
         case Seq(s"$prefix:$suffix", rest*) => (prefix, Some(suffix), rest)
         case Seq(head, rest*) => (head, None, rest)
@@ -359,7 +355,7 @@ trait Resolve[T] {
           resolveNonEmptyAndHandle(
             remaining,
             scriptModule,
-            rootModuleSegments,
+            Segments.labels(s"$first:"),
             Segments.labels(segments*),
             nullCommandDefaults,
             allowPositionalCommandArgs,
@@ -375,12 +371,12 @@ trait Resolve[T] {
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
       ParseArgs.extractAndValidate(group, selectMode == SelectMode.Multi) match {
-        case f: Result.Failure => handleScriptModule(group, Segments(), f)
+        case f: Result.Failure => handleScriptModule(group, f)
         case Result.Success((selectors, args)) =>
           val selected: Seq[Result[Seq[T]]] = selectors.map { case (rootModuleSegments0, sel) =>
             val rootModuleSegments = rootModuleSegments0.getOrElse(Segments())
             resolveRootModule(rootModule, rootModuleSegments0) match {
-              case f: Result.Failure => handleScriptModule(group, rootModuleSegments, f)
+              case f: Result.Failure => handleScriptModule(group, f)
               case Result.Success(rootModuleSels) =>
                 val res =
                   resolveNonEmptyAndHandle1(
@@ -401,8 +397,7 @@ trait Resolve[T] {
                   res
                 )
                 res match {
-                  case _: ResolveCore.NotFound =>
-                    handleScriptModule(group, rootModuleSegments, notFoundResult)
+                  case _: ResolveCore.NotFound => handleScriptModule(group, notFoundResult)
                   case res => notFoundResult
                 }
             }
