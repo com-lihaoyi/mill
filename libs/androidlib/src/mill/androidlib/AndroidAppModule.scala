@@ -881,6 +881,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
 
     val outPath = Task.dest / "dex-output"
+    os.makeDir.all(outPath)
 
     val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
 
