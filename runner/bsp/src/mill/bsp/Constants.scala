@@ -1,7 +1,7 @@
 package mill.bsp
 
 import os.SubPath
-private[mill] object Constants {
+object Constants {
   val bspDir: SubPath = os.sub / ".bsp"
   val bspProtocolVersion = BuildInfo.bsp4jVersion
   val bspWorkerImplClass = "mill.bsp.worker.BspWorkerImpl"

@@ -4,7 +4,7 @@ import scala.reflect.NameTransformer.encode
 import mill.api.Result
 import mill.api.ModuleCtx.HeaderData
 
-private[mill] object Util {
+object Util {
 
   val alphaKeywords: Set[String] = Set(
     "abstract",
@@ -60,7 +60,7 @@ private[mill] object Util {
       else "`" + s + "`"
   }
 
-  private[mill] def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
+  def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
     val headerDataOpt = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       // If the module file got deleted, handle that gracefully
       if (!os.exists(scriptFile)) Result.Success("")

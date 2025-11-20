@@ -982,7 +982,7 @@ private class MillBuildServer(
       requestCount0,
       new PrefixLogger(
         new ProxyLogger(baseLogger) {
-          override private[mill] def logKey: Seq[String] = {
+          override def logKey: Seq[String] = {
             val logKey0 = super.logKey
             if (logKey0.startsWith(Seq("bsp"))) logKey0.drop(1)
             else logKey0
@@ -1089,7 +1089,7 @@ private object MillBuildServer {
       d.javaVersion.foreach(jv => it.setJavaVersion(jv))
     }
 
-  private[mill] def enclosingRequestName(using enclosing: sourcecode.Enclosing): String = {
+  def enclosingRequestName(using enclosing: sourcecode.Enclosing): String = {
     // enclosing.value typically looks like "mill.bsp.worker.MillBuildServer#buildTargetCompile logger"
     // First, try to isolate the part with the BSP request name
     var name0 = enclosing.value.split(" ") match {

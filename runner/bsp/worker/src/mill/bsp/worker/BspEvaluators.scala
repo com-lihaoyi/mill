@@ -17,7 +17,7 @@ import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters._
 
-private[mill] class BspEvaluators(
+class BspEvaluators(
     workspaceDir: os.Path,
     val evaluators: Seq[EvaluatorApi],
     debug: (() => String) => Unit,

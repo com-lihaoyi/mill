@@ -1,4 +1,4 @@
 extends: [mill.scalalib.ScalaModule]
 scalaVersionWrongInner: []
 mvnDeps:
-- "com.google.guava:guava:33.3.0-jre"
+- com.google.guava:guava:33.3.0-jre

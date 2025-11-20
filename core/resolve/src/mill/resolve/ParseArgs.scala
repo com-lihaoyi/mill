@@ -7,7 +7,7 @@ import mill.api.{Segment, Segments, SelectMode}
 
 import scala.annotation.tailrec
 
-private[mill] object ParseArgs {
+object ParseArgs {
 
   type TasksWithParams = (Seq[(Option[Segments], Option[Segments])], Seq[String])
 

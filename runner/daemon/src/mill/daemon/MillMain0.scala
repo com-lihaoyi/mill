@@ -553,7 +553,7 @@ object MillMain0 {
     bspServerHandleRes
   }
 
-  private[mill] def parseThreadCount(
+  def parseThreadCount(
       threadCountRaw: Option[String],
       availableCores: Int
   ): Result[Int] = {

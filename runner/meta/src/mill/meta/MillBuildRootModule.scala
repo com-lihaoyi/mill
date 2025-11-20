@@ -55,7 +55,7 @@ trait MillBuildRootModule()(using
     .mkString("/")
 
   override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  private[mill] override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
+  override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
