@@ -4,9 +4,14 @@ import mill.api.daemon.Segments
 
 private[mill] sealed trait Resolved {
   def rootModule: RootModule0
+  /**
+   * What segments selector was used to resolve this root module. Might not be
+   * `rootModule.moduleSegments` as it might be an alias that we want to preserve
+   */
+  def rootModuleSegments: Segments
   def taskSegments: Segments
   def cls: Class[?]
-  def fullSegments: Segments = rootModule.moduleSegments ++ taskSegments
+  def fullSegments: Segments = rootModuleSegments ++ taskSegments
 }
 
 private[mill] object Resolved {
@@ -25,7 +30,16 @@ private[mill] object Resolved {
     }
   }
 
-  case class Module(rootModule: RootModule0, taskSegments: Segments, cls: Class[?]) extends Resolved
-  case class Command(rootModule: RootModule0, taskSegments: Segments, cls: Class[?]) extends Resolved
-  case class NamedTask(rootModule: RootModule0, taskSegments: Segments, cls: Class[?]) extends Resolved
+  case class Module(rootModule: RootModule0,
+                    rootModuleSegments: Segments,
+                    taskSegments: Segments,
+                    cls: Class[?]) extends Resolved
+  case class Command(rootModule: RootModule0,
+                     rootModuleSegments: Segments,
+                     taskSegments: Segments,
+                     cls: Class[?]) extends Resolved
+  case class NamedTask(rootModule: RootModule0,
+                       rootModuleSegments: Segments,
+                       taskSegments: Segments,
+                       cls: Class[?]) extends Resolved
 }

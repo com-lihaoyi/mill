@@ -19,6 +19,7 @@ object Resolve {
   object Segments extends Resolve[Segments] {
     def handleResolved(
         rootModule: RootModule0,
+        rootModuleSegments: Segments,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -36,6 +37,7 @@ object Resolve {
   object Raw extends Resolve[Resolved] {
     def handleResolved(
         rootModule: RootModule0,
+        rootModuleSegments: Segments,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -53,6 +55,7 @@ object Resolve {
   object Inspect extends Resolve[Either[Module, Task.Named[Any]]] {
     def handleResolved(
         rootModule: RootModule0,
+        rootModuleSegments: Segments,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -64,12 +67,12 @@ object Resolve {
 
       val taskList: Seq[Result[Either[Module, Option[Task.Named[?]]]]] = resolved.map {
         case m: Resolved.Module =>
-          ResolveCore.instantiateModule(rootModule, m.taskSegments, cache).map(Left(_))
+          ResolveCore.instantiateModule(rootModule, rootModuleSegments,m.taskSegments, cache).map(Left(_))
 
         case t =>
           Resolve
             .Tasks
-            .handleTask(rootModule, args, nullCommandDefaults, allowPositionalCommandArgs, cache, t)
+            .handleTask(rootModule, rootModuleSegments,args, nullCommandDefaults, allowPositionalCommandArgs, cache, t)
             .map(Right(_))
       }
 
@@ -89,6 +92,7 @@ object Resolve {
   object Tasks extends Resolve[Task.Named[Any]] {
     private[Resolve] def handleTask(
         rootModule: RootModule0,
+        rootModuleSegments: Segments,
         args: Seq[String],
         nullCommandDefaults: Boolean,
         allowPositionalCommandArgs: Boolean,
@@ -97,13 +101,13 @@ object Resolve {
     ) = task match {
       case r: Resolved.NamedTask =>
         val instantiated = ResolveCore
-          .instantiateModule(rootModule, r.taskSegments.init, cache)
+          .instantiateModule(rootModule, rootModuleSegments,r.taskSegments.init, cache)
           .flatMap(instantiateNamedTask(r, _, cache))
         instantiated.map(Some(_))
 
       case r: Resolved.Command =>
         val instantiated = ResolveCore
-          .instantiateModule(rootModule, r.taskSegments.init, cache)
+          .instantiateModule(rootModule, rootModuleSegments,r.taskSegments.init, cache)
           .flatMap { mod =>
             instantiateCommand(
               rootModule,
@@ -117,10 +121,11 @@ object Resolve {
         instantiated.map(Some(_))
 
       case r: Resolved.Module =>
-        ResolveCore.instantiateModule(rootModule, r.taskSegments, cache).flatMap {
+        ResolveCore.instantiateModule(rootModule, rootModuleSegments, r.taskSegments, cache).flatMap {
           case value: DefaultTaskModule =>
             val directChildrenOrErr = ResolveCore.resolveDirectChildren(
               rootModule,
+              r.rootModuleSegments,
               value.getClass,
               Some(value.defaultTask()),
               value.moduleSegments,
@@ -148,6 +153,7 @@ object Resolve {
     }
     def handleResolved(
         rootModule: RootModule0,
+        rootModuleSegments: Segments,
         resolved: Seq[Resolved],
         args: Seq[String],
         selector: Segments,
@@ -159,6 +165,7 @@ object Resolve {
 
       val taskList: Seq[Result[Option[Task.Named[?]]]] = resolved.map(handleTask(
         rootModule,
+        rootModuleSegments,
         args,
         nullCommandDefaults,
         allowPositionalCommandArgs,
@@ -295,6 +302,7 @@ object Resolve {
 trait Resolve[T] {
   def handleResolved(
       rootModule: RootModule0,
+      rootModuleSegments: Segments,
       resolved: Seq[Resolved],
       args: Seq[String],
       segments: Segments,
@@ -314,7 +322,9 @@ trait Resolve[T] {
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val cache = new ResolveCore.Cache()
-    def handleScriptModule(args: Seq[String], fallback: => Result[Seq[T]]): Result[Seq[T]] = {
+    def handleScriptModule(args: Seq[String],
+                           rootModuleSegments: Segments,
+                           fallback: => Result[Seq[T]]): Result[Seq[T]] = {
       val (first, selector, remaining) = args match {
         case Seq(s"$prefix:$suffix", rest*) => (prefix, Some(suffix), rest)
         case Seq(head, rest*) => (head, None, rest)
@@ -329,6 +339,7 @@ trait Resolve[T] {
           resolveNonEmptyAndHandle(
             remaining,
             scriptModule,
+            rootModuleSegments,
             Segments.labels(segments*),
             nullCommandDefaults,
             allowPositionalCommandArgs,
@@ -344,16 +355,18 @@ trait Resolve[T] {
     }
     val resolvedGroups = ParseArgs.separate(scriptArgs).map { group =>
       ParseArgs.extractAndValidate(group, selectMode == SelectMode.Multi) match {
-        case f: Result.Failure => handleScriptModule(group, f)
+        case f: Result.Failure => handleScriptModule(group, Segments(), f)
         case Result.Success((selectors, args)) =>
-          val selected: Seq[Result[Seq[T]]] = selectors.map { case (scopedSel, sel) =>
-            resolveRootModule(rootModule, scopedSel) match {
-              case f: Result.Failure => handleScriptModule(group, f)
+          val selected: Seq[Result[Seq[T]]] = selectors.map { case (rootModuleSegments0, sel) =>
+            val rootModuleSegments = rootModuleSegments0.getOrElse(Segments())
+            resolveRootModule(rootModule, rootModuleSegments0) match {
+              case f: Result.Failure => handleScriptModule(group, rootModuleSegments, f)
               case Result.Success(rootModuleSels) =>
                 val res =
-                  resolveNonEmptyAndHandle1(rootModuleSels, sel.getOrElse(Segments()), cache)
+                  resolveNonEmptyAndHandle1(rootModuleSels, rootModuleSegments, sel.getOrElse(Segments()), cache)
                 def notFoundResult = resolveNonEmptyAndHandle2(
                   rootModuleSels,
+                  rootModuleSegments,
                   args,
                   sel.getOrElse(Segments()),
                   nullCommandDefaults,
@@ -363,7 +376,7 @@ trait Resolve[T] {
                   res
                 )
                 res match {
-                  case _: ResolveCore.NotFound => handleScriptModule(group, notFoundResult)
+                  case _: ResolveCore.NotFound => handleScriptModule(group, rootModuleSegments, notFoundResult)
                   case res => notFoundResult
                 }
             }
@@ -378,6 +391,7 @@ trait Resolve[T] {
   def resolveNonEmptyAndHandle(
       args: Seq[String],
       rootModule: RootModule0,
+      rootModuleSegments: Segments,
       sel: Segments,
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
@@ -386,23 +400,26 @@ trait Resolve[T] {
     val cache = new ResolveCore.Cache()
     resolveNonEmptyAndHandle2(
       rootModule,
+      rootModuleSegments: Segments,
       args,
       sel,
       nullCommandDefaults,
       allowPositionalCommandArgs,
       resolveToModuleTasks,
       cache,
-      resolveNonEmptyAndHandle1(rootModule, sel, cache)
+      resolveNonEmptyAndHandle1(rootModule, rootModuleSegments, sel, cache)
     )
   }
   def resolveNonEmptyAndHandle1(
       rootModule: RootModule0,
+      rootModuleSegments: Segments,
       sel: Segments,
       cache: ResolveCore.Cache
   ): ResolveCore.Result = {
-    val rootResolved = Resolved.Module(rootModule, Segments(), rootModule.getClass)
+    val rootResolved = Resolved.Module(rootModule, rootModuleSegments, Segments(), rootModule.getClass)
     ResolveCore.resolve(
       rootModule = rootModule,
+      rootModuleSegments,
       remainingQuery = sel.value.toList,
       current = rootResolved,
       querySoFar = Segments(),
@@ -413,6 +430,7 @@ trait Resolve[T] {
 
   def resolveNonEmptyAndHandle2(
       rootModule: RootModule0,
+      rootModuleSegments: Segments,
       args: Seq[String],
       sel: Segments,
       nullCommandDefaults: Boolean,
@@ -448,6 +466,7 @@ trait Resolve[T] {
       val sorted = r.sorted
       handleResolved(
         rootModule,
+        rootModuleSegments,
         sorted,
         args,
         sel,
@@ -471,11 +490,11 @@ trait Resolve[T] {
       case Some(scoping) =>
         for {
           moduleCls <-
-            try Result.Success(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
+            try Result.Success(rootModule.getClass.getClassLoader.loadClass(scoping.render.stripSuffix("/") + "$"))
             catch {
               case _: ClassNotFoundException =>
                 try Result.Success(rootModule.getClass.getClassLoader.loadClass(
-                    scoping.render + ".package$"
+                    scoping.render.stripSuffix("/") + ".package$"
                   ))
                 catch {
                   case _: ClassNotFoundException =>

@@ -116,6 +116,33 @@ object TabCompleteTests extends TestSuite {
           )
         )
       }
+      test("externalModulePartial") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "mill.tabcomplete.TabCompleteModule/c"),
+          Set(
+            "mill.tabcomplete.TabCompleteModule/complete",
+            "mill.tabcomplete.TabCompleteModule/complete: The main entrypoint for Mill's Bash and Zsh tab-completion logic"
+          )
+        )
+      }
+      test("externalModuleAlias") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "mill.tabcomplete/"),
+          Set(
+            "mill.tabcomplete/complete  The main entrypoint for Mill's Bash and Zsh tab-completion logic",
+            "mill.tabcomplete/install   Installs the Mill tab completion script globally and hooks it into `~/.zshrc` and `~/.bash_profile`. Can be passed an optional `--dest <path>` to instead write it to a manually-specified destination path"
+          )
+        )
+      }
+      test("externalModuleAliasPartial") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "mill.tabcomplete/i"),
+          Set(
+            "mill.tabcomplete/install",
+            "mill.tabcomplete/install: Installs the Mill tab completion script globally and hooks it into `~/.zshrc` and `~/.bash_profile`. Can be passed an optional `--dest <path>` to instead write it to a manually-specified destination path"
+          )
+        )
+      }
 
       test("module") {
         assertGoldenLiteral(
