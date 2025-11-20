@@ -2,13 +2,20 @@ package mill.javalib.spring.boot
 
 import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
-import mill.javalib.{Dep, DepSyntax, MavenModule, NativeImageModule, RunModule}
+import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 
 import java.util.Properties
 import scala.util.Using
 
+/**
+ * A module that can be used to configure Spring Boot projects and provides functionality
+ * for AOT processing and native GraalVM builds.
+ *
+ * For compatibility with initializr projects ([[https://start.spring.io/]]),
+ * mix this module with the [[MavenModule]].
+ */
 @mill.api.experimental
-trait SpringBootModule extends MavenModule {
+trait SpringBootModule extends JavaModule {
   outer =>
 
   /** Spring boot version as can be found in [[https://start.spring.io/]] */
@@ -62,13 +69,20 @@ trait SpringBootModule extends MavenModule {
   }
 
   /**
+   * The runnable main class that takes care of the AOT processing.
+   * Defaults to "org.springframework.boot.SpringApplicationAotProcessor"
+   */
+  def springBootAOTProcessorMainClass: T[String] = Task {
+    "org.springframework.boot.SpringApplicationAotProcessor"
+  }
+
+  /**
    * Spring Boot AOT processing, generating "Fast classes".
    *
    * For more information go to [[https://docs.spring.io/spring-framework/reference/core/aot.html]]
    */
   def springBootProcessAOT: T[PathRef] = Task {
     val dest = Task.dest
-    runClasspath().map(_.path)
     val applicationMainClass = springBootMainClass()
 
     val sourceOut = dest / "sources"
@@ -86,18 +100,28 @@ trait SpringBootModule extends MavenModule {
       artifactId
     ) ++ springBootProcessAOTExtraApplicationArgs()
 
-    mill.util.Jvm.withClassLoader(
-      runClasspath().map(_.path)
-    ) {
-      classloader =>
-        RunModule.getMainMethod(
-          "org.springframework.boot.SpringApplicationAotProcessor",
-          classloader
-        )
-          .invoke(null, args)
-    }
+    val spawned = mill.util.Jvm.spawnProcess(
+      mainClass = springBootAOTProcessorMainClass(),
+      mainArgs = args,
+      classPath = runClasspath().map(_.path),
+      stderr = os.Inherit,
+      stdout = os.Inherit
+    )
+
+    spawned.waitFor()
 
     PathRef(dest)
+  }
+
+  def springBootAOTNativeProperties: T[PathRef] = Task {
+    val groupId = if (springBootGroupId().isEmpty)
+      "unspecified"
+    else
+      springBootGroupId()
+    val aotDir: os.Path = outer.springBootProcessAOT().path
+    PathRef(
+      aotDir / "resources/META-INF/native-image" / groupId / springBootArtifactId() / "native-image.properties"
+    )
   }
 
   trait SpringBootOptimisedBuildModule extends SpringBootModule {
@@ -127,15 +151,9 @@ trait SpringBootModule extends MavenModule {
 
   trait NativeSpringBootBuildModule extends SpringBootOptimisedBuildModule, NativeImageModule {
     override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
-      val aotDir: os.Path = outer.springBootProcessAOT().path
-      val groupId = if (springBootGroupId().isEmpty)
-        "unspecified"
-      else
-        springBootGroupId()
 
       val nativeImageArgs: Seq[String] =
-        val nativeImageProps =
-          aotDir / "resources/META-INF/native-image" / groupId / artifactId() / "native-image.properties"
+        val nativeImageProps = outer.springBootAOTNativeProperties().path
         if (os.exists(nativeImageProps) && os.isFile(nativeImageProps)) {
           val properties = new Properties()
           Using.resource[
@@ -150,7 +168,7 @@ trait SpringBootModule extends MavenModule {
     }
   }
 
-  trait SpringBootTestsModule extends SpringBootModule, MavenTests {
+  trait SpringBootTestsModule extends SpringBootModule, JavaTests {
     def springBootPlatformVersion: T[String] = outer.springBootPlatformVersion()
   }
 }

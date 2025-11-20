@@ -4,6 +4,7 @@ import mill.*
 import mill.constants.{DaemonFiles, Util}
 
 import scala.util.Properties
+import mill.api.BuildCtx
 
 /**
  * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].
@@ -61,14 +62,31 @@ trait NativeImageModule extends WithJvmWorkerModule {
    *
    * @param args
    */
-  def nativeRunBackground(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] =
-    Task.Command(persistent = true) {
-      val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
-      val stdout = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stdout)
-      val stderr = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stderr)
-      val runScript = nativeImage().path
-      os.spawn(Seq(runScript.toString) ++ args().value, stdout = stdout, stderr = stderr)
+  def nativeRunBackground(args: mill.api.Args) = Task.Command(persistent = true) {
+    val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
+    val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
+
+    BuildCtx.withFilesystemCheckerDisabled {
+      mill.util.Jvm.spawnProcess(
+        mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
+        classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        jvmArgs = Nil,
+        mainArgs = backgroundPaths.toArgs ++ Seq(
+          "<subprocess>",
+          nativeImage().path.toString
+        ) ++ args.value,
+        cwd = BuildCtx.workspaceRoot,
+        stdin = "",
+        // Hack to forward the background subprocess output to the Mill server process
+        // stdout/stderr files, so the output will get properly slurped up by the Mill server
+        // and shown to any connected Mill client even if the current command has completed
+        stdout = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stdout),
+        stderr = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stderr),
+        javaHome = javaHome().map(_.path)
+      )
     }
+    ()
+  }
 
   /**
    * The classpath to use to generate the native image. Defaults to [[runClasspath]].
