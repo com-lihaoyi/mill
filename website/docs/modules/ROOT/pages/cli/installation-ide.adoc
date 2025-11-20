@@ -11,7 +11,6 @@ a zip file containing the full example ready to use. These examples come with a 
 script you can use to immediately begin working with the project, automatically downloading and
 caching a JVM and any additional dependencies as necessary.
 
-[#_bootstrap_scripts]
 == Bootstrap Scripts
 
 The Mill example projects in this documentation come with `./mill` and `./mill.bat`
@@ -70,6 +69,21 @@ xref:cli/builtin-commands.adoc#_init[mill init] to initialize the project
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running.
+
+== Global Installation
+
+You can also install the Mill bootstrap script globally on Mac and Linux via:
+
+```console
+> sudo sh -c '(curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+```
+
+This can be useful when using Mill to run script files (written in xref:javalib/script.adoc[Java],
+xref:scalalib/script.adoc[Scala], or xref:kotlinlib/script.adoc[Kotlin]) which may not belong
+to any particular project. However, for projects that use Mill, it is recommended you use the
+xref:#_bootstrap_scripts[per-project bootstrap scripts] discussed above to ensure that anyone
+with the project codebase on disk will be able to build the project without needing a separate
+installation
 
 === JVM Version
 
