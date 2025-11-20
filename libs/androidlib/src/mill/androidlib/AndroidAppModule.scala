@@ -22,6 +22,7 @@ import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
 
 import scala.util.Properties.isWin
+import java.nio.file.*
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -235,10 +236,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * File names to be excluded from the APK package.
+   * Glob patterns of files to be excluded from packaging into the APK.
    */
-  def excludePackageResources: T[Seq[String]] = Task {
-    Seq("configuration.txt", "seeds.txt", "mapping.txt")
+  def androidExcludePackageResources: T[Seq[String]] = Task {
+    Seq.empty[String]
   }
 
   /**
@@ -252,11 +253,34 @@ trait AndroidAppModule extends AndroidModule { outer =>
     os.copy(androidLinkedResources().path / "apk/res.apk", unsignedApk)
 
     val androidDexPath = androidDex().path
-    val toExclude = excludePackageResources().map(androidDexPath / _).toSet
-    val resources =
-      os.walk(androidDexPath).filterNot(p => os.isDir(p) || toExclude.contains(p)).map(p =>
-        os.zip.ZipSource.fromPathTuple((p, p.subRelativeTo(androidDexPath)))
-      )
+    val dexFilesDir = Task.dest / "dex"
+    os.copy.over(
+      androidDexPath,
+      dexFilesDir,
+      createFolders = true,
+      replaceExisting = true
+    )
+
+    androidExcludePackageResources().foreach {
+      glob =>
+        val matcher = FileSystems.getDefault.getPathMatcher("glob:" + glob)
+        os.walk(dexFilesDir).foreach { p =>
+          val relativePath = (os.root / p.relativeTo(dexFilesDir)).toNIO
+          if (matcher.matches(relativePath)) {
+            if (os.isFile(p)) os.remove(p)
+            else os.remove.all(p)
+          }
+        }
+    }
+
+    val resources = os.walk(dexFilesDir)
+      .filter(os.isFile)
+      .map { p =>
+        os.zip.ZipSource.fromPathTuple(
+          (p, p.subRelativeTo(dexFilesDir))
+        )
+      }
+      .toSeq
 
     def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
       os.zip.ZipSource.fromPathTuple(
@@ -880,7 +904,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   private def androidD8Dex
       : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
 
-    val outPath = Task.dest
+    val outPath = Task.dest / "dex-output"
 
     val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
 

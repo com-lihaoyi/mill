@@ -197,18 +197,20 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
       : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] =
     Task.Anon {
       val destDir = Task.dest / "minify"
+      val diagnosticsDir = Task.dest / "diagnostics"
       os.makeDir.all(destDir)
+      os.makeDir.all(diagnosticsDir)
 
       val outputPath = destDir
 
       Task.log.debug("outputPath: " + outputPath)
 
       // Define diagnostic output file paths
-      val mappingOut = destDir / "mapping.txt"
-      val seedsOut = destDir / "seeds.txt"
-      val usageOut = destDir / "usage.txt"
-      val configOut = destDir / "configuration.txt"
-      val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
+      val mappingOut = diagnosticsDir / "mapping.txt"
+      val seedsOut = diagnosticsDir / "seeds.txt"
+      val usageOut = diagnosticsDir / "usage.txt"
+      val configOut = diagnosticsDir / "configuration.txt"
+      val baselineOutOpt = diagnosticsDir / "baseline-profile-rewritten.txt"
 
       // Extra ProGuard rules
       val extraRules =
