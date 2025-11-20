@@ -1,0 +1,649 @@
+<svg width="1525px" height="714px"
+ viewBox="0.00 0.00 1524.75 714.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 710.0)">
+<title>example1</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-710 1520.75,-710 1520.75,4 -4,4"/>
+<!-- gatling&#45;netty&#45;util.compile -->
+<g id="node1" class="node">
+<title>gatling&#45;netty&#45;util.compile</title>
+<polygon fill="none" stroke="black" points="157.75,-171 2.25,-171 2.25,-135 157.75,-135 157.75,-171"/>
+<text text-anchor="middle" x="80" y="-147.95" font-family="Times,serif" font-size="14.00">gatling&#45;netty&#45;util.compile</text>
+</g>
+<!-- gatling&#45;core.compile -->
+<g id="node2" class="node">
+<title>gatling&#45;core.compile</title>
+<polygon fill="none" stroke="black" points="351.88,-344 222.62,-344 222.62,-308 351.88,-308 351.88,-344"/>
+<text text-anchor="middle" x="287.25" y="-320.95" font-family="Times,serif" font-size="14.00">gatling&#45;core.compile</text>
+</g>
+<!-- gatling&#45;netty&#45;util.compile&#45;&gt;gatling&#45;core.compile -->
+<g id="edge3" class="edge">
+<title>gatling&#45;netty&#45;util.compile&#45;&gt;gatling&#45;core.compile</title>
+<path fill="none" stroke="black" d="M102.58,-171.19C139.21,-202.06 213.66,-264.81 255.65,-300.21"/>
+<polygon fill="black" stroke="black" points="253.28,-302.79 263.19,-306.56 257.8,-297.44 253.28,-302.79"/>
+</g>
+<!-- gatling&#45;http&#45;client.compile -->
+<g id="node7" class="node">
+<title>gatling&#45;http&#45;client.compile</title>
+<polygon fill="none" stroke="black" points="368,-171 206.5,-171 206.5,-135 368,-135 368,-171"/>
+<text text-anchor="middle" x="287.25" y="-147.95" font-family="Times,serif" font-size="14.00">gatling&#45;http&#45;client.compile</text>
+</g>
+<!-- gatling&#45;netty&#45;util.compile&#45;&gt;gatling&#45;http&#45;client.compile -->
+<g id="edge2" class="edge">
+<title>gatling&#45;netty&#45;util.compile&#45;&gt;gatling&#45;http&#45;client.compile</title>
+<path fill="none" stroke="black" d="M158.01,-153C170.03,-153 182.55,-153 194.85,-153"/>
+<polygon fill="black" stroke="black" points="194.55,-156.5 204.55,-153 194.55,-149.5 194.55,-156.5"/>
+</g>
+<!-- gatling&#45;netty&#45;util.test.compile -->
+<g id="node26" class="node">
+<title>gatling&#45;netty&#45;util.test.compile</title>
+<polygon fill="none" stroke="black" points="376.25,-117 198.25,-117 198.25,-81 376.25,-81 376.25,-117"/>
+<text text-anchor="middle" x="287.25" y="-93.95" font-family="Times,serif" font-size="14.00">gatling&#45;netty&#45;util.test.compile</text>
+</g>
+<!-- gatling&#45;netty&#45;util.compile&#45;&gt;gatling&#45;netty&#45;util.test.compile -->
+<g id="edge1" class="edge">
+<title>gatling&#45;netty&#45;util.compile&#45;&gt;gatling&#45;netty&#45;util.test.compile</title>
+<path fill="none" stroke="black" d="M151.06,-134.57C168.47,-129.99 187.27,-125.04 205.16,-120.33"/>
+<polygon fill="black" stroke="black" points="205.91,-123.76 214.69,-117.83 204.13,-116.99 205.91,-123.76"/>
+</g>
+<!-- gatling&#45;core&#45;java.compile -->
+<g id="node6" class="node">
+<title>gatling&#45;core&#45;java.compile</title>
+<polygon fill="none" stroke="black" points="584.62,-344 428.38,-344 428.38,-308 584.62,-308 584.62,-344"/>
+<text text-anchor="middle" x="506.5" y="-320.95" font-family="Times,serif" font-size="14.00">gatling&#45;core&#45;java.compile</text>
+</g>
+<!-- gatling&#45;core.compile&#45;&gt;gatling&#45;core&#45;java.compile -->
+<g id="edge10" class="edge">
+<title>gatling&#45;core.compile&#45;&gt;gatling&#45;core&#45;java.compile</title>
+<path fill="none" stroke="black" d="M352.26,-326C372.42,-326 395.05,-326 416.62,-326"/>
+<polygon fill="black" stroke="black" points="416.61,-329.5 426.61,-326 416.61,-322.5 416.61,-329.5"/>
+</g>
+<!-- gatling&#45;http.compile -->
+<g id="node8" class="node">
+<title>gatling&#45;http.compile</title>
+<polygon fill="none" stroke="black" points="570,-171 443,-171 443,-135 570,-135 570,-171"/>
+<text text-anchor="middle" x="506.5" y="-147.95" font-family="Times,serif" font-size="14.00">gatling&#45;http.compile</text>
+</g>
+<!-- gatling&#45;core.compile&#45;&gt;gatling&#45;http.compile -->
+<g id="edge9" class="edge">
+<title>gatling&#45;core.compile&#45;&gt;gatling&#45;http.compile</title>
+<path fill="none" stroke="black" d="M311.09,-307.81C349.94,-276.87 428.99,-213.92 473.39,-178.57"/>
+<polygon fill="black" stroke="black" points="475.49,-181.37 481.13,-172.41 471.13,-175.9 475.49,-181.37"/>
+</g>
+<!-- gatling&#45;jms.compile -->
+<g id="node10" class="node">
+<title>gatling&#45;jms.compile</title>
+<polygon fill="none" stroke="black" points="569.62,-544 443.38,-544 443.38,-508 569.62,-508 569.62,-544"/>
+<text text-anchor="middle" x="506.5" y="-520.95" font-family="Times,serif" font-size="14.00">gatling&#45;jms.compile</text>
+</g>
+<!-- gatling&#45;core.compile&#45;&gt;gatling&#45;jms.compile -->
+<g id="edge8" class="edge">
+<title>gatling&#45;core.compile&#45;&gt;gatling&#45;jms.compile</title>
+<path fill="none" stroke="black" d="M352.18,-336.67C361.88,-340.55 371.1,-345.83 378.5,-353 414.83,-388.22 384.44,-420.3 414.5,-461 426.55,-477.32 443.93,-491.15 460.27,-501.79"/>
+<polygon fill="black" stroke="black" points="458.11,-504.57 468.44,-506.89 461.81,-498.63 458.11,-504.57"/>
+</g>
+<!-- gatling&#45;jdbc.compile -->
+<g id="node12" class="node">
+<title>gatling&#45;jdbc.compile</title>
+<polygon fill="none" stroke="black" points="571.12,-290 441.88,-290 441.88,-254 571.12,-254 571.12,-290"/>
+<text text-anchor="middle" x="506.5" y="-266.95" font-family="Times,serif" font-size="14.00">gatling&#45;jdbc.compile</text>
+</g>
+<!-- gatling&#45;core.compile&#45;&gt;gatling&#45;jdbc.compile -->
+<g id="edge7" class="edge">
+<title>gatling&#45;core.compile&#45;&gt;gatling&#45;jdbc.compile</title>
+<path fill="none" stroke="black" d="M352.26,-310.09C376.79,-303.99 404.99,-296.98 430.47,-290.65"/>
+<polygon fill="black" stroke="black" points="431.25,-294.06 440.11,-288.25 429.56,-287.27 431.25,-294.06"/>
+</g>
+<!-- gatling&#45;redis.compile -->
+<g id="node14" class="node">
+<title>gatling&#45;redis.compile</title>
+<polygon fill="none" stroke="black" points="572.62,-652 440.38,-652 440.38,-616 572.62,-616 572.62,-652"/>
+<text text-anchor="middle" x="506.5" y="-628.95" font-family="Times,serif" font-size="14.00">gatling&#45;redis.compile</text>
+</g>
+<!-- gatling&#45;core.compile&#45;&gt;gatling&#45;redis.compile -->
+<g id="edge6" class="edge">
+<title>gatling&#45;core.compile&#45;&gt;gatling&#45;redis.compile</title>
+<path fill="none" stroke="black" d="M352.17,-335.42C362.11,-339.43 371.42,-345.07 378.5,-353 438.67,-420.36 370.35,-474.21 414.5,-553 427.06,-575.41 448.19,-594.79 466.93,-608.97"/>
+<polygon fill="black" stroke="black" points="464.8,-611.75 474.95,-614.81 468.92,-606.1 464.8,-611.75"/>
+</g>
+<!-- gatling&#45;charts.compile -->
+<g id="node16" class="node">
+<title>gatling&#45;charts.compile</title>
+<polygon fill="none" stroke="black" points="575.62,-398 437.38,-398 437.38,-362 575.62,-362 575.62,-398"/>
+<text text-anchor="middle" x="506.5" y="-374.95" font-family="Times,serif" font-size="14.00">gatling&#45;charts.compile</text>
+</g>
+<!-- gatling&#45;core.compile&#45;&gt;gatling&#45;charts.compile -->
+<g id="edge5" class="edge">
+<title>gatling&#45;core.compile&#45;&gt;gatling&#45;charts.compile</title>
+<path fill="none" stroke="black" d="M352.26,-341.91C375.38,-347.66 401.76,-354.21 426.04,-360.25"/>
+<polygon fill="black" stroke="black" points="425.01,-363.6 435.56,-362.62 426.7,-356.81 425.01,-363.6"/>
+</g>
+<!-- gatling&#45;core.test.compile -->
+<g id="node23" class="node">
+<title>gatling&#45;core.test.compile</title>
+<polygon fill="none" stroke="black" points="582.38,-452 430.62,-452 430.62,-416 582.38,-416 582.38,-452"/>
+<text text-anchor="middle" x="506.5" y="-428.95" font-family="Times,serif" font-size="14.00">gatling&#45;core.test.compile</text>
+</g>
+<!-- gatling&#45;core.compile&#45;&gt;gatling&#45;core.test.compile -->
+<g id="edge4" class="edge">
+<title>gatling&#45;core.compile&#45;&gt;gatling&#45;core.test.compile</title>
+<path fill="none" stroke="black" d="M352.08,-338.99C361.46,-342.58 370.61,-347.17 378.5,-353 401.69,-370.15 391.29,-389.88 414.5,-407 416.49,-408.47 418.57,-409.86 420.7,-411.18"/>
+<polygon fill="black" stroke="black" points="418.64,-414.04 429.1,-415.75 421.99,-407.89 418.64,-414.04"/>
+</g>
+<!-- gatling&#45;quicklens.compile -->
+<g id="node3" class="node">
+<title>gatling&#45;quicklens.compile</title>
+<polygon fill="none" stroke="black" points="158.88,-90 1.12,-90 1.12,-54 158.88,-54 158.88,-90"/>
+<text text-anchor="middle" x="80" y="-66.95" font-family="Times,serif" font-size="14.00">gatling&#45;quicklens.compile</text>
+</g>
+<!-- gatling&#45;quicklens.compile&#45;&gt;gatling&#45;core.compile -->
+<g id="edge12" class="edge">
+<title>gatling&#45;quicklens.compile&#45;&gt;gatling&#45;core.compile</title>
+<path fill="none" stroke="black" d="M114.04,-90.34C129.15,-99.74 146.62,-112.13 160,-126 166.93,-133.19 236.18,-244.86 269.08,-298.14"/>
+<polygon fill="black" stroke="black" points="265.93,-299.7 274.16,-306.38 271.89,-296.03 265.93,-299.7"/>
+</g>
+<!-- gatling&#45;quicklens.test.compile -->
+<g id="node34" class="node">
+<title>gatling&#45;quicklens.test.compile</title>
+<polygon fill="none" stroke="black" points="377.38,-63 197.12,-63 197.12,-27 377.38,-27 377.38,-63"/>
+<text text-anchor="middle" x="287.25" y="-39.95" font-family="Times,serif" font-size="14.00">gatling&#45;quicklens.test.compile</text>
+</g>
+<!-- gatling&#45;quicklens.compile&#45;&gt;gatling&#45;quicklens.test.compile -->
+<g id="edge11" class="edge">
+<title>gatling&#45;quicklens.compile&#45;&gt;gatling&#45;quicklens.test.compile</title>
+<path fill="none" stroke="black" d="M159.18,-61.72C167.86,-60.57 176.79,-59.4 185.7,-58.23"/>
+<polygon fill="black" stroke="black" points="186,-61.72 195.46,-56.94 185.09,-54.78 186,-61.72"/>
+</g>
+<!-- gatling&#45;commons.compile -->
+<g id="node4" class="node">
+<title>gatling&#45;commons.compile</title>
+<polygon fill="none" stroke="black" points="160,-438 0,-438 0,-402 160,-402 160,-438"/>
+<text text-anchor="middle" x="80" y="-414.95" font-family="Times,serif" font-size="14.00">gatling&#45;commons.compile</text>
+</g>
+<!-- gatling&#45;commons.compile&#45;&gt;gatling&#45;core.compile -->
+<g id="edge14" class="edge">
+<title>gatling&#45;commons.compile&#45;&gt;gatling&#45;core.compile</title>
+<path fill="none" stroke="black" d="M108.38,-401.55C131.09,-386.87 164.62,-366.6 196,-353 201.12,-350.78 206.48,-348.67 211.92,-346.69"/>
+<polygon fill="black" stroke="black" points="212.73,-350.11 221.02,-343.52 210.43,-343.5 212.73,-350.11"/>
+</g>
+<!-- gatling&#45;commons.test.compile -->
+<g id="node21" class="node">
+<title>gatling&#45;commons.test.compile</title>
+<polygon fill="none" stroke="black" points="378.5,-452 196,-452 196,-416 378.5,-416 378.5,-452"/>
+<text text-anchor="middle" x="287.25" y="-428.95" font-family="Times,serif" font-size="14.00">gatling&#45;commons.test.compile</text>
+</g>
+<!-- gatling&#45;commons.compile&#45;&gt;gatling&#45;commons.test.compile -->
+<g id="edge13" class="edge">
+<title>gatling&#45;commons.compile&#45;&gt;gatling&#45;commons.test.compile</title>
+<path fill="none" stroke="black" d="M160.36,-425.41C168.25,-425.95 176.34,-426.5 184.43,-427.05"/>
+<polygon fill="black" stroke="black" points="184.11,-430.54 194.32,-427.73 184.58,-423.56 184.11,-430.54"/>
+</g>
+<!-- gatling&#45;jsonpath.compile -->
+<g id="node5" class="node">
+<title>gatling&#45;jsonpath.compile</title>
+<polygon fill="none" stroke="black" points="155.88,-357 4.12,-357 4.12,-321 155.88,-321 155.88,-357"/>
+<text text-anchor="middle" x="80" y="-333.95" font-family="Times,serif" font-size="14.00">gatling&#45;jsonpath.compile</text>
+</g>
+<!-- gatling&#45;jsonpath.compile&#45;&gt;gatling&#45;core.compile -->
+<g id="edge16" class="edge">
+<title>gatling&#45;jsonpath.compile&#45;&gt;gatling&#45;core.compile</title>
+<path fill="none" stroke="black" d="M156.26,-334.23C174,-333.11 192.91,-331.91 210.67,-330.79"/>
+<polygon fill="black" stroke="black" points="210.87,-334.28 220.63,-330.16 210.43,-327.3 210.87,-334.28"/>
+</g>
+<!-- gatling&#45;jsonpath.test.compile -->
+<g id="node22" class="node">
+<title>gatling&#45;jsonpath.test.compile</title>
+<polygon fill="none" stroke="black" points="374.38,-398 200.12,-398 200.12,-362 374.38,-362 374.38,-398"/>
+<text text-anchor="middle" x="287.25" y="-374.95" font-family="Times,serif" font-size="14.00">gatling&#45;jsonpath.test.compile</text>
+</g>
+<!-- gatling&#45;jsonpath.compile&#45;&gt;gatling&#45;jsonpath.test.compile -->
+<g id="edge15" class="edge">
+<title>gatling&#45;jsonpath.compile&#45;&gt;gatling&#45;jsonpath.test.compile</title>
+<path fill="none" stroke="black" d="M156.26,-354.03C166.79,-356.14 177.74,-358.32 188.6,-360.49"/>
+<polygon fill="black" stroke="black" points="187.91,-363.92 198.4,-362.45 189.28,-357.06 187.91,-363.92"/>
+</g>
+<!-- gatling&#45;http&#45;java.compile -->
+<g id="node9" class="node">
+<title>gatling&#45;http&#45;java.compile</title>
+<polygon fill="none" stroke="black" points="800.88,-198 646.88,-198 646.88,-162 800.88,-162 800.88,-198"/>
+<text text-anchor="middle" x="723.88" y="-174.95" font-family="Times,serif" font-size="14.00">gatling&#45;http&#45;java.compile</text>
+</g>
+<!-- gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;http&#45;java.compile -->
+<g id="edge21" class="edge">
+<title>gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;http&#45;java.compile</title>
+<path fill="none" stroke="black" d="M584.8,-308.85C589.74,-306.05 594.37,-302.79 598.5,-299 630.83,-269.29 602.29,-236.84 634.5,-207 635.41,-206.16 636.35,-205.34 637.31,-204.54"/>
+<polygon fill="black" stroke="black" points="639.11,-207.55 645.29,-198.95 635.09,-201.82 639.11,-207.55"/>
+</g>
+<!-- gatling&#45;jms&#45;java.compile -->
+<g id="node11" class="node">
+<title>gatling&#45;jms&#45;java.compile</title>
+<polygon fill="none" stroke="black" points="800.5,-544 647.25,-544 647.25,-508 800.5,-508 800.5,-544"/>
+<text text-anchor="middle" x="723.88" y="-520.95" font-family="Times,serif" font-size="14.00">gatling&#45;jms&#45;java.compile</text>
+</g>
+<!-- gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;jms&#45;java.compile -->
+<g id="edge20" class="edge">
+<title>gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;jms&#45;java.compile</title>
+<path fill="none" stroke="black" d="M585.02,-342.91C589.91,-345.77 594.47,-349.1 598.5,-353 634.87,-388.18 604.72,-420.09 634.5,-461 646.31,-477.22 663.36,-491.1 679.34,-501.81"/>
+<polygon fill="black" stroke="black" points="677,-504.47 687.3,-506.93 680.78,-498.58 677,-504.47"/>
+</g>
+<!-- gatling&#45;jdbc&#45;java.compile -->
+<g id="node13" class="node">
+<title>gatling&#45;jdbc&#45;java.compile</title>
+<polygon fill="none" stroke="black" points="802,-252 645.75,-252 645.75,-216 802,-216 802,-252"/>
+<text text-anchor="middle" x="723.88" y="-228.95" font-family="Times,serif" font-size="14.00">gatling&#45;jdbc&#45;java.compile</text>
+</g>
+<!-- gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;jdbc&#45;java.compile -->
+<g id="edge19" class="edge">
+<title>gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;jdbc&#45;java.compile</title>
+<path fill="none" stroke="black" d="M581.94,-307.53C587.71,-305.02 593.3,-302.19 598.5,-299 618.33,-286.83 614.72,-273.25 634.5,-261 636.52,-259.75 638.61,-258.55 640.75,-257.4"/>
+<polygon fill="black" stroke="black" points="642.21,-260.58 649.68,-253.07 639.15,-254.28 642.21,-260.58"/>
+</g>
+<!-- gatling&#45;redis&#45;java.compile -->
+<g id="node15" class="node">
+<title>gatling&#45;redis&#45;java.compile</title>
+<polygon fill="none" stroke="black" points="803.5,-652 644.25,-652 644.25,-616 803.5,-616 803.5,-652"/>
+<text text-anchor="middle" x="723.88" y="-628.95" font-family="Times,serif" font-size="14.00">gatling&#45;redis&#45;java.compile</text>
+</g>
+<!-- gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;redis&#45;java.compile -->
+<g id="edge18" class="edge">
+<title>gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;redis&#45;java.compile</title>
+<path fill="none" stroke="black" d="M585.02,-341.59C590.04,-344.74 594.63,-348.51 598.5,-353 672.96,-439.35 560.39,-520.35 634.5,-607 634.85,-607.41 635.21,-607.82 635.57,-608.22"/>
+<polygon fill="black" stroke="black" points="633.08,-610.68 642.87,-614.73 637.74,-605.46 633.08,-610.68"/>
+</g>
+<!-- gatling&#45;core&#45;java.test.compile -->
+<g id="node25" class="node">
+<title>gatling&#45;core&#45;java.test.compile</title>
+<polygon fill="none" stroke="black" points="813.25,-398 634.5,-398 634.5,-362 813.25,-362 813.25,-398"/>
+<text text-anchor="middle" x="723.88" y="-374.95" font-family="Times,serif" font-size="14.00">gatling&#45;core&#45;java.test.compile</text>
+</g>
+<!-- gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;core&#45;java.test.compile -->
+<g id="edge17" class="edge">
+<title>gatling&#45;core&#45;java.compile&#45;&gt;gatling&#45;core&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M581.02,-344.43C599.46,-349.06 619.38,-354.05 638.31,-358.8"/>
+<polygon fill="black" stroke="black" points="637.3,-362.15 647.86,-361.19 639.01,-355.36 637.3,-362.15"/>
+</g>
+<!-- gatling&#45;http&#45;client.compile&#45;&gt;gatling&#45;http.compile -->
+<g id="edge23" class="edge">
+<title>gatling&#45;http&#45;client.compile&#45;&gt;gatling&#45;http.compile</title>
+<path fill="none" stroke="black" d="M368.22,-153C388.85,-153 410.96,-153 431.28,-153"/>
+<polygon fill="black" stroke="black" points="431.17,-156.5 441.17,-153 431.17,-149.5 431.17,-156.5"/>
+</g>
+<!-- gatling&#45;http&#45;client.test.compile -->
+<g id="node27" class="node">
+<title>gatling&#45;http&#45;client.test.compile</title>
+<polygon fill="none" stroke="black" points="598.5,-117 414.5,-117 414.5,-81 598.5,-81 598.5,-117"/>
+<text text-anchor="middle" x="506.5" y="-93.95" font-family="Times,serif" font-size="14.00">gatling&#45;http&#45;client.test.compile</text>
+</g>
+<!-- gatling&#45;http&#45;client.compile&#45;&gt;gatling&#45;http&#45;client.test.compile -->
+<g id="edge22" class="edge">
+<title>gatling&#45;http&#45;client.compile&#45;&gt;gatling&#45;http&#45;client.test.compile</title>
+<path fill="none" stroke="black" d="M362.41,-134.57C381.01,-129.94 401.11,-124.95 420.2,-120.2"/>
+<polygon fill="black" stroke="black" points="420.98,-123.62 429.84,-117.81 419.29,-116.82 420.98,-123.62"/>
+</g>
+<!-- gatling&#45;http.compile&#45;&gt;gatling&#45;http&#45;java.compile -->
+<g id="edge27" class="edge">
+<title>gatling&#45;http.compile&#45;&gt;gatling&#45;http&#45;java.compile</title>
+<path fill="none" stroke="black" d="M570.37,-160.88C590.67,-163.43 613.56,-166.3 635.31,-169.02"/>
+<polygon fill="black" stroke="black" points="634.7,-172.47 645.06,-170.25 635.57,-165.53 634.7,-172.47"/>
+</g>
+<!-- gatling&#45;benchmarks.compile -->
+<g id="node19" class="node">
+<title>gatling&#45;benchmarks.compile</title>
+<polygon fill="none" stroke="black" points="809.88,-36 637.88,-36 637.88,0 809.88,0 809.88,-36"/>
+<text text-anchor="middle" x="723.88" y="-12.95" font-family="Times,serif" font-size="14.00">gatling&#45;benchmarks.compile</text>
+</g>
+<!-- gatling&#45;http.compile&#45;&gt;gatling&#45;benchmarks.compile -->
+<g id="edge26" class="edge">
+<title>gatling&#45;http.compile&#45;&gt;gatling&#45;benchmarks.compile</title>
+<path fill="none" stroke="black" d="M570.44,-142.14C580.62,-138.29 590.45,-133.07 598.5,-126 628.1,-100.01 605,-71.11 634.5,-45 635.43,-44.18 636.39,-43.38 637.36,-42.6"/>
+<polygon fill="black" stroke="black" points="639.14,-45.63 645.45,-37.12 635.21,-39.83 639.14,-45.63"/>
+</g>
+<!-- gatling&#45;http.test.compile -->
+<g id="node28" class="node">
+<title>gatling&#45;http.test.compile</title>
+<polygon fill="none" stroke="black" points="798.62,-90 649.12,-90 649.12,-54 798.62,-54 798.62,-90"/>
+<text text-anchor="middle" x="723.88" y="-66.95" font-family="Times,serif" font-size="14.00">gatling&#45;http.test.compile</text>
+</g>
+<!-- gatling&#45;http.compile&#45;&gt;gatling&#45;http.test.compile -->
+<g id="edge25" class="edge">
+<title>gatling&#45;http.compile&#45;&gt;gatling&#45;http.test.compile</title>
+<path fill="none" stroke="black" d="M570.31,-137.57C579.97,-134.29 589.67,-130.44 598.5,-126 616.37,-117.01 616.67,-108.06 634.5,-99 637.38,-97.54 640.36,-96.13 643.4,-94.8"/>
+<polygon fill="black" stroke="black" points="644.59,-98.09 652.52,-91.06 641.94,-91.61 644.59,-98.09"/>
+</g>
+<!-- gatling&#45;recorder.compile -->
+<g id="node35" class="node">
+<title>gatling&#45;recorder.compile</title>
+<polygon fill="none" stroke="black" points="799,-144 648.75,-144 648.75,-108 799,-108 799,-144"/>
+<text text-anchor="middle" x="723.88" y="-120.95" font-family="Times,serif" font-size="14.00">gatling&#45;recorder.compile</text>
+</g>
+<!-- gatling&#45;http.compile&#45;&gt;gatling&#45;recorder.compile -->
+<g id="edge24" class="edge">
+<title>gatling&#45;http.compile&#45;&gt;gatling&#45;recorder.compile</title>
+<path fill="none" stroke="black" d="M570.37,-145.12C591.3,-142.49 614.97,-139.53 637.32,-136.73"/>
+<polygon fill="black" stroke="black" points="637.52,-140.23 647,-135.51 636.65,-133.28 637.52,-140.23"/>
+</g>
+<!-- gatling&#45;app.compile -->
+<g id="node17" class="node">
+<title>gatling&#45;app.compile</title>
+<polygon fill="none" stroke="black" points="1009.25,-352 883.75,-352 883.75,-316 1009.25,-316 1009.25,-352"/>
+<text text-anchor="middle" x="946.5" y="-328.95" font-family="Times,serif" font-size="14.00">gatling&#45;app.compile</text>
+</g>
+<!-- gatling&#45;http&#45;java.compile&#45;&gt;gatling&#45;app.compile -->
+<g id="edge29" class="edge">
+<title>gatling&#45;http&#45;java.compile&#45;&gt;gatling&#45;app.compile</title>
+<path fill="none" stroke="black" d="M800.97,-198.35C805.35,-200.87 809.49,-203.74 813.25,-207 841.78,-231.77 823.1,-256.74 849.25,-284 859.43,-294.61 872.35,-303.4 885.4,-310.5"/>
+<polygon fill="black" stroke="black" points="883.52,-313.46 894.02,-314.9 886.71,-307.23 883.52,-313.46"/>
+</g>
+<!-- gatling&#45;http&#45;java.test.compile -->
+<g id="node29" class="node">
+<title>gatling&#45;http&#45;java.test.compile</title>
+<polygon fill="none" stroke="black" points="1034.75,-117 858.25,-117 858.25,-81 1034.75,-81 1034.75,-117"/>
+<text text-anchor="middle" x="946.5" y="-93.95" font-family="Times,serif" font-size="14.00">gatling&#45;http&#45;java.test.compile</text>
+</g>
+<!-- gatling&#45;http&#45;java.compile&#45;&gt;gatling&#45;http&#45;java.test.compile -->
+<g id="edge28" class="edge">
+<title>gatling&#45;http&#45;java.compile&#45;&gt;gatling&#45;http&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M787.87,-161.53C796.44,-158.79 805.09,-155.91 813.25,-153 828.28,-147.65 861.62,-134.03 891.07,-121.81"/>
+<polygon fill="black" stroke="black" points="892.41,-125.04 900.3,-117.97 889.72,-118.58 892.41,-125.04"/>
+</g>
+<!-- gatling&#45;jms.compile&#45;&gt;gatling&#45;jms&#45;java.compile -->
+<g id="edge31" class="edge">
+<title>gatling&#45;jms.compile&#45;&gt;gatling&#45;jms&#45;java.compile</title>
+<path fill="none" stroke="black" d="M570.08,-526C590.5,-526 613.55,-526 635.44,-526"/>
+<polygon fill="black" stroke="black" points="635.25,-529.5 645.25,-526 635.25,-522.5 635.25,-529.5"/>
+</g>
+<!-- gatling&#45;jms.test.compile -->
+<g id="node32" class="node">
+<title>gatling&#45;jms.test.compile</title>
+<polygon fill="none" stroke="black" points="798.25,-598 649.5,-598 649.5,-562 798.25,-562 798.25,-598"/>
+<text text-anchor="middle" x="723.88" y="-574.95" font-family="Times,serif" font-size="14.00">gatling&#45;jms.test.compile</text>
+</g>
+<!-- gatling&#45;jms.compile&#45;&gt;gatling&#45;jms.test.compile -->
+<g id="edge30" class="edge">
+<title>gatling&#45;jms.compile&#45;&gt;gatling&#45;jms.test.compile</title>
+<path fill="none" stroke="black" d="M570.08,-541.69C591.32,-547.02 615.42,-553.06 638.1,-558.74"/>
+<polygon fill="black" stroke="black" points="637.08,-562.1 647.63,-561.13 638.78,-555.31 637.08,-562.1"/>
+</g>
+<!-- gatling&#45;jms&#45;java.compile&#45;&gt;gatling&#45;app.compile -->
+<g id="edge33" class="edge">
+<title>gatling&#45;jms&#45;java.compile&#45;&gt;gatling&#45;app.compile</title>
+<path fill="none" stroke="black" d="M788.74,-507.56C797.35,-503.75 805.78,-499.26 813.25,-494 864.33,-458.01 906.88,-397.38 929.03,-361.99"/>
+<polygon fill="black" stroke="black" points="931.94,-363.94 934.19,-353.59 925.97,-360.28 931.94,-363.94"/>
+</g>
+<!-- gatling&#45;jms&#45;java.test.compile -->
+<g id="node33" class="node">
+<title>gatling&#45;jms&#45;java.test.compile</title>
+<polygon fill="none" stroke="black" points="1034.38,-584 858.62,-584 858.62,-548 1034.38,-548 1034.38,-584"/>
+<text text-anchor="middle" x="946.5" y="-560.95" font-family="Times,serif" font-size="14.00">gatling&#45;jms&#45;java.test.compile</text>
+</g>
+<!-- gatling&#45;jms&#45;java.compile&#45;&gt;gatling&#45;jms&#45;java.test.compile -->
+<g id="edge32" class="edge">
+<title>gatling&#45;jms&#45;java.compile&#45;&gt;gatling&#45;jms&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M800.8,-539.77C815.75,-542.48 831.63,-545.35 847.19,-548.18"/>
+<polygon fill="black" stroke="black" points="846.49,-551.61 856.95,-549.95 847.73,-544.72 846.49,-551.61"/>
+</g>
+<!-- gatling&#45;jdbc.compile&#45;&gt;gatling&#45;jdbc&#45;java.compile -->
+<g id="edge35" class="edge">
+<title>gatling&#45;jdbc.compile&#45;&gt;gatling&#45;jdbc&#45;java.compile</title>
+<path fill="none" stroke="black" d="M571.54,-260.7C591.19,-257.23 613.18,-253.35 634.18,-249.65"/>
+<polygon fill="black" stroke="black" points="634.65,-253.12 643.89,-247.94 633.44,-246.23 634.65,-253.12"/>
+</g>
+<!-- gatling&#45;jdbc.test.compile -->
+<g id="node30" class="node">
+<title>gatling&#45;jdbc.test.compile</title>
+<polygon fill="none" stroke="black" points="799.75,-306 648,-306 648,-270 799.75,-270 799.75,-306"/>
+<text text-anchor="middle" x="723.88" y="-282.95" font-family="Times,serif" font-size="14.00">gatling&#45;jdbc.test.compile</text>
+</g>
+<!-- gatling&#45;jdbc.compile&#45;&gt;gatling&#45;jdbc.test.compile -->
+<g id="edge34" class="edge">
+<title>gatling&#45;jdbc.compile&#45;&gt;gatling&#45;jdbc.test.compile</title>
+<path fill="none" stroke="black" d="M571.54,-276.76C591.92,-278.27 614.81,-279.97 636.49,-281.58"/>
+<polygon fill="black" stroke="black" points="635.97,-285.05 646.2,-282.3 636.48,-278.07 635.97,-285.05"/>
+</g>
+<!-- gatling&#45;jdbc&#45;java.compile&#45;&gt;gatling&#45;app.compile -->
+<g id="edge37" class="edge">
+<title>gatling&#45;jdbc&#45;java.compile&#45;&gt;gatling&#45;app.compile</title>
+<path fill="none" stroke="black" d="M792.19,-252.45C799.4,-255.05 806.55,-257.91 813.25,-261 830.49,-268.96 832.81,-274.5 849.25,-284 864.9,-293.04 882.34,-302.33 898.04,-310.41"/>
+<polygon fill="black" stroke="black" points="896.21,-313.41 906.71,-314.84 899.4,-307.18 896.21,-313.41"/>
+</g>
+<!-- gatling&#45;jdbc&#45;java.test.compile -->
+<g id="node31" class="node">
+<title>gatling&#45;jdbc&#45;java.test.compile</title>
+<polygon fill="none" stroke="black" points="1035.88,-275 857.12,-275 857.12,-239 1035.88,-239 1035.88,-275"/>
+<text text-anchor="middle" x="946.5" y="-251.95" font-family="Times,serif" font-size="14.00">gatling&#45;jdbc&#45;java.test.compile</text>
+</g>
+<!-- gatling&#45;jdbc&#45;java.compile&#45;&gt;gatling&#45;jdbc&#45;java.test.compile -->
+<g id="edge36" class="edge">
+<title>gatling&#45;jdbc&#45;java.compile&#45;&gt;gatling&#45;jdbc&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M802.35,-242.08C816.4,-243.54 831.23,-245.09 845.81,-246.61"/>
+<polygon fill="black" stroke="black" points="845.08,-250.05 855.39,-247.61 845.81,-243.09 845.08,-250.05"/>
+</g>
+<!-- gatling&#45;redis.compile&#45;&gt;gatling&#45;redis&#45;java.compile -->
+<g id="edge39" class="edge">
+<title>gatling&#45;redis.compile&#45;&gt;gatling&#45;redis&#45;java.compile</title>
+<path fill="none" stroke="black" d="M573,-634C591.81,-634 612.66,-634 632.69,-634"/>
+<polygon fill="black" stroke="black" points="632.52,-637.5 642.52,-634 632.52,-630.5 632.52,-637.5"/>
+</g>
+<!-- gatling&#45;redis.test.compile -->
+<g id="node37" class="node">
+<title>gatling&#45;redis.test.compile</title>
+<polygon fill="none" stroke="black" points="801.25,-706 646.5,-706 646.5,-670 801.25,-670 801.25,-706"/>
+<text text-anchor="middle" x="723.88" y="-682.95" font-family="Times,serif" font-size="14.00">gatling&#45;redis.test.compile</text>
+</g>
+<!-- gatling&#45;redis.compile&#45;&gt;gatling&#45;redis.test.compile -->
+<g id="edge38" class="edge">
+<title>gatling&#45;redis.compile&#45;&gt;gatling&#45;redis.test.compile</title>
+<path fill="none" stroke="black" d="M573,-650.42C593.64,-655.6 616.74,-661.39 638.51,-666.85"/>
+<polygon fill="black" stroke="black" points="637.39,-670.18 647.94,-669.21 639.09,-663.39 637.39,-670.18"/>
+</g>
+<!-- gatling&#45;redis&#45;java.compile&#45;&gt;gatling&#45;app.compile -->
+<g id="edge41" class="edge">
+<title>gatling&#45;redis&#45;java.compile&#45;&gt;gatling&#45;app.compile</title>
+<path fill="none" stroke="black" d="M800.92,-615.59C805.31,-613.08 809.47,-610.23 813.25,-607 818.35,-602.63 899.37,-431.73 932.02,-362.59"/>
+<polygon fill="black" stroke="black" points="935.07,-364.32 936.18,-353.78 928.74,-361.33 935.07,-364.32"/>
+</g>
+<!-- gatling&#45;redis&#45;java.test.compile -->
+<g id="node38" class="node">
+<title>gatling&#45;redis&#45;java.test.compile</title>
+<polygon fill="none" stroke="black" points="1037.38,-665 855.62,-665 855.62,-629 1037.38,-629 1037.38,-665"/>
+<text text-anchor="middle" x="946.5" y="-641.95" font-family="Times,serif" font-size="14.00">gatling&#45;redis&#45;java.test.compile</text>
+</g>
+<!-- gatling&#45;redis&#45;java.compile&#45;&gt;gatling&#45;redis&#45;java.test.compile -->
+<g id="edge40" class="edge">
+<title>gatling&#45;redis&#45;java.compile&#45;&gt;gatling&#45;redis&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M803.9,-638.66C816.94,-639.42 830.62,-640.23 844.12,-641.03"/>
+<polygon fill="black" stroke="black" points="843.69,-644.51 853.88,-641.6 844.11,-637.52 843.69,-644.51"/>
+</g>
+<!-- gatling&#45;charts.compile&#45;&gt;gatling&#45;app.compile -->
+<g id="edge43" class="edge">
+<title>gatling&#45;charts.compile&#45;&gt;gatling&#45;app.compile</title>
+<path fill="none" stroke="black" d="M576.05,-363.48C594.9,-359.47 615.4,-355.6 634.5,-353 715.23,-342.01 808.63,-337.38 871.84,-335.42"/>
+<polygon fill="black" stroke="black" points="871.87,-338.92 881.76,-335.13 871.67,-331.93 871.87,-338.92"/>
+</g>
+<!-- gatling&#45;charts.test.compile -->
+<g id="node24" class="node">
+<title>gatling&#45;charts.test.compile</title>
+<polygon fill="none" stroke="black" points="804.25,-452 643.5,-452 643.5,-416 804.25,-416 804.25,-452"/>
+<text text-anchor="middle" x="723.88" y="-428.95" font-family="Times,serif" font-size="14.00">gatling&#45;charts.test.compile</text>
+</g>
+<!-- gatling&#45;charts.compile&#45;&gt;gatling&#45;charts.test.compile -->
+<g id="edge42" class="edge">
+<title>gatling&#45;charts.compile&#45;&gt;gatling&#45;charts.test.compile</title>
+<path fill="none" stroke="black" d="M575.94,-397.16C595.78,-402.13 617.68,-407.62 638.37,-412.81"/>
+<polygon fill="black" stroke="black" points="637.38,-416.17 647.93,-415.21 639.08,-409.38 637.38,-416.17"/>
+</g>
+<!-- gatling&#45;app.test.compile -->
+<g id="node18" class="node">
+<title>gatling&#45;app.test.compile</title>
+<polygon fill="none" stroke="black" points="1248.38,-406 1100.38,-406 1100.38,-370 1248.38,-370 1248.38,-406"/>
+<text text-anchor="middle" x="1174.38" y="-382.95" font-family="Times,serif" font-size="14.00">gatling&#45;app.test.compile</text>
+</g>
+<!-- gatling&#45;app.compile&#45;&gt;gatling&#45;app.test.compile -->
+<g id="edge46" class="edge">
+<title>gatling&#45;app.compile&#45;&gt;gatling&#45;app.test.compile</title>
+<path fill="none" stroke="black" d="M1009.52,-348.83C1034.09,-354.7 1062.73,-361.55 1089.12,-367.86"/>
+<polygon fill="black" stroke="black" points="1088.27,-371.25 1098.81,-370.17 1089.9,-364.44 1088.27,-371.25"/>
+</g>
+<!-- gatling&#45;samples.compile -->
+<g id="node39" class="node">
+<title>gatling&#45;samples.compile</title>
+<polygon fill="none" stroke="black" points="1249.5,-352 1099.25,-352 1099.25,-316 1249.5,-316 1249.5,-352"/>
+<text text-anchor="middle" x="1174.38" y="-328.95" font-family="Times,serif" font-size="14.00">gatling&#45;samples.compile</text>
+</g>
+<!-- gatling&#45;app.compile&#45;&gt;gatling&#45;samples.compile -->
+<g id="edge45" class="edge">
+<title>gatling&#45;app.compile&#45;&gt;gatling&#45;samples.compile</title>
+<path fill="none" stroke="black" d="M1009.52,-334C1033.64,-334 1061.68,-334 1087.67,-334"/>
+<polygon fill="black" stroke="black" points="1087.54,-337.5 1097.54,-334 1087.54,-330.5 1087.54,-337.5"/>
+</g>
+<!-- gatling&#45;test&#45;framework.compile -->
+<g id="node41" class="node">
+<title>gatling&#45;test&#45;framework.compile</title>
+<polygon fill="none" stroke="black" points="1269,-298 1079.75,-298 1079.75,-262 1269,-262 1269,-298"/>
+<text text-anchor="middle" x="1174.38" y="-274.95" font-family="Times,serif" font-size="14.00">gatling&#45;test&#45;framework.compile</text>
+</g>
+<!-- gatling&#45;app.compile&#45;&gt;gatling&#45;test&#45;framework.compile -->
+<g id="edge44" class="edge">
+<title>gatling&#45;app.compile&#45;&gt;gatling&#45;test&#45;framework.compile</title>
+<path fill="none" stroke="black" d="M1009.52,-319.17C1032.84,-313.6 1059.83,-307.15 1085.09,-301.11"/>
+<polygon fill="black" stroke="black" points="1085.78,-304.54 1094.69,-298.81 1084.15,-297.73 1085.78,-304.54"/>
+</g>
+<!-- gatling&#45;benchmarks.test.compile -->
+<g id="node20" class="node">
+<title>gatling&#45;benchmarks.test.compile</title>
+<polygon fill="none" stroke="black" points="1043.75,-36 849.25,-36 849.25,0 1043.75,0 1043.75,-36"/>
+<text text-anchor="middle" x="946.5" y="-12.95" font-family="Times,serif" font-size="14.00">gatling&#45;benchmarks.test.compile</text>
+</g>
+<!-- gatling&#45;benchmarks.compile&#45;&gt;gatling&#45;benchmarks.test.compile -->
+<g id="edge47" class="edge">
+<title>gatling&#45;benchmarks.compile&#45;&gt;gatling&#45;benchmarks.test.compile</title>
+<path fill="none" stroke="black" d="M810.17,-18C819.23,-18 828.51,-18 837.78,-18"/>
+<polygon fill="black" stroke="black" points="837.54,-21.5 847.54,-18 837.54,-14.5 837.54,-21.5"/>
+</g>
+<!-- gatling&#45;commons.test.compile&#45;&gt;gatling&#45;core.test.compile -->
+<g id="edge48" class="edge">
+<title>gatling&#45;commons.test.compile&#45;&gt;gatling&#45;core.test.compile</title>
+<path fill="none" stroke="black" d="M378.81,-434C392.05,-434 405.65,-434 418.81,-434"/>
+<polygon fill="black" stroke="black" points="418.72,-437.5 428.72,-434 418.72,-430.5 418.72,-437.5"/>
+</g>
+<!-- gatling&#45;jsonpath.test.compile&#45;&gt;gatling&#45;core.test.compile -->
+<g id="edge49" class="edge">
+<title>gatling&#45;jsonpath.test.compile&#45;&gt;gatling&#45;core.test.compile</title>
+<path fill="none" stroke="black" d="M362.41,-398.43C381.01,-403.06 401.11,-408.05 420.2,-412.8"/>
+<polygon fill="black" stroke="black" points="419.29,-416.18 429.84,-415.19 420.98,-409.38 419.29,-416.18"/>
+</g>
+<!-- gatling&#45;core.test.compile&#45;&gt;gatling&#45;charts.test.compile -->
+<g id="edge56" class="edge">
+<title>gatling&#45;core.test.compile&#45;&gt;gatling&#45;charts.test.compile</title>
+<path fill="none" stroke="black" d="M582.83,-434C598.7,-434 615.6,-434 631.97,-434"/>
+<polygon fill="black" stroke="black" points="631.68,-437.5 641.68,-434 631.68,-430.5 631.68,-437.5"/>
+</g>
+<!-- gatling&#45;core.test.compile&#45;&gt;gatling&#45;core&#45;java.test.compile -->
+<g id="edge55" class="edge">
+<title>gatling&#45;core.test.compile&#45;&gt;gatling&#45;core&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M581.02,-415.57C599.46,-410.94 619.38,-405.95 638.31,-401.2"/>
+<polygon fill="black" stroke="black" points="639.01,-404.64 647.86,-398.81 637.3,-397.85 639.01,-404.64"/>
+</g>
+<!-- gatling&#45;core.test.compile&#45;&gt;gatling&#45;http.test.compile -->
+<g id="edge54" class="edge">
+<title>gatling&#45;core.test.compile&#45;&gt;gatling&#45;http.test.compile</title>
+<path fill="none" stroke="black" d="M582.62,-420.05C588.6,-416.58 594.04,-412.3 598.5,-407 687.22,-301.53 546.21,-204.83 634.5,-99 636.13,-97.05 637.89,-95.23 639.77,-93.55"/>
+<polygon fill="black" stroke="black" points="641.5,-96.62 647.45,-87.86 637.33,-91 641.5,-96.62"/>
+</g>
+<!-- gatling&#45;core.test.compile&#45;&gt;gatling&#45;jdbc.test.compile -->
+<g id="edge53" class="edge">
+<title>gatling&#45;core.test.compile&#45;&gt;gatling&#45;jdbc.test.compile</title>
+<path fill="none" stroke="black" d="M582.57,-416.48C588.2,-413.76 593.59,-410.62 598.5,-407 621.71,-389.88 614.58,-373.86 634.5,-353 648.9,-337.92 667.16,-323.84 683.33,-312.68"/>
+<polygon fill="black" stroke="black" points="684.97,-315.79 691.31,-307.3 681.06,-309.98 684.97,-315.79"/>
+</g>
+<!-- gatling&#45;core.test.compile&#45;&gt;gatling&#45;jms.test.compile -->
+<g id="edge52" class="edge">
+<title>gatling&#45;core.test.compile&#45;&gt;gatling&#45;jms.test.compile</title>
+<path fill="none" stroke="black" d="M538.75,-452.29C557.39,-464.14 580.81,-480.73 598.5,-499 618.56,-519.72 611.36,-535.78 634.5,-553 636.05,-554.15 637.65,-555.26 639.29,-556.31"/>
+<polygon fill="black" stroke="black" points="637.34,-559.23 647.76,-561.12 640.79,-553.14 637.34,-559.23"/>
+</g>
+<!-- gatling&#45;recorder.test.compile -->
+<g id="node36" class="node">
+<title>gatling&#45;recorder.test.compile</title>
+<polygon fill="none" stroke="black" points="1032.88,-184 860.12,-184 860.12,-148 1032.88,-148 1032.88,-184"/>
+<text text-anchor="middle" x="946.5" y="-160.95" font-family="Times,serif" font-size="14.00">gatling&#45;recorder.test.compile</text>
+</g>
+<!-- gatling&#45;core.test.compile&#45;&gt;gatling&#45;recorder.test.compile -->
+<g id="edge51" class="edge">
+<title>gatling&#45;core.test.compile&#45;&gt;gatling&#45;recorder.test.compile</title>
+<path fill="none" stroke="black" d="M544.65,-452.49C607.93,-481.05 737.15,-526.16 813.25,-461 892.18,-393.42 793.24,-317.52 849.25,-230 859.92,-213.33 876.66,-200 893.2,-189.92"/>
+<polygon fill="black" stroke="black" points="894.64,-193.13 901.56,-185.11 891.15,-187.06 894.64,-193.13"/>
+</g>
+<!-- gatling&#45;core.test.compile&#45;&gt;gatling&#45;redis.test.compile -->
+<g id="edge50" class="edge">
+<title>gatling&#45;core.test.compile&#45;&gt;gatling&#45;redis.test.compile</title>
+<path fill="none" stroke="black" d="M544.99,-452.28C563.8,-463.3 585.32,-479.09 598.5,-499 639.2,-560.51 584.42,-606.86 634.5,-661 635.48,-662.06 636.5,-663.08 637.56,-664.06"/>
+<polygon fill="black" stroke="black" points="635.05,-666.55 645.11,-669.89 639.33,-661.01 635.05,-666.55"/>
+</g>
+<!-- gatling&#45;netty&#45;util.test.compile&#45;&gt;gatling&#45;http&#45;client.test.compile -->
+<g id="edge57" class="edge">
+<title>gatling&#45;netty&#45;util.test.compile&#45;&gt;gatling&#45;http&#45;client.test.compile</title>
+<path fill="none" stroke="black" d="M376.61,-99C385.19,-99 393.94,-99 402.64,-99"/>
+<polygon fill="black" stroke="black" points="402.52,-102.5 412.52,-99 402.52,-95.5 402.52,-102.5"/>
+</g>
+<!-- gatling&#45;http&#45;client.test.compile&#45;&gt;gatling&#45;http.test.compile -->
+<g id="edge58" class="edge">
+<title>gatling&#45;http&#45;client.test.compile&#45;&gt;gatling&#45;http.test.compile</title>
+<path fill="none" stroke="black" d="M598.84,-87.55C611.7,-85.94 624.87,-84.29 637.61,-82.69"/>
+<polygon fill="black" stroke="black" points="637.68,-86.21 647.17,-81.49 636.81,-79.26 637.68,-86.21"/>
+</g>
+<!-- gatling&#45;http.test.compile&#45;&gt;gatling&#45;http&#45;java.test.compile -->
+<g id="edge59" class="edge">
+<title>gatling&#45;http.test.compile&#45;&gt;gatling&#45;http&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M798.95,-81.07C814.31,-82.95 830.72,-84.95 846.8,-86.92"/>
+<polygon fill="black" stroke="black" points="846.01,-90.35 856.36,-88.09 846.86,-83.4 846.01,-90.35"/>
+</g>
+<!-- gatling&#45;jdbc.test.compile&#45;&gt;gatling&#45;jdbc&#45;java.test.compile -->
+<g id="edge60" class="edge">
+<title>gatling&#45;jdbc.test.compile&#45;&gt;gatling&#45;jdbc&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M800.18,-277.42C814.85,-275.36 830.44,-273.17 845.75,-271.02"/>
+<polygon fill="black" stroke="black" points="845.92,-274.53 855.33,-269.67 844.95,-267.59 845.92,-274.53"/>
+</g>
+<!-- gatling&#45;jms.test.compile&#45;&gt;gatling&#45;jms&#45;java.test.compile -->
+<g id="edge61" class="edge">
+<title>gatling&#45;jms.test.compile&#45;&gt;gatling&#45;jms&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M798.65,-575.32C814.22,-574.33 830.89,-573.27 847.2,-572.24"/>
+<polygon fill="black" stroke="black" points="847.15,-575.75 856.91,-571.62 846.71,-568.76 847.15,-575.75"/>
+</g>
+<!-- gatling&#45;recorder.compile&#45;&gt;gatling&#45;recorder.test.compile -->
+<g id="edge62" class="edge">
+<title>gatling&#45;recorder.compile&#45;&gt;gatling&#45;recorder.test.compile</title>
+<path fill="none" stroke="black" d="M799.26,-139.49C815.02,-142.34 831.87,-145.4 848.32,-148.38"/>
+<polygon fill="black" stroke="black" points="847.68,-151.82 858.15,-150.16 848.93,-144.93 847.68,-151.82"/>
+</g>
+<!-- gatling&#45;redis.test.compile&#45;&gt;gatling&#45;redis&#45;java.test.compile -->
+<g id="edge63" class="edge">
+<title>gatling&#45;redis.test.compile&#45;&gt;gatling&#45;redis&#45;java.test.compile</title>
+<path fill="none" stroke="black" d="M801.73,-673.72C815.5,-671.16 830.05,-668.46 844.38,-665.79"/>
+<polygon fill="black" stroke="black" points="844.61,-669.31 853.8,-664.04 843.33,-662.43 844.61,-669.31"/>
+</g>
+<!-- gatling&#45;samples.test.compile -->
+<g id="node40" class="node">
+<title>gatling&#45;samples.test.compile</title>
+<polygon fill="none" stroke="black" points="1497.25,-352 1324.5,-352 1324.5,-316 1497.25,-316 1497.25,-352"/>
+<text text-anchor="middle" x="1410.88" y="-328.95" font-family="Times,serif" font-size="14.00">gatling&#45;samples.test.compile</text>
+</g>
+<!-- gatling&#45;samples.compile&#45;&gt;gatling&#45;samples.test.compile -->
+<g id="edge64" class="edge">
+<title>gatling&#45;samples.compile&#45;&gt;gatling&#45;samples.test.compile</title>
+<path fill="none" stroke="black" d="M1249.89,-334C1269.9,-334 1291.83,-334 1312.87,-334"/>
+<polygon fill="black" stroke="black" points="1312.59,-337.5 1322.59,-334 1312.59,-330.5 1312.59,-337.5"/>
+</g>
+<!-- gatling&#45;test&#45;framework.test.compile -->
+<g id="node42" class="node">
+<title>gatling&#45;test&#45;framework.test.compile</title>
+<polygon fill="none" stroke="black" points="1516.75,-298 1305,-298 1305,-262 1516.75,-262 1516.75,-298"/>
+<text text-anchor="middle" x="1410.88" y="-274.95" font-family="Times,serif" font-size="14.00">gatling&#45;test&#45;framework.test.compile</text>
+</g>
+<!-- gatling&#45;test&#45;framework.compile&#45;&gt;gatling&#45;test&#45;framework.test.compile -->
+<g id="edge65" class="edge">
+<title>gatling&#45;test&#45;framework.compile&#45;&gt;gatling&#45;test&#45;framework.test.compile</title>
+<path fill="none" stroke="black" d="M1269.4,-280C1277.29,-280 1285.31,-280 1293.33,-280"/>
+<polygon fill="black" stroke="black" points="1293.14,-283.5 1303.14,-280 1293.14,-276.5 1293.14,-283.5"/>
+</g>
+</g>
+</svg>
