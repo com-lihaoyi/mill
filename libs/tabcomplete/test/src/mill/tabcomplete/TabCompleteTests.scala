@@ -45,6 +45,7 @@ object TabCompleteTests extends TestSuite {
       ).scoped { tester =>
         os.write(tester.evaluator.workspace / "file1.txt", "")
         os.write(tester.evaluator.workspace / "file2.txt", "")
+        os.write(tester.evaluator.workspace / "folder/file3.txt", "", createFolders = true)
         tester.evaluator.evaluate(Seq("mill.tabcomplete.TabCompleteModule/complete") ++ s).get
       }
       outStream.toString.linesIterator.toSet
@@ -54,13 +55,13 @@ object TabCompleteTests extends TestSuite {
       test("empty-bash") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", ""),
-          HashSet("qux", "file2.txt", "out", "bar", "file1.txt", "task1", "foo")
+          HashSet("qux", "file2.txt", "out", "folder", "bar", "file1.txt", "task1", "foo")
         )
       }
       test("empty-zsh") {
         assertGoldenLiteral(
           evalComplete("1", "./mill"),
-          HashSet("qux", "file2.txt", "out", "bar", "file1.txt", "task1", "foo")
+          HashSet("qux", "file2.txt", "out", "folder", "bar", "file1.txt", "task1", "foo")
         )
       }
       test("task") {
@@ -79,20 +80,32 @@ object TabCompleteTests extends TestSuite {
       test("secondNonTask") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "bar.task2", "f"),
-          Set("file2.txt", "file1.txt")
+          Set("file2.txt", "file1.txt", "folder")
         )
       }
       test("secondNonTaskEmpty") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "bar.task2", ""),
-          Set("file2.txt", "file1.txt", "out")
+          Set("file2.txt", "file1.txt", "out", "folder")
+        )
+      }
+      test("nestedNonTask") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "folder/"),
+          Set("folder/file3.txt")
+        )
+      }
+      test("nestedNonTask") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "folder/"),
+          Set("folder/file3.txt")
         )
       }
 
       test("module") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "fo"),
-          Set("foo")
+          Set("foo", "folder")
         )
       }
 
@@ -184,20 +197,20 @@ object TabCompleteTests extends TestSuite {
       test("emptyAfterFlag") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "-v"),
-          HashSet("qux", "file2.txt", "out", "bar", "file1.txt", "task1", "foo")
+          HashSet("qux", "file2.txt", "out", "folder", "bar", "file1.txt", "task1", "foo")
         )
 
       }
       test("filterAfterFlag") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "-v", "f"),
-          Set("foo", "file2.txt", "file1.txt")
+          Set("foo", "file2.txt", "file1.txt", "folder")
         )
       }
       test("filterAfterFlagAfterTask") {
         assertGoldenLiteral(
           evalComplete("3", "./mill", "-v", "task1", "f"),
-          Set("file2.txt", "file1.txt")
+          Set("file2.txt", "file1.txt", "folder")
         )
       }
 
@@ -298,7 +311,7 @@ object TabCompleteTests extends TestSuite {
         test {
           assertGoldenLiteral(
             evalComplete("2", "./mill", "bar.taskPositional", ""),
-            Set("file2.txt", "file1.txt", "out")
+            Set("file2.txt", "file1.txt", "out", "folder")
           )
         }
       }
@@ -325,19 +338,19 @@ object TabCompleteTests extends TestSuite {
         test {
           assertGoldenLiteral(
             evalComplete("3", "./mill", "bar.task2", "--arg-a", ""),
-            Set("file2.txt", "file1.txt", "out")
+            Set("file2.txt", "file1.txt", "out", "folder")
           )
         }
         test {
           assertGoldenLiteral(
             evalComplete("5", "./mill", "bar.task2", "--arg-a", "", "--arg-b", ""),
-            Set("file2.txt", "file1.txt", "out")
+            Set("file2.txt", "file1.txt", "out", "folder")
           )
         }
         test {
           assertGoldenLiteral(
             evalComplete("3", "./mill", "bar.task2", "--arg-a", "", "--arg-b", ""),
-            Set("file2.txt", "file1.txt", "out")
+            Set("file2.txt", "file1.txt", "out", "folder")
           )
         }
       }

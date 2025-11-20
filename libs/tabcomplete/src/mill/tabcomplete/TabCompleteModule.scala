@@ -236,7 +236,8 @@ private object TabCompleteModule extends ExternalModule {
           case Some('[') => trimmed + "__]"
           case Some(',') => trimmed + "__]"
           case Some(']') => trimmed + "._"
-          case Some(other) => throw Exception(s"Unexpected char: $other")
+          case Some('/') => trimmed + "_"
+          case Some(other) => trimmed
         }
 
         (query, Some(unescaped))
