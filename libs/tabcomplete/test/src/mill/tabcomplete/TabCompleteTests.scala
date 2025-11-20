@@ -95,10 +95,16 @@ object TabCompleteTests extends TestSuite {
           Set("folder/file3.txt")
         )
       }
-      test("nestedNonTask") {
+      test("nestedNonTask2") {
         assertGoldenLiteral(
-          evalComplete("1", "./mill", "folder/"),
+          evalComplete("1", "./mill", "folder/f"),
           Set("folder/file3.txt")
+        )
+      }
+      test("nestedNonTask2") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "folder/doesntExist"),
+          Set()
         )
       }
 
