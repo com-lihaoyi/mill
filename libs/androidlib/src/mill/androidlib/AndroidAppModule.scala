@@ -256,10 +256,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     os.zip(
       unsignedApk,
       Seq(androidDexPath),
-      excludePatterns = androidExcludePackageFiles() ++ Seq(
-        // META-INF are added later from androidPackagedMetaInfFiles
-        "^META-INF/.*$".r
-      )
+      excludePatterns = androidExcludePackageFiles()
     )
 
     def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
@@ -286,7 +283,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // Example of app-metadata.properties:
     // appMetadataVersion=1.1
     // androidGradlePluginVersion=8.7.2
-    os.zip(unsignedApk, metaInf)
+
+    // Add META-INF if it does not already exist
+    if (!os.exists(androidDexPath / "META-INF"))
+      os.zip(unsignedApk, metaInf)
     os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
