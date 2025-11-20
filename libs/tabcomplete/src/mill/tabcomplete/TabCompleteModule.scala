@@ -237,7 +237,7 @@ private object TabCompleteModule extends ExternalModule {
           case Some(',') => trimmed + "__]"
           case Some(']') => trimmed + "._"
           case Some('/') => trimmed + "_"
-          case Some(other) => trimmed
+          case Some(_) => trimmed
         }
 
         (query, Some(unescaped))
