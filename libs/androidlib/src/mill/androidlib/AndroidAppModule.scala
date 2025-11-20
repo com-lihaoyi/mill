@@ -22,7 +22,7 @@ import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
 
 import scala.util.Properties.isWin
-import java.nio.file.*
+import scala.util.matching.Regex
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -236,10 +236,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Glob patterns of files to be excluded from packaging into the APK.
+   * Regex patterns of files to be excluded from packaging into the APK.
    */
-  def androidExcludePackageResources: T[Seq[String]] = Task {
-    Seq.empty[String]
+  def androidExcludePackageResources: T[Seq[Regex]] = Task {
+    Seq.empty[Regex]
   }
 
   /**
@@ -253,34 +253,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
     os.copy(androidLinkedResources().path / "apk/res.apk", unsignedApk)
 
     val androidDexPath = androidDex().path
-    val dexFilesDir = Task.dest / "dex"
-    os.copy.over(
-      androidDexPath,
-      dexFilesDir,
-      createFolders = true,
-      replaceExisting = true
+    os.zip(
+      unsignedApk,
+      Seq(androidDexPath),
+      excludePatterns = androidExcludePackageResources()
     )
-
-    androidExcludePackageResources().foreach {
-      glob =>
-        val matcher = FileSystems.getDefault.getPathMatcher("glob:" + glob)
-        os.walk(dexFilesDir).foreach { p =>
-          val relativePath = (os.root / p.relativeTo(dexFilesDir)).toNIO
-          if (matcher.matches(relativePath)) {
-            if (os.isFile(p)) os.remove(p)
-            else os.remove.all(p)
-          }
-        }
-    }
-
-    val resources = os.walk(dexFilesDir)
-      .filter(os.isFile)
-      .map { p =>
-        os.zip.ZipSource.fromPathTuple(
-          (p, p.subRelativeTo(dexFilesDir))
-        )
-      }
-      .toSeq
 
     def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
       os.zip.ZipSource.fromPathTuple(
@@ -304,7 +281,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // Example of app-metadata.properties:
     // appMetadataVersion=1.1
     // androidGradlePluginVersion=8.7.2
-    os.zip(unsignedApk, resources)
     os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
