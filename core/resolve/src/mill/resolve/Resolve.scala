@@ -64,7 +64,7 @@ object Resolve {
 
       val taskList: Seq[Result[Either[Module, Option[Task.Named[?]]]]] = resolved.map {
         case m: Resolved.Module =>
-          ResolveCore.instantiateModule(rootModule, m.segments, cache).map(Left(_))
+          ResolveCore.instantiateModule(rootModule, m.taskSegments, cache).map(Left(_))
 
         case t =>
           Resolve
@@ -97,13 +97,13 @@ object Resolve {
     ) = task match {
       case r: Resolved.NamedTask =>
         val instantiated = ResolveCore
-          .instantiateModule(rootModule, r.segments.init, cache)
+          .instantiateModule(rootModule, r.taskSegments.init, cache)
           .flatMap(instantiateNamedTask(r, _, cache))
         instantiated.map(Some(_))
 
       case r: Resolved.Command =>
         val instantiated = ResolveCore
-          .instantiateModule(rootModule, r.segments.init, cache)
+          .instantiateModule(rootModule, r.taskSegments.init, cache)
           .flatMap { mod =>
             instantiateCommand(
               rootModule,
@@ -117,7 +117,7 @@ object Resolve {
         instantiated.map(Some(_))
 
       case r: Resolved.Module =>
-        ResolveCore.instantiateModule(rootModule, r.segments, cache).flatMap {
+        ResolveCore.instantiateModule(rootModule, r.taskSegments, cache).flatMap {
           case value: DefaultTaskModule =>
             val directChildrenOrErr = ResolveCore.resolveDirectChildren(
               rootModule,
@@ -187,7 +187,7 @@ object Resolve {
       .reflect(
         p.getClass,
         classOf[Task.Named[?]],
-        _ == r.segments.last.value,
+        _ == r.taskSegments.last.value,
         true,
         getMethods = cache.getMethods
       )
@@ -209,7 +209,7 @@ object Resolve {
     mill.api.ExecResult.catchWrapException {
       val invoked = invokeCommand0(
         p,
-        r.segments.last.value,
+        r.taskSegments.last.value,
         p match {
           case e: ExternalModule => e.moduleCtx.discover
           case _ => rootModule.moduleCtx.discover

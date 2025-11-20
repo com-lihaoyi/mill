@@ -102,7 +102,7 @@ private object ResolveCore {
             .map { r =>
               val rClasses = moduleClasses(Set(r))
               if (seenModules.intersect(rClasses).nonEmpty) {
-                Error(cyclicModuleErrorMsg(r.segments))
+                Error(cyclicModuleErrorMsg(r.taskSegments))
               } else {
                 resolve(
                   rootModule,
@@ -139,13 +139,13 @@ private object ResolveCore {
           case (Segment.Label(singleLabel), m: Resolved.Module) =>
             val resOrErr: mill.api.Result[Seq[Resolved]] = singleLabel match {
               case "__" =>
-                val self = Seq(Resolved.Module(rootModule, m.segments, m.cls))
+                val self = Seq(Resolved.Module(rootModule, m.taskSegments, m.cls))
                 val transitiveOrErr =
                   resolveTransitiveChildren(
                     rootModule,
                     m.cls,
                     None,
-                    current.segments,
+                    current.taskSegments,
                     seenModules,
                     cache
                   )
@@ -157,19 +157,19 @@ private object ResolveCore {
                   rootModule,
                   m.cls,
                   None,
-                  current.segments,
+                  current.taskSegments,
                   cache = cache
                 )
 
               case pattern if pattern.startsWith("__:") =>
                 val typePattern = pattern.split(":").drop(1)
-                val self = Seq(Resolved.Module(rootModule, m.segments, m.cls))
+                val self = Seq(Resolved.Module(rootModule, m.taskSegments, m.cls))
 
                 val transitiveOrErr = resolveTransitiveChildren(
                   rootModule,
                   m.cls,
                   None,
-                  current.segments,
+                  current.taskSegments,
                   seenModules,
                   cache
                 )
@@ -188,7 +188,7 @@ private object ResolveCore {
                   rootModule,
                   m.cls,
                   None,
-                  current.segments,
+                  current.taskSegments,
                   cache
                 ).map {
                   _.collect {
@@ -202,7 +202,7 @@ private object ResolveCore {
                   rootModule,
                   m.cls,
                   Some(singleLabel),
-                  current.segments,
+                  current.taskSegments,
                   cache = cache
                 )
             }
@@ -214,7 +214,7 @@ private object ResolveCore {
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
             if (classOf[Cross[?]].isAssignableFrom(m.cls)) {
-              instantiateModule(rootModule, current.segments, cache).flatMap {
+              instantiateModule(rootModule, current.taskSegments, cache).flatMap {
                 case c: Cross[_] =>
                   mill.api.ExecResult.catchWrapException(
                     if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
@@ -290,17 +290,17 @@ private object ResolveCore {
   )
 
   def resolveTransitiveChildren(
-      rootModule: RootModule0,
-      cls: Class[?],
-      nameOpt: Option[String],
-      segments: Segments,
-      seenModules: Set[Class[?]],
-      cache: Cache
+                                 rootModule: RootModule0,
+                                 cls: Class[?],
+                                 nameOpt: Option[String],
+                                 taskSegments: Segments,
+                                 seenModules: Set[Class[?]],
+                                 cache: Cache
   ): mill.api.Result[Seq[Resolved]] = {
-    if (seenModules.contains(cls)) mill.api.Result.Failure(cyclicModuleErrorMsg(segments))
+    if (seenModules.contains(cls)) mill.api.Result.Failure(cyclicModuleErrorMsg(taskSegments))
     else {
-      val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, segments, cache)
-      val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, cache)
+      val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, taskSegments, cache)
+      val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, taskSegments, cache)
 
       val errOrModules = directTraverse.map { modules =>
         modules.flatMap {
@@ -316,7 +316,7 @@ private object ResolveCore {
               rootModule,
               m.cls,
               nameOpt,
-              m.segments,
+              m.taskSegments,
               seenModules + cls,
               cache
             ))
@@ -471,10 +471,10 @@ private object ResolveCore {
           rootModule,
           m.cls,
           None,
-          current.segments,
+          current.taskSegments,
           cache = cache
         ).toOption.get.map(
-          _.segments.value.last
+          _.taskSegments.value.last
         )
 
       case _ => Set[Segment]()
