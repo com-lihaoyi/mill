@@ -1,13 +1,14 @@
 package mill.meta
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
-
-import mill.constants.{CodeGenConstants as CGConst}
+import mill.constants.CodeGenConstants as CGConst
 import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.ModuleCtx.HeaderData
+import mill.api.daemon.{Segment, Segments}
+
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -148,20 +149,38 @@ object CodeGen {
               renderTemplate(s"object $k", nestedData, path :+ k)
           ).filter(_.nonEmpty)
 
+          def parseRender(moduleDep: String) = {
+            mill.resolve.ParseArgs.extractSegments(moduleDep) match{
+              case Result.Failure(err) => sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + err)
+              case Result.Success((rootModulePrefix, taskSegments)) =>
+                val renderedSegments = taskSegments.value
+                  .map{
+                    case Segment.Label(s) => backtickWrap(s)
+                    case Segment.Cross(vs) => "segmentsToModules(" + vs.map(literalize(_)).mkString(", ") + ")"
+                  }
+                  .mkString(".")
+
+                rootModulePrefix match{
+                  case "" => s"build.$renderedSegments"
+                  case s"$externalModulePrefix/" => s"$externalModulePrefix.$renderedSegments"
+                }
+            }
+          }
+
           val moduleDepsSnippet =
             if (data.moduleDeps.isEmpty) ""
             else
-              s"override def moduleDeps = Seq(${data.moduleDeps.map("build." + _).mkString(", ")})"
+              s"override def moduleDeps = Seq(${data.moduleDeps.map(parseRender).mkString(", ")})"
 
           val compileModuleDepsSnippet =
             if (data.compileModuleDeps.isEmpty) ""
             else
-              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.map("build." + _).mkString(", ")})"
+              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.map(parseRender).mkString(", ")})"
 
           val runModuleDepsSnippet =
             if (data.runModuleDeps.isEmpty) ""
             else
-              s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
+              s"override def runModuleDeps = Seq(${data.runModuleDeps.map(parseRender).mkString(", ")})"
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
@@ -426,7 +445,7 @@ object CodeGen {
     s"""|object MillMiscInfo
         |    extends mill.api.internal.SubfolderModule.Info(
         |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.toString)}),
-        |  segments = _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
+        |  segments = _root_.scala.Seq(${segments.map(literalize(_)).mkString(", ")})
         |)
         |""".stripMargin
   }
