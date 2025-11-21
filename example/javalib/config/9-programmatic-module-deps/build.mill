@@ -9,6 +9,9 @@ object bar extends JavaModule {
   )
 }
 
+object qux extends Cross[QuxModule](1, 2, 3)
+trait QuxModule extends JavaModule, Cross.Module[Int]
+
 /** See Also: foo/package.mill.yaml */
 /** Usage
 
@@ -16,3 +19,4 @@ object bar extends JavaModule {
 <h1>hello</h1>
 
 */
+

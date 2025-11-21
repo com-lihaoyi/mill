@@ -156,7 +156,7 @@ object CodeGen {
                 val renderedSegments = taskSegments.value
                   .map{
                     case Segment.Label(s) => backtickWrap(s)
-                    case Segment.Cross(vs) => "segmentsToModules(" + vs.map(literalize(_)).mkString(", ") + ")"
+                    case Segment.Cross(vs) => "lookup(" + vs.map(literalize(_)).mkString(", ") + ")"
                   }
                   .mkString(".")
 
