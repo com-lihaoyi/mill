@@ -282,12 +282,15 @@ object IntegrationTester {
        * Returns the raw text of the `.json` metadata file
        */
       def text: String = {
-        val Seq(res) =
-          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
+        val Seq(res) = mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
 
-        val (Seq(selector), _) = res.get
+        val (Seq((rootModulePrefix, taskSegments)), _) = res.get
 
-        val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
+        val segments = rootModulePrefix match{
+          case "" => taskSegments.parts
+          case s"$external/" => Seq(external) ++ taskSegments.parts
+          case s"$script:" => Seq(script) ++ taskSegments.parts
+        }
         os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
       }
 

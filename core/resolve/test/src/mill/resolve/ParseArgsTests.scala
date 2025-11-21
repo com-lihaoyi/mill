@@ -91,20 +91,15 @@ object ParseArgsTests extends TestSuite {
     test("apply(multiselect)") {
       def check(
           input: Seq[String],
-          expectedSelectors: List[(Option[List[Segment]], List[Segment])],
+          expectedSelectors: List[(String, List[Segment])],
           expectedArgs: Seq[String],
           multiSelect: Boolean
       ) = {
-        val Result.Success((selectors0, args)) :: _ =
+        val Result.Success((selectors, args)) :: _ =
           ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Separated): @unchecked
 
-        val selectors = selectors0.map {
-          case (Some(v1), Some(v2)) => (Some(v1.value), v2.value)
-          case (None, Some(v2)) => (None, v2.value)
-          case other @ (_, None) => throw Exception(s"Unexpected: $other")
-        }
         assert(
-          selectors == expectedSelectors,
+          selectors.map{case (k, v) => (k, v.value)} == expectedSelectors,
           args == expectedArgs
         )
       }
@@ -119,32 +114,26 @@ object ParseArgsTests extends TestSuite {
       }
       test("singleSelector") - check(
         input = Seq("core.compile"),
-        expectedSelectors = List(
-          None -> List(Label("core"), Label("compile"))
-        ),
+        expectedSelectors = List("" -> List(Label("core"), Label("compile"))),
         expectedArgs = Seq.empty,
         multiSelect = false
       )
       test("externalSelector") - check(
         input = Seq("foo.bar/core.compile"),
-        expectedSelectors = List(
-          Some(List(Label("foo.bar/"))) -> List(Label("core"), Label("compile"))
-        ),
+        expectedSelectors = List("foo.bar/" -> List(Label("core"), Label("compile"))),
         expectedArgs = Seq.empty,
         multiSelect = false
       )
       test("singleSelectorWithArgs") - check(
         input = Seq("application.run", "hello", "world"),
-        expectedSelectors = List(
-          None -> List(Label("application"), Label("run"))
-        ),
+        expectedSelectors = List("" -> List(Label("application"), Label("run"))),
         expectedArgs = Seq("hello", "world"),
         multiSelect = false
       )
       test("singleSelectorWithCross") - check(
         input = Seq("bridges[2.12.4,jvm].compile"),
         expectedSelectors = List(
-          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))
+          "" -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = false
@@ -152,8 +141,8 @@ object ParseArgsTests extends TestSuite {
       test("multiSelectorsBraceExpansion") - check(
         input = Seq("{core,application}.compile"),
         expectedSelectors = List(
-          None -> List(Label("core"), Label("compile")),
-          None -> List(Label("application"), Label("compile"))
+          "" -> List(Label("core"), Label("compile")),
+          "" -> List(Label("application"), Label("compile"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = true
@@ -161,8 +150,8 @@ object ParseArgsTests extends TestSuite {
       test("multiSelectorsBraceExpansionWithArgs") - check(
         input = Seq("{core,application}.run", ParseArgs.MultiArgsSeparator, "hello", "world"),
         expectedSelectors = List(
-          None -> List(Label("core"), Label("run")),
-          None -> List(Label("application"), Label("run"))
+          "" -> List(Label("core"), Label("run")),
+          "" -> List(Label("application"), Label("run"))
         ),
         expectedArgs = Seq("hello", "world"),
         multiSelect = true
@@ -170,10 +159,10 @@ object ParseArgsTests extends TestSuite {
       test("multiSelectorsBraceWithMissingArgsSeparator") - check(
         input = Seq("{core,application}.run", "hello", "world"),
         expectedSelectors = List(
-          None -> List(Label("core"), Label("run")),
-          None -> List(Label("application"), Label("run")),
-          None -> List(Label("hello")),
-          None -> List(Label("world"))
+          "" -> List(Label("core"), Label("run")),
+          "" -> List(Label("application"), Label("run")),
+          "" -> List(Label("hello")),
+          "" -> List(Label("world"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = true
@@ -181,8 +170,8 @@ object ParseArgsTests extends TestSuite {
       test("multiSelectorsBraceExpansionWithCross") - check(
         input = Seq("bridges[2.12.4,jvm].{test,jar}"),
         expectedSelectors = List(
-          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("test")),
-          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("jar"))
+          "" -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("test")),
+          "" -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("jar"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = true
@@ -190,9 +179,9 @@ object ParseArgsTests extends TestSuite {
       test("multiSelectorsBraceExpansionInsideCross") - check(
         input = Seq("bridges[{2.11.11,2.11.8,2.13.0-M3}].jar"),
         expectedSelectors = List(
-          None -> List(Label("bridges"), Cross(Seq("2.11.11")), Label("jar")),
-          None -> List(Label("bridges"), Cross(Seq("2.11.8")), Label("jar")),
-          None -> List(Label("bridges"), Cross(Seq("2.13.0-M3")), Label("jar"))
+          "" -> List(Label("bridges"), Cross(Seq("2.11.11")), Label("jar")),
+          "" -> List(Label("bridges"), Cross(Seq("2.11.8")), Label("jar")),
+          "" -> List(Label("bridges"), Cross(Seq("2.13.0-M3")), Label("jar"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = true
@@ -203,8 +192,8 @@ object ParseArgsTests extends TestSuite {
           Result.Success(
             (
               List(
-                None -> Some(Segments(Seq(Label("core"), Label("compile")))),
-                None -> Some(Segments(Seq(Label("application"), Label("compile"))))
+                "" -> Segments(Seq(Label("core"), Label("compile"))),
+                "" -> Segments(Seq(Label("application"), Label("compile")))
               ),
               Nil
             )
@@ -215,9 +204,7 @@ object ParseArgsTests extends TestSuite {
       test("multiSelectorsWithoutAllAsSingle") - check(
         // this is how it works when we pass multiple tasks without --all flag
         input = Seq("core.compile", "application.compile"),
-        expectedSelectors = List(
-          None -> List(Label("core"), Label("compile"))
-        ),
+        expectedSelectors = List("" -> List(Label("core"), Label("compile"))),
         expectedArgs = Seq("application.compile"),
         multiSelect = false
       )
@@ -233,16 +220,10 @@ object ParseArgsTests extends TestSuite {
       }
       def check(
           input: Seq[String],
-          expectedSelectorArgPairs: Seq[(Seq[(Option[Seq[Segment]], Seq[Segment])], Seq[String])]
+          expectedSelectorArgPairs: Seq[(Seq[(String, Seq[Segment])], Seq[String])]
       ) = {
         val actual = (ParseArgs(input, selectMode): @unchecked).map {
-          case Result.Success((selectors0, args)) =>
-            val selectors = selectors0.map {
-              case (Some(v1), Some(v2)) => (Some(v1.value), v2.value)
-              case (None, Some(v2)) => (None, v2.value)
-              case other @ (_, None) => throw Exception(s"Unexpected: $other")
-            }
-            (selectors, args)
+          case Result.Success((selectors, args)) => (selectors.map{case (k, v) => (k, v.value)}, args)
         }
         assert(
           actual == expectedSelectorArgPairs
@@ -252,33 +233,21 @@ object ParseArgsTests extends TestSuite {
       test("singleTopLevelTask") {
         check(
           Seq("compile"),
-          Seq(
-            Seq(
-              None -> Seq(Label("compile"))
-            ) -> Seq.empty
-          )
+          Seq(Seq("" -> Seq(Label("compile"))) -> Seq.empty)
         )
       }
       test("singleTask") {
         check(
           Seq("core.compile"),
-          Seq(
-            Seq(
-              None -> Seq(Label("core"), Label("compile"))
-            ) -> Seq.empty
-          )
+          Seq(Seq("" -> Seq(Label("core"), Label("compile"))) -> Seq.empty)
         )
       }
       test("multiTasks") {
         check(
           Seq("core.compile", ParseArgs.TaskSeparator, "app.compile"),
           Seq(
-            Seq(
-              None -> Seq(Label("core"), Label("compile"))
-            ) -> Seq.empty,
-            Seq(
-              None -> Seq(Label("app"), Label("compile"))
-            ) -> Seq.empty
+            Seq("" -> Seq(Label("core"), Label("compile"))) -> Seq.empty,
+            Seq("" -> Seq(Label("app"), Label("compile"))) -> Seq.empty
           )
         )
       }
@@ -295,12 +264,8 @@ object ParseArgsTests extends TestSuite {
             """x\\""" + ParseArgs.TaskSeparator
           ),
           Seq(
-            Seq(
-              None -> Seq(Label("core"), Label("run"))
-            ) -> Seq(ParseArgs.TaskSeparator, "arg2"),
-            Seq(
-              None -> Seq(Label("run"))
-            ) -> Seq(
+            Seq("" -> Seq(Label("core"), Label("run"))) -> Seq(ParseArgs.TaskSeparator, "arg2"),
+            Seq("" -> Seq(Label("run"))) -> Seq(
               """\""" + TaskSeparator,
               """\\""" + TaskSeparator,
               """x\\""" + TaskSeparator
@@ -312,9 +277,7 @@ object ParseArgsTests extends TestSuite {
         check(
           Seq("core.run", "arg1", "arg2"),
           Seq(
-            Seq(
-              None -> List(Label("core"), Label("run"))
-            ) -> Seq("arg1", "arg2")
+            Seq("" -> List(Label("core"), Label("run"))) -> Seq("arg1", "arg2")
           )
         )
       }
@@ -322,12 +285,8 @@ object ParseArgsTests extends TestSuite {
         check(
           Seq("core.run", "arg1", "arg2", ParseArgs.TaskSeparator, "core.runMain", "my.main"),
           Seq(
-            Seq(
-              None -> Seq(Label("core"), Label("run"))
-            ) -> Seq("arg1", "arg2"),
-            Seq(
-              None -> Seq(Label("core"), Label("runMain"))
-            ) -> Seq("my.main")
+            Seq("" -> Seq(Label("core"), Label("run"))) -> Seq("arg1", "arg2"),
+            Seq("" -> Seq(Label("core"), Label("runMain"))) -> Seq("my.main")
           )
         )
       }
@@ -343,13 +302,11 @@ object ParseArgsTests extends TestSuite {
           ),
           Seq(
             Seq(
-              None -> Seq(Label("core"), Label("run")),
-              None -> Seq(Label("app"), Label("run")),
-              None -> Seq(Label("test"), Label("_"), Label("run"))
+              "" -> Seq(Label("core"), Label("run")),
+              "" -> Seq(Label("app"), Label("run")),
+              "" -> Seq(Label("test"), Label("_"), Label("run"))
             ) -> Seq("arg1", "arg2"),
-            Seq(
-              None -> Seq(Label("core"), Label("runMain"))
-            ) -> Seq("my.main")
+            Seq("" -> Seq(Label("core"), Label("runMain"))) -> Seq("my.main")
           )
         )
       }

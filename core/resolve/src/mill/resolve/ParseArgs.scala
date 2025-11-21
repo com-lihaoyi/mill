@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 
 object ParseArgs {
 
-  type TasksWithParams = (Seq[(Option[Segments], Option[Segments])], Seq[String])
+  type TasksWithParams = (Seq[(String, Segments)], Seq[String])
 
   /** Separator used in multiSelect-mode to separate tasks from their args. */
   val MultiArgsSeparator = "--"
@@ -81,13 +81,13 @@ object ParseArgs {
   }
 
   def extractSegments(selectorString: String)
-      : Result[(Option[Segments], Option[Segments])] =
+      : Result[(String, Segments)] =
     parse(selectorString, selector(using _)) match {
       case f: Parsed.Failure => Result.Failure(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Result.Success(selector)
     }
 
-  private def selector[_p: P]: P[(Option[Segments], Option[Segments])] = {
+  private def selector[_p: P]: P[(String, Segments)] = {
     def wildcard = P("__" | "_")
     def label = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
 
@@ -112,8 +112,8 @@ object ParseArgs {
     }
 
     P(simpleQuery ~ (("/" | ":").! ~ simpleQuery.?).? ~ End).map {
-      case (q, None) => (None, Some(q))
-      case (q, Some((sep, q2))) => (Some(Segments.labels(q.render + sep)), q2)
+      case (q, None) => ("", q)
+      case (q, Some((sep, q2))) => (q.render + sep, q2.getOrElse(Segments()))
     }
   }
 }
