@@ -232,4 +232,9 @@ object `package` extends mill.Module {
     def compileModuleDeps = Seq(build.libs.javalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
+
+  object sbom extends ContribModule {
+    def compileModuleDeps = Seq(build.libs.scalalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
+  }
 }
