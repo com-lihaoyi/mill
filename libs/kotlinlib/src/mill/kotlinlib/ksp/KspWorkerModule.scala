@@ -22,5 +22,5 @@ trait KspWorkerModule extends mill.Module {
 
 @mill.api.experimental
 object KspWorkerModule extends ExternalModule with KspWorkerModule {
-  override protected def millDiscover: Discover = Discover[this.type]
+  override def millDiscover: Discover = Discover[this.type]
 }

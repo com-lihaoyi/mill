@@ -38,7 +38,11 @@ object IntegrationTester {
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
    */
-  case class EvalResult(exitCode: Int, out: String, err: String) {
+  case class EvalResult(result: os.CommandResult) {
+    def exitCode: Int = result.exitCode
+    private def cleanup(s: String) = fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
+    def out = cleanup(result.out.trim())
+    def err = cleanup(result.err.trim())
     def isSuccess: Boolean = exitCode == 0
 
     def debugString: String = {
@@ -53,6 +57,29 @@ object IntegrationTester {
     }
   }
 
+  /**
+   * A spawned subprocess with automatic stdout/stderr capture.
+   * Each line printed to stdout/stderr is captured in the buffer and also printed to console.
+   * The buffer preserves ordering, with Left representing stdout and Right representing stderr.
+   */
+  case class SpawnedProcess(
+      val process: os.SubProcess,
+      private val chunks: collection.mutable.Buffer[Either[geny.Bytes, geny.Bytes]]
+  ) {
+
+    // These implementations are not very efficient since they re-process the chunks every
+    // time they are called, but for integration testing purposes that is probably fine
+    def out: geny.ByteData = chunks.synchronized {
+      geny.ByteData.Chunks(chunks.collect { case Left(bytes) => bytes }.toSeq)
+    }
+
+    def err: geny.ByteData = chunks.synchronized {
+      geny.ByteData.Chunks(chunks.collect { case Right(bytes) => bytes }.toSeq)
+    }
+
+    def clear(): Unit = chunks.synchronized { chunks.clear() }
+  }
+
   /** An [[Impl.eval]] that is prepared for execution but haven't been executed yet. Run it with [[run]]. */
   case class PreparedEval(
       cmd: os.Shellable,
@@ -62,7 +89,8 @@ object IntegrationTester {
       check: Boolean,
       propagateEnv: Boolean = true,
       shutdownGracePeriod: Long = 100,
-      run: () => EvalResult
+      run: () => EvalResult,
+      spawn: () => os.SubProcess
   ) {
 
     /** Clues to use for with [[withTestClues]]. */
@@ -89,11 +117,11 @@ object IntegrationTester {
     def debugLog = false
 
     /**
-     * Prepares to evaluate a Mill command. Run it with [[IntegrationTester.PreparedEval.run]].
+     * Prepares to evaluate a Mill command. Run it with [[IntegrationTester.PreparedEval.run]] or spawn it with [[IntegrationTester.PreparedEval.spawn]].
      *
      * Useful when you need the [[IntegrationTester.PreparedEval.clues]].
      */
-    def prepEval(
+    def proc(
         cmd: os.Shellable,
         env: Map[String, String] = Map.empty,
         cwd: os.Path = workspacePath,
@@ -130,12 +158,19 @@ object IntegrationTester {
           shutdownGracePeriod = timeoutGracePeriod
         )
 
-        IntegrationTester.EvalResult(
-          res0.exitCode,
-          fansi.Str(res0.out.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim,
-          fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
-        )
+        IntegrationTester.EvalResult(res0)
       }
+      def spawn() = os.spawn(
+        cmd = shellable,
+        env = callEnv,
+        cwd = cwd,
+        stdin = stdin,
+        stdout = stdout,
+        stderr = stderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        propagateEnv = propagateEnv,
+        shutdownGracePeriod = timeoutGracePeriod
+      )
 
       PreparedEval(
         cmd = shellable,
@@ -145,8 +180,60 @@ object IntegrationTester {
         check = check,
         propagateEnv = propagateEnv,
         shutdownGracePeriod = timeoutGracePeriod,
-        run = run
+        run = run,
+        spawn = spawn
       )
+    }
+
+    /**
+     * Spawns a Mill command as a subprocess with automatic stdout/stderr capture.
+     *
+     * Returns a `SpawnedProcess` that wraps the subprocess and captures all output.
+     * Each line printed to stdout/stderr is both captured in buffers and printed to console.
+     * If `stdout` or `stderr` are specified, they will be used instead of the automatic capture.
+     */
+    def spawn(
+        cmd: os.Shellable,
+        env: Map[String, String] = Map.empty,
+        cwd: os.Path = workspacePath,
+        stdin: os.ProcessInput = os.Pipe,
+        stdout: os.ProcessOutput = null,
+        stderr: os.ProcessOutput = null,
+        mergeErrIntoOut: Boolean = false,
+        propagateEnv: Boolean = true,
+        timeoutGracePeriod: Long = 100
+    ): IntegrationTester.SpawnedProcess = {
+      val chunks = collection.mutable.Buffer.empty[Either[geny.Bytes, geny.Bytes]]
+
+      val actualStdout = Option(stdout).getOrElse(
+        os.ProcessOutput.ReadBytes { (arr, n) =>
+          System.out.write(arr, 0, n)
+          chunks.synchronized { chunks += Left(new geny.Bytes(arr.take(n))) }
+        }
+      )
+
+      val actualStderr = Option(stderr).getOrElse(
+        os.ProcessOutput.ReadBytes { (arr, n) =>
+          System.err.write(arr, 0, n)
+          chunks.synchronized { chunks += Right(new geny.Bytes(arr.take(n))) }
+        }
+      )
+
+      val process = proc(
+        cmd = cmd,
+        env = env,
+        cwd = cwd,
+        stdin = stdin,
+        stdout = actualStdout,
+        stderr = actualStderr,
+        mergeErrIntoOut = mergeErrIntoOut,
+        timeout = -1,
+        check = false,
+        propagateEnv = propagateEnv,
+        timeoutGracePeriod = timeoutGracePeriod
+      ).spawn()
+
+      new IntegrationTester.SpawnedProcess(process, chunks)
     }
 
     /**
@@ -168,7 +255,7 @@ object IntegrationTester {
         propagateEnv: Boolean = true,
         timeoutGracePeriod: Long = 100
     ): IntegrationTester.EvalResult = {
-      prepEval(
+      proc(
         cmd = cmd,
         env = env,
         cwd = cwd,

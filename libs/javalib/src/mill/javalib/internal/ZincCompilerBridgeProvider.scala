@@ -81,10 +81,7 @@ object ZincCompilerBridgeProvider {
     os.makeDir.all(compileDest)
 
     val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
-    val classloader = mill.util.Jvm.createClassLoader(
-      compilerClasspath,
-      parent = null
-    )
+    val classloader = mill.util.Jvm.createClassLoader(compilerClasspath, parent = null)
 
     try {
       val (sources, resources) =
@@ -109,14 +106,11 @@ object ZincCompilerBridgeProvider {
         val javacExe: String =
           sys.props
             .get("java.home")
-            .map(h =>
-              if (isWin) new File(h, "bin\\javac.exe")
-              else new File(h, "bin/javac")
-            )
+            .map(h => new File(h, if (isWin) "bin\\javac.exe" else "bin/javac"))
             .filter(f => f.exists())
             .fold("javac")(_.getAbsolutePath())
-        import scala.sys.process.*
-        (Seq(javacExe) ++ argsArray).!
+
+        os.call(Seq(javacExe) ++ argsArray)
       } else if (allScala) {
         val compilerMain = classloader.loadClass(
           if (JvmWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"

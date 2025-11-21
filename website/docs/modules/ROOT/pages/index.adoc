@@ -98,7 +98,7 @@ Mill is used to build many real-world projects, such as:
 * https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel[Chisel] chip design frameworks
 
 Mill can be used for applications built on top of common JVM frameworks like
-Spring Boot (both xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[in Java]
+Spring Boot (both xref:javalib/spring-boot.adoc[in Java]
 and xref:kotlinlib/web-examples.adoc#_spring_boot_todomvc_app[in Kotlin]),
 xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut],
 xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], or

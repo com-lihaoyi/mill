@@ -1,7 +1,5 @@
 /** Usage
 
-> rm build.mill # remove any existing build file
-
 > git init .
 > git remote add -f origin https://github.com/komamitsu/fluency.git
 > git checkout 2.7.3 # multi-module Java project that requires Java 16+

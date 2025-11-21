@@ -24,7 +24,6 @@ import mill.api.daemon.internal.bsp.BspServerResult
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
-import java.util.Locale
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
 import scala.jdk.CollectionConverters.*
 import scala.concurrent.Await
@@ -137,20 +136,20 @@ object MillMain0 {
               (true, RunnerState.empty)
 
             case Result.Success(config) if config.showVersion.value =>
-              def prop(k: String) = System.getProperty(k, s"<unknown $k>")
+              val interestingProps = Seq(
+                "java.version",
+                "java.vendor",
+                "java.home",
+                "file.encoding",
+                "os.name",
+                "os.version",
+                "os.arch"
+              )
 
-              val javaVersion = prop("java.version")
-              val javaVendor = prop("java.vendor")
-              val javaHome = prop("java.home")
-              val fileEncoding = prop("file.encoding")
-              val osName = prop("os.name")
-              val osVersion = prop("os.version")
-              val osArch = prop("os.arch")
               streams.out.println(
-                s"""Mill Build Tool version ${BuildInfo.millVersion}
-                   |Java version: $javaVersion, vendor: $javaVendor, runtime: $javaHome
-                   |Default locale: ${Locale.getDefault()}, platform encoding: $fileEncoding
-                   |OS name: "$osName", version: $osVersion, arch: $osArch""".stripMargin
+                s"Mill Build Tool version ${BuildInfo.millVersion}\n" +
+                  interestingProps.map(k => s"$k: ${System.getProperty(k, s"<unknown $k>")}")
+                    .mkString("\n")
               )
               (true, RunnerState.empty)
 
@@ -254,15 +253,16 @@ object MillMain0 {
                           _ => _ => None,
                         extraEnv: Seq[(String, String)] = Nil,
                         metaLevelOverride: Option[Int] = None
-                    ): Watching.Result[RunnerState] = MillDaemonServer.withOutLock(
+                    ): RunnerState = MillDaemonServer.withOutLock(
                       noBuildLock = config.noBuildLock.value,
                       noWaitForBuildLock = config.noWaitForBuildLock.value,
                       out = out,
                       millActiveCommandMessage = millActiveCommandMessage,
                       streams = streams,
-                      outLock = outLock
+                      outLock = outLock,
+                      setIdle = setIdle
                     ) {
-                      def proceed(logger: Logger): Watching.Result[RunnerState] = {
+                      def proceed(logger: Logger): RunnerState = {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
                         //
@@ -276,7 +276,7 @@ object MillMain0 {
                           ) {
                             tailManager.withOutErr(logger.streams.out, logger.streams.err) {
                               new MillBuildBootstrap(
-                                projectRoot = BuildCtx.workspaceRoot,
+                                topLevelProjectRoot = BuildCtx.workspaceRoot,
                                 output = out,
                                 // In BSP server, we want to evaluate as many tasks as possible,
                                 // in order to give as many results as available in BSP responses
@@ -302,8 +302,7 @@ object MillMain0 {
                       }
 
                       loggerOpt match {
-                        case Some(logger) =>
-                          proceed(logger)
+                        case Some(logger) => proceed(logger)
                         case None =>
                           Using.resource(getLogger(
                             streams = streams,
@@ -329,7 +328,7 @@ object MillMain0 {
                         metaLevelOverride = Some(1)
                       )
 
-                      (true, bootstrapped.result)
+                      (true, bootstrapped)
                     } else if (config.repl.value) {
                       val bootstrapped = runMillBootstrap(
                         skipSelectiveExecution = false,
@@ -340,7 +339,7 @@ object MillMain0 {
                         metaLevelOverride = Some(1)
                       )
 
-                      (true, bootstrapped.result)
+                      (true, bootstrapped)
                     } else if (config.tabComplete.value) {
                       val bootstrapped = runMillBootstrap(
                         skipSelectiveExecution = false,
@@ -352,7 +351,7 @@ object MillMain0 {
                         "tab-completion"
                       )
 
-                      (true, bootstrapped.result)
+                      (true, bootstrapped)
                     } else if (bspMode) {
                       val bspLogger = getBspLogger(streams, config)
                       var prevRunnerStateOpt = Option.empty[RunnerState]
@@ -385,14 +384,13 @@ object MillMain0 {
                           }
                         )
 
-                        for (err <- watchRes.error)
-                          bspLogger.streams.err.println(err)
+                        for (err <- watchRes.errorOpt) bspLogger.streams.err.println(err)
 
-                        prevRunnerStateOpt = Some(watchRes.result)
+                        prevRunnerStateOpt = Some(watchRes)
 
                         val sessionResultFuture = bspServerHandle.startSession(
-                          evaluators = watchRes.result.frames.flatMap(_.evaluator),
-                          errored = watchRes.error.nonEmpty,
+                          evaluators = watchRes.frames.flatMap(_.evaluator),
+                          errored = watchRes.errorOpt.nonEmpty,
                           watched = watchRes.watched
                         )
 
@@ -468,9 +466,8 @@ object MillMain0 {
                     ) {
                       val runnerState =
                         runMillBootstrap(false, None, Seq("version"), streams, "BSP:initialize")
-                      new mill.idea.GenIdeaImpl(
-                        runnerState.result.frames.flatMap(_.evaluator)
-                      ).run()
+                      new mill.idea.GenIdeaImpl(runnerState.frames.flatMap(_.evaluator))
+                        .run()
                       (true, RunnerState(None, Nil, None))
                     } else if (
                       config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
@@ -479,9 +476,8 @@ object MillMain0 {
                     ) {
                       val runnerState =
                         runMillBootstrap(false, None, Seq("version"), streams, "BSP:initialize")
-                      new mill.eclipse.GenEclipseImpl(
-                        runnerState.result.frames.flatMap(_.evaluator)
-                      ).run()
+                      new mill.eclipse.GenEclipseImpl(runnerState.frames.flatMap(_.evaluator))
+                        .run()
                       (true, RunnerState(None, Nil, None))
                     } else {
                       Watching.watchLoop(
@@ -557,7 +553,7 @@ object MillMain0 {
     bspServerHandleRes
   }
 
-  private[mill] def parseThreadCount(
+  def parseThreadCount(
       threadCountRaw: Option[String],
       availableCores: Int
   ): Result[Int] = {

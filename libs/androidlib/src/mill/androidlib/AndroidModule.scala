@@ -9,7 +9,7 @@ import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import mill.javalib.api.CompilationResult
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 import scala.collection.immutable
 import scala.xml.*
@@ -231,6 +231,18 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
+   * Gets all the android manifests from the direct module dependencies
+   */
+  def androidDirectModuleDepsManifests: T[Seq[PathRef]] = Task {
+    Task.traverse(moduleDepsChecked) {
+      case m: AndroidModule =>
+        Task.Anon(Seq(m.androidManifest()))
+      case _ =>
+        Task.Anon(Seq.empty)
+    }().flatten
+  }
+
+  /**
    * Gets all the android resources (typically in res/ directory)
    * from the library dependencies using [[androidUnpackArchives]]
    * @return
@@ -245,6 +257,10 @@ trait AndroidModule extends JavaModule { outer =>
 
   override def checkGradleModules: T[Boolean] = true
   override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    val buildTypeAttr = if (androidIsDebug())
+      "debug"
+    else
+      "release"
     super.resolutionParams().addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" ->
         VariantMatcher.AnyOf(Seq(
@@ -258,6 +274,14 @@ trait AndroidModule extends JavaModule { outer =>
           VariantMatcher.Equals("android"),
           VariantMatcher.Equals("common"),
           VariantMatcher.Equals("standard-jvm")
+        )),
+      "com.android.build.api.attributes.BuildTypeAttr" ->
+        VariantMatcher.AnyOf(Seq(
+          VariantMatcher.Equals(buildTypeAttr)
+        )),
+      "com.android.build.api.attributes.VariantAttr" ->
+        VariantMatcher.AnyOf(Seq(
+          VariantMatcher.Equals(buildTypeAttr)
         ))
     )
   }
@@ -442,7 +466,7 @@ trait AndroidModule extends JavaModule { outer =>
     ModuleRef(AndroidManifestMerger)
 
   def androidMergeableManifests: Task[Seq[PathRef]] = Task {
-    androidUnpackArchives().flatMap(_.manifest)
+    androidUnpackRunArchives().flatMap(_.manifest) ++ androidDirectModuleDepsManifests()
   }
 
   def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
@@ -516,22 +540,22 @@ trait AndroidModule extends JavaModule { outer =>
    * The Java compiled classes of [[androidResources]]
    */
   def androidCompiledRClasses: T[CompilationResult] = Task(persistent = true) {
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
-    jvmWorker()
-      .internalWorker()
-      .compileJava(
-        ZincCompileJava(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = androidLibsRClasses().map(_.path),
-          compileClasspath = Seq.empty,
-          javacOptions = jOpts.compiler,
-          incrementalCompilation = true
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val worker = jvmWorker().internalWorker()
+    worker.apply(
+      ZincOp.CompileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = androidLibsRClasses().map(_.path),
+        compileClasspath = Seq.empty,
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = true,
+        workDir = Task.dest
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    )
   }
 
   def androidLibRClasspath: T[Seq[PathRef]] = Task {
@@ -570,6 +594,67 @@ trait AndroidModule extends JavaModule { outer =>
    * Used in manifest package and also used as the package to place the generated R sources
    */
   def androidNamespace: String
+
+  /**
+   * If true, a BuildConfig.java file will be generated.
+   * Defaults to true.
+   *
+   * [[https://developer.android.com/reference/tools/gradle-api/7.4/com/android/build/api/dsl/BuildFeatures#buildConfig()]]
+   */
+  def enableBuildConfig: Boolean = true
+
+  /**
+   * The package name where the BuildInfo.java file will be generated.
+   * Defaults to [[androidNamespace]].
+   */
+  def androidBuildInfoPackageName: String = androidNamespace
+
+  /**
+   * The members to include in the generated BuildConfig.java file.
+   * Format is "type NAME = value"
+   */
+  def androidBuildConfigMembers: T[Seq[String]] = Task {
+    val buildType = if (androidIsDebug()) "debug" else "release"
+    Seq(
+      s"boolean DEBUG = ${androidIsDebug()}",
+      s"""String BUILD_TYPE = "$buildType"""",
+      s"""String LIBRARY_PACKAGE_NAME = "$androidBuildInfoPackageName""""
+    )
+  }
+
+  /**
+   * Generates a BuildConfig.java file in the [[androidBuildInfoPackageName]] package
+   * This is a basic implementation of AGP's build config feature!
+   */
+  def androidGeneratedBuildConfigSources: T[Seq[PathRef]] = Task {
+    val parsedMembers: Seq[String] = androidBuildConfigMembers().map { member =>
+      s"public static final $member;"
+    }
+    val content: String =
+      s"""
+         |package $androidBuildInfoPackageName;
+         |public final class BuildConfig {
+         |  ${parsedMembers.mkString("\n  ")}
+         |}
+          """.stripMargin
+
+    val destination = Task.dest / "source" / os.SubPath(androidBuildInfoPackageName.replace(
+      ".",
+      "/"
+    )) / "BuildConfig.java"
+
+    os.write(destination, content, createFolders = true)
+
+    Seq(PathRef(destination))
+  }
+
+  override def generatedSources: T[Seq[PathRef]] = if enableBuildConfig then
+    Task {
+      super.generatedSources() ++ androidGeneratedBuildConfigSources()
+    }
+  else {
+    super.generatedSources()
+  }
 
   /**
    * Gets the extracted android resources from the dependencies using [[androidLibraryResources]]
@@ -729,16 +814,17 @@ trait AndroidModule extends JavaModule { outer =>
 
     val rJar = Task.dest / "R.jar"
 
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
-    val classesDest = jvmWorker()
-      .internalWorker()
-      .compileJava(
-        ZincCompileJava(
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val worker = jvmWorker().internalWorker()
+    val classesDest = worker
+      .apply(
+        ZincOp.CompileJava(
           upstreamCompileOutput = upstreamCompileOutput(),
           sources = sources.map(_.path),
           compileClasspath = androidTransitiveLibRClasspath().map(_.path),
           javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
+          incrementalCompilation = zincIncrementalCompilation(),
+          workDir = Task.dest
         ),
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,

@@ -6,7 +6,7 @@ import mill.api.{Logger, SystemStreams}
  * A Logger that forwards all logging to another Logger.  Intended to be
  * used as a base class for wrappers that modify logging behavior.
  */
-private[mill] class ProxyLogger(logger: Logger) extends Logger {
+class ProxyLogger(logger: Logger) extends Logger {
   override def toString: String = s"ProxyLogger($logger)"
 
   lazy val streams = logger.streams
@@ -19,6 +19,10 @@ private[mill] class ProxyLogger(logger: Logger) extends Logger {
 
   def prompt = logger.prompt
 
-  private[mill] override def logKey: Seq[String] = logger.logKey
-  private[mill] override def unprefixedStreams: SystemStreams = logger.unprefixedStreams
+  override def logKey: Seq[String] = logger.logKey
+  override def unprefixedStreams: SystemStreams = logger.unprefixedStreams
+
+  override def redirectOutToErr: Boolean = logger.redirectOutToErr
+
+  override def withRedirectOutToErr() = new ProxyLogger(logger.withRedirectOutToErr())
 }

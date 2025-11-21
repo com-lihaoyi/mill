@@ -1,7 +1,6 @@
 package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
-
 import mill.api.*
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
@@ -12,6 +11,8 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+
+import java.io.ByteArrayOutputStream
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -37,6 +38,8 @@ trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
+  def buildOverrides0: Map[String, String]
+  val staticBuildOverrides = buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -67,6 +70,11 @@ trait GroupExecution {
 
     rec(json)
   }
+
+  // the JVM running this code currently
+  val javaHomeHash = sys.props("java.home").hashCode
+
+  val invalidateAllHashes = classLoaderSigHash + javaHomeHash
 
   // those result which are inputs but not contained in this terminal group
   def executeGroupCached(
@@ -105,22 +113,19 @@ trait GroupExecution {
           }
           .flatten
       )
-      // the JVM running this code currently
-      val javaHomeHash = sys.props("java.home").hashCode
 
-      externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash + javaHomeHash
+      externalInputsHash + sideHashes + scriptsHash + invalidateAllHashes
     }
 
     terminal match {
-
       case labelled: Task.Named[_] =>
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
-        labelled.ctx.segments.last.value match {
-          // apply build override
-          case single if labelled.ctx.enclosingModule.buildOverrides.contains(single) =>
+        val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
+        staticBuildOverrides.get(labelled.ctx.segments.render)
+          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
-            val jsonData = labelled.ctx.enclosingModule.buildOverrides(single)
+          case Some(jsonData) => // apply build override
             val (execRes, serializedPaths) =
               try {
                 val (resultData, serializedPaths) = PathRef.withSerializedPaths {
@@ -134,7 +139,7 @@ trait GroupExecution {
                 }
 
                 // Write build header override JSON to meta `.json` file to support `show`
-                writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash)
+                writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash + jsonData.##)
                 (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
               } catch {
                 case e: upickle.core.TraceVisitor.TraceException =>
@@ -156,8 +161,7 @@ trait GroupExecution {
               serializedPaths = serializedPaths
             )
 
-          // no build overrides
-          case _ =>
+          case None => // no build overrides
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
             // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
@@ -483,7 +487,7 @@ trait GroupExecution {
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##
+    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
   }
   private def loadUpToDateWorker(
       logger: Logger,
@@ -656,7 +660,10 @@ object GroupExecution {
             mill.api.ClassLoader.withContextClassLoader(classLoader) {
               if (!exclusive) t
               else {
-                logger.prompt.reportKey(Seq(counterMsg))
+                // For exclusive tasks, we print the task name once and then we disable the
+                // prompt/ticker so the output of the exclusive task can "clean" while still
+                // being identifiable
+                logger.prompt.logPrefixedLine(Seq(counterMsg), new ByteArrayOutputStream(), false)
                 logger.prompt.withPromptPaused {
                   t
                 }

@@ -1,6 +1,6 @@
 package mill.script
 import mill.*
-import mill.api.{Discover, ExternalModule, PathRef}
+import mill.api.{Discover, ExternalModule, PathRef, ScriptModule}
 import mill.javalib.{TestModule, DepSyntax, Dep}
 import mill.javalib.api.CompilationResult
 import mill.util.Jvm
@@ -21,7 +21,9 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     val modified = Task.dest / original.last
     os.write(
       modified,
-      os.read(original) +
+      s"//SOURCECODE_ORIGINAL_FILE_PATH=$original\n" +
+        "//SOURCECODE_ORIGINAL_CODE_START_MARKER\n" +
+        os.read(original) +
         System.lineSeparator +
         // Squeeze this onto one line so as not to affect line counts too much
         """type main = mainargs.main; def _millScriptMainSelf = this; object _MillScriptMain { def main(args: Array[String]): Unit = this.getClass.getMethods.find(m => m.getName == "main" && m.getParameters.map(_.getType) == Seq(classOf[Array[String]]) && m.getReturnType == classOf[Unit]) match{ case Some(m) => m.invoke(_millScriptMainSelf, args); case None => mainargs.Parser(_millScriptMainSelf).runOrExit(args) }}""".stripMargin
@@ -38,8 +40,14 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     Jvm.createClassLoader(classPath = asmWorkerClasspath().map(_.path), parent = null)
   }
 
+  // avoid calling super just to the CLI logging is prettier, with `out/Foo.scala/compile0.dest/`
+  // rather than `out/Foo.scala/compile0.super/blah/blah/blah`
+  def compile0 = Task {
+    compileTask()
+  }
+
   override def compile: T[CompilationResult] = Task {
-    val result = super.compile()
+    val result = compile0()
 
     val classesDir = Task.dest / "classes"
     os.copy(result.classes.path, classesDir, createFolders = true)
@@ -56,7 +64,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     asmWorkerClassloader()
       .loadClass("mill.script.asm.AsmWorkerImpl")
       .getMethod("findMainArgsMethods", classOf[java.nio.file.Path])
-      .invoke(null, super.compile().classes.path.toNIO)
+      .invoke(null, compile0().classes.path.toNIO)
       .asInstanceOf[Array[String]]
       .toSeq
   }

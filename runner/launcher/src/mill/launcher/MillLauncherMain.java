@@ -118,12 +118,19 @@ public class MillLauncherMain {
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir);
         var exitCode = launcher.run(daemonDir, javaHome, log);
-        if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
+        // Retry if server requests it. This can happen when:
+        // - There's a version mismatch between client and server
+        // - The server was terminated while this client was waiting
+        int maxRetries = 10;
+        for (int i = 0; i < maxRetries && exitCode == ClientUtil.ServerExitPleaseRetry(); i++) {
           exitCode = launcher.run(daemonDir, javaHome, log);
+        }
+        if (exitCode == ClientUtil.ServerExitPleaseRetry()) {
+          System.err.println("Max launcher retries exceeded (" + maxRetries + "), exiting");
         }
         System.exit(exitCode);
       } catch (Exception e) {
-        System.err.println("Mill client failed with unknown exception.");
+        System.err.println("Mill launcher failed with unknown exception.");
         System.err.println();
 
         System.err.println("Exception:");

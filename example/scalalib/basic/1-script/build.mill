@@ -18,15 +18,19 @@
 //   can be a hassle, and putting both code and config in a single file makes things easier
 //   to manage
 //
-// For example the {language} program below can be run directly using Mill, which will
-// automatically download and cache the specified third-party dependencies as necessary:
+// See the documentation on xref:{language-small}lib/script.adoc#_script_use_cases[Script Use Cases]
+// for more example of what you can do with them.
+//
+// The small example {language} program below demonstrates a simple single-file script. It
+// can be run directly using Mill, which will automatically download and cache the specified
+// third-party dependencies as necessary:
 
 //// SNIPPET:FILE
 /** See Also: Foo.scala */
 
 // In this example we use the `@mainargs.main` method from https://github.com/com-lihaoyi/mainargs[MainArgs],
 // one of the xref:scalalib/script.adoc#_bundled_libraries[Bundled Libraries] and is imported automatically
-// in scripts,  but you can define an explicit `def main(args: Array[String]): Unit` or `@scala.main def main`
+// in scripts, but you can define an explicit `def main(args: Array[String]): Unit` or `@scala.main def main`
 // method if you prefer.
 //
 //// SNIPPET:END
@@ -86,10 +90,10 @@ Jvm Version: 11.0.28
 /** Usage
 
 > ./mill resolve Foo.scala:_
-./Foo.scala:run
-./Foo.scala:runMain
-./Foo.scala:compile
-./Foo.scala:assembly
+Foo.scala:run
+Foo.scala:runMain
+Foo.scala:compile
+Foo.scala:assembly
 ...
 
 */

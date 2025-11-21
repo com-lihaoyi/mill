@@ -6,26 +6,20 @@
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server with a variety of server frameworks
 
+== Spring Boot
+
+See xref:javalib/spring-boot.adoc[Mill with Spring Boot]
+
 == Jetty Hello World App
 
 include::partial$example/javalib/web/1-hello-jetty.adoc[]
 
 
-[#_spring_boot_hello_world_app]
-== Spring Boot Hello World App
 
-This section was moved to the xref:javalib/spring-boot.adoc#_spring_boot_hello_world_app[Spring Boot page].
-
-
-== Spring Boot TodoMvc App
-
-This section was moved to the xref:javalib/spring-boot.adoc#_spring_boot_todomvc_app[Spring Boot page].
-
-[#_micronaut_hello_world_app]
 == Micronaut Hello World App
 
-include::partial$example/javalib/web/4-hello-micronaut.adoc[]
+include::partial$example/javalib/web/2-hello-micronaut.adoc[]
 
 == Micronaut TodoMvc App
 
-include::partial$example/javalib/web/5-todo-micronaut.adoc[]
+include::partial$example/javalib/web/3-todo-micronaut.adoc[]

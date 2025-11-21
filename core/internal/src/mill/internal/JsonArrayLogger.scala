@@ -4,7 +4,7 @@ import java.io.{BufferedOutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 import java.util.concurrent.ArrayBlockingQueue
 
-private[mill] class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
+class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
   private var used = false
 
   @volatile var closed = false
@@ -22,31 +22,28 @@ private[mill] class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent:
   // the main execution, but keep the size bounded so if the logging falls behind the
   // main thread will get blocked until logging can catch up
   val buffer = new ArrayBlockingQueue[Option[T]](100)
-  val writeThread = new Thread(
-    () =>
-      // Make sure all writes to `traceStream` are synchronized, as we
-      // have two threads writing to it (one while active, one on close()
-      traceStream.synchronized {
-        while ({
-          buffer.take() match {
-            case Some(v) =>
-              if (used) traceStream.println(",")
-              else traceStream.println("[")
-              used = true
-              val indented = upickle.write(v, indent = indent)
-                .linesIterator
-                .map(indentStr + _)
-                .mkString("\n")
+  val writeThread = mill.api.daemon.StartThread("JsonArrayLogger " + outPath.last) {
+    // Make sure all writes to `traceStream` are synchronized, as we
+    // have two threads writing to it (one while active, one on close()
+    traceStream.synchronized {
+      while ({
+        buffer.take() match {
+          case Some(v) =>
+            if (used) traceStream.println(",")
+            else traceStream.println("[")
+            used = true
+            val indented = upickle.write(v, indent = indent)
+              .linesIterator
+              .map(indentStr + _)
+              .mkString("\n")
 
-              traceStream.print(indented)
-              true
-            case None => false
-          }
-        }) ()
-      },
-    "JsonArrayLogger " + outPath.last
-  )
-  writeThread.start()
+            traceStream.print(indented)
+            true
+          case None => false
+        }
+      }) ()
+    }
+  }
 
   def log(t: T): Unit = synchronized {
     // Somehow in BSP mode we sometimes get logs coming in after close, just ignore them
@@ -67,9 +64,9 @@ private[mill] class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent:
   }
 }
 
-private[mill] object JsonArrayLogger {
+object JsonArrayLogger {
 
-  private[mill] class Profile(outPath: os.Path)
+  class Profile(outPath: os.Path)
       extends JsonArrayLogger[Profile.Timing](outPath, indent = 2) {
     def log(
         terminal: String,
@@ -110,7 +107,7 @@ private[mill] object JsonArrayLogger {
     }
   }
 
-  private[mill] class ChromeProfile(outPath: os.Path)
+  class ChromeProfile(outPath: os.Path)
       extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
 
     def logBegin(

@@ -1,3 +1,4 @@
 extends: [mill.javalib.JavaModule]
 mvnDeps:
 - org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7

@@ -6,9 +6,9 @@ import utest.*
 /** Makes sure that mill client launcher does not load scala classes. */
 object NoScalaInLauncherTests extends UtestIntegrationTestSuite {
   def doTest(bsp: Boolean): Unit = integrationTest { tester =>
-    import tester.prepEval
+    import tester.proc
 
-    val preppedEval = prepEval(
+    val preppedEval = proc(
       if (bsp) "--bsp" else "doesNotMatter",
       env = Map("JAVA_OPTS" -> "-verbose:class", "MILL_TEST_EXIT_AFTER_BSP_CHECK" -> "1")
     )

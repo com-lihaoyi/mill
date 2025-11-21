@@ -11,9 +11,7 @@ Many of the APIs covered here are listed in the API documentation:
 
 
 
-== Adding Ivy Dependencies
-
-include::partial$example/kotlinlib/dependencies/1-mvn-deps.adoc[]
+== Compile and Runtime Dependencies
 
 include::partial$example/kotlinlib/dependencies/2-run-compile-deps.adoc[]
 

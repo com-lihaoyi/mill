@@ -1,7 +1,7 @@
 package mill.javalib.internal
 
 import mill.api.daemon.internal.internal
-import mill.javalib.api.internal.JvmWorkerApi
+import mill.javalib.api.internal.InternalJvmWorkerApi
 
 @internal
 /**
@@ -19,5 +19,5 @@ case class JvmWorkerArgs(
 
 @internal
 trait JvmWorkerFactoryApi {
-  def make(args: JvmWorkerArgs): JvmWorkerApi
+  def make(args: JvmWorkerArgs): InternalJvmWorkerApi
 }

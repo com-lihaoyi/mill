@@ -134,8 +134,8 @@ class ExampleTester(
     Console.err.println(debugCommandStr)
     Console.err.println(
       s"""--- Expected output ----------
-         |${expectedSnippets.mkString("\n")}
-         |------------------------------""".stripMargin
+${expectedSnippets.mkString("\n")}
+------------------------------"""
     )
 
     val windowsPathEnv =
@@ -157,11 +157,7 @@ class ExampleTester(
 
       validateEval(
         expectedSnippets,
-        IntegrationTester.EvalResult(
-          res.exitCode,
-          fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
-          fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
-        ),
+        res,
         check,
         debugCommandStr
       )
@@ -179,13 +175,13 @@ class ExampleTester(
 
   def validateEval(
       expectedSnippets: Vector[String],
-      evalResult: IntegrationTester.EvalResult,
+      evalResult: os.CommandResult,
       check: Boolean = true,
       command: String = ""
   ): Unit = {
     if (check) {
-      if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
-      else assert(evalResult.isSuccess)
+      if (expectedSnippets.exists(_.startsWith("error: "))) assert(evalResult.exitCode != 0)
+      else assert(evalResult.exitCode == 0)
     }
 
     val unwrappedExpected = expectedSnippets
@@ -196,7 +192,7 @@ class ExampleTester(
       .mkString("\n")
 
     def plainTextLines(s: String) =
-      s
+      fansi.Str(s, fansi.ErrorMode.Strip).plainText
         .replace("\\\\", "/") // Convert windows paths in JSON strings to Unix
         .linesIterator
         // Don't bother checking empty lines
@@ -208,16 +204,16 @@ class ExampleTester(
         )
         .toVector
 
-    val filteredOut = plainTextLines(evalResult.out).mkString("\n")
+    val filteredOut = plainTextLines(evalResult.out.text()).mkString("\n")
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
       Predef.assert(
         filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
         (if (command == "") "" else s"==== command:\n$command\n") +
           s"""==== filteredOut:
-             |$filteredOut
-             |==== Missing expectedLine:
-             |$expectedLine""".stripMargin
+$filteredOut
+==== Missing expectedLine:
+$expectedLine"""
       )
     }
   }
@@ -237,7 +233,7 @@ class ExampleTester(
     val parsed = ExampleParser(workspaceSourcePath)
     val ignoreErrors = System.getenv("CI") != null &&
       os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
-    val usageComment = parsed.collect { case Chunk.Example(lines) =>
+    val usageComment = parsed.collect { case Chunk.Usage(lines) =>
       lines.mkString("\n")
     }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)

@@ -16,7 +16,7 @@ import java.io.*
  * [[streams]] are *not* synchronized, and instead goes into a [[PipeStreams]]
  * buffer to be read out and handled asynchronously.
  */
-private[mill] class PromptLogger(
+class PromptLogger(
     colored: Boolean,
     enableTicker: Boolean,
     infoColor: fansi.Attrs,
@@ -59,15 +59,15 @@ private[mill] class PromptLogger(
 
   private object runningState extends RunningState(
         enableTicker,
-        () => promptUpdaterThread.interrupt(),
+        () => promptUpdaterThread.foreach(_.interrupt()),
         clearOnPause = () => streamManager.refreshPrompt(),
         synchronizer = this
       )
 
   if (enableTicker) refreshPrompt()
 
-  val promptUpdaterThread = new Thread(
-    () => {
+  val promptUpdaterThread = Option.when(enableTicker && autoUpdate) {
+    mill.api.daemon.StartThread("prompt-logger-updater-thread") {
       var lastUpdate = System.currentTimeMillis()
       while (!runningState.stopped) {
         try Thread.sleep(promptUpdateIntervalMillis)
@@ -88,16 +88,13 @@ private[mill] class PromptLogger(
           }
         }
       }
-    },
-    "prompt-logger-updater-thread"
-  )
+    }
+  }
 
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
     val updated = promptLineState.updatePrompt(ending)
     if (updated || ending) streamManager.refreshPrompt()
   }
-
-  if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
   def info(s: String): Unit = streams.err.println(s)
 
@@ -107,15 +104,15 @@ private[mill] class PromptLogger(
 
   object prompt extends Logger.Prompt {
 
-    private[mill] def beginChromeProfileEntry(text: String): Unit = {
+    def beginChromeProfileEntry(text: String): Unit = {
       logBeginChromeProfileEntry(text, System.nanoTime())
     }
 
-    private[mill] def endChromeProfileEntry(): Unit = {
+    def endChromeProfileEntry(): Unit = {
       logEndChromeProfileEntry(System.nanoTime())
     }
 
-    override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
+    override def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
       chromeProfileLogger.logBegin(
         message,
         "job",
@@ -124,7 +121,7 @@ private[mill] class PromptLogger(
       )
     }
 
-    override private[mill] def logEndChromeProfileEntry(nanoTime: Long) = {
+    override def logEndChromeProfileEntry(nanoTime: Long) = {
       chromeProfileLogger.logEnd(
         nanoTime / 1000,
         threadNumberer.getThreadId(Thread.currentThread())
@@ -151,35 +148,120 @@ private[mill] class PromptLogger(
         promptLineState.setDetail(key, s)
       }
 
-    override def reportKey(key: Seq[String]): Unit = {
-      val res = PromptLogger.this.synchronized {
-        if (reportedIdentifiers(key)) None
-        else {
-          reportedIdentifiers.add(key)
-          seenIdentifiers.get(key)
+    // Make sure we preserve the end-of-line ANSI colors every time we write out the buffer, and
+    // re-apply them after every line prefix. This helps ensure the line prefix color/resets does
+    // not muck up the rendering of color sequences that affect multiple lines in the terminal
+    private var endOfLastLineColor: Long = 0
+    // Track whether we last printed an incomplete line, because if we did then next
+    // time a line is reported we shouldn't print the prefix
+    private var incompleteLine = false
+    val resetBytes = fansi.Color.Reset.escape.getBytes
+
+    override def logPrefixedLine(
+        key: Seq[String],
+        logMsg: ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit = {
+      val logStream = if (logToOut) streams.out else streams.err
+      if (enableTicker) {
+        val (lines, seenBefore, res) = PromptLogger.this.synchronized {
+          val lines0 = Util.splitPreserveEOL(logMsg.toByteArray)
+          val seenBefore = reportedIdentifiers(key)
+          val res =
+            if (reportedIdentifiers(key) && lines0.isEmpty) None
+            else {
+              reportedIdentifiers.add(key)
+              seenIdentifiers.get(key)
+            }
+
+          val lines = for (line <- lines0) yield {
+            val (lineNoEol, eol) = line.indexWhere(c => c == '\n' || c == '\r') match {
+              // Some lines may not have an EOL, in which case eol is empty string
+              case -1 => (line, Array.empty[Byte])
+              case eolIndex => line.splitAt(eolIndex)
+            }
+
+            val continuationColoredLine =
+              fansi.Attrs.emitAnsiCodes(0, endOfLastLineColor).getBytes ++ lineNoEol
+
+            // Make sure we add a suffix "x" to the `bufferString` before computing the last
+            // color. This ensures that any trailing colors in the original `bufferString` do not
+            // get ignored since they would affect zero characters.
+            val extendedString = fansi.Str.apply(
+              new String(continuationColoredLine) + "x",
+              fansi.ErrorMode.Sanitize
+            )
+
+            val endOfCurrentLineColor = extendedString.getColor(extendedString.length - 1)
+
+            endOfLastLineColor = endOfCurrentLineColor
+
+            if (endOfCurrentLineColor == 0) continuationColoredLine ++ eol
+            else continuationColoredLine ++ resetBytes ++ eol
+          }
+
+          (lines, seenBefore, res)
         }
-      }
-      for ((keySuffix, message) <- res) {
-        if (prompt.enableTicker) {
-          streams.err.println(
-            infoColor(s"[${key.mkString("-")}$keySuffix]${spaceNonEmpty(message)}")
-          )
-          streamManager.awaitPumperEmpty()
+
+        // Synchronize this whole block on the stream manager output pipe to avoid
+        // interleaving with other writes to the streams.
+        streamManager.pipe.output.synchronized {
+          for ((keySuffix, message) <- res) {
+            val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
+            val prefix = Logger.formatPrefix0(key)
+
+            def printPrefixed(prefix: String, line: Array[Byte]) = {
+              if (!incompleteLine) {
+                logStream.print(infoColor(prefix))
+                if (line.nonEmpty && prefix.nonEmpty) logStream.print(" ")
+              }
+              // Make sur we flush after each write, because we are possibly writing to stdout
+              // and stderr in quick succession so we want to try our best to ensure the order
+              // is preserved and doesn't get messed up by buffering in the streams
+              logStream.write(line)
+              logStream.flush()
+              incompleteLine = line.lastOption.exists(last => last != '\n' && last != '\r')
+            }
+
+            if (!seenBefore) {
+              lines match {
+                case Seq(firstLine, restLines*) =>
+                  val combineMessageAndLog =
+                    longPrefix.length + 1 + firstLine.length <
+                      termDimensions._1.getOrElse(defaultTermWidth)
+
+                  if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), firstLine)
+                  else {
+                    logStream.print(infoColor(longPrefix))
+                    logStream.print('\n')
+                    printPrefixed(infoColor(prefix), firstLine)
+                  }
+                  restLines.foreach(printPrefixed(infoColor(prefix), _))
+
+                case Seq() =>
+                  logStream.print(infoColor(longPrefix))
+                  logStream.print("\n")
+                  logStream.flush()
+              }
+            } else lines.foreach(printPrefixed(infoColor(prefix), _))
+          }
         }
-      }
+      } else streamManager.pipe.output.synchronized { logMsg.writeTo(logStream) }
+
+      streamManager.awaitPumperEmpty()
     }
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
         if (message != "") beginChromeProfileEntry(message)
-        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
+        promptLineState.setCurrent(key, Some(Logger.formatPrefix0(key) + spaceNonEmpty(message)))
         seenIdentifiers(key) = (keySuffix, message)
       }
 
-    private[mill] override def withPromptPaused[T](t: => T): T =
+    override def withPromptPaused[T](t: => T): T =
       runningState.withPromptPaused0(true, t)
 
-    private[mill] override def withPromptUnpaused[T](t: => T): T =
+    override def withPromptUnpaused[T](t: => T): T =
       runningState.withPromptPaused0(false, t)
 
     def enableTicker = PromptLogger.this.enableTicker
@@ -206,14 +288,13 @@ private[mill] class PromptLogger(
     // Has to be outside the synchronized block so it can allow the pumper thread
     // to continue pumping out the last data in the streams and terminate
     streamManager.close()
-
     synchronized {
       runningState.stop()
     }
 
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time to check running/paused status before exiting
-    promptUpdaterThread.join()
+    promptUpdaterThread.foreach(_.join())
     prompt.endChromeProfileEntry()
     chromeProfileLogger.close()
   }
@@ -221,7 +302,7 @@ private[mill] class PromptLogger(
   def streams = streamManager.proxySystemStreams
 }
 
-private[mill] object PromptLogger {
+object PromptLogger {
 
   /**
    * Manages the paused/unpaused/stopped state of the prompt logger. Encapsulate in a separate
@@ -288,7 +369,7 @@ private[mill] object PromptLogger {
     // print the prompt at the bottom
     val pipe = new PipeStreams()
     val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
-    val proxyErr: ProxyStream.Output = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
+    val proxyErr = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
     val proxySystemStreams = new SystemStreams(
       new PrintStream(proxyOut),
       new PrintStream(proxyErr),
@@ -388,6 +469,7 @@ private[mill] object PromptLogger {
         pipe.output,
         0 // exit code value is not used since this ProxyStream doesn't wrap a subprocess
       )
+
       pipe.output.close()
       pumperThread.join()
     }
@@ -437,7 +519,7 @@ private[mill] object PromptLogger {
         termHeight0.getOrElse(defaultTermHeight),
         now,
         startTimeMillis,
-        if (headerPrefix.isEmpty) "" else s"[$headerPrefix]",
+        if (headerPrefix.isEmpty) "" else s"$headerPrefix]",
         titleText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,

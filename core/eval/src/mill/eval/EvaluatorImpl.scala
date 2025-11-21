@@ -8,7 +8,7 @@ import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
-import mill.resolve.Resolve
+import mill.resolve.{ParseArgs, Resolve}
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -21,37 +21,41 @@ import mill.resolve.Resolve
  * As well as [[evaluate]] which does all of these phases one after another
  */
 
-final class EvaluatorImpl private[mill] (
-    private[mill] val allowPositionalCommandArgs: Boolean,
-    private[mill] val selectiveExecution: Boolean = false,
+final class EvaluatorImpl(
+    val allowPositionalCommandArgs: Boolean,
+    val selectiveExecution: Boolean,
     private val execution: Execution,
-    scriptModuleResolver: (String, String => Option[Module]) => Seq[Result[ExternalModule]]
+    override val scriptModuleInit: (
+        String,
+        Evaluator
+    ) => Seq[Result[ExternalModule]]
 ) extends Evaluator {
 
-  private[mill] def workspace = execution.workspace
-  private[mill] def baseLogger = execution.baseLogger
-  private[mill] def outPath = execution.outPath
-  private[mill] def codeSignatures = execution.codeSignatures
-  private[mill] def rootModule = execution.rootModule.asInstanceOf[RootModule0]
-  private[mill] def workerCache = execution.workerCache
-  private[mill] def env = execution.env
-  private[mill] def effectiveThreadCount = execution.effectiveThreadCount
-  override private[mill] def offline: Boolean = execution.offline
+  def this(allowPositionalCommandArgs: Boolean, selectiveExecution: Boolean, execution: Execution) =
+    this(
+      allowPositionalCommandArgs,
+      selectiveExecution,
+      execution,
+      new ScriptModuleInit()
+    )
+  override val staticBuildOverrides = execution.staticBuildOverrides
+
+  def workspace = execution.workspace
+  def baseLogger = execution.baseLogger
+  def outPath = execution.outPath
+  def codeSignatures = execution.codeSignatures
+  def rootModule = execution.rootModule.asInstanceOf[RootModule0]
+  def workerCache = execution.workerCache
+  def env = execution.env
+  def effectiveThreadCount = execution.effectiveThreadCount
+  override def offline: Boolean = execution.offline
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
-    scriptModuleResolver
+    scriptModuleInit
   )
-
-  override private[mill] def resolveScriptModuleDep(s: String): Option[mill.Module] = {
-    resolveModulesOrTasks(Seq(s), SelectMode.Multi)
-      .toOption
-      .toSeq
-      .flatten
-      .collectFirst { case Left(m) => m }
-  }
 
   /**
    * Takes query selector tokens and resolves them to a list of [[Segments]]
@@ -70,7 +74,7 @@ final class EvaluatorImpl private[mill] (
         selectMode = selectMode,
         allowPositionalCommandArgs = allowPositionalCommandArgs,
         resolveToModuleTasks = resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
+        scriptModuleResolver = scriptModuleInit(_, this)
       )
     }
   }
@@ -87,7 +91,7 @@ final class EvaluatorImpl private[mill] (
         selectMode = selectMode,
         allowPositionalCommandArgs = allowPositionalCommandArgs,
         resolveToModuleTasks = resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
+        scriptModuleResolver = scriptModuleInit(_, this)
       )
     }
   }
@@ -110,8 +114,64 @@ final class EvaluatorImpl private[mill] (
           selectMode = selectMode,
           allowPositionalCommandArgs = allowPositionalCommandArgs,
           resolveToModuleTasks = resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
+          scriptModuleResolver = scriptModuleInit(_, this)
         )
+      }.flatMap { f =>
+        val allModules = f.map(_.ctx.enclosingModule).distinct
+        val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
+        val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
+        val errors = allModules.flatMap { module =>
+          val discover = module match {
+            case x: ExternalModule => x.millDiscover
+            case _ => rootModule.millDiscover
+          }
+
+          val moduleTaskNames = discover
+            .resolveClassInfos(module.getClass)
+            .flatMap(_._2.declaredTaskNameSet)
+            .toSet
+
+          val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
+            val (prefix, taskSel) = k match {
+              case s"$script:$rest" => (Seq(Segment.Label(s"$script:")), rest)
+              case _ => (Nil, k)
+            }
+
+            val (None, Some(rest)) = ParseArgs.extractSegments(taskSel).get
+
+            Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
+              rest.last.value
+            }
+          }
+
+          val invalidBuildOverrides0 = moduleBuildOverrides.filter(!moduleTaskNames.contains(_))
+          val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
+
+          val invalidBuildOverrides =
+            if (
+              filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
+            ) {
+              invalidBuildOverrides0.filter(!_.startsWith("mill-"))
+            } else invalidBuildOverrides0
+
+          Option.when(invalidBuildOverrides.nonEmpty) {
+            val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
+
+            val invalidMillKeys = invalidBuildOverrides
+              .filter(_.startsWith("mill-"))
+              .map(pprint.Util.literalize(_))
+
+            val suffix =
+              if (invalidMillKeys.isEmpty) ""
+              else
+                s"\nNote that key ${invalidMillKeys.mkString(", ")} can only be used in your root `build.mill` or `build.mill.yaml` file"
+
+            s"invalid build config in `$filePath`: key $pretty does not override any task$suffix"
+          }
+        }
+
+        if (errors.isEmpty) Result.Success(f)
+        else Result.Failure(errors.mkString("\n"))
       }
     }
   }
@@ -129,7 +189,7 @@ final class EvaluatorImpl private[mill] (
           selectMode = selectMode,
           allowPositionalCommandArgs = allowPositionalCommandArgs,
           resolveToModuleTasks = resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
+          scriptModuleResolver = scriptModuleInit(_, this)
         )
       }
     }
@@ -171,7 +231,7 @@ final class EvaluatorImpl private[mill] (
       else {
         val (named, unnamed) =
           tasks.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
-        val newComputedMetadata = SelectiveExecutionImpl.Metadata.compute(this, named)
+        val newComputedMetadata = this.selective.computeMetadata(named)
 
         val selectiveExecutionStoredData = for {
           _ <- Option.when(os.exists(outPath / OutFiles.millSelectiveExecution))(())
@@ -204,15 +264,8 @@ final class EvaluatorImpl private[mill] (
       serialCommandExec = serialCommandExec
     )
 
-    val scriptHeaderWatches =
-      tasks
-        .collect { case n: mill.api.Task.Named[_] => n.ctx.enclosingModule.buildOverridePaths }
-        .flatten
-        .map(PathRef(_))
-        .map(p => Watchable.Path(p.path.toNIO, p.quick, p.sig))
-
     @scala.annotation.nowarn("msg=cannot be checked at runtime")
-    val evalWatches = (evaluated.transitiveResults.iterator ++ selectiveResults)
+    val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
       .collect {
         case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
           ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
@@ -244,11 +297,21 @@ final class EvaluatorImpl private[mill] (
       .flatten
       .toSeq
 
-    val watched = evalWatches ++ scriptHeaderWatches
-
     maybeNewMetadata.foreach { newMetadata =>
-      val allInputHashes = newMetadata.inputHashes
-      this.selective.saveMetadata(SelectiveExecution.Metadata(allInputHashes, codeSignatures))
+      val enclosingModules = PlanImpl
+        .plan(tasks)
+        .transitive
+        .collect { case n: Task.Named[_] => n.ctx.enclosingModule }
+        .distinct
+
+      val scriptBuildOverrides = enclosingModules.flatMap(_.moduleDynamicBuildOverrides)
+
+      val allBuildOverrides = (staticBuildOverrides ++ scriptBuildOverrides)
+        .map { case (k, v) => (k, v.##) }
+
+      this.selective.saveMetadata(
+        SelectiveExecution.Metadata(newMetadata.inputHashes, codeSignatures, allBuildOverrides)
+      )
     }
 
     val errorStr = ExecutionResultsApi.formatFailing(evaluated)
@@ -287,17 +350,7 @@ final class EvaluatorImpl private[mill] (
     )
 
     val resolved = promptLineLogger.withPromptLine {
-      os.checker.withValue(ResolveChecker(workspace)) {
-        Evaluator.withCurrentEvaluator(this) {
-          Resolve.Tasks.resolve(
-            rootModule = rootModule,
-            scriptArgs = scriptArgs,
-            selectMode = selectMode,
-            allowPositionalCommandArgs = allowPositionalCommandArgs,
-            scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
-          )
-        }
-      }
+      resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs)
     }
     for (tasks <- resolved)
       yield execute(Seq.from(tasks), reporter = reporter, selectiveExecution = selectiveExecution)

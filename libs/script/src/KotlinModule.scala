@@ -3,6 +3,7 @@ package mill.script
 import mill.*
 import mill.api.ExternalModule
 import mill.api.Discover
+import mill.api.ScriptModule
 import mill.javalib.TestModule
 
 class KotlinModule(val scriptConfig: ScriptModule.Config) extends KotlinModule.Base {

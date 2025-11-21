@@ -11,8 +11,8 @@ to provide an easy-to-get-started experience writing Scala scripts.
 
 == Script Use Cases
 
-include::partial$example/scalalib/script/1-json-api-client.adoc[]
-include::partial$example/scalalib/script/2-html-scraper.adoc[]
+include::partial$example/scalalib/script/1-html-scraper.adoc[]
+include::partial$example/scalalib/script/2-json-api-client.adoc[]
 include::partial$example/scalalib/script/3-web-server.adoc[]
 include::partial$example/scalalib/script/4-database.adoc[]
 include::partial$example/scalalib/script/5-static-site.adoc[]
@@ -52,3 +52,5 @@ include::partial$example/scalalib/script/10-resources.adoc[]
 == Bundled Libraries
 
 include::partial$example/scalalib/script/11-raw.adoc[]
+
+include::partial$Script_Footer.adoc[]

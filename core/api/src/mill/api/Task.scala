@@ -2,8 +2,13 @@ package mill.api
 
 import mill.api.Logger
 import mill.api.Result
-import mill.api.daemon.internal.CompileProblemReporter
-import mill.api.daemon.internal.{NamedTaskApi, TaskApi, TestReporter}
+import mill.api.daemon.internal.{
+  CompileProblemReporter,
+  NamedTaskApi,
+  TaskApi,
+  TestReporter,
+  internal
+}
 import mill.api.internal.Applicative.Applyable
 import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.ReadWriter
@@ -289,55 +294,31 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
-  // The extra `(x: T) = null` parameter list is necessary to make type inference work
-  // right, ensuring that `T` is fully inferred before implicit resolution starts
-  def Literal[T](s: String)(using
-      x: T = null.asInstanceOf[T]
-  )(using li: LiteralImplicit[T]): Task.Simple[T] = {
-    assert(li.ctx != null, "Unable to resolve context")
-    assert(li.writer != null, "Unable to resolve JSON writer")
-    assert(li.reader != null, "Unable to resolve JSON reader")
-    new Task.Input[T](
-      (_, _) =>
-        PathRef
-          .currentOverrideModulePath
-          .withValue(li.ctx.enclosingModule.moduleCtx.millSourcePath) {
-            Result.Success(upickle.default.read[T](s)(using li.reader))
-          },
-      li.ctx,
-      li.writer,
-      None
-    )
+  @internal def notImplementedImpl[TaskT: Type](using quotes: Quotes): Expr[TaskT] = {
+    import scala.compiletime.summonInline
+    Type.of[TaskT] match {
+      case '[Task.Simple[t]] =>
+        Cacher.impl0('{
+          new NotImplemented[t](summonInline[ModuleCtx], summonInline[ReadWriter[t]])
+            .asInstanceOf[TaskT]
+        })
+    }
   }
 
-  class LiteralImplicit[T](
-      val reader: upickle.default.Reader[T],
-      val writer: upickle.default.Writer[T],
-      val ctx: ModuleCtx
-  )
-  object LiteralImplicit {
-    // Use a custom macro to perform the implicit lookup so we have more control over implicit
-    // resolution failures. In this case, we want to fall back to `null` if an implicit search
-    // fails so we can provide a good error message
-    implicit inline def create[T]: LiteralImplicit[T] = ${ createImpl[T] }
+  @internal class NotImplemented[T](val ctx0: ModuleCtx, rw: ReadWriter[T])
+      extends Task.Simple[T] {
 
-    private def createImpl[T: Type](using Quotes): Expr[LiteralImplicit[T]] = {
-      import quotes.reflect.*
-
-      def summonOrNull[U: Type]: Expr[U] = {
-        Implicits.search(TypeRepr.of[U]) match {
-          case s: ImplicitSearchSuccess => s.tree.asExprOf[U] // Use the found given
-          case _: ImplicitSearchFailure =>
-            '{ null.asInstanceOf[U] } // Includes both NoMatchingImplicits and AmbiguousImplicits
-        }
+    override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
+      (_, ctx) => {
+        val relPath = os.Path(ctx0.fileName).relativeTo(mill.api.BuildCtx.workspaceRoot)
+        Result.Failure(s"configuration missing in $relPath")
       }
 
-      val readerExpr = summonOrNull[upickle.default.Reader[T]]
-      val writerExpr = summonOrNull[upickle.default.Writer[T]]
-      val ctxExpr = summonOrNull[ModuleCtx]
+    def isPrivate = None
 
-      '{ new LiteralImplicit[T]($readerExpr, $writerExpr, $ctxExpr) }
-    }
+    val inputs = Nil
+
+    override def readWriterOpt = Some(rw)
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -661,7 +642,18 @@ object Task {
     )(t: Expr[Result[T]])(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Worker[T]] = {
+      import quotes.reflect.*
+
       assertTaskShapeOwner("Task.Worker", 0)
+
+      // Warn if T does not extend AutoCloseable
+      if (!(TypeRepr.of[T] <:< TypeRepr.of[AutoCloseable])) {
+        report.warning(
+          s"Task.Worker body type ${TypeRepr.of[T].show} does not extend AutoCloseable. " +
+            "Workers should implement AutoCloseable to properly clean up resources when invalidated."
+        )
+      }
+
       val expr = appImpl[Worker, T](
         (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
         t

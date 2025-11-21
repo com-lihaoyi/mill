@@ -3,7 +3,7 @@ package mill.internal
 import java.io.Writer
 
 // Reference https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
-private[mill] class AnsiNav(output: Writer) {
+class AnsiNav(output: Writer) {
   def control(n: Int, c: Char): Unit = output.write(AnsiNav.control(n, c))
 
   /**
@@ -45,7 +45,7 @@ private[mill] class AnsiNav(output: Writer) {
   def clearLine(n: Int): Unit = output.write(AnsiNav.clearLine(n))
 }
 
-private[mill] object AnsiNav {
+object AnsiNav {
   def control(n: Int, c: Char): String = "\u001b[" + n + c
   def up(n: Int): String = if (n != 0) control(n, 'A') else ""
   def down(n: Int): String = if (n != 0) control(n, 'B') else ""
