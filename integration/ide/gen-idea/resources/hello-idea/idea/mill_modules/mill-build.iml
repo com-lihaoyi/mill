@@ -92,7 +92,7 @@
         <orderEntry type="library" scope="RUNTIME" name="plexus-container-default-2.1.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-io-3.5.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-utils-4.0.1.jar" level="project"/>
-        <orderEntry type="library" name="pprint_3-0.9.3.jar" level="project"/>
+        <orderEntry type="library" name="pprint_3-0.9.5.jar" level="project"/>
         <orderEntry type="library" name="requests_3-0.9.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="scala-collection-compat_2.13-2.13.0.jar" level="project"/>
         <orderEntry type="library" name="scala-collection-compat_3-2.12.0.jar" level="project"/>

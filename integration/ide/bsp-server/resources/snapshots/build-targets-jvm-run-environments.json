@@ -244,7 +244,7 @@
       },
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.3/pprint_3-0.9.3.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.5/pprint_3-0.9.5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.1/upickle_3-4.4.1.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0.jar",
@@ -367,7 +367,7 @@
       },
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.3/pprint_3-0.9.3.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.5/pprint_3-0.9.5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.1/upickle_3-4.4.1.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0.jar",
