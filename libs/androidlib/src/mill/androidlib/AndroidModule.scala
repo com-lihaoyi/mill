@@ -192,20 +192,6 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
-   * Gets all the direct compiled android resources (typically in res/ directory)
-   * from the [[moduleDepsChecked]]
-   * @return a sequence of PathRef to the compiled resources
-   */
-  def androidDirectCompiledResources: T[Seq[PathRef]] = Task {
-    Task.traverse(moduleDepsChecked) {
-      case m: AndroidModule =>
-        m.androidCompiledModuleResources
-      case _ =>
-        Task.Anon(Seq.empty)
-    }().flatten.distinct
-  }
-
-  /**
    * The transitive module dependencies of this module.
    * This does not include direct dependencies, meaning
    * these are only the dependencies of the dependencies.
@@ -686,32 +672,6 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
-   * If true, only direct module dependencies will be used to
-   * compile android resources for R class generation.
-   * Corresponds to `android.nonTransitiveRClass` in Gradle, but
-   * it's not yet fully supported in Mill. Enable with care.
-   *
-   * Default is false.
-   *
-   * When overridden, make sure to override all modules
-   * in the project to have consistent behavior.
-   */
-  def androidNonTransitiveRClass: Boolean = false
-
-  /**
-   * Gets the [[androidCompiledModuleResources]] from
-   * from dependencies based on
-   * [[androidNonTransitiveRClass]] setting.
-   * @return
-   */
-  def androidDepCompiledResources: T[Seq[PathRef]] =
-    androidNonTransitiveRClass match {
-      case true => Task { androidDirectCompiledResources() }
-      case false =>
-        Task { androidDirectCompiledResources() ++ androidTransitiveCompiledResources() }
-    }
-
-  /**
    * Gets all the android resources from this module,
    * compiles them into flata files and collects
    * compiled resources from dependencies.
@@ -750,7 +710,7 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidLinkedResources: T[PathRef] = Task {
     val compiledLibResDir = androidCompiledLibResources().path
-    val moduleResDirs = (androidCompiledModuleResources() ++ androidDepCompiledResources())
+    val moduleResDirs = (androidCompiledModuleResources() ++ androidTransitiveCompiledResources())
       .map(_.path)
 
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
