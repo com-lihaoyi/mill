@@ -688,14 +688,15 @@ trait AndroidModule extends JavaModule { outer =>
   /**
    * If true, only direct module dependencies will be used to
    * compile android resources for R class generation.
-   * Corresponds to `android.nonTransitiveRClass` in Gradle.
+   * Corresponds to `android.nonTransitiveRClass` in Gradle, but
+   * it's not yet fully supported in Mill. Enable with care.
    *
-   * Default is true.
+   * Default is false.
    *
    * When overridden, make sure to override all modules
    * in the project to have consistent behavior.
    */
-  def androidNonTransitiveRClass: Boolean = true
+  def androidNonTransitiveRClass: Boolean = false
 
   /**
    * Gets the [[androidCompiledModuleResources]] from
