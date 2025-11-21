@@ -172,9 +172,6 @@ object app extends AndroidAppKotlinModule {
 
 */
 
-
-
-
 // To create a release apk and run it, you can use the configured release submodule.
 // Every AndroidAppModule can be configured with its own emulator, so you can easily
 // avoid signature mismatches between debug and release as follows.
