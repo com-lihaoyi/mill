@@ -1,8 +1,10 @@
-package mill.script
+package mill.api
+
 import mill.*
 import mill.api.{ExternalModule, ModuleCtx}
 import mill.api.daemon.Segments
 import mill.api.ModuleCtx.HeaderData
+@experimental
 trait ScriptModule extends ExternalModule {
   override def moduleCtx: ModuleCtx = super.moduleCtx
     .withFileName(scriptConfig.scriptFile.toString)
@@ -16,20 +18,20 @@ trait ScriptModule extends ExternalModule {
   private def relativeScriptFilePath =
     scriptConfig.scriptFile.subRelativeTo(mill.api.BuildCtx.workspaceRoot)
 
-  override def moduleSegments: Segments = Segments.labels(s"./$relativeScriptFilePath")
+  override def moduleSegments: Segments = Segments.labels(relativeScriptFilePath.toString + ":")
 
   private[mill] override def moduleDynamicBuildOverrides = scriptConfig
     .headerData
     .rest
     .map { case (k, v) => ((moduleSegments ++ mill.api.Segment.Label(k)).render, v) }
 }
-
+@experimental
 object ScriptModule {
   case class Config(
       scriptFile: os.Path,
-      moduleDeps: Seq[mill.Module],
-      compileModuleDeps: Seq[mill.Module],
-      runModuleDeps: Seq[mill.Module],
+      moduleDeps: Seq[mill.api.Module],
+      compileModuleDeps: Seq[mill.api.Module],
+      runModuleDeps: Seq[mill.api.Module],
       headerData: HeaderData
   )
 

@@ -1,0 +1,37 @@
+//
+// Scala nightly versions are published to https://repo.scala-lang.org/artifactory/maven-nightlies.
+// If you want to build against a Scala nightly version, you need to add the
+// Maven repository to your configuration.
+// For convenience, we have a constant defined under
+// {mill-doc-url}/api/latest/mill/javalib/CoursierModule$$KnownRepositories$.html#ScalaLangNightlies-0[`CoursierModule.KnownRepositories.ScalaLangNightlies`].
+//
+// Since you want to change the Scala tool chain, which is provided by the `JvmWorkerModule`,
+// you also need to configure the repository in a dedicated `JvmWorker` instannce.
+//
+package build
+
+import mill.*
+import mill.api.*
+import mill.scalalib.*
+
+object JvmWorker extends JvmWorkerModule {
+  override def repositories =
+    super.repositories() ++ Seq(CoursierModule.KnownRepositories.ScalaLangNightlies)
+}
+
+object foo extends ScalaModule {
+  override def jvmWorker: ModuleRef[JvmWorkerModule] = ModuleRef(JvmWorker)
+  override def repositories =
+    super.repositories() ++ Seq(CoursierModule.KnownRepositories.ScalaLangNightlies)
+  override def scalaVersion = "3.8.0-RC1-bin-20250825-ee2f641-NIGHTLY"
+  override def mvnDeps = Seq(
+    mvn"org.scala-lang.modules::scala-xml:2.4.0"
+  )
+}
+
+/** Usage
+
+> mill foo.run You
+Hello You!
+
+*/

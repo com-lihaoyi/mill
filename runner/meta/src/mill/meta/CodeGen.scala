@@ -100,10 +100,11 @@ object CodeGen {
             onProperty: (String, ujson.Value) => T,
             onNestedObject: (String, HeaderData) => T
         ): Seq[T] = {
-          for ((kString, v) <- data.rest.toSeq if !kString.startsWith("mill-"))
+          for ((kString, v) <- data.rest.toSeq)
             yield kString.split(" +") match {
               case Array(k) => onProperty(k, v)
               case Array("object", k) => onNestedObject(k, upickle.read[HeaderData](v))
+              case _ => sys.error("Invalid key: " + kString)
             }
         }
 
@@ -164,8 +165,8 @@ object CodeGen {
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
-              s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[_]]"
-            else " extends AutoOverride[_root_.mill.T[_]]"
+              s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[?]]"
+            else " extends AutoOverride[_root_.mill.T[?]]"
 
           val allSnippets = Seq(
             moduleDepsSnippet,

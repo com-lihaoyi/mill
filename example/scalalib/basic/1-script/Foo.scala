@@ -1,6 +1,6 @@
 //| jvmId: 11.0.28
 //| mvnDeps:
-//| - "com.lihaoyi::scalatags:0.13.1"
+//| - com.lihaoyi::scalatags:0.13.1
 import scalatags.Text.all.*
 
 def generateHtml(text: String) = {

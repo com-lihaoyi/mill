@@ -2,9 +2,9 @@ package mill.internal
 
 import mill.api.{Logger, SystemStreams}
 
-import java.io.{InputStream, PrintStream}
+import java.io.{InputStream, PrintStream, ByteArrayOutputStream}
 
-private[mill] class MultiLogger(
+class MultiLogger(
     val logger1: Logger,
     val logger2: Logger,
     val inStream0: InputStream
@@ -16,7 +16,7 @@ private[mill] class MultiLogger(
     inStream0
   )
 
-  private[mill] override lazy val unprefixedStreams: SystemStreams = new SystemStreams(
+  override lazy val unprefixedStreams: SystemStreams = new SystemStreams(
     new MultiStream(logger1.unprefixedStreams.out, logger2.unprefixedStreams.out),
     new MultiStream(logger1.unprefixedStreams.err, logger2.unprefixedStreams.err),
     inStream0
@@ -46,7 +46,7 @@ private[mill] class MultiLogger(
       logger2.prompt.setPromptDetail(key, s)
     }
 
-    private[mill] override def setPromptLine(
+    override def setPromptLine(
         key: Seq[String],
         keySuffix: String,
         message: String
@@ -55,31 +55,35 @@ private[mill] class MultiLogger(
       logger2.prompt.setPromptLine(key, keySuffix, message)
     }
 
-    private[mill] override def reportKey(key: Seq[String]): Unit = {
-      logger1.prompt.reportKey(key)
-      logger2.prompt.reportKey(key)
+    override def logPrefixedLine(
+        key: Seq[String],
+        logMsg: ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit = {
+      logger1.prompt.logPrefixedLine(key, logMsg, logToOut)
+      logger2.prompt.logPrefixedLine(key, logMsg, logToOut)
     }
 
-    private[mill] override def clearPromptStatuses(): Unit = {
+    override def clearPromptStatuses(): Unit = {
       logger1.prompt.clearPromptStatuses()
       logger2.prompt.clearPromptStatuses()
     }
 
-    private[mill] override def removePromptLine(key: Seq[String], message: String): Unit = {
+    override def removePromptLine(key: Seq[String], message: String): Unit = {
       logger1.prompt.removePromptLine(key, message)
       logger2.prompt.removePromptLine(key, message)
     }
 
-    private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
+    override def setPromptHeaderPrefix(s: String): Unit = {
       logger1.prompt.setPromptHeaderPrefix(s)
       logger2.prompt.setPromptHeaderPrefix(s)
     }
 
-    private[mill] override def withPromptPaused[T](t: => T): T = {
+    override def withPromptPaused[T](t: => T): T = {
       logger1.prompt.withPromptPaused(logger2.prompt.withPromptPaused(t))
     }
 
-    private[mill] override def withPromptUnpaused[T](t: => T): T = {
+    override def withPromptUnpaused[T](t: => T): T = {
       logger1.prompt.withPromptUnpaused(logger2.prompt.withPromptUnpaused(t))
     }
 
@@ -95,22 +99,22 @@ private[mill] class MultiLogger(
       logger1.prompt.errorColor(logger2.prompt.errorColor(s))
     override def colored: Boolean = logger1.prompt.colored || logger2.prompt.colored
 
-    override private[mill] def beginChromeProfileEntry(text: String): Unit = {
+    override def beginChromeProfileEntry(text: String): Unit = {
       logger1.prompt.beginChromeProfileEntry(text)
       logger2.prompt.beginChromeProfileEntry(text)
     }
 
-    override private[mill] def endChromeProfileEntry(): Unit = {
+    override def endChromeProfileEntry(): Unit = {
       logger1.prompt.endChromeProfileEntry()
       logger2.prompt.endChromeProfileEntry()
     }
 
-    override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
+    override def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
       logger1.prompt.logBeginChromeProfileEntry(message, nanoTime)
       logger2.prompt.logBeginChromeProfileEntry(message, nanoTime)
     }
 
-    override private[mill] def logEndChromeProfileEntry(nanoTime: Long) = {
+    override def logEndChromeProfileEntry(nanoTime: Long) = {
       logger1.prompt.logEndChromeProfileEntry(nanoTime)
       logger2.prompt.logEndChromeProfileEntry(nanoTime)
     }
@@ -120,12 +124,18 @@ private[mill] class MultiLogger(
     logger2.debug(s)
   }
 
-  private[mill] override def logKey = logger1.logKey ++ logger2.logKey
+  override def logKey = logger1.logKey ++ logger2.logKey
 
-  private[mill] override def message = logger1.message ++ logger2.message
+  override def message = logger1.message ++ logger2.message
 
-  private[mill] override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
+  override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
+  override def redirectOutToErr: Boolean = logger1.redirectOutToErr || logger1.redirectOutToErr
+  override def withRedirectOutToErr() = new MultiLogger(
+    logger1.withRedirectOutToErr(),
+    logger2.withRedirectOutToErr(),
+    inStream0
+  )
   override def withOutStream(outStream: PrintStream): Logger = {
     new MultiLogger(
       logger1.withOutStream(outStream),

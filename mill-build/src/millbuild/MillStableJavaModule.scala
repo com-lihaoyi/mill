@@ -16,6 +16,7 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.api.internal.Resolved*"),
     ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
     ProblemFilter.exclude[Problem]("mill.util.Timed*"),
+    ProblemFilter.exclude[Problem]("mill.javalib.bsp.BspRunModule*"),
     // internal stuff
     ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),
     ProblemFilter.exclude[Problem]("mill.javalib.internal.*")

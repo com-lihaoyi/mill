@@ -4,7 +4,7 @@ import mill.api.{SystemStreams, Logger}
 
 import java.io.PrintStream
 
-private[mill] class SimpleLogger(
+class SimpleLogger(
     override val unprefixedStreams: SystemStreams,
     override val logKey: Seq[String],
     debugEnabled: Boolean
@@ -13,11 +13,7 @@ private[mill] class SimpleLogger(
 
   private val linePrefix: String = Logger.formatPrefix(logKey)
   private def prefixPrintStream(stream: java.io.OutputStream) = {
-    new PrintStream(new LinePrefixOutputStream(
-      linePrefix,
-      stream,
-      () => ()
-    ))
+    new PrintStream(new LineBufferingOutputStream(s => stream.write((linePrefix + s).getBytes)))
   }
 
   val streams = new SystemStreams(
@@ -38,6 +34,17 @@ private[mill] class SimpleLogger(
     unprefixedStreams.err.println(s)
 
   val prompt = new Logger.Prompt.NoOp {
+    override def logPrefixedLine(
+        key: Seq[String],
+        logMsg: java.io.ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit = {
+      if (logMsg.size() != 0) {
+        val bytes = Logger.formatPrefix(key).getBytes ++ logMsg.toByteArray
+        if (logToOut) unprefixedStreams.out.write(bytes)
+        else unprefixedStreams.err.write(bytes)
+      }
+    }
     override def enableTicker = true
   }
   def ticker(s: String): Unit = ()

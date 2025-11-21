@@ -1,7 +1,7 @@
 package mill.bsp.worker
 
 /** Used to handle edge cases for specific BSP clients. */
-private[mill] enum BspClientType {
+enum BspClientType {
 
   /** Intellij IDEA */
   case IntellijBSP

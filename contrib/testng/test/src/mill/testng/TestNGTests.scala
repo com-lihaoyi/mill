@@ -16,6 +16,7 @@ object TestNGTests extends TestSuite {
         Dep.millProjectModule("mill-contrib-testng", artifactSuffix = "")
       )
       override def mvnDeps = super.mvnDeps() ++ Seq(
+        // purposeful older TestNG version 6.11, to test compatibility
         mvn"org.testng:testng:6.11",
         mvn"de.tototec:de.tobiasroeser.lambdatest:0.8.0"
       )

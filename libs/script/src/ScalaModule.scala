@@ -1,6 +1,6 @@
 package mill.script
 import mill.*
-import mill.api.{Discover, ExternalModule, PathRef}
+import mill.api.{Discover, ExternalModule, PathRef, ScriptModule}
 import mill.javalib.{TestModule, DepSyntax, Dep}
 import mill.javalib.api.CompilationResult
 import mill.util.Jvm

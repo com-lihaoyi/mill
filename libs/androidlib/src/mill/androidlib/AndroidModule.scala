@@ -231,6 +231,18 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
+   * Gets all the android manifests from the direct module dependencies
+   */
+  def androidDirectModuleDepsManifests: T[Seq[PathRef]] = Task {
+    Task.traverse(moduleDepsChecked) {
+      case m: AndroidModule =>
+        Task.Anon(Seq(m.androidManifest()))
+      case _ =>
+        Task.Anon(Seq.empty)
+    }().flatten
+  }
+
+  /**
    * Gets all the android resources (typically in res/ directory)
    * from the library dependencies using [[androidUnpackArchives]]
    * @return
@@ -454,7 +466,7 @@ trait AndroidModule extends JavaModule { outer =>
     ModuleRef(AndroidManifestMerger)
 
   def androidMergeableManifests: Task[Seq[PathRef]] = Task {
-    androidUnpackArchives().flatMap(_.manifest)
+    androidUnpackRunArchives().flatMap(_.manifest) ++ androidDirectModuleDepsManifests()
   }
 
   def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
@@ -536,7 +548,8 @@ trait AndroidModule extends JavaModule { outer =>
         sources = androidLibsRClasses().map(_.path),
         compileClasspath = Seq.empty,
         javacOptions = jOpts.compiler,
-        incrementalCompilation = true
+        incrementalCompilation = true,
+        workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
       javaRuntimeOptions = jOpts.runtime,
@@ -810,7 +823,8 @@ trait AndroidModule extends JavaModule { outer =>
           sources = sources.map(_.path),
           compileClasspath = androidTransitiveLibRClasspath().map(_.path),
           javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
+          incrementalCompilation = zincIncrementalCompilation(),
+          workDir = Task.dest
         ),
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,

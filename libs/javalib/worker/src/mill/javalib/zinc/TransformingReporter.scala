@@ -96,9 +96,11 @@ private object TransformingReporter {
 
       val line0 = intValue(pos.line(), -1)
       val pointer0 = intValue(pos.pointer(), -1)
+      val shadedPath = shade(displayPath.toString)
+
       if line0 >= 0 && pointer0 >= 0 then
-        s"${shade(displayPath.toString)}:${shade(line0.toString)}:${shade((pointer0 + 1).toString)}"
-      else shade(displayPath.toString)
+        s"$shadedPath:${shade(line0.toString)}:${shade((pointer0 + 1).toString)}"
+      else shadedPath
     }
 
     val header = positionString
@@ -112,12 +114,17 @@ private object TransformingReporter {
       if (space.nonEmpty && pointer >= 0 && endCol >= 0) {
         // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
         // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
-        val codeSnippet0 = InterfaceUtil.jo2o(problem0.rendered())
+        val renderedLines = InterfaceUtil.jo2o(problem0.rendered())
           .iterator
           .flatMap(_.linesIterator)
+          .toList
+
+        // Just grab the first line from the dotty error code snippet, because dotty defaults to
+        // rendering entire expressions which can be arbitrarily large and spammy in the terminal
+        val codeSnippet0 = renderedLines
           .collectFirst {
-            case s"$pre |$rest" if fansi.Str(pre).plainText.forall(_.isDigit) =>
-              rest.drop(rest.indexOf('|'))
+            case s"$pre |$rest" if pre.nonEmpty && fansi.Str(pre).plainText.forall(_.isDigit) =>
+              rest
           }
         val codeSnippet =
           if (codeSnippet0.nonEmpty) codeSnippet0.mkString("\n")

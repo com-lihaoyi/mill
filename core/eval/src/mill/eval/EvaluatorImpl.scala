@@ -21,42 +21,41 @@ import mill.resolve.{ParseArgs, Resolve}
  * As well as [[evaluate]] which does all of these phases one after another
  */
 
-final class EvaluatorImpl private[mill] (
-    private[mill] val allowPositionalCommandArgs: Boolean,
-    private[mill] val selectiveExecution: Boolean = false,
+final class EvaluatorImpl(
+    val allowPositionalCommandArgs: Boolean,
+    val selectiveExecution: Boolean,
     private val execution: Execution,
-    private[mill] override val scriptModuleResolver: (
+    override val scriptModuleInit: (
         String,
-        String => Option[Module]
+        Evaluator
     ) => Seq[Result[ExternalModule]]
 ) extends Evaluator {
 
+  def this(allowPositionalCommandArgs: Boolean, selectiveExecution: Boolean, execution: Execution) =
+    this(
+      allowPositionalCommandArgs,
+      selectiveExecution,
+      execution,
+      new ScriptModuleInit()
+    )
   override val staticBuildOverrides = execution.staticBuildOverrides
 
-  private[mill] def workspace = execution.workspace
-  private[mill] def baseLogger = execution.baseLogger
-  private[mill] def outPath = execution.outPath
-  private[mill] def codeSignatures = execution.codeSignatures
-  private[mill] def rootModule = execution.rootModule.asInstanceOf[RootModule0]
-  private[mill] def workerCache = execution.workerCache
-  private[mill] def env = execution.env
-  private[mill] def effectiveThreadCount = execution.effectiveThreadCount
-  override private[mill] def offline: Boolean = execution.offline
+  def workspace = execution.workspace
+  def baseLogger = execution.baseLogger
+  def outPath = execution.outPath
+  def codeSignatures = execution.codeSignatures
+  def rootModule = execution.rootModule.asInstanceOf[RootModule0]
+  def workerCache = execution.workerCache
+  def env = execution.env
+  def effectiveThreadCount = execution.effectiveThreadCount
+  override def offline: Boolean = execution.offline
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
-    scriptModuleResolver
+    scriptModuleInit
   )
-
-  override private[mill] def resolveScriptModuleDep(s: String): Option[mill.Module] = {
-    resolveModulesOrTasks(Seq(s), SelectMode.Multi)
-      .toOption
-      .toSeq
-      .flatten
-      .collectFirst { case Left(m) => m }
-  }
 
   /**
    * Takes query selector tokens and resolves them to a list of [[Segments]]
@@ -75,7 +74,7 @@ final class EvaluatorImpl private[mill] (
         selectMode = selectMode,
         allowPositionalCommandArgs = allowPositionalCommandArgs,
         resolveToModuleTasks = resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
+        scriptModuleResolver = scriptModuleInit(_, this)
       )
     }
   }
@@ -92,7 +91,7 @@ final class EvaluatorImpl private[mill] (
         selectMode = selectMode,
         allowPositionalCommandArgs = allowPositionalCommandArgs,
         resolveToModuleTasks = resolveToModuleTasks,
-        scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
+        scriptModuleResolver = scriptModuleInit(_, this)
       )
     }
   }
@@ -115,13 +114,12 @@ final class EvaluatorImpl private[mill] (
           selectMode = selectMode,
           allowPositionalCommandArgs = allowPositionalCommandArgs,
           resolveToModuleTasks = resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
+          scriptModuleResolver = scriptModuleInit(_, this)
         )
       }.flatMap { f =>
         val allModules = f.map(_.ctx.enclosingModule).distinct
         val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
         val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
-
         val errors = allModules.flatMap { module =>
           val discover = module match {
             case x: ExternalModule => x.millDiscover
@@ -135,7 +133,7 @@ final class EvaluatorImpl private[mill] (
 
           val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
             val (prefix, taskSel) = k match {
-              case s"./$script:$rest" => (Seq(Segment.Label(s"./$script")), rest)
+              case s"$script:$rest" => (Seq(Segment.Label(s"$script:")), rest)
               case _ => (Nil, k)
             }
 
@@ -146,14 +144,29 @@ final class EvaluatorImpl private[mill] (
             }
           }
 
-          val invalidBuildOverrides = moduleBuildOverrides
-            .filter(!moduleTaskNames.contains(_))
-            .filter(!_.contains('-'))
+          val invalidBuildOverrides0 = moduleBuildOverrides.filter(!moduleTaskNames.contains(_))
+          val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
+
+          val invalidBuildOverrides =
+            if (
+              filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
+            ) {
+              invalidBuildOverrides0.filter(!_.startsWith("mill-"))
+            } else invalidBuildOverrides0
 
           Option.when(invalidBuildOverrides.nonEmpty) {
             val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-            val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
-            s"invalid build config in `$filePath`: key $pretty does not override any task"
+
+            val invalidMillKeys = invalidBuildOverrides
+              .filter(_.startsWith("mill-"))
+              .map(pprint.Util.literalize(_))
+
+            val suffix =
+              if (invalidMillKeys.isEmpty) ""
+              else
+                s"\nNote that key ${invalidMillKeys.mkString(", ")} can only be used in your root `build.mill` or `build.mill.yaml` file"
+
+            s"invalid build config in `$filePath`: key $pretty does not override any task$suffix"
           }
         }
 
@@ -176,7 +189,7 @@ final class EvaluatorImpl private[mill] (
           selectMode = selectMode,
           allowPositionalCommandArgs = allowPositionalCommandArgs,
           resolveToModuleTasks = resolveToModuleTasks,
-          scriptModuleResolver = scriptModuleResolver(_, resolveScriptModuleDep)
+          scriptModuleResolver = scriptModuleInit(_, this)
         )
       }
     }

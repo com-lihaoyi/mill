@@ -1,7 +1,7 @@
 //| extends: [mill.script.ScalaModule.Utest]
 //| moduleDeps: [./Foo.scala]
 //| mvnDeps:
-//| - "com.lihaoyi::utest:0.9.1"
+//| - com.lihaoyi::utest:0.9.1
 
 import utest.*
 

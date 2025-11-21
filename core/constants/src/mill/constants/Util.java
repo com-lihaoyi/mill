@@ -96,7 +96,7 @@ public class Util {
       String fileName = buildFile.getFileName().toString();
 
       // For .yaml files, return the entire file content as YAML
-      if (fileName.endsWith(".yaml") || fileName.endsWith(".yml")) {
+      if (fileName.endsWith(".yaml")) {
         return Files.readString(buildFile);
       }
 

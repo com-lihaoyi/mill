@@ -9,4 +9,5 @@ import millbuild.*
  */
 object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.core.api, build.libs.util, build.core.internal)
+  def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.script)
 }

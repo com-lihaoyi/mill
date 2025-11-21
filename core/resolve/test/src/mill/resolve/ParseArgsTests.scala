@@ -128,7 +128,7 @@ object ParseArgsTests extends TestSuite {
       test("externalSelector") - check(
         input = Seq("foo.bar/core.compile"),
         expectedSelectors = List(
-          Some(List(Label("foo"), Label("bar"))) -> List(Label("core"), Label("compile"))
+          Some(List(Label("foo.bar/"))) -> List(Label("core"), Label("compile"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = false
