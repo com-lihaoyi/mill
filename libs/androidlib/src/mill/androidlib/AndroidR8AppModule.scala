@@ -460,6 +460,9 @@ trait AndroidR8AppModule extends AndroidAppModule { outer =>
   trait AndroidR8ReleaseModule extends AndroidR8VariantModule {
     override def androidReleaseSettings: T[AndroidBuildTypeSettings] =
       outer.androidReleaseSettings()
+
+    override def androidApplicationId = outer.androidApplicationId
+    override def androidApplicationNamespace = outer.androidApplicationNamespace
   }
 
 }
