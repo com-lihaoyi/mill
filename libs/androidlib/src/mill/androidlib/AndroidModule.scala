@@ -208,7 +208,7 @@ trait AndroidModule extends JavaModule { outer =>
    * @return a sequence of PathRef to the compiled resources
    */
   def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
-    Task.traverse(androidTransitiveModuleDeps) {
+    Task.traverse(transitiveModuleRunModuleDeps) {
       case m: AndroidModule =>
         m.androidCompiledModuleResources
       case _ =>
