@@ -9,7 +9,7 @@ import mill.exec.{CodeSigUtils, Execution, PlanImpl}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
-private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
+class SelectiveExecutionImpl(evaluator: Evaluator)
     extends mill.api.SelectiveExecution {
 
   def computeHashCodeSignatures(

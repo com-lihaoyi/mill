@@ -21,11 +21,11 @@ import mill.resolve.{ParseArgs, Resolve}
  * As well as [[evaluate]] which does all of these phases one after another
  */
 
-final class EvaluatorImpl private[mill] (
-    private[mill] val allowPositionalCommandArgs: Boolean,
-    private[mill] val selectiveExecution: Boolean,
+final class EvaluatorImpl(
+    val allowPositionalCommandArgs: Boolean,
+    val selectiveExecution: Boolean,
     private val execution: Execution,
-    private[mill] override val scriptModuleInit: (
+    override val scriptModuleInit: (
         String,
         Evaluator
     ) => Seq[Result[ExternalModule]]
@@ -40,15 +40,15 @@ final class EvaluatorImpl private[mill] (
     )
   override val staticBuildOverrides = execution.staticBuildOverrides
 
-  private[mill] def workspace = execution.workspace
-  private[mill] def baseLogger = execution.baseLogger
-  private[mill] def outPath = execution.outPath
-  private[mill] def codeSignatures = execution.codeSignatures
-  private[mill] def rootModule = execution.rootModule.asInstanceOf[RootModule0]
-  private[mill] def workerCache = execution.workerCache
-  private[mill] def env = execution.env
-  private[mill] def effectiveThreadCount = execution.effectiveThreadCount
-  override private[mill] def offline: Boolean = execution.offline
+  def workspace = execution.workspace
+  def baseLogger = execution.baseLogger
+  def outPath = execution.outPath
+  def codeSignatures = execution.codeSignatures
+  def rootModule = execution.rootModule.asInstanceOf[RootModule0]
+  def workerCache = execution.workerCache
+  def env = execution.env
+  def effectiveThreadCount = execution.effectiveThreadCount
+  override def offline: Boolean = execution.offline
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,

@@ -10,7 +10,7 @@ import java.io.{ByteArrayOutputStream, OutputStream}
  * @param linePrefix The function to provide the prefix.
  * @param out The underlying output stream.
  */
-private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit)
+class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit)
     extends OutputStream {
 
   val buffer = new ByteArrayOutputStream()
