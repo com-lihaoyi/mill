@@ -9,11 +9,11 @@ object bar extends KotlinModule {
   )
 }
 
-
 object qux extends Cross[QuxModule](1, 2, 3)
 trait QuxModule extends KotlinModule, Cross.Module[Int] {
   def kotlinVersion = "1.9.24"
 }
+
 /** See Also: foo/package.mill.yaml */
 
 /** Usage

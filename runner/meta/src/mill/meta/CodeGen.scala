@@ -7,7 +7,7 @@ import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.ModuleCtx.HeaderData
-import mill.api.daemon.{Segment, Segments}
+import mill.api.daemon.Segment
 
 import scala.util.control.Breaks.*
 
@@ -150,17 +150,18 @@ object CodeGen {
           ).filter(_.nonEmpty)
 
           def parseRender(moduleDep: String) = {
-            mill.resolve.ParseArgs.extractSegments(moduleDep) match{
-              case Result.Failure(err) => sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + err)
+            mill.resolve.ParseArgs.extractSegments(moduleDep) match {
+              case Result.Failure(err) =>
+                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + err)
               case Result.Success((rootModulePrefix, taskSegments)) =>
                 val renderedSegments = taskSegments.value
-                  .map{
+                  .map {
                     case Segment.Label(s) => backtickWrap(s)
                     case Segment.Cross(vs) => "lookup(" + vs.map(literalize(_)).mkString(", ") + ")"
                   }
                   .mkString(".")
 
-                rootModulePrefix match{
+                rootModulePrefix match {
                   case "" => s"build.$renderedSegments"
                   case s"$externalModulePrefix/" => s"$externalModulePrefix.$renderedSegments"
                 }

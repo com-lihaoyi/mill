@@ -19,4 +19,3 @@ trait QuxModule extends JavaModule, Cross.Module[Int]
 <h1>hello</h1>
 
 */
-

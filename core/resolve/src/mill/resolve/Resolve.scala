@@ -505,7 +505,7 @@ trait Resolve[T] {
       rootModule: RootModule0,
       rootModulePrefix: String
   ): Result[RootModule0] = {
-    if (rootModulePrefix == "")Result.Success(rootModule)
+    if (rootModulePrefix == "") Result.Success(rootModule)
     else {
       for {
         moduleCls <-
@@ -515,7 +515,7 @@ trait Resolve[T] {
           catch {
             case _: ClassNotFoundException =>
               try Result.Success(rootModule.getClass.getClassLoader.loadClass(
-                rootModulePrefix.stripSuffix("/") + ".package$"
+                  rootModulePrefix.stripSuffix("/") + ".package$"
                 ))
               catch {
                 case _: ClassNotFoundException =>

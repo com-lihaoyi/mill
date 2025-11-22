@@ -16,7 +16,7 @@ object bar extends ScalaModule {
 }
 
 object qux extends Cross[QuxModule](1, 2, 3)
-trait QuxModule extends ScalaModule, Cross.Module[Int]{
+trait QuxModule extends ScalaModule, Cross.Module[Int] {
   def scalaVersion = "3.7.1"
 }
 

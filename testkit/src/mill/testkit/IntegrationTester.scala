@@ -1,6 +1,6 @@
 package mill.testkit
 
-import mill.api.{Cached, Segments, SelectMode}
+import mill.api.{Cached, SelectMode}
 import mill.constants.OutFiles
 import ujson.Value
 
@@ -286,7 +286,7 @@ object IntegrationTester {
 
         val (Seq((rootModulePrefix, taskSegments)), _) = res.get
 
-        val segments = rootModulePrefix match{
+        val segments = rootModulePrefix match {
           case "" => taskSegments.parts
           case s"$external/" => Seq(external) ++ taskSegments.parts
           case s"$script:" => Seq(script) ++ taskSegments.parts

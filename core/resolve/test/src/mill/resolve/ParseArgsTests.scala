@@ -99,7 +99,7 @@ object ParseArgsTests extends TestSuite {
           ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Separated): @unchecked
 
         assert(
-          selectors.map{case (k, v) => (k, v.value)} == expectedSelectors,
+          selectors.map { case (k, v) => (k, v.value) } == expectedSelectors,
           args == expectedArgs
         )
       }
@@ -223,7 +223,8 @@ object ParseArgsTests extends TestSuite {
           expectedSelectorArgPairs: Seq[(Seq[(String, Seq[Segment])], Seq[String])]
       ) = {
         val actual = (ParseArgs(input, selectMode): @unchecked).map {
-          case Result.Success((selectors, args)) => (selectors.map{case (k, v) => (k, v.value)}, args)
+          case Result.Success((selectors, args)) =>
+            (selectors.map { case (k, v) => (k, v.value) }, args)
         }
         assert(
           actual == expectedSelectorArgPairs
