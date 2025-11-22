@@ -83,7 +83,7 @@ private object ResolveCore {
   }
   def resolve(
       rootModule: RootModule0,
-      rootModuleSegments: Segments,
+      rootModulePrefix: String,
       remainingQuery: List[Segment],
       current: Resolved,
       querySoFar: Segments,
@@ -107,7 +107,7 @@ private object ResolveCore {
               } else {
                 resolve(
                   rootModule,
-                  rootModuleSegments,
+                  rootModulePrefix,
                   tail,
                   r,
                   querySoFar ++ Seq(head),
@@ -133,7 +133,7 @@ private object ResolveCore {
           else notFounds.size match {
             case 1 => notFounds.head
             case _ =>
-              notFoundResult(rootModule, rootModuleSegments, querySoFar, current, head, cache)
+              notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
           }
 
         }
@@ -143,11 +143,11 @@ private object ResolveCore {
             val resOrErr: mill.api.Result[Seq[Resolved]] = singleLabel match {
               case "__" =>
                 val self =
-                  Seq(Resolved.Module(rootModule, m.rootModuleSegments, m.taskSegments, m.cls))
+                  Seq(Resolved.Module(rootModule, m.rootModulePrefix, m.taskSegments, m.cls))
                 val transitiveOrErr =
                   resolveTransitiveChildren(
                     rootModule,
-                    rootModuleSegments,
+                    rootModulePrefix,
                     m.cls,
                     None,
                     current.taskSegments,
@@ -160,7 +160,7 @@ private object ResolveCore {
               case "_" =>
                 resolveDirectChildren(
                   rootModule,
-                  rootModuleSegments,
+                  rootModulePrefix,
                   m.cls,
                   None,
                   current.taskSegments,
@@ -170,11 +170,11 @@ private object ResolveCore {
               case pattern if pattern.startsWith("__:") =>
                 val typePattern = pattern.split(":").drop(1)
                 val self =
-                  Seq(Resolved.Module(rootModule, m.rootModuleSegments, m.taskSegments, m.cls))
+                  Seq(Resolved.Module(rootModule, m.rootModulePrefix, m.taskSegments, m.cls))
 
                 val transitiveOrErr = resolveTransitiveChildren(
                   rootModule,
-                  rootModuleSegments,
+                  rootModulePrefix,
                   m.cls,
                   None,
                   current.taskSegments,
@@ -194,7 +194,7 @@ private object ResolveCore {
                 val typePattern = pattern.split(":").drop(1)
                 resolveDirectChildren(
                   rootModule,
-                  rootModuleSegments,
+                  rootModulePrefix,
                   m.cls,
                   None,
                   current.taskSegments,
@@ -209,7 +209,7 @@ private object ResolveCore {
               case _ =>
                 resolveDirectChildren(
                   rootModule,
-                  rootModuleSegments,
+                  rootModulePrefix,
                   m.cls,
                   Some(singleLabel),
                   current.taskSegments,
@@ -226,7 +226,7 @@ private object ResolveCore {
             if (classOf[Cross[?]].isAssignableFrom(m.cls)) {
               instantiateModule(
                 rootModule,
-                rootModuleSegments,
+                rootModulePrefix,
                 current.taskSegments,
                 cache
               ).flatMap {
@@ -255,7 +255,7 @@ private object ResolveCore {
                       .map(m =>
                         Resolved.Module(
                           rootModule,
-                          rootModuleSegments,
+                          rootModulePrefix,
                           m.moduleSegments,
                           m.getClass
                         )
@@ -263,16 +263,16 @@ private object ResolveCore {
                   )
               }
 
-            } else notFoundResult(rootModule, rootModuleSegments, querySoFar, current, head, cache)
+            } else notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
 
-          case _ => notFoundResult(rootModule, rootModuleSegments, querySoFar, current, head, cache)
+          case _ => notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
         }
     }
   }
 
   def instantiateModule(
       rootModule: RootModule0,
-      rootModuleSegments: Segments,
+      rootModulePrefix: String,
       segments: Segments,
       cache: Cache
   ): mill.api.Result[Module] = cache.instantiatedModules.getOrElseUpdate(
@@ -282,7 +282,7 @@ private object ResolveCore {
           assert(s != "_", s)
           resolveDirectChildren0(
             rootModule,
-            rootModuleSegments,
+            rootModulePrefix,
             current.moduleSegments,
             current.getClass,
             Some(s),
@@ -315,7 +315,7 @@ private object ResolveCore {
 
   def resolveTransitiveChildren(
       rootModule: RootModule0,
-      rootModuleSegments: Segments,
+      rootModulePrefix: String,
       cls: Class[?],
       nameOpt: Option[String],
       taskSegments: Segments,
@@ -325,9 +325,9 @@ private object ResolveCore {
     if (seenModules.contains(cls)) mill.api.Result.Failure(cyclicModuleErrorMsg(taskSegments))
     else {
       val errOrDirect =
-        resolveDirectChildren(rootModule, rootModuleSegments, cls, nameOpt, taskSegments, cache)
+        resolveDirectChildren(rootModule, rootModulePrefix, cls, nameOpt, taskSegments, cache)
       val directTraverse =
-        resolveDirectChildren(rootModule, rootModuleSegments, cls, nameOpt, taskSegments, cache)
+        resolveDirectChildren(rootModule, rootModulePrefix, cls, nameOpt, taskSegments, cache)
 
       val errOrModules = directTraverse.map { modules =>
         modules.flatMap {
@@ -341,7 +341,7 @@ private object ResolveCore {
           modules.flatMap { m =>
             Some(resolveTransitiveChildren(
               rootModule,
-              rootModuleSegments,
+              rootModulePrefix,
               m.cls,
               nameOpt,
               m.taskSegments,
@@ -395,19 +395,19 @@ private object ResolveCore {
 
   def resolveDirectChildren(
       rootModule: RootModule0,
-      rootModuleSegments: Segments,
+      rootModulePrefix: String,
       cls: Class[?],
       nameOpt: Option[String],
       segments: Segments,
       cache: Cache
   ): mill.api.Result[Seq[Resolved]] = {
     val crossesOrErr = if (classOf[Cross[?]].isAssignableFrom(cls) && nameOpt.isEmpty) {
-      instantiateModule(rootModule, rootModuleSegments, segments, cache).map {
+      instantiateModule(rootModule, rootModulePrefix, segments, cache).map {
         case cross: Cross[_] =>
           for (item <- cross.items) yield {
             Resolved.Module(
               rootModule,
-              rootModuleSegments,
+              rootModulePrefix,
               segments ++ Segment.Cross(item.crossSegments),
               item.cls
             )
@@ -419,26 +419,26 @@ private object ResolveCore {
 
     def expandSegments(direct: Seq[(Resolved, Option[Module => mill.api.Result[Module]])]) = {
       direct.map {
-        case (Resolved.Module(rootModule, rootModuleSegments, s, cls), _) =>
-          Resolved.Module(rootModule, rootModuleSegments, segments ++ s, cls)
-        case (Resolved.NamedTask(rootModule, rootModuleSegments, s, enclosing), _) =>
-          Resolved.NamedTask(rootModule, rootModuleSegments, segments ++ s, enclosing)
-        case (Resolved.Command(rootModule, rootModuleSegments, s, enclosing), _) =>
-          Resolved.Command(rootModule, rootModuleSegments, segments ++ s, enclosing)
+        case (Resolved.Module(rootModule, rootModulePrefix, s, cls), _) =>
+          Resolved.Module(rootModule, rootModulePrefix, segments ++ s, cls)
+        case (Resolved.NamedTask(rootModule, rootModulePrefix, s, enclosing), _) =>
+          Resolved.NamedTask(rootModule, rootModulePrefix, segments ++ s, enclosing)
+        case (Resolved.Command(rootModule, rootModulePrefix, s, enclosing), _) =>
+          Resolved.Command(rootModule, rootModulePrefix, segments ++ s, enclosing)
       }
     }
 
     for {
       crosses <- crossesOrErr
       direct0 <-
-        resolveDirectChildren0(rootModule, rootModuleSegments, segments, cls, nameOpt, cache)
+        resolveDirectChildren0(rootModule, rootModulePrefix, segments, cls, nameOpt, cache)
       direct <- mill.api.Result.Success(expandSegments(direct0))
     } yield direct ++ crosses
   }
 
   def resolveDirectChildren0(
       rootModule: RootModule0,
-      rootModuleSegments: Segments,
+      rootModulePrefix: String,
       segments: Segments,
       cls: Class[?],
       nameOpt: Option[String],
@@ -449,7 +449,7 @@ private object ResolveCore {
     val modulesOrErr
         : mill.api.Result[Seq[(Resolved, Option[Module => mill.api.Result[Module]])]] = {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
-        instantiateModule(rootModule, rootModuleSegments, segments, cache).map {
+        instantiateModule(rootModule, rootModulePrefix, segments, cache).map {
           case m: DynamicModule =>
             m.moduleDirectChildren
               .filter(c => namePred(c.moduleSegments.last.value))
@@ -457,7 +457,7 @@ private object ResolveCore {
                 (
                   Resolved.Module(
                     rootModule,
-                    rootModuleSegments,
+                    rootModulePrefix,
                     Segments.labels(c.moduleSegments.last.value),
                     c.getClass
                   ),
@@ -473,7 +473,7 @@ private object ResolveCore {
               val resolved =
                 Resolved.Module(
                   rootModule,
-                  rootModuleSegments,
+                  rootModulePrefix,
                   Segments.labels(cache.decode(name)),
                   memberCls
                 )
@@ -490,7 +490,7 @@ private object ResolveCore {
       .map { m =>
         Resolved.NamedTask(
           rootModule,
-          rootModuleSegments,
+          rootModulePrefix,
           Segments.labels(cache.decode(m.getName)),
           cls
         ) ->
@@ -501,7 +501,7 @@ private object ResolveCore {
       .reflect(cls, classOf[Task.Command[?]], namePred, noParams = false, cache.getMethods)
       .map(m => cache.decode(m.getName))
       .map { name =>
-        Resolved.Command(rootModule, rootModuleSegments, Segments.labels(name), cls) -> None
+        Resolved.Command(rootModule, rootModulePrefix, Segments.labels(name), cls) -> None
       }
 
     modulesOrErr.map(_ ++ namedTasks ++ commands)
@@ -509,7 +509,7 @@ private object ResolveCore {
 
   def notFoundResult(
       rootModule: RootModule0,
-      rootModuleSegments: Segments,
+      rootModulePrefix: String,
       querySoFar: Segments,
       current: Resolved,
       next: Segment,
@@ -519,7 +519,7 @@ private object ResolveCore {
       case m: Resolved.Module =>
         resolveDirectChildren(
           rootModule,
-          rootModuleSegments,
+          rootModulePrefix,
           m.cls,
           None,
           current.taskSegments,

@@ -137,7 +137,7 @@ final class EvaluatorImpl(
               case _ => (Nil, k)
             }
 
-            val (None, Some(rest)) = ParseArgs.extractSegments(taskSel).get
+            val ("", rest) = ParseArgs.extractSegments(taskSel).get
 
             Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
               rest.last.value
