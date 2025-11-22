@@ -52,7 +52,9 @@ class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit)
   }
 
   override def flush(): Unit = synchronized {
-    writeOutBuffer()
+    // We ignore flushes, because we already flush on completed lines, and flushing
+    // incomplete lines can result in all sorts of confusing logs being printed
+    // writeOutBuffer()
   }
 
   override def close(): Unit = {
