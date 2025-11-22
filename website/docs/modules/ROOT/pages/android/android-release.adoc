@@ -5,10 +5,18 @@ By default, mill projects are considered in debug mode, so if your project is re
 
 The code snippets below should be added to your app object in the `build.mill` file.
 
-== 1. Disable debug mode
+== 1. Create a release submodule
+To create a release build of your Android application, you need to define a release submodule that extends:
+
+- `AndroidReleaseModule` for Java projects
+- `AndroidKotlinReleaseModule` for Kotlin projects
+
+Also extend with `AndroidNativeAppVariantModule` for NativeApp projects
+
+Example configuration:
 [source,scala]
 ----
-def androidIsDebug = Task { false }
+object release extends AndroidKotlinReleaseModule
 ----
 
 == 2. Configure signing information
@@ -33,7 +41,7 @@ If you don't have a keystore yet, you can create one using the `keytool` command
 ----
 
 == 3. (Optional) Enable ProGuard
-If you want to enable ProGuard for code shrinking and obfuscation, you can do so by first extending your app object with `AndroidR8AppModule`.
+If you want to enable ProGuard for code shrinking and obfuscation, you can do so by first extending your app object with `AndroidR8AppModule`, and your release submodule with `AndroidR8ReleaseModule`.
 You can then override the following methods.
 
 Example configuration:
@@ -53,6 +61,8 @@ def androidProjectProguardFiles = Task.Sources("proguard-rules.pro")
 def androidDefaultProguardFileNames = Task.Anon {
   Seq("proguard-android-optimize.txt")
 }
+
+object release extends AndroidKotlinReleaseModule, AndroidR8ReleaseModule
 ----
 
 == Some examples

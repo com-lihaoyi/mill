@@ -871,6 +871,38 @@ trait AndroidModule extends JavaModule { outer =>
     None
   }
 
+  trait AndroidVariantModule extends AndroidModule {
+    override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
+
+    override def androidMinSdk: T[Int] = outer.androidMinSdk()
+
+    override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
+
+    override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
+
+    override def androidManifest: T[PathRef] = outer.androidManifest()
+
+    override def moduleDir: os.Path = outer.moduleDir
+
+    override def androidNamespace: String = outer.androidNamespace
+
+    override def sources: T[Seq[PathRef]] = outer.sources()
+
+    override def androidResources: T[Seq[PathRef]] = outer.androidResources()
+
+    override def mvnDeps: T[Seq[Dep]] = outer.mvnDeps()
+
+    override def runMvnDeps: T[Seq[Dep]] = outer.runMvnDeps()
+
+    override def compileMvnDeps: T[Seq[Dep]] = outer.compileMvnDeps()
+
+    override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
+
+    override def bomMvnDeps: T[Seq[Dep]] = outer.bomMvnDeps()
+
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon(outer.repositoriesTask())
+  }
+
   trait AndroidTestModule extends JavaTests, AndroidModule {
 
     override def androidCompileSdk: T[Int] = outer.androidCompileSdk()

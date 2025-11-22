@@ -28,20 +28,10 @@ object app extends AndroidAppKotlinModule {
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
-  /**
-   * Configuration for ReleaseKey
-   * WARNING: Replace these default values with secure and private credentials before using in production.
-   * Never use these defaults in a production environment as they are not secure.
-   * This is just for testing purposes.
-   */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDeviceIdentifier: String = "kotlin-test"
   override def androidEmulatorPort: String = "5556"
 
-  override def androidIsDebug: T[Boolean] = Task { false }
+  override def androidIsDebug: T[Boolean] = Task { true }
 
   object test extends AndroidAppKotlinTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
@@ -55,7 +45,7 @@ object app extends AndroidAppKotlinModule {
     // configuration but the apk signature will not match
     // the app apk
     override def androidIsDebug: T[Boolean] = Task {
-      false
+      true
     }
 
     def mvnDeps = Seq(
@@ -64,6 +54,20 @@ object app extends AndroidAppKotlinModule {
       mvn"androidx.test.espresso:espresso-core:3.5.1",
       mvn"junit:junit:4.13.2"
     )
+  }
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  object release extends AndroidKotlinReleaseModule {
+    def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+    def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+    def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+    def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+    override def androidEmulatorPort = "5654"
   }
 }
 
@@ -117,7 +121,13 @@ object app extends AndroidAppKotlinModule {
 
 */
 
-// This command runs unit tests on your local environment.
+// The android tests (existing typically in androidTest directory, aka instrumented tests)
+// typically run on an android device.
+// The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
+// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
+// against the available AVD. The stopAndroidEmulator command stops the AVD and the
+// destroyAndroidVirtualDevice command destroys the AVD.
+// The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.
 
 /** Usage
 
@@ -162,10 +172,31 @@ object app extends AndroidAppKotlinModule {
 
 */
 
-// The android tests (existing typically in androidTest directory, aka instrumented tests)
-// typically run on an android device.
-// The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
-// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
-// against the available AVD. The stopAndroidEmulator command stops the AVD and the
-// destroyAndroidVirtualDevice command destroys the AVD.
-// The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.
+// To create a release apk and run it, you can use the configured release submodule.
+// Every AndroidAppModule can be configured with its own emulator, so you can easily
+// avoid signature mismatches between debug and release as follows.
+
+/** Usage
+
+> ./mill app.release.createAndroidVirtualDevice
+
+> ./mill show app.release.startAndroidEmulator
+
+> ./mill app.release.androidInstall
+
+> ./mill show app.release.androidRun --activity com.helloworld.app.MainActivity
+[
+  "Starting: Intent { cmp=com.helloworld.app/.MainActivity }",
+  "Status: ok",
+  "LaunchState: COLD",
+  "Activity: com.helloworld.app/.MainActivity",
+  "TotalTime: ...",
+  "WaitTime: ...",
+  "Complete"
+]
+
+> ./mill show app.release.stopAndroidEmulator
+
+> ./mill show app.release.deleteAndroidVirtualDevice
+
+*/
