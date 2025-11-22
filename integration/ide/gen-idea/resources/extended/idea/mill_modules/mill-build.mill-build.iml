@@ -61,7 +61,7 @@
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-core-internal-cli_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-core-internal_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-resolve_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib-databinding_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-daemon-client-SNAPSHOT.jar" level="project"/>

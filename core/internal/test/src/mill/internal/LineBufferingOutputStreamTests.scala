@@ -11,7 +11,7 @@ object LineBufferingOutputStreamTests extends TestSuite {
       val lpos =
         new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
       for (b <- "hello\nworld\n!".getBytes()) lpos.write(b)
-      lpos.flush()
+      lpos.close()
       assert(baos.toString == "PREFIXhello\nPREFIXworld\nPREFIX!")
     }
 
@@ -30,7 +30,7 @@ object LineBufferingOutputStreamTests extends TestSuite {
         new LineBufferingOutputStream(s => { baos.write("PREFIX".getBytes()); s.writeTo(baos) })
       val arr = "hello\nworld\n!".getBytes()
       lpos.write(arr)
-      lpos.flush()
+      lpos.close()
 
       assert(baos.toString == "PREFIXhello\nPREFIXworld\nPREFIX!")
     }
