@@ -22,6 +22,10 @@ include::partial$example/javalib/springboot/3-web-initializr.adoc[]
 
 include::partial$example/javalib/springboot/4-web-socket-initializr.adoc[]
 
+== Spring Boot with AOT processing and Native Image Support
+
+include::partial$example/javalib/springboot/5-native.adoc[]
+
 // Include this header in the entry page for the language-specific Spring Framework / Spring Boot page
 
 This page contains documentation and examples specific for Spring Framework and Spring Boot Projects.

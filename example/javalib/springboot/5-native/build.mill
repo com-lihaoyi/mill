@@ -1,0 +1,65 @@
+package build
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.spring.boot.SpringBootModule
+
+object `package` extends SpringBootModule, MavenModule {
+
+  override def springBootPlatformVersion = "3.5.7"
+
+  override def artifactName: T[String] = "spring-boot-native-demo"
+
+  object prod extends SpringBootOptimisedBuildModule, MavenModule
+
+  object native extends MavenModule, NativeSpringBootBuildModule {
+    def jvmId = "graalvm-community:23.0.1"
+  }
+
+  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-web")
+
+  object test extends SpringBootTestsModule, MavenTests, TestModule.Junit5 {
+
+    def mvnDeps =
+      Seq(mvn"org.springframework.boot:spring-boot-starter-test")
+  }
+}
+
+// This example demonstrates how to configure mill for a simple initializr project with GraalVM Native Support,
+// using https://start.spring.io/[https://start.spring.io/] by choosing:
+//
+//* Project: maven
+//* Language: Java
+//* Dependencies: Spring Web, GraalVM Native Support
+//
+// The structure of this project follows the MavenModule structure (i.e. the same structure
+// as generated from the initialzr tool).
+//
+// For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
+
+/** Usage
+
+> ./mill show native.nativeImage
+...out/native/nativeImage.dest/native-executable...
+
+> ./mill native.nativeRunBackground
+
+> curl http://localhost:8099/hello
+...Hello, World!...
+
+> curl http://localhost:8099/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean native.nativeRunBackground
+
+> ./mill prod.runBackground
+
+> curl http://localhost:8099/hello
+...Hello, World!...
+
+> curl http://localhost:8099/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean prod.runBackground
+
+*/
