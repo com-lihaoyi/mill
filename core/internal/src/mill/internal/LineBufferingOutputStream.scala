@@ -10,7 +10,7 @@ import java.io.{ByteArrayOutputStream, OutputStream}
  * @param linePrefix The function to provide the prefix.
  * @param out The underlying output stream.
  */
-private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit)
+class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit)
     extends OutputStream {
 
   val buffer = new ByteArrayOutputStream()
@@ -52,7 +52,9 @@ private[mill] class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStr
   }
 
   override def flush(): Unit = synchronized {
-    writeOutBuffer()
+    // We ignore flushes, because we already flush on completed lines, and flushing
+    // incomplete lines can result in all sorts of confusing logs being printed
+    // writeOutBuffer()
   }
 
   override def close(): Unit = {

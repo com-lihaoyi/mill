@@ -12,7 +12,7 @@ import scala.collection.mutable
  * Returns the forest as a [[Node]] structure with the top-level node containing
  * the roots of the forest
  */
-private[mill] object SpanningForest {
+object SpanningForest {
 
   def graphMapToIndices[T](
       vertices: Iterable[T],

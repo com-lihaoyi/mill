@@ -3,12 +3,16 @@ import mill._
 import mill.api.Evaluator
 
 def foo = Task { 1 }
-def cleanClientWrong(ev: Evaluator) = Task.Command {
-  clean(ev, "foo")()
+def cleanClientWrong = Task {
+  cleanClientRight()()
   println("cleanClientWrong done")
 }
 
-def cleanClientRight(ev: Evaluator) = Task.Command(exclusive = true) {
-  clean(ev, "foo")()
+def cleanClientRight() = Task.Command(exclusive = true) {
   println("cleanClientRight done")
+}
+
+def cleanClientDownstream() = Task.Command() {
+  cleanClientRight()()
+  println("cleanClientDownstream done")
 }

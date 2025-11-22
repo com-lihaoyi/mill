@@ -18,7 +18,7 @@ import java.io.PrintStream
  *
  * [$parentKeys-$key0] $message
  */
-private[mill] case class PrefixLogger(
+case class PrefixLogger(
     logger0: Logger,
     key0: Seq[String],
     override val keySuffix: String = "",
@@ -34,7 +34,7 @@ private[mill] case class PrefixLogger(
     case None => logger0.redirectOutToErr
     case Some(b) => b
   }
-  private[mill] override val logKey = logger0.logKey ++ key0
+  override val logKey = logger0.logKey ++ key0
 
   assert(key0.forall(_.nonEmpty))
   val linePrefix: String = Logger.formatPrefix(
@@ -55,7 +55,7 @@ private[mill] case class PrefixLogger(
     logger0.streams.in
   )
 
-  private[mill] override val unprefixedStreams = new SystemStreams(
+  override val unprefixedStreams = new SystemStreams(
     if (redirectOutToErr) logger0.unprefixedStreams.err else logger0.unprefixedStreams.out,
     logger0.unprefixedStreams.err,
     logger0.unprefixedStreams.in
