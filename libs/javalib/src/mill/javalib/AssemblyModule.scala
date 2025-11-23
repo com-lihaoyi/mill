@@ -150,7 +150,7 @@ trait AssemblyModule extends AssemblyModuleOfflineSupport {
   }
 }
 
-object AssemblyModule extends ExternalModule with CoursierModule with AssemblyModuleOfflineSupport {
+object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule {
 
   def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
