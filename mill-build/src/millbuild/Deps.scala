@@ -22,7 +22,7 @@ object Deps {
   val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.19.0"
+    val scalaJsVersion = "1.20.1"
     val scalajsEnvJsdomNodejs =
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
@@ -73,20 +73,20 @@ object Deps {
     override def scalaVersion: String = Deps.scala2Version
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.6"
+    val playVersion = "2.9.9"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.6"
+    val playVersion = "3.0.9"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.18"
-  val ammoniteVersion = "3.0.2"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.8"
+  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.20"
+  val ammoniteVersion = "3.0.4"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.9"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.181"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
   val coursierVersion = "2.1.25-M18"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
@@ -135,12 +135,12 @@ object Deps {
   val jnaPlatform = mvn"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
-  val commonsIo = mvn"commons-io:commons-io:2.18.0"
+  val commonsIo = mvn"commons-io:commons-io:2.21.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
   val osLibVersion = "0.11.5"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
-  val pprint = mvn"com.lihaoyi::pprint:0.9.3"
+  val pprint = mvn"com.lihaoyi::pprint:0.9.5"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.7"
   val millModuledefsVersion = "0.11.10"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
@@ -150,7 +150,8 @@ object Deps {
   val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
   val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
   // can't use newer versions, as these need higher Java versions
-  val testng = mvn"org.testng:testng:7.5.1"
+  val testng_lowerBound = mvn"org.testng:testng:7.5.1"
+  val testng = mvn"org.testng:testng:7.11.0"
   val sbtTestInterface = mvn"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
@@ -171,8 +172,8 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.9"
-  val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.1"
+  val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.11.1"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
@@ -190,7 +191,7 @@ object Deps {
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
-  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
+  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
@@ -215,7 +216,7 @@ object Deps {
       mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   }
 
-  val coursierJvmIndexVersion = "0.0.4-116-9b244a"
+  val coursierJvmIndexVersion = "0.0.4-125-77e06d"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
@@ -225,7 +226,7 @@ object Deps {
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
-  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.10"
+  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
@@ -294,7 +295,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.9.1"
+    val utest = mvn"com.lihaoyi::utest:0.9.2"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 

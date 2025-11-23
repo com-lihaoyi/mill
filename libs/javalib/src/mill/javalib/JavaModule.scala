@@ -37,6 +37,7 @@ import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
 import os.Path
 
+import java.io.File
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
@@ -94,6 +95,8 @@ trait JavaModule
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
+    override def annotationProcessorsJavacOptions: T[Opts] =
+      outer.annotationProcessorsJavacOptions()
     override def javacOptions = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
@@ -268,6 +271,39 @@ trait JavaModule
    * here if you'd like fancy artifact extensions to be fetched.
    */
   def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
+
+  /**
+   * The Java annotation processors to pass to the Java compilation in the form of
+   * mvn deps, e.g. mvn"org.projectlombok:lombok:1.18.34"
+   */
+  def annotationProcessorsMvnDeps: T[Seq[Dep]] = Task {
+    Seq.empty[Dep]
+  }
+
+  /**
+   * Resolves the Java annotation processor mvn deps [[annotationProcessorsMvnDeps]].
+   * By default, it passes the BOMs via [[allBomDeps]] to the resolution.
+   */
+  def annotationProcessorsResolvedMvnDeps: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      annotationProcessorsMvnDeps(),
+      boms = allBomDeps()
+    )
+  }
+
+  /**
+   * Constructs the -processorpath compiler flag using [[annotationProcessorsResolvedMvnDeps]]
+   */
+  def annotationProcessorsJavacOptions: T[Opts] = Task {
+    if (annotationProcessorsMvnDeps().nonEmpty)
+      Opts(
+        "-processorpath",
+        Opt.mkPath(annotationProcessorsResolvedMvnDeps(), sep = File.pathSeparator)
+      )
+    else
+      Seq.empty
+
+  }
 
   /**
    * Options to pass to the java compiler
@@ -872,7 +908,7 @@ trait JavaModule
     val jOpts = JavaCompilerOptions.split(Seq(
       "-s",
       compileGenSources.toString
-    ) ++ javacOptions().toStringSeq ++ mandatoryJavacOptions().toStringSeq)
+    ) ++ javacOptions().toStringSeq ++ mandatoryJavacOptions().toStringSeq ++ annotationProcessorsJavacOptions())
 
     val worker = jvmWorker().internalWorker()
 
@@ -882,7 +918,8 @@ trait JavaModule
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
         javacOptions = jOpts.compiler,
-        incrementalCompilation = zincIncrementalCompilation()
+        incrementalCompilation = zincIncrementalCompilation(),
+        workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
       javaRuntimeOptions = jOpts.runtime,
@@ -1566,6 +1603,8 @@ object JavaModule {
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
+    override def annotationProcessorsJavacOptions: T[Opts] =
+      outer.annotationProcessorsJavacOptions()
     override def javacOptions = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 

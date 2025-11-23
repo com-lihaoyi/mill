@@ -13,7 +13,7 @@ import scala.concurrent.*
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
-private[mill] case class Execution(
+case class Execution(
     baseLogger: Logger,
     profileLogger: JsonArrayLogger.Profile,
     workspace: os.Path,
@@ -31,6 +31,7 @@ private[mill] case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
+    buildOverrides0: Map[String, String],
     enableTicker: Boolean
 ) extends GroupExecution with AutoCloseable {
 
@@ -52,6 +53,7 @@ private[mill] case class Execution(
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
+      buildOverrides0: Map[String, String],
       enableTicker: Boolean
   ) = this(
     baseLogger,
@@ -71,6 +73,7 @@ private[mill] case class Execution(
     exclusiveSystemStreams,
     getEvaluator,
     offline,
+    buildOverrides0,
     enableTicker
   )
 
@@ -141,6 +144,16 @@ private[mill] case class Execution(
       def formatHeaderPrefix(countMsg: String, keySuffix: String) =
         s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
 
+      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
+      val downstreamEdges: Map[Task[?], Set[Task[?]]] =
+        tasksTransitive.flatMap(t => t.inputs.map(_ -> t)).groupMap(_._1)(_._2)
+
+      val allExclusiveCommands = tasksTransitive.filter(_.isExclusiveCommand)
+      val downstreamOfExclusive =
+        mill.internal.SpanningForest.breadthFirst[Task[?]](allExclusiveCommands)(t =>
+          downstreamEdges.getOrElse(t, Set())
+        )
+
       def evaluateTerminals(
           terminals: Seq[Task[?]],
           exclusive: Boolean
@@ -160,9 +173,9 @@ private[mill] case class Execution(
           val group = plan.sortedGroups.lookupKey(terminal)
           val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
 
-          if (!terminal.isExclusiveCommand && exclusiveDeps.nonEmpty) {
+          if (terminal.asCommand.isEmpty && downstreamOfExclusive.contains(terminal)) {
             val failure = ExecResult.Failure(
-              s"Non-exclusive task ${terminal} cannot depend on exclusive task " +
+              s"Non-Command task ${terminal} cannot depend on exclusive command " +
                 exclusiveDeps.mkString(", ")
             )
             val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
@@ -282,20 +295,14 @@ private[mill] case class Execution(
         terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       }
 
-      val tasks0 = indexToTerminal.filter {
-        case _: Task.Command[_] => false
-        case _ => true
-      }
-
-      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(tasks0)).toSet
-      val (tasks, leafExclusiveCommands) = indexToTerminal.partition {
-        case t: Task.Named[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
+      val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
+        case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
         case _ => !serialCommandExec
       }
 
       // Run all non-command tasks according to the threads
       // given but run the commands in linear order
-      val nonExclusiveResults = evaluateTerminals(tasks, exclusive = false)
+      val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
@@ -344,7 +351,7 @@ private[mill] case class Execution(
   }
 }
 
-private[mill] object Execution {
+object Execution {
 
   /**
    * Format a failed count as a string to be used in status messages.

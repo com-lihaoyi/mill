@@ -25,11 +25,15 @@ include::partial$example/kotlinlib/web/5-webapp-kotlinjs-shared.adoc[]
 
 == Spring Boot Hello World App
 
-This section was moved to the xref:kotlinlib/spring-boot.adoc#_spring_boot_hello_world_app[Spring Boot page].
+include::partial$example/kotlinlib/web/6-hello-spring-boot.adoc[]
 
 == Spring Boot TodoMvc App
 
-This section was moved to the xref:kotlinlib/spring-boot.adoc#_spring_boot_todomvc_app[Spring Boot page].
+include::partial$example/kotlinlib/web/7-todo-spring-boot.adoc[]
+
+== Micronaut App
+
+include::partial$example/kotlinlib/web/8-hello-micronaut.adoc[]
 
 
 

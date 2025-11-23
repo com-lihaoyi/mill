@@ -1,6 +1,6 @@
 package mill.testkit
 
-import mill.api.{Cached, Segments, SelectMode}
+import mill.api.{Cached, SelectMode}
 import mill.constants.OutFiles
 import ujson.Value
 
@@ -38,7 +38,11 @@ object IntegrationTester {
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
    */
-  case class EvalResult(exitCode: Int, out: String, err: String) {
+  case class EvalResult(result: os.CommandResult) {
+    def exitCode: Int = result.exitCode
+    private def cleanup(s: String) = fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
+    def out = cleanup(result.out.trim())
+    def err = cleanup(result.err.trim())
     def isSuccess: Boolean = exitCode == 0
 
     def debugString: String = {
@@ -154,11 +158,7 @@ object IntegrationTester {
           shutdownGracePeriod = timeoutGracePeriod
         )
 
-        IntegrationTester.EvalResult(
-          res0.exitCode,
-          fansi.Str(res0.out.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim,
-          fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
-        )
+        IntegrationTester.EvalResult(res0)
       }
       def spawn() = os.spawn(
         cmd = shellable,
@@ -282,12 +282,15 @@ object IntegrationTester {
        * Returns the raw text of the `.json` metadata file
        */
       def text: String = {
-        val Seq(res) =
-          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
+        val Seq(res) = mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
 
-        val (Seq(selector), _) = res.get
+        val (Seq((rootModulePrefix, taskSegments)), _) = res.get
 
-        val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
+        val segments = rootModulePrefix match {
+          case "" => taskSegments.parts
+          case s"$external/" => Seq(external) ++ taskSegments.parts
+          case s"$script:" => Seq(script) ++ taskSegments.parts
+        }
         os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
       }
 

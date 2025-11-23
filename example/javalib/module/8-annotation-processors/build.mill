@@ -28,24 +28,19 @@ Test foo.HelloWorldTest.testSimple finished...
 // classes available during compilation, e.g. in `compileMvnDeps` or `mvnDeps`,
 // which is what takes place in the example above.
 //
-// In some cases, you may need
-// to pass in the annotation processors manually, e.g. if you need annotation
-// processors that are not on the compilation classpath, or you need finer control
-// over exactly which annotation processors are active. To do this, you can define
-// a task to resolve the exact annotation processors you want, and pass
-// those to `-processorpath` to `javacOptions` explicitly:
+// However, in future versions of Javac, annotation processing may be disabled without explicitly
+// naming at least one processor or explicitly enabling processing.
+//
+// You may also need annotation processors that are not on the compilation classpath, or you need finer control
+// over exactly which annotation processors are active.
+//
+// Mill provides an easy way to add these processors via the annotationProcessorsMvnDeps
 
 object bar extends JavaModule {
   def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
 
-  def processors = Task {
-    defaultResolver().classpath(Seq(mvn"org.projectlombok:lombok:1.18.34"))
-  }
-
-  def javacOptions = Opts(
-    "-processorpath",
-    Opt.mkPath(processors().map(_.path), sep = File.pathSeparator)
-  )
+  override def annotationProcessorsMvnDeps =
+    Seq(mvn"org.projectlombok:lombok:1.18.34")
 
   object test extends JavaTests, TestModule.Junit4
 }

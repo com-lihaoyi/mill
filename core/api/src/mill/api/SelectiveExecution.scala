@@ -36,7 +36,12 @@ private[mill] trait SelectiveExecution {
   ): SelectiveExecution.Metadata.Computed
 }
 object SelectiveExecution {
-  case class Metadata(inputHashes: Map[String, Int], codeSignatures: Map[String, Int])
+
+  case class Metadata(
+      inputHashes: Map[String, Int],
+      codeSignatures: Map[String, Int],
+      @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map()
+  )
   object Metadata {
     case class Computed(
         metadata: Metadata,

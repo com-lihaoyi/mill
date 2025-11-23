@@ -1,6 +1,6 @@
 package mill.api.daemon
 
-import java.io.{ByteArrayInputStream, PrintStream}
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream, PrintStream}
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -75,8 +75,12 @@ trait Logger extends Logger.Actions {
 
   /**
    * Creates a new logger identical to this one but with stdout redirected
-   * to the given stream; typically used to redirect out to err in `mill show`
+   * to stderr; typically used to redirect out to err in `mill show`
    */
+  private[mill] def withRedirectOutToErr(): Logger = this
+  private[mill] def redirectOutToErr: Boolean = false
+
+  @deprecated
   def withOutStream(outStream: PrintStream): Logger = this
 
   /**
@@ -88,7 +92,11 @@ trait Logger extends Logger.Actions {
 }
 
 object Logger {
-  private[mill] def formatPrefix(s: Seq[String]) = if (s == Nil) "" else s"[${s.mkString("-")}] "
+  private[mill] def formatPrefix0(s: Seq[String], keySuffix: String = "") =
+    if (s == Nil) "" else s"${s.mkString("-")}$keySuffix]"
+
+  private[mill] def formatPrefix(s: Seq[String]) = if (s == Nil) "" else formatPrefix0(s) + " "
+
   object DummyLogger extends Logger {
     def colored = false
 
@@ -155,7 +163,11 @@ object Logger {
    */
   private[mill] trait Prompt {
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
-    private[mill] def reportKey(key: Seq[String]): Unit
+    private[mill] def logPrefixedLine(
+        key: Seq[String],
+        logMsg: ByteArrayOutputStream,
+        logToOut: Boolean
+    ): Unit
     private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit
     private[mill] def setPromptHeaderPrefix(s: String): Unit
     private[mill] def clearPromptStatuses(): Unit
@@ -181,7 +193,11 @@ object Logger {
   private[mill] object Prompt {
     class NoOp extends Prompt {
       private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ()
-      private[mill] def reportKey(key: Seq[String]): Unit = ()
+      private[mill] def logPrefixedLine(
+          key: Seq[String],
+          logMsg: ByteArrayOutputStream,
+          logToOut: Boolean
+      ): Unit = ()
       private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
         ()
       private[mill] def setPromptHeaderPrefix(s: String): Unit = ()

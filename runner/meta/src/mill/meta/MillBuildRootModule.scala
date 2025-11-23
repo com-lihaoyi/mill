@@ -11,7 +11,7 @@ import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
-import mill.api.daemon.internal.MillScalaParser
+import mill.api.daemon.internal.{MillBuildRootModuleApi, MillScalaParser}
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
@@ -27,7 +27,25 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 @internal
 trait MillBuildRootModule()(using
     rootModuleInfo: RootModule.Info
-) extends ScalaModule {
+) extends ScalaModule with MillBuildRootModuleApi {
+
+  def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
+
+  /**
+   * Default set of BSP ignores, meant to catch the common case of `.java`, `.scala`, or `.kt`
+   * files that definitely aren't scripts, but for some reason aren't recognized as being in
+   * a module's `def sources` task (e.g. maybe module import failed or something)
+   */
+  def bspScriptIgnoreDefault: T[Seq[String]] = Seq(
+    "**/src/",
+    "**/src-*/",
+    "**/resources/",
+    "**/out/",
+    "**/target/"
+  )
+
+  def bspScriptIgnore: T[Seq[String]] = Nil
+
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
     .relativeTo(rootModuleInfo.topLevelProjectRoot)
@@ -36,7 +54,7 @@ trait MillBuildRootModule()(using
     .mkString("/")
 
   override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  private[mill] override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
+  override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
@@ -75,7 +93,10 @@ trait MillBuildRootModule()(using
   }
 
   override def mandatoryMvnDeps = Task {
-    Seq(mvn"com.lihaoyi::mill-libs:${Versions.millVersion}") ++
+    Seq(
+      mvn"com.lihaoyi::mill-libs:${Versions.millVersion}",
+      mvn"com.lihaoyi::mill-runner-autooverride-api:${Versions.millVersion}"
+    ) ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
         mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
@@ -109,9 +130,11 @@ trait MillBuildRootModule()(using
    * The `wrapped` files aren't supposed to appear under [[generatedSources]] and [[allSources]],
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
    */
-  def generatedScriptSources: T[(wrapped: Seq[PathRef], support: Seq[PathRef])] = Task {
+  def generatedScriptSources
+      : T[(wrapped: Seq[PathRef], support: Seq[PathRef], resources: Seq[PathRef])] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
+    val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
@@ -121,20 +144,36 @@ trait MillBuildRootModule()(using
         parsed.seenScripts,
         wrapped,
         support,
+        resources,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
         MillScalaParser.current.value
       )
-      (wrapped = Seq(PathRef(wrapped)), support = Seq(PathRef(support)))
+      (
+        wrapped = Seq(PathRef(wrapped)),
+        support = Seq(PathRef(support)),
+        resources = Seq(PathRef(resources))
+      )
     }
   }
 
   def millBuildRootModuleResult = Task {
-    Tuple3(
-      runClasspath(),
-      compile().classes,
-      codeSignatures()
-    )
+    val staticBuildOverrides: Map[String, String] = generatedScriptSources()
+      .resources
+      .map(_.path)
+      .filter(os.exists(_))
+      .flatMap { root =>
+        os.walk(root)
+          .filter(_.last == "build-overrides.json")
+          .flatMap { p =>
+            upickle.read[Map[String, ujson.Value]](os.read(p)).map { case (k, v) =>
+              (p.relativeTo(root).segments.dropRight(1).map(s => s"$s.").mkString + k, v.toString)
+            }
+          }
+      }
+      .toMap
+
+    Tuple4(runClasspath(), compile().classes, codeSignatures(), staticBuildOverrides)
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
@@ -250,7 +289,11 @@ trait MillBuildRootModule()(using
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
+    // Somehow these sourcecode exclusions are necessary otherwise the
+    // SOURCECODE_ORIGINAL_FILE_PATH comments aren't handled properly
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+      .exclude("com.lihaoyi" -> "sourcecode_3"),
+    mvn"com.lihaoyi:::mill-runner-autooverride-plugin:${Versions.millVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
@@ -302,7 +345,8 @@ trait MillBuildRootModule()(using
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+        workDir = Task.dest
       ),
       javaHome = javaHome().map(_.path),
       javaRuntimeOptions = jOpts.runtime,
@@ -326,14 +370,6 @@ trait MillBuildRootModule()(using
   }
 
   def millDiscover: Discover
-
-  for (scriptSourcesPath <- scriptSourcesPaths.headOption) {
-    mill.internal.Util.validateBuildHeaderKeys(
-      buildOverrides.keySet,
-      millDiscover.allTaskNames,
-      scriptSourcesPath.subRelativeTo(BuildCtx.workspaceRoot)
-    )
-  }
 }
 
 object MillBuildRootModule {
@@ -372,9 +408,10 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule()(using
+  class BootstrapModule(foundRootBuildFile: String)(using
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
+    override def moduleCtx = super.moduleCtx.withFileName(foundRootBuildFile)
     override lazy val millDiscover = Discover[this.type]
   }
 

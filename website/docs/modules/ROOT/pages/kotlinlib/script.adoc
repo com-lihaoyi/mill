@@ -36,3 +36,5 @@ include::partial$example/kotlinlib/script/9-programmatic-module-deps.adoc[]
 == Script Resources
 
 include::partial$example/kotlinlib/script/10-resources.adoc[]
+
+include::partial$Script_Footer.adoc[]

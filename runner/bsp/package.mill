@@ -50,7 +50,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       // If needed, that version can be bumped in the future to accomodate any conflict that might arise
       Deps.gson,
       Deps.sbtTestInterface,
-      Deps.osLib
+      Deps.osLib,
+      Deps.jgit
     )
   }
 }

@@ -23,10 +23,7 @@ import mill.constants.EnvVars
  */
 trait RunModule extends WithJvmWorkerModule with RunModuleApi {
 
-  private lazy val bspExt = {
-    import BspRunModule.given
-    ModuleRef(this.internalBspRunModule)
-  }
+  private lazy val bspExt = ModuleRef(new BspRunModule(this) {}.internalBspRunModule)
 
   private[mill] def bspRunModule: () => BspRunModuleApi = () => bspExt()
 
@@ -72,7 +69,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * If none is specified, the classpath is searched for an appropriate main
    * class to use if one exists.
    */
-  def mainClass: T[Option[String]] = None
+  def mainClass: T[Option[String]] = Option.empty
 
   /**
    * All main classes detected in this module that can serve as program entry-points.
@@ -113,9 +110,10 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def run(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
-    runForkedTask(finalMainClass, args)()
-  }
+  def run(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] =
+    Task.Command(exclusive = true) {
+      runForkedTask(finalMainClass, args)()
+    }
 
   /**
    * Runs this module's code in-process within an isolated classloader. This is
@@ -123,16 +121,17 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * since the code can dirty the parent Mill process and potentially leave it
    * in a bad state.
    */
-  def runLocal(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
-    runLocalTask(finalMainClass, args)()
-  }
+  def runLocal(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] =
+    Task.Command(exclusive = true) {
+      runLocalTask(finalMainClass, args)()
+    }
 
   /**
    * Same as `run`, but lets you specify a main class to run
    */
   def runMain(@arg(positional = true) mainClass: String, args: String*): Task.Command[Unit] = {
     val task = runForkedTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(exclusive = true) { task() }
   }
 
   /**
@@ -151,7 +150,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    */
   def runMainLocal(@arg(positional = true) mainClass: String, args: String*): Task.Command[Unit] = {
     val task = runLocalTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(exclusive = true) { task() }
   }
 
   /**

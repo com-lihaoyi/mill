@@ -8,32 +8,36 @@ include::partial$Config_Header.adoc[]
 
 include::partial$example/scalalib/config/1-common-config.adoc[]
 
+== Library Dependencies
+
+include::partial$example/scalalib/config/2-dependencies.adoc[]
+
 == Unit & Integration Testing
 
-include::partial$example/scalalib/config/2-testing.adoc[]
+include::partial$example/scalalib/config/3-testing.adoc[]
 
 == Linting & Autoformatting
 
-include::partial$example/scalalib/config/3-linting.adoc[]
+include::partial$example/scalalib/config/4-linting.adoc[]
 
 == Packaging & Publishing
 
 === Graal Native Image
 
-include::partial$example/scalalib/config/4-native-image.adoc[]
+include::partial$example/scalalib/config/5-native-image.adoc[]
 
 === Publishing
 
-include::partial$example/scalalib/config/5-publishing.adoc[]
+include::partial$example/scalalib/config/6-publishing.adoc[]
 
 == Example Web Project
 
-include::partial$example/scalalib/config/6-web-example.adoc[]
+include::partial$example/scalalib/config/7-web-example.adoc[]
 
 == Custom Module Traits
 
-include::partial$example/scalalib/config/7-custom-trait.adoc[]
+include::partial$example/scalalib/config/8-custom-trait.adoc[]
 
 == Programmatic `moduleDeps`
 
-include::partial$example/scalalib/config/8-programmatic-module-deps.adoc[]
+include::partial$example/scalalib/config/9-programmatic-module-deps.adoc[]

@@ -7,7 +7,8 @@ import mill.api.opt.*
 object `package` extends JavaModule {
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
-    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 
   // Choose a main class to use for `.run` if there are multiple present

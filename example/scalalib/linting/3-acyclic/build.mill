@@ -38,13 +38,11 @@ object `package` extends ScalaModule {
 
 > ./mill compile
 error: Unwanted cyclic dependency
-...src/Bar.scala...
+src/Bar.scala...
   val value = Foo + " world"
-              ^
 symbol: object Foo
-...src/Foo.scala...
+src/Foo.scala...
     println("hello " + Bar)
-                       ^
 symbol: object Bar
 
 */

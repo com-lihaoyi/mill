@@ -289,6 +289,28 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/scripts/custom-src",
+          "kind": 2,
+          "generated": false
+        },
+        {
+          "uri": "file:///workspace/out/mill-bsp-out/scripts/compileGeneratedSources.dest",
+          "kind": 2,
+          "generated": true
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "sources": [
@@ -342,6 +364,18 @@
       "sources": [
         {
           "uri": "file:///workspace/scripts/foldershared/script.scala",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java",
           "kind": 1,
           "generated": false
         }

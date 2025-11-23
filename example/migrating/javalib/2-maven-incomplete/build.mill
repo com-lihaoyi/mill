@@ -1,7 +1,5 @@
 /** Usage
 
-> rm build.mill # remove any existing build file
-
 > git init .
 > git remote add -f origin https://github.com/dhatim/fastexcel.git
 > git checkout 0.18.4
@@ -17,8 +15,11 @@ writing Mill build file to build.mill
 init completed, run "mill resolve _" to list available tasks
 
 > ./mill -k __.compile # Compilation needs manual tweaking to pass
-error: ...fastexcel-reader/src/main/java/module-info.java:3:32: module not found: org.apache.commons.compress
-error: ...fastexcel-reader/src/main/java/module-info.java:4:27: module not found: com.fasterxml.aalto
-error: ...fastexcel-writer/src/main/java/module-info.java:2:14: module not found: opczip
+error: fastexcel-reader/src/main/java/module-info.java:3:32
+module not found: org.apache.commons.compress
+fastexcel-reader/src/main/java/module-info.java:4:27
+module not found: com.fasterxml.aalto
+fastexcel-writer/src/main/java/module-info.java:2:14
+module not found: opczip
 
 */

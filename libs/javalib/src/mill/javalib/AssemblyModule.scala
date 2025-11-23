@@ -187,5 +187,5 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
         .asInstanceOf[Option[(String, UnopenedInputStream)]]
   }
 
-  override protected def millDiscover: Discover = Discover[this.type]
+  override def millDiscover: Discover = Discover[this.type]
 }

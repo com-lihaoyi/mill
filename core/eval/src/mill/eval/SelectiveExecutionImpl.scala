@@ -9,7 +9,7 @@ import mill.exec.{CodeSigUtils, Execution, PlanImpl}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
-private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
+class SelectiveExecutionImpl(evaluator: Evaluator)
     extends mill.api.SelectiveExecution {
 
   def computeHashCodeSignatures(
@@ -58,8 +58,12 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
       computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
     )
+    val changedBuildOverrides = diffMap(
+      oldHashes.buildOverrideSignatures,
+      newHashes.buildOverrideSignatures
+    )
 
-    val changedRootTasks = (changedInputNames ++ changedCodeNames)
+    val changedRootTasks = (changedInputNames ++ changedCodeNames ++ changedBuildOverrides)
       .flatMap(namesToTasks.get(_): Option[Task[?]])
 
     val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
@@ -88,7 +92,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
     ).map { tasks =>
-      computeChangedTasks0(tasks, SelectiveExecutionImpl.Metadata.compute(evaluator, tasks))
+      computeChangedTasks0(tasks, computeMetadata(tasks))
         // If we did not have the metadata, presume everything was changed.
         .getOrElse(ChangedTasks.all(tasks))
     }
@@ -191,21 +195,19 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
   def computeMetadata(
       tasks: Seq[Task.Named[?]]
   ): SelectiveExecution.Metadata.Computed =
-    SelectiveExecutionImpl.Metadata.compute(evaluator, tasks)
+    SelectiveExecutionImpl.Metadata.compute0(evaluator, PlanImpl.transitiveNamed(tasks))
 }
+
 object SelectiveExecutionImpl {
   object Metadata {
-    def compute(
-        evaluator: Evaluator,
-        tasks: Seq[Task.Named[?]]
-    ): SelectiveExecution.Metadata.Computed = {
-      compute0(evaluator, PlanImpl.transitiveNamed(tasks))
-    }
-
     def compute0(
         evaluator: Evaluator,
         transitiveNamed: Seq[Task.Named[?]]
     ): SelectiveExecution.Metadata.Computed = {
+      val allBuildOverrides =
+        evaluator.staticBuildOverrides ++
+          transitiveNamed.flatMap(_.ctx.enclosingModule.moduleDynamicBuildOverrides)
+
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>
           val ctx = new mill.api.TaskCtx.Impl(
@@ -222,17 +224,26 @@ object SelectiveExecutionImpl {
             jobs = evaluator.effectiveThreadCount,
             offline = evaluator.offline
           )
+
           task -> task.evaluate(ctx).map(Val(_))
         }
         .toMap
 
+      val transitiveNamedMap = transitiveNamed.map(t => (t.ctx.segments.render, t)).toMap
       val inputHashes = results.map {
-        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.hashCode)
+        case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
       }
       SelectiveExecution.Metadata.Computed(
         new SelectiveExecution.Metadata(
           inputHashes,
-          evaluator.codeSignatures
+          evaluator.codeSignatures,
+          for {
+            (k, _) <- allBuildOverrides
+            // Make sure we deserialize the actual value to hash, rather than hashing the JSON,
+            // since a JSON string may deserialize into a `PathRef` that changes depending on
+            // the files and folders on disk
+            value <- transitiveNamedMap.get(k)
+          } yield (k, value.##)
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

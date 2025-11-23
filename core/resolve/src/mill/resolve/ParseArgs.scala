@@ -7,9 +7,9 @@ import mill.api.{Segment, Segments, SelectMode}
 
 import scala.annotation.tailrec
 
-private[mill] object ParseArgs {
+object ParseArgs {
 
-  type TasksWithParams = (Seq[(Option[Segments], Option[Segments])], Seq[String])
+  type TasksWithParams = (Seq[(String, Segments)], Seq[String])
 
   /** Separator used in multiSelect-mode to separate tasks from their args. */
   val MultiArgsSeparator = "--"
@@ -81,13 +81,13 @@ private[mill] object ParseArgs {
   }
 
   def extractSegments(selectorString: String)
-      : Result[(Option[Segments], Option[Segments])] =
+      : Result[(String, Segments)] =
     parse(selectorString, selector(using _)) match {
       case f: Parsed.Failure => Result.Failure(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Result.Success(selector)
     }
 
-  private def selector[_p: P]: P[(Option[Segments], Option[Segments])] = {
+  private def selector[_p: P]: P[(String, Segments)] = {
     def wildcard = P("__" | "_")
     def label = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
 
@@ -111,9 +111,9 @@ private[mill] object ParseArgs {
       case (h, rest) => Segments(h +: rest)
     }
 
-    P(simpleQuery ~ (("/" | ":") ~ simpleQuery.?).? ~ End).map {
-      case (q, None) => (None, Some(q))
-      case (q, Some(q2)) => (Some(q), q2)
+    P(simpleQuery ~ (("/" | ":").! ~ simpleQuery.?).? ~ End).map {
+      case (q, None) => ("", q)
+      case (q, Some((sep, q2))) => (q.render + sep, q2.getOrElse(Segments()))
     }
   }
 }

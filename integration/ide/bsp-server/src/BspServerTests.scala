@@ -345,6 +345,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
               "scripts/folder1/script.scala" -> Seq(),
               "errored/exception" -> List(),
+              "scripts/ignored-folder-2/negated-not-ignored.java" -> Seq(),
               "app/test" -> Seq(),
               "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
               "scripts/folder2/Foo.java" -> Seq("scripts/folder2/Foo.java.semanticdb"),
@@ -353,10 +354,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "delayed" -> List(),
               "lib" -> Seq(),
               "scripts/foldershared/Foo.java" -> Seq("scripts/foldershared/Foo.java.semanticdb"),
-              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> Seq(),
-              "sourcesNeedCompile" -> Seq()
+              "sourcesNeedCompile" -> Seq(),
+              "scripts" -> Seq(),
+              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb")
             )
           )
         }
@@ -423,11 +425,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
       val workspaceUri = tester.workspacePath.toURI.toASCIIString.stripSuffix("/") + "/"
       val logs = stderr.toString
         .linesWithSeparators
-        .filter(_.startsWith("["))
+        .filter { case s"$d] $_" if d.forall(_ != ' ') => true; case _ => false }
         .map(_.replace(workspaceUri, "file:///workspace/"))
         .mkString
 
-      val expectedCancelledLine = "[7-compile] buildTargetCompile was cancelled"
+      val expectedCancelledLine = "7-compile] buildTargetCompile was cancelled"
 
       assert(logs.linesIterator.contains(expectedCancelledLine))
 
@@ -436,12 +438,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
         snapshotsPath / "logging",
         ignoreLine = {
           // ignore watcher logs
-          val watchGlob = TestRunnerUtils.matchesGlob("[bsp-watch] *")
+          val watchGlob = TestRunnerUtils.matchesGlob("bsp-watch] *")
           // ignoring compilation warnings that might go away in the future
-          val warnGlob = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
-          val waitingGlob = TestRunnerUtils.matchesGlob("[*] Another Mill process is running *")
+          val waitingGlob = TestRunnerUtils.matchesGlob("*] Another Mill process is running *")
           s =>
-            watchGlob(s) || warnGlob(s) || waitingGlob(s) ||
+            watchGlob(s) || waitingGlob(s) ||
+              // These can happen in different orders due to filesystem ordering, not stable to
+              // assert against
+              s.contains("Skipping script discovery") ||
               // Ignoring this one, that sometimes comes out of order.
               // If the request hasn't been cancelled, we'd see extra lines making the
               // test fail anyway.

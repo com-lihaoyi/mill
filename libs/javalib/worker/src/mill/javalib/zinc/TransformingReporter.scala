@@ -2,17 +2,17 @@ package mill.javalib.zinc
 
 private trait TransformingReporter(
     color: Boolean,
-    optPositionMapper: (xsbti.Position => xsbti.Position) | Null
+    optPositionMapper: (xsbti.Position => xsbti.Position) | Null,
+    workspaceRoot: os.Path
 ) extends xsbti.Reporter {
 
   // Overriding this is necessary because for some reason the LoggedReporter doesn't transform positions
   // of Actions and DiagnosticRelatedInformation
   abstract override def log(problem0: xsbti.Problem): Unit = {
     val localMapper = optPositionMapper
-    val problem = {
-      if localMapper == null then problem0
-      else TransformingReporter.transformProblem(color, problem0, localMapper)
-    }
+    // Always transform to apply path relativization, even if there's no position mapper for build files
+    val mapper = if localMapper == null then (pos: xsbti.Position) => pos else localMapper
+    val problem = TransformingReporter.transformProblem(color, problem0, mapper, workspaceRoot)
     super.log(problem)
   }
 }
@@ -27,7 +27,8 @@ private object TransformingReporter {
   private def transformProblem(
       color: Boolean,
       problem0: xsbti.Problem,
-      mapper: xsbti.Position => xsbti.Position
+      mapper: xsbti.Position => xsbti.Position,
+      workspaceRoot: os.Path
   ): xsbti.Problem = {
     val pos0 = problem0.position()
     val related0 = problem0.diagnosticRelatedInformation()
@@ -35,25 +36,17 @@ private object TransformingReporter {
     val pos = mapper(pos0)
     val related = transformRelateds(related0, mapper)
     val actions = transformActions(actions0, mapper)
-    val posIsNew = pos ne pos0
-    if posIsNew || (related ne related0) || (actions ne actions0) then
-      val rendered = {
-        // if we transformed the position, then we must re-render the message
-        if posIsNew then Some(dottyStyleMessage(color, problem0, pos))
-        else InterfaceUtil.jo2o(problem0.rendered())
-      }
-      InterfaceUtil.problem(
-        cat = problem0.category(),
-        pos = pos,
-        msg = problem0.message(),
-        sev = problem0.severity(),
-        rendered = rendered,
-        diagnosticCode = InterfaceUtil.jo2o(problem0.diagnosticCode()),
-        diagnosticRelatedInformation = anyToList(related),
-        actions = anyToList(actions)
-      )
-    else
-      problem0
+    val rendered = dottyStyleMessage(color, problem0, pos, workspaceRoot)
+    InterfaceUtil.problem(
+      cat = problem0.category(),
+      pos = pos,
+      msg = problem0.message(),
+      sev = problem0.severity(),
+      rendered = Some(rendered),
+      diagnosticCode = InterfaceUtil.jo2o(problem0.diagnosticCode()),
+      diagnosticRelatedInformation = anyToList(related),
+      actions = anyToList(actions)
+    )
   }
 
   private type JOrSList[T] = java.util.List[T] | List[T]
@@ -67,9 +60,10 @@ private object TransformingReporter {
   private def dottyStyleMessage(
       color: Boolean,
       problem0: xsbti.Problem,
-      pos: xsbti.Position
+      pos: xsbti.Position,
+      workspaceRoot: os.Path
   ): String = {
-    val base = problem0.message()
+
     val severity = problem0.severity()
 
     def shade(msg: String) =
@@ -81,66 +75,68 @@ private object TransformingReporter {
         }
       else msg
 
-    val normCode = {
-      problem0.diagnosticCode().filter(_.code() != "-1").map({ inner =>
-        val prefix = s"[E${inner.code()}] "
-        inner.explanation().map(e =>
-          s"$prefix$e: "
-        ).orElse(prefix)
-      }).orElse("")
+    val errorCodeString = {
+      problem0.diagnosticCode()
+        .filter(_.code() != "-1")
+        .map { inner =>
+          val prefix = "[" + shade(s"E${inner.code()}") + "] "
+          inner.explanation().map(e => s"$prefix$e: ").orElse(prefix)
+        }
+        .orElse("")
     }
 
-    val optPath = InterfaceUtil.jo2o(pos.sourcePath()).map { path =>
+    val message = errorCodeString + problem0.message()
+
+    val positionString = InterfaceUtil.jo2o(pos.sourcePath()).map { path =>
+      val absPath = os.Path(path)
+      // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
+      val displayPath =
+        if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot)
+        else path
+
       val line0 = intValue(pos.line(), -1)
       val pointer0 = intValue(pos.pointer(), -1)
+      val shadedPath = shade(displayPath.toString)
+
       if line0 >= 0 && pointer0 >= 0 then
-        s"$path:$line0:${pointer0 + 1}"
-      else
-        path
+        s"$shadedPath:${shade(line0.toString)}:${shade((pointer0 + 1).toString)}"
+      else shadedPath
     }
 
-    val normHeader = optPath.map(path =>
-      s"${shade(s"-- $normCode$path")}\n"
-    ).getOrElse("")
+    val header = positionString
+      .map(path => s"$path\n")
+      .getOrElse("")
 
-    val optSnippet = {
-      val snip = pos.lineContent()
-      val space = pos.pointerSpace().orElse("")
-      val pointer = intValue(pos.pointer(), -99)
-      val endCol = intValue(pos.endColumn(), pointer + 1)
-      if snip.nonEmpty && space.nonEmpty && pointer >= 0 && endCol >= 0 then
-        val arrowCount = math.max(1, math.min(endCol - pointer, snip.length - space.length))
-        Some(
-          s"""$snip
-             |$space${"^" * arrowCount}""".stripMargin
-        )
-      else
-        None
-    }
+    val space = pos.pointerSpace().orElse("")
+    val pointer = intValue(pos.pointer(), -99)
+    val endCol = intValue(pos.endColumn(), pointer + 1)
+    val codeSnippet =
+      if (space.nonEmpty && pointer >= 0 && endCol >= 0) {
+        // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
+        // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
+        val renderedLines = InterfaceUtil.jo2o(problem0.rendered())
+          .iterator
+          .flatMap(_.linesIterator)
+          .toList
 
-    val content = optSnippet.match {
-      case Some(snippet) =>
-        val initial = {
-          s"""$snippet
-             |$base
-             |""".stripMargin
-        }
-        val snippetLine = intValue(pos.line(), -1)
-        if snippetLine >= 0 then {
-          // add margin with line number
-          val lines = initial.linesWithSeparators.toVector
-          val pre = snippetLine.toString
-          val rest0 = " " * pre.length
-          val rest = pre +: Vector.fill(lines.size - 1)(rest0)
-          rest.lazyZip(lines).map((pre, line) => shade(s"$pre |") + line).mkString
-        } else {
-          initial
-        }
-      case None =>
-        base
-    }
+        // Just grab the first line from the dotty error code snippet, because dotty defaults to
+        // rendering entire expressions which can be arbitrarily large and spammy in the terminal
+        val codeSnippet0 = renderedLines
+          .collectFirst {
+            case s"$pre |$rest" if pre.nonEmpty && fansi.Str(pre).plainText.forall(_.isDigit) =>
+              rest
+          }
+        val codeSnippet =
+          if (codeSnippet0.nonEmpty) codeSnippet0.mkString("\n")
+          else pos.lineContent() // fall back to plaintext line if no colored line found
 
-    normHeader + content
+        val arrowCount = math.max(1, math.min(endCol - pointer, codeSnippet.length - space.length))
+        s"""$codeSnippet
+           |$space${shade("^" * arrowCount)}
+           |""".stripMargin
+      } else ""
+
+    header + codeSnippet + message
   }
 
   /** Implements a transformation that returns the same list if the mapper has no effect */

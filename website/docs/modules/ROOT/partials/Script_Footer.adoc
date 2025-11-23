@@ -1,0 +1,26 @@
+== Script IDE Integration
+
+Mill's Intellij/VSCode BSP support treats scripts as single-file modules,
+but differ in how they are discovered. When importing a project
+into your IDE, Mill recursively walks your workspace folder looking for
+`.java`, `.scala`, or `.kt` files that may be scripts, skipping those in:
+
+- The `sources`
+- `out/`
+- `**/src/`
+- `**/src-*/`
+- `**/resources/`
+- `**/out/`
+- `**/target/`
+
+While these default script ignore paths should be enough for most projects,
+you can add additional folders to this list via `//| bspScriptIgnore: [...]`
+in your `build.mill` or `mill-build: bspScriptIgnore: [...]` in your
+`build.mill.yaml`. `bspScriptIgnore` takes a sequence of strings that
+follow the `.gitignore` syntax, allowing:
+
+- `*` for wildcards within a single path segment
+- `**` for wildcards across multiple path segments
+- `!` to negate an ignore line.
+
+This can be useful if your proj
