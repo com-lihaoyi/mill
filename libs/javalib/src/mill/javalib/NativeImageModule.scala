@@ -1,9 +1,10 @@
 package mill.javalib
 
 import mill.*
-import mill.constants.Util
+import mill.constants.{DaemonFiles, Util}
 
 import scala.util.Properties
+import mill.api.BuildCtx
 
 /**
  * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].
@@ -45,6 +46,46 @@ trait NativeImageModule extends WithJvmWorkerModule {
     val executable = dest / s"$executeableName$ext"
     assert(os.exists(executable))
     PathRef(executable)
+  }
+
+  /**
+   * Runs the Native Image from [[nativeImage]]
+   * @param args
+   */
+  def nativeRun(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
+    val runScript = nativeImage().path
+    os.call(Seq(runScript.toString) ++ args().value, stdout = os.Inherit)
+  }
+
+  /**
+   * Runs the Native Image from [[nativeImage]] in the background
+   *
+   * @param args
+   */
+  def nativeRunBackground(args: mill.api.Args) = Task.Command(persistent = true) {
+    val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
+    val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
+
+    BuildCtx.withFilesystemCheckerDisabled {
+      mill.util.Jvm.spawnProcess(
+        mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
+        classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        jvmArgs = Nil,
+        mainArgs = backgroundPaths.toArgs ++ Seq(
+          "<subprocess>",
+          nativeImage().path.toString
+        ) ++ args.value,
+        cwd = BuildCtx.workspaceRoot,
+        stdin = "",
+        // Hack to forward the background subprocess output to the Mill server process
+        // stdout/stderr files, so the output will get properly slurped up by the Mill server
+        // and shown to any connected Mill client even if the current command has completed
+        stdout = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stdout),
+        stderr = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stderr),
+        javaHome = javaHome().map(_.path)
+      )
+    }
+    ()
   }
 
   /**
