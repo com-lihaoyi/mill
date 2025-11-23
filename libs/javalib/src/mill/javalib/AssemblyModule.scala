@@ -8,10 +8,12 @@ import mill.api.Task.Simple as T
 import mill.javalib.Assembly.UnopenedInputStream
 import mill.util.Jvm
 
+import scala.annotation.nowarn
+
 /**
  * Module that provides functionality around creating and configuring JVM assembly jars
  */
-trait AssemblyModule extends AssemblyModuleOfflineSupport {
+trait AssemblyModule extends OfflineSupportModule {
   outer =>
 
   def finalMainClassOpt: T[Either[String, String]]
@@ -148,6 +150,10 @@ trait AssemblyModule extends AssemblyModuleOfflineSupport {
       created.pathRef
     }
   }
+
+  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    AssemblyModule.prepareOffline(all)()
+  }
 }
 
 object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule {
@@ -172,6 +178,7 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
     )
   }
 
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   def jarjarabramsWorker
       : Task.Worker[(Seq[(String, String)], String, UnopenedInputStream) => Option[(
           String,
@@ -188,10 +195,4 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
   }
 
   override def millDiscover: Discover = Discover[this.type]
-}
-
-trait AssemblyModuleOfflineSupport extends OfflineSupportModule {
-  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
-    AssemblyModule.prepareOffline(all)()
-  }
 }
