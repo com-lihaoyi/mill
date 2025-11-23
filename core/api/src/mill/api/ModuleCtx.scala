@@ -35,15 +35,17 @@ trait ModuleCtx extends ModuleCtx.Nested {
   private[mill] def withMillSourcePath(millSourcePath: os.Path): ModuleCtx
   private[mill] def withSegments(segments: Segments): ModuleCtx
   private[mill] def withEnclosingModule(enclosingModule: ModuleCtx.Wrapper): ModuleCtx
+  private[mill] def withFileName(fileName: String): ModuleCtx = this
+  private[mill] def withLineNum(line: Int): ModuleCtx = this
   private[mill] def withDiscover(discover: Discover): ModuleCtx
 }
 
 object ModuleCtx extends LowPriCtx {
   trait Wrapper {
+    def moduleSegments: Segments = moduleCtx.segments
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
-    private[mill] def buildOverrides: Map[String, ujson.Value] = Map()
-    private[mill] def buildOverridePaths: Seq[os.Path] = Nil
+    private[mill] def moduleDynamicBuildOverrides: Map[String, ujson.Value] = Map()
   }
 
   private[mill] case class HeaderData(
@@ -72,6 +74,9 @@ object ModuleCtx extends LowPriCtx {
     def withSegments(segments: Segments): ModuleCtx = copy(segments = segments)
     def withEnclosingModule(enclosingModule: ModuleCtx.Wrapper): ModuleCtx =
       copy(enclosingModule = enclosingModule)
+
+    override def withFileName(fileName: String) = copy(fileName = fileName)
+    override def withLineNum(lineNum: Int) = copy(lineNum = lineNum)
     def withDiscover(discover: Discover): ModuleCtx = copy(discover = discover)
   }
 

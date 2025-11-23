@@ -14,7 +14,8 @@ object ZincOp {
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
-      incrementalCompilation: Boolean
+      incrementalCompilation: Boolean,
+      workDir: os.Path
   ) extends ZincOp {
     type Response = Result[CompilationResult]
   }
@@ -31,7 +32,8 @@ object ZincOp {
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String]
+      auxiliaryClassFileExtensions: Seq[String],
+      workDir: os.Path
   ) extends ZincOp {
     type Response = Result[CompilationResult]
   }
@@ -42,9 +44,9 @@ object ZincOp {
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
-      args: Seq[String]
+      args: Seq[String],
+      workDir: os.Path
   ) extends ZincOp {
-
     type Response = Boolean
   }
 

@@ -31,7 +31,7 @@ trait MyModule extends ScalaModule, PublishModule {
 object SpringBootTools2 extends SpringBootToolsModule {
   // Default version requires Java 17+, so downgrate to latest 2.x version
   override def springBootToolsVersion = "2.7.18"
-  protected lazy val millDiscover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }
 
 object foo extends MyModule, RepackageModule { // <1>

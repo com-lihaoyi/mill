@@ -1,0 +1,24 @@
+//// SNIPPET:BUILD
+package build
+import mill.*, kotlinlib.*
+
+object bar extends KotlinModule {
+  def kotlinVersion = "1.9.24"
+  def mvnDeps = Seq(
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
+  )
+}
+
+object qux extends Cross[QuxModule](1, 2, 3)
+trait QuxModule extends KotlinModule, Cross.Module[Int] {
+  def kotlinVersion = "1.9.24"
+}
+
+/** See Also: foo/package.mill.yaml */
+
+/** Usage
+
+> ./mill foo.run --text hello
+<h1>hello</h1>
+
+*/

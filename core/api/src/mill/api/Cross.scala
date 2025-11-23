@@ -248,6 +248,11 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
   def get(args: Seq[Any]): M = valuesToModules(args.toList)
 
   /**
+   * Fetch the cross module corresponding to the given cross value strings
+   */
+  def lookup(args: String*): M = segmentsToModules(args.toList)
+
+  /**
    * Fetch the cross module corresponding to the given cross values
    */
   def apply(arg0: Any, args: Any*): M = valuesToModules(arg0 :: args.toList)

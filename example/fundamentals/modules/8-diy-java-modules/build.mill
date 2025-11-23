@@ -6,7 +6,7 @@ import mill.*
 
 trait DiyJavaModule extends Module {
   def moduleDeps: Seq[DiyJavaModule] = Nil
-  def mainClass: T[Option[String]] = None
+  def mainClass: T[Option[String]] = Option.empty
 
   def upstream: T[Seq[PathRef]] = Task { Task.traverse(moduleDeps)(_.classPath)().flatten }
   def sources = Task.Source("src")

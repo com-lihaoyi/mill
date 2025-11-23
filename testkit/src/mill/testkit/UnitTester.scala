@@ -16,7 +16,6 @@ import mill.api.ExecResult.OuterStack
 import mill.constants.OutFiles.millChromeProfile
 import mill.constants.OutFiles.millProfile
 import mill.internal.JsonArrayLogger
-import mill.resolve.Resolve
 
 import java.io.InputStream
 import java.io.PrintStream
@@ -144,24 +143,19 @@ class UnitTester(
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
-    enableTicker = false
+    enableTicker = false,
+    buildOverrides0 = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
-    execution = execution,
-    scriptModuleResolver = (_, _) => Nil
+    execution = execution
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     Evaluator.withCurrentEvaluator(evaluator) {
-      Resolve.Tasks.resolve(
-        evaluator.rootModule,
-        args,
-        SelectMode.Separated,
-        scriptModuleResolver = _ => Nil
-      )
+      evaluator.resolveTasks(args, SelectMode.Separated)
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))
       case Result.Success(resolved) => apply(resolved)

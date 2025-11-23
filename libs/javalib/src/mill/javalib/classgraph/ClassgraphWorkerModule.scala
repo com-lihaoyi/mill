@@ -39,5 +39,5 @@ trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
 }
 
 object ClassgraphWorkerModule extends ExternalModule with ClassgraphWorkerModule {
-  override protected def millDiscover: Discover = Discover[this.type]
+  override def millDiscover: Discover = Discover[this.type]
 }

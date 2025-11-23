@@ -196,6 +196,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "modules": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "modules": [
@@ -205,7 +211,7 @@
         },
         {
           "name": "com.lihaoyi:pprint_3",
-          "version": "0.9.3"
+          "version": "0.9.5"
         },
         {
           "name": "com.lihaoyi:os-lib_3",
@@ -433,7 +439,7 @@
         },
         {
           "name": "com.lihaoyi:pprint_3",
-          "version": "0.9.3"
+          "version": "0.9.5"
         },
         {
           "name": "com.lihaoyi:os-lib_3",
@@ -500,6 +506,12 @@
           "version": "4.4.1"
         }
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
+      },
+      "modules": []
     },
     {
       "target": {

@@ -1,13 +1,14 @@
 package mill.meta
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
-
-import mill.constants.{CodeGenConstants as CGConst}
+import mill.constants.CodeGenConstants as CGConst
 import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.ModuleCtx.HeaderData
+import mill.api.daemon.Segment
+
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -20,6 +21,7 @@ object CodeGen {
       allScriptCode: Map[os.Path, String],
       wrappedDest: os.Path,
       supportDest: os.Path,
+      resourceDest: os.Path,
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
       parser: MillScalaParser
@@ -92,46 +94,109 @@ object CodeGen {
         val prelude =
           s"""|import MillMiscInfo._
               |import _root_.mill.util.TokenReaders.given
+              |import _root_.mill.runner.autooverride.AutoOverride
               |""".stripMargin
 
-        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
-
-        def renderTemplate(prefix: String, data: HeaderData): String = {
-          val extendsConfig = data.`extends`
-          val definitions =
-            for {
-              (kString, v) <- data.rest
-              if !kString.startsWith("mill-")
-            } yield kString.split(" +") match {
-              case Array(k) => s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
-              case Array("object", k) =>
-                renderTemplate(s"object $k", upickle.read[HeaderData](v))
+        def processDataRest[T](data: HeaderData)(
+            onProperty: (String, ujson.Value) => T,
+            onNestedObject: (String, HeaderData) => T
+        ): Seq[T] = {
+          for ((kString, v) <- data.rest.toSeq)
+            yield kString.split(" +") match {
+              case Array(k) => onProperty(k, v)
+              case Array("object", k) => onNestedObject(k, upickle.read[HeaderData](v))
+              case _ => sys.error("Invalid key: " + kString)
             }
+        }
+
+        def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
+          val resourcePath = resourceDest / path / "build-overrides.json"
+          val out = collection.mutable.Map.empty[String, ujson.Value]
+
+          processDataRest(data)(
+            onProperty = (k, v) => out(k) = v,
+            onNestedObject = (k, nestedData) => writeBuildOverrides(nestedData, path :+ k)
+          )
+          os.write.over(resourcePath, upickle.write(out), createFolders = true)
+        }
+
+        writeBuildOverrides(parsedHeaderData, segments)
+
+        val miscInfoWithResource = {
+          val header = if (pkg.isBlank()) "" else s"package $pkg"
+          val miscInfoBody = if (segments.isEmpty) {
+            rootMiscInfo(scriptFolderPath, millTopLevelProjectRoot, output)
+          } else {
+            subfolderMiscInfo(scriptFolderPath, segments)
+          }
+          s"""|$generatedFileHeader
+              |$header
+              |
+              |$miscInfoBody
+              |""".stripMargin
+        }
+        os.write.over(
+          supportDestDir / "MillMiscInfo.scala",
+          miscInfoWithResource,
+          createFolders = true
+        )
+
+        def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
+          val extendsConfig = data.`extends`
+          val definitions = processDataRest(data)(
+            onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
+            onNestedObject = (k, nestedData) =>
+              renderTemplate(s"object $k", nestedData, path :+ k)
+          ).filter(_.nonEmpty)
+
+          def parseRender(moduleDep: String) = {
+            mill.resolve.ParseArgs.extractSegments(moduleDep) match {
+              case Result.Failure(err) =>
+                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + err)
+              case Result.Success((rootModulePrefix, taskSegments)) =>
+                val renderedSegments = taskSegments.value
+                  .map {
+                    case Segment.Label(s) => backtickWrap(s)
+                    case Segment.Cross(vs) => "lookup(" + vs.map(literalize(_)).mkString(", ") + ")"
+                  }
+                  .mkString(".")
+
+                rootModulePrefix match {
+                  case "" => s"build.$renderedSegments"
+                  case s"$externalModulePrefix/" => s"$externalModulePrefix.$renderedSegments"
+                }
+            }
+          }
 
           val moduleDepsSnippet =
             if (data.moduleDeps.isEmpty) ""
             else
-              s"override def moduleDeps = Seq(${data.moduleDeps.map("build." + _).mkString(", ")})"
+              s"override def moduleDeps = Seq(${data.moduleDeps.map(parseRender).mkString(", ")})"
 
           val compileModuleDepsSnippet =
             if (data.compileModuleDeps.isEmpty) ""
             else
-              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.map("build." + _).mkString(", ")})"
+              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.map(parseRender).mkString(", ")})"
 
           val runModuleDepsSnippet =
             if (data.runModuleDeps.isEmpty) ""
             else
-              s"override def runModuleDeps = Seq(${data.runModuleDeps.map("build." + _).mkString(", ")})"
+              s"override def runModuleDeps = Seq(${data.runModuleDeps.map(parseRender).mkString(", ")})"
 
           val extendsSnippet =
-            if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
-            else ""
+            if (extendsConfig.nonEmpty)
+              s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[?]]"
+            else " extends AutoOverride[_root_.mill.T[?]]"
+
+          val allSnippets = Seq(
+            moduleDepsSnippet,
+            compileModuleDepsSnippet,
+            runModuleDepsSnippet,
+            "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
+          ).filter(_.nonEmpty) ++ definitions
 
           s"""$prefix$extendsSnippet {
-             |  $moduleDepsSnippet
-             |  $compileModuleDepsSnippet
-             |  $runModuleDepsSnippet
-             |  ${definitions.mkString("\n  ")}
+             |  ${allSnippets.mkString("\n  ")}
              |}
              |""".stripMargin
         }
@@ -143,11 +208,11 @@ object CodeGen {
              |$aliasImports
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-             |object package_ extends $newParent, package_{
+             |object package_ extends $newParent, package_ {
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
              |  $childAliases
              |}
-             |${renderTemplate("trait package_", parsedHeaderData)}
+             |${renderTemplate("trait package_", parsedHeaderData, segments)}
              |""".stripMargin,
           createFolders = true
         )
@@ -381,7 +446,7 @@ object CodeGen {
     s"""|object MillMiscInfo
         |    extends mill.api.internal.SubfolderModule.Info(
         |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.toString)}),
-        |  segments = _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
+        |  segments = _root_.scala.Seq(${segments.map(literalize(_)).mkString(", ")})
         |)
         |""".stripMargin
   }
@@ -400,7 +465,7 @@ object CodeGen {
       output: os.Path
   ): String = {
     s"""|@_root_.scala.annotation.nowarn
-        |object MillMiscInfo 
+        |object MillMiscInfo
         |    extends mill.api.internal.RootModule.Info(
         |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
         |  output0 = ${literalize(output.toString)},
