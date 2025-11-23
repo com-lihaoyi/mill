@@ -11,7 +11,7 @@ import mill.util.Jvm
 /**
  * Module that provides functionality around creating and configuring JVM assembly jars
  */
-trait AssemblyModule extends mill.api.Module {
+trait AssemblyModule extends AssemblyModuleOfflineSupport {
   outer =>
 
   def finalMainClassOpt: T[Either[String, String]]
@@ -149,7 +149,8 @@ trait AssemblyModule extends mill.api.Module {
     }
   }
 }
-object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule {
+
+object AssemblyModule extends ExternalModule with CoursierModule with AssemblyModuleOfflineSupport {
 
   def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
@@ -187,4 +188,10 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
   }
 
   override def millDiscover: Discover = Discover[this.type]
+}
+
+trait AssemblyModuleOfflineSupport extends OfflineSupportModule {
+  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    AssemblyModule.prepareOffline(all)()
+  }
 }
