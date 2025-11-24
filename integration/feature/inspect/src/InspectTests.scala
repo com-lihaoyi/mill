@@ -146,6 +146,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    mill.javalib.bsp.BspModule
           |    mill.javalib.RunModule
           |    mill.javalib.GenIdeaModule
+          |    mill.javalib.OfflineSupportModule
           |    mill.javalib.SemanticDbJavaModule
           |    mill.javalib.AssemblyModule
           |    mill.javalib.JavaModule
@@ -170,6 +171,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    mill.javalib.bsp.BspModule
           |    mill.javalib.RunModule
           |    mill.javalib.GenIdeaModule
+          |    mill.javalib.OfflineSupportModule
           |    mill.javalib.SemanticDbJavaModule
           |    mill.javalib.AssemblyModule
           |    mill.javalib.JavaModule
