@@ -2,6 +2,7 @@ package mill.javalib.spring.boot
 
 import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
+import mill.api.opt.*
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 
 import java.util.Properties
@@ -150,7 +151,7 @@ trait SpringBootModule extends JavaModule {
     /**
      * Enables AOT for running the application under this module
      */
-    override def forkArgs = super.forkArgs() ++ Seq("-Dspring.aot.enabled=true")
+    override def forkArgs = super.forkArgs() ++ Opts("-Dspring.aot.enabled=true")
 
     override def generatedSources: Task.Simple[Seq[PathRef]] = Task {
       val aotGeneratedSources = Seq(PathRef(outer.springBootProcessAOT().path / "sources"))
@@ -174,7 +175,7 @@ trait SpringBootModule extends JavaModule {
    * parent module as a native GraalVM application, provided the [[outer.springBootProcessAOT]] works.
    */
   trait NativeSpringBootBuildModule extends SpringBootOptimisedBuildModule, NativeImageModule {
-    override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
+    override def nativeImageOptions: Task.Simple[Opts] = Task {
 
       val nativeImageArgs: Seq[String] =
         val nativeImageProps = outer.springBootAOTNativeProperties().path
@@ -188,7 +189,7 @@ trait SpringBootModule extends JavaModule {
         } else
           Seq.empty
 
-      nativeImageArgs
+      Opts(nativeImageArgs)
     }
   }
 

@@ -298,10 +298,10 @@ trait JavaModule
     if (annotationProcessorsMvnDeps().nonEmpty)
       Opts(
         "-processorpath",
-        Opt.mkPath(annotationProcessorsResolvedMvnDeps(), sep = File.pathSeparator)
+        Opt.mkPath(annotationProcessorsResolvedMvnDeps().map(_.path), sep = File.pathSeparator)
       )
     else
-      Seq.empty
+      Opts()
 
   }
 
@@ -905,11 +905,14 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val jOpts = JavaCompilerOptions.split(Seq(
-      "-s",
-      compileGenSources.toString
-    ) ++ javacOptions().toStringSeq ++ mandatoryJavacOptions().toStringSeq ++ annotationProcessorsJavacOptions())
-
+    val jOpts = JavaCompilerOptions.split(
+      Opts(
+        OptGroup("-s", compileGenSources.toString),
+        javacOptions(),
+        mandatoryJavacOptions(),
+        annotationProcessorsJavacOptions()
+      ).toStringSeq
+    )
     val worker = jvmWorker().internalWorker()
 
     worker.apply(

@@ -343,7 +343,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaOrganization(),
             scalaDocClasspath(),
             scalacPluginClasspath(),
-            options ++ compileCp ++ scalaDocOptions().toStringSeq ++ files.map(_.toString())
+            options ++ compileCp ++ scalaDocOptions().toStringSeq ++ files.map(_.toString()),
             workDir = Task.dest
           ),
           javaHome = javaHome().map(_.path)

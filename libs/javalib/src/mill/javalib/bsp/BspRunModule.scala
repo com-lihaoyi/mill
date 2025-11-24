@@ -21,9 +21,9 @@ private[mill] trait BspRunModule(runModule: RunModule) extends mill.api.Module {
 
     override private[mill] def bspJvmRunEnvironment: Task.Simple[(
         runClasspath: Seq[Path],
-        forkArgs: Seq[String],
+        forkArgs: Opts,
         forkWorkingDir: Path,
-        forkEnv: Map[String, String],
+        forkEnv: Map[String, Opt],
         mainClass: Option[String],
         localMainClasses: Seq[String]
     )] =
