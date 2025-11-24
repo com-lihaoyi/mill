@@ -105,6 +105,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/androidlib/AndroidAppModule.html#androidDex-0","e":false,"i":"","n":"androidDex","t":"androidDex: Simple[PathRef]","d":"mill.androidlib.AndroidAppModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidAppModule.html#androidEmulatorArchitecture-0","e":false,"i":"","n":"androidEmulatorArchitecture","t":"androidEmulatorArchitecture: String","d":"mill.androidlib.AndroidAppModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidAppModule.html#androidEmulatorPort-0","e":false,"i":"","n":"androidEmulatorPort","t":"androidEmulatorPort: String","d":"mill.androidlib.AndroidAppModule","k":"def","x":""},
+{"l":"mill/androidlib/AndroidAppModule.html#androidExcludePackageFiles-0","e":false,"i":"","n":"androidExcludePackageFiles","t":"androidExcludePackageFiles: Simple[Seq[Regex]]","d":"mill.androidlib.AndroidAppModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidAppModule.html#androidInstall-936","e":false,"i":"","n":"androidInstall","t":"androidInstall(): Command[String]","d":"mill.androidlib.AndroidAppModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidAppModule.html#androidInstallTask-0","e":false,"i":"","n":"androidInstallTask","t":"androidInstallTask: Task[String]","d":"mill.androidlib.AndroidAppModule","k":"def","x":""},
 {"l":"mill/androidlib/AndroidAppModule.html#androidKeystore-0","e":false,"i":"","n":"androidKeystore","t":"androidKeystore: Simple[PathRef]","d":"mill.androidlib.AndroidAppModule","k":"def","x":""},
