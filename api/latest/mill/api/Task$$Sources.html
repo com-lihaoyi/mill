@@ -7,7 +7,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="Task$$Sources.html" t="n" class="documentableName ">Sources</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluate0</span>: (<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Any</span>], <a href="TaskCtx.html" t="t">TaskCtx</a>)<span t="k"> =&gt; </span><a href="daemon/Result.html" t="t">Result</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]], <span t="k"></span><span data-unresolved-link="" t="n">ctx0</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>, <span t="k"></span><span data-unresolved-link="" t="n">isPrivate</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Boolean</span>])<span t="k"> extends </span><a href="Task$$Input.html" t="t">Input</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]]</span><span class="signature-long"></span>
+  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="Task$$Sources.html" t="n" class="documentableName ">Sources</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluate0</span>: (<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Any</span>], <a href="TaskCtx.html" t="t">TaskCtx</a>) <span t="k">=&gt;</span> <a href="daemon/Result.html" t="t">Result</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]], <span t="k"></span><span data-unresolved-link="" t="n">ctx0</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>, <span t="k"></span><span data-unresolved-link="" t="n">isPrivate</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Boolean</span>])<span t="k"> extends </span><a href="Task$$Input.html" t="t">Input</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]]</span><span class="signature-long"></span>
  </div>
 </div>
 <div class="cover">
@@ -260,7 +260,7 @@ node12 -> node8;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Sources.html#filter-59a" t="n" class="documentableName ">filter</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Boolean</span>): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Sources.html#filter-59a" t="n" class="documentableName ">filter</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Boolean</span>): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]]
            </div>
           </div>
          </div>
@@ -332,7 +332,7 @@ node12 -> node8;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Sources.html#map-24b" t="n" class="documentableName ">map</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">V</span>): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">V</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Sources.html#map-24b" t="n" class="documentableName ">map</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">V</span>): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">V</span>]
            </div>
           </div>
          </div>
@@ -514,7 +514,7 @@ node12 -> node8;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Sources.html#withFilter-59a" t="n" class="documentableName ">withFilter</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Boolean</span>): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Sources.html#withFilter-59a" t="n" class="documentableName ">withFilter</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>] <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Boolean</span>): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]]
            </div>
           </div>
          </div>
