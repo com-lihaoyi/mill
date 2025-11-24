@@ -152,7 +152,7 @@ trait AssemblyModule extends OfflineSupportModule {
   }
 
   override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
-    AssemblyModule.prepareOffline(all)()
+    (super.prepareOffline(all)() ++ AssemblyModule.prepareOffline(all)()).distinct
   }
 }
 
