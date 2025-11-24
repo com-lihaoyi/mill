@@ -23,7 +23,9 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // Replaced static-forwarder (to the same method in companion objects) by non-static method
     // This is a real breakage, but probably one that won't hurt any Mill user
     ProblemFilter.exclude[StaticVirtualMemberProblem]("mill.javalib.AssemblyModule.prepareOffline"),
-    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.javalib.AssemblyModule.mill$javalib$AssemblyModule$$super$prepareOffline")
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.javalib.AssemblyModule.mill$javalib$AssemblyModule$$super$prepareOffline"
+    )
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
