@@ -19,7 +19,6 @@ package build
 import mill.*, scalalib.*
 import mill.api.opt.*
 
-
 object `package` extends ScalaModule {
   def scalaVersion = "2.13.16"
   def compileMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.18")

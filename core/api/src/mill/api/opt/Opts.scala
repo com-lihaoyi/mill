@@ -57,10 +57,9 @@ object Opts {
       { opts =>
         // We always serialize as a seq of groups
         opts.value.map { group =>
-          if(group.size == 1 && !group.head.containsPaths) {
+          if (group.size == 1 && !group.head.containsPaths) {
             ujson.Str(group.head.toString())
-          }
-          else
+          } else
             upickle.transform(group).to[ujson.Value]
         }
 //        upickle.transform(opts.value).to[ujson.Value]
