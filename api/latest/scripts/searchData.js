@@ -2997,7 +2997,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/Assembly$$Rule$$ExcludePattern$.html#apply-fffff464","e":false,"i":"","n":"apply","t":"apply(pattern: String): ExcludePattern","d":"mill.javalib.Assembly.Rule.ExcludePattern","k":"def","x":""},
 {"l":"mill/javalib/Assembly$$Rule$$Relocate.html#","e":false,"i":"","n":"Relocate","t":"Relocate(from: String, to: String) extends Rule","d":"mill.javalib.Assembly.Rule","k":"class","x":""},
 {"l":"mill/javalib/Assembly$$Rule.html#","e":false,"i":"","n":"Rule","t":"Rule extends Product, Serializable","d":"mill.javalib.Assembly","k":"trait","x":""},
-{"l":"mill/javalib/AssemblyModule.html#","e":false,"i":"","n":"AssemblyModule","t":"AssemblyModule extends Module","d":"mill.javalib","k":"trait","x":""},
+{"l":"mill/javalib/AssemblyModule.html#","e":false,"i":"","n":"AssemblyModule","t":"AssemblyModule extends OfflineSupportModule","d":"mill.javalib","k":"trait","x":""},
 {"l":"mill/javalib/AssemblyModule.html#assembly-0","e":false,"i":"","n":"assembly","t":"assembly: Simple[PathRef]","d":"mill.javalib.AssemblyModule","k":"def","x":""},
 {"l":"mill/javalib/AssemblyModule.html#assemblyRules-0","e":false,"i":"","n":"assemblyRules","t":"assemblyRules: Seq[Rule]","d":"mill.javalib.AssemblyModule","k":"def","x":""},
 {"l":"mill/javalib/AssemblyModule.html#finalMainClassOpt-0","e":false,"i":"","n":"finalMainClassOpt","t":"finalMainClassOpt: Simple[Either[String, String]]","d":"mill.javalib.AssemblyModule","k":"def","x":""},

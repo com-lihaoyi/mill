@@ -45,7 +45,7 @@ node12 [id=node12, label="<span style=\"color: #FFFFFF;\">trait <a href=\"pmd/Pm
 node13 [id=node13, label="<span style=\"color: #FFFFFF;\">object <a href=\"pmd/PmdModule$.html\" t=\"n\">PmdModule</a></span>", class="object vertex"];
 node14 [id=node14, label="<span style=\"color: #FFFFFF;\">trait <a href=\"spotless/SpotlessModule.html\" t=\"n\">SpotlessModule</a></span>", class="trait vertex"];
 node15 [id=node15, label="<span style=\"color: #FFFFFF;\">object <a href=\"spotless/SpotlessModule$.html\" t=\"n\">SpotlessModule</a></span>", class="object vertex"];
-node16 [id=node16, label="<span style=\"color: #FFFFFF;\">object <a href=\"AssemblyModule$.html\" t=\"n\">AssemblyModule</a></span>", class="object vertex"];
+node16 [id=node16, label="<span style=\"color: #FFFFFF;\">trait <a href=\"AssemblyModule.html\" t=\"n\">AssemblyModule</a></span>", class="trait vertex"];
 node17 [id=node17, label="<span style=\"color: #FFFFFF;\">trait <a href=\"JavaModule.html\" t=\"n\">JavaModule</a></span>", class="trait vertex"];
 node18 [id=node18, label="<span style=\"color: #FFFFFF;\">trait <a href=\"JavaModule.html\" t=\"n\">JavaModule</a>.<span t=\"k\">this</span>.<a href=\"JavaModule$JavaTests.html\" t=\"t\">JavaTests</a></span>", class="trait vertex"];
 node19 [id=node19, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../androidlib/AndroidModule.html\" t=\"n\">AndroidModule</a>.<span t=\"k\">this</span>.<a href=\"../androidlib/AndroidModule$AndroidTestModule.html\" t=\"t\">AndroidTestModule</a></span>", class="trait vertex"];
@@ -143,14 +143,15 @@ node110 [id=node110, label="<span style=\"color: #FFFFFF;\">class <a href=\"../s
 node111 [id=node111, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../script/ScalaModule$$Base.html\" t=\"n\">Base</a></span>", class="trait vertex"];
 node112 [id=node112, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Raw.html\" t=\"n\">Raw</a></span>", class="class vertex"];
 node113 [id=node113, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule.html\" t=\"n\">ScalaModule</a></span>", class="class vertex"];
-node114 [id=node114, label="<span style=\"color: #FFFFFF;\">trait <a href=\"JvmWorkerModule.html\" t=\"n\">JvmWorkerModule</a></span>", class="trait vertex"];
-node115 [id=node115, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../androidlib/hilt/AndroidHiltTransform.html\" t=\"n\">AndroidHiltTransform</a></span>", class="trait vertex"];
-node116 [id=node116, label="<span style=\"color: #FFFFFF;\">object <a href=\"../androidlib/hilt/AndroidHiltTransform$.html\" t=\"n\">AndroidHiltTransform</a></span>", class="object vertex"];
-node117 [id=node117, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../androidlib/keytool/KeytoolModule.html\" t=\"n\">KeytoolModule</a></span>", class="trait vertex"];
-node118 [id=node118, label="<span style=\"color: #FFFFFF;\">object <a href=\"../androidlib/keytool/KeytoolModule$.html\" t=\"n\">KeytoolModule</a></span>", class="object vertex"];
-node119 [id=node119, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../androidlib/manifestmerger/AndroidManifestMerger.html\" t=\"n\">AndroidManifestMerger</a></span>", class="trait vertex"];
-node120 [id=node120, label="<span style=\"color: #FFFFFF;\">object <a href=\"../androidlib/manifestmerger/AndroidManifestMerger$.html\" t=\"n\">AndroidManifestMerger</a></span>", class="object vertex"];
-node121 [id=node121, label="<span style=\"color: #FFFFFF;\">object <a href=\"JvmWorkerModule$.html\" t=\"n\">JvmWorkerModule</a></span>", class="object vertex"];
+node114 [id=node114, label="<span style=\"color: #FFFFFF;\">object <a href=\"AssemblyModule$.html\" t=\"n\">AssemblyModule</a></span>", class="object vertex"];
+node115 [id=node115, label="<span style=\"color: #FFFFFF;\">trait <a href=\"JvmWorkerModule.html\" t=\"n\">JvmWorkerModule</a></span>", class="trait vertex"];
+node116 [id=node116, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../androidlib/hilt/AndroidHiltTransform.html\" t=\"n\">AndroidHiltTransform</a></span>", class="trait vertex"];
+node117 [id=node117, label="<span style=\"color: #FFFFFF;\">object <a href=\"../androidlib/hilt/AndroidHiltTransform$.html\" t=\"n\">AndroidHiltTransform</a></span>", class="object vertex"];
+node118 [id=node118, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../androidlib/keytool/KeytoolModule.html\" t=\"n\">KeytoolModule</a></span>", class="trait vertex"];
+node119 [id=node119, label="<span style=\"color: #FFFFFF;\">object <a href=\"../androidlib/keytool/KeytoolModule$.html\" t=\"n\">KeytoolModule</a></span>", class="object vertex"];
+node120 [id=node120, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../androidlib/manifestmerger/AndroidManifestMerger.html\" t=\"n\">AndroidManifestMerger</a></span>", class="trait vertex"];
+node121 [id=node121, label="<span style=\"color: #FFFFFF;\">object <a href=\"../androidlib/manifestmerger/AndroidManifestMerger$.html\" t=\"n\">AndroidManifestMerger</a></span>", class="object vertex"];
+node122 [id=node122, label="<span style=\"color: #FFFFFF;\">object <a href=\"JvmWorkerModule$.html\" t=\"n\">JvmWorkerModule</a></span>", class="object vertex"];
 
 
  node0 -> node1;
@@ -175,7 +176,7 @@ node13 -> node12;
 node14 -> node0;
 node15 -> node14;
 node16 -> node0;
-node17 -> node0;
+node17 -> node16;
 node18 -> node17;
 node19 -> node18;
 node20 -> node19;
@@ -313,13 +314,15 @@ node77 -> node112;
 node78 -> node112;
 node79 -> node112;
 node114 -> node0;
-node115 -> node114;
+node17 -> node0;
+node115 -> node0;
 node116 -> node115;
-node117 -> node114;
-node118 -> node117;
-node119 -> node114;
-node120 -> node119;
-node121 -> node114;
+node117 -> node116;
+node118 -> node115;
+node119 -> node118;
+node120 -> node115;
+node121 -> node120;
+node122 -> node115;
 
 }
 </script>
@@ -383,7 +386,7 @@ node121 -> node114;
       object <a href="spotless/SpotlessModule$.html" t="n">SpotlessModule</a>
      </div>
      <div>
-      object <a href="AssemblyModule$.html" t="n">AssemblyModule</a>
+      trait <a href="AssemblyModule.html" t="n">AssemblyModule</a>
      </div>
      <div>
       trait <a href="JavaModule.html" t="n">JavaModule</a>
@@ -675,6 +678,9 @@ node121 -> node114;
      </div>
      <div>
       class <a href="../script/ScalaModule.html" t="n">ScalaModule</a>
+     </div>
+     <div>
+      object <a href="AssemblyModule$.html" t="n">AssemblyModule</a>
      </div>
      <div>
       trait <a href="JvmWorkerModule.html" t="n">JvmWorkerModule</a>
