@@ -137,24 +137,24 @@ object InspectTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         coreInspect,
         """core(build.mill:30)
-            The Core Module Docz!
-        
-        Inherited Modules:
-            mill.javalib.CoursierModule
-            mill.javalib.JavaHomeModule
-            mill.javalib.WithJvmWorkerModule
-            mill.javalib.bsp.BspModule
-            mill.javalib.RunModule
-            mill.javalib.GenIdeaModule
-            mill.javalib.SemanticDbJavaModule
-            mill.javalib.AssemblyModule
-            mill.javalib.JavaModule
-        
-        Default Task: core.run
-        
-        Tasks (re-/defined):
-            core.task
-        """
+          |    The Core Module Docz!
+          |
+          |Inherited Modules:
+          |    mill.javalib.CoursierModule
+          |    mill.javalib.JavaHomeModule
+          |    mill.javalib.WithJvmWorkerModule
+          |    mill.javalib.bsp.BspModule
+          |    mill.javalib.RunModule
+          |    mill.javalib.GenIdeaModule
+          |    mill.javalib.SemanticDbJavaModule
+          |    mill.javalib.AssemblyModule
+          |    mill.javalib.JavaModule
+          |
+          |Default Task: core.run
+          |
+          |Tasks (re-/defined):
+          |    core.task
+          |""".stripMargin
       )
 
       assert(eval(("inspect", "MyJavaTaskModule")).isSuccess)
@@ -162,28 +162,28 @@ object InspectTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         jtmInspect,
         """MyJavaTaskModule(build.mill:53)
-        
-        Inherited Modules:
-            mill.javalib.CoursierModule
-            mill.javalib.JavaHomeModule
-            mill.javalib.WithJvmWorkerModule
-            mill.javalib.bsp.BspModule
-            mill.javalib.RunModule
-            mill.javalib.GenIdeaModule
-            mill.javalib.SemanticDbJavaModule
-            mill.javalib.AssemblyModule
-            mill.javalib.JavaModule
-        
-        Module Dependencies:
-            core
-            core2
-        
-        Default Task: MyJavaTaskModule.run
-        
-        Tasks (re-/defined):
-            MyJavaTaskModule.lineCount
-            MyJavaTaskModule.task
-        """
+          |
+          |Inherited Modules:
+          |    mill.javalib.CoursierModule
+          |    mill.javalib.JavaHomeModule
+          |    mill.javalib.WithJvmWorkerModule
+          |    mill.javalib.bsp.BspModule
+          |    mill.javalib.RunModule
+          |    mill.javalib.GenIdeaModule
+          |    mill.javalib.SemanticDbJavaModule
+          |    mill.javalib.AssemblyModule
+          |    mill.javalib.JavaModule
+          |
+          |Module Dependencies:
+          |    core
+          |    core2
+          |
+          |Default Task: MyJavaTaskModule.run
+          |
+          |Tasks (re-/defined):
+          |    MyJavaTaskModule.lineCount
+          |    MyJavaTaskModule.task
+          |""".stripMargin
       )
 
       val core3Res = eval(("inspect", "core3"))
