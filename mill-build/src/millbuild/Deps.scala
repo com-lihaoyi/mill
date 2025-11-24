@@ -8,7 +8,7 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "3.7.3"
+  val scalaVersion = "3.7.4"
   val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
@@ -142,7 +142,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.5"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.7"
-  val millModuledefsVersion = "0.11.10"
+  val millModuledefsVersion = "0.12.2"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
