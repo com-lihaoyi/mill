@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Kotlin Web Project Examples :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/kotlinlib/web-examples.html">
+    <link rel="prev" href="publishing.html">
+    <link rel="next" href="../android/android-initial-setup.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.1.0-RC2-34-12421d">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.1.0-RC2-34-12421d</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.1.0-RC2-34-12421d</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.1.0-RC2</a>
+        </li>
+        <li class="version">
+          <a href="../../1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Kotlin Web Project Examples</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page contains examples of using Mill as a build tool for web-applications.
+It covers setting up a basic backend server with a variety of server frameworks</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ktor_hello_world_app"><a class="anchor" href="#_ktor_hello_world_app"></a>Ktor Hello World App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/1-hello-ktor">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, kotlinlib.*
+
+object `package` extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("com.example.HelloKtorKt")
+
+  def mvnDeps = Seq(
+    mvn"io.ktor:ktor-server-core:2.3.12",
+    mvn"io.ktor:ktor-server-netty:2.3.12"
+  )
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"io.ktor:ktor-server-test-host:2.3.12"
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/com/example/HelloKtor.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/1-hello-ktor/src/com/example/HelloKtor.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package com.example
+
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
+
+fun main() {
+    embeddedServer(Netty, port = 8090, host = "0.0.0.0", module = Application::module)
+        .start(wait = true)
+}
+
+fun Application.module() {
+    routing {
+        get("/") {
+            call.respondText("&lt;h1&gt;Hello, World!&lt;/h1&gt;")
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">test/src/com/example/HelloKtorTest.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/1-hello-ktor/test/src/com/example/HelloKtorTest.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package com.example
+
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.testApplication
+
+class HelloKtorTest :
+    FunSpec({
+        test("HelloKtorTest") {
+            testApplication {
+                application {
+                    module()
+                }
+                val response = client.get("/")
+                response.status shouldBe HttpStatusCode.OK
+                response.bodyAsText() shouldBe "&lt;h1&gt;Hello, World!&lt;/h1&gt;"
+            }
+        }
+    })</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to set up a simple webserver
+serving a single "&lt;h1&gt;Hello, World!&lt;/h1&gt;" web page using Kotlin and Ktor.
+It includes one module which is the Ktor webserver/app, and one test module
+using kotest</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+Test com.example.HelloKtorTest HelloKtorTest finished, took...
+
+&gt; ./mill runBackground
+
+&gt; curl http://localhost:8090
+...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ktor_todomvc_app"><a class="anchor" href="#_ktor_todomvc_app"></a>Ktor TodoMvc App</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example implementing the well known
+<a href="https://todomvc.com/">TodoMVC</a> example app using Kotlin and Ktor.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-2-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/2-todo-ktor">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, kotlinlib.*
+
+object `package` extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("com.example.TodoMVCApplicationKt")
+
+  val ktorVersion = "2.3.12"
+  val exposedVersion = "0.53.0"
+
+  def mvnDeps = Seq(
+    mvn"io.ktor:ktor-server-core:$ktorVersion",
+    mvn"io.ktor:ktor-server-netty:$ktorVersion",
+    mvn"org.jetbrains.exposed:exposed-core:$exposedVersion",
+    mvn"org.jetbrains.exposed:exposed-jdbc:$exposedVersion",
+    mvn"com.h2database:h2:2.2.224",
+    mvn"io.ktor:ktor-server-webjars:$ktorVersion",
+    mvn"org.webjars:jquery:3.2.1",
+    mvn"io.ktor:ktor-server-thymeleaf:$ktorVersion",
+    mvn"org.webjars:webjars-locator:0.41",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1",
+    mvn"ch.qos.logback:logback-classic:1.4.14"
+  )
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"io.ktor:ktor-server-test-host:2.3.12"
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apart from running a webserver,  this example also demonstrates:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Serving HTML templates using Thymeleaf</p>
+</li>
+<li>
+<p>Serving static Javascript and CSS using Webjars</p>
+</li>
+<li>
+<p>Querying a SQL database using Exposed</p>
+</li>
+<li>
+<p>Testing using a H2 in-memory database</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+
+&gt; ./mill runBackground
+
+&gt; curl http://localhost:8091
+...&lt;h1&gt;todos&lt;/h1&gt;...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_simple_kotlinjs_module"><a class="anchor" href="#_simple_kotlinjs_module"></a>Simple KotlinJS Module</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Kotlin/JS support on Mill is still Work In Progress (WIP). As of time of writing it
+supports Node.js, but lacks support of Browser, Webpack, test runners, etc.</p>
+</div>
+<div class="paragraph">
+<p>The example below demonstrates only the minimal compilation, running, and testing of
+a single Kotlin/JS module using a single third-party dependency. For more details in
+fully developing Kotlin/JS support, see the following ticket:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/issues/3611" class="bare">https://github.com/com-lihaoyi/mill/issues/3611</a></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-3-hello-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/3-hello-kotlinjs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, kotlinlib.*, kotlinlib.js.*
+
+object `package` extends KotlinJsModule {
+  override def kotlinJsModuleKind = ModuleKind.ESModule
+  override def kotlinVersion = "1.9.25"
+  override def kotlinJsRunTarget = Some(RunTarget.Node)
+  override def mvnDeps = Seq(
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
+  )
+  object test extends KotlinJsModule, KotestTests {
+    override def kotestVersion = "5.9.1"
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+Compiling 1 Kotlin sources to .../out/compile.dest/classes...
+&lt;h1&gt;Hello World&lt;/h1&gt;
+stringifiedJsObject: ["hello","world","!"]
+
+&gt; ./mill test # Test is incorrect, `test` fails
+Compiling 1 Kotlin sources to .../out/test/compile.dest/classes...
+Linking IR to .../out/test/linkBinary.dest/binaries
+produce executable: .../out/test/linkBinary.dest/binaries
+...
+error: ... expected:&lt;"&lt;h1&gt;Hello World Wrong&lt;/h1&gt;"&gt; but was:&lt;"&lt;h1&gt;Hello World&lt;/h1&gt;...
+...
+
+&gt; cat out/test/linkBinary.dest/binaries/test.js # Generated javascript on disk
+...shouldBe(..., '&lt;h1&gt;Hello World Wrong&lt;\/h1&gt;');...
+...
+
+&gt; sed -i.bak 's/Hello World Wrong/Hello World/g' test/src/foo/HelloTests.kt
+
+&gt; ./mill test # passes after fixing test</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ktor_webapp_kotlinjs_client"><a class="anchor" href="#_ktor_webapp_kotlinjs_client"></a>Ktor Webapp, KotlinJS Client</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A minimal example of a Kotlin backend server wired up with a Kotlin/JS
+front-end. The backend code is identical to the <a href="#_ktor_todomvc_app">Ktor TodoMvc App</a> example, but
+we replace the <code>main.js</code> client side code with the Javascript output of
+<code>ClientApp.kt</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-4-webapp-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/4-webapp-kotlinjs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, kotlinlib.*, kotlinlib.js.*
+
+object `package` extends KotlinModule {
+
+  override def kotlinVersion = "1.9.24"
+  def ktorVersion = "2.3.12"
+  def kotlinHtmlVersion = "0.11.0"
+
+  override def mainClass = Some("webapp.WebApp")
+
+  override def mvnDeps = Seq(
+    mvn"io.ktor:ktor-server-core:$ktorVersion",
+    mvn"io.ktor:ktor-server-netty:$ktorVersion",
+    mvn"io.ktor:ktor-server-html-builder:$ktorVersion"
+  )
+
+  override def resources = Task {
+    os.makeDir(Task.dest / "webapp")
+    val jsPath = client.linkBinary().classes.path
+    // Move root.js[.map]into the proper filesystem position
+    // in the resource folder for the web server code to pick up
+    os.copy(jsPath / "client.js", Task.dest / "webapp/client.js")
+    os.copy(jsPath / "client.js.map", Task.dest / "webapp/client.js.map")
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    override def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"io.ktor:ktor-server-test-host:$ktorVersion"
+    )
+  }
+
+  object client extends KotlinJsModule {
+    override def kotlinVersion = "1.9.24"
+
+    override def kotlinJsSplitPerModule = false
+
+    override def mvnDeps = Seq(
+      mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion"
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the client-side Kotlin code is the simplest 1-to-1 translation of
+the original Javascript, using <code>kotlinx.browser</code>, as this example is intended to
+demonstrate the <code>build.mill</code> config in Mill. A real codebase is likely to use
+Javascript or Kotlin/JS UI frameworks to manage the UI, but those are beyond the
+scope of this example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...webapp.WebAppTests simpleRequest ...
+
+&gt; ./mill runBackground
+
+&gt; curl http://localhost:8092
+...What needs to be done...
+...
+
+&gt; curl http://localhost:8092/static/client.js
+...bindEvent(this, 'todo-all', '/list/all', 'all')...
+...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ktor_kotlinjs_code_sharing"><a class="anchor" href="#_ktor_kotlinjs_code_sharing"></a>Ktor KotlinJS Code Sharing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A Kotlin/JVM backend server wired up with a Kotlin/JS front-end, with a
+<code>shared</code> module containing code that is used in both client and server.
+Rather than the server sending HTML for the initial page load and HTML for
+page updates, it sends HTML for the initial load and JSON for page updates
+which is then rendered into HTML on the client.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-5-webapp-kotlinjs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/5-webapp-kotlinjs-shared">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, kotlinlib.*, kotlinlib.js.*
+
+trait AppKotlinModule extends KotlinModule {
+  def kotlinVersion = "1.9.25"
+}
+
+trait AppKotlinJsModule extends AppKotlinModule, KotlinJsModule
+
+object `package` extends AppKotlinModule {
+
+  def ktorVersion = "2.3.12"
+  def kotlinHtmlVersion = "0.11.0"
+  def kotlinxSerializationVersion = "1.6.3"
+
+  override def mainClass = Some("webapp.WebApp")
+
+  override def moduleDeps = Seq(shared.jvm)
+
+  override def mvnDeps = Seq(
+    mvn"io.ktor:ktor-server-core:$ktorVersion",
+    mvn"io.ktor:ktor-server-netty:$ktorVersion",
+    mvn"io.ktor:ktor-server-html-builder:$ktorVersion",
+    mvn"io.ktor:ktor-server-content-negotiation:$ktorVersion",
+    mvn"io.ktor:ktor-serialization-kotlinx-json:$ktorVersion",
+    mvn"ch.qos.logback:logback-classic:1.5.8"
+  )
+
+  override def resources = Task {
+    os.makeDir(Task.dest / "webapp")
+    val jsPath = client.linkBinary().classes.path
+    os.copy(jsPath / "client.js", Task.dest / "webapp/client.js")
+    os.copy(jsPath / "client.js.map", Task.dest / "webapp/client.js.map")
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    override def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"io.ktor:ktor-server-test-host:$ktorVersion"
+    )
+  }
+
+  object shared extends Module {
+
+    trait SharedModule extends AppKotlinModule, PlatformKotlinModule {
+      override def kotlincPluginMvnDeps = Seq(
+        mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
+      )
+    }
+
+    object jvm extends SharedModule {
+      override def mvnDeps = Seq(
+        mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion",
+        mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion"
+      )
+    }
+    object js extends SharedModule, AppKotlinJsModule {
+      override def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion",
+        mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion"
+      )
+    }
+  }
+
+  object client extends AppKotlinJsModule {
+    override def kotlinJsSplitPerModule = false
+    override def moduleDeps = Seq(shared.js)
+    override def mvnDeps = Seq(
+      mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion",
+      mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion"
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The JSON serialization logic and HTML generation logic in the <code>shared</code> module
+is shared between client and server, and uses libraries like <code>kotlinx-serialization</code> and
+<code>kotlinx-html</code> which work on both Kotlin/JVM and Kotlin/JS. This allows us to freely
+move code between the client and server, without worrying about what
+platform or language the code was originally implemented in.</p>
+</div>
+<div class="paragraph">
+<p>This is a minimal example of shared code compiled to Kotlin/JVM and Kotlin/JS,
+running on both client and server, meant for illustrating the build
+configuration. A full exploration of client-server code sharing techniques
+is beyond the scope of this example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...webapp.WebAppTests simpleRequest ...
+
+&gt; ./mill runBackground
+
+&gt; curl http://localhost:8093
+...What needs to be done...
+...
+
+&gt; curl http://localhost:8093/static/client.js
+...kotlin.js...
+...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-6-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/6-hello-spring-boot">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, kotlinlib.*
+
+object `package` extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("com.example.HelloSpringBootKt")
+
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-web:2.5.6",
+    mvn"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
+  )
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to set up a simple Spring Boot webserver,
+able to handle a single HTTP request at <code>/</code> and reply with a single response.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
+
+&gt; ./mill runBackground
+
+&gt; curl http://localhost:8095
+...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-7-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/7-todo-spring-boot">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, kotlinlib.*
+
+object `package` extends KotlinModule {
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("com.example.TodomvcApplicationKt")
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-validation:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-web:2.5.4",
+    mvn"org.jetbrains.kotlin:kotlin-reflect:2.0.21",
+    mvn"javax.xml.bind:jaxb-api:2.3.1",
+    mvn"org.webjars:webjars-locator:0.41",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1"
+  )
+
+  trait HelloTests extends KotlinTests, TestModule.Junit5 {
+    def mainClass = Some("com.example.TodomvcApplicationKt")
+    def mvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
+    )
+  }
+
+  object test extends HelloTests {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"com.h2database:h2:2.3.230"
+    )
+  }
+
+  object integration extends HelloTests {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.testcontainers:testcontainers:1.18.0",
+      mvn"org.testcontainers:junit-jupiter:1.18.0",
+      mvn"org.testcontainers:postgresql:1.18.0",
+      mvn"org.postgresql:postgresql:42.6.0"
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a larger example using Spring Boot, implementing the well known
+<a href="https://todomvc.com/">TodoMVC</a> example app. Apart from running a webserver,
+this example also demonstrates:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Serving HTML templates using Thymeleaf</p>
+</li>
+<li>
+<p>Serving static Javascript and CSS using Webjars</p>
+</li>
+<li>
+<p>Querying a SQL database using JPA and H2</p>
+</li>
+<li>
+<p>Unit testing using a H2 in-memory database</p>
+</li>
+<li>
+<p>Integration testing using Testcontainers Postgres in Docker</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...com.example.TodomvcTests#homePageLoads() finished...
+...com.example.TodomvcTests#addNewTodoItem() finished...
+
+&gt; ./mill integration
+...com.example.TodomvcIntegrationTests#homePageLoads() finished...
+...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
+
+&gt; ./mill test.runBackground
+
+&gt; curl http://localhost:8099
+...&lt;h1&gt;todos&lt;/h1&gt;...
+
+&gt; ./mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_micronaut_app"><a class="anchor" href="#_micronaut_app"></a>Micronaut App</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-kotlinlib-web-8-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/kotlinlib/web/8-hello-micronaut">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import coursier.{MavenRepository, Repository}
+
+import mill.*
+import kotlinlib.*
+import kotlinlib.ksp.KspModule
+
+object micronaut extends MicronautModule {
+
+  def mvnDeps: Task.Simple[Seq[Dep]] = Seq(
+    mvn"io.micronaut:micronaut-http-server-netty",
+    mvn"io.micronaut.serde:micronaut-serde-jackson",
+    mvn"io.micronaut:micronaut-jackson-databind",
+    mvn"io.micronaut:micronaut-http-validation",
+    mvn"ch.qos.logback:logback-classic",
+    mvn"io.micronaut.kotlin:micronaut-kotlin-runtime",
+    mvn"io.micronaut.data:micronaut-data-processor"
+  )
+
+  object test extends MicronautTests, TestModule.Junit5 {
+
+    def mvnDeps = Seq(
+      mvn"io.micronaut:micronaut-http-client",
+      mvn"io.micronaut.test:micronaut-test-junit5"
+    )
+
+  }
+
+}
+
+trait MicronautModule extends KspModule { outer =&gt;
+  def kspVersion: T[String] = "2.0.2"
+  def kotlinVersion = "2.2.0"
+  def kspJvmTarget: T[String] = "11"
+
+  def bomMvnDeps: T[Seq[Dep]] = Seq(
+    mvn"io.micronaut.platform:micronaut-platform:4.9.2"
+  )
+
+  def kotlinSymbolProcessors = Seq(
+    mvn"io.micronaut:micronaut-inject-kotlin:4.9.9"
+  )
+
+  override def kspProcessorOptions: T[Map[String, String]] = Task {
+    super.kspProcessorOptions() ++ Map(
+      "micronaut.processing.module" -&gt; moduleSegments.render,
+      "micronaut.processing.incremental" -&gt; "true"
+    )
+  }
+
+  override def resources: T[Seq[PathRef]] = Task {
+    super.resources() ++ Seq(generatedSourcesWithKsp().resources)
+  }
+
+  override def runClasspath: T[Seq[PathRef]] = Task {
+    super.runClasspath() ++ Seq(generatedSourcesWithKsp().classes)
+  }
+
+  trait MicronautTests extends MicronautModule, KspTests {
+
+    override def resources: T[Seq[PathRef]] = Task {
+      super[KspTests].resources() ++ Seq(generatedSourcesWithKsp().resources)
+    }
+
+    def kotlinSymbolProcessors = Seq(
+      mvn"io.micronaut:micronaut-inject-kotlin-test:4.9.9"
+    )
+
+    override def runClasspath: T[Seq[PathRef]] = Task {
+      super.runClasspath() ++ Seq(
+        generatedSourcesWithKsp().classes,
+        outer.generatedSourcesWithKsp().classes
+      )
+    }
+
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show micronaut.test
+...
+{
+  "msg": " ",
+  "results": [
+    {
+      "fullyQualifiedName": "example.micronaut.HelloControllerTest",
+      "selector": "testHello()",
+      "duration": ...,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "example.micronaut.FnrSearchServiceTest",
+      "selector": "testItWorks()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+...
+
+&gt; ./mill show clean</code></pre>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="publishing.html">Kotlin Packaging &amp; Publishing</a></span>
+  <span class="next"><a href="../android/android-initial-setup.html">Android Initial Setup</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

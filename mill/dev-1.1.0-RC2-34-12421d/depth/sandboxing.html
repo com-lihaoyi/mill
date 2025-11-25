@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mill Sandboxing :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/depth/sandboxing.html">
+    <link rel="prev" href="process-architecture.html">
+    <link rel="next" href="design-principles.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.1.0-RC2-34-12421d">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.1.0-RC2-34-12421d</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.1.0-RC2-34-12421d</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.1.0-RC2</a>
+        </li>
+        <li class="version">
+          <a href="../../1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Mill Sandboxing</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to help manage your build, Mill performs some rudimentary filesystem
+sandboxing to keep different tasks and modules from interfering with each other.
+This tries to ensure your tasks only read and write from their designated <code>.dest/</code>
+folders, which are unique to each task and thus guaranteed not to collide with
+the filesystem operations of other tasks that may be occurring in parallel.</p>
+</div>
+<div class="paragraph">
+<p>Mill sandboxing is not meant to be fully hermetic, and is instead just a set of
+guardrails meant to nudge Mill users towards Mill&#8217;s best practices and coding conventions.
+Every Mill sandboxing guardrail has an escape-hatch to bypass it (at your own risk!) if
+really necessary.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_task_sandboxing"><a class="anchor" href="#_task_sandboxing"></a>Task Sandboxing</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_task_dest"><a class="anchor" href="#_task_dest"></a><code>Task.dest</code></h3>
+<div class="paragraph">
+<p>The standard way of working with a task&#8217;s <code>.dest/</code> folder is through the <code>Task.dest</code>
+property. This is available within any task, and gives you access to the
+<code>out/&lt;module-names&gt;/&lt;task-name&gt;.dest/</code> folder to use. The <code>.dest/</code> folder for
+each task is lazily initialized when <code>Task.dest</code> is referenced and used:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/depth/sandbox/1-task">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+import mill.api.BuildCtx
+
+object foo extends Module {
+  def tDestTask = Task { println(Task.dest.toString) }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.tDestTask
+.../out/foo/tDestTask.dest</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you really need to reference paths outside of the <code>Task.dest</code>, you can do
+so via <code>BuildCtx.workspaceRoot</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_filesystem_readwrite_checks"><a class="anchor" href="#_filesystem_readwrite_checks"></a>Filesystem Read/Write Checks</h3>
+<div class="paragraph">
+<p>Mill enforces limits on what you can read and write while a task is executing.
+In general, a task may only write to its own <code>Task.dest</code> folder, and may only
+read from the <code>PathRef</code>s provided to it from upstream tasks</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedWriteTask = Task {
+  os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedWriteTask
+error: ...Writing to banned-path not allowed during execution of `bannedWriteTask`.</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedReadTask = Task {
+  os.read(BuildCtx.workspaceRoot / "build.mill")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedReadTask
+error: ...Reading from build.mill not allowed during execution of `bannedReadTask`.</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedReadTask2 = Task {
+  os.read(BuildCtx.workspaceRoot / "out/foo/tDestTask.json")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedReadTask2
+error: ...Reading from out/foo/tDestTask.json not allowed during execution of `bannedReadTask2`.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Furthermore, code <em>outside</em> of a task that runs during module initialization can only
+read from disk if wrapped in a <code>BuildCtx.watchValue</code> block. This ensures that such
+reads are tracked by Mill&#8217;s <code>--watch</code> and cache-invalidation logic.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val listed = BuildCtx.watchValue(os.list(BuildCtx.workspaceRoot).map(_.last))</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_bypassing_task_sandboxing"><a class="anchor" href="#_bypassing_task_sandboxing"></a>Bypassing Task Sandboxing</h3>
+<div class="paragraph">
+<p>You can bypass Mill&#8217;s filesystem read/write limitations via
+<code>BuildCtx.withFilesystemCheckerDisabled</code>. Note that this bypasses the
+best-practices that Mill tries to enforce on your tasks and may result in strange
+bugs around caching, parallelism, and invalidation, so you shouldn&#8217;t do this unless
+you really know what you are doing:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedWriteTaskOverridden = Task {
+  BuildCtx.withFilesystemCheckerDisabled {
+    os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
+    println(os.read(BuildCtx.workspaceRoot / "banned-path"))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedWriteTaskOverridden
+hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also disable it globally by passing in <code>--no-filesystem-checker</code> to Mill:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --no-filesystem-checker bannedReadTask</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_os_pwd_redirection"><a class="anchor" href="#_os_pwd_redirection"></a><code>os.pwd</code> redirection</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_task_os_pwd_redirection"><a class="anchor" href="#_task_os_pwd_redirection"></a>Task <code>os.pwd</code> redirection</h3>
+<div class="paragraph">
+<p>Mill also redirects the <code>os.pwd</code> property from <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a>,
+such that that also points towards a running task&#8217;s own <code>.dest/</code> folder</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def osPwdTask = Task { println(os.pwd.toString) }</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill osPwdTask
+.../out/osPwdTask.dest</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The redirection of <code>os.pwd</code> applies to <code>os.proc</code>, <code>os.call</code>, and <code>os.spawn</code> methods
+as well. In the example below, we can see the <code>python3</code> subprocess we spawn prints
+its <code>os.getcwd()</code>, which is our <code>osProcTask.dest/</code> sandbox folder:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def osProcTask = Task {
+  println(os.call(("python3", "-c", "import os; print(os.getcwd())")).out.trim())
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill osProcTask
+.../out/osProcTask.dest</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_non_task_os_pwd_redirection"><a class="anchor" href="#_non_task_os_pwd_redirection"></a>Non-task <code>os.pwd</code> redirection</h3>
+<div class="paragraph">
+<p>Lastly, there is the possibily of calling <code>os.pwd</code> outside of a task. When outside of
+a task there is no <code>.dest/</code> folder associated, so instead Mill will redirect <code>os.pwd</code>
+towards an empty <code>sandbox/</code> folder in <code>out/mill-daemon/&#8230;&#8203;</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val externalPwd = os.pwd
+def externalPwdTask = Task { println(externalPwd.toString) }</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill externalPwdTask
+.../out/mill-daemon/sandbox</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_sandboxing"><a class="anchor" href="#_test_sandboxing"></a>Test Sandboxing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill also creates sandbox folders for test suites to run in. Consider the
+following build with two modules <code>foo</code> and <code>bar</code>, and their test suites
+<code>foo.test</code> and <code>bar.test</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/depth/sandbox/2-test">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+trait MyModule extends JavaModule {
+  object test extends JavaTests, TestModule.Junit4
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+}
+
+object bar extends MyModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For the sake of the example, both test modules contain tests that exercise the
+logic in their corresponding non-test module, but also do some basic filesystem
+operations at the same time, writing out a <code>generated.html</code> file and then reading it:</p>
+</div>
+<div class="listingblock">
+<div class="title">foo/src/foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/depth/sandbox/2-test/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
+
+public class Foo {
+  public static String generateHtml(String text) {
+    return "&lt;h1&gt;" + text + "&lt;/h1&gt;";
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/depth/sandbox/2-test/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
+
+import static org.junit.Assert.assertEquals;
+
+import java.nio.file.*;
+import org.junit.Test;
+
+public class FooTests {
+  @Test
+  public void simple() throws Exception {
+    String result = Foo.generateHtml("hello");
+    Path path = Paths.get("generated.html");
+    Files.write(path, result.getBytes());
+    assertEquals("&lt;h1&gt;hello&lt;/h1&gt;", Files.readString(path));
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">bar/src/bar/Bar.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/depth/sandbox/2-test/bar/src/bar/Bar.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package bar;
+
+public class Bar {
+  public static String generateHtml(String text) {
+    return "&lt;p&gt;" + text + "&lt;/p&gt;";
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">bar/test/src/bar/BarTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/depth/sandbox/2-test/bar/test/src/bar/BarTests.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package bar;
+
+import static org.junit.Assert.assertEquals;
+
+import java.nio.file.*;
+import org.junit.Test;
+
+public class BarTests {
+  @Test
+  public void simple() throws Exception {
+    String result = Bar.generateHtml("world");
+    Path path = Paths.get("generated.html");
+    Files.write(path, result.getBytes());
+    assertEquals("&lt;p&gt;world&lt;/p&gt;", Files.readString(path));
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both test suites can be run via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill __.test</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Without sandboxing, due to the tests running in parallel, there is a race condition:
+it&#8217;s possible that <code>FooTests</code> may write the file, <code>BarTests</code> write over it, before
+<code>FooTests</code> reads the output from <code>BarTests</code>. That would cause non-deterministic
+flaky failures in your test suite that can be very difficult to debug and resolve.</p>
+</div>
+<div class="paragraph">
+<p>With Mill&#8217;s test sandboxing, each test runs in a separate folder: the <code>.dest</code> folder
+of the respective task and module. For example:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo.test</code> runs in <code>out/foo/test/testForked.dest/</code></p>
+</li>
+<li>
+<p><code>bar.test</code> runs in <code>out/bar/test/testForked.dest/</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As a result, each test&#8217;s <code>generated.html</code> file is written to its own dedicated
+working directory, without colliding with each other on disk:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find . | grep generated.html
+.../out/foo/test/testForked.dest/sandbox/generated.html
+.../out/bar/test/testForked.dest/sandbox/generated.html
+
+&gt; cat out/foo/test/testForked.dest/sandbox/generated.html
+&lt;h1&gt;hello&lt;/h1&gt;
+
+&gt; cat out/bar/test/testForked.dest/sandbox/generated.html
+&lt;p&gt;world&lt;/p&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As each test suite runs in a different working directory by default, naive usage
+reading and writing to the filesystem does not cause tests to interefere with
+one another, which helps keep tests stable and deterministic even when run in
+parallel</p>
+</div>
+<div class="sect2">
+<h3 id="_bypassing_the_test_sandbox"><a class="anchor" href="#_bypassing_the_test_sandbox"></a>Bypassing the Test Sandbox</h3>
+<div class="paragraph">
+<p>Within a test, you can use the <code>MILL_WORKSPACE_ROOT</code> environment variable
+to access the workspace root directory:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object qux extends JavaModule {
+  object test extends JavaTests, TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">qux/src/qux/Qux.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/depth/sandbox/2-test/qux/src/qux/Qux.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package qux;
+
+public class Qux {
+  public static String generateHtml(String text) {
+    return "&lt;h1&gt;" + text + "&lt;/h1&gt;";
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">qux/test/src/qux/QuxTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/depth/sandbox/2-test/qux/test/src/qux/QuxTests.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package qux;
+
+import static org.junit.Assert.assertEquals;
+
+import java.nio.file.*;
+import java.util.stream.Collectors;
+import org.junit.Test;
+
+public class QuxTests {
+  @Test
+  public void simple() throws Exception {
+    String workspaceRoot = System.getenv("MILL_WORKSPACE_ROOT");
+
+    for (Path subpath : Files.list(Paths.get(workspaceRoot)).collect(Collectors.toList())) {
+      String result = Qux.generateHtml(subpath.getFileName().toString());
+      Path tmppath = Paths.get(subpath.getFileName() + ".html");
+      Files.write(tmppath, result.getBytes());
+      assertEquals("&lt;h1&gt;" + subpath.getFileName() + "&lt;/h1&gt;", Files.readString(tmppath));
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.test
+
+
+&gt; find . | grep .html
+...
+.../out/qux/test/testForked.dest/sandbox/foo.html
+
+&gt; cat out/qux/test/testForked.dest/sandbox/foo.html
+&lt;h1&gt;foo&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Test sandboxing can also be disabled by setting <code>def testSandboxWorkingDir = false</code>
+on your test module, which makes your unit tests run in the root of your
+project workspace, with full access to the project files on disk.</p>
+</div>
+<div class="paragraph">
+<p>Disabling the test sandbox can be useful when migrating existing projects, as
+other build tools like Maven, Gradle or SBT do not enforce such sandboxes by default,
+so many tests are written with the assumption they run in the project root. But
+it is advisable to use or adopt the default config of <code>def testSandboxWorkingDir = true</code>
+where possible as that will ensure that inputs to tests are properly tracked by
+the build tool, so features like <a href="../cli/flags.html#_watch_w" class="xref page">cli/flags.adoc#_watch_w</a> or
+<a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a> are able to precisely determine when a test needs
+to be run and when it can be skipped.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations"><a class="anchor" href="#_limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill&#8217;s approach to filesystem sandboxing is designed to avoid accidental interference
+between different Mill tasks and tests. It is not designed to block intentional misbehavior,
+and tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
+Mill&#8217;s redirection of <code>os.pwd</code> does not apply to <code>java.io</code> or <code>java.nio</code> APIs, which are
+outside of Mill&#8217;s control.</p>
+</div>
+<div class="paragraph">
+<p>However, by setting <code>os.pwd</code> to safe sandbox folders, and performing some basic checks
+on <code>os.*</code> read/write operations, we hope to minimize the cases where someone accidentally
+causes issues with their build by doing the wrong thing. The escape hatches of <code>BuildCtx.workspaceRoot</code>,
+<code>MILL_WORKSPACE_ROOT</code>, or <code>BuildCtx.withFilesystemCheckerDisabled</code> are provided to be used
+in cases you do need to do something unusual, but usage of them should be minimized if possible
+as they may result in <code>--watch</code> or <code>selective.test</code> not missing some implicit dependencies
+between your tasks and source files on disk.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="process-architecture.html">The Mill Process Architecture</a></span>
+  <span class="next"><a href="design-principles.html">Mill Design Principles</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

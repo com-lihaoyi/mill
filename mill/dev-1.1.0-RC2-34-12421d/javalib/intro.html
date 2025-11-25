@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Building Java with Mill :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/javalib/intro.html">
+    <link rel="prev" href="../index.html">
+    <link rel="next" href="config.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.1.0-RC2-34-12421d">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="script.html">Java Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spring-boot.html">Spring Boot Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.1.0-RC2-34-12421d</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.1.0-RC2-34-12421d</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.1.0-RC2</a>
+        </li>
+        <li class="version">
+          <a href="../../1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Building Java with Mill</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill supports three main ways of defining Java projects:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#_config_based_modules">Config-Based Modules</a>: simple projects that require basic setting
+of dependencies and versions</p>
+</li>
+<li>
+<p><a href="#_single_file_scripts">Single-File Scripts</a>: small programs with both code and build configuration
+contained within a single file</p>
+</li>
+<li>
+<p><a href="#_programmatic_modules">Programmatic Modules</a>: builds which require custom logic, e.g.
+code generation or resource processing</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This page walks through a series of Mill builds of increasing
+complexity to show you the key features and usage of the Mill build tool.
+The other pages of this section of the docs go into more depth into individual Mill features:
+<a href="testing.html" class="xref page">testing</a>,
+<a href="publishing.html" class="xref page">publishing</a>, and so on. Every example
+can be downloaded to try it yourself.</p>
+</div>
+<div class="paragraph">
+<p>The API reference for Mill&#8217;s Java toolchain can be found at
+<a href="https://mill-build.org/api/latest/mill/javalib.html">mill.javalib</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_config_based_modules"><a class="anchor" href="#_config_based_modules"></a>Config-Based Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-3-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/3-simple/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
+mvnDeps:
+- net.sourceforge.argparse4j:argparse4j:0.9.0
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-3-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/3-simple/test/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, mill.javalib.TestModule.Junit4]
+mvnDeps:
+- com.google.guava:guava:33.3.0-jre</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a basic Mill build for a single <code>JavaModule</code>, with two
+third-party dependencies and a test suite using the JUnit framework.
+This uses Mill&#8217;s config-based <code>.mill.yaml</code> files for defining the
+modules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>build.mill.yaml</code> defines the configuration for the root module</p>
+</li>
+<li>
+<p><code>test/package.mill.yaml</code> defines the submodule <code>test/</code> containing the test suites.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This example project uses two third-party dependencies - <a href="https://argparse4j.github.io/">ArgParse4J</a> for CLI
+argument parsing, <a href="https://www.thymeleaf.org/">Thymeleaf</a> for HTML rendering - and uses them to wrap a
+given input string in HTML templates with proper escaping.
+The <code>test/</code> submodule contains its own <code>mvnDeps</code>
+for dependencies that are only used in the test suite.</p>
+</div>
+<div class="sect2">
+<h3 id="_basic_folder_layout"><a class="anchor" href="#_basic_folder_layout"></a>Basic Folder Layout</h3>
+<div class="paragraph">
+<p>The source code for this module lives in the <code>src/</code> folder.
+Output for this module (compiled files, resolved dependency lists, &#8230;&#8203;)
+lives in <code>out/</code>. A typical filesystem layout is shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>build.mill.yaml
+src/
+    foo/Foo.java
+resources/
+    ...
+test/
+    package.mill.yaml
+    src/
+        foo/FooTest.java
+out/
+    compile.json
+    compile.dest/
+    ...
+    test/
+        compile.json
+        compile.dest/
+        ...</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The default Mill source folder layout <code>src/</code> and <code>test/src/</code> differs from that of
+Maven/Gradle&#8217;s <code>src/main/java/</code> and <code>src/test/java/</code>.
+If you wish to use the Maven source folder layout, e.g. for compatibility with
+an existing codebase, you should use
+<a href="#_maven_compatible_modules">Maven-Compatible Modules</a>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_typical_usage"><a class="anchor" href="#_typical_usage"></a>Typical Usage</h3>
+<div class="paragraph">
+<p>Typical usage of this example project from the command line is shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve _ # List what tasks are available to run
+assembly
+...
+compile
+...
+run
+...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill inspect compile # Show documentation and inputs of a task
+compile(JavaModule.scala:...)
+    Compiles the current module to generate compiled classfiles/bytecode.
+Inputs:
+    upstreamCompileOutput
+    allSourceFiles
+    compileClasspath</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile # compile sources into classfiles
+...
+compiling 1 Java source to...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+...
+Test foo.FooTest.testSimple finished...
+Test foo.FooTest.testEscaping finished...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run --text hello
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill assembly # bundle classfiles and libraries into a jar for deployment
+
+&gt; ./mill show assembly # show the output of the assembly task
+".../out/assembly.dest/out.jar"
+
+&gt; java -jar ./out/assembly.dest/out.jar --text hello
+&lt;h1&gt;hello&lt;/h1&gt;
+
+&gt; ./out/assembly.dest/out.jar --text hello # mac/linux
+&lt;h1&gt;hello&lt;/h1&gt;
+
+&gt; # Note that on windows you need to rename `out.jar` to `out.bat` to run it without `java -jar`
+&gt; cp ./out/assembly.dest/out.jar out.bat # windows
+
+&gt; ./out.bat --text hello # windows
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output of every Mill task is stored in the <code>out/</code> folder under a name
+corresponding to the task that created it. e.g. The <code>assembly</code> task puts its
+metadata output in <code>out/assembly.json</code>, and its output files in
+<code>out/assembly.dest</code>. You can also use <code>show</code> to print out the
+metadata output for a particular task, or <code>inspect</code> to print metadata about
+the task itself (docs, source location, etc.)</p>
+</div>
+<div class="paragraph">
+<p>Additional Mill tasks you would likely need include:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __    # recursively list all tasks and modules that are available
+
+&gt; ./mill runBackground # run the main method in the background
+
+&gt; ./mill clean &lt;task&gt;  # delete the cached output of a task, terminate any runBackground
+
+&gt; ./mill launcher      # prepares a out/launcher.dest/run you can run later
+
+&gt; ./mill jar           # bundle the classfiles into a jar suitable for publishing
+
+&gt; ./mill -w compile    # watch input files and re-compile whenever a file changes</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can start a JShell REPL attached to your root module or the <code>test</code> submodule via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -i jshell
+&gt; ./mill -i test.jshell</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also start a standalone JShell console
+via <code>./mill --jshell</code>. This is useful if you just need a JShell console to experiment
+with at the command line without being attached to a particular project or module.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --jshell</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The most common <strong>tasks</strong> that Mill can run are cached tasks, such as
+<code>compile</code>, and un-cached <strong>commands</strong> such as <code>run</code>. Cached tasks do not
+re-evaluate unless one of their inputs changes, whereas commands re-run every
+time. See the documentation for <a href="../fundamentals/tasks.html" class="xref page">Tasks</a> for
+details on the different task types.</p>
+</div>
+<div class="paragraph">
+<p>This example uses Mill&#8217;s config-based YAML syntax, which is a good fit for simple builds
+where you are just setting some configuration keys. This is discussed more in the documentation
+for:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="config.html" class="xref page">Config-based Java Modules</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_multi_module_projects"><a class="anchor" href="#_multi_module_projects"></a>Multi-Module Projects</h3>
+<div class="paragraph">
+<p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>,
+defined by their respective <code>package.mill.yaml</code> config
+files, and on which you can run tasks on such as <code>foo.run</code> or
+<code>bar.run</code>. There is also a <code>bar.test</code> module defined by <code>bar/test/package.mill.yaml</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/4-module-deps/foo/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
+moduleDeps: [bar]
+mvnDeps:
+- net.sourceforge.argparse4j:argparse4j:0.9.0</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/4-module-deps/bar/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
+mvnDeps:
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">bar/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-4-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/4-module-deps/bar/test/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.bar.JavaTests, mill.javalib.TestModule.Junit4]
+mvnDeps:
+- com.google.guava:guava:33.3.0-jre</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inter-module dependencies are defined by the <code>moduleDeps</code> key, and modules
+can also be nested within each other, as <code>bar.test</code> is nested
+within <code>bar</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_multi_module_folder_layout"><a class="anchor" href="#_multi_module_folder_layout"></a>Multi-Module Folder Layout</h4>
+<div class="paragraph">
+<p>This multi-module example build expects the following folder layout:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>build.mill
+foo/
+    src/
+        foo/Foo.java
+bar/
+    src/
+        bar/Bar.java
+    test/
+        src/
+            bar/BarTests.java
+out/
+    foo/
+        compile.json
+        compile.dest/
+        ...
+    bar/
+        compile.json
+        compile.dest/
+        ...
+        test/
+            compile.json
+            compile.dest/
+            ...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Typically, source, output files, and task names in Mill follow the module
+hierarchy, so e.g. input to the <code>foo</code> module lives in <code>foo/src/</code>, can be
+compiled via <code>foo.compile</code> and, and its compiled output files live in
+<code>out/foo/compile.dest</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can use <code>mill resolve</code> to list out what tasks you can run, e.g.
+<code>mill resolve __.run</code> below which lists out all the <code>run</code> tasks:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.run
+foo.run
+bar.run
+
+&gt; ./mill foo.run --text "hello-world"
+&lt;h1&gt;hello-world&lt;/h1&gt;
+
+&gt; ./mill bar.test
+...
+...bar.BarTests...simple...
+...bar.BarTests...escaping...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In general, Mill will ensure that the specified tasks and their upstream
+dependencies are executed in the right order, and re-executed as necessary when
+source code in each module changes. For example if you run <code>foo.compile</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Mill will automatically run <code>bar.compile</code> and any other upstream tasks first if they have not
+been executed yet, or are out of date</p>
+</li>
+<li>
+<p>Mill will automatically re-use the cached output for <code>bar.compile</code> if it was executed earlier
+and its upstream source files have not changed</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_task_query_syntax"><a class="anchor" href="#_task_query_syntax"></a>Task Query Syntax</h4>
+<div class="paragraph">
+<p>You can use wildcards and brace-expansion to select
+multiple tasks at once or to shorten the path to deeply nested tasks,
+as we saw with <code>__.run</code> above. Some more examples of this are shown below:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Wildcards and brace-expansion</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Wildcard</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Function</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>_</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches a single segment of the task path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>__</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">matches arbitrary segments of the task path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>{a,b}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">is equal to specifying two tasks <code>a</code> and <code>b</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>You can use the + symbol to add another task with optional arguments.
+If you need to feed a + as argument to your task, you can mask it by
+preceding it with a backslash (<code>\</code>).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar._.compile            # Runs `compile` for all direct sub-modules of `foo`
+
+&gt; ./mill bar.__.test              # Runs `test` for all transitive sub-modules of `foo`
+
+&gt; ./mill {foo,bar}.compile        # Runs `compile` for `foo` and `bar`
+
+&gt; ./mill __.compile + bar.__.test # Runs all `compile` tasks and all tests under `foo`.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you provide optional task arguments and your wildcard or brace-expansion is
+resolved to multiple tasks, the arguments will be applied to each of the
+tasks.
+For more details on the query syntax, see the page
+<a href="../cli/query-syntax.html" class="xref page">Task Query Syntax</a></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_maven_compatible_modules"><a class="anchor" href="#_maven_compatible_modules"></a>Maven Compatible Modules</h3>
+<div class="paragraph">
+<p>Mill&#8217;s default folder layout of <code>src/</code> and <code>test/src</code> differs from the <code>src/main/scala/</code>
+and <code>src/test/scala/</code> common in Maven, Gradle, or SBT. If you are
+adopting Mill in an existing codebase, you can use Mill&#8217;s <code>MavenModule</code> and
+<code>MavenTests</code> as shown below to preserve filesystem compatibility with an existing
+build:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-5-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/5-compat-modules/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.MavenModule]
+mvnDeps:
+- net.sourceforge.argparse4j:argparse4j:0.9.0
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7
+
+object test:
+  extends: [MavenTests, mill.javalib.TestModule.Junit4]
+  mvnDeps:
+  - com.google.guava:guava:33.3.0-jre
+
+object integration:
+  extends: [MavenTests, mill.javalib.TestModule.Junit4]
+  mvnDeps:
+  - com.google.guava:guava:33.3.0-jre</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note the <code>object test:</code> and <code>object integration:</code> keys in the above file: these allow
+you to define submodules in the same <code>build.mill.yaml</code> file as the parent module without
+needing a separate <code>package.mill.yaml</code> in a subfolder. This is necessary  in scenarios
+like this one where we want <code>test</code> and <code>integration</code> submodules but the filesystem layout
+means we do not have <code>test/</code> or <code>integration/</code> folders to put a <code>package.mill.yaml</code> in.</p>
+</div>
+<div class="paragraph">
+<p><code>MavenModule</code> is a variant of <code>JavaModule</code>
+that uses the more verbose folder layout of Maven, SBT, and other tools:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>src/main/java/</code></p>
+</li>
+<li>
+<p><code>src/test/java/</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Rather than Mill&#8217;s</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>src/</code></p>
+</li>
+<li>
+<p><code>test/src/</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>One use case of these compatibility modules is migrations: while migrating to Mill, a
+project may be built using your previous build tool and Mill at the  same time. Using
+<code>MavenModule</code>s means that during migration, you can leave all your source files
+in place while setting up your Mill build, and do not need to invasively move them
+around to match the Mill default module layout.</p>
+</div>
+<div class="paragraph">
+<p>Although the source layout of these compatibility modules is different from the
+default <code>JavaModule</code>, the command-line usage is the same:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
+compiling 1 Java source...
+
+&gt; ./mill test.compile
+compiling 1 Java source...
+
+&gt; ./mill test.testForked
+...foo.FooTests.hello ...
+
+&gt; ./mill test
+...foo.FooTests.hello ...
+
+&gt; ./mill integration
+...foo.FooIntegrationTests.hello ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details on migrating from other build tools, see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_single_file_scripts"><a class="anchor" href="#_single_file_scripts"></a>Single-File Scripts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill allows you to run single-file Java programs
+easily from the command-line, even those that contain third-party dependencies, specific
+JVM versions, or other such build configuration. Unlike Java programs built with other
+tools, Mill scripts run  via a <code>./mill</code>
+<a href="../cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> run reproducibly
+<a href="../../../blog/16-zero-setup.html" class="xref page">without needing any prior installation or setup</a>.
+This can be useful for several purposes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A replacement for Bash scripts: Mill instead lets you write small Java scripts or programs
+in Java with full access to third-party libraries that run in a reproducible way
+across diverse dev/test/prod environments</p>
+</li>
+<li>
+<p>Self-contained examples or issue reproductions, as you can include both the code and
+dependencies necessary in a self-contained file that can be run using <code>./mill</code> without
+manual setup or installation</p>
+</li>
+<li>
+<p>Small projects or experiments, where setting up and maintaining a separate build file
+can be a hassle, and putting both code and config in a single file makes things easier
+to manage</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See the documentation on <a href="script.html#_script_use_cases" class="xref page">Script Use Cases</a>
+for more example of what you can do with them.</p>
+</div>
+<div class="paragraph">
+<p>The small example Java program below demonstrates a simple single-file script. It
+can be run directly using Mill, which will automatically download and cache the specified
+third-party dependencies as necessary:</p>
+</div>
+<div class="listingblock">
+<div class="title">Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-1-script.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/1-script/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| jvmId: 11.0.28
+//| mvnDeps:
+//| - net.sourceforge.argparse4j:argparse4j:0.9.0
+//| - org.thymeleaf:thymeleaf:3.1.1.RELEASE
+//| - org.slf4j:slf4j-nop:2.0.7
+
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.Namespace;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+public class Foo {
+  public static String generateHtml(String text) {
+    Context context = new Context();
+    context.setVariable("text", text);
+    return new TemplateEngine().process("&lt;h1 th:text=\"${text}\"&gt;&lt;/h1&gt;", context);
+  }
+
+  public static void main(String[] args) throws Exception {
+    ArgumentParser parser = ArgumentParsers.newFor("template")
+        .build()
+        .defaultHelp(true)
+        .description("Inserts text into a HTML template");
+
+    parser.addArgument("-t", "--text").required(true).help("text to insert");
+
+    Namespace ns = null;
+    ns = parser.parseArgs(args);
+    System.out.println("Jvm Version: " + System.getProperty("java.version"));
+    System.out.println(generateHtml(ns.getString("text")));
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apart from the <code>mvnDeps</code> config that allows you to use third-party libraries in
+your script, the <code>jvmId</code> config lets you specify exactly what JVM version you wish
+to use in this script. Like other Mill modules, Mill scripts will default to a Mill&#8217;s
+own default JVM version of <code>zulu:21</code> if a <code>jvmId</code> is not provided.
+If you want to use the environmentally installed <code>java</code> command available on your path,
+you must explicitly set <code>jvmId: system</code>.</p>
+</div>
+<div class="paragraph">
+<p>This script can be run as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.java --text hello
+compiling 1 Java source to...
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.java:run --text hello
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill will automatically download and cache the necessary artifacts
+on your behalf, allowing you run these scripts via <code>./mill</code> and have them behave
+the same regardless of what environment it is running in without needing any setup.</p>
+</div>
+<div class="paragraph">
+<p>The <code>./mill Foo.java</code> syntax is shorthand for <code>./mill Foo.java:run</code>.
+You can also call other tasks on your script modules, such as <code>Foo.java:assembly</code>
+below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show Foo.java:assembly # show the output of the assembly task
+".../out/Foo.java/assembly.dest/out.jar"
+
+&gt; java -jar ./out/Foo.java/assembly.dest/out.jar --text hello
+&lt;h1&gt;hello&lt;/h1&gt;
+
+&gt; ./out/Foo.java/assembly.dest/out.jar --text hello # mac/linux
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Java scripts support the same configuration keys as
+<a href="#_config_based_modules">Config-Based Modules</a> as part of their <code>//|</code> header comment, and support most
+the tasks via the <code>:run</code> <code>:assembly</code> etc. command-line syntax shown above. You can list
+these tasks via <code>./mill resolve</code> as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve Foo.java:_
+Foo.java:run
+Foo.java:runMain
+Foo.java:compile
+Foo.java:assembly
+...</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_testing_scripts"><a class="anchor" href="#_testing_scripts"></a>Testing Scripts</h3>
+<div class="paragraph">
+<p>Script files can have test suites, usually written in a separate test script. The test script
+configuration specifies</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>What test framework it uses via <code>extends</code></p>
+</li>
+<li>
+<p>What script it tests via <code>moduleDeps</code></p>
+</li>
+<li>
+<p>Any <code>mvnDeps</code> needed by the code, in addition to those of the upstream script.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The test script can then run tests that exercise the upstream script as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">FooTest.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-1-script.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/1-script/FooTest.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| extends: [mill.script.JavaModule.Junit4]
+//| moduleDeps: [./Foo.java]
+//| mvnDeps:
+//| - com.google.guava:guava:33.3.0-jre
+
+import static com.google.common.html.HtmlEscapers.htmlEscaper;
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+
+public class FooTest {
+  @Test
+  public void testSimple() {
+    assertEquals(Foo.generateHtml("hello"), "&lt;h1&gt;hello&lt;/h1&gt;");
+  }
+
+  @Test
+  public void testEscaping() {
+    assertEquals(Foo.generateHtml("&lt;hello&gt;"), "&lt;h1&gt;" + htmlEscaper().escape("&lt;hello&gt;") + "&lt;/h1&gt;");
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTest.java
+Test FooTest.testSimple started
+Test FooTest.testEscaping started</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Again, you can pass the name of the task explicitly via <code>:</code>, e.g. <code>:testForked</code> below</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill FooTest.java:testForked # specifying the test task explicitly
+Test FooTest.testSimple started
+Test FooTest.testEscaping started</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The testing framework used in a script is defined by the class specified in the
+<code>extends</code> clause. The different testing frameworks supported in <a href="testing.html" class="xref page">Testing Java Projects</a>
+can be used for your scripts: <code>Junit4</code>, <code>Junit5</code>, <code>TestNg</code>, <code>Munit</code>, <code>ScalaTest</code>, <code>Specs2</code>,
+<code>Utest</code>, <code>Weaver</code>, <code>ZioTest</code>. If you need something not on this list, you can define
+a <a href="script.html#_custom_script_module_classes" class="xref page">Custom Script Module Class</a>.</p>
+</div>
+<div class="paragraph">
+<p>For scripts that grow larger than a single file, you should convert them
+to <a href="#_config_based_modules">Config-Based Modules</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_programmatic_modules"><a class="anchor" href="#_programmatic_modules"></a>Programmatic Modules</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-6-programmatic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/6-programmatic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, javalib.*
+
+object foo extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
+  )
+
+  object test extends JavaTests, TestModule.Junit4 {
+    def mvnDeps = Seq(
+      mvn"com.google.guava:guava:33.3.0-jre"
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is an example of Mill&#8217;s programmatic configuration syntax.
+This is slightly more verbose than the YAML syntax shown above, but
+in exchange allows more flexibility in how tasks are defined and their
+values are computed. Keys such as <code>mvnDeps:</code> in the YAML syntax correspond
+directly to the <code>def mvnDeps</code> methods in the programmatic syntax.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>build.mill
+foo/
+    src/
+        foo/Foo.java
+    resources/
+        ...
+    test/
+        src/
+            foo/FooTest.java
+out/foo/
+    compile.json
+    compile.dest/
+    ...
+    test/
+        compile.json
+        compile.dest/
+        ...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example places the <code>JavaModule</code> in the <code>foo/</code> subfolder, but you can also use
+define a <a href="../fundamentals/modules.html#_root_modules" class="xref page">Root Module</a> to place it at the
+root of your repository similar to the <code>build.mill.yaml</code> examples discussed in
+<a href="#_config_based_modules">Config-Based Modules</a></p>
+</div>
+<div class="paragraph">
+<p>Usage of programmatic Mill builds is similar to usage of simple config-based
+Mill builds:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve foo._ # List what tasks are available to run
+foo.assembly
+...
+foo.compile
+...
+foo.run
+...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --text hello
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
+Test foo.FooTest.testSimple finished, ...
+Test foo.FooTest.testEscaping finished, ...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
+
+&gt; ./mill show foo.assembly # show the output of the assembly task
+".../out/foo/assembly.dest/out.jar"
+
+&gt; java -jar ./out/foo/assembly.dest/out.jar --text hello
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Programmatic Mill build files are <a href="../depth/why-scala.html" class="xref page">written in Scala</a>, but you do
+not need to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven
+XML, anyone can learn enough Scala for Mill without needing to become an expert in
+the language. For simpler builds that do not need the flexibility that programmatic builds
+provide, YAML-based <a href="config.html" class="xref page">Config-Based Module definitions</a>
+are a great alternative.</p>
+</div>
+<div class="sect2">
+<h3 id="_custom_build_logic"><a class="anchor" href="#_custom_build_logic"></a>Custom Build Logic</h3>
+<div class="paragraph">
+<p>Programmatic Mill builds make it very easy to customize your build graph, overriding portions
+of it with custom logic. In this example, we override the JVM <code>resources</code> of
+our <code>JavaModule</code> - normally the <code>resources/</code> folder - to also contain a
+single generated text file containing the line count of all the source files
+in that module</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-7-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/7-custom-build-logic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object foo extends JavaModule {
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>override def resources</code> replaces the previous <code>resource</code>
+folder provided by <code>JavaModule</code> (labelled <code>resources.super</code> below), including
+both the previous resource folder <code>super.resources()</code> together with the <code>Task.dest</code>
+folder of the new task which contains a <code>lint-count.txt</code> file we write.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<center>
+<svg width="418px" height="76px"
+ viewBox="0.00 0.00 418.28 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 414.28,-71.8 414.28,4 -4,4"/>
+<!-- allSourceFiles -->
+<g id="node1" class="node">
+<title>allSourceFiles</title>
+<polygon fill="white" stroke="white" points="96.14,-67.7 -0.05,-67.7 -0.05,-43.1 96.14,-43.1 96.14,-67.7"/>
+<text text-anchor="middle" x="48.05" y="-51.2" font-family="Times,serif" font-size="14.00">allSourceFiles</text>
+</g>
+<!-- lineCount -->
+<g id="node2" class="node">
+<title>lineCount</title>
+<polygon fill="white" stroke="black" points="219.15,-67.7 147.7,-67.7 147.7,-43.1 219.15,-43.1 219.15,-67.7"/>
+<text text-anchor="middle" x="183.43" y="-51.2" font-family="Times,serif" font-size="14.00">lineCount</text>
+</g>
+<!-- allSourceFiles&#45;&gt;lineCount -->
+<g id="edge1" class="edge">
+<title>allSourceFiles&#45;&gt;lineCount</title>
+<path fill="none" stroke="black" d="M96.45,-55.4C109.8,-55.4 124.28,-55.4 137.49,-55.4"/>
+<polygon fill="black" stroke="black" points="137.76,-58.9 147.76,-55.4 137.76,-51.9 137.76,-58.9"/>
+</g>
+<!-- resources -->
+<g id="node3" class="node">
+<title>resources</title>
+<polygon fill="white" stroke="black" points="339.55,-45.7 270.84,-45.7 270.84,-21.1 339.55,-21.1 339.55,-45.7"/>
+<text text-anchor="middle" x="305.19" y="-29.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- lineCount&#45;&gt;resources -->
+<g id="edge2" class="edge">
+<title>lineCount&#45;&gt;resources</title>
+<path fill="none" stroke="black" d="M219.07,-49.04C231.95,-46.67 246.74,-43.95 260.34,-41.46"/>
+<polygon fill="black" stroke="black" points="261.25,-44.85 270.46,-39.6 259.99,-37.96 261.25,-44.85"/>
+</g>
+<!-- run -->
+<g id="node4" class="node">
+<title>run</title>
+<polygon fill="white" stroke="white" points="410.11,-45.7 375.79,-45.7 375.79,-21.1 410.11,-21.1 410.11,-45.7"/>
+<text text-anchor="middle" x="392.95" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- resources&#45;&gt;run -->
+<g id="edge3" class="edge">
+<title>resources&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M339.59,-33.4C348.23,-33.4 357.4,-33.4 365.61,-33.4"/>
+<polygon fill="black" stroke="black" points="365.74,-36.9 375.74,-33.4 365.74,-29.9 365.74,-36.9"/>
+</g>
+<!-- resources.super -->
+<g id="node5" class="node">
+<title>resources.super</title>
+<polygon fill="white" stroke="white" points="234.6,-24.7 132.25,-24.7 132.25,-0.1 234.6,-0.1 234.6,-24.7"/>
+<text text-anchor="middle" x="183.43" y="-8.2" font-family="Times,serif" font-size="14.00">resources.super</text>
+</g>
+<!-- resources.super&#45;&gt;resources -->
+<g id="edge4" class="edge">
+<title>resources.super&#45;&gt;resources</title>
+<path fill="none" stroke="black" d="M234.87,-21.25C243.51,-22.76 252.41,-24.32 260.84,-25.8"/>
+<polygon fill="black" stroke="black" points="260.38,-29.27 270.84,-27.55 261.59,-22.38 260.38,-29.27"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>os.read.lines</code> and <code>os.write</code> come
+from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which is
+one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.
+You can also import any JVM library you want from Maven Central using
+<a href="../extending/import-mvn-plugins.html" class="xref page">//| mvnDeps</a>, so you are not limited
+to what is bundled with Mill.</p>
+</li>
+<li>
+<p>The <code>override</code> keyword is optional in Mill. It is shown above for clarity, but can
+be elided for conciseness.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In general, this use of method <code>def</code>s, method calls, <code>override</code>, and <code>super</code> should be
+very familiar to anyone with prior experience working in Java. These are the same
+concepts that have underpinned object-oriented programming for decades, and work exactly
+the same here as they work anywhere else.</p>
+</div>
+<div class="paragraph">
+<p>This generated <code>line-count.txt</code> file can then be loaded and used at runtime, as see
+in the output of <code>mill run</code> below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
+...
+Line Count: 17
+
+&gt; ./mill show foo.lineCount
+17
+
+&gt; ./mill inspect foo.lineCount
+foo.lineCount(build.mill:...)
+    Total number of lines in module source files
+Inputs:
+    foo.allSourceFiles</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you&#8217;re not familiar with what tasks you can <code>override</code> or how they are related,
+you can explore the existing tasks via autocomplete in your IDE, or use the
+<a href="../cli/builtin-commands.html#_visualize" class="xref page">mill visualize</a>.</p>
+</div>
+<div class="paragraph">
+<p>Custom user-defined tasks in Mill such as <code>def lineCount</code> above benefit from all
+the same things that built-in tasks do: automatic <a href="../depth/caching.html" class="xref page">caching</a> (in the
+<a href="../fundamentals/out-dir.html" class="xref page">out/ folder</a>), <a href="../depth/parallelism.html" class="xref page">parallelism</a> (configurable via <a href="../cli/flags.html#_jobs_j" class="xref page">-j/--jobs
+flag</a>), inspectability (via <a href="../cli/builtin-commands.html#_show" class="xref page">show</a> and <a href="../cli/builtin-commands.html#_inspect" class="xref page">inspect</a>), and so on.
+While these things may not matter for such a simple example that runs
+quickly, they ensure that custom build logic remains performant and
+maintainable even as the complexity of your project grows.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_programmatic_multi_module_project"><a class="anchor" href="#_programmatic_multi_module_project"></a>Programmatic Multi-Module Project</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-8-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/8-multi-module">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, javalib.*
+
+trait MyModule extends JavaModule {
+  object test extends JavaTests, TestModule.Junit4
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0"
+  )
+}
+
+object bar extends MyModule {
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is similar to the <a href="#_multi_module_projects">Multi-Module Projects</a> example above, but using Mill&#8217;s
+programmatic configuration syntax. You can define multiple modules the same way you
+define a single module, using <code>def moduleDeps</code> to define the relationship between them.
+Modules can also be nested within each other, as <code>foo.test</code> and <code>bar.test</code> are nested
+within <code>foo</code> and <code>bar</code> respectively</p>
+</div>
+<div class="paragraph">
+<p>Note that we split out the <code>test</code> submodule configuration common to both
+modules into a separate <code>trait MyModule</code>. This <a href="../fundamentals/modules.html" class="xref page">Trait Module</a>
+works like a <code>class</code> in Java, and lets us avoid the need to copy-paste common
+settings, while still letting us define any per-module configuration such as
+<code>mvnDeps</code> specific to a particular module. This is a common pattern within Mill builds.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.test
+Test bar.BarTests.simple finished...
+Test bar.BarTests.escaping finished...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --foo-text hello --bar-text world
+Foo.value: hello
+Bar.value: &lt;h1&gt;world&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also put the configuration for each submodule in it&#8217;s respective
+folder&#8217;s <code>package.mill</code> file, as described in <a href="../large/multi-file-builds.html" class="xref page">Multi-File Builds</a>.
+This can be helpful in larger projects to avoid having your <code>build.mill</code> grow
+large, and aid in discoverability by keeping the build configuration for each
+module close to the code it is configuring</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_programmatic_compatibility_modules"><a class="anchor" href="#_programmatic_compatibility_modules"></a>Programmatic Compatibility Modules</h3>
+<div class="paragraph">
+<p>This example is similar to the <a href="#_maven_compatible_modules">Maven-Compatible Modules</a>
+above, but using Mill&#8217;s programmatic <code>build.mill</code> files. These are more flexible than
+the config-driven <code>build.mill.yaml</code> files, and can contain
+<a href="#_custom_build_logic">Custom Build Logic</a> and other programmatic
+configuration</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-9-programmatic-compat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/9-programmatic-compat">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object foo extends MavenModule {
+  object test extends MavenTests, TestModule.Junit4
+  object integration extends MavenTests, TestModule.Junit4
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.compile
+compiling 1 Java source...
+
+&gt; ./mill foo.test.compile
+compiling 1 Java source...
+
+&gt; ./mill foo.test.testForked
+...foo.FooTests.hello ...
+
+&gt; ./mill foo.test
+...foo.FooTests.hello ...
+
+&gt; ./mill foo.integration
+...foo.FooIntegrationTests.hello ...</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_realistic_java_example_project"><a class="anchor" href="#_realistic_java_example_project"></a>Realistic Java Example Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Below, we should a realistic example of a build for a Java project.
+This example touches on library dependencies, testing, publishing, code generation,
+and other topics covered in more detail in the Java section of the Mill docs,
+and you can browse each respective page if you want to learn more.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-javalib-basic-10-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/javalib/basic/10-realistic">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*, publish.*
+
+trait MyModule extends JavaModule, PublishModule {
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
+
+  object test extends JavaTests, TestModule.Junit4
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar, qux)
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "Version.java",
+      s"""
+         |package foo;
+         |public class Version {
+         |    public static String value() {
+         |        return "${publishVersion()}";
+         |    }
+         |}
+      """.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends MyModule {
+  def moduleDeps = Seq(qux)
+}
+
+object qux extends MyModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A semi-realistic build setup, combining all the individual Mill concepts:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Three <code>JavaModule</code>s that depend on each other</p>
+</li>
+<li>
+<p>With unit testing and publishing set up</p>
+</li>
+<li>
+<p>With generated sources to include the <code>publishVersion</code> as a string in the
+code, so it can be printed at runtime</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that for multi-module builds like this, using <a href="../cli/query-syntax.html" class="xref page">queries</a> to run tasks on
+multiple modules at once can be very convenient:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>__.test
+__.publishLocal</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Also note how you can use <code>trait</code>s to bundle together common combinations of
+modules: <code>MyModule</code> not only defines a <code>JavaModule</code> with some common
+configuration, but it also defines a <code>object test</code> module within it with its
+own configuration. This is a very useful technique for managing the often
+repetitive module structure in a typical project</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.run
+bar.run
+bar.test.run
+foo.run
+foo.test.run
+qux.run
+
+&gt; ./mill foo.run
+foo version 0.0.1
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world&lt;/p&gt;
+Qux.value: 31337
+
+&gt; ./mill bar.test
+...bar.BarTests.test ...
+
+&gt; ./mill qux.run
+Qux.value: 31337
+
+&gt; ./mill __.compile
+
+&gt; ./mill __.test
+...bar.BarTests.test ...
+...foo.FooTests.test ...
+
+&gt; ./mill __.publishLocal
+Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
+...
+
+&gt; ./mill show foo.assembly # mac/linux
+".../out/foo/assembly.dest/out.jar"
+
+&gt; ./out/foo/assembly.dest/out.jar # mac/linux
+foo version 0.0.1
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world&lt;/p&gt;
+Qux.value: 31337</code></pre>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="../index.html">Mill Documentation</a></span>
+  <span class="next"><a href="config.html">Config-Based Java Modules</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Python Module Configuration :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/pythonlib/module-config.html">
+    <link rel="prev" href="intro.html">
+    <link rel="next" href="dependencies.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.1.0-RC2-34-12421d">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="3">
+    <a class="nav-link" href="module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.1.0-RC2-34-12421d</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.1.0-RC2-34-12421d</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.1.0-RC2</a>
+        </li>
+        <li class="version">
+          <a href="../../1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Python Module Configuration</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page goes into more detail about the various configuration options
+for <code>PythonModule</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_common_configuration_overrides"><a class="anchor" href="#_common_configuration_overrides"></a>Common Configuration Overrides</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example shows some of the common tasks you may want to override on a
+<code>PythonModule</code>: specifying the <code>mainScript</code>, adding additional
+sources/resources, generating sources, and setting typecheck/run options.
+Also we have support for <code>forkenv</code> and  <code>pythonOptions</code> to allow user to
+add variables for environment and options for python respectively.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/1-common-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, pythonlib.*
+
+object foo extends PythonModule {
+  // You can have arbitrary numbers of third-party libraries
+  def pythonDeps = Seq("MarkupSafe==3.0.2", "Jinja2==3.1.4")
+
+  // choose a main Script to run if there are multiple present
+  def mainScript = Task.Source("custom-src/foo2.py")
+
+  // Add (or replace) source folders for the module to use
+  def customSources = Task.Sources("custom-src")
+  def sources = Task { super.sources() ++ customSources() }
+
+  // Add (or replace) resource folders for the module to use
+  def customResources = Task.Sources("custom-resources")
+  def resources = Task { super.resources() ++ customResources() }
+
+  // Generate sources at build time
+  def generatedSources: T[Seq[PathRef]] = Task {
+    val destPath = Task.dest / "generatedSources"
+    os.makeDir.all(destPath)
+    for (name &lt;- Seq("A", "B", "C")) os.write(
+      destPath / s"foo$name.py",
+      s"""
+         |class Foo$name:
+         |    value = "hello $name"
+      """.stripMargin
+    )
+
+    Seq(PathRef(destPath))
+  }
+  // Pass additional environmental variables when `.run` is called.
+  def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -&gt; "my-env-value")
+
+  // Additional Python options e.g. to Turn On Warnings and ignore import and resource warnings
+  // we can use -Werror to treat warnings as errors
+  def pythonOptions: T[Seq[String]] =
+    Seq("-Wall", "-Wignore::ImportWarning", "-Wignore::ResourceWarning")
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note the use of <code>moduleDir</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
+various filesystem operations:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>moduleDir</code>: Base path of the module. For the root module, it&#8217;s the repo root.
+For inner modules, it&#8217;s the module path (e.g., <code>foo/bar/qux</code> for <code>foo.bar.qux</code>). Can be overridden if needed.</p>
+</li>
+<li>
+<p><code>Task.dest</code>: Destination folder in the <code>out/</code> folder for task output.
+Prevents filesystem conflicts and serves as temporary storage or output for tasks.</p>
+</li>
+<li>
+<p><code>PathRef</code>: Represents the contents of a file or folder, not just its path,
+ensuring downstream tasks properly invalidate when contents change.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Typical Usage is given below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
+...
+Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+FooA.value: hello A
+FooB.value: hello B
+FooC.value: hello C
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+MY_CUSTOM_ENV: my-env-value
+...
+
+&gt; ./mill show foo.bundle
+".../out/foo/bundle.dest/bundle.pex"
+
+&gt; out/foo/bundle.dest/bundle.pex
+...
+Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+FooA.value: hello A
+FooB.value: hello B
+FooC.value: hello C
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+...
+
+&gt; sed -i.bak 's/import os/import os, warnings; warnings.warn("This is a test warning!")/g' foo/custom-src/foo2.py
+
+&gt; ./mill foo.run
+...UserWarning: This is a test warning!...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example shows how to define task that depend on other tasks:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>For <code>generatedSources</code>, we override the task and make it depend
+directly on <code>pythonDeps</code> to generate its source files. In this example,
+to include the list of dependencies as tuples in the <code>value</code> variable.</p>
+</li>
+<li>
+<p>For <code>lineCount</code>, we define a brand new task that depends on <code>sources</code>.
+That lets us access the line count at runtime using <code>MY_LINE_COUNT</code>
+env variable defined in <code>forkEnv</code> and print it when the program runs</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/2-custom-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, pythonlib.*
+
+object foo extends PythonModule {
+
+  def pythonDeps = Seq("argparse==1.4.0", "jinja2==3.1.4")
+
+  def mainScript = Task.Source("src/foo.py")
+
+  def generatedSources: T[Seq[PathRef]] = Task {
+    val destPath = Task.dest / "generatedSources"
+    os.makeDir.all(destPath)
+
+    val prettyPythonDeps = pythonDeps().map { dep =&gt;
+      val parts = dep.split("==")
+      s"""("${parts(0)}", "${parts(1)}")"""
+    }.mkString(", ")
+
+    os.write(
+      destPath / s"myDeps.py",
+      s"""
+         |class MyDeps:
+         |    value = [${prettyPythonDeps}]
+			""".stripMargin
+    )
+
+    Seq(PathRef(destPath))
+  }
+
+  def lineCount: T[Int] = Task {
+    sources()
+      .flatMap(pathRef =&gt; os.walk(pathRef.path))
+      .filter(_.ext == "py")
+      .map(os.read.lines(_).size)
+      .sum
+  }
+
+  def forkEnv: T[Map[String, String]] = Map("MY_LINE_COUNT" -&gt; s"${lineCount()}")
+
+  def printLineCount() = Task.Command { println(lineCount()) }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above build defines the customizations to the Mill task graph shown below,
+with the boxes representing tasks defined or overridden above and the un-boxed
+labels representing existing Mill tasks:</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="470px" height="119px"
+ viewBox="0.00 0.00 469.52 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 465.52,-114.8 465.52,4 -4,4"/>
+<!-- pythonDeps -->
+<g id="node1" class="node">
+<title>pythonDeps</title>
+<polygon fill="none" stroke="black" points="177.46,-110.7 94.15,-110.7 94.15,-86.1 177.46,-86.1 177.46,-110.7"/>
+<text text-anchor="middle" x="135.81" y="-94.2" font-family="Times,serif" font-size="14.00">pythonDeps</text>
+</g>
+<!-- generatedSources -->
+<g id="node2" class="node">
+<title>generatedSources</title>
+<polygon fill="none" stroke="black" points="328.23,-110.7 213.77,-110.7 213.77,-86.1 328.23,-86.1 328.23,-110.7"/>
+<text text-anchor="middle" x="271" y="-94.2" font-family="Times,serif" font-size="14.00">generatedSources</text>
+</g>
+<!-- pythonDeps&#45;&gt;generatedSources -->
+<g id="edge1" class="edge">
+<title>pythonDeps&#45;&gt;generatedSources</title>
+<path fill="none" stroke="black" d="M177.49,-98.4C185.63,-98.4 194.38,-98.4 203.14,-98.4"/>
+<polygon fill="black" stroke="black" points="203.38,-101.9 213.38,-98.4 203.38,-94.9 203.38,-101.9"/>
+</g>
+<!-- ... -->
+<g id="node3" class="node">
+<title>...</title>
+<polygon fill="none" stroke="white" points="391.12,-88.7 364.11,-88.7 364.11,-64.1 391.12,-64.1 391.12,-88.7"/>
+<text text-anchor="middle" x="377.61" y="-72.2" font-family="Times,serif" font-size="14.00">...</text>
+</g>
+<!-- generatedSources&#45;&gt;... -->
+<g id="edge2" class="edge">
+<title>generatedSources&#45;&gt;...</title>
+<path fill="none" stroke="black" d="M328.29,-86.56C337.49,-84.63 346.53,-82.73 354.25,-81.1"/>
+<polygon fill="black" stroke="black" points="355.11,-84.5 364.18,-79.01 353.67,-77.65 355.11,-84.5"/>
+</g>
+<!-- run -->
+<g id="node7" class="node">
+<title>run</title>
+<polygon fill="none" stroke="white" points="461.35,-88.7 427.03,-88.7 427.03,-64.1 461.35,-64.1 461.35,-88.7"/>
+<text text-anchor="middle" x="444.19" y="-72.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- ...&#45;&gt;run -->
+<g id="edge6" class="edge">
+<title>...&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M391.06,-76.4C398.26,-76.4 407.59,-76.4 416.37,-76.4"/>
+<polygon fill="black" stroke="black" points="416.62,-79.9 426.62,-76.4 416.62,-72.9 416.62,-79.9"/>
+</g>
+<!-- sources -->
+<g id="node4" class="node">
+<title>sources</title>
+<polygon fill="none" stroke="white" points="57.97,-46.7 0.01,-46.7 0.01,-22.1 57.97,-22.1 57.97,-46.7"/>
+<text text-anchor="middle" x="28.99" y="-30.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- lineCount -->
+<g id="node5" class="node">
+<title>lineCount</title>
+<polygon fill="none" stroke="black" points="171.53,-46.7 100.08,-46.7 100.08,-22.1 171.53,-22.1 171.53,-46.7"/>
+<text text-anchor="middle" x="135.81" y="-30.2" font-family="Times,serif" font-size="14.00">lineCount</text>
+</g>
+<!-- sources&#45;&gt;lineCount -->
+<g id="edge3" class="edge">
+<title>sources&#45;&gt;lineCount</title>
+<path fill="none" stroke="black" d="M58.08,-34.4C67.82,-34.4 79,-34.4 89.76,-34.4"/>
+<polygon fill="black" stroke="black" points="89.89,-37.9 99.89,-34.4 89.89,-30.9 89.89,-37.9"/>
+</g>
+<!-- forkEnv -->
+<g id="node6" class="node">
+<title>forkEnv</title>
+<polygon fill="none" stroke="black" points="301.87,-67.7 240.12,-67.7 240.12,-43.1 301.87,-43.1 301.87,-67.7"/>
+<text text-anchor="middle" x="271" y="-51.2" font-family="Times,serif" font-size="14.00">forkEnv</text>
+</g>
+<!-- lineCount&#45;&gt;forkEnv -->
+<g id="edge4" class="edge">
+<title>lineCount&#45;&gt;forkEnv</title>
+<path fill="none" stroke="black" d="M171.45,-39.86C189.4,-42.69 211.41,-46.16 230.07,-49.1"/>
+<polygon fill="black" stroke="black" points="229.63,-52.58 240.05,-50.68 230.72,-45.66 229.63,-52.58"/>
+</g>
+<!-- printLineCount -->
+<g id="node8" class="node">
+<title>printLineCount</title>
+<polygon fill="none" stroke="black" points="322.33,-24.7 219.67,-24.7 219.67,-0.1 322.33,-0.1 322.33,-24.7"/>
+<text text-anchor="middle" x="271" y="-8.2" font-family="Times,serif" font-size="14.00">printLineCount</text>
+</g>
+<!-- lineCount&#45;&gt;printLineCount -->
+<g id="edge7" class="edge">
+<title>lineCount&#45;&gt;printLineCount</title>
+<path fill="none" stroke="black" d="M171.45,-28.68C183.19,-26.74 196.65,-24.52 209.78,-22.35"/>
+<polygon fill="black" stroke="black" points="210.43,-25.79 219.72,-20.7 209.29,-18.88 210.43,-25.79"/>
+</g>
+<!-- forkEnv&#45;&gt;... -->
+<g id="edge5" class="edge">
+<title>forkEnv&#45;&gt;...</title>
+<path fill="none" stroke="black" d="M301.98,-61.42C318.59,-64.75 338.91,-68.83 354.15,-71.89"/>
+<polygon fill="black" stroke="black" points="353.73,-75.38 364.22,-73.91 355.11,-68.51 353.73,-75.38"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>Mill lets you define new cached Tasks using the <code>Task {&#8230;&#8203;}</code> syntax,
+depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
+syntax to extract their current value, as shown in <code>lineCount</code> above. The
+return-type of a Task has to be JSON-serializable (using
+<a href="https://github.com/lihaoyi/upickle">uPickle</a>, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>)
+and the Task is cached when first run until its inputs change (in this case, if
+someone edits the <code>foo.sources</code> files which live in <code>foo/src</code>). Cached Tasks
+cannot take parameters.</p>
+</div>
+<div class="paragraph">
+<p>Note that depending on a task requires use of parentheses after the task
+name, e.g. <code>pythonDeps()</code>, <code>sources()</code> and <code>lineCount()</code>. This converts the
+task of type <code>T[V]</code> into a value of type <code>V</code> you can make use in your task
+implementation.</p>
+</div>
+<div class="paragraph">
+<p>This example can be run as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --text hello
+text:  hello
+MyDeps.value:  [('argparse', '1.4.0'), ('jinja2', '3.1.4')]
+My_Line_Count:  23
+
+&gt; ./mill show foo.lineCount
+23
+
+&gt; ./mill foo.printLineCount
+23</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Custom tasks can contain arbitrary code. Whether you want to download files
+using <code>requests.get</code>, generate sources to feed into a Python Interpreter, or
+create some custom pex bundle with the files you want , all of these
+can simply be custom tasks with your code running in the <code>Task {&#8230;&#8203;}</code> block.</p>
+</div>
+<div class="paragraph">
+<p>You can create arbitrarily long chains of dependent tasks, and Mill will
+handle the re-evaluation and caching of the tasks' output for you.
+Mill also provides you a <code>Task.dest</code> folder for you to use as scratch space or
+to store files you want to return:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Any files a task creates should live
+within <code>Task.dest</code></p>
+</li>
+<li>
+<p>Any files a task modifies should be copied into
+<code>Task.dest</code> before being modified.</p>
+</li>
+<li>
+<p>Any files that a task returns should be returned as a <code>PathRef</code> to a path
+within <code>Task.dest</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>That ensures that the files belonging to a particular task all live in one place,
+avoiding file-name conflicts, preventing race conditions when tasks evaluate
+in parallel, and letting Mill automatically invalidate the files when
+the task&#8217;s inputs change.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/3-override-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, pythonlib.*
+
+object foo extends PythonModule {
+  def sources = Task {
+    val destPath = Task.dest / "src"
+    os.makeDir.all(destPath)
+
+    os.write(
+      destPath / "foo.py",
+      s"""
+         |class Foo:
+         |    def main(self) -&gt; None:
+         |        print("Hello World")
+         |
+         |if __name__ ==  '__main__':
+         |    Foo().main()
+      """.stripMargin
+    )
+    Seq(PathRef(destPath))
+  }
+
+  def mainScript = Task { PathRef(sources().head.path / "foo.py") }
+
+  def typeCheck = Task {
+    println("Type Checking...")
+    super.typeCheck()
+  }
+
+  def run(args: mill.api.Args) = Task.Command {
+    typeCheck()
+    println("Running..." + args.value.mkString(" "))
+    super.run(args)()
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can re-define tasks to override them, and use <code>super</code> if you
+want to refer to the originally defined task. The above example shows how to
+override <code>typeCheck</code> and <code>run</code> to add additional logging messages, and we
+override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
+<code>T{&#8230;&#8203;}</code> task that generates the  necessary source files on-the-fly.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+that this example <strong>replaces</strong> your <code>src/</code> folder with the generated
+sources, as we are overriding the <code>def sources</code> task. If you want to <strong>add</strong>
+generated sources, you can either override <code>generatedSources</code>, or you can
+override <code>sources</code> and use <code>super</code> to include the original source folder with <code>super</code>:
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends PythonModule {
+  def generatedSources = Task {
+    val destPath = Task.dest / "src"
+    os.makeDir.all(destPath)
+    os.write(destPath / "foo.py", """...""")
+    Seq(PathRef(destPath))
+  }
+
+  def mainScript = Task { PathRef(generatedSources().head.path / "foo.py") }
+
+}
+
+object foo3 extends PythonModule {
+  def sources = Task {
+    val destPath = Task.dest / "src"
+    os.makeDir.all(destPath)
+    os.write(destPath / "foo.py", """...""")
+    super.sources() ++ Seq(PathRef(destPath))
+  }
+  def mainScript = Task { PathRef(sources().head.path / "foo.py") }
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In Mill builds the <code>override</code> keyword is optional.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
+Type Checking...
+Success: no issues found in 1 source file
+Running...
+Hello World</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, pythonlib.*
+
+object `package` extends PythonModule {
+  def mainScript = Task.Source("src/foo.py")
+  def pythonOptions = Seq("-Wall", "-Xdev")
+  def forkEnv = Map("MY_ENV_VAR" -&gt; "HELLO MILL!")
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can pass flags to the Python Interpreter via <code>pythonOptions</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+HELLO MILL!</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default,
+<code>run</code> runs the code in a subprocess, and you can pass
+environment-variables via <code>forkEnv</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pythonpath_and_filesystem_resources"><a class="anchor" href="#_pythonpath_and_filesystem_resources"></a>PythonPath and Filesystem Resources</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/5-resources">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, pythonlib.*
+
+object foo extends PythonModule {
+  def mainScript = Task.Source("src/foo.py")
+
+  // Add (or replace) resource folders for the module to use
+  def customResources = Task.Sources("custom")
+  def resources = Task { super.resources() ++ customResources() }
+
+  object test extends PythonTests, TestModule.Unittest {
+
+    def otherFiles = Task.Source("other-files")
+
+    def forkEnv: T[Map[String, String]] =
+      super.forkEnv() ++ Map("OTHER_FILES_DIR" -&gt; otherFiles().path.toString)
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
+Hello World Resource File
+
+&gt; ./mill foo.test
+...
+test_all (test.TestScript...) ... ok
+...Ran 1 test...
+OK
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This section discusses how tests can depend on resources locally on disk.
+Mill provides two ways to do this: via the Python PYTHONPATH resources, and via
+the resource folder which is made available as the environment variable
+<code>MILL_TEST_RESOURCE_DIR</code>;</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <strong>PythonPath resources</strong> are useful when you want to fetch individual files,
+and are bundled with the application by the <code>.bundle</code> step when constructing
+an bundle pex for deployment. But they do not allow you to list folders
+or perform other filesystem operations.</p>
+</li>
+<li>
+<p>The <strong>resource folder</strong>, available via <code>MILL_TEST_RESOURCE_DIR</code>, gives you
+access to the folder path of the resources on disk. This is useful in allowing
+you to list and otherwise manipulate the filesystem, which you cannot do with
+<strong>pythonPath resources</strong>. However, the <code>MILL_TEST_RESOURCE_DIR</code> only exists
+when running tests using Mill, and is not available when executing applications
+packaged for deployment via <code>.bundle</code></p>
+</li>
+<li>
+<p>Apart from <code>resources/</code>, you can provide additional folders to your test suite
+by defining a <code>Task.Source</code> (<code>otherFiles</code> above) and passing it to <code>forkEnv</code>. This
+provide the folder path as an environment variable that the test can make use of</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example application code demonstrating the techniques above can be seen below:</p>
+</div>
+<div class="listingblock">
+<div class="title">foo/resources/res/file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/5-resources/foo/resources/res/file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Hello World Resource File</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/res/test-file-a.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/5-resources/foo/test/resources/res/test-file-a.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File A</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/resources/res/test-file-b.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/5-resources/foo/test/resources/res/test-file-b.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File B</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Other Hello World File</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/src/foo.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/5-resources/foo/src/foo.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import importlib.resources
+
+
+class Foo:
+    def PythonPathResourceText(self, package, resourceName: str) -&gt; None:
+        resource_content = (
+            importlib.resources.files(package).joinpath(resourceName).read_text()
+        )
+        return resource_content.strip()
+
+
+if __name__ == "__main__":
+    print(Foo().PythonPathResourceText("res", "file.txt"))</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/test/src/test.py (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-34-12421d/mill-dist-1.1.0-RC2-34-12421d-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-34-12421d/example/pythonlib/module/5-resources/foo/test/src/test.py">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-py hljs" data-lang="py">import os
+from pathlib import Path
+import importlib.resources
+import unittest
+from foo import Foo  # type: ignore
+
+
+class TestScript(unittest.TestCase):
+    def test_all(self) -&gt; None:
+        appPythonPathResourceText = Foo().PythonPathResourceText("res", "file.txt")
+        self.assertEqual(appPythonPathResourceText, "Hello World Resource File")
+
+        testPythonPathResourceText = (
+            importlib.resources.files("res")
+            .joinpath("test-file-a.txt")
+            .read_text()
+            .strip()
+        )
+        self.assertEqual(testPythonPathResourceText, "Test Hello World Resource File A")
+
+        with open(
+            Path(os.getenv("OTHER_FILES_DIR"), "other-file.txt"), "r", encoding="utf-8"
+        ) as file:
+            otherFileText = file.readline()
+        self.assertEqual(otherFileText, "Other Hello World File")
+
+
+if __name__ == "__main__":
+    unittest.main()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that tests require that you pass in any files that they depend on explicitly.
+This is necessary so that Mill knows when a test needs to be re-run and when a
+previous result can be cached. This also ensures that tests reading and writing
+to the current working directory do not accidentally interfere with each others
+files, especially when running in parallel.</p>
+</div>
+<div class="paragraph">
+<p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, not in your project root folder, to
+prevent you from accidentally accessing files without explicitly passing them. Thus
+you cannot just read resources off disk via <code>with open("foo/resources/test-file-a.txt")</code> as file.
+If you have legacy tests that need to run in the project root folder to work, you
+can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
+the sandbox and make the tests run in the project root.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="intro.html">Building Python with Mill</a></span>
+  <span class="next"><a href="dependencies.html">Python Library Dependencies</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>
