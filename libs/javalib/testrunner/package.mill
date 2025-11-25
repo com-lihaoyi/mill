@@ -8,7 +8,7 @@ import millbuild.*
  * test suites, both in-process and in a sub-process
  */
 object `package` extends MillPublishScalaModule {
-  def scalaVersion = "3.7.4"
+  def scalaVersion = Deps.scalaVersionJava11
   def moduleDeps = Seq(build.libs.javalib.api, entrypoint, build.libs.util.java11)
 
   object entrypoint extends MillPublishJavaModule {

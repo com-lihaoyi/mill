@@ -14,7 +14,7 @@ import millbuild.*
 object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.constants)
 
-  def scalaVersion = "3.7.4"
+  def scalaVersion = Deps.scalaVersionJava11
   def buildInfoPackageName = "mill.api.daemon"
   def buildInfoMembers = Seq(
     BuildInfo.Value(

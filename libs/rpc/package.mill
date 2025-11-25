@@ -9,7 +9,7 @@ import millbuild.*
 object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.core.api.daemon, build.libs.daemon.server)
 
-  def scalaVersion = "3.7.4"
+  def scalaVersion = Deps.scalaVersionJava11
   def mvnDeps = Seq(
     Deps.osLib,
     Deps.upickle,

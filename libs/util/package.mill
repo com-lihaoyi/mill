@@ -16,36 +16,12 @@ import millbuild.*
  */
 object `package` extends MillStableScalaModule with BuildInfo {
   object java11 extends MillStableScalaModule {
-    def scalaVersion = "3.7.4"
-
-    def mvnDeps = Seq(
-      Deps.jline
-    )
-    def compileMvnDeps = Seq(
-      Deps.nativeTerminal,
-      Deps.jgraphtCore,
-      Deps.graphvizWithExcludes,
-      Deps.coursierJvm
-    )
-
-    def runMvnDeps = Seq(
-      Deps.logback,
-      Deps.nativeTerminal,
-      Deps.jgraphtCore,
-      Deps.graphvizWithExcludes,
-      Deps.coursierJvm
-    )
-
-    def moduleDeps = Seq(
-      build.core.api.daemon,
-      build.core.constants,
-      build.core.api.java11,
-    )
-
+    def scalaVersion = Deps.scalaVersionJava11
+    def mvnDeps = Seq(Deps.jline)
+    def compileMvnDeps = Seq(Deps.coursierJvm)
+    def runMvnDeps = Seq(Deps.coursierJvm)
+    def moduleDeps = Seq(build.core.api.java11)
   }
-  def runModuleDeps = Seq(
-//    build.libs.init
-  )
 
   def compileMvnDeps = Seq(
     Deps.nativeTerminal,
@@ -62,8 +38,6 @@ object `package` extends MillStableScalaModule with BuildInfo {
   )
 
   def moduleDeps = Seq(
-    build.core.api.daemon,
-    build.core.constants,
     build.core.api,
     java11
   )

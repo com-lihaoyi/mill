@@ -12,7 +12,7 @@ import millbuild.*
  */
 object `package` extends MillStableScalaModule with BuildInfo {
   object java11 extends MillStableScalaModule {
-    def scalaVersion = "3.7.4"
+    def scalaVersion = Deps.scalaVersionJava11
     def moduleDeps = Seq(build.core.api.daemon)
 
     def mvnDeps = Seq(
