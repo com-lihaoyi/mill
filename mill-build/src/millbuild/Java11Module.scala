@@ -7,5 +7,7 @@ trait MillJava11ScalaModule extends MillPublishScalaModule {
 
   override object test extends MillScalaTests {
     def scalaVersion = Deps.scalaVersion
+    def jvmId = ""
+    def javaHome = None
   }
 }
