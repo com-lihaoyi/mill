@@ -76,13 +76,18 @@ private object TransformingReporter {
       else msg
 
     val errorCodeString = {
-      problem0.diagnosticCode()
-        .filter(_.code() != "-1")
-        .map { inner =>
-          val prefix = "[" + shade(s"E${inner.code()}") + "] "
-          inner.explanation().map(e => s"$prefix$e: ").orElse(prefix)
-        }
-        .orElse("")
+      // The error code provided by the Scala 3 compiler seems pretty useless in
+      // general: you can't grep for it, it tells you nothing useful, and it's
+      // distracting from the actual message. So just leave it out
+      ""
+//      problem0.diagnosticCode()
+//        .filter(_.code() != "-1")
+//        .map { inner =>
+//          val prefix = "[" + shade(s"E${inner.code()}") + "] "
+//          inner.explanation().map(e => s"$prefix$e: ").orElse(prefix)
+//        }
+//        .orElse("")
+
     }
 
     val message = errorCodeString + problem0.message()
