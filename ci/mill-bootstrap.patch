@@ -1,0 +1,9 @@
+diff --git a/mill-build/src/millbuild/package.scala b/mill-build/src/millbuild/package.scala
+index b64a97c8e44..9335010790c 100644
+--- a/mill-build/src/millbuild/package.scala
++++ b/mill-build/src/millbuild/package.scala
+@@ -1 +1,3 @@
+-package object millbuild {}
++package object millbuild {
++  implicit def toOpts(seq: Seq[String]): mill.api.opt.Opts = mill.api.opt.Opts(seq)
++}
