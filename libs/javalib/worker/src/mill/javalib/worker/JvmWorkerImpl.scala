@@ -1,12 +1,13 @@
 package mill.javalib.worker
 
 import mill.api.*
+import mill.api.daemon.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
 import mill.constants.DaemonFiles
 import mill.javalib.api.internal.*
-import mill.javalib.internal.JvmWorkerArgs
+import mill.javalib.api.JvmWorkerArgs
 import mill.javalib.zinc.{ZincApi, ZincWorker}
 import mill.util.{CachedFactoryWithInitData, Jvm}
 import sbt.internal.util.ConsoleOut

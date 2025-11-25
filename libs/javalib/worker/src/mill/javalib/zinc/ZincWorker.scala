@@ -7,8 +7,8 @@ import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
 import mill.javalib.api.internal.*
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
-import mill.javalib.internal.ZincCompilerBridgeProvider
-import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
+import mill.javalib.api.internal.ZincCompilerBridgeProvider
+import mill.javalib.api.internal.ZincCompilerBridgeProvider.AcquireResult
 import mill.javalib.worker.*
 import mill.javalib.zinc.ZincWorker.*
 import mill.util.{CachedFactory, CachedFactoryWithInitData, RefCountedClassLoaderCache}
@@ -248,7 +248,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         } else if (JvmWorkerUtil.isScala3(op.scalaVersion)) {
           // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
           // requires the ContextClassLoader to be set appropriately
-          mill.api.ClassLoader.withContextClassLoader(this.getClass.getClassLoader) {
+          mill.api.daemon.ClassLoader.withContextClassLoader(this.getClass.getClassLoader) {
             val scaladocClass =
               compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
 

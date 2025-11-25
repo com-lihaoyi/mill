@@ -9,5 +9,6 @@ import millbuild.*
 object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.libs.daemon.client, build.core.api.daemon)
 
+  def scalaVersion = "3.7.4"
   def mvnDeps = Seq(Deps.osLib)
 }

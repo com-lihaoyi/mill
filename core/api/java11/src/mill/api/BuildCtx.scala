@@ -1,6 +1,6 @@
 package mill.api
 import collection.mutable
-import mill.api.Watchable
+import mill.api.daemon.Watchable
 import mill.constants.EnvVars
 import scala.util.DynamicVariable
 

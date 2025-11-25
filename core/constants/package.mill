@@ -13,7 +13,9 @@ object `package` extends MillStableJavaModule with BuildInfo {
   def buildInfoPackageName = "mill.constants"
   def buildInfoMembers = Seq(
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-    BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version.")
+    BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
+    BuildInfo.Value("millDocUrl", Settings.docUrl),
+    BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion)
   )
 
   object test extends JavaTests with TestModule.Junit4 {

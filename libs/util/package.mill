@@ -15,6 +15,34 @@ import millbuild.*
  * isolation between them
  */
 object `package` extends MillStableScalaModule with BuildInfo {
+  object java11 extends MillStableScalaModule {
+    def scalaVersion = "3.7.4"
+
+    def mvnDeps = Seq(
+      Deps.jline
+    )
+    def compileMvnDeps = Seq(
+      Deps.nativeTerminal,
+      Deps.jgraphtCore,
+      Deps.graphvizWithExcludes,
+      Deps.coursierJvm
+    )
+
+    def runMvnDeps = Seq(
+      Deps.logback,
+      Deps.nativeTerminal,
+      Deps.jgraphtCore,
+      Deps.graphvizWithExcludes,
+      Deps.coursierJvm
+    )
+
+    def moduleDeps = Seq(
+      build.core.api.daemon,
+      build.core.constants,
+      build.core.api.java11,
+    )
+
+  }
   def runModuleDeps = Seq(
 //    build.libs.init
   )
@@ -36,7 +64,8 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(
     build.core.api.daemon,
     build.core.constants,
-    build.core.api
+    build.core.api,
+    java11
   )
 
   // Exclude most coursier transitive dependencies from the compile classpath so users

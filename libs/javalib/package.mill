@@ -60,7 +60,8 @@ object `package` extends MillStableScalaModule {
   }
 
   object api extends MillStableScalaModule with BuildInfo {
-    def moduleDeps = Seq(build.core.api, build.libs.rpc)
+    def moduleDeps = Seq(build.core.api.java11, build.libs.rpc, build.libs.util.java11)
+    def scalaVersion = "3.7.4"
     def buildInfoPackageName = "mill.javalib.api"
     def buildInfoObjectName = "Versions"
 
@@ -122,7 +123,8 @@ object `package` extends MillStableScalaModule {
   }
 
   object worker extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api, build.libs.javalib)
+    def moduleDeps = Seq(api, build.libs.javalib.testrunner)
+    def scalaVersion = "3.7.4"
     def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
     def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"

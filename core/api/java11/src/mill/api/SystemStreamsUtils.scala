@@ -1,10 +1,10 @@
 package mill.api
 
-import mill.api.DummyInputStream
+import mill.api.daemon.DummyInputStream
 import mill.constants.InputPumper
 
 import java.io.{InputStream, OutputStream, PrintStream}
-
+import mill.api.daemon.*
 /**
  * Utilities for managing and redirecting the [[SystemStreams]] modelling
  * the stdin/stdout/stderr of the process
@@ -17,7 +17,7 @@ object SystemStreamsUtils {
     def processOutput(processOut: => os.SubProcess.OutputStream): Some[InputPumper] =
       Some(new InputPumper(() => processOut.wrapped, () => dest, false))
   }
-  def withStreams[T](systemStreams: mill.api.SystemStreams)(t: => T): T = {
+  def withStreams[T](systemStreams: SystemStreams)(t: => T): T = {
     // If we are setting a stream back to its original value, make sure we reset
     // `os.Inherit` to `os.InheritRaw` for that stream. This direct inheritance
     // ensures that interactive applications involving console IO work, as the
@@ -81,7 +81,7 @@ object SystemStreamsUtils {
   }
 
   def setTopLevelSystemStreamProxy(): Unit = {
-    val _ = mill.api.SystemStreams.current
+    val _ = SystemStreams.current
     // Make sure to initialize `Console` to cache references to the original
     // `System.{in,out,err}` streams before we redirect them
     val _ = Console.out
@@ -92,11 +92,11 @@ object SystemStreamsUtils {
     System.setErr(ThreadLocalStreams.Err)
   }
 
-  def current(): mill.api.SystemStreams =
+  def current(): SystemStreams =
     ThreadLocalStreams.current.value
 
   private[mill] object ThreadLocalStreams {
-    def current = mill.api.SystemStreams.current
+    def current = SystemStreams.current
 
     object Out extends PrintStream(new ProxyOutputStream { def delegate() = current.value.out })
     object Err extends PrintStream(new ProxyOutputStream { def delegate() = current.value.err })
@@ -131,8 +131,8 @@ object SystemStreamsUtils {
     }
   }
   private def debugPrintln(s: String) = ()
-  private[mill] class DebugDelegateStream(delegate0: mill.api.SystemStreams)
-      extends mill.api.SystemStreams(
+  private[mill] class DebugDelegateStream(delegate0: SystemStreams)
+      extends SystemStreams(
         new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
           override def delegate(): OutputStream = delegate0.out
 

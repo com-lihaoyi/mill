@@ -12,7 +12,7 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
-
+import mill.api.daemon.*
 import java.io.{BufferedOutputStream, File}
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
@@ -606,7 +606,7 @@ object Jvm {
       id: String,
       ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion,
+      jvmIndexVersion: String = mill.constants.BuildInfo.coursierJvmIndexVersion,
       useShortPaths: Boolean = false,
       @unroll config: CoursierConfig = CoursierConfig.default()
   ): Result[os.Path] = {
@@ -741,7 +741,7 @@ object Jvm {
                 |--------------------------------------------
                 |
                 |For additional information on library dependencies, see the docs at
-                |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
+                |${mill.constants.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
 
           val errLines = cantDownloadErrors
             .map { err =>

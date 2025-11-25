@@ -6,7 +6,9 @@ import upickle.{ReadWriter as RW, Reader, Writer}
 
 import scala.reflect.ClassTag
 import scala.util.matching.Regex
-
+import mill.api.daemon.Result
+import mill.api.daemon.Logger
+import mill.api.daemon.experimental
 /**
  * Defines various default JSON formatters used in mill.
  */
