@@ -1,7 +1,6 @@
 package mill.javalib.worker
 import mill.api.*
 import mill.api.daemon.*
-import mill.javalib.api.internal.*
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.javalib.api.internal.*

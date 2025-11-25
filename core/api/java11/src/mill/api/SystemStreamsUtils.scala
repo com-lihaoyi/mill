@@ -5,6 +5,7 @@ import mill.constants.InputPumper
 
 import java.io.{InputStream, OutputStream, PrintStream}
 import mill.api.daemon.*
+
 /**
  * Utilities for managing and redirecting the [[SystemStreams]] modelling
  * the stdin/stdout/stderr of the process

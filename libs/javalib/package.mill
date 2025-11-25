@@ -60,7 +60,7 @@ object `package` extends MillStableScalaModule {
   }
 
   object api extends MillStableScalaModule with BuildInfo {
-    override object test extends  MillScalaTests {
+    override object test extends MillScalaTests {
       def scalaVersion = Deps.scalaVersion
     }
 

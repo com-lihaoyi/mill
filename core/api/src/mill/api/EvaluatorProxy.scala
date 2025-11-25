@@ -1,7 +1,6 @@
 package mill.api
 
 import mill.api.*
-import mill.api.daemon.*
 import mill.api.daemon.internal.*
 import mill.api.internal.*
 
