@@ -1,5 +1,7 @@
 package millbuild
 
+// Version of MillScalaScala used for modules that need compatibility down to Java 11 due to
+// running on the same JVM as user modules. Tests still run on Java 17+
 trait MillJava11ScalaModule extends MillPublishScalaModule {
   def scalaVersion = Deps.scalaVersionJava11
 

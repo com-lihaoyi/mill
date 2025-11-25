@@ -7,8 +7,7 @@ object Deps {
 
   // The Scala version to use
   val scalaVersion = "3.8.0-RC1"
-  // Version of Scala used for modules that need compatibility down to Java 11 due to
-  // running on the same JVM as user modulesx`
+
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
