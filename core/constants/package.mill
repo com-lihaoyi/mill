@@ -18,6 +18,8 @@ object `package` extends MillStableJavaModule with BuildInfo {
     BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion)
   )
 
+  def jvmId = "11"
+
   object test extends JavaTests with TestModule.Junit4 {
     def mvnDeps = Seq(Deps.junitInterface, Deps.commonsIo)
   }

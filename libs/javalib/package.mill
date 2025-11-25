@@ -57,15 +57,15 @@ object `package` extends MillStableScalaModule {
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)
+    def jvmId = "11"
   }
 
-  object api extends MillStableScalaModule with BuildInfo {
+  object api extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule{
     override object test extends MillScalaTests {
       def scalaVersion = Deps.scalaVersion
     }
 
     def moduleDeps = Seq(build.core.api.java11, build.libs.rpc, build.libs.util.java11)
-    def scalaVersion = Deps.scalaVersionJava11
     def buildInfoPackageName = "mill.javalib.api"
     def buildInfoObjectName = "Versions"
 
@@ -126,9 +126,8 @@ object `package` extends MillStableScalaModule {
     )
   }
 
-  object worker extends MillPublishScalaModule with BuildInfo {
+  object worker extends MillPublishScalaModule with BuildInfo with MillJava11ScalaModule{
     def moduleDeps = Seq(api, build.libs.javalib.testrunner)
-    def scalaVersion = Deps.scalaVersionJava11
     def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
     def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"
