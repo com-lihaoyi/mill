@@ -95,6 +95,7 @@ object `package` extends MillPublishScalaModule {
     object api extends MillPublishJavaModule
 
     object exportplugin extends ScalaModule {
+      def jvmId = "11"
       def scalaVersion = Deps.scalaVersion
       def mvnDeps = Seq(Deps.osLib)
       def moduleDeps = Seq(api, buildgen.api(Deps.scalaVersion))
@@ -133,6 +134,7 @@ object `package` extends MillPublishScalaModule {
       def moduleDeps = Seq(buildgen.api())
     }
     object exportplugin extends ScalaModule {
+      def jvmId = "11"
       def scalaVersion = Deps.sbtScalaVersion212
       def mvnDeps = Seq(Deps.osLib)
       def moduleDeps = Seq(api(Deps.sbtScalaVersion212))
