@@ -29,9 +29,13 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     ))
   }
 
+  /**
+   * This is actually the testrunner classpath, not the scalalib classpath,
+   * but the wrong name is preserved for backwards compatibility
+   */
   def scalalibClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-libs-javalib")
+      Dep.millProjectModule("mill-libs-javalib-testrunner")
     ))
   }
 
