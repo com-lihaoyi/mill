@@ -8,7 +8,8 @@ import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.javalib.api.internal.InternalJvmWorkerApi as InternalJvmWorkerApi
 import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.javalib.internal.{JvmWorkerArgs, ZincCompilerBridgeProvider}
+import mill.javalib.api.{JvmWorkerArgs}
+import mill.javalib.api.internal.{ZincCompilerBridgeProvider}
 
 /**
  * A default implementation of [[JvmWorkerModule]]
