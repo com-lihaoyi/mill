@@ -48,14 +48,16 @@ object Foo {
 /** See Also: .scalafix.conf */
 /** Usage
 
-> ./mill __.fix
-
-> cat src/Foo.scala
-package foo
-object Foo {
-  def main(args: Array[String]) = {
-    println("Hello world")
-  }
-}
+> ./mill __.fix # mill-scalafix not compatible with new Opts class
+error: fix java.lang.ClassCastException: class mill.api.opt.Opts cannot be cast to class scala.collection.immutable.Seq ...
 
 */
+////
+////> cat src/Foo.scala
+////package foo
+////object Foo {
+////  def main(args: Array[String]) = {
+////    println("Hello world")
+////  }
+////}
+
