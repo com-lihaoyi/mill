@@ -16,10 +16,10 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
       generate: => Unit,
       sourceRel: os.SubPath,
       expectedRel: os.SubPath,
-      updateSnapshots: Boolean = sys.env.getOrElse(
-        "UTEST_UPDATE_GOLDEN_TESTS",
-        "0"
-      ).equals("1") // pass true to update test data on disk
+      // pass true to update test data on disk
+      updateSnapshots: Boolean = sys.env
+        .getOrElse("UTEST_UPDATE_GOLDEN_TESTS", "0")
+        .equals("1")
   )(using
       tp: TestPath
   ): Boolean = {
