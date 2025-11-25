@@ -61,9 +61,6 @@ object `package` extends MillStableScalaModule {
   }
 
   object api extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
-    override object test extends MillScalaTests {
-      def scalaVersion = Deps.scalaVersion
-    }
 
     def moduleDeps = Seq(build.core.api.java11, build.libs.rpc, build.libs.util.java11)
     def buildInfoPackageName = "mill.javalib.api"
