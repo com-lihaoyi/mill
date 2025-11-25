@@ -196,14 +196,7 @@ object LocalSummary {
             ) => true
         case _ => false
       }
-      val isLazyValsGet = (owner, name, descriptor) match {
-        case ("scala/runtime/LazyVals$", "MODULE$", "Lscala/runtime/LazyVals$;") => true
-        case _ => false
-      }
-      val isLazyValsPut = (name, descriptor) match {
-        case (s"OFFSET$$_m_$n", "J") if n.forall(_.isDigit) => true
-        case _ => false
-      }
+
       if (lazyValBodyStart && opcode == Opcodes.GETSTATIC) {
         if (!endScala3LazyInit) isScala3LazyInit = false
       } else if (lazyValBodyEnd && opcode == Opcodes.GETSTATIC) {
