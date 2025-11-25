@@ -11,7 +11,7 @@ import millbuild.*
  * defining Tasks, Modules, helper code, and other related data structures.
  */
 object `package` extends MillStableScalaModule with BuildInfo {
-  object java11 extends MillStableScalaModule with MillJava11ScalaModule{
+  object java11 extends MillStableScalaModule with MillJava11ScalaModule {
     def moduleDeps = Seq(build.core.api.daemon)
 
     def mvnDeps = Seq(

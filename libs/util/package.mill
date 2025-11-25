@@ -15,7 +15,7 @@ import millbuild.*
  * isolation between them
  */
 object `package` extends MillStableScalaModule with BuildInfo {
-  object java11 extends MillStableScalaModule with MillJava11ScalaModule{
+  object java11 extends MillStableScalaModule with MillJava11ScalaModule {
     def mvnDeps = Seq(Deps.jline)
     def compileMvnDeps = Seq(Deps.coursierJvm)
     def runMvnDeps = Seq(Deps.coursierJvm)
