@@ -77,8 +77,8 @@ private object TransformingReporter {
 
     val errorCodeString = {
       // The error code provided by the Scala 3 compiler seems pretty useless in
-      // general: you can't grep for it, it tells you nothing useful, and it's
-      // distracting from the actual message. So just leave it out
+      // general: you can't grep for it, you can't google for it, and it tells you
+      // nothing useful. It's distracting from the actual message. So just leave it out
       ""
 //      problem0.diagnosticCode()
 //        .filter(_.code() != "-1")
