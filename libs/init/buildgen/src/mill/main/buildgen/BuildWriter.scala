@@ -630,7 +630,7 @@ class BuildWriter(build: BuildSpec, renderCrossValueInTask: String = "crossValue
           }
           s""" ++ ($renderCrossValueInTask match {
              |  ${renderLines(crossCases)}
-             |  case _ => Nil
+             |  case _ => Opts()
              |})""".stripMargin
         }
       }
