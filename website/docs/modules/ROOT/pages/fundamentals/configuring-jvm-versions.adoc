@@ -11,7 +11,7 @@ artifacts will be the minimum version that downstream projects will need to use 
 use your artifacts.
 
 * For libraries is best to set your `mill-jvm-version` to the lowest version possible, e.g.
-  `mill-jvm-version: 11` in this example which is the lowest version supported by Mill.
+  `mill-jvm-version: 17` in this example which is the lowest version supported by Mill.
 * For applications without downstream projects, using the highest available JVM version is
   usually preferred to let your application take advantage of the latest JVM improvements
 

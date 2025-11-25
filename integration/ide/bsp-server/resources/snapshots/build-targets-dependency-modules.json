@@ -235,7 +235,7 @@
         },
         {
           "name": "org.scala-lang:scala-library",
-          "version": "<scala-version>"
+          "version": "<scala3-version>"
         },
         {
           "name": "com.lihaoyi:fansi_3",
@@ -463,7 +463,7 @@
         },
         {
           "name": "org.scala-lang:scala-library",
-          "version": "<scala-version>"
+          "version": "<scala3-version>"
         },
         {
           "name": "com.lihaoyi:fansi_3",

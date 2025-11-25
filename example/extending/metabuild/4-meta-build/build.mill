@@ -1,4 +1,4 @@
-//| mill-jvm-version: 11
+//| mill-jvm-version: 17
 package build
 
 import mill.*, scalalib.*

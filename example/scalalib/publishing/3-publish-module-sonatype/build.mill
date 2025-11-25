@@ -1,4 +1,4 @@
-//| mill-jvm-version: 11
+//| mill-jvm-version: 17
 // This example configured for publishing to Sonatype Maven Central via
 // Central Portal. We extend `SonatypeCentralPublishModule` which provides
 // simplified publishing tasks without requiring Nexus repository manager.
@@ -25,7 +25,7 @@ object foo extends ScalaModule, SonatypeCentralPublishModule {
 // Note that when publishing artifacts to Maven repositories, the JVM version used to build the
 // artifacts will be the minimum version that downstream projects will need to use in order to
 // use your artifacts. Thus it is best to set your `mill-jvm-version` to the lowest version
-// possible, e.g. `mill-jvm-version: 11` in this example which is the lowest version supported
+// possible, e.g. `mill-jvm-version: 17` in this example which is the lowest version supported
 // by Mill.
 //
 // If the `publishVersion` ends with `SNAPSHOT`, then the artifacts will NOT be signed and will be
