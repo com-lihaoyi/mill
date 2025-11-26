@@ -48,7 +48,6 @@
 > ./mill Foo.scala --text hello
 compiling 1 Scala source to...
 <h1>hello</h1>
-Jvm Version: 11.0.28
 */
 
 //// SNIPPET:END

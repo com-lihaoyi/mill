@@ -37,6 +37,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-feature"
     ) ++ ciScalacOptions() ++ (
       if (isScala3()) Seq(
+        "-explain-cyclic",
         "-Wunused:all",
         "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
         "-Wconf:msg=import scala.language.implicitConversions:silent",

@@ -8,7 +8,7 @@ on:
         default: 'dist.executable + core.api.test.compile + testkit.compile'
         type: string
       java-version:
-        default: '11'
+        default: '17'
         type: string
       os:
         type: string

@@ -70,12 +70,13 @@ object `package` extends MillPublishScalaModule {
 
   object buildgen extends MillPublishScalaModule {
     def moduleDeps =
-      Seq(api(Deps.scalaVersion), build.libs.init, build.core.internal, build.libs.util)
+      Seq(api(Deps.scalaVersionJava11), build.libs.init, build.core.internal, build.libs.util)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
 
-    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
+    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersionJava11)
     trait ApiModule extends MillPublishCrossScalaModule {
       def mvnDeps = Seq(Deps.upickle)
+      def jvmId = "11"
     }
   }
   object gradle extends MillPublishScalaModule with BuildInfo {
@@ -92,12 +93,15 @@ object `package` extends MillPublishScalaModule {
     }
     def resources = Task { super.resources() ++ Seq(exportpluginAssemblyResource()) }
 
-    object api extends MillPublishJavaModule
+    object api extends MillPublishJavaModule {
+      def jvmId = "11"
+    }
 
     object exportplugin extends ScalaModule {
-      def scalaVersion = Deps.scalaVersion
+      def jvmId = "11"
+      def scalaVersion = Deps.scalaVersionJava11
       def mvnDeps = Seq(Deps.osLib)
-      def moduleDeps = Seq(api, buildgen.api(Deps.scalaVersion))
+      def moduleDeps = Seq(api, buildgen.api(Deps.scalaVersionJava11))
       def compileMvnDeps = Seq(Deps.gradleApi)
     }
   }
@@ -115,7 +119,7 @@ object `package` extends MillPublishScalaModule {
   }
 
   object sbt extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api(Deps.scalaVersion), buildgen)
+    def moduleDeps = Seq(api(Deps.scalaVersionJava11), buildgen)
     def sbtPluginJarResource = Task {
       os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
@@ -128,11 +132,13 @@ object `package` extends MillPublishScalaModule {
       BuildInfo.Value("sbtVersion", Deps.sbt.version)
     )
 
-    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
+    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersionJava11)
     trait ApiModule extends MillPublishCrossScalaModule {
       def moduleDeps = Seq(buildgen.api())
+      def jvmId = "11"
     }
     object exportplugin extends ScalaModule {
+      def jvmId = "11"
       def scalaVersion = Deps.sbtScalaVersion212
       def mvnDeps = Seq(Deps.osLib)
       def moduleDeps = Seq(api(Deps.sbtScalaVersion212))

@@ -1,5 +1,5 @@
 <component name="libraryTable">
-    <library name="SBT: org.scalameta:munit_3_3.7:0.7.29:jar">
+    <library name="SBT: org.scalameta:munit_3_3.8:0.7.29:jar">
         <CLASSES>
             <root url="jar://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scalameta/munit_3/0.7.29/munit_3-0.7.29.jar!/"/>
         </CLASSES>

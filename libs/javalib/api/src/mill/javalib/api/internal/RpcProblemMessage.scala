@@ -1,4 +1,4 @@
-package mill.javalib.internal
+package mill.javalib.api.internal
 
 import mill.api.JsonFormatters.*
 

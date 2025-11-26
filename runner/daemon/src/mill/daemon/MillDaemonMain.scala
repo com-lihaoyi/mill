@@ -1,8 +1,8 @@
 package mill.daemon
 
 import mill.api.{MappedRoots, SystemStreams}
-import mill.client.lock.{Lock, Locks}
-import mill.constants.OutFolderMode
+import mill.client.lock.Locks
+import mill.constants.{OutFiles, OutFolderMode}
 import mill.server.Server
 
 import scala.concurrent.duration.*
