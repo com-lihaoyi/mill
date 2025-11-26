@@ -233,6 +233,15 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     defaultResolver().classpath(scalacPluginMvnDeps())
   }
 
+  /**
+   * Manually supplied compiler bridge
+   *
+   * The file this points at can be either a JAR containing class files, or a directory
+   * with source files.
+   *
+   * If `None`, Mill fetches and compiles if needed a compiler bridge on its own.
+   * If set to `Some(...)`, Mill uses the passed bridge and doesn't attempt to fetch one.
+   */
   def scalaCompilerBridge: T[Option[PathRef]] = Task(None)
 
   /**
