@@ -59,14 +59,7 @@ jobs:
       LC_ALL: "en_US.UTF-8"
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
     steps:
-      - uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-
       - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
-
-      - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
