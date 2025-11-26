@@ -99,7 +99,7 @@ object app extends AndroidAppModule {
 /** Usage
 
 > ./mill show app.test
-...compiling 2 Java sources...
+...compiling 2 Java sources to out/app/test/compile.dest/classes...
 
 > cat out/app/test/testForked.dest/out.json
 ["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]
