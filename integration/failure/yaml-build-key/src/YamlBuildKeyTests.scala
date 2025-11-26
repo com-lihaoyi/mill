@@ -18,7 +18,7 @@ object YamlBuildKeyTests extends UtestIntegrationTestSuite {
           |invalid build config in `mill-build/build.mill`: key "invalidKey" does not override any task
           |invalid build config in `mill-build/build.mill`: key "mvnDep" does not override any task, did you mean "mvnDeps"?
           |invalid build config in `mill-build/build.mill`: key "mill-jm-version" does not override any task, did you mean "mill-jvm-version"?
-          |""".stripMargin.trim
+          |""".stripMargin.trim.replace("\r", "")
 
       assert(res.err.contains(expectedError))
       // make sure we truncate the exception to the relevant bits
