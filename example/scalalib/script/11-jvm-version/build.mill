@@ -1,0 +1,19 @@
+// Mill single-file {language} modules use version {default-mill-jvm-version} of the JVM
+// by default. You can customize it by specifying a `jvmId` in the script header:
+
+//// SNIPPET:ALL
+
+/** See Also: Foo.scala */
+
+/** Usage
+> ./mill Foo.scala
+java.version 11.0.20
+
+*/
+
+// Note that you may need to pick an a compatible version of Scala with your JVM version,
+// e.g. in this example as we are setting `jvmId` to `11.x`, the default `scalaVersion` of `3.8.x`
+// is not compatible, and so we need to explicitly set an earlier `scalaVersion: 3.7.4`
+
+//// SNIPPET:END
+
