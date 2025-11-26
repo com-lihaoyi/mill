@@ -9,7 +9,7 @@ private[mill] trait MavenPublish {
 
   def mavenPublishDatas(
       publishDatas: Seq[PublishData],
-      credentials: SonatypeCredentials,
+      credentials: (username: String, password: String),
       releaseUri: String,
       snapshotUri: String,
       taskDest: os.Path,
@@ -40,7 +40,7 @@ private[mill] trait MavenPublish {
       dryRun: Boolean,
       publishData: PublishData,
       isSnapshot: Boolean,
-      credentials: SonatypeCredentials,
+      credentials: (username: String, password: String),
       releaseUri: String,
       snapshotUri: String,
       taskDest: os.Path,
