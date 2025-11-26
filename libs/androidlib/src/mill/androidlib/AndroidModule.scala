@@ -135,12 +135,19 @@ trait AndroidModule extends JavaModule { outer =>
       "--proguard-minimal-keep-rules",
       "--debug-mode"
     )
+
+    // Add module dependencies' namespaces as extra packages
+    val extraPackages = moduleDeps.collect {
+      case p: AndroidModule => Seq("--extra-packages", p.androidNamespace)
+    }.flatten
+
     Seq(
       "--auto-add-overlay",
       "--no-version-vectors",
       "--no-proguard-location-reference",
       "--non-final-ids"
-    ) ++ Option.when(androidIsDebug())(debugOptions).toSeq.flatten
+    ) ++ extraPackages
+      ++ Option.when(androidIsDebug())(debugOptions).toSeq.flatten
   }
 
   def androidProviderProguardConfigRules: T[Seq[String]] = Task {
