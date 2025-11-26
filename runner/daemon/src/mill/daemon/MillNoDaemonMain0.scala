@@ -8,7 +8,7 @@ import mill.server.Server
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-object MillNoDaemonMain {
+object MillNoDaemonMain0 {
   def main(args0: Array[String]): Unit = mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
     val initialSystemStreams = mill.api.SystemStreams.original
 
@@ -24,7 +24,7 @@ object MillNoDaemonMain {
     // Take into account proxy-related Java properties
     coursier.Resolve.proxySetup()
 
-    val args = MillDaemonMain.Args(getClass.getName, args0)
+    val args = MillDaemonMain0.Args(getClass.getName, args0)
       .fold(err => throw IllegalArgumentException(err), identity)
 
     val processId = Server.computeProcessId()
