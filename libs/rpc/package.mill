@@ -6,7 +6,7 @@ import millbuild.*
 /**
  * This package contains the remote procedure call (RPC) library used by Mill.
  */
-object `package` extends MillPublishScalaModule {
+object `package` extends MillPublishScalaModule with MillJava11ScalaModule {
   def moduleDeps = Seq(build.core.api.daemon, build.libs.daemon.server)
 
   def mvnDeps = Seq(

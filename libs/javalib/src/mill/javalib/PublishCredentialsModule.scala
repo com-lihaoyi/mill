@@ -1,6 +1,5 @@
 package mill.javalib
 
-import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.api.*
 
 /**
@@ -12,12 +11,12 @@ private[mill] trait PublishCredentialsModule extends Module {
       envVariablePrefix: String,
       usernameParameterValue: String,
       passwordParameterValue: String
-  ): Task[SonatypeCredentials] = Task.Anon {
+  ): Task[(username: String, password: String)] = Task.Anon {
     val username =
       getPublishCredential(usernameParameterValue, "username", s"${envVariablePrefix}_USERNAME")()
     val password =
       getPublishCredential(passwordParameterValue, "password", s"${envVariablePrefix}_PASSWORD")()
-    Result.Success(SonatypeCredentials(username, password))
+    Result.Success((username, password))
   }
 
   private def getPublishCredential(

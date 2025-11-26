@@ -1,7 +1,7 @@
 package mill.javalib.zinc
 
 import mill.api.daemon.internal.{CompileProblemReporter, Problem}
-import mill.javalib.internal.{RpcProblemMessage, RpcProblem}
+import mill.javalib.api.internal.{RpcProblemMessage, RpcProblem}
 
 import java.nio.file.Path
 

@@ -1,1 +1,1 @@
-//| mill-jvm-version: 11
+//| mill-jvm-version: 17

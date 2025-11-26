@@ -26,6 +26,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           millPublishedJars,
           List(
             "mill-core-api-daemon_3-SNAPSHOT.jar",
+            "mill-core-api-java11_3-SNAPSHOT.jar",
             "mill-core-api_3-SNAPSHOT.jar",
             "mill-core-constants-SNAPSHOT.jar",
             "mill-libs-androidlib-databinding_3-SNAPSHOT.jar",
@@ -48,9 +49,10 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-scalanativelib-api_3-SNAPSHOT.jar",
             "mill-libs-scalanativelib_3-SNAPSHOT.jar",
             "mill-libs-script_3-SNAPSHOT.jar",
+            "mill-libs-util-java11_3-SNAPSHOT.jar",
             "mill-libs-util_3-SNAPSHOT.jar",
             "mill-libs_3-SNAPSHOT.jar",
-            "mill-moduledefs_3-0.11.10.jar",
+            "mill-moduledefs_3-0.12.2.jar",
             "mill-runner-autooverride-api_3-SNAPSHOT.jar"
           )
         )

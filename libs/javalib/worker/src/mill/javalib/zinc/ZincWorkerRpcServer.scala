@@ -4,7 +4,7 @@ import mill.api.JsonFormatters.*
 import mill.api.daemon.Logger
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.internal.*
-import mill.javalib.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
+import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.rpc.*
 import mill.server.Server

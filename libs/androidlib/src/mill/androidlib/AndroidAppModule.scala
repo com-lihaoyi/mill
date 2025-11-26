@@ -22,6 +22,7 @@ import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
 
 import scala.util.Properties.isWin
+import scala.util.matching.Regex
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -235,6 +236,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Regex patterns of files to be excluded from packaging into the APK.
+   */
+  def androidExcludePackageFiles: T[Seq[Regex]] = Task {
+    Seq.empty[Regex]
+  }
+
+  /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
    * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
@@ -243,9 +251,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val unsignedApk = Task.dest / "app.unsigned.apk"
 
     os.copy(androidLinkedResources().path / "apk/res.apk", unsignedApk)
-    val dexFiles = os.walk(androidDex().path)
-      .filter(_.ext == "dex")
-      .map(os.zip.ZipSource.fromPath)
+
+    val androidDexPath = androidDex().path
+    os.zip(
+      unsignedApk,
+      Seq(androidDexPath),
+      excludePatterns = androidExcludePackageFiles()
+    )
 
     def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
       os.zip.ZipSource.fromPathTuple(
@@ -271,8 +283,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // Example of app-metadata.properties:
     // appMetadataVersion=1.1
     // androidGradlePluginVersion=8.7.2
-    os.zip(unsignedApk, dexFiles)
-    os.zip(unsignedApk, metaInf)
+
+    // Add META-INF if it does not already exist
+    if (!os.exists(androidDexPath / "META-INF"))
+      os.zip(unsignedApk, metaInf)
     os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
@@ -871,7 +885,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   private def androidD8Dex
       : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
 
-    val outPath = Task.dest
+    val outPath = Task.dest / "dex-output"
+    os.makeDir.all(outPath)
 
     val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
 

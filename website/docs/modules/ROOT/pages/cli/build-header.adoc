@@ -118,8 +118,13 @@ include::partial$example/cli/header/3-jvm-version-yaml.adoc[]
 
 An explicit `mill-jvm-version` can help ensure your project uses a consistent JVM version and
 behaves identically regardless of what the developer may have installed on their laptop
-or dev environment. If `mill-jvm-version` is not provided, Mill uses the default version
-`{default-mill-jvm-version}`.
+or dev environment.
+
+* If `mill-jvm-version` is not provided, Mill uses the default version `{default-mill-jvm-version}`.
+
+* Note that Mill requires a minimum of Java 17 for the build tool itself to run. However, it
+  supports user-defined modules down to Java 11.
+
 
 If you wish to use your system `java` installation, you can set `mill-jvm-version: system`.
 Note that this is not recommended as it means your codebase may use different JVM versions
