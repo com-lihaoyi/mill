@@ -131,15 +131,16 @@ trait AndroidModule extends JavaModule { outer =>
    * Specifies AAPT options for Android resource compilation.
    */
   def androidAaptOptions: T[Seq[String]] = Task {
-    if (androidIsDebug()) {
-      Seq(
-        "--proguard-minimal-keep-rules",
-        "--debug-mode",
-        "--auto-add-overlay"
-      )
-    } else {
-      Seq("--auto-add-overlay")
-    }
+    val debugOptions = Seq(
+      "--proguard-minimal-keep-rules",
+      "--debug-mode"
+    )
+    Seq(
+      "--auto-add-overlay",
+      "--no-version-vectors",
+      "--no-proguard-location-reference",
+      "--non-final-ids"
+    ) ++ Option.when(androidIsDebug())(debugOptions).toSeq.flatten
   }
 
   def androidProviderProguardConfigRules: T[Seq[String]] = Task {
