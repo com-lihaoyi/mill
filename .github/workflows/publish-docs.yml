@@ -30,6 +30,6 @@ jobs:
 
       - uses: coursier/cache-action@v7
 
-      - run: "echo temurin:11 > .mill-jvm-version"
+      - run: "echo temurin:17 > .mill-jvm-version"
 
       - run: ci/publish-docs.sh
