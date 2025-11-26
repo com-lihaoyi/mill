@@ -725,7 +725,7 @@ use your artifacts.</p>
 <ul>
 <li>
 <p>For libraries is best to set your <code>mill-jvm-version</code> to the lowest version possible, e.g.
-<code>mill-jvm-version: 11</code> in this example which is the lowest version supported by Mill.</p>
+<code>mill-jvm-version: 17</code> in this example which is the lowest version supported by Mill.</p>
 </li>
 <li>
 <p>For applications without downstream projects, using the highest available JVM version is
@@ -755,13 +755,13 @@ of any <code>JavaModule</code>, <code>ScalaModule</code>, or <code>KotlinModule<
 and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-36-ad6eb3/mill-dist-1.1.0-RC2-36-ad6eb3-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-39-15e094/mill-dist-1.1.0-RC2-39-15e094-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, javalib.*
 import mill.api.ModuleRef
 
 object foo extends JavaModule {
-  def jvmId = &quot;temurin:18.0.2&quot;
+  def jvmId = &quot;temurin:11.0.21&quot;
 
   object test extends JavaTests, TestModule.Junit4
 }</code></pre>
@@ -770,10 +770,10 @@ object foo extends JavaModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
-Foo running on Java 18.0.2
+Foo running on Java 11.0.21
 
 &gt; ./mill foo.test
-Testing with JVM version: 18.0.2
+Testing with JVM version: 11.0.21
 Test foo.FooTest.testSimple finished...</code></pre>
 </div>
 </div>
