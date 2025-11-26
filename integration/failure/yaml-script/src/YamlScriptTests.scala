@@ -73,7 +73,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
       locally {
         val res = tester.eval("InvalidJvmVersion.java")
         assert(res.err.contains(
-          "invalid build config in `InvalidJvmVersion.java`: key \"mill-jvm-version\" does not override any task"
+          "invalid build config in `InvalidJvmVersion.java`: key \"mill-jvm-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"
         ))
         // make sure we truncate the exception to the relevant bits
         assert(res.err.linesIterator.toList.length < 20)

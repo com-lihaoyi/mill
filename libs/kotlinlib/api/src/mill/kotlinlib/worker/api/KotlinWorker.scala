@@ -6,7 +6,7 @@
 package mill.kotlinlib.worker.api
 
 import mill.api.TaskCtx
-import mill.api.Result
+import mill.api.daemon.Result
 
 trait KotlinWorker {
 

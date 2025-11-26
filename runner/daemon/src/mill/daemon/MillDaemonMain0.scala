@@ -1,14 +1,14 @@
 package mill.daemon
 
 import mill.api.{BuildCtx, SystemStreams}
-import mill.client.lock.{Lock, Locks}
+import mill.client.lock.Locks
 import mill.constants.{OutFiles, OutFolderMode}
 import mill.server.Server
 
 import scala.concurrent.duration.*
 import scala.util.{Failure, Properties, Success, Try}
 
-object MillDaemonMain {
+object MillDaemonMain0 {
   case class Args(daemonDir: os.Path, outMode: OutFolderMode, rest: Seq[String])
   object Args {
     def apply(appName: String, args: Array[String]): Either[String, Args] = {
@@ -49,7 +49,7 @@ object MillDaemonMain {
       val acceptTimeout =
         Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
 
-      val exitCode = new MillDaemonMain(
+      val exitCode = new MillDaemonMain0(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
         Locks.files(args.daemonDir.toString),
@@ -61,7 +61,7 @@ object MillDaemonMain {
   }
 }
 
-class MillDaemonMain(
+class MillDaemonMain0(
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,

@@ -155,7 +155,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
   private def publishAll(
       publishArtifacts: Seq[PublishData],
       bundleName: Option[String],
-      credentials: SonatypeCredentials,
+      credentials: (username: String, password: String),
       publishingType: PublishingType,
       makeGpgArgs: () => GpgArgs,
       readTimeout: Int,
@@ -185,7 +185,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
 
     def publishReleases(artifacts: Seq[PublishData], gpgArgs: GpgArgs): Unit = {
       val publisher = new SonatypeCentralPublisher(
-        credentials = credentials,
+        credentials = SonatypeCredentials(credentials.username, credentials.password),
         gpgArgs = gpgArgs,
         connectTimeout = connectTimeout,
         readTimeout = readTimeout,

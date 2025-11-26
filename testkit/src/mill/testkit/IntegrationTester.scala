@@ -39,6 +39,22 @@ object IntegrationTester {
    * performing assertions against.
    */
   case class EvalResult(result: os.CommandResult) {
+    // Customize `product*` methods to improve readability when pretty-printed
+    override def productArity: Int = 3
+    def productElementNames0 = Seq("command", "exitCode", "outErr")
+    override def productElementNames = productElementNames0.iterator
+    override def productElementName(n: Int): String = productElementNames0(n)
+    def productElements0 = Seq(
+      result.command,
+      result.exitCode,
+      geny.ByteData.Chunks(result.chunks.map {
+        case Left(b) => b
+        case Right(b) => b
+      }).text()
+    )
+    override def productElement(n: Int): Any = productElements0(n)
+    override def productIterator = productElements0.iterator
+
     def exitCode: Int = result.exitCode
     private def cleanup(s: String) = fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
     def out = cleanup(result.out.trim())
