@@ -1,5 +1,35 @@
+diff --git a/contrib/package.mill b/contrib/package.mill
+index e27aacc8c66..5f46f114336 100644
+--- a/contrib/package.mill
++++ b/contrib/package.mill
+@@ -13,6 +13,7 @@ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.api.Cross
+ import millbuild.*
++import mill.api.opt.*
+ 
+ /**
+  * [[build.contrib]] contains user-contributed Mill plugins that satisfy
+@@ -66,7 +67,7 @@ object `package` extends mill.Module {
+ 
+     def testArgs = Task {
+       super.testArgs() ++
+-        Seq(
++        Opts(
+           s"-DTEST_PLAY_VERSION_2_6=${Deps.Play_2_6.playVersion}",
+           s"-DTEST_PLAY_VERSION_2_7=${Deps.Play_2_7.playVersion}",
+           s"-DTEST_PLAY_VERSION_2_8=${Deps.Play_2_8.playVersion}",
+@@ -114,7 +115,7 @@ object `package` extends mill.Module {
+ 
+     def testArgs = Task {
+       super.testArgs() ++
+-        Seq(
++        Opts(
+           s"-DMILL_SCOVERAGE2_VERSION=${Deps.scalacScoverage2Plugin.version}"
+         )
+     }
 diff --git a/dist/package.mill b/dist/package.mill
-index d9d8e2e05f1..af820b9c1d1 100644
+index d9d8e2e05f1..e8b4b6fa802 100644
 --- a/dist/package.mill
 +++ b/dist/package.mill
 @@ -13,6 +13,7 @@ import scala.util.Using
@@ -10,30 +40,21 @@ index d9d8e2e05f1..af820b9c1d1 100644
  
  trait DistModule extends Module {
    // All modules that we want to aggregate as part of this `dev` assembly.
-@@ -173,7 +174,7 @@ object `package` extends MillJavaModule with DistModule {
+@@ -182,7 +183,7 @@ object `package` extends MillJavaModule with DistModule {
+     val isWin = scala.util.Properties.isWin
+     val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
  
-   def localBinName = "mill-assembly.jar"
- 
--  private def millClientJvmArgs = Seq(
-+  private def millClientJvmArgs = Opts(
-     // Avoid reserving a lot of memory for the client, as the client only forward information
-     "-Xmx128m"
-   )
-@@ -206,7 +207,7 @@ object `package` extends MillJavaModule with DistModule {
-       mainClass = mainClass().get,
-       shellClassPath = classpath,
-       cmdClassPath = Seq(classpathJar.toString()),
--      jvmArgs = jvmArgs
-+      jvmArgs = jvmArgs.toStringSeq
-     )
- 
-     os.write(outputPath, script)
+-    val launcherForkArgs = testArgs()
++    val launcherForkArgs = testArgs().toStringSeq
+     val (millArgs, otherArgs) =
+       launcherForkArgs.partition(arg =>
+         arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
 @@ -220,7 +221,7 @@ object `package` extends MillJavaModule with DistModule {
      mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
    )
  
 -  def forkArgs = millClientJvmArgs ++ Seq(
-+  def forkArgs = millClientJvmArgs ++ Opts(
++  def forkArgs = Opts(millClientJvmArgs) ++ Opts(
      // Workaround for Zinc/JNA bug
      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
      "-Djna.nosys=true"
@@ -81,7 +102,7 @@ index 89262ef2b35..4afac12dd18 100644
    }
    def scriptsModules: Seq[BootstrapScriptModule] = Seq(millSh, millBat)
 diff --git a/example/package.mill b/example/package.mill
-index e4e29b18b5e..2f5e02d302e 100644
+index a8c10b9c31a..64eaae4b8a3 100644
 --- a/example/package.mill
 +++ b/example/package.mill
 @@ -14,6 +14,7 @@ import mill.T
@@ -193,8 +214,31 @@ index cd35e6d0763..870b0b99f39 100644
        s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
      )
    }
+diff --git a/libs/androidlib/package.mill b/libs/androidlib/package.mill
+index fc386b7efd2..e8b3ecf27c0 100644
+--- a/libs/androidlib/package.mill
++++ b/libs/androidlib/package.mill
+@@ -5,6 +5,7 @@ import mill.*
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.javalib.*
+ import millbuild.*
++import mill.api.opt.*
+ 
+ // TODO when android hardcoded versions are fixed, generate a build info
+ // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
+@@ -56,8 +57,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
+ 
+   trait MillAndroidModule extends MillPublishScalaModule {
+     override def javacOptions = super.javacOptions() ++ {
+-      val release = Seq("-source", "1.8", "-target", "1.8")
+-      release ++ Seq("-encoding", "UTF-8", "-deprecation")
++      val release = Opts("-source", "1.8", "-target", "1.8")
++      release ++ Opts("-encoding", "UTF-8", "-deprecation")
+     }
+ 
+     override def repositoriesTask = Task.Anon {
 diff --git a/libs/javalib/package.mill b/libs/javalib/package.mill
-index 7ed81bc6843..c580c7fc5f1 100644
+index 45c676ffc4b..a751c5f0995 100644
 --- a/libs/javalib/package.mill
 +++ b/libs/javalib/package.mill
 @@ -15,6 +15,7 @@ import mill.contrib.buildinfo.BuildInfo
@@ -252,7 +296,7 @@ index 80fdd82d16c..0b10e69157c 100644
        s"-DMILL_SCALA_2_13_VERSION=${Deps.scala2Version}",
        s"-DMILL_SCALA_2_12_VERSION=${Deps.workerScalaVersion212}",
 diff --git a/mill-build/src/millbuild/MillJavaModule.scala b/mill-build/src/millbuild/MillJavaModule.scala
-index f82f0d10ec5..089349df5c5 100644
+index f82f0d10ec5..deb7e049a01 100644
 --- a/mill-build/src/millbuild/MillJavaModule.scala
 +++ b/mill-build/src/millbuild/MillJavaModule.scala
 @@ -8,6 +8,7 @@ import mill.T
@@ -262,6 +306,24 @@ index f82f0d10ec5..089349df5c5 100644
 +import mill.api.opt.*
  
  import java.io.File
+ 
+@@ -15,13 +16,13 @@ import scala.util.Properties
+ 
+ trait MillJavaModule extends JavaModule {
+ 
+-  def testArgs: T[Seq[String]] = Task {
++  def testArgs: T[Opts] = Task {
+     // Workaround for Zinc/JNA bug
+     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+-    val jnaArgs = Seq("-Djna.nosys=true")
++    val jnaArgs = Opts("-Djna.nosys=true")
+     val userLang =
+-      if (Properties.isMac || Properties.isWin) Seq("-Duser.language=en")
+-      else Nil
++      if (Properties.isMac || Properties.isWin) Opts("-Duser.language=en")
++      else Opts()
+     jnaArgs ++ userLang
+   }
  
 @@ -59,13 +60,13 @@ trait MillJavaModule extends JavaModule {
    }
@@ -280,7 +342,19 @@ index f82f0d10ec5..089349df5c5 100644
      Seq("MILL_LOCAL_TEST_REPO" -> localRepos)
    }
  
-@@ -107,14 +108,14 @@ trait MillJavaModule extends JavaModule {
+@@ -98,23 +99,23 @@ trait MillJavaModule extends JavaModule {
+     Task.env.get("CI").contains("1")
+   }
+ 
+-  def ciJavacOptions: Task[Seq[String]] = Task {
+-    if (isCI()) Seq(
++  def ciJavacOptions: Task[Opts] = Task {
++    if (isCI()) Opts(
+       // When in CI make the warnings fatal
+       "-Werror"
+     )
+-    else Nil
++    else Opts()
    }
  
    override def javacOptions = Task {
@@ -318,8 +392,84 @@ index 342747153c6..6730228fe51 100644
  }
  
  object MillPublishJavaModule {
+diff --git a/mill-build/src/millbuild/MillScalaModule.scala b/mill-build/src/millbuild/MillScalaModule.scala
+index fcd2fdcda0b..6ace3435eb4 100644
+--- a/mill-build/src/millbuild/MillScalaModule.scala
++++ b/mill-build/src/millbuild/MillScalaModule.scala
+@@ -5,6 +5,7 @@ import mill.scalalib.*
+ import mill.javalib.api.JvmWorkerUtil
+ import mill.api.BuildCtx
+ import com.goyeau.mill.scalafix.ScalafixModule
++import mill.api.opt.*
+ 
+ /**
+  * Some custom scala settings and test convenience
+@@ -24,19 +25,19 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+ 
+   def isScala3: T[Boolean] = Task { JvmWorkerUtil.isScala3(scalaVersion()) }
+ 
+-  def ciScalacOptions: T[Seq[String]] = Task {
++  def ciScalacOptions: T[Opts] = Task {
+     if (isCI()) {
+       // Turn warnings into errors on CI
+-      if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
+-    } else Nil
++      if (isScala3()) Opts("-Werror") else Opts("-Xfatal-warnings")
++    } else Opts()
+   }
+ 
+   def scalacOptions =
+-    super.scalacOptions() ++ Seq(
++    super.scalacOptions() ++ Opts(
+       "-deprecation",
+       "-feature"
+     ) ++ ciScalacOptions() ++ (
+-      if (isScala3()) Seq(
++      if (isScala3()) Opts(
+         "-explain-cyclic",
+         "-Wunused:all",
+         "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
+@@ -53,7 +54,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+         // "-Wimplausible-patterns",
+         // "-rewrite", "-source", "3.7-migration"
+       )
+-      else Seq(
++      else Opts(
+         "-P:acyclic:force",
+         "-Xlint:unused",
+         "-Xlint:adapted-args",
+@@ -90,7 +91,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
+   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
+       with ScalafixModule {
+     def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
+-    def forkArgs = super.forkArgs() ++ outer.testArgs()
++    def forkArgs = super.forkArgs() ++ Opts(outer.testArgs())
+     def moduleDeps = outer.testModuleDeps
+     def mvnDeps = super.mvnDeps() ++ outer.testMvnDeps()
+     def forkEnv = super.forkEnv() ++ outer.testForkEnv()
+diff --git a/runner/autooverride/package.mill b/runner/autooverride/package.mill
+index 959d0d64e60..8967fbb3561 100644
+--- a/runner/autooverride/package.mill
++++ b/runner/autooverride/package.mill
+@@ -3,6 +3,7 @@ package build.runner.autooverride
+ import mill.*
+ import mill.scalalib.*
+ import millbuild.*
++import mill.api.opt.*
+ 
+ /**
+  * AutoOverride compiler plugin for Scala 3 that automatically implements
+@@ -40,7 +41,7 @@ object `package` extends Module {
+       millbuild.Deps.TestDeps.utest
+     )
+ 
+-    def scalacOptions = super.scalacOptions() ++ Seq(
++    def scalacOptions = super.scalacOptions() ++ Opts(
+       s"-Xplugin:${plugin.jar().path}",
+       s"-Xplugin-require:auto-override"
+     )
 diff --git a/runner/bsp/package.mill b/runner/bsp/package.mill
-index 5c511891e2d..0cdae63e94e 100644
+index 5c511891e2d..0d7cd65b780 100644
 --- a/runner/bsp/package.mill
 +++ b/runner/bsp/package.mill
 @@ -4,6 +4,7 @@ import mill._
@@ -330,7 +480,7 @@ index 5c511891e2d..0cdae63e94e 100644
  
  object `package` extends MillPublishScalaModule with BuildInfo {
    def compileModuleDeps = Seq(build.libs.javalib)
-@@ -24,7 +25,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
+@@ -24,13 +25,13 @@ object `package` extends MillPublishScalaModule with BuildInfo {
  
    override lazy val test: MillScalaTests = new Test {}
    trait Test extends MillScalaTests {
@@ -339,6 +489,13 @@ index 5c511891e2d..0cdae63e94e 100644
        // We try to fetch this dependency with coursier in the tests
        worker.publishLocalCached()
        super.forkEnv()
+     }
+ 
+-    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${Deps.bsp4j.version}")
++    def forkArgs = super.forkArgs() ++ Opts(s"-DBSP4J_VERSION=${Deps.bsp4j.version}")
+   }
+ 
+   object worker extends MillPublishScalaModule {
 diff --git a/runner/codesig/package.mill b/runner/codesig/package.mill
 index c10f27f0ec5..579df2817e2 100644
 --- a/runner/codesig/package.mill
