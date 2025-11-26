@@ -1,5 +1,5 @@
 //| mill-jvm-index-version: 0.0.4-88-f9ba3d
-//| mill-jvm-version: temurin:11
+//| mill-jvm-version: temurin:17
 //
 // Mill uses the https://github.com/coursier/jvm-index[Coursier JVM Index] to resolve JVM
 // versions to their download location, as well as partially-qualified versions such as
@@ -21,11 +21,11 @@ def printJavaVersion() = Task.Command {
 }
 
 // This example uses an older `mill-jvm-index-version` to ensure the resolved version
-// of `temurin:11` gets appropriately downgraded from `11.0.28` (the most recent `11.x` version)
-// to `11.0.26` (the version of `11.x` available when the JVM index `0.0.4-88-f9ba3d` was released)
+// of `temurin:17` gets appropriately downgraded from `17.0.17` (the most recent `17.x` version)
+// to `17.0.14` (the version of `17.x` available when the JVM index `0.0.4-88-f9ba3d` was released)
 /** Usage
 
 > ./mill printJavaVersion
-Java version: 11.0.26
+Java version: 17.0.14
 
 */

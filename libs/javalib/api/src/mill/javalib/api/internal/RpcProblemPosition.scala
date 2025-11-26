@@ -1,7 +1,7 @@
-package mill.javalib.internal
+package mill.javalib.api.internal
 
-import mill.api.daemon.internal.ProblemPosition
 import mill.api.JsonFormatters.*
+import mill.api.daemon.internal.ProblemPosition
 
 import java.io.File
 

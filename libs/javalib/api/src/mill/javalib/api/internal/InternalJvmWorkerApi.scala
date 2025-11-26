@@ -1,6 +1,7 @@
 package mill.javalib.api.internal
 
-import mill.api.{PathRef, Result}
+import mill.api.PathRef
+import mill.api.daemon.Result
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
