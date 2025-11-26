@@ -10,7 +10,6 @@ import scala.util.Properties
 
 object MillNoDaemonMain0 {
   def main(args0: Array[String]): Unit = mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
-    System.err.println("MillNoDaemonMain.main")
     val initialSystemStreams = mill.api.SystemStreams.original
 
     if (Properties.isWin && Util.hasConsole())
