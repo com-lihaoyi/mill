@@ -61,6 +61,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
       scalacOptions: Seq[String],
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
@@ -79,6 +80,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
         scalacOptions = scalacOptions,
         compilerClasspath = compilerClasspath,
         scalacPluginClasspath = scalacPluginClasspath,
+        compilerBridgeOpt = compilerBridgeOpt,
         incrementalCompilation = incrementalCompilation,
         auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
         workDir = workDir
@@ -96,6 +98,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       javaHome: Option[Path],
       args: Seq[String],
       workDir: os.Path
@@ -106,6 +109,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
         scalaOrganization = scalaOrganization,
         compilerClasspath = compilerClasspath,
         scalacPluginClasspath = scalacPluginClasspath,
+        compilerBridgeOpt = compilerBridgeOpt,
         args = args,
         workDir = workDir
       ),

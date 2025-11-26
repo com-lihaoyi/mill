@@ -47,6 +47,7 @@ trait JvmWorkerApi {
       scalacOptions: Seq[String],
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
@@ -77,6 +78,7 @@ trait JvmWorkerApi {
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       javaHome: Option[os.Path],
       args: Seq[String],
       workDir: os.Path
@@ -142,6 +144,7 @@ trait JvmWorkerApi {
       scalacOptions = scalacOptions,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
+      compilerBridgeOpt = None,
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
       incrementalCompilation = incrementalCompilation,
@@ -162,6 +165,7 @@ trait JvmWorkerApi {
       scalaOrganization = scalaOrganization,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
+      compilerBridgeOpt = None,
       javaHome = javaHome,
       args = args,
       workDir = ctx.dest

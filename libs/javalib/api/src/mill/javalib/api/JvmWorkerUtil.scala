@@ -18,29 +18,52 @@ object JvmWorkerUtil {
   def grepJar(
       classPath: Seq[PathRef],
       name: String,
-      versionPrefix: String,
+      versionPrefixes: Seq[String],
       sources: Boolean = false
   ): PathRef = {
     val suffix = if (sources) "-sources.jar" else ".jar"
     lazy val dir = if (sources) "srcs" else "jars"
 
-    def mavenStyleMatch(fname: String): Boolean =
-      fname.startsWith(s"$name-$versionPrefix") && fname.endsWith(suffix)
+    def helper(versionPrefix: String): Option[PathRef] = {
+      def mavenStyleMatch(fname: String): Boolean =
+        fname.startsWith(s"$name-$versionPrefix") && fname.endsWith(suffix)
 
-    def ivyStyleMatch(p: os.Path): Boolean = {
-      val fname = s"$name$suffix"
-      p.segments.toSeq match {
-        case _ :+ v :+ `dir` :+ `fname` if v.startsWith(versionPrefix) => true
-        case _ => false
+      def ivyStyleMatch(p: os.Path): Boolean = {
+        val fname = s"$name$suffix"
+        p.segments.toSeq match {
+          case _ :+ v :+ `dir` :+ `fname` if v.startsWith(versionPrefix) => true
+          case _ => false
+        }
       }
+
+      classPath.iterator
+        .find(pathRef => mavenStyleMatch(pathRef.path.last) || ivyStyleMatch(pathRef.path))
     }
 
-    classPath.iterator
-      .find(pathRef => mavenStyleMatch(pathRef.path.last) || ivyStyleMatch(pathRef.path))
-      .getOrElse(throw new Exception(
-        s"Cannot find **/$name-$versionPrefix*$suffix or **/$versionPrefix*/$dir/$name$suffix in ${classPath.iterator.mkString("[", ", ", "]")}"
-      ))
+    versionPrefixes
+      .iterator
+      .flatMap(helper(_).iterator)
+      .find(_ => true)
+      .getOrElse {
+        val candidates = versionPrefixes
+          .map { versionPrefix =>
+            s"**/$name-$versionPrefix*$suffix or **/$versionPrefix*/$dir/$name$suffix"
+          }
+          .mkString(" or ")
+        throw new Exception(
+          s"Cannot find $candidates in ${classPath.iterator.mkString("[", ", ", "]")}"
+        )
+      }
   }
+
+  @deprecated("Use the override accepting several version prefixes", "Mill after 1.1.0-RC2")
+  def grepJar(
+      classPath: Seq[PathRef],
+      name: String,
+      versionPrefix: String,
+      sources: Boolean
+  ): PathRef =
+    grepJar(classPath, name, Seq(versionPrefix), sources)
 
   val PartialVersion: Regex = raw"""(\d+)\.(\d+)\..*""".r
   val ReleaseVersion: Regex = raw"""(\d+)\.(\d+)\.(\d+)""".r
