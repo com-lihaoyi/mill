@@ -74,7 +74,7 @@ trait TestModule
   }
 
   /**
-   * Default arguments to be passed to `testForked` and `testOnly`
+   * Default arguments to be passed to `testForked`, `testOnly`, and `testCached`
    *
    * If you set this but would like to run `testForked` or `testOnly` without these default values,
    * pass `--addDefault=false` as first argument to them.
