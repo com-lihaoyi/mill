@@ -10,8 +10,8 @@ import millbuild.*
  * This module contains the data types necessary for defining a Mill build:
  * defining Tasks, Modules, helper code, and other related data structures.
  */
-object `package` extends MillStableScalaModule with BuildInfo {
-  object java11 extends MillStableScalaModule with MillJava11ScalaModule {
+object `package` extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule.Wrapper {
+  object java11 extends MillScalaModule with MillJava11ScalaModule {
     def moduleDeps = Seq(build.core.api.daemon)
 
     def mvnDeps = Seq(
@@ -30,7 +30,9 @@ object `package` extends MillStableScalaModule with BuildInfo {
     )
 
   }
-  def moduleDeps = Seq(build.core.api.daemon, java11)
+  def moduleDeps = Seq(build.core.api.daemon)
+
+  def mvnDeps = java11.mvnDeps()
 
   def compileMvnDeps = Task {
     if (scalaVersion().startsWith("3.")) Seq(Deps.scalaCompiler(scalaVersion()))
