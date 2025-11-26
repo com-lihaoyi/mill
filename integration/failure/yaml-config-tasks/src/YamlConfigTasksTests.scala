@@ -15,7 +15,7 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
         "invalid build config in `build.mill.yaml`: key \"scalaVersionn\" does not override any task, did you mean \"scalaVersion\"?"
       ))
       assert(res.err.replace('\\', '/').contains(
-        "invalid build config in `test/package.mill.yaml`: key \"scalaVersionWrongInner\" does not override any task"
+        "invalid build config in `test/package.mil.yaml`: key \"scalaVersionWrongInner\" does not override any task"
       ))
 
       tester.modifyFile(

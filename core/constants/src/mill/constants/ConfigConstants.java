@@ -9,6 +9,8 @@ public class ConfigConstants {
   public static final String millOpts = "mill-opts";
 
   public static String[] all() {
-    return new String[] {millBuild, millVersion, millJvmVersion, millJvmIndexVersion, millJvmOpts, millOpts};
+    return new String[] {
+      millBuild, millVersion, millJvmVersion, millJvmIndexVersion, millJvmOpts, millOpts
+    };
   }
 }
