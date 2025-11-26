@@ -127,7 +127,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     )
 
-    val bridgeJar = JvmWorkerUtil.grepJar(deps, bridgeName, Seq(bridgeVersion), useSources)
+    val bridgeJar = JvmWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
 
     if (useSources) {
       val classpath = compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)

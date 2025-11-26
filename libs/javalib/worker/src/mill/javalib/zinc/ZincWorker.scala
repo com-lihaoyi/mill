@@ -101,10 +101,9 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
           libraryJars = Array(libraryJarNameGrep(
             compilerClasspath,
             // if Dotty or Scala 3.0 - 3.7, use the 2.13 version of the standard library
-            if (JvmWorkerUtil.enforceScala213Library(key.scalaVersion))
-              Seq("2.13.", key.scalaVersion)
+            if (JvmWorkerUtil.enforceScala213Library(key.scalaVersion)) "2.13."
             // otherwise use the library matching the Scala version
-            else Seq(key.scalaVersion)
+            else key.scalaVersion
           ).path.toIO),
           compilerJars = combinedCompilerJars,
           allJars = combinedCompilerJars,
@@ -612,11 +611,8 @@ object ZincWorker {
     javac.JavaTools(compiler, docs)
   }
 
-  private def libraryJarNameGrep(
-      compilerClasspath: Seq[PathRef],
-      scalaVersions: Seq[String]
-  ): PathRef =
-    JvmWorkerUtil.grepJar(compilerClasspath, "scala-library", scalaVersions, sources = false)
+  private def libraryJarNameGrep(compilerClasspath: Seq[PathRef], scalaVersion: String): PathRef =
+    JvmWorkerUtil.grepJar(compilerClasspath, "scala-library", scalaVersion, sources = false)
 
   private def fileAnalysisStore(path: os.Path): AnalysisStore =
     ConsistentFileAnalysisStore.binary(
