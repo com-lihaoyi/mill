@@ -14,13 +14,10 @@ import millbuild.*
  * be part of the interface between the two classloader environments to ensure
  * isolation between them
  */
-object `package` extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule.Wrapper {
-  object java11 extends MillScalaModule with MillJava11ScalaModule {
-    def mvnDeps = Seq(Deps.jline)
-    def compileMvnDeps = Seq(Deps.coursierJvm)
-    def runMvnDeps = Seq(Deps.coursierJvm)
-    def moduleDeps = Seq(build.core.api.java11)
-  }
+object `package` extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
+  def runModuleDeps = Seq(
+//    build.libs.init
+  )
 
   def compileMvnDeps = Seq(
     Deps.nativeTerminal,
@@ -36,7 +33,11 @@ object `package` extends MillStableScalaModule with BuildInfo with MillJava11Sca
     Deps.coursierJvm
   )
 
-  def moduleDeps = Seq(build.core.api)
+  def moduleDeps = Seq(
+    build.core.api.daemon,
+    build.core.constants,
+    build.core.api
+  )
 
   // Exclude most coursier transitive dependencies from the compile classpath so users
   // can't compile against them, but include them at runtime as they are necessary.

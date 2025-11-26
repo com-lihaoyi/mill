@@ -7,6 +7,8 @@ import mill.*
 trait MillStableJavaModule extends MillPublishJavaModule with Mima {
 
   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
+    // never called directly, so doesn't matter if it exists or not
+    ProblemFilter.exclude[Problem]("*<clinit>"),
     // private class
     ProblemFilter.exclude[Problem]("mill.javalib.RunModule#RunnerImpl*"),
     // forgot to mark this class experimental

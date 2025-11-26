@@ -14,7 +14,7 @@ import mill.T
 import mill.api.Cross
 import millbuild.*
 
-object `package` extends MillStableScalaModule {
+object `package` extends MillStableScalaModule with MillJava11ScalaModule {
   def moduleDeps = Seq(build.libs.javalib)
   def mvnDeps =
     Seq(Deps.scalaXml) ++

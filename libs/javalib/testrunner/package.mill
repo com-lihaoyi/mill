@@ -9,7 +9,7 @@ import millbuild.*
  */
 object `package` extends MillPublishScalaModule with MillJava11ScalaModule {
 
-  def moduleDeps = Seq(build.libs.javalib.api, entrypoint, build.libs.util.java11)
+  def moduleDeps = Seq(build.libs.javalib.api, entrypoint, build.libs.util)
 
   object entrypoint extends MillPublishJavaModule {
     override def mvnDeps = Seq(Deps.sbtTestInterface)

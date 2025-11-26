@@ -1,6 +1,5 @@
 package mill.javalib
 
-import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.api.*
 
 /**

@@ -16,7 +16,7 @@ import mill.T
 import mill.api.Cross
 import millbuild.*
 
-object `package` extends MillStableScalaModule {
+object `package` extends MillStableScalaModule with MillJava11ScalaModule {
 
   def moduleDeps =
     Seq(build.libs.util, build.libs.rpc, build.libs.javalib.api, build.libs.javalib.testrunner)
@@ -62,7 +62,7 @@ object `package` extends MillStableScalaModule {
 
   object api extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
 
-    def moduleDeps = Seq(build.core.api.java11, build.libs.rpc, build.libs.util.java11)
+    def moduleDeps = Seq(build.core.api, build.libs.rpc, build.libs.util)
     def buildInfoPackageName = "mill.javalib.api"
     def buildInfoObjectName = "Versions"
 
