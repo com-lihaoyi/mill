@@ -14,7 +14,7 @@ import millbuild.*
  * be part of the interface between the two classloader environments to ensure
  * isolation between them
  */
-object `package` extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
+object `package` extends MillStableScalaModule with BuildInfo {
   def runModuleDeps = Seq(
 //    build.libs.init
   )
