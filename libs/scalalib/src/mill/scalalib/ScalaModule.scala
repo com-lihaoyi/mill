@@ -3,6 +3,7 @@ package scalalib
 
 import mill.util.JarManifest
 import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task}
+import mill.api.opt.*
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
@@ -30,8 +31,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
     override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
-    override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
-    override def mandatoryScalacOptions: T[Seq[String]] =
+    override def scalacOptions: T[Opts] = outer.scalacOptions()
+    override def mandatoryScalacOptions: T[Opts] =
       Task { super.mandatoryScalacOptions() }
   }
 
@@ -172,54 +173,56 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * Mandatory command-line options to pass to the Scala compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
-  protected def mandatoryScalacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  protected def mandatoryScalacOptions: T[Opts] = Task { Opts() }
 
   /**
    * Scalac options to activate the compiler plugins.
    */
-  private def enablePluginScalacOptions: T[Seq[String]] = Task {
+  private def enablePluginScalacOptions: T[Opts] = Task {
 
     val resolvedJars = defaultResolver().classpath(
       scalacPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
-    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+    Opts(resolvedJars.map(jar => opt"-Xplugin:${jar.path}"))
   }
 
   /**
    * Scalac options to activate the compiler plugins for ScalaDoc generation.
    */
-  private def enableScalaDocPluginScalacOptions: T[Seq[String]] = Task {
+  private def enableScalaDocPluginScalacOptions: T[Opts] = Task {
     val resolvedJars = defaultResolver().classpath(
       scalaDocPluginMvnDeps().map(_.exclude("*" -> "*"))
     )
-    resolvedJars.iterator.map(jar => s"-Xplugin:${jar.path}").toSeq
+    Opts(
+      resolvedJars.map(jar => opt"-Xplugin:${jar.path}")
+    )
   }
 
   /**
    * Command-line options to pass to the Scala compiler defined by the user.
    * Consumers should use `allScalacOptions` to read them.
    */
-  override def scalacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def scalacOptions: T[Opts] = Task { Opts() }
 
   /**
    * Aggregation of all the options passed to the Scala compiler.
    * In most cases, instead of overriding this task you want to override `scalacOptions` instead.
    */
-  def allScalacOptions: T[Seq[String]] = Task {
+  def allScalacOptions: T[Opts] = Task {
     mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions()
   }
 
   /**
    * Options to pass directly into Scaladoc.
    */
-  def scalaDocOptions: T[Seq[String]] = Task {
+  def scalaDocOptions: T[Opts] = Task {
     val defaults =
       if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
-        Seq(
+        Opts(
           "-project",
           artifactName()
         )
-      else Seq()
+      else Opts()
     mandatoryScalacOptions() ++ enableScalaDocPluginScalacOptions() ++ scalacOptions() ++ defaults
   }
 
@@ -282,7 +285,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         |For details, see: https://github.com/sbt/zinc/issues/1010""".stripMargin
     )
 
-    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val jOpts =
+      JavaCompilerOptions.split(javacOptions().toStringSeq ++ mandatoryJavacOptions().toStringSeq)
 
     val worker = jvmWorker().internalWorker()
 
@@ -294,7 +298,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         javacOptions = jOpts.compiler,
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),
-        scalacOptions = allScalacOptions(),
+        scalacOptions = allScalacOptions().toStringSeq,
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
         incrementalCompilation = zincIncrementalCompilation(),
@@ -339,7 +343,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaOrganization(),
             scalaDocClasspath(),
             scalacPluginClasspath(),
-            options ++ compileCp ++ scalaDocOptions() ++ files.map(_.toString()),
+            options ++ compileCp ++ scalaDocOptions().toStringSeq ++ files.map(_.toString()),
             workDir = Task.dest
           ),
           javaHome = javaHome().map(_.path)
@@ -426,8 +430,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           else
             "scala.tools.nsc.MainGenericRunner",
         classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
-        jvmArgs = forkArgs(),
-        env = allForkEnv(),
+        jvmArgs = forkArgs().toStringSeq,
+        env = allForkEnv().view.mapValues(_.toString()).toMap,
         mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
         cwd = forkWorkingDir(),
         stdin = os.Inherit,
@@ -506,8 +510,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       Jvm.callProcess(
         mainClass = mainClass,
         classPath = ammoniteReplClasspath().map(_.path).toVector,
-        jvmArgs = forkArgs(),
-        env = allForkEnv(),
+        jvmArgs = forkArgs().toStringSeq,
+        env = allForkEnv().view.mapValues(_.toString()).toMap,
         mainArgs = replOptions,
         cwd = forkWorkingDir(),
         stdin = os.Inherit,
@@ -621,13 +625,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       }
 
       val scalacOptions = (
-        allScalacOptions() ++
-          semanticDbEnablePluginScalacOptions() ++
+        allScalacOptions().toStringSeq ++
+          semanticDbEnablePluginScalacOptions().toStringSeq ++
           additionalScalacOptions
       )
         .filterNot(_ == "-Xfatal-warnings")
 
-      val javacOpts = SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion())
+      val javacOpts =
+        SemanticDbJavaModule.javacOptionsTask(javacOptions(), semanticDbJavaVersion()).toStringSeq
 
       Task.log.debug(s"effective scalac options: ${scalacOptions}")
       Task.log.debug(s"effective javac options: ${javacOpts}")
@@ -688,8 +693,8 @@ object ScalaModule {
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
     override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
-    override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
-    override def mandatoryScalacOptions: T[Seq[String]] =
+    override def scalacOptions: T[Opts] = outer.scalacOptions()
+    override def mandatoryScalacOptions: T[Opts] =
       Task { super.mandatoryScalacOptions() }
   }
 }

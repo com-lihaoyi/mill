@@ -6,6 +6,7 @@ package build
 
 import mill.*, kotlinlib.*
 import java.io.File
+import mill.api.opt.*
 
 object foo extends KotlinModule {
 
@@ -23,8 +24,8 @@ object foo extends KotlinModule {
     )
   }
 
-  def kotlincOptions = super.kotlincOptions() ++ Seq(
-    s"-Xplugin=${processors().head.path}"
+  def kotlincOptions = super.kotlincOptions() ++ Opts(
+    opt"-Xplugin=${processors().head.path}"
   )
 
   object test extends KotlinTests, TestModule.Junit5 {

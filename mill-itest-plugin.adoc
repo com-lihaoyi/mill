@@ -1,0 +1,55 @@
+= Draft for a new mill-itest plugin
+:version: 0.7.1
+:mill-version: 1.0.0-RC2
+
+
+.`build.mill`
+[,scala,subs="attributes"]
+----
+//| mill-version: {mill-version}
+//| mvnDeps:
+//| - de.tototec::de.tobiasroeser.mill.integrationtest::{version}
+package build
+
+import de.tobiasroeser.mill.integrationtest._
+
+object demo extends ScalaModule with PublishModule {
+  // ...
+}
+
+object itest extends Cross[ITestCross]("0.11.13", "0.12.14", "{mill-version}")
+trait ItestCross extends MillIntegrationTestCrossModule {
+  def pluginsUnderTest = Seq(demo)
+}
+----
+
+Plugin creates automatically a meta-build and loads the plugin under test into the classpath.
+
+You can write the test cases in the `/* Usage */` blocks
+
+.`itest/src/simple/build.mill`
+[,scala]
+----
+package build
+
+object simple extends Module {
+  def hello() = Task.Command {
+    println("hello")
+  }
+}
+
+
+
+/* Usage
+
+> mill simple
+hello
+
+ */
+----
+
+.`itest/src/simple/checks.itest.mill`
+----
+// Test file
+
+----

@@ -1,10 +1,11 @@
 package mill.javalib
 
 import mill.*
+import mill.api.BuildCtx
+import mill.api.opt.*
 import mill.constants.{DaemonFiles, Util}
 
 import scala.util.Properties
-import mill.api.BuildCtx
 
 /**
  * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].
@@ -33,7 +34,7 @@ trait NativeImageModule extends WithJvmWorkerModule {
     val executeableName = "native-executable"
     val command = Seq.newBuilder[String]
       .+=(nativeImageTool().path.toString)
-      .++=(nativeImageOptions())
+      .++=(nativeImageOptions().toStringSeq)
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
       .+=(finalMainClass())
@@ -98,7 +99,7 @@ trait NativeImageModule extends WithJvmWorkerModule {
   /**
    * Additional options for the `native-image` Tool.
    */
-  def nativeImageOptions: T[Seq[String]] = Seq()
+  def nativeImageOptions: T[Opts] = Opts()
 
   /**
    * Path to the [[https://www.graalvm.org/latest/reference-manual/native-image/ `native-image` Tool]].

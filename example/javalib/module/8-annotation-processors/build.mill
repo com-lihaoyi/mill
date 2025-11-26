@@ -1,6 +1,8 @@
 package build
+
 import mill.*, javalib.*
 import java.io.File
+import mill.api.opt.*
 
 object foo extends JavaModule {
   def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")

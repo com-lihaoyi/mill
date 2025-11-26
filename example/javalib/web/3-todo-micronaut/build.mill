@@ -1,5 +1,7 @@
 package build
+
 import mill.*, javalib.*
+import mill.api.opt.*
 
 object `package` extends MicronautModule {
   def micronautVersion = "4.4.3"
@@ -53,14 +55,14 @@ trait MicronautModule extends MavenModule {
     mvn"io.micronaut:micronaut-inject-java"
   )
 
-  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
+  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Opts(
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.group=example.micronaut",
     "-Amicronaut.processing.module=todo",
     "-Amicronaut.processing.annotations=example.micronaut.*"
   )
 
-  def javacOptions = super.javacOptions() ++ Seq(
+  def javacOptions = super.javacOptions() ++ Opts(
     "-parameters"
   )
 }

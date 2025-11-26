@@ -3,6 +3,7 @@ package mill.javalib.checkstyle
 import mill._
 import mainargs.Leftover
 import mill.api.Discover
+import mill.api.opt.*
 import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest._
@@ -135,7 +136,7 @@ object CheckstyleModuleTest extends TestSuite {
 
     object module extends TestRootModule with JavaModule with CheckstyleModule {
       override def checkstyleFormat: T[String] = format
-      override def checkstyleOptions: T[Seq[String]] = options
+      override def checkstyleOptions: T[Opts] = Opts(options)
       override def checkstyleVersion: T[String] = version
       lazy val millDiscover = Discover[this.type]
     }

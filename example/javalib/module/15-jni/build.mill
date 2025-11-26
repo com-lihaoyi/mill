@@ -2,7 +2,9 @@
 // code using JNI.
 
 package build
+
 import mill.*, javalib.*, util.Jvm
+import mill.api.opt.*
 
 object `package` extends JavaModule {
   // Additional source folder to put C sources
@@ -46,10 +48,10 @@ object `package` extends JavaModule {
     PathRef(Task.dest / output)
   }
 
-  def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+  def forkEnv = Map("HELLO_WORLD_BINARY" -> Opt(nativeCompiled().path))
 
   object test extends JavaTests, TestModule.Junit4 {
-    def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
+    def forkEnv = Map("HELLO_WORLD_BINARY" -> Opt(nativeCompiled().path))
   }
 }
 

@@ -1,14 +1,11 @@
 package mill.javalib
 
 import mill.T
-import mill.api.Result
+import mill.api.{DefaultTaskModule, PathRef, Result, Task, TaskCtx}
+import mill.api.opt.*
 import mill.api.daemon.internal.TestModuleApi
 import mill.api.daemon.internal.TestReporter
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
-import mill.api.PathRef
-import mill.api.Task
-import mill.api.TaskCtx
-import mill.api.DefaultTaskModule
 import mill.javalib.bsp.BspModule
 import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
@@ -216,9 +213,9 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
-  override def allForkEnv: T[Map[String, String]] = Task {
+  override def allForkEnv: T[Map[String, Opt]] = Task {
     super.allForkEnv() ++ Map(
-      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator.map(_.path).mkString(";")
+      EnvVars.MILL_TEST_RESOURCE_DIR -> Opt.mkPath(resources().map(_.path), sep = ";")
     )
   }
 
@@ -232,7 +229,7 @@ trait TestModule
     Task.Anon {
       val testModuleUtil = new TestModuleUtil(
         testUseArgsFile(),
-        forkArgs(),
+        forkArgs().toStringSeq,
         globSelectors(),
         jvmWorker().scalalibClasspath(),
         resources(),
@@ -242,7 +239,7 @@ trait TestModule
         args(),
         testForkGrouping(),
         jvmWorker().testrunnerEntrypointClasspath(),
-        allForkEnv(),
+        allForkEnv().view.mapValues(_.toString()).toMap,
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),
@@ -453,7 +450,7 @@ object TestModule {
     def specs2Version: T[String] = Task { "" }
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
     override def scalacOptions = Task {
-      super.scalacOptions() ++ Seq("-Yrangepos")
+      super.scalacOptions() ++ Opts("-Yrangepos")
     }
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
@@ -577,7 +574,7 @@ object TestModule {
   }
 
   trait ScalaModuleBase extends mill.Module {
-    def scalacOptions: T[Seq[String]] = Seq()
+    def scalacOptions: T[Opts] = Opts()
   }
 
 }
