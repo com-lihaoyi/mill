@@ -144,30 +144,31 @@ final class EvaluatorImpl(
             }
           }
 
-          val invalidBuildOverrides0 = moduleBuildOverrides.filter(!moduleTaskNames.contains(_))
           val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
 
-          val allMillKeys = mill.constants.ConfigConstants.all()
-          val invalidBuildOverrides =
-            if (
-              filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
-            ) {
-              invalidBuildOverrides0.filter(!allMillKeys.contains(_))
-            } else invalidBuildOverrides0
+          val isRootBuildFile =
+            filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
+
+          val millKeys = mill.constants.ConfigConstants.all()
+          val validKeys =
+            if (isRootBuildFile) moduleTaskNames ++ millKeys
+            else moduleTaskNames
+
+          val invalidBuildOverrides = moduleBuildOverrides.filter(!validKeys.contains(_))
+          import pprint.Util.literalize
 
           Option.when(invalidBuildOverrides.nonEmpty) {
-            val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(", ")
-
-            val invalidMillKeys = invalidBuildOverrides
-              .filter(allMillKeys.contains(_))
-              .map(pprint.Util.literalize(_))
-
-            val suffix =
-              if (invalidMillKeys.isEmpty) ""
-              else
-                s"\nNote that key ${invalidMillKeys.mkString(", ")} can only be used in your root `build.mill` or `build.mill.yaml` file"
-
-            s"invalid build config in `$filePath`: key $pretty does not override any task$suffix"
+            invalidBuildOverrides.map{k =>
+              val prefix = s"invalid build config in `$filePath`: "
+              val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
+              mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match{
+                case None =>
+                  if (millKeys.contains(k))
+                    s"${prefix}key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
+                  else s"$prefix$doesNotOverridePrefix"
+                case Some(similar) => s"$prefix$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
+              }
+            }.mkString("\n")
           }
         }
 
