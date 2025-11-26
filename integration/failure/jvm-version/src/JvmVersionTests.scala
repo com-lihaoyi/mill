@@ -12,8 +12,8 @@ object JvmVersionTests extends UtestIntegrationTestSuite {
       assert(!res.isSuccess)
       assert(
         res.err.contains(
-        """Invalid java.version 11.0.29. Mill requires Java 17 and above to run the build tool itself. """+
-        """Individual `JavaModule` can be set to lower Java versions via `def jvmId = "11"`"""
+          """Invalid java.version 11.0.29. Mill requires Java 17 and above to run the build tool itself. """ +
+            """Individual `JavaModule` can be set to lower Java versions via `def jvmId = "11"`"""
         )
       )
     }

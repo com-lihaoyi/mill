@@ -16,4 +16,3 @@ java.version 11.0.20
 // is not compatible, and so we need to explicitly set an earlier `scalaVersion: 3.7.4`
 
 //// SNIPPET:END
-

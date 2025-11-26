@@ -158,15 +158,16 @@ final class EvaluatorImpl(
           import pprint.Util.literalize
 
           Option.when(invalidBuildOverrides.nonEmpty) {
-            invalidBuildOverrides.map{k =>
+            invalidBuildOverrides.map { k =>
               val prefix = s"invalid build config in `$filePath`: "
               val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
-              mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match{
+              mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
                 case None =>
                   if (millKeys.contains(k))
                     s"${prefix}key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
                   else s"$prefix$doesNotOverridePrefix"
-                case Some(similar) => s"$prefix$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
+                case Some(similar) =>
+                  s"$prefix$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
               }
             }.mkString("\n")
           }
