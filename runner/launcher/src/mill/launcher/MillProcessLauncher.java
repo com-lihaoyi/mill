@@ -162,21 +162,21 @@ public class MillProcessLauncher {
   }
 
   static List<String> millJvmOpts(OutFolderMode outMode) throws Exception {
-    return loadMillConfig(outMode, "mill-jvm-opts");
+    return loadMillConfig(outMode, ConfigConstants.millJvmOpts);
   }
 
   static List<String> millOpts(OutFolderMode outMode) throws Exception {
-    return loadMillConfig(outMode, "mill-opts");
+    return loadMillConfig(outMode, ConfigConstants.millOpts);
   }
 
   static String millJvmVersion(OutFolderMode outMode) throws Exception {
-    List<String> res = loadMillConfig(outMode, "mill-jvm-version");
+    List<String> res = loadMillConfig(outMode, ConfigConstants.millJvmVersion);
     if (res.isEmpty()) return null;
     else return res.get(0);
   }
 
   static String millJvmIndexVersion(OutFolderMode outMode) throws Exception {
-    List<String> res = loadMillConfig(outMode, "mill-jvm-index-version");
+    List<String> res = loadMillConfig(outMode, ConfigConstants.millJvmIndexVersion);
     if (res.isEmpty()) return null;
     else return res.get(0);
   }

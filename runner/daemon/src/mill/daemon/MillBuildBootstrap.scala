@@ -223,11 +223,8 @@ class MillBuildBootstrap(
                     case _ => ujson.Obj()
                   }
                 )
-              ).orElse {
-                tryReadParent("build.mill").map { s =>
-                  parseYaml("build.mill", s)
-                }
-              }.getOrElse(Result.Success(ujson.Obj()))
+              ).orElse(tryReadParent("build.mill").map(parseYaml("build.mill", _)))
+                .getOrElse(Result.Success(ujson.Obj()))
 
             jsonRes
               .flatMap(json => upickle.read[Map[String, ujson.Value]](json))

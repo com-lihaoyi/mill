@@ -117,64 +117,71 @@ final class EvaluatorImpl(
           scriptModuleResolver = scriptModuleInit(_, this)
         )
       }.flatMap { f =>
-        val allModules = f.map(_.ctx.enclosingModule).distinct
-        val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
-        val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
-        val errors = allModules.flatMap { module =>
-          val discover = module match {
-            case x: ExternalModule => x.millDiscover
-            case _ => rootModule.millDiscover
-          }
-
-          val moduleTaskNames = discover
-            .resolveClassInfos(module.getClass)
-            .flatMap(_._2.declaredTaskNameSet)
-            .toSet
-
-          val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
-            val (prefix, taskSel) = k match {
-              case s"$script:$rest" => (Seq(Segment.Label(s"$script:")), rest)
-              case _ => (Nil, k)
-            }
-
-            val ("", rest) = ParseArgs.extractSegments(taskSel).get
-
-            Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
-              rest.last.value
-            }
-          }
-
-          val invalidBuildOverrides0 = moduleBuildOverrides.filter(!moduleTaskNames.contains(_))
-          val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
-
-          val invalidBuildOverrides =
-            if (
-              filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
-            ) {
-              invalidBuildOverrides0.filter(!_.startsWith("mill-"))
-            } else invalidBuildOverrides0
-
-          Option.when(invalidBuildOverrides.nonEmpty) {
-            val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(",")
-
-            val invalidMillKeys = invalidBuildOverrides
-              .filter(_.startsWith("mill-"))
-              .map(pprint.Util.literalize(_))
-
-            val suffix =
-              if (invalidMillKeys.isEmpty) ""
-              else
-                s"\nNote that key ${invalidMillKeys.mkString(", ")} can only be used in your root `build.mill` or `build.mill.yaml` file"
-
-            s"invalid build config in `$filePath`: key $pretty does not override any task$suffix"
-          }
+        validateModuleOverrides(f.map(_.ctx.enclosingModule).distinct) match {
+          case Nil => Result.Success(f)
+          case errors => Result.Failure(errors.mkString("\n"))
         }
-
-        if (errors.isEmpty) Result.Success(f)
-        else Result.Failure(errors.mkString("\n"))
       }
     }
   }
+
+  def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]) = {
+    val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
+    val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
+    allModules.flatMap { module =>
+      val discover = module match {
+        case x: ExternalModule => x.millDiscover
+        case _ => rootModule.millDiscover
+      }
+
+      val moduleTaskNames = discover
+        .resolveClassInfos(module.getClass)
+        .flatMap(_._2.declaredTaskNameSet)
+        .toSet
+
+      val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
+        val (prefix, taskSel) = k match {
+          case s"$script:$rest" => (Seq(Segment.Label(s"$script:")), rest)
+          case _ => (Nil, k)
+        }
+
+        val ("", rest) = ParseArgs.extractSegments(taskSel).get
+
+        Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
+          rest.last.value
+        }
+      }
+
+      val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
+
+      val isRootBuildFile =
+        filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
+
+      val millKeys = mill.constants.ConfigConstants.all()
+      val validKeys =
+        if (isRootBuildFile) moduleTaskNames ++ millKeys
+        else moduleTaskNames
+
+      val invalidBuildOverrides = moduleBuildOverrides.filter(!validKeys.contains(_))
+      import pprint.Util.literalize
+
+      Option.when(invalidBuildOverrides.nonEmpty) {
+        invalidBuildOverrides.map { k =>
+          val prefix = s"invalid build config in `$filePath`: "
+          val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
+          mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
+            case None =>
+              if (millKeys.contains(k))
+                s"${prefix}key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
+              else s"$prefix$doesNotOverridePrefix"
+            case Some(similar) =>
+              s"$prefix$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
+          }
+        }.mkString("\n")
+      }
+    }
+  }
+
   def resolveModulesOrTasks(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
