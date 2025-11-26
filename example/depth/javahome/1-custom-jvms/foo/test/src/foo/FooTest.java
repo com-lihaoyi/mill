@@ -8,6 +8,6 @@ public class FooTest {
   @Test
   public void testSimple() {
     System.out.println("Testing with JVM version: " + System.getProperty("java.version"));
-    assertEquals(System.getProperty("java.version"), "18.0.2");
+    assertEquals(System.getProperty("java.version"), "11.0.20");
   }
 }

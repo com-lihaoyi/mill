@@ -1,5 +1,6 @@
-package mill.javalib.internal
+package mill.javalib.api
 
+import mill.javalib.api.internal.ZincCompilerBridgeProvider
 import mill.api.daemon.internal.internal
 import mill.javalib.api.internal.InternalJvmWorkerApi
 

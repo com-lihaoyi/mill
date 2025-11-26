@@ -1,7 +1,7 @@
-package mill.javalib.internal
+package mill.javalib.api.internal
 
-import mill.api.daemon.internal.{Problem, Severity}
 import mill.api.JsonFormatters.*
+import mill.api.daemon.internal.{Problem, Severity}
 
 /** A [[Problem]] that is sent over RPC. */
 case class RpcProblem(

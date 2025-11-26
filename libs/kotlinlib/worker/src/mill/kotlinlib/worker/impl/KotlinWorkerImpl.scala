@@ -5,7 +5,8 @@
  */
 package mill.kotlinlib.worker.impl
 
-import mill.api.{Result, Task, TaskCtx}
+import mill.api.daemon.Result
+import mill.api.TaskCtx
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 
 class KotlinWorkerImpl extends KotlinWorker {
@@ -35,7 +36,7 @@ class KotlinWorkerImpl extends KotlinWorker {
     val (exitCode, exitCodeName) = compiler.compile(args, sources)
 
     if (exitCode != 0) {
-      Task.fail(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")
+      sys.error(s"Kotlin compiler failed with exit code ${exitCode} ($exitCodeName)")
     }
     ()
 

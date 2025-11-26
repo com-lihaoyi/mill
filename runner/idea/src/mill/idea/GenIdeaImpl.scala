@@ -7,7 +7,7 @@ import java.net.URL
 
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import mill.api.{TaskCtx as _, *}
+import mill.api.*
 import mill.api.daemon.internal.{
   EvaluatorApi,
   ExecutionResultsApi,

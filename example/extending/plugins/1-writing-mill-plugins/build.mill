@@ -1,4 +1,4 @@
-//| mill-jvm-version: 11
+//| mill-jvm-version: 17
 // This example demonstrates how to write and test Mill plugin, and publish it to
 // Sonatype's Maven Central so it can be used by other developers over the internet
 // via xref:extending/import-mvn-plugins.adoc[//| mvnDeps].
@@ -9,7 +9,7 @@ import mill.*, scalalib.*, publish.*
 import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
 object myplugin extends ScalaModule, PublishModule {
-  def scalaVersion = "3.7.1"
+  def scalaVersion = "3.8.0-RC1"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
   def platformSuffix = s"_mill$millBinPlatform"
@@ -48,7 +48,7 @@ object myplugin extends ScalaModule, PublishModule {
 // Note that when publishing artifacts to Maven repositories, the JVM version used to build the
 // artifacts will be the minimum version that downstream projects will need to use in order to
 // use your artifacts. Thus it is best to set your `mill-jvm-version` to the lowest version
-// possible, e.g. `mill-jvm-version: 11` in this example which is the lowest version supported
+// possible, e.g. `mill-jvm-version: 17` in this example which is the lowest version supported
 // by Mill.
 
 // == Plugin Implementation

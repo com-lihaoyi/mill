@@ -1,6 +1,5 @@
 package mill.scalalib.bsp
 import mill.scalalib.ScalaModule
-import mill.Task
 import mill.api.daemon.internal.internal
 import mill.api.ModuleCtx
 import mill.javalib.bsp.BspModule
