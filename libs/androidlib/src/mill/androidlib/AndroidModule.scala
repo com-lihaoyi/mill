@@ -499,7 +499,8 @@ trait AndroidModule extends JavaModule { outer =>
     // * it will generate R.java for the library even library has no resources declared
     // * R.java will have not only resource ID from this library, but from other libraries as well. They should be stripped.
     val rClassDir = androidLinkedResources().path / "generatedSources/java"
-    val mainRClassPath = os.walk(rClassDir)
+    val javaSources = os.walk(rClassDir).filter(p => os.isFile(p) && p.ext == "java")
+    val mainRClassPath = javaSources
       .find(_.last == "R.java")
       .get
 
@@ -520,7 +521,7 @@ trait AndroidModule extends JavaModule { outer =>
       )
     } yield PathRef(libRClassPath)
 
-    libClasses :+ PathRef(mainRClassPath)
+    libClasses ++ javaSources.map(PathRef(_))
   }
 
   /**
