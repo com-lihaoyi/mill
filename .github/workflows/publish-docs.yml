@@ -25,7 +25,7 @@ jobs:
       MILL_DISABLE_SCALADOC_ANNOTATION: 1
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with: {fetch-depth: 0}
 
       - uses: coursier/cache-action@v7
