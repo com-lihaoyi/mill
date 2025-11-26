@@ -20,7 +20,7 @@ trait CrossprojectCrossVersionBaseModule
         )
       case "2.13.14" => Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
       case "3.7.1"   => Opts("-Wunused")
-      case _         => Nil
+      case _         => Opts()
     })
 
   def publishVersion = "0.1.0-SNAPSHOT"

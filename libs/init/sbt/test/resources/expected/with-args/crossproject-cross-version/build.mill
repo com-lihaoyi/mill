@@ -38,7 +38,7 @@ object `package` extends Module {
           case "2.13.14" =>
             Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Opts("-Wunused")
-          case _       => Nil
+          case _       => Opts()
         })
 
       def pomSettings = PomSettings(
@@ -74,7 +74,7 @@ object `package` extends Module {
           case "2.13.14" =>
             Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Opts("-Wunused")
-          case _       => Nil
+          case _       => Opts()
         })
 
       def pomSettings = PomSettings(
@@ -113,7 +113,7 @@ object `package` extends Module {
           case "2.13.14" =>
             Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Opts("-Wunused")
-          case _       => Nil
+          case _       => Opts()
         })
 
       def pomSettings = PomSettings(
@@ -156,7 +156,7 @@ object `package` extends Module {
           case "2.13.14" =>
             Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Opts("-Wunused")
-          case _       => Nil
+          case _       => Opts()
         })
 
       def pomSettings = PomSettings(
@@ -194,7 +194,7 @@ object `package` extends Module {
           case "2.13.14" =>
             Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Opts("-Wunused")
-          case _       => Nil
+          case _       => Opts()
         })
 
       def pomSettings = PomSettings(
@@ -233,7 +233,7 @@ object `package` extends Module {
           case "2.13.14" =>
             Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Opts("-Wunused")
-          case _       => Nil
+          case _       => Opts()
         })
 
       def pomSettings = PomSettings(
@@ -268,7 +268,7 @@ object `package` extends Module {
         case "2.13.14" =>
           Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
         case "3.7.1" => Opts("-Wunused")
-        case _       => Nil
+        case _       => Opts()
       })
 
     def pomSettings = PomSettings(
@@ -309,7 +309,7 @@ object `package` extends Module {
           case "2.13.14" =>
             Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Opts("-Wunused")
-          case _       => Nil
+          case _       => Opts()
         })
 
       def pomSettings = PomSettings(
@@ -345,7 +345,7 @@ object `package` extends Module {
           case "2.13.14" =>
             Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Opts("-Wunused")
-          case _       => Nil
+          case _       => Opts()
         })
 
       def pomSettings = PomSettings(
@@ -384,7 +384,7 @@ object `package` extends Module {
           case "2.13.14" =>
             Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Opts("-Wunused")
-          case _       => Nil
+          case _       => Opts()
         })
 
       def pomSettings = PomSettings(
