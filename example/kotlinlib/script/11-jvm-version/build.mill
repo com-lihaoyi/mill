@@ -4,7 +4,7 @@
 
 /** Usage
 > ./mill Foo.kt
-java.version 11.0.20
+java.version 11.0.21
 
 */
 

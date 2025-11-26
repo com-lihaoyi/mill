@@ -7,7 +7,7 @@
 
 /** Usage
 > ./mill Foo.scala
-java.version 11.0.20
+java.version 11.0.21
 
 */
 
