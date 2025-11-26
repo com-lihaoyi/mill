@@ -147,18 +147,19 @@ final class EvaluatorImpl(
           val invalidBuildOverrides0 = moduleBuildOverrides.filter(!moduleTaskNames.contains(_))
           val filePath = os.Path(module.moduleCtx.fileName).relativeTo(workspace)
 
+          val allMillKeys = mill.constants.ConfigConstants.all()
           val invalidBuildOverrides =
             if (
               filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
             ) {
-              invalidBuildOverrides0.filter(!mill.constants.ConfigConstants.all().contains(_))
+              invalidBuildOverrides0.filter(!allMillKeys.contains(_))
             } else invalidBuildOverrides0
 
           Option.when(invalidBuildOverrides.nonEmpty) {
             val pretty = invalidBuildOverrides.map(pprint.Util.literalize(_)).mkString(", ")
 
             val invalidMillKeys = invalidBuildOverrides
-              .filter(mill.constants.ConfigConstants.all().contains(_))
+              .filter(allMillKeys.contains(_))
               .map(pprint.Util.literalize(_))
 
             val suffix =

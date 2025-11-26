@@ -162,7 +162,7 @@ public class MillProcessLauncher {
   }
 
   static List<String> millJvmOpts(OutFolderMode outMode) throws Exception {
-    return loadMillConfig(outMode, ConfigConstants.millVersion);
+    return loadMillConfig(outMode, ConfigConstants.millJvmOpts);
   }
 
   static List<String> millOpts(OutFolderMode outMode) throws Exception {
