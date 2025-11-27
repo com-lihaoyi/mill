@@ -1,31 +1,5 @@
-package build
 
-import mill._
-import mill.javalib._
-import mill.javalib.publish._
-
-object `package` extends MavenModule {
-
-  def bomMvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
-  )
-
-  def mvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-starter-webflux"
-  )
-
-  object test extends MavenTests with TestModule.Junit5 {
-
-    def bomMvnDeps = Seq(
-      mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
-    )
-
-    def mvnDeps = Seq(
-      mvn"org.springframework.boot:spring-boot-starter-test",
-      mvn"io.projectreactor:reactor-test"
-    )
-  }
-}
+/** See Also: build.mill.yaml */
 
 // This example demonstrates how to configure mill for a Websocket server using Spring Ractive Web via
 // the initializr project,

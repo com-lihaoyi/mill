@@ -1,26 +1,4 @@
-package build
-
-import mill.*
-import mill.javalib.*
-
-object `package` extends MavenModule {
-
-  def bomMvnDeps = Seq(
-    mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
-  )
-
-  def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-web")
-
-  object test extends MavenTests, TestModule.Junit5 {
-
-    def bomMvnDeps = Seq(
-      mvn"org.springframework.boot:spring-boot-dependencies:3.5.7"
-    )
-
-    def mvnDeps =
-      Seq(mvn"org.springframework.boot:spring-boot-starter-test")
-  }
-}
+/** See Also: build.mill.yaml */
 
 // This example demonstrates how to configure mill for a simple initializr project,
 // using https://start.spring.io/[https://start.spring.io/] by choosing:

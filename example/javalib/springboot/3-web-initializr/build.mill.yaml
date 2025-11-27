@@ -1,0 +1,16 @@
+extends: [mill.javalib.MavenModule]
+
+bomMvnDeps:
+- org.springframework.boot:spring-boot-dependencies:3.5.7
+
+mvnDeps:
+- org.springframework.boot:spring-boot-starter-web
+
+object test:
+  extends: [MavenTests, mill.javalib.TestModule.Junit5]
+
+  bomMvnDeps:
+  - org.springframework.boot:spring-boot-dependencies:3.5.7
+
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test
