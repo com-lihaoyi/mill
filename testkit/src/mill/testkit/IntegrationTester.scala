@@ -57,8 +57,8 @@ object IntegrationTester {
 
     def exitCode: Int = result.exitCode
     private def cleanup(s: String) = fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
-    def out = cleanup(result.out.trim())
-    def err = cleanup(result.err.trim())
+    def out = cleanup(result.out.text())
+    def err = cleanup(result.err.text())
     def isSuccess: Boolean = exitCode == 0
 
     def debugString: String = {
