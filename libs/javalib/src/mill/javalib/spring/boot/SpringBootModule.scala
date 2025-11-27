@@ -179,7 +179,7 @@ trait SpringBootModule extends JavaModule {
       val nativeImageArgs: Seq[String] =
         val nativeImageProps = outer.springBootAOTNativeProperties().path
         if (os.exists(nativeImageProps) && os.isFile(nativeImageProps)) {
-          val properties = new Properties()
+          val properties = Properties()
           Using.resource[
             java.io.InputStream,
             Unit

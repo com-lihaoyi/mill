@@ -35,7 +35,7 @@ object GraphvizTools {
           val extensions = commaSepExtensions.split(',')
           val dest = os.Path(dest0)
 
-          val gv = Graphviz.fromFile(new java.io.File(src)).totalMemory(128 * 1024 * 1024)
+          val gv = Graphviz.fromFile(java.io.File(src)).totalMemory(128 * 1024 * 1024)
 
           val outputs = extensions
             .map(ext => Format.values().find(_.fileExtension == ext).head -> s"out.$ext")
@@ -54,7 +54,7 @@ class V8JavascriptEngine() extends AbstractJavascriptEngine {
   LOG.info("Starting V8 runtime...")
   LOG.info("Started V8 runtime. Initializing javascript...")
   val resultHandler = new ResultHandler
-  val javetStandardConsoleInterceptor = new JavetStandardConsoleInterceptor(v8Runtime)
+  val javetStandardConsoleInterceptor = JavetStandardConsoleInterceptor(v8Runtime)
   javetStandardConsoleInterceptor.register(v8Runtime.getGlobalObject)
 
   class ResultHandlerInterceptor(resultHandler: ResultHandler) {
@@ -69,7 +69,7 @@ class V8JavascriptEngine() extends AbstractJavascriptEngine {
   }
   val v8ValueObject = v8Runtime.createV8ValueObject
   v8Runtime.getGlobalObject.set("resultHandlerInterceptor", v8ValueObject)
-  v8ValueObject.bind(new ResultHandlerInterceptor(resultHandler))
+  v8ValueObject.bind(ResultHandlerInterceptor(resultHandler))
 
   v8Runtime.getExecutor(
     "var result = resultHandlerInterceptor.result; " +

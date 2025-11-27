@@ -18,7 +18,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
     ) = UnitTester(module, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(task): @unchecked
 
-      Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+      Using.resource(JarFile(result.value.path.toIO)) { jarFile =>
         assert(!jarEntries(jarFile).contains("reference.conf"))
       }
     }
@@ -48,7 +48,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(task): @unchecked
-      Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+      Using.resource(JarFile(result.value.path.toIO)) { jarFile =>
         assert(!jarEntries(jarFile).contains("akka/http/scaladsl/model/HttpEntity.class"))
         assert(
           jarEntries(jarFile).contains("shaded/akka/http/scaladsl/model/HttpEntity.class")
@@ -75,7 +75,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
       test("withDeps") - UnitTester(HelloWorldAkkaHttpNoRules, null).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly): @unchecked
 
-        Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+        Using.resource(JarFile(result.value.path.toIO)) { jarFile =>
           assert(jarEntries(jarFile).contains("reference.conf"))
 
           val referenceContent = readFileFromJar(jarFile, "reference.conf")
@@ -100,7 +100,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
       ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldMultiNoRules.core.assembly): @unchecked
 
-        Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+        Using.resource(JarFile(result.value.path.toIO)) { jarFile =>
           assert(jarEntries(jarFile).contains("reference.conf"))
 
           val referenceContent = readFileFromJar(jarFile, "reference.conf")

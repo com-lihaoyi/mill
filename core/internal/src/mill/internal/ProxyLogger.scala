@@ -24,5 +24,5 @@ class ProxyLogger(logger: Logger) extends Logger {
 
   override def redirectOutToErr: Boolean = logger.redirectOutToErr
 
-  override def withRedirectOutToErr() = new ProxyLogger(logger.withRedirectOutToErr())
+  override def withRedirectOutToErr() = ProxyLogger(logger.withRedirectOutToErr())
 }

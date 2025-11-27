@@ -89,7 +89,7 @@ object CodeSigUtils {
 
     val methodClass = methodOpt
       .nextOption()
-      .getOrElse(throw new MillException(
+      .getOrElse(throw MillException(
         s"Could not detect the parent class of task ${namedTask}. " +
           s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
       ))
@@ -110,7 +110,7 @@ object CodeSigUtils {
           case null => None
           case m: mill.api.Module => Some((m, m.moduleCtx))
           case unknown =>
-            throw new MillException(s"Unknown ctx of task ${namedTask}: $unknown")
+            throw MillException(s"Unknown ctx of task ${namedTask}: $unknown")
         }
     }
 
@@ -118,7 +118,7 @@ object CodeSigUtils {
       .map(m =>
         constructorHashSignatures.get(m.getClass.getName) match {
           case Some(Seq((_, hash))) => hash
-          case Some(multiple) => throw new MillException(
+          case Some(multiple) => throw MillException(
               s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
             )
           case None => 0

@@ -295,7 +295,7 @@ trait AndroidSdkModule extends Module {
       case "17.0" => "12700392"
       case "19.0" => "13114758"
       case _ =>
-        throw new IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
+        throw IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
     }
   }
 
@@ -304,7 +304,7 @@ trait AndroidSdkModule extends Module {
       if (isWin) "win"
       else if (isMac) "mac"
       else if (isLinux) "linux"
-      else throw new IllegalStateException("Unknown platform")
+      else throw IllegalStateException("Unknown platform")
 
     s"https://dl.google.com/android/repository/commandlinetools-$platform-${versionLong}_latest.zip"
   }
@@ -348,7 +348,7 @@ trait AndroidSdkModule extends Module {
       if (autoAcceptLicenses) {
         acceptLicenses(millSdkManagerExe)
       } else {
-        throw new IllegalStateException(
+        throw IllegalStateException(
           s"License for cmdline-tools;$versionShort is not accepted. " +
             s"Please run `${millSdkManagerExe.toString} --licenses` to review and accept the licenses" +
             ", or override `autoAcceptLicenses` to `true`."
@@ -391,7 +391,7 @@ trait AndroidSdkModule extends Module {
           autoAcceptLicenses()
         )
       } else if (!os.exists(sdkmanagerPath)) {
-        throw new IllegalStateException(
+        throw IllegalStateException(
           s"$basePath exists but is not setup correctly. " +
             "Please remove it and retry or fix the installation manually (e.g. via Android Studio)."
         )
@@ -527,7 +527,7 @@ trait AndroidSdkModule extends Module {
     Task.env.get("ANDROID_HOME")
       .orElse(Task.env.get("ANDROID_SDK_ROOT")) match {
       case Some(x) => os.Path(x)
-      case _ => throw new IllegalStateException("Android SDK location not found. Define a valid" +
+      case _ => throw IllegalStateException("Android SDK location not found. Define a valid" +
           " SDK location with an ANDROID_HOME environment variable.")
     }
   }
@@ -583,7 +583,7 @@ trait AndroidSdkModule extends Module {
   private def sha1 = MessageDigest.getInstance("sha1")
 
   private def hexArray(arr: Array[Byte]) =
-    String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
+    String.format("%0" + (arr.length << 1) + "x", BigInteger(1, arr))
 
 }
 

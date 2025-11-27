@@ -36,7 +36,7 @@ object ModuleUtils {
                   (cand :: (cand :: trace.takeWhile(_ != cand)).reverse).mkString(" -> ")
                 val msg = s"${name}: cycle detected: ${rendered}"
                 println(msg)
-                throw new mill.api.MillException(msg)
+                throw mill.api.MillException(msg)
               }
               rec(
                 if (seenModules.contains(cand)) seenModules

@@ -376,7 +376,7 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
         val runErrorSnippet =
           """{
             |override def runClasspath = Task {
-            |  throw new Exception("boom")
+            |  throw Exception("boom")
             |  super.runClasspath()
             |}""".stripMargin
 

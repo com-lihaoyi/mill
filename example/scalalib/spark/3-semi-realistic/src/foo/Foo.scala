@@ -26,7 +26,7 @@ object Foo {
     // otherwise, use resources.
     val resourcePath: String = args.headOption
       .orElse(Option(getClass.getResource("/transactions.csv")).map(_.getPath))
-      .getOrElse(throw new RuntimeException(
+      .getOrElse(throw RuntimeException(
         "transactions.csv not provided as argument and not found in resources"
       ))
 

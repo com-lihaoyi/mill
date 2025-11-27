@@ -272,7 +272,7 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
     log("Creating all the Eclipse Projects ...")
 
     val eclipseProjects: Map[Path, EclipseJdtProject] = getEclipseProjects(resolvedJavaModules)
-    val pp = new scala.xml.PrettyPrinter(999, 2)
+    val pp = scala.xml.PrettyPrinter(999, 2)
 
     // When the main directory of the Mill Build does not contain any Eclipse JDT Project, create a
     // synthetic one in this directory. Since this is not a Java (Test) Module, we don't create a
@@ -423,7 +423,7 @@ object GenEclipseImpl {
    */
   private def moduleName(segments: Segments, path: Path): String = {
     val name = segments.value
-      .foldLeft(new StringBuilder()) {
+      .foldLeft(StringBuilder()) {
         case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
         case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
         case (sb, Segment.Label(s)) => sb.append(".").append(s)

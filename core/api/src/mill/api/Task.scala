@@ -218,7 +218,7 @@ object Task {
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
       persistent: Boolean = false
-  ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
+  ): CommandFactory = CommandFactory(exclusive = exclusive, persistent = persistent)
   class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(using
         inline w: Writer[T],
@@ -286,7 +286,7 @@ object Task {
   def apply(
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false
-  ): ApplyFactory = new ApplyFactory(persistent)
+  ): ApplyFactory = ApplyFactory(persistent)
   class ApplyFactory private[mill] (val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(using
         inline rw: ReadWriter[T],
@@ -322,10 +322,10 @@ object Task {
   }
 
   abstract class Ops[+T] { this: Task[T] =>
-    def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
+    def map[V](f: T => V): Task[V] = Task.Mapped(this, f)
     def filter(f: T => Boolean): Task[T] = this
     def withFilter(f: T => Boolean): Task[T] = this
-    def zip[V](other: Task[V]): Task[(T, V)] = new Task.Zipped(this, other)
+    def zip[V](other: Task[V]): Task[(T, V)] = Task.Zipped(this, other)
 
   }
 
@@ -360,7 +360,7 @@ object Task {
 
     def label: String = ctx.segments.value.last match {
       case Segment.Label(v) => v
-      case Segment.Cross(_) => throw new IllegalArgumentException(
+      case Segment.Cross(_) => throw IllegalArgumentException(
           "Task.Named only support a ctx with a Label segment, but found a Cross."
         )
     }

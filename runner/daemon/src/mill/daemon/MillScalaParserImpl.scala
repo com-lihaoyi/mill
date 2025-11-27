@@ -54,7 +54,7 @@ object MillScalaParserImpl extends MillScalaParser {
           ""
         case _ =>
           if (!trees.head.startPos.exists) ""
-          else new String(source.file.toByteArray).take(trees.head.startPos.start)
+          else String(source.file.toByteArray).take(trees.head.startPos.start)
       }
 
       (prefix, pkgs, stmts)
@@ -117,7 +117,7 @@ object MillScalaParserImpl extends MillScalaParser {
 
     def outlineCompilationUnit(source: SourceFile)(using Context): List[untpd.Tree] = {
       ParseLock.sync {
-        val parser = new OutlineParser(source) with MillParserCommon {
+        val parser = OutlineParser(source) with MillParserCommon {
 
           /**
            * This is an outline parser, so will skip template bodies anyway,
@@ -151,7 +151,7 @@ object MillScalaParserImpl extends MillScalaParser {
     }
 
     def importStatement(source: SourceFile)(using Context): List[untpd.Tree] = ParseLock.sync {
-      val parser = new OutlineParser(source) with MillParserCommon {}
+      val parser = OutlineParser(source) with MillParserCommon {}
       if parser.in.token == Tokens.IMPORT then
         parser.importClause()
       else
@@ -173,7 +173,7 @@ object MillScalaParserImpl extends MillScalaParser {
     /** read the offset of the `object` keyword in a Module declaration */
     def skipModsObjectOffset(offset: Int)(using Context): Int = ParseLock.sync {
       val in0 = Scanner(ctx.source, startFrom = offset)
-      val parser = new OutlineParser(ctx.source) with MillParserCommon {
+      val parser = OutlineParser(ctx.source) with MillParserCommon {
         override val in = in0
       }
       val _ = parser.defAnnotsMods(Tokens.modifierTokens)
@@ -188,12 +188,12 @@ object MillScalaParserImpl extends MillScalaParser {
     private def outlineTemplate(offset: Int)(using Context): untpd.Template = ParseLock.sync {
       val in0 = Scanner(ctx.source, startFrom = offset)
 
-      val outlineParser: OutlineParser = new OutlineParser(ctx.source) with MillParserCommon {
+      val outlineParser: OutlineParser = OutlineParser(ctx.source) with MillParserCommon {
         override val in = in0
       }
 
       // parser that will enter a template body, but then not parse nested templates
-      val parser = new Parsers.Parser(ctx.source) with MillParserCommon {
+      val parser = Parsers.Parser(ctx.source) with MillParserCommon {
         override val in = in0
 
         override def templateStatSeq(): (untpd.ValDef, List[untpd.Tree]) =
@@ -204,7 +204,7 @@ object MillScalaParserImpl extends MillScalaParser {
   }
 
   private def syntaxError(msg0: String)(using Context): Message = {
-    new Message(ErrorMessageID.NoExplanationID) {
+    Message(ErrorMessageID.NoExplanationID) {
       override def kind: MessageKind = MessageKind.Syntax
       override protected def msg(using Context): String = msg0
       override protected def explain(using Context): String = ""

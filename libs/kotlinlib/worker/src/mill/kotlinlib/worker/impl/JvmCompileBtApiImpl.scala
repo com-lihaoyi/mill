@@ -32,7 +32,7 @@ class JvmCompileBtApiImpl() extends Compiler {
       incrementalConfig.setBuildDir(incrementalCompilerStatePath.toIO)
     }
 
-    val projectId = new ProjectId.ProjectUUID(UUID.randomUUID())
+    val projectId = ProjectId.ProjectUUID(UUID.randomUUID())
 
     val allArgsWithSources = args ++ sources.map(_.toString)
 

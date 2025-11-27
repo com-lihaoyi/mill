@@ -23,7 +23,7 @@ final case class Segments private (value: Seq[Segment]) {
   def last: Segment.Label = value.last match {
     case l: Segment.Label => l
     case _ =>
-      throw new IllegalArgumentException("Segments must end with a Label, but found a Cross.")
+      throw IllegalArgumentException("Segments must end with a Label, but found a Cross.")
   }
 
   def parts: List[String] = value.flatMap(_.pathSegments).toList
@@ -58,7 +58,7 @@ final case class Segments private (value: Seq[Segment]) {
 
 object Segments {
   implicit def ordering: Ordering[Segments] = Ordering.by(_.value)
-  def apply(): Segments = new Segments(Vector())
-  def apply(items: Seq[Segment]): Segments = new Segments(items.toVector)
+  def apply(): Segments = Segments(Vector())
+  def apply(items: Seq[Segment]): Segments = Segments(items.toVector)
   def labels(values: String*): Segments = Segments(values.map(Segment.Label(_)).toVector)
 }

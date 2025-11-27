@@ -33,7 +33,7 @@ class Modeler(
 
   /** Returns the [[ModelBuildingResult]] for `pomFile`. */
   def build(pomFile: File): ModelBuildingResult = {
-    val request = new DefaultModelBuildingRequest()
+    val request = DefaultModelBuildingRequest()
     request.setPomFile(pomFile)
     request.setModelResolver(resolver.newCopy())
     request.setSystemProperties(systemProperties)
@@ -55,25 +55,25 @@ object Modeler {
       context: String = "",
       systemProperties: Properties = defaultSystemProperties
   ): Modeler = {
-    val builder = new DefaultModelBuilderFactory().newInstance()
-    val system = new RepositorySystemSupplier().get()
+    val builder = DefaultModelBuilderFactory().newInstance()
+    val system = RepositorySystemSupplier().get()
     val session = MavenRepositorySystemUtils.newSession()
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, local))
-    val resolver = new Resolver(system, session, remotes, context)
+    val resolver = Resolver(system, session, remotes, context)
     new Modeler(builder, resolver, systemProperties)
   }
 
   def defaultLocalRepository: LocalRepository =
-    new LocalRepository((os.home / ".m2/repository").toIO)
+    LocalRepository((os.home / ".m2/repository").toIO)
 
   def defaultRemoteRepositories: Seq[RemoteRepository] =
     Seq(
-      new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2")
+      RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2")
         .build()
     )
 
   def defaultSystemProperties: Properties = {
-    val props = new Properties(System.getProperties)
+    val props = Properties(System.getProperties)
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     props
   }

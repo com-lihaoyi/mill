@@ -93,7 +93,7 @@ case class Execution(
   ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
 
-    PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
+    PathRef.validatedPaths.withValue(PathRef.ValidatedPaths()) {
       execute0(goals, logger, reporter, testReporter, serialCommandExec)
     }
   }
@@ -108,10 +108,10 @@ case class Execution(
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
-    val failed = new AtomicBoolean(false)
-    val count = new AtomicInteger(1)
-    val rootFailedCount = new AtomicInteger(0) // Track only root failures
-    val planningLogger = new PrefixLogger(
+    val failed = AtomicBoolean(false)
+    val count = AtomicInteger(1)
+    val rootFailedCount = AtomicInteger(0) // Track only root failures
+    val planningLogger = PrefixLogger(
       logger0 = baseLogger,
       key0 = Seq("planning"),
       message = "planning"
@@ -159,7 +159,7 @@ case class Execution(
           exclusive: Boolean
       ) = {
         val forkExecutionContext =
-          ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
+          ec.fold(ExecutionContexts.RunNow)(ExecutionContexts.ThreadPool(_))
         implicit val taskExecutionContext =
           if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
         // We walk the task graph in topological order and schedule the futures
@@ -204,7 +204,7 @@ case class Execution(
 
                 val keySuffix = s"/${indexToTerminal.size}"
 
-                val contextLogger = new PrefixLogger(
+                val contextLogger = PrefixLogger(
                   logger0 = logger,
                   key0 = Seq(countMsg),
                   keySuffix = keySuffix,
@@ -280,7 +280,7 @@ case class Execution(
                 // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
                 // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
                 case e: Throwable if !scala.util.control.NonFatal(e) =>
-                  val nonFatal = new Exception(s"fatal exception occurred: $e", e)
+                  val nonFatal = Exception(s"fatal exception occurred: $e", e)
                   // Set the stack trace of the non-fatal exception to the original exception's stack trace
                   // as it actually indicates the location of the error.
                   nonFatal.setStackTrace(e.getStackTrace)

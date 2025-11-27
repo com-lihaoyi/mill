@@ -4,7 +4,7 @@ import io.getquill._
 
 object App {
 
-  val ctx = new SqlMirrorContext(PostgresDialect, SnakeCase)
+  val ctx = SqlMirrorContext(PostgresDialect, SnakeCase)
   import ctx._
 
   case class Person(name: String, age: Int)

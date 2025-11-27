@@ -124,7 +124,7 @@ object CompileRunTests extends TestSuite {
             ReleaseMode.ReleaseFast
           ).jar): @unchecked
         val jar = result.value.path
-        val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
+        val entries = JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("hello/Main$.nir"))
       }
     }

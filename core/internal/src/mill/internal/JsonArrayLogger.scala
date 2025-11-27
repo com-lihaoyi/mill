@@ -15,7 +15,7 @@ class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
       Seq(StandardOpenOption.TRUNCATE_EXISTING)
     ).flatten
     os.makeDir.all(outPath / os.up)
-    new PrintStream(new BufferedOutputStream(Files.newOutputStream(outPath.toNIO, options*)))
+    PrintStream(BufferedOutputStream(Files.newOutputStream(outPath.toNIO, options*)))
   }
 
   // Log the JSON entries asynchronously on a separate thread to try and avoid blocking
@@ -91,7 +91,7 @@ object JsonArrayLogger {
     }
   }
 
-  private object Profile {
+  object Profile {
     case class Timing(
         label: String,
         millis: Int,
@@ -141,7 +141,7 @@ object JsonArrayLogger {
     }
   }
 
-  private object ChromeProfile {
+  object ChromeProfile {
 
     /**
      * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing

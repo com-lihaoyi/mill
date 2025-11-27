@@ -14,7 +14,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
 
   def probeLockAvailable(lock: os.Path): Boolean = {
-    val raf = new RandomAccessFile(lock.toIO, "rw");
+    val raf = RandomAccessFile(lock.toIO, "rw");
     val chan = raf.getChannel();
     chan.tryLock() match {
       case null => false

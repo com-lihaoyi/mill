@@ -57,7 +57,7 @@ object ScalaCompilerBridgeTests extends TestSuite {
       wrongRes0.throwable match {
         case _: ClassNotFoundException =>
         case other =>
-          throw new Exception(
+          throw Exception(
             "Unexpected exception when passing wrong compiler bridge, expected ClassNotFoundException",
             other
           )

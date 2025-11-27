@@ -284,7 +284,7 @@ trait MainModule extends RootModule0, MainModuleApi {
             SelectMode.Separated
           )
       (evaluated: @unchecked) match {
-        case Result.Failure(failStr) => throw new Exception(failStr)
+        case Result.Failure(failStr) => throw Exception(failStr)
         case Result.Success(Evaluator.Result(
               _,
               Result.Success(Seq(_)),
@@ -293,7 +293,7 @@ trait MainModule extends RootModule0, MainModuleApi {
             )) =>
           ()
         case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _, _)) =>
-          throw new Exception(failStr)
+          throw Exception(failStr)
       }
     }
 

@@ -150,7 +150,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     }
   }
   private[scalanativelib] def withScalaNativeBridge = Task.Anon {
-    new ScalaNativeBridge(
+    ScalaNativeBridge(
       ScalaNativeWorkerExternalModule.scalaNativeWorker(),
       bridgeFullClassPath()
     )
@@ -355,7 +355,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   }
 
   override def runner: Task[RunModule.Runner] = Task.Anon {
-    new NativeRunner(
+    NativeRunner(
       mainClassDefault = finalMainClassOpt(),
       nativeExe = nativeLink(),
       forkArgsDefault = forkArgs(),
@@ -365,7 +365,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   }
 
   def nativeRunnerOtherMain(mainClass: String): Task[RunModule.Runner] = Task.Anon {
-    new NativeRunner(
+    NativeRunner(
       mainClassDefault = Right(mainClass),
       nativeExe = nativeLinkOtherMain(mainClass)(),
       forkArgsDefault = forkArgs(),

@@ -60,7 +60,7 @@ final class TestModuleUtil(
   def runTests(): Result[(msg: String, results: Seq[TestResult])] = {
     val globFilter = TestRunnerUtils.globFilter(selectors)
 
-    def doesNotMatchError = new Result.Exception(
+    def doesNotMatchError = Result.Exception(
       s"Test selector does not match any test: ${selectors.mkString(" ")}" +
         "\nRun discoveredTestClasses to see available tests"
     )

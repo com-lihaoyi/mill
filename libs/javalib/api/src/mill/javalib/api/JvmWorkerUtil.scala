@@ -37,7 +37,7 @@ object JvmWorkerUtil {
 
     classPath.iterator
       .find(pathRef => mavenStyleMatch(pathRef.path.last) || ivyStyleMatch(pathRef.path))
-      .getOrElse(throw new Exception(
+      .getOrElse(throw Exception(
         s"Cannot find **/$name-$versionPrefix*$suffix or **/$versionPrefix*/$dir/$name$suffix in ${classPath.iterator.mkString("[", ", ", "]")}"
       ))
   }
@@ -71,7 +71,7 @@ object JvmWorkerUtil {
 
   def scalaJSBinaryVersion(scalaJSVersion: String): String = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
-      throw new Exception("Scala.js 0.6 is not supported")
+      throw Exception("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, minor, patch, suffix) =>
       if (suffix != null && minor == "0" && patch == "0")
         s"$major.$minor$suffix"
@@ -81,7 +81,7 @@ object JvmWorkerUtil {
 
   def scalaJSWorkerVersion(scalaJSVersion: String): String = scalaJSVersion match {
     case _ if scalaJSVersion.startsWith("0.6.") =>
-      throw new Exception("Scala.js 0.6 is not supported")
+      throw Exception("Scala.js 0.6 is not supported")
     case ScalaJSFullVersion(major, _, _, _) =>
       major
   }

@@ -26,7 +26,7 @@ object ExecResult {
     try Success(t)
     catch {
       case e: Throwable =>
-        Exception(e, new OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq))
+        Exception(e, OuterStack(java.lang.Exception().getStackTrace.toIndexedSeq))
     }
   }
 
@@ -68,7 +68,7 @@ object ExecResult {
 
     override def asFailing: Option[ExecResult.Failing[T]] = Some(this)
     def throwException: Nothing = this match {
-      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg)
+      case f: ExecResult.Failure[?] => throw Result.Exception(f.msg)
       case f: ExecResult.Exception => throw f.throwable
     }
   }
@@ -106,7 +106,7 @@ object ExecResult {
           val formatted =
             // for some reason .map without the explicit ArrayOps conversion doesn't work,
             // and results in `ExecResult[String]` instead of `Array[String]`
-            new scala.collection.ArrayOps(elements).map("    " + _)
+            scala.collection.ArrayOps(elements).map("    " + _)
           Seq(ex.toString) ++ formatted
 
         }
@@ -129,14 +129,14 @@ object ExecResult {
     try Result.Success(t)
     catch {
       case e: InvocationTargetException =>
-        Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
+        Result.Failure(makeResultException(e.getCause, java.lang.Exception()).left.get)
       case e: java.lang.Exception =>
-        Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
+        Result.Failure(makeResultException(e, java.lang.Exception()).left.get)
     }
   }
 
   def makeResultException(e: Throwable, base: java.lang.Exception): Left[String, Nothing] = {
-    val outerStack = new ExecResult.OuterStack(base.getStackTrace)
+    val outerStack = ExecResult.OuterStack(base.getStackTrace)
     Left(ExecResult.Exception(e, outerStack).toString)
   }
 }

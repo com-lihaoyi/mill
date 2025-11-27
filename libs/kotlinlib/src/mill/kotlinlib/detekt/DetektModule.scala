@@ -45,17 +45,17 @@ trait DetektModule extends KotlinModule {
 
     if (exitCode == 0) {} // do nothing
     else if (exitCode == 1) {
-      throw new RuntimeException("detekt: An unexpected error occurred")
+      throw RuntimeException("detekt: An unexpected error occurred")
     } else if (exitCode == 2) {
       if (check) {
-        throw new RuntimeException("detekt: Max issues was reached")
+        throw RuntimeException("detekt: Max issues was reached")
       } else {
         Task.log.error("detekt: Max issues was reached")
       }
     } else if (exitCode == 3) {
-      throw new RuntimeException("detekt: Invalid configuration file detected")
+      throw RuntimeException("detekt: Invalid configuration file detected")
     } else {
-      throw new RuntimeException(s"detekt exited abnormally with exit code = $exitCode")
+      throw RuntimeException(s"detekt exited abnormally with exit code = $exitCode")
     }
   }
 

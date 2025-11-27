@@ -11,7 +11,7 @@ object BashTokenizer {
     var quoteChar = ' '
     var quoting = false
     var lastCloseQuoteIndex = Integer.MIN_VALUE
-    val current = new StringBuilder()
+    val current = StringBuilder()
     for (i <- 0 until string.length()) {
       val c = string.charAt(i)
       if (escaping) {

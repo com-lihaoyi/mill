@@ -84,7 +84,7 @@ class SubprocessZincApi(
       SubprocessZincApi.Initialize(compilerBridge.workspace, log)
     ) { case SubprocessZincApi.Value(port, daemonDir, _) =>
       Using.Manager { use =>
-        val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
+        val socket = java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
         val debugName =
           s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
         ServerLauncher.runWithConnection(

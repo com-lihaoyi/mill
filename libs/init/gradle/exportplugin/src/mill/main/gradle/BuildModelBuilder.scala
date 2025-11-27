@@ -27,7 +27,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
       .flatten
       .map(toPackage)
       .toSeq
-    new BuildModel.Impl(upickle.default.write(exportedBuild))
+    BuildModel.Impl(upickle.default.write(exportedBuild))
   }
 
   private def toPackage(project0: Project): PackageSpec = {

@@ -44,7 +44,7 @@ trait FlywayModule extends JavaModule {
       strToOptPair(flyway.USER, flywayUser()) ++
       strToOptPair(flyway.PASSWORD, flywayPassword())
 
-    LogFactory.setLogCreator(new ConsoleLogCreator(Level.INFO))
+    LogFactory.setLogCreator(ConsoleLogCreator(Level.INFO))
 
     Flyway
       .configure(jdbcClassloader)

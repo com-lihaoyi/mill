@@ -32,7 +32,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
     ) {
       case (ev, _, id, _, f) =>
         val res = f(ev)
-        new JavacOptionsItem(
+        JavacOptionsItem(
           id,
           res.javacOptions.asJava,
           res.classpath.asJava,
@@ -40,6 +40,6 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
         )
 
     } {
-      new JavacOptionsResult(_)
+      JavacOptionsResult(_)
     }
 }

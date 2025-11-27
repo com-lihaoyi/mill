@@ -78,7 +78,7 @@ class UnitTester(
   } else {
     sourceRoot match {
       case Some(sourceRoot) =>
-        throw new IllegalArgumentException(
+        throw IllegalArgumentException(
           s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
         )
       case None => // ok
@@ -91,12 +91,12 @@ class UnitTester(
         infoColor = mill.internal.Colors.Default.info,
         warnColor = mill.internal.Colors.Default.warn,
         errorColor = mill.internal.Colors.Default.error,
-        systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
+        systemStreams0 = SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         titleText = "",
         terminfoPath = os.temp(),
         currentTimeMillis = () => System.currentTimeMillis(),
-        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
+        chromeProfileLogger = JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")
@@ -116,9 +116,9 @@ class UnitTester(
     if (effectiveThreadCount == 1) None
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
-  val execution = new mill.exec.Execution(
+  val execution = mill.exec.Execution(
     baseLogger = logger,
-    profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
+    profileLogger = mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
     externalOutPath = outPath,
@@ -132,14 +132,14 @@ class UnitTester(
     codeSignatures = Map(),
     systemExit = (reason, exitCode) =>
       throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-    exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
+    exclusiveSystemStreams = SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
     enableTicker = false,
     buildOverrides0 = Map()
   )
 
-  val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
+  val evaluator: Evaluator = mill.eval.EvaluatorImpl(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
     execution = execution
@@ -197,7 +197,7 @@ class UnitTester(
     val res = evaluator.execute(Seq(task)).executionResults
 
     val cleaned = res.results.map {
-      case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
+      case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, OuterStack(Nil))
       case x => x.map(_.value)
     }
 

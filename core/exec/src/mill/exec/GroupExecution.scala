@@ -177,7 +177,7 @@ trait GroupExecution {
               exclusive = exclusive,
               multiLogger = multiLogger,
               counterMsg = countMsg,
-              destCreator = new GroupExecution.DestCreator(Some(paths)),
+              destCreator = GroupExecution.DestCreator(Some(paths)),
               terminal = terminal
             )
 
@@ -304,7 +304,7 @@ trait GroupExecution {
     val nonEvaluatedTasks = group.toIndexedSeq.filterNot(results.contains)
     val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
-    val destCreator = new GroupExecution.DestCreator(paths)
+    val destCreator = GroupExecution.DestCreator(paths)
 
     for (task <- nonEvaluatedTasks) {
       newEvaluated.append(task)
@@ -315,7 +315,7 @@ trait GroupExecution {
       val res = {
         if (taskInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
-          val args = new mill.api.TaskCtx.Impl(
+          val args = mill.api.TaskCtx.Impl(
             args = taskInputValues.map(_.value).toIndexedSeq,
             dest0 = () => destCreator.makeDest(),
             log = multiLogger,
@@ -355,7 +355,7 @@ trait GroupExecution {
               case NonFatal(e) =>
                 ExecResult.Exception(
                   e,
-                  new OuterStack(new Exception().getStackTrace.toIndexedSeq)
+                  OuterStack(Exception().getStackTrace.toIndexedSeq)
                 )
               case e: Throwable => throw e
             }
@@ -443,8 +443,8 @@ trait GroupExecution {
     logPath match {
       case None => (logger, None)
       case Some(path) =>
-        val fileLogger = new FileLogger(path)
-        val multiLogger = new MultiLogger(
+        val fileLogger = FileLogger(path)
+        val multiLogger = MultiLogger(
           logger,
           fileLogger,
           logger.streams.in
@@ -567,7 +567,7 @@ object GroupExecution {
           usedDest = Some(dest.dest)
           dest.dest
 
-        case None => throw new Exception("No `dest` folder available here")
+        case None => throw Exception("No `dest` folder available here")
       }
     }
   }
@@ -635,7 +635,7 @@ object GroupExecution {
     val isCommand = terminal.isInstanceOf[Task.Command[?]]
     val isInput = terminal.isInstanceOf[Task.Input[?]]
     val executionChecker =
-      new ExecutionChecker(workspace, isCommand, isInput, terminal, validReadDests, validWriteDests)
+      ExecutionChecker(workspace, isCommand, isInput, terminal, validReadDests, validWriteDests)
     val (streams, destFunc) =
       if (exclusive) (exclusiveSystemStreams, () => workspace)
       else (multiLogger.streams, () => destCreator.makeDest())
@@ -645,7 +645,7 @@ object GroupExecution {
         mill.api.SystemStreamsUtils.withStreams(streams) {
           val exposedEvaluator =
             if (exclusive) evaluator.asInstanceOf[Evaluator]
-            else new EvaluatorProxy(() =>
+            else EvaluatorProxy(() =>
               sys.error(
                 "No evaluator available here; Evaluator is only available in exclusive commands"
               )
@@ -663,7 +663,7 @@ object GroupExecution {
                 // For exclusive tasks, we print the task name once and then we disable the
                 // prompt/ticker so the output of the exclusive task can "clean" while still
                 // being identifiable
-                logger.prompt.logPrefixedLine(Seq(counterMsg), new ByteArrayOutputStream(), false)
+                logger.prompt.logPrefixedLine(Seq(counterMsg), ByteArrayOutputStream(), false)
                 logger.prompt.withPromptPaused {
                   t
                 }

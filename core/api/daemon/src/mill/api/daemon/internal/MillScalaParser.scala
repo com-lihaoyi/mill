@@ -38,5 +38,5 @@ object MillScalaParser {
       s.patch(start, replacement.padTo(end - start, ' '), end - start)
   }
 
-  val current = new DynamicVariable[MillScalaParser](null)
+  val current = DynamicVariable[MillScalaParser](null)
 }

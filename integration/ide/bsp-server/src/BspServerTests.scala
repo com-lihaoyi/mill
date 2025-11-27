@@ -69,10 +69,10 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
-        val metaBuildTargetId = new b.BuildTargetIdentifier(
+        val metaBuildTargetId = b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toURI.toASCIIString.stripSuffix("/")
         )
-        val metaBuildBuildTargetId = new b.BuildTargetIdentifier(
+        val metaBuildBuildTargetId = b.BuildTargetIdentifier(
           (workspacePath / "mill-build/mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
         assert(targetIds.contains(metaBuildTargetId))
@@ -82,7 +82,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           .filter(_ != metaBuildBuildTargetId)
           .asJava
 
-        val appTargetId = new b.BuildTargetIdentifier(
+        val appTargetId = b.BuildTargetIdentifier(
           (workspacePath / "app").toURI.toASCIIString.stripSuffix("/")
         )
         assert(targetIds.contains(appTargetId))
@@ -90,8 +90,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
         def inverseSource(src: os.SubPath): Seq[b.BuildTargetIdentifier] =
           buildServer
             .buildTargetInverseSources(
-              new b.InverseSourcesParams(
-                new b.TextDocumentIdentifier(
+              b.InverseSourcesParams(
+                b.TextDocumentIdentifier(
                   (workspacePath / src).toNIO.toUri.toASCIIString
                 )
               )
@@ -101,7 +101,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .asScala
             .toSeq
 
-        val helloScalaTargetId = new b.BuildTargetIdentifier(
+        val helloScalaTargetId = b.BuildTargetIdentifier(
           (workspacePath / "hello-scala").toURI.toASCIIString.stripSuffix("/")
         )
         val foundHelloScalaTargetIds = inverseSource(os.sub / "hello-scala/src/Hello.scala")
@@ -109,7 +109,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetSources(new b.SourcesParams(targetIds))
+            .buildTargetSources(b.SourcesParams(targetIds))
             .get(),
           snapshotsPath / "build-targets-sources.json",
           normalizedLocalValues = normalizedLocalValues
@@ -123,8 +123,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           compareWithGsonSnapshot(
             buildServer
               .buildTargetInverseSources(
-                new b.InverseSourcesParams(
-                  new b.TextDocumentIdentifier(file.toURI.toASCIIString)
+                b.InverseSourcesParams(
+                  b.TextDocumentIdentifier(file.toURI.toASCIIString)
                 )
               )
               .get(),
@@ -141,7 +141,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetDependencySources(new b.DependencySourcesParams(targetIdsSubset))
+            .buildTargetDependencySources(b.DependencySourcesParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-dependency-sources.json",
           normalizedLocalValues = normalizedLocalValues
@@ -149,7 +149,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetDependencyModules(new b.DependencyModulesParams(targetIdsSubset))
+            .buildTargetDependencyModules(b.DependencyModulesParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-dependency-modules.json",
           normalizedLocalValues = normalizedLocalValues
@@ -157,7 +157,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetResources(new b.ResourcesParams(targetIds))
+            .buildTargetResources(b.ResourcesParams(targetIds))
             .get(),
           snapshotsPath / "build-targets-resources.json",
           normalizedLocalValues = normalizedLocalValues
@@ -165,7 +165,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetOutputPaths(new b.OutputPathsParams(targetIds))
+            .buildTargetOutputPaths(b.OutputPathsParams(targetIds))
             .get(),
           snapshotsPath / "build-targets-output-paths.json",
           normalizedLocalValues = normalizedLocalValues
@@ -175,7 +175,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         compareWithGsonSnapshot(
           buildServer
             .buildTargetCompile(
-              new b.CompileParams(
+              b.CompileParams(
                 targetIds
                   .asScala
                   // No need to attempt to compile the failing targets.
@@ -199,7 +199,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetJvmRunEnvironment(new b.JvmRunEnvironmentParams(targetIdsSubset))
+            .buildTargetJvmRunEnvironment(b.JvmRunEnvironmentParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-jvm-run-environments.json",
           normalizedLocalValues = normalizedLocalValues
@@ -208,7 +208,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         compareWithGsonSnapshot(
           cleanUpJvmTestEnvResult(
             buildServer
-              .buildTargetJvmTestEnvironment(new b.JvmTestEnvironmentParams(targetIdsSubset))
+              .buildTargetJvmTestEnvironment(b.JvmTestEnvironmentParams(targetIdsSubset))
               .get()
           ),
           snapshotsPath / "build-targets-jvm-test-environments.json",
@@ -217,7 +217,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetJvmCompileClasspath(new b.JvmCompileClasspathParams(targetIdsSubset))
+            .buildTargetJvmCompileClasspath(b.JvmCompileClasspathParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-compile-classpaths.json",
           normalizedLocalValues = normalizedLocalValues
@@ -227,7 +227,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetJavacOptions(new b.JavacOptionsParams(targetIdsSubset))
+            .buildTargetJavacOptions(b.JavacOptionsParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-javac-options.json",
           normalizedLocalValues = normalizedLocalValues
@@ -237,7 +237,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIdsSubset))
+            .buildTargetScalacOptions(b.ScalacOptionsParams(targetIdsSubset))
             .get(),
           snapshotsPath / "build-targets-scalac-options.json",
           normalizedLocalValues = normalizedLocalValues
@@ -245,7 +245,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetScalaMainClasses(new b.ScalaMainClassesParams(targetIds))
+            .buildTargetScalaMainClasses(b.ScalaMainClassesParams(targetIds))
             .get(),
           snapshotsPath / "build-targets-scala-main-classes.json",
           normalizedLocalValues = normalizedLocalValues
@@ -253,7 +253,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         // Run without args
         compareWithGsonSnapshot(
-          buildServer.buildTargetRun(new b.RunParams(appTargetId)).get(),
+          buildServer.buildTargetRun(b.RunParams(appTargetId)).get(),
           snapshotsPath / "build-targets-run-1.json",
           normalizedLocalValues = normalizedLocalValues
         )
@@ -264,7 +264,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           os.remove(run3)
           compareWithGsonSnapshot(
             buildServer
-              .buildTargetRun(new b.RunParams(appTargetId).tap { p =>
+              .buildTargetRun(b.RunParams(appTargetId).tap { p =>
                 p.setArguments(java.util.List.of(s"file=${run3.toString}", "content=run-3"))
               })
               .get(),
@@ -276,7 +276,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         }
 
         val scalacOptionsResult = buildServer
-          .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIds))
+          .buildTargetScalacOptions(b.ScalacOptionsParams(targetIds))
           .get()
 
         {
@@ -285,11 +285,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .getItems
             .asScala
             .map { item =>
-              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+              val shortId = os.Path(Paths.get(URI(item.getTarget.getUri)))
                 .relativeTo(workspacePath)
                 .asSubPath
               val semDbs = findSemanticdbs(
-                os.Path(Paths.get(new URI(item.getClassDirectory)))
+                os.Path(Paths.get(URI(item.getClassDirectory)))
               )
               shortId -> semDbs
             }
@@ -317,17 +317,17 @@ object BspServerTests extends UtestIntegrationTestSuite {
         {
           // check that semanticdbs are generated for Java modules
           val javacOptionsResult = buildServer
-            .buildTargetJavacOptions(new b.JavacOptionsParams(targetIds))
+            .buildTargetJavacOptions(b.JavacOptionsParams(targetIds))
             .get()
           val semDbs = javacOptionsResult
             .getItems
             .asScala
             .map { item =>
-              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+              val shortId = os.Path(Paths.get(URI(item.getTarget.getUri)))
                 .relativeTo(workspacePath)
                 .asSubPath
               val semDbs = findSemanticdbs(
-                os.Path(Paths.get(new URI(item.getClassDirectory)))
+                os.Path(Paths.get(URI(item.getClassDirectory)))
               )
               shortId -> semDbs
             }
@@ -393,13 +393,13 @@ object BspServerTests extends UtestIntegrationTestSuite {
         buildServer.loggingTest().get()
 
         buildServer.buildTargetCompile(
-          new b.CompileParams(
+          b.CompileParams(
             targets.filter(_.getDisplayName == "errored.exception").map(_.getId).asJava
           )
         ).get()
 
         buildServer.buildTargetCompile(
-          new b.CompileParams(
+          b.CompileParams(
             targets.filter(_.getDisplayName == "errored.compilation-error").map(_.getId).asJava
           )
         ).get()
@@ -409,12 +409,12 @@ object BspServerTests extends UtestIntegrationTestSuite {
         // We shouldn't get any log from the cancelled one, apart from
         // a "… was cancelled" message.
         val delayedCompileFuture = buildServer.buildTargetCompile(
-          new b.CompileParams(
+          b.CompileParams(
             targets.filter(_.getDisplayName == "delayed").map(_.getId).asJava
           )
         )
         val erroredCompileFuture = buildServer.buildTargetCompile(
-          new b.CompileParams(
+          b.CompileParams(
             targets.filter(_.getDisplayName == "errored.exception").map(_.getId).asJava
           )
         )
@@ -473,7 +473,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       )
 
       def uriAsSubPath(strUri: String): os.SubPath =
-        os.Path(Paths.get(new URI(strUri))).relativeTo(workspacePath).asSubPath
+        os.Path(Paths.get(URI(strUri))).relativeTo(workspacePath).asSubPath
 
       val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
         scalaVersionNormalizedValues()
@@ -508,10 +508,10 @@ object BspServerTests extends UtestIntegrationTestSuite {
           assert(!diagManyTargets.isEmpty())
 
           buildServer
-            .buildTargetCompile(new b.CompileParams(diagTargets))
+            .buildTargetCompile(b.CompileParams(diagTargets))
             .get()
           buildServer
-            .buildTargetCompile(new b.CompileParams(diagManyTargets))
+            .buildTargetCompile(b.CompileParams(diagManyTargets))
             .get()
 
           compareWithGsonSnapshot(

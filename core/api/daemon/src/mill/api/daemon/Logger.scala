@@ -100,10 +100,10 @@ object Logger {
   object DummyLogger extends Logger {
     def colored = false
 
-    val streams = new SystemStreams(
-      new PrintStream(_ => ()),
-      new PrintStream(_ => ()),
-      new ByteArrayInputStream(Array())
+    val streams = SystemStreams(
+      PrintStream(_ => ()),
+      PrintStream(_ => ()),
+      ByteArrayInputStream(Array())
     )
 
     def info(s: String) = ()

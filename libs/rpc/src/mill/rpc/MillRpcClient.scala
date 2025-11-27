@@ -50,7 +50,7 @@ object MillRpcClient {
         // we try to parse into `MillRpcServerToClient[A]` we will get an error if it's an `Ask`.
         wireTransport.readAndTryToParse[MillRpcServerToClient[ujson.Value]](logDebug) match {
           case None =>
-            throw new IllegalStateException(
+            throw IllegalStateException(
               s"RPC wire has broken (${wireTransport.name}). The server probably crashed."
             )
           case Some(MillRpcServerToClient.Ask(dataJson)) =>
@@ -69,7 +69,7 @@ object MillRpcClient {
 
       responseReceived match {
         case Some(value) => value
-        case None => throw new IllegalStateException("this should never happen")
+        case None => throw IllegalStateException("this should never happen")
       }
     }
 

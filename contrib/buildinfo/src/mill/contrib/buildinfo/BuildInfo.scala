@@ -211,14 +211,14 @@ object BuildInfo {
            |package ${buildInfoPackageName}
            |
            |object $buildInfoObjectName {
-           |  private val buildInfoProperties: java.util.Properties = new java.util.Properties()
+           |  private val buildInfoProperties: java.util.Properties = java.util.Properties()
            |
            |  {
            |    val buildInfoInputStream = getClass
            |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
            |
            |    if(buildInfoInputStream == null)
-           |      throw new RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
+           |      throw RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
            |    else try {
            |      buildInfoProperties.load(buildInfoInputStream)
            |    } finally {
@@ -259,7 +259,7 @@ object BuildInfo {
            |package ${buildInfoPackageName};
            |
            |public class $buildInfoObjectName {
-           |  private static final java.util.Properties buildInfoProperties = new java.util.Properties();
+           |  private static final java.util.Properties buildInfoProperties = java.util.Properties();
            |
            |  static {
            |    java.io.InputStream buildInfoInputStream = ${buildInfoObjectName}
@@ -269,12 +269,12 @@ object BuildInfo {
            |    try {
            |      buildInfoProperties.load(buildInfoInputStream);
            |    } catch (java.io.IOException e) {
-           |      throw new RuntimeException(e);
+           |      throw RuntimeException(e);
            |    } finally {
            |      try {
            |        buildInfoInputStream.close();
            |      } catch (java.io.IOException e) {
-           |        throw new RuntimeException(e);
+           |        throw RuntimeException(e);
            |      }
            |    }
            |  }

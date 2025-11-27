@@ -36,7 +36,7 @@ final class EvaluatorImpl(
       allowPositionalCommandArgs,
       selectiveExecution,
       execution,
-      new ScriptModuleInit()
+      ScriptModuleInit()
     )
   override val staticBuildOverrides = execution.staticBuildOverrides
 
@@ -50,7 +50,7 @@ final class EvaluatorImpl(
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
 
-  def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
+  def withBaseLogger(newBaseLogger: Logger): Evaluator = EvaluatorImpl(
     allowPositionalCommandArgs,
     selectiveExecution,
     execution.withBaseLogger(newBaseLogger),
@@ -280,7 +280,7 @@ final class EvaluatorImpl(
           Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
         case (t: Task.Input[_], result) =>
 
-          val ctx = new mill.api.TaskCtx.Impl(
+          val ctx = mill.api.TaskCtx.Impl(
             args = Vector(),
             dest0 = () => null,
             log = logger,
@@ -350,7 +350,7 @@ final class EvaluatorImpl(
       reporter: Int => Option[CompileProblemReporter] = _ => None,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val promptLineLogger = new PrefixLogger(
+    val promptLineLogger = PrefixLogger(
       logger0 = baseLogger,
       key0 = Seq("resolve"),
       message = "resolve " + scriptArgs.mkString(" ")
@@ -365,5 +365,5 @@ final class EvaluatorImpl(
 
   def close(): Unit = execution.close()
 
-  val selective = new mill.eval.SelectiveExecutionImpl(this)
+  val selective = mill.eval.SelectiveExecutionImpl(this)
 }

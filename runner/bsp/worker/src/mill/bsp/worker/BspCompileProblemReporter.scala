@@ -56,7 +56,7 @@ private class BspCompileProblemReporter(
       // are sent at least once, even when there are none
       map.getOrElseUpdate(
         textDocument,
-        new Details(new java.util.ArrayList, new mutable.HashSet, true)
+        Details(new java.util.ArrayList, new mutable.HashSet, true)
       )
     def add(textDocument: TextDocumentIdentifier, diagnostic: Diagnostic): Boolean =
       details(textDocument).add(diagnostic)
@@ -92,14 +92,14 @@ private class BspCompileProblemReporter(
           case mill.api.daemon.internal.Warn => MessageType.WARNING
           case mill.api.daemon.internal.Info => MessageType.INFO
         }
-        val msgParam = new LogMessageParams(messagesType, problem.message).tap { it =>
+        val msgParam = LogMessageParams(messagesType, problem.message).tap { it =>
           it.setTask(taskId)
         }
         client.onBuildLogMessage(msgParam)
 
       case Some(f) =>
         val diagnostic = toDiagnostic(problem)
-        val textDocument = new TextDocumentIdentifier(
+        val textDocument = TextDocumentIdentifier(
           // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
           f.toPath.toUri.toString
         )
@@ -118,15 +118,15 @@ private class BspCompileProblemReporter(
 
     val pos = problem.position
     val line = pos.line.map(correctLine)
-    val start = new bsp.Position(
+    val start = bsp.Position(
       pos.startLine.map(correctLine).orElse(line).getOrElse[Int](0),
       pos.startColumn.orElse(pos.pointer).getOrElse[Int](0)
     )
-    val end = new bsp.Position(
+    val end = bsp.Position(
       pos.endLine.map(correctLine).orElse(line).getOrElse[Int](start.getLine.intValue()),
       pos.endColumn.orElse(pos.pointer).getOrElse[Int](start.getCharacter.intValue())
     )
-    new bsp.Diagnostic(new bsp.Range(start, end), problem.message).tap { d =>
+    bsp.Diagnostic(bsp.Range(start, end), problem.message).tap { d =>
       // TODO: review whether this is a proper source or if it should better
       // something like "scala compiler" or "foo.bar.compile"
       d.setSource("mill")
@@ -148,7 +148,7 @@ private class BspCompileProblemReporter(
       diagnosticList: java.util.List[Diagnostic],
       reset: Boolean
   ): Unit = {
-    val params = new bsp.PublishDiagnosticsParams(
+    val params = bsp.PublishDiagnosticsParams(
       textDocument,
       targetId,
       diagnosticList,
@@ -165,7 +165,7 @@ private class BspCompileProblemReporter(
 
   override def fileVisited(file: java.nio.file.Path): Unit = {
     val uri = file.toUri.toString
-    val textDocument = new TextDocumentIdentifier(uri)
+    val textDocument = TextDocumentIdentifier(uri)
     val (diagnostics0, hasNewDiagnostics) = diagnostics.getAll(textDocument)
     if (hasNewDiagnostics)
       sendBuildPublishDiagnostics(textDocument, diagnostics0, reset = true)
@@ -176,9 +176,9 @@ private class BspCompileProblemReporter(
   }
 
   override def start(): Unit = {
-    val taskStartParams = new TaskStartParams(taskId).tap { it =>
+    val taskStartParams = TaskStartParams(taskId).tap { it =>
       it.setEventTime(System.currentTimeMillis())
-      it.setData(new CompileTask(targetId))
+      it.setData(CompileTask(targetId))
       it.setDataKind(TaskStartDataKind.COMPILE_TASK)
       it.setMessage(s"Compiling target ${targetDisplayName}")
     }
@@ -186,9 +186,9 @@ private class BspCompileProblemReporter(
   }
 
   override def notifyProgress(progress: Long, total: Long): Unit = {
-    val params = new TaskProgressParams(taskId).tap { it =>
+    val params = TaskProgressParams(taskId).tap { it =>
       it.setEventTime(System.currentTimeMillis())
-      it.setData(new CompileTask(targetId))
+      it.setData(CompileTask(targetId))
       it.setDataKind("compile-progress")
       it.setMessage(s"Compiling target ${targetDisplayName} (${progress * 100 / total}%)")
       // Not a percentage, but the # of units done,
@@ -201,11 +201,11 @@ private class BspCompileProblemReporter(
 
   override def finish(): Unit = {
     val taskFinishParams =
-      new TaskFinishParams(taskId, if (errors > 0) StatusCode.ERROR else StatusCode.OK).tap { it =>
+      TaskFinishParams(taskId, if (errors > 0) StatusCode.ERROR else StatusCode.OK).tap { it =>
         it.setEventTime(System.currentTimeMillis())
         it.setMessage(s"Compiled ${targetDisplayName}")
         it.setDataKind(TaskFinishDataKind.COMPILE_REPORT)
-        val compileReport = new CompileReport(targetId, errors, warnings).tap { it =>
+        val compileReport = CompileReport(targetId, errors, warnings).tap { it =>
           compilationOriginId.foreach(id => it.setOriginId(id))
         }
         it.setData(compileReport)

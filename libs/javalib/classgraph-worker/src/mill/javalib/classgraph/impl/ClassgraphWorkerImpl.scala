@@ -17,7 +17,7 @@ class ClassgraphWorkerImpl() extends ClassgraphWorker {
     ctx.log.debug(s"Scanning for mainclasses: ${cp}")
 
     val mainClasses = Using.resource(
-      new ClassGraph()
+      ClassGraph()
         .overrideClasspath(cp)
         .enableMethodInfo()
         .scan()

@@ -10,7 +10,7 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
       passingTasks: Seq[os.Shellable] = Nil,
       failingTasks: Seq[os.Shellable] = Nil
   ): Unit = {
-    val tester = new IntegrationTester(
+    val tester = IntegrationTester(
       daemonMode,
       workspaceSourcePath,
       millExecutable,

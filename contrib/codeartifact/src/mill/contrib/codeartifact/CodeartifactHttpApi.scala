@@ -22,7 +22,7 @@ class CodeartifactHttpApi(
       uri,
       readTimeout = uploadTimeout,
       headers = Seq("Content-Type" -> "application/octet-stream"),
-      auth = new requests.RequestAuth.Basic("aws", credentials),
+      auth = requests.RequestAuth.Basic("aws", credentials),
       data = data
     )
   }
