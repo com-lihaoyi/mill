@@ -1,30 +1,19 @@
 package mill.javalib
 
 import com.lihaoyi.unroll
-import com.lumidion.sonatype.central.client.core.PublishingType
-import com.lumidion.sonatype.central.client.core.SonatypeCredentials
-import mill.*
-import mill.api.BuildCtx
-import mill.api.DefaultTaskModule
-import mill.api.ExternalModule
-import mill.api.Result
-import mill.api.Task
+import mill.T
+import mill.given
 import mill.api.daemon.Logger
+import mill.api.{BuildCtx, DefaultTaskModule, ExternalModule, Result, Task}
 import mill.javalib.PublishModule.PublishData
-import mill.javalib.SonatypeCentralPublishModule.defaultAwaitTimeout
-import mill.javalib.SonatypeCentralPublishModule.defaultConnectTimeout
-import mill.javalib.SonatypeCentralPublishModule.defaultCredentials
-import mill.javalib.SonatypeCentralPublishModule.defaultReadTimeout
-import mill.javalib.SonatypeCentralPublishModule.getPublishingTypeFromReleaseFlag
 import mill.javalib.internal.PublishModule.GpgArgs
-import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.CREDENTIALS_ENV_VARIABLE_PREFIX
+import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
 import mill.util.Tasks
-
-import javalib.*
 
 trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       PublishCredentialsModule {
+  import SonatypeCentralPublishModule.*
 
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "Mill 1.0.1")
   def sonatypeCentralGpgArgs: T[String] =
@@ -124,7 +113,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = "",
       @unroll snapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
-  ): Command[Unit] = Task.Command {
+  ): Task.Command[Unit] = Task.Command {
     val artifacts = Task.sequence(publishArtifacts.value)()
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
@@ -232,12 +221,9 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
   }
 
   private def getPublishingTypeFromReleaseFlag(shouldRelease: Boolean): PublishingType = {
-    if (shouldRelease) {
-      PublishingType.AUTOMATIC
-    } else {
-      PublishingType.USER_MANAGED
-    }
+    if (shouldRelease) PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
   }
 
+  // TODO: make protected
   lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 }
