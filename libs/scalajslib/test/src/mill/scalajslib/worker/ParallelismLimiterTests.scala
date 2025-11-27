@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class ParallelismLimiterTests extends TestSuite {
 
   override def tests = Tests {
-    test("limitedoJobs") {
+    test("limitedJobs") {
 
       val maxJobs = 3
       val limiter = ParallelismLimiter(maxJobs)
