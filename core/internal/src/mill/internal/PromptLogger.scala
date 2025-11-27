@@ -246,7 +246,7 @@ class PromptLogger(
             } else lines.foreach(printPrefixed(infoColor(prefix), _))
           }
         }
-      } else streamManager.pipe.output.synchronized { logMsg.writeTo(logStream) }
+      } else logStream.synchronized { logMsg.writeTo(logStream) }
 
       streamManager.awaitPumperEmpty()
     }
