@@ -127,14 +127,14 @@ object GitlabTokenTests extends TestSuite {
       object uploader extends ((String, Array[Byte]) => requests.Response) {
         def apply(url: String, data: Array[Byte]): requests.Response = {
           urls.append(url)
-          requests.Response(url, 200, "Success", new geny.Bytes("".getBytes()), Map.empty, None)
+          requests.Response(url, 200, "Success", geny.Bytes("".getBytes()), Map.empty, None)
         }
 
         val urls: ListBuffer[String] = ListBuffer[String]()
       }
 
       val repo = ProjectRepository("https://gitlab.local", 10)
-      val publisher = new GitlabPublisher(uploader, repo, DummyLogger)
+      val publisher = GitlabPublisher(uploader, repo, DummyLogger)
 
       val fakeFile = os.pwd / "dummy.data"
       os.write(fakeFile, Array[Byte]())

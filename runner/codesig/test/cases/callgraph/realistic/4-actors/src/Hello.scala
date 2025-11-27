@@ -39,15 +39,15 @@ class SanitizeActor(dest: castor.Actor[String])(using cc: castor.Context)
 
 object Hello {
   def main() = {
-    implicit val cc = new castor.Context.Test()
+    implicit val cc = castor.Context.Test()
 
-    val diskActor = new DiskActor(os.pwd / "log.txt")
-    val uploadActor = new UploadActor("https://httpbin.org/post")
+    val diskActor = DiskActor(os.pwd / "log.txt")
+    val uploadActor = UploadActor("https://httpbin.org/post")
 
     val base64Actor = new Base64Actor(diskActor)
-    val sanitizeActor = new SanitizeActor(uploadActor)
+    val sanitizeActor = SanitizeActor(uploadActor)
 
-    val logger = new castor.SplitActor(base64Actor, sanitizeActor)
+    val logger = castor.SplitActor(base64Actor, sanitizeActor)
   }
 }
 

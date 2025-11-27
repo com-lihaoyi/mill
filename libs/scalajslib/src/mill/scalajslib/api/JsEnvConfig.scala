@@ -75,14 +75,14 @@ object JsEnvConfig {
       Mirrors.autoRoot[Capabilities]
 
     def apply(capabilities: Capabilities): Selenium =
-      new Selenium(capabilities = capabilities)
+      Selenium(capabilities = capabilities)
 
     sealed trait Capabilities
     class ChromeOptions private (val headless: Boolean) extends Capabilities {
       def withHeadless(value: Boolean): Unit = copy(headless = value)
       private def copy(
           headless: Boolean
-      ): ChromeOptions = new ChromeOptions(
+      ): ChromeOptions = ChromeOptions(
         headless = headless
       )
     }
@@ -90,13 +90,13 @@ object JsEnvConfig {
       implicit def rw: RW[ChromeOptions] = macroRW
 
       def apply(headless: Boolean): ChromeOptions =
-        new ChromeOptions(headless = headless)
+        ChromeOptions(headless = headless)
     }
     class FirefoxOptions private (val headless: Boolean) extends Capabilities {
       def withHeadless(value: Boolean): Unit = copy(headless = value)
       private def copy(
           headless: Boolean
-      ): FirefoxOptions = new FirefoxOptions(
+      ): FirefoxOptions = FirefoxOptions(
         headless = headless
       )
     }
@@ -104,9 +104,9 @@ object JsEnvConfig {
       implicit def rw: RW[FirefoxOptions] = macroRW
 
       def apply(): FirefoxOptions =
-        new FirefoxOptions(headless = false)
+        FirefoxOptions(headless = false)
       def apply(headless: Boolean): FirefoxOptions =
-        new FirefoxOptions(headless = headless)
+        FirefoxOptions(headless = headless)
     }
 
     class SafariOptions private () extends Capabilities
@@ -114,7 +114,7 @@ object JsEnvConfig {
       implicit def rw: RW[SafariOptions] = macroRW
 
       def apply(): SafariOptions =
-        new SafariOptions()
+        SafariOptions()
     }
   }
 
@@ -126,7 +126,7 @@ object JsEnvConfig {
       Mirrors.autoRoot[Capabilities]
 
     def apply(capabilities: Capabilities): Playwright =
-      new Playwright(capabilities = capabilities)
+      Playwright(capabilities = capabilities)
 
     sealed trait Capabilities
 
@@ -154,7 +154,7 @@ object JsEnvConfig {
         debug = debug,
         launchOptions = launchOptions
       )
-      new Playwright(options)
+      Playwright(options)
 
     case class ChromeOptions(
         headless: Boolean = true,
@@ -192,7 +192,7 @@ object JsEnvConfig {
         debug = debug,
         firefoxUserPrefs = firefoxUserPrefs
       )
-      new Playwright(options)
+      Playwright(options)
     case class FirefoxOptions(
         headless: Boolean = true,
         showLogs: Boolean = false,
@@ -219,7 +219,7 @@ object JsEnvConfig {
                 json.numOpt
               ).orElse(
                 json.strOpt.map(_.toString)
-              ).getOrElse(throw new Exception("Invalid value"))
+              ).getOrElse(throw Exception("Invalid value"))
         )
       given rw: RW[FirefoxOptions] = macroRW
 
@@ -246,7 +246,7 @@ object JsEnvConfig {
         debug = debug,
         launchOptions = launchOptions
       )
-      new Playwright(options)
+      Playwright(options)
 
     case class WebkitOptions(
         headless: Boolean = true,

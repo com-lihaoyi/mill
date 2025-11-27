@@ -4,7 +4,7 @@ import java.nio.file.{Files, Paths}
 
 private[mill] object MillModuleUtil {
 
-  private val LongMillProps = new java.util.Properties()
+  private val LongMillProps = java.util.Properties()
 
   {
     val millOptionsPath = sys.props("MILL_OPTIONS_PATH")

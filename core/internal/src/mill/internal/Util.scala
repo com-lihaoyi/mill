@@ -96,9 +96,9 @@ object Util {
         import scala.collection.mutable.ArrayBuffer
 
         val settings = LoadSettings.builder().build()
-        val reader = new StreamReader(settings, headerData)
-        val parser = new ParserImpl(settings, reader)
-        val composer = new Composer(settings, parser)
+        val reader = StreamReader(settings, headerData)
+        val parser = ParserImpl(settings, reader)
+        val composer = Composer(settings, parser)
 
         // recursively convert Node to upickle.core.BufferedValue, preserving character offsets
         def rec(node: Node): upickle.core.BufferedValue = {

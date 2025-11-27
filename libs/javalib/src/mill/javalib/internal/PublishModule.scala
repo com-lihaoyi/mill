@@ -27,7 +27,7 @@ private[mill] object PublishModule {
   /** Imports a Base64 encoded GPG secret, if one is provided in the environment. Throws if the import fails. */
   def pgpImportSecretIfProvidedOrThrow(env: Map[String, String]): Option[String] =
     pgpImportSecretIfProvided(env).map(_.fold(
-      err => throw new IllegalArgumentException(err),
+      err => throw IllegalArgumentException(err),
       identity
     ))
 
@@ -110,11 +110,11 @@ private[mill] object PublishModule {
 
     /** Creates an instance if the passphrase is not empty. */
     def apply(keyId: String, passphrase: Option[String]): GpgKey =
-      new GpgKey(keyId = keyId, passphrase = passphrase.filter(_.nonEmpty))
+      GpgKey(keyId = keyId, passphrase = passphrase.filter(_.nonEmpty))
 
     /** Creates an instance if the passphrase is not empty. */
     def apply(keyId: String, passphrase: String): GpgKey =
-      new GpgKey(keyId = keyId, passphrase = if (passphrase.isEmpty) None else Some(passphrase))
+      GpgKey(keyId = keyId, passphrase = if (passphrase.isEmpty) None else Some(passphrase))
 
     /**
      * @param maybeKeyId      will be [[None]] if the PGP key was not provided in the environment.
@@ -137,7 +137,7 @@ private[mill] object PublishModule {
         maybePassphrase: Option[String]
     ): Option[GpgKey] =
       createFromEnvVars(maybeKeyId, maybePassphrase)
-        .map(_.fold(err => throw new IllegalArgumentException(err), identity))
+        .map(_.fold(err => throw IllegalArgumentException(err), identity))
 
     def gpgArgsForPassphrase(passphrase: Option[String]): Seq[PossiblySecret[String]] =
       passphrase.iterator.flatMap(p => Iterator("--passphrase", Secret(p))).toSeq

@@ -13,7 +13,7 @@ import java.io.{ByteArrayOutputStream, OutputStream}
 class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit)
     extends OutputStream {
 
-  val buffer = new ByteArrayOutputStream()
+  val buffer = ByteArrayOutputStream()
 
   override def write(b: Array[Byte]): Unit = write(b, 0, b.length)
 

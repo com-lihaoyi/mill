@@ -107,7 +107,7 @@ object VisualizeModule extends ExternalModule {
           os.Path
       )]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
-    val visualizeThread = new java.lang.Thread(() =>
+    val visualizeThread = java.lang.Thread(() =>
       while (true) {
         val res = Result.Success {
           val (tasks, transitiveTasks, sortedGroups, plan, dest) = in.take()

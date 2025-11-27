@@ -46,12 +46,12 @@ object BspWorkerImpl {
           out = out
         ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
-      lazy val launcher = new Launcher.Builder[BuildClient]()
+      lazy val launcher = Launcher.Builder[BuildClient]()
         .setOutput(streams.out)
         .setInput(streams.in)
         .setLocalService(millServer)
         .setRemoteInterface(classOf[BuildClient])
-        .traceMessages(new PrintWriter((logDir / "trace.log").toIO))
+        .traceMessages(PrintWriter((logDir / "trace.log").toIO))
         .setExecutorService(executor)
         .create()
 
@@ -113,7 +113,7 @@ object BspWorkerImpl {
         val executorCount = executorCounter.incrementAndGet()
         val counter = new AtomicInteger
         def newThread(runnable: Runnable): Thread = {
-          val t = new Thread(
+          val t = Thread(
             runnable,
             s"mill-bsp-jsonrpc-$executorCount-thread-${counter.incrementAndGet()}"
           )

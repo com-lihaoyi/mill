@@ -125,7 +125,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.
   def runner: Task[PythonModule.Runner] = Task.Anon {
-    new PythonModule.RunnerImpl(
+    PythonModule.RunnerImpl(
       command0 = pythonExe().path.toString,
       options = pythonOptions(),
       env0 = runnerEnvTask() ++ forkEnv(),

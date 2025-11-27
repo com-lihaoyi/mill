@@ -28,8 +28,8 @@ object HelloWorldTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("run") {
-      val baos = new ByteArrayOutputStream()
-      UnitTester(HelloWorldJavascript, resourcePath, outStream = new PrintStream(baos)).scoped {
+      val baos = ByteArrayOutputStream()
+      UnitTester(HelloWorldJavascript, resourcePath, outStream = PrintStream(baos)).scoped {
         eval =>
 
           val Right(_) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))): @unchecked

@@ -20,12 +20,12 @@ object InitModuleTests extends TestSuite {
   override def tests: Tests = Tests {
 
     test("no args") {
-      val outStream = new ByteArrayOutputStream()
+      val outStream = ByteArrayOutputStream()
       UnitTester(
         initmodule,
         null,
-        outStream = new PrintStream(outStream, true),
-        errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+        outStream = PrintStream(outStream, true),
+        errStream = PrintStream(OutputStream.nullOutputStream(), true)
       ).scoped { evaluator =>
 
         val results = evaluator.evaluator.execute(Seq(initmodule.init(None))).executionResults
@@ -43,13 +43,13 @@ object InitModuleTests extends TestSuite {
       }
     }
     test("non existing example") {
-      val outStream = new ByteArrayOutputStream()
-      val errStream = new ByteArrayOutputStream()
+      val outStream = ByteArrayOutputStream()
+      val errStream = ByteArrayOutputStream()
       UnitTester(
         initmodule,
         null,
-        outStream = new PrintStream(outStream, true),
-        errStream = new PrintStream(errStream, true)
+        outStream = PrintStream(outStream, true),
+        errStream = PrintStream(errStream, true)
       ).scoped { evaluator =>
 
         val nonExistingModuleId = "nonExistingExampleId"
@@ -82,12 +82,12 @@ object InitModuleTests extends TestSuite {
       }
     }
     test("example-zip") {
-      val outStream = new java.io.ByteArrayOutputStream()
+      val outStream = java.io.ByteArrayOutputStream()
       UnitTester(
         initmodule,
         null,
-        outStream = new PrintStream(outStream, true),
-        errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+        outStream = PrintStream(outStream, true),
+        errStream = PrintStream(OutputStream.nullOutputStream(), true)
       ).scoped { evaluator =>
 
         val results = evaluator.evaluator.execute(

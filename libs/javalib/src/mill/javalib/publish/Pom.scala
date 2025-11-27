@@ -18,7 +18,7 @@ object Pom {
             case None => NodeSeq.Empty
             case Some(x) => e.copy(child = x match {
                 case n: NodeSeq => n
-                case x => new Atom(x)
+                case x => Atom(x)
               })
           }
         case _ => e
@@ -118,7 +118,7 @@ object Pom {
         {depMgmtSection}
       </project>
 
-    val pp = new PrettyPrinter(120, 4)
+    val pp = PrettyPrinter(120, 4)
     head + pp.format(xml)
   }
 

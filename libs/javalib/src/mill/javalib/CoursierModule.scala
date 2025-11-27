@@ -45,7 +45,7 @@ trait CoursierModule extends mill.api.Module {
    * @return `CoursierModule.Resolver` instance
    */
   def millResolver: Task[CoursierModule.Resolver] = Task.Anon {
-    new CoursierModule.Resolver(
+    CoursierModule.Resolver(
       repositories = allRepositories(),
       bind = bindDependency(),
       mapDependencies = Some(mapDependencies()),
@@ -67,7 +67,7 @@ trait CoursierModule extends mill.api.Module {
    * @return `CoursierModule.Resolver` instance
    */
   def defaultResolver: Task[CoursierModule.Resolver] = Task.Anon {
-    new CoursierModule.Resolver(
+    CoursierModule.Resolver(
       repositories = repositoriesTask(),
       bind = bindDependency(),
       mapDependencies = Some(mapDependencies()),

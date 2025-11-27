@@ -27,7 +27,7 @@ object ExecutionTests extends TestSuite {
   }
 
   object anonTaskFailure extends TestRootModule {
-    def anon = Task.Anon[Int] { throw new Exception("boom") }
+    def anon = Task.Anon[Int] { throw Exception("boom") }
 
     def task = Task[Int] { anon() }
     lazy val millDiscover = Discover[this.type]
@@ -239,7 +239,7 @@ object ExecutionTests extends TestSuite {
 
       object build extends TestRootModule {
         def input = Task.Input { x }
-        def worker = Task.Worker { new MyWorker(input()) }
+        def worker = Task.Worker { MyWorker(input()) }
         lazy val millDiscover = Discover[this.type]
       }
 

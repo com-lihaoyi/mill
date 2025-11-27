@@ -79,14 +79,14 @@ object ApplicativeTests extends TestSuite {
       // Although x is defined inside the Opt{...} block, it is also defined
       // within the LHS of the Applyable#apply call, so it is safe to life it
       // out into the `zipMap` arguments list.
-      val res = Opt { "lol " + new Opt(Some("hello").flatMap(x => Some(x))).apply() }
+      val res = Opt { "lol " + Opt(Some("hello").flatMap(x => Some(x))).apply() }
       assert(res == Opt.some("lol hello"))
     }
     test("upstreamAlwaysEvaluated") {
       // Whether or not control-flow reaches the Applyable#apply call inside an
       // Opt{...} block, we always evaluate the LHS of the Applyable#apply
       // because it gets lifted out of any control flow statements
-      val counter = new Counter()
+      val counter = Counter()
       def up = Opt { "lol " + counter() }
       val down = Opt { if ("lol".length > 10) up() else "fail" }
       assert(
@@ -97,7 +97,7 @@ object ApplicativeTests extends TestSuite {
     test("upstreamEvaluatedOnlyOnce") {
       // Even if control-flow reaches the Applyable#apply call more than once,
       // it only gets evaluated once due to its lifting out of the Opt{...} block
-      val counter = new Counter()
+      val counter = Counter()
       def up = Opt { "lol " + counter() }
       def runTwice[T](t: => T) = (t, t)
       val down = Opt { runTwice(up()) }
@@ -109,7 +109,7 @@ object ApplicativeTests extends TestSuite {
     test("evaluationsInsideLambdasWork") {
       // This required some fiddling with owner chains inside the macro to get
       // working, so ensure it doesn't regress
-      val counter = new Counter()
+      val counter = Counter()
       def up = Opt { "hello" + counter() }
       val down1 = Opt { (() => up())() }
       val down2 = Opt { Seq(1, 2, 3).map(n => up() * n) }
@@ -123,7 +123,7 @@ object ApplicativeTests extends TestSuite {
       // your Opt{...} call, each one gets evaluated once, even if the LHS of each
       // apply() call is identical. It's up to the downstream zipMap()
       // implementation to decide if it wants to dedup them or do other things.
-      val counter = new Counter()
+      val counter = Counter()
       def up = Opt { s"hello${counter()}" }
       val down = Opt { Seq(1, 2, 3).map(n => n + up() + up()) }
       assert(down == Opt.some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
@@ -132,7 +132,7 @@ object ApplicativeTests extends TestSuite {
       // Every Applyable#apply() within a Opt{...} block evaluates before any
       // other logic within that block, even if they would happen first in the
       // normal Scala evaluation order
-      val counter = new Counter()
+      val counter = Counter()
       def up = Opt { counter() }
       val down = Opt {
         val res = counter()

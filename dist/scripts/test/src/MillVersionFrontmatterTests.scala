@@ -30,7 +30,7 @@ object MillVersionFrontmatterTests extends TestSuite {
       val output = res.out.text().trim
 
       if (res.exitCode != 0) {
-        throw new IllegalStateException(s"exitCode != 0 (actual = ${res.exitCode}")
+        throw IllegalStateException(s"exitCode != 0 (actual = ${res.exitCode}")
       }
 
       expectedVersion match {

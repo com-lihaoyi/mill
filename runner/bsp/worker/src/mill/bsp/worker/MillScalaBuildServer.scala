@@ -43,7 +43,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             _,
             (allScalacOptions, compileClasspath, classesPathTask)
           ) =>
-        new ScalacOptionsItem(
+        ScalacOptionsItem(
           id,
           allScalacOptions.asJava,
           compileClasspath(ev).asJava,
@@ -51,7 +51,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         )
 
     } { values =>
-      new ScalacOptionsResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
+      ScalacOptionsResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
@@ -67,14 +67,14 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         val mainClasses = res.classes
         // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
         val items = mainClasses.map { mc =>
-          val scalaMc = new ScalaMainClass(mc, Seq().asJava, res.forkArgs.asJava)
+          val scalaMc = ScalaMainClass(mc, Seq().asJava, res.forkArgs.asJava)
           scalaMc.setEnvironmentVariables(res.forkEnv.map(e => s"${e._1}=${e._2}").toSeq.asJava)
           scalaMc
         }
-        new ScalaMainClassesItem(id, items.asJava)
+        ScalaMainClassesItem(id, items.asJava)
 
     } {
-      new ScalaMainClassesResult(_)
+      ScalaMainClassesResult(_)
     }
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
@@ -88,15 +88,15 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       originId = p.getOriginId
     ) {
       case (_, _, id, _, (frameworkName, classes)) =>
-        val item = new ScalaTestClassesItem(id, classes.asJava)
+        val item = ScalaTestClassesItem(id, classes.asJava)
         item.setFramework(frameworkName)
         item
 
       case (_, _, id, _, _) =>
         // Not a test module, so no test classes
-        new ScalaTestClassesItem(id, Seq.empty[String].asJava)
+        ScalaTestClassesItem(id, Seq.empty[String].asJava)
     } {
-      new ScalaTestClassesResult(_)
+      ScalaTestClassesResult(_)
     }
 
 }

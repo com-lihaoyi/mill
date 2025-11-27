@@ -46,7 +46,7 @@ object MillMain0 {
       (false, onError)
     case e =>
       val str = new StringWriter
-      e.printStackTrace(new PrintWriter(str))
+      e.printStackTrace(PrintWriter(str))
       err.println(str)
       throw e
   }
@@ -80,9 +80,9 @@ object MillMain0 {
       )
 
       try {
-        val streams0 = new SystemStreams(
-          out = new MultiStream(streams.err, outFileStream),
-          err = new MultiStream(streams.err, errFileStream),
+        val streams0 = SystemStreams(
+          out = MultiStream(streams.err, outFileStream),
+          err = MultiStream(streams.err, errFileStream),
           in = InputStream.nullInputStream()
         )
         mill.api.SystemStreamsUtils.withStreams(streams0) {
@@ -241,7 +241,7 @@ object MillMain0 {
                     else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
                   val out = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
-                  Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
+                  Using.resources(TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
                         skipSelectiveExecution: Boolean,
                         prevState: Option[RunnerState],
@@ -275,7 +275,7 @@ object MillMain0 {
                             !config.noFilesystemChecker.value
                           ) {
                             tailManager.withOutErr(logger.streams.out, logger.streams.err) {
-                              new MillBuildBootstrap(
+                              MillBuildBootstrap(
                                 topLevelProjectRoot = BuildCtx.workspaceRoot,
                                 output = out,
                                 // In BSP server, we want to evaluate as many tasks as possible,
@@ -359,8 +359,8 @@ object MillMain0 {
                         startBspServer(streams0, outLock, bspLogger)
                       var keepGoing = true
                       var errored = false
-                      val initCommandLogger = new PrefixLogger(bspLogger, Seq("init"))
-                      val watchLogger = new PrefixLogger(bspLogger, Seq("watch"))
+                      val initCommandLogger = PrefixLogger(bspLogger, Seq("init"))
+                      val watchLogger = PrefixLogger(bspLogger, Seq("watch"))
                       while (keepGoing) {
                         val watchRes = runMillBootstrap(
                           skipSelectiveExecution = false,
@@ -422,7 +422,7 @@ object MillMain0 {
                             } catch {
                               case e: Exception =>
                                 val sw = new java.io.StringWriter
-                                e.printStackTrace(new java.io.PrintWriter(sw))
+                                e.printStackTrace(java.io.PrintWriter(sw))
                                 watchLogger.info(
                                   "Watching of build sources failed:" + e + "\n" + sw
                                 )
@@ -466,7 +466,7 @@ object MillMain0 {
                     ) {
                       val runnerState =
                         runMillBootstrap(false, None, Seq("version"), streams, "BSP:initialize")
-                      new mill.idea.GenIdeaImpl(runnerState.frames.flatMap(_.evaluator))
+                      mill.idea.GenIdeaImpl(runnerState.frames.flatMap(_.evaluator))
                         .run()
                       (true, RunnerState(None, Nil, None))
                     } else if (
@@ -476,7 +476,7 @@ object MillMain0 {
                     ) {
                       val runnerState =
                         runMillBootstrap(false, None, Seq("version"), streams, "BSP:initialize")
-                      new mill.eclipse.GenEclipseImpl(runnerState.frames.flatMap(_.evaluator))
+                      mill.eclipse.GenEclipseImpl(runnerState.frames.flatMap(_.evaluator))
                         .run()
                       (true, RunnerState(None, Nil, None))
                     } else {
@@ -583,7 +583,7 @@ object MillMain0 {
       colors: Colors,
       out: os.Path
   ): Logger & AutoCloseable = {
-    new PromptLogger(
+    PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
       infoColor = colors.info,
@@ -594,7 +594,7 @@ object MillMain0 {
       titleText = config.leftoverArgs.value.mkString(" "),
       terminfoPath = daemonDir / DaemonFiles.terminfo,
       currentTimeMillis = () => System.currentTimeMillis(),
-      chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
+      chromeProfileLogger = JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
     )
   }
 
@@ -602,8 +602,8 @@ object MillMain0 {
       streams: SystemStreams,
       config: MillCliConfig
   ): Logger =
-    new PrefixLogger(
-      new SimpleLogger(
+    PrefixLogger(
+      SimpleLogger(
         streams,
         Seq("bsp"),
         debugEnabled = config.debugLog.value

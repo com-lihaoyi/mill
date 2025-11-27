@@ -14,16 +14,16 @@ class TailManager(daemonDir: os.Path) extends AutoCloseable {
   // do not affect the tailers which run on their own separate threads
   @volatile var tailerOut: OutputStream = System.out
   @volatile var tailerErr: OutputStream = System.err
-  val stdoutTailer = new FileToStreamTailer(
+  val stdoutTailer = FileToStreamTailer(
     (daemonDir / DaemonFiles.stdout).toIO,
-    new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
+    PrintStream(new ThreadLocalStreams.ProxyOutputStream {
       def delegate(): OutputStream = tailerOut
     }),
     tailerRefreshIntervalMillis
   )
-  val stderrTailer = new FileToStreamTailer(
+  val stderrTailer = FileToStreamTailer(
     (daemonDir / DaemonFiles.stderr).toIO,
-    new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
+    PrintStream(new ThreadLocalStreams.ProxyOutputStream {
       def delegate(): OutputStream = tailerErr
     }),
     tailerRefreshIntervalMillis

@@ -116,8 +116,8 @@ object Dep {
         case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
         case Array("type", v) => as.withType(coursier.Type(v))
         case Array("exclude", s"${org}:${name}") => exclusions ++= Seq((org, name)); as
-        case Array(_, _) => throw new Exception(s"Unrecognized attribute: [$s]")
-        case _ => throw new Exception(s"Unable to parse attribute specifier: [$s]")
+        case Array(_, _) => throw Exception(s"Unrecognized attribute: [$s]")
+        case _ => throw Exception(s"Unable to parse attribute specifier: [$s]")
       }
     }
 
@@ -130,7 +130,7 @@ object Dep {
       case Array(a, "", b, "", c) => Dep(a, b, c, cross = Binary(platformed = true))
       case Array(a, "", "", b, c) => Dep(a, b, c, cross = Full(platformed = false))
       case Array(a, "", "", b, "", c) => Dep(a, b, c, cross = Full(platformed = true))
-      case _ => throw new Exception(s"Unable to parse signature: [$signature]")
+      case _ => throw Exception(s"Unable to parse signature: [$signature]")
     })
       .exclude(exclusions.sorted*)
       .configure(attributes = attributes)

@@ -92,10 +92,10 @@ object IvyTests extends TestSuite {
   }
 
   private def singleNode(seq: NodeSeq): Node =
-    seq.headOption.getOrElse(throw new RuntimeException("empty seq"))
+    seq.headOption.getOrElse(throw RuntimeException("empty seq"))
 
   private def mandatoryAttr(node: Node, attr: String): String =
-    optionalAttr(node, attr).getOrElse(throw new RuntimeException(s"empty attr $attr"))
+    optionalAttr(node, attr).getOrElse(throw RuntimeException(s"empty attr $attr"))
 
   private def optionalAttr(node: Node, attr: String): Option[String] = {
     node.attributes.asAttrMap.get(attr)

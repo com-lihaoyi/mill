@@ -22,9 +22,9 @@ class DoneMessageFailureFramework extends Framework {
         eventHandler.handle(new Event {
           override def fullyQualifiedName(): String = "foo.bar"
           override def fingerprint(): Fingerprint = new Fingerprint {}
-          override def selector(): Selector = new TestSelector("foo.bar")
+          override def selector(): Selector = TestSelector("foo.bar")
           override def status(): Status = Status.Failure
-          override def throwable(): OptionalThrowable = new OptionalThrowable()
+          override def throwable(): OptionalThrowable = OptionalThrowable()
           override def duration(): Long = 0L
         })
         Array.empty

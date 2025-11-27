@@ -34,8 +34,8 @@ object Utils {
     bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {
       case (module, targetId) =>
         val buildTarget = module.bspBuildTarget
-        val taskId = new TaskId(module.hashCode.toString)
-        new BspCompileProblemReporter(
+        val taskId = TaskId(module.hashCode.toString)
+        BspCompileProblemReporter(
           client,
           targetId,
           buildTarget.displayName.getOrElse(targetId.getUri),
@@ -62,12 +62,12 @@ object Utils {
       bt: BspBuildTarget,
       data: Option[(String, Object)]
   ): BuildTarget = {
-    val buildTarget = new BuildTarget(
+    val buildTarget = BuildTarget(
       id,
       bt.tags.asJava,
       bt.languageIds.asJava,
       depsIds.asJava,
-      new BuildTargetCapabilities().tap { it =>
+      BuildTargetCapabilities().tap { it =>
         it.setCanCompile(bt.canCompile)
         it.setCanTest(bt.canTest)
         it.setCanRun(bt.canRun)
@@ -92,7 +92,7 @@ object Utils {
 
     def outputPathItem(path: os.Path) =
       // Spec says, a directory must end with a forward slash
-      new OutputPathItem(sanitizeUri(path.toNIO) + "/", OutputPathItemKind.DIRECTORY)
+      OutputPathItem(sanitizeUri(path.toNIO) + "/", OutputPathItemKind.DIRECTORY)
 
     if (topLevelProjectRoot.startsWith(buildTargetBaseDir))
       Seq(

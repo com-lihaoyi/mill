@@ -182,7 +182,7 @@ trait VcsVersion extends Module {
             case s => Some(Integer.toHexString(s.hashCode))
           }
 
-        new VcsVersion.State(
+        VcsVersion.State(
           currentRevision = curHead.getOrElse(""),
           lastTag = lastTag,
           commitsSinceLastTag = commitsSinceLastTag,

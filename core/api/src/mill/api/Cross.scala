@@ -182,11 +182,11 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
       seen.get(crossSegments0) match {
         case None => // no collision
         case Some(other) => // collision
-          throw new mill.api.MillException(
+          throw mill.api.MillException(
             s"${ctx.fileName}: Cross module ${ctx.enclosing} contains colliding cross values: ${other} and ${crossValues0}"
           )
       }
-      val module0 = new Lazy(() =>
+      val module0 = Lazy(() =>
         make(
           ctx
             .withSegments(ctx.segments ++ Segment.Cross(crossSegments0))

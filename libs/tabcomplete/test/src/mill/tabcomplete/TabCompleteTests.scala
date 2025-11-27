@@ -33,15 +33,15 @@ object TabCompleteTests extends TestSuite {
   }
   override def tests: Tests = Tests {
 
-    val outStream = new ByteArrayOutputStream()
-    val errStream = new ByteArrayOutputStream()
+    val outStream = ByteArrayOutputStream()
+    val errStream = ByteArrayOutputStream()
 
     def evalComplete(s: String*) = {
       UnitTester(
         mainModule,
         null,
-        outStream = new PrintStream(outStream),
-        errStream = new PrintStream(errStream)
+        outStream = PrintStream(outStream),
+        errStream = PrintStream(errStream)
       ).scoped { tester =>
         os.write(tester.evaluator.workspace / "file1.txt", "")
         os.write(tester.evaluator.workspace / "file2.txt", "")

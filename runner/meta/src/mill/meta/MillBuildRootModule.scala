@@ -245,7 +245,7 @@ trait MillBuildRootModule()(using
           isCommand ||
           isMillDiscover
         },
-        logger = new mill.codesig.Logger(
+        logger = mill.codesig.Logger(
           Task.dest / "current",
           Option.when(debugEnabled)(Task.dest / "current")
         ),

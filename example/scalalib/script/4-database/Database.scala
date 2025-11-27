@@ -14,9 +14,9 @@ object ShippingInfo extends SimpleTable[ShippingInfo]
 
 def main(args: Array[String]): Unit = {
   // Initialize database
-  val dataSource = new org.sqlite.SQLiteDataSource()
+  val dataSource = org.sqlite.SQLiteDataSource()
   dataSource.setUrl(s"jdbc:sqlite:./file.db")
-  val sqliteClient = new scalasql.DbClient.DataSource(dataSource, config = new scalasql.Config {})
+  val sqliteClient = scalasql.DbClient.DataSource(dataSource, config = new scalasql.Config {})
 
   sqliteClient.transaction { db =>
     db.updateRaw(os.read(os.pwd / "sqlite-customers.sql")) // Populate database from SQL file

@@ -219,10 +219,10 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
           .toMap
 
         val buildCompileRes = buildServer
-          .buildTargetCompile(new b.CompileParams(List(targetsMap("mill-build")).asJava))
+          .buildTargetCompile(b.CompileParams(List(targetsMap("mill-build")).asJava))
           .get()
         val appCompileRes = buildServer
-          .buildTargetCompile(new b.CompileParams(List(targetsMap("app")).asJava))
+          .buildTargetCompile(b.CompileParams(List(targetsMap("app")).asJava))
           .get()
         assert(
           buildCompileRes.getStatusCode == b.StatusCode.ERROR,

@@ -135,10 +135,10 @@ class MillBuildBootstrap(
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
               mill.api.ExecResult.catchWrapException {
-                new MillBuildRootModule.BootstrapModule(
+                MillBuildRootModule.BootstrapModule(
                   (currentRoot / foundRootBuildFileName).toString
                 )(
-                  using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
+                  using RootModule.Info(currentRoot, output, topLevelProjectRoot)
                 )
               } match {
                 case Result.Success(bootstrapModule) =>
@@ -471,7 +471,7 @@ object MillBuildBootstrap {
       )
 
     val outPath = recOut(output, depth)
-    val baseLogger = new PrefixLogger(logger, bootLogPrefix)
+    val baseLogger = PrefixLogger(logger, bootLogPrefix)
     val cl = rootModule.getClass.getClassLoader
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")

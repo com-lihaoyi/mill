@@ -54,7 +54,7 @@ object MillScalaParserImpl extends MillScalaParser {
           ""
         case _ =>
           if (!trees.head.startPos.exists) ""
-          else new String(source.file.toByteArray).take(trees.head.startPos.start)
+          else String(source.file.toByteArray).take(trees.head.startPos.start)
       }
 
       (prefix, pkgs, stmts)

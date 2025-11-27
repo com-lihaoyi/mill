@@ -17,7 +17,7 @@ object AsmWorkerImpl {
     val millScriptMainClass = os.Path(classesDir) / "_MillScriptMain$.class"
 
     if (os.exists(millScriptMainClass)) {
-      val reader = new asm.ClassReader(os.read.bytes(millScriptMainClass))
+      val reader = asm.ClassReader(os.read.bytes(millScriptMainClass))
 
       val visitor = new asm.ClassVisitor(asm.Opcodes.ASM9) {
         override def visitMethod(
@@ -78,8 +78,8 @@ object AsmWorkerImpl {
         s"mill/script/asm/$templateClassName.class"
       )
     )
-    val reader = new asm.ClassReader(templateBytes)
-    val writer = new asm.ClassWriter(reader, 0)
+    val reader = asm.ClassReader(templateBytes)
+    val writer = asm.ClassWriter(reader, 0)
 
     val visitor = new asm.ClassVisitor(asm.Opcodes.ASM9, writer) {
       override def visit(

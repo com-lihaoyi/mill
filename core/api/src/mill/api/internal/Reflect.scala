@@ -133,7 +133,7 @@ private[mill] object Reflect {
         (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])
       case (name, m: java.lang.reflect.Field) =>
         (name, m.getType, (outer: Any) => m.get(outer).asInstanceOf[T])
-      case other => throw new IllegalArgumentException(s"Unexpected member: $other")
+      case other => throw IllegalArgumentException(s"Unexpected member: $other")
     }
   }
 

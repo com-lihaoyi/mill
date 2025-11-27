@@ -29,7 +29,7 @@ import scala.collection.mutable
 
 /** @param jobs number of parallel jobs */
 class ZincWorker(jobs: Int) extends AutoCloseable { self =>
-  private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
+  private val incrementalCompiler = sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, MemoryLock] = mutable.Map.empty
 
   private val classloaderCache = new RefCountedClassLoaderCache(
@@ -134,7 +134,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         /*filterLibrary*/ false
       )
 
-      val dummyFile = new java.io.File("")
+      val dummyFile = java.io.File("")
       // Zinc does not have an entry point for Java-only compilation, so we need
       // to make up a dummy ScalaCompiler instance.
       val scalac = ZincUtil.scalaCompiler(
@@ -379,7 +379,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       .toArray
 
     val incOptions = IncOptions.of().withAuxiliaryClassFiles(
-      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+      auxiliaryClassFileExtensions.map(AuxiliaryClassFileExtension(_)).toArray
     )
     val compileProgress = reporter.map { reporter =>
       new CompileProgress {
@@ -504,9 +504,9 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     // Use a double-lock here because we need mutex both between threads within this
     // process, as well as between different processes since sometimes we are initializing
     // the compiler bridge inside a separate `ZincWorkerMain` subprocess
-    val doubleLock = new DoubleLock(
+    val doubleLock = DoubleLock(
       memoryLock,
-      new FileLock(
+      FileLock(
         (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString
       )
     )

@@ -12,7 +12,7 @@ object NodeJs {
      * `source-map-support` module. We must therefore adapt the boolean to
      * one of the two last states.
      */
-    new org.scalajs.jsenv.nodejs.NodeJSEnv(
+    org.scalajs.jsenv.nodejs.NodeJSEnv(
       org.scalajs.jsenv.nodejs.NodeJSEnv.Config()
         .withExecutable(config.executable)
         .withArgs(config.args)

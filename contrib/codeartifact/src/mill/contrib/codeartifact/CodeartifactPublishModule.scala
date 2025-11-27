@@ -25,7 +25,7 @@ trait CodeartifactPublishModule extends PublishModule {
 
       val (artifacts, artifactInfo) = publishArtifacts().withConcretePath
 
-      new CodeartifactPublisher(
+      CodeartifactPublisher(
         codeartifactUri,
         codeartifactSnapshotUri,
         credentials,
@@ -47,7 +47,7 @@ object CodeartifactPublishModule extends ExternalModule {
   ) =
     Task.Command {
       val artifacts = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
-      new CodeartifactPublisher(
+      CodeartifactPublisher(
         codeartifactUri,
         codeartifactSnapshotUri,
         credentials,

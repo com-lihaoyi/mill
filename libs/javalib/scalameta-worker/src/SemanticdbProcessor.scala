@@ -111,7 +111,7 @@ object SemanticdbProcessor {
   private def md5(content: String): String = {
     val md = MessageDigest.getInstance("MD5")
     val digest = md.digest(content.getBytes(StandardCharsets.UTF_8))
-    val res = new BigInteger(1, digest).toString(16)
+    val res = BigInteger(1, digest).toString(16)
     if (res.length < 32)
       ("0" * (32 - res.length)) + res
     else

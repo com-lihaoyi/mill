@@ -132,7 +132,7 @@ object Discover {
                     m,
                     m.annotations
                       .find(_.tpe =:= TypeRepr.of[mainargs.main])
-                      .getOrElse('{ new mainargs.main() }.asTerm),
+                      .getOrElse('{ mainargs.main() }.asTerm),
                     m.paramSymss
                   ).asExprOf[mainargs.MainData[?, ?]]
                 catch {
@@ -155,9 +155,9 @@ object Discover {
           // the problem of generating a *huge* macro method body that finally exceeds the
           // JVM's maximum allowed method size
           '{
-            def func() = new ClassInfo(
+            def func() = ClassInfo(
               ${ Expr.ofList(entryPoints.toList) },
-              ${ Expr.ofList(names.map(s => '{ new TaskInfo(${ Expr(s) }) })) }
+              ${ Expr.ofList(names.map(s => '{ TaskInfo(${ Expr(s) }) })) }
             )
 
             (${ classOf(cls) }, func())

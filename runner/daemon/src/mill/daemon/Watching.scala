@@ -90,7 +90,7 @@ object Watching {
             watchArgs.setIdle(false)
           }
         }
-        throw new IllegalStateException("unreachable")
+        throw IllegalStateException("unreachable")
     }
   }
 

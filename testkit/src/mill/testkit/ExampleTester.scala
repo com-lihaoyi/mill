@@ -63,7 +63,7 @@ object ExampleTester {
       bashExecutable: String = defaultBashExecutable(),
       workspacePath: os.Path = os.pwd
   ): os.Path = {
-    val tester = new ExampleTester(
+    val tester = ExampleTester(
       daemonMode,
       workspaceSourcePath,
       millExecutable,

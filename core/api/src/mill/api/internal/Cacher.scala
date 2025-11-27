@@ -79,6 +79,6 @@ private[mill] object Cacher {
     ) {
       report.errorAndAbort(errorMessage, Position.ofMacroExpansion)
       // Use a runtime exception to prevent false error highlighting in IntelliJ
-    } else '{ throw new Exception(${ Expr(errorMessage) }) }
+    } else '{ throw Exception(${ Expr(errorMessage) }) }
   }
 }

@@ -210,7 +210,7 @@ object SelectiveExecutionImpl {
 
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>
-          val ctx = new mill.api.TaskCtx.Impl(
+          val ctx = mill.api.TaskCtx.Impl(
             args = Vector(),
             dest0 = () => null,
             log = evaluator.baseLogger,
@@ -234,7 +234,7 @@ object SelectiveExecutionImpl {
         case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
       }
       SelectiveExecution.Metadata.Computed(
-        new SelectiveExecution.Metadata(
+        SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
           for {

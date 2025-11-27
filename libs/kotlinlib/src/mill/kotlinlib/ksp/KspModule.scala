@@ -152,7 +152,7 @@ trait KspModule extends KotlinModule { outer =>
    */
   def ksp1KotlincOptions: T[Seq[String]] = Task {
     if (!kspLanguageVersion().startsWith("1.")) {
-      throw new RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
+      throw RuntimeException("KSP needs a compatible language version <= 1.9 to be set!")
     }
     kotlincOptions() ++ Seq(
       "-Xallow-unstable-dependencies",

@@ -41,7 +41,7 @@ object Hello {
   }
 
   def manualIterator3(n: Int): Int = {
-    val iter = new SingletonBigTestIterator(n).filter(_ % 2 == 0)
+    val iter = SingletonBigTestIterator(n).filter(_ % 2 == 0)
     if (iter.hasNext) iter.next()
     else n
   }

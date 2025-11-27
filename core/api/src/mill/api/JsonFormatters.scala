@@ -41,7 +41,7 @@ trait JsonFormatters {
   implicit val nioPathRW: RW[java.nio.file.Path] = upickle.readwriter[String]
     .bimap[java.nio.file.Path](
       _.toUri().toString(),
-      s => java.nio.file.Path.of(new java.net.URI(s))
+      s => java.nio.file.Path.of(java.net.URI(s))
     )
 
   implicit val regexReadWrite: RW[Regex] = upickle.readwriter[String]
@@ -53,7 +53,7 @@ trait JsonFormatters {
   implicit val bytesReadWrite: RW[geny.Bytes] = upickle.readwriter[String]
     .bimap(
       o => java.util.Base64.getEncoder.encodeToString(o.array),
-      str => new geny.Bytes(java.util.Base64.getDecoder.decode(str))
+      str => geny.Bytes(java.util.Base64.getDecoder.decode(str))
     )
 
   implicit val crFormat: RW[os.CommandResult] = upickle.macroRW
@@ -68,7 +68,7 @@ trait JsonFormatters {
           "lineNumber" -> ujson.Num(ste.getLineNumber)
         ),
       json =>
-        new StackTraceElement(
+        StackTraceElement(
           json("declaringClass").str.toString,
           json("methodName").str.toString,
           json("fileName").arr.headOption.map(_.str.toString).orNull,

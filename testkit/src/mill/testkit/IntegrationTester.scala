@@ -226,14 +226,14 @@ object IntegrationTester {
       val actualStdout = Option(stdout).getOrElse(
         os.ProcessOutput.ReadBytes { (arr, n) =>
           System.out.write(arr, 0, n)
-          chunks.synchronized { chunks += Left(new geny.Bytes(arr.take(n))) }
+          chunks.synchronized { chunks += Left(geny.Bytes(arr.take(n))) }
         }
       )
 
       val actualStderr = Option(stderr).getOrElse(
         os.ProcessOutput.ReadBytes { (arr, n) =>
           System.err.write(arr, 0, n)
-          chunks.synchronized { chunks += Right(new geny.Bytes(arr.take(n))) }
+          chunks.synchronized { chunks += Right(geny.Bytes(arr.take(n))) }
         }
       )
 
@@ -251,7 +251,7 @@ object IntegrationTester {
         timeoutGracePeriod = timeoutGracePeriod
       ).spawn()
 
-      new IntegrationTester.SpawnedProcess(process, chunks)
+      IntegrationTester.SpawnedProcess(process, chunks)
     }
 
     /**
@@ -292,7 +292,7 @@ object IntegrationTester {
      * Helpers to read the `.json` metadata files belonging to a particular task
      * (specified by [[selector0]]) from the `out/` folder.
      */
-    def out(selector0: String): Meta = new Meta(selector0)
+    def out(selector0: String): Meta = Meta(selector0)
 
     class Meta(selector0: String) {
 

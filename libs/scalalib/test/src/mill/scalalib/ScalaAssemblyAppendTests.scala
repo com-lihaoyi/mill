@@ -15,7 +15,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
       UnitTester(module, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(task): @unchecked
 
-        Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+        Using.resource(JarFile(result.value.path.toIO)) { jarFile =>
           assert(jarEntries(jarFile).contains("reference.conf"))
 
           val referenceContent = readFileFromJar(jarFile, "reference.conf")
@@ -44,7 +44,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
     ).scoped { eval =>
       val Right(result) = eval.apply(task): @unchecked
 
-      Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+      Using.resource(JarFile(result.value.path.toIO)) { jarFile =>
         assert(jarEntries(jarFile).contains("reference.conf"))
 
         val referenceContent = readFileFromJar(jarFile, "reference.conf")
@@ -70,7 +70,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
     ).scoped { eval =>
       val Right(result) = eval.apply(task): @unchecked
 
-      Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+      Using.resource(JarFile(result.value.path.toIO)) { jarFile =>
         assert(jarEntries(jarFile).contains("without-new-line.conf"))
 
         val result = readFileFromJar(jarFile, "without-new-line.conf").split('\n').toSet

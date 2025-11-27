@@ -22,7 +22,7 @@ object ScalafmtWorkerModule extends ExternalModule with JavaModule {
     mill.util.Jvm.createClassLoader(scalafmtClasspath().map(_.path))
   }
 
-  def worker: Worker[ScalafmtWorker] = Task.Worker { new ScalafmtWorker(scalafmtClassLoader()) }
+  def worker: Worker[ScalafmtWorker] = Task.Worker { ScalafmtWorker(scalafmtClassLoader()) }
 
   lazy val millDiscover = Discover[this.type]
 }

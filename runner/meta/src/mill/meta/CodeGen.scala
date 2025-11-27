@@ -400,7 +400,7 @@ object CodeGen {
         newScriptCode = objectData.parent.applyTo(
           newScriptCode,
           if (objectData.parent.text == null) {
-            throw new Result.Exception(
+            throw Result.Exception(
               s"object `package` in ${scriptPath.relativeTo(millTopLevelProjectRoot)} " +
                 s"must extend a subclass of `$expectedModuleMsg`"
             )

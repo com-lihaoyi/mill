@@ -164,7 +164,7 @@ object ModuleTests extends TestSuite {
   val tests = Tests {
     test("cross") {
       test("single") {
-        val check = new Checker(singleCross)
+        val check = Checker(singleCross)
         test("pos1") - check(
           "cross[210].suffix",
           Result.Success(Set(_.cross("210").suffix)),
@@ -235,7 +235,7 @@ object ModuleTests extends TestSuite {
         )
       }
       test("double") {
-        val check = new Checker(doubleCross)
+        val check = Checker(doubleCross)
         test("pos1") - check(
           "cross[210,jvm].suffix",
           Result.Success(Set(_.cross("210", "jvm").suffix)),
@@ -383,7 +383,7 @@ object ModuleTests extends TestSuite {
         }
       }
       test("nested") {
-        val check = new Checker(nestedCrosses)
+        val check = Checker(nestedCrosses)
         test("pos1") - check(
           "cross[210].cross2[js].suffix",
           Result.Success(Set(_.cross("210").cross2("js").suffix)),
@@ -464,7 +464,7 @@ object ModuleTests extends TestSuite {
       }
 
       test("nestedCrossTaskModule") {
-        val check = new Checker(nestedTaskCrosses)
+        val check = Checker(nestedTaskCrosses)
         test("pos1") - check.checkSeq(
           Seq("cross1[210].cross2[js].suffixCmd"),
           Result.Success(Set(_.cross1("210").cross2("js").suffixCmd())),
@@ -499,7 +499,7 @@ object ModuleTests extends TestSuite {
     }
 
     test("duplicate") {
-      val check = new Checker(duplicates)
+      val check = Checker(duplicates)
 
       def segments(
           found: Result[List[Task.Named[?]]],
@@ -560,7 +560,7 @@ object ModuleTests extends TestSuite {
     }
 
     test("overriddenModule") {
-      val check = new Checker(overrideModule)
+      val check = Checker(overrideModule)
       test - check(
         "sub.inner.subTask",
         Result.Success(Set(_.sub.inner.subTask)),
@@ -573,7 +573,7 @@ object ModuleTests extends TestSuite {
       )
     }
     test("dynamicModule") {
-      val check = new Checker(dynamicModule)
+      val check = Checker(dynamicModule)
       test - check(
         "normal.inner.task",
         Result.Success(Set(_.normal.inner.task)),
@@ -612,7 +612,7 @@ object ModuleTests extends TestSuite {
       )
     }
     test("abstractModule") {
-      val check = new Checker(AbstractModule)
+      val check = Checker(AbstractModule)
       test - check(
         "__",
         Result.Success(Set(_.concrete.tests.inner.foo, _.concrete.tests.inner.innerer.bar))

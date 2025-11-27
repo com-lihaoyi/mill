@@ -57,7 +57,7 @@ class SonatypePublisher(
     stagingRelease = stagingRelease
   )
 
-  private val api = new SonatypeHttpApi(
+  private val api = SonatypeHttpApi(
     uri,
     credentials,
     readTimeout = readTimeout,
@@ -175,7 +175,7 @@ class SonatypePublisher(
       val errors = publishResults.filterNot(_.is2xx).map { response =>
         s"Code: ${response.statusCode}, message: ${response.text()}"
       }
-      throw new RuntimeException(
+      throw RuntimeException(
         s"Failed to publish ${artifacts.map(_.id).mkString(", ")} to Sonatype. Errors: \n${errors.mkString("\n")}"
       )
     }
@@ -191,7 +191,7 @@ class SonatypePublisher(
       Thread.sleep(3000)
       attemptsLeft -= 1
       if (attemptsLeft == 0) {
-        throw new RuntimeException(
+        throw RuntimeException(
           s"Couldn't wait for staging repository to be ${status}. Failing"
         )
       }
