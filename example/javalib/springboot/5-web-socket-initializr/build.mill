@@ -1,4 +1,3 @@
-
 /** See Also: build.mill.yaml */
 
 // This example demonstrates how to configure mill for a Websocket server using Spring Ractive Web via

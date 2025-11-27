@@ -7,24 +7,25 @@
 == Spring Boot Hello World App
 
 include::partial$example/javalib/springboot/1-hello-spring-boot.adoc[]
+include::partial$example/javalib/springboot/2-hello-spring-boot-programmatic.adoc[]
 
 
 == Spring Boot TodoMvc App
 
 
-include::partial$example/javalib/springboot/2-todo-spring-boot.adoc[]
+include::partial$example/javalib/springboot/3-todo-spring-boot.adoc[]
 
 == Spring Boot Web with Initializr
 
-include::partial$example/javalib/springboot/3-web-initializr.adoc[]
+include::partial$example/javalib/springboot/4-web-initializr.adoc[]
 
 == Spring Reactive Web, Websocket example with Initializr
 
-include::partial$example/javalib/springboot/4-web-socket-initializr.adoc[]
+include::partial$example/javalib/springboot/5-web-socket-initializr.adoc[]
 
 == Spring Boot with AOT processing and Native Image Support
 
-include::partial$example/javalib/springboot/5-native.adoc[]
+include::partial$example/javalib/springboot/6-native.adoc[]
 
 // Include this header in the entry page for the language-specific Spring Framework / Spring Boot page
 
