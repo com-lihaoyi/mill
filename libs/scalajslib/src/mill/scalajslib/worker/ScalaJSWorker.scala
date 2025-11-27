@@ -11,7 +11,6 @@ import mill.util.CachedFactory
 
 import java.io.File
 import java.net.URLClassLoader
-import java.util.concurrent.Semaphore
 
 @internal
 private[scalajslib] class ScalaJSWorker(jobs: Int, linkerJobs: Int)
