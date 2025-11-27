@@ -39,8 +39,9 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[IncompatibleMethTypeProblem](
       "mill.javalib.SonatypeCentralPublisher.publishAll"
     ),
-    ProblemFilter.exclude[IncompatibleMethTypeProblem]("mill.javalib.SonatypeCentralPublisher.publishAllByMap")
-
+    ProblemFilter.exclude[IncompatibleMethTypeProblem](
+      "mill.javalib.SonatypeCentralPublisher.publishAllByMap"
+    )
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
