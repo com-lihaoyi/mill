@@ -204,7 +204,7 @@ ${expectedSnippets.mkString("\n")}
         )
         .toVector
 
-    val filteredOut = plainTextLines(evalResult.out).mkString("\n")
+    val filteredOut = plainTextLines(evalResult.result.out.text()).mkString("\n")
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
       Predef.assert(
