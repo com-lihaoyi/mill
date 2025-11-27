@@ -157,7 +157,7 @@ ${expectedSnippets.mkString("\n")}
 
       validateEval(
         expectedSnippets,
-        res,
+        IntegrationTester.EvalResult(res),
         check,
         debugCommandStr
       )
@@ -175,7 +175,7 @@ ${expectedSnippets.mkString("\n")}
 
   def validateEval(
       expectedSnippets: Vector[String],
-      evalResult: os.CommandResult,
+      evalResult: IntegrationTester.EvalResult,
       check: Boolean = true,
       command: String = ""
   ): Unit = {
@@ -204,7 +204,7 @@ ${expectedSnippets.mkString("\n")}
         )
         .toVector
 
-    val filteredOut = plainTextLines(evalResult.out.text()).mkString("\n")
+    val filteredOut = plainTextLines(evalResult.result.out.text()).mkString("\n")
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
       Predef.assert(
