@@ -2,7 +2,7 @@ package mill.scalajslib.worker
 
 import mill.*
 import mill.scalajslib.api
-import mill.scalajslib.worker.{api => workerApi}
+import mill.scalajslib.worker.api as workerApi
 import mill.api.TaskCtx
 import mill.api.Result
 import mill.api.daemon.internal.internal
@@ -11,9 +11,10 @@ import mill.util.CachedFactory
 
 import java.io.File
 import java.net.URLClassLoader
+import java.util.concurrent.Semaphore
 
 @internal
-private[scalajslib] class ScalaJSWorker(jobs: Int)
+private[scalajslib] class ScalaJSWorker(jobs: Int, linkerJobs: Int)
     extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
 
   override def setup(key: Seq[PathRef]) = {
@@ -190,6 +191,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     }
   }
 
+  private val linkerJobLimiter = ParallelismLimiter(linkerJobs)
+
   def link(
       toolsClasspath: Seq[mill.PathRef],
       runClasspath: Seq[mill.PathRef],
@@ -207,7 +210,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       minify: Boolean,
       importMap: Seq[api.ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
-  ): Result[api.Report] = {
+  ): Result[api.Report] = linkerJobLimiter.runLimited {
     withValue(toolsClasspath) { case (_, bridge) =>
       bridge.link(
         runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
@@ -258,7 +261,11 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
 @internal
 private[scalajslib] object ScalaJSWorkerExternalModule extends mill.api.ExternalModule {
 
-  def scalaJSWorker: Worker[ScalaJSWorker] =
-    Task.Worker { new ScalaJSWorker(Task.ctx().jobs) }
+  def scalaJSWorker: Worker[ScalaJSWorker] = Task.Worker {
+    new ScalaJSWorker(
+      jobs = Task.ctx().jobs,
+      linkerJobs = 2
+    )
+  }
   lazy val millDiscover = Discover[this.type]
 }
