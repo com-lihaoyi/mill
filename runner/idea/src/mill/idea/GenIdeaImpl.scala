@@ -621,7 +621,7 @@ class GenIdeaImpl(
             UnprefixedAttribute(k, v, prevAttr)
         }
 
-    Elem(
+    new Elem(
       prefix = null,
       label = element.name,
       attributes1 = attribute1,

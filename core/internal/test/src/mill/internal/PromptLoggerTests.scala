@@ -11,7 +11,7 @@ object PromptLoggerTests extends TestSuite {
     val baos = ByteArrayOutputStream()
     val baosOut = PrintStream(ProxyStream.Output(baos, ProxyStream.OUT))
     val baosErr = PrintStream(ProxyStream.Output(baos, ProxyStream.ERR))
-    val promptLogger = PromptLogger(
+    val promptLogger = new PromptLogger(
       colored = false,
       enableTicker = true,
       infoColor = fansi.Attrs.Empty,

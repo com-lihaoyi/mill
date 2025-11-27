@@ -100,7 +100,7 @@ object ClientServerTests extends TestSuite {
       val out = ByteArrayOutputStream()
       val err = ByteArrayOutputStream()
       val daemonDir = outDir / "server-0"
-      val result = MillServerLauncher(
+      val result = new MillServerLauncher(
         ServerLauncher.Streams(in, out, err),
         env.asJava,
         args,

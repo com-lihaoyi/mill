@@ -981,7 +981,7 @@ private class MillBuildServer(
       client,
       requestCount0,
       PrefixLogger(
-        ProxyLogger(baseLogger) {
+        new ProxyLogger(baseLogger) {
           override def logKey: Seq[String] = {
             val logKey0 = super.logKey
             if (logKey0.startsWith(Seq("bsp"))) logKey0.drop(1)

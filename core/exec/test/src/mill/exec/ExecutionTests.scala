@@ -58,14 +58,14 @@ object ExecutionTests extends TestSuite {
     import TestGraphs._
     import utest._
     test("single") {
-      val checker = Checker(singleton)
+      val checker = new Checker(singleton)
       checker(singleton.single, 123, Seq(singleton.single), extraEvaled = -1)
       checker(singleton.single, 123, Seq(), extraEvaled = -1)
     }
 
     test("source") {
       val build = sourceBuild
-      val checker = Checker(build)
+      val checker = new Checker(build)
 
       os.write(build.moduleDir / "hello/world.txt", "i am cow", createFolders = true)
       checker(
@@ -101,7 +101,7 @@ object ExecutionTests extends TestSuite {
     }
     test("sources") {
       val build = sourcesBuild
-      val checker = Checker(build)
+      val checker = new Checker(build)
 
       os.write(build.moduleDir / "hello/world.txt", "i am cow ", createFolders = true)
       os.write(build.moduleDir / "hello/world2.txt", "hear me moo ", createFolders = true)
@@ -147,7 +147,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
 
-      val checker = Checker(build)
+      val checker = new Checker(build)
       checker(build.task, 11, Seq(build.input, build.task), extraEvaled = -1, secondRunNoOp = false)
       checker(build.task, 11, Seq(build.input), extraEvaled = -1, secondRunNoOp = false)
 
@@ -176,7 +176,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
 
-      val checker = Checker(build)
+      val checker = new Checker(build)
       checker(
         build.task2,
         "hello10",
@@ -211,7 +211,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
 
-      val checker = Checker(build)
+      val checker = new Checker(build)
       checker(
         build.task2,
         "hello10",
@@ -367,7 +367,7 @@ object ExecutionTests extends TestSuite {
     test("triangleTask") {
 
       import triangleTask._
-      val checker = Checker(triangleTask)
+      val checker = new Checker(triangleTask)
       checker(right, 3, Seq(left, right), extraEvaled = -1)
       checker(left, 1, Seq(), extraEvaled = -1)
 
@@ -375,7 +375,7 @@ object ExecutionTests extends TestSuite {
     test("multiTerminalGroup") {
       import multiTerminalGroup._
 
-      val checker = Checker(multiTerminalGroup)
+      val checker = new Checker(multiTerminalGroup)
       checker(right, 1, Seq(right), extraEvaled = -1)
       checker(left, 1, Seq(left), extraEvaled = -1)
     }
@@ -384,7 +384,7 @@ object ExecutionTests extends TestSuite {
 
       import multiTerminalBoundary._
 
-      val checker = Checker(multiTerminalBoundary)
+      val checker = new Checker(multiTerminalBoundary)
       checker(task2, 4, Seq(right, left), extraEvaled = -1, secondRunNoOp = false)
       checker(task2, 4, Seq(), extraEvaled = -1, secondRunNoOp = false)
     }
@@ -410,7 +410,7 @@ object ExecutionTests extends TestSuite {
       }
 
       import nullTasks._
-      val checker = Checker(nullTasks)
+      val checker = new Checker(nullTasks)
       checker(nullTask1, null, Seq(nullTask1), extraEvaled = -1)
       checker(nullTask1, null, Seq(), extraEvaled = -1)
       checker(nullTask2, null, Seq(nullTask2), extraEvaled = -1)
