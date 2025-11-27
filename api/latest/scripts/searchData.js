@@ -4887,7 +4887,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/testkit/ExampleTester.html#processCommandBlock-571","e":false,"i":"","n":"processCommandBlock","t":"processCommandBlock(commandBlock: String): Unit","d":"mill.testkit.ExampleTester","k":"def","x":""},
 {"l":"mill/testkit/ExampleTester.html#propagateJavaHome-0","e":false,"i":"","n":"propagateJavaHome","t":"propagateJavaHome: Boolean","d":"mill.testkit.ExampleTester","k":"val","x":""},
 {"l":"mill/testkit/ExampleTester.html#run-94c","e":false,"i":"","n":"run","t":"run(): Unit","d":"mill.testkit.ExampleTester","k":"def","x":""},
-{"l":"mill/testkit/ExampleTester.html#validateEval-fffffc9c","e":false,"i":"","n":"validateEval","t":"validateEval(expectedSnippets: Vector[String], evalResult: CommandResult, check: Boolean = ..., command: String = ...): Unit","d":"mill.testkit.ExampleTester","k":"def","x":""},
+{"l":"mill/testkit/ExampleTester.html#validateEval-fffff520","e":false,"i":"","n":"validateEval","t":"validateEval(expectedSnippets: Vector[String], evalResult: EvalResult, check: Boolean = ..., command: String = ...): Unit","d":"mill.testkit.ExampleTester","k":"def","x":""},
 {"l":"mill/testkit/ExampleTester.html#workspaceSourcePath-0","e":false,"i":"","n":"workspaceSourcePath","t":"workspaceSourcePath: Path","d":"mill.testkit.ExampleTester","k":"val","x":""},
 {"l":"mill/testkit/IntegrationTestSuite.html#","e":false,"i":"","n":"IntegrationTestSuite","t":"IntegrationTestSuite","d":"mill.testkit","k":"trait","x":""},
 {"l":"mill/testkit/IntegrationTestSuite.html#cleanupProcessIdFile-0","e":false,"i":"","n":"cleanupProcessIdFile","t":"cleanupProcessIdFile: Boolean","d":"mill.testkit.IntegrationTestSuite","k":"def","x":""},
