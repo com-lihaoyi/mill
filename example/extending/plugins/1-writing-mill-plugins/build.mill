@@ -51,7 +51,7 @@ object myplugin extends ScalaModule, PublishModule {
 // so a plugin published for a particular version of Mill will work on _newer_ versions of Mill,
 // but not _older_ versions. Thus when publishing plugins it is usually best to publish for as
 // old a 1.x version of Mill as you can, to ensure maximal compatibility with downstream projects.
-// In this example, we publish for Mill-1.0.0/Scala-3.7.4/JDK11, even though our plugins own build
+// In this example, we publish for Mill-1.0.6/Scala-3.7.4/JDK11, even though our plugins own build
 // may be on a version of Mill 1.1.0 or later.
 
 // == Plugin Implementation
