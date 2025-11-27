@@ -6,10 +6,9 @@
 
 package build
 import mill.*, scalalib.*, publish.*
-import mill.util.BuildInfo.millBinPlatform
 
 object myplugin extends ScalaModule, PublishModule {
-  def millVersion = "1.0.0"
+  def millVersion = "1.0.6"
 
   def scalaVersion = "3.7.4"
 
