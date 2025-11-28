@@ -4,7 +4,7 @@ import mill.*, pythonlib.*
 object foo extends PythonModule {
 
   def mainScript = Task.Source("src/foo.py")
-  def pythonDeps = Seq("pyspark==3.5.4")
+  def pythonDeps = Seq("pyspark==3.5.7")
 
   object test extends PythonTests, TestModule.Unittest
 
