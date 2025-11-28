@@ -363,6 +363,7 @@ ${lines.mkString("\n")}
         replaceExisting = true
       )
       os.remove.all(Task.dest / ".mill-version")
+      os.remove.all(Task.dest / ".mill-jvm-version")
 
       PathRef(Task.dest)
     }

@@ -1,2 +1,4 @@
 //| invalidKey: lols
+//| mvnDep: lols
+//| mill-jm-version: lols
 package build

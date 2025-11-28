@@ -5,7 +5,7 @@ import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.{BomDependency, Dependency, Repository}
+import coursier.{BomDependency, Dependency, Fetch, Repository}
 import mill.api.{ModuleRef, PathRef, Result, Task}
 import mill.util.Jvm
 import mill.T
@@ -290,6 +290,27 @@ object CoursierModule {
         ctx = Some(ctx),
         resolutionParams = resolutionParams,
         boms = boms,
+        checkGradleModules = checkGradleModules,
+        config = config
+      ).get
+    }
+
+    /**
+     * Raw artifact & project information results for the passed dependencies
+     */
+    def fetchArtifacts[T: CoursierModule.Resolvable](
+        deps: IterableOnce[T],
+        sources: Boolean = false
+    )(implicit ctx: mill.api.TaskCtx): Fetch.Result = {
+      val deps0 = deps
+        .iterator
+        .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
+        .toSeq
+      Jvm.fetchArtifacts(
+        repositories,
+        deps0.map(_.dep),
+        sources = sources,
+        ctx = Some(ctx),
         checkGradleModules = checkGradleModules,
         config = config
       ).get

@@ -1,6 +1,7 @@
 package mill.javalib.api
 
 import mill.api.PathRef
+import mill.api.daemon.Result
 import mill.api.daemon.internal.CompileProblemReporter
 
 import scala.annotation.nowarn
@@ -21,7 +22,7 @@ trait JvmWorkerApi {
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       workDir: os.Path
-  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult] =
+  )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
     // default-impl for bin-compat
     compileJava(
       upstreamCompileOutput = upstreamCompileOutput,
@@ -46,12 +47,13 @@ trait JvmWorkerApi {
       scalacOptions: Seq[String],
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
       workDir: os.Path
-  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult] =
+  )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
     // default-impl for bin-compat
     compileMixed(
       upstreamCompileOutput = upstreamCompileOutput,
@@ -76,6 +78,7 @@ trait JvmWorkerApi {
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       javaHome: Option[os.Path],
       args: Seq[String],
       workDir: os.Path
@@ -101,7 +104,7 @@ trait JvmWorkerApi {
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult] =
+  )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
     compileJava(
       upstreamCompileOutput = upstreamCompileOutput,
       sources = sources,
@@ -129,7 +132,7 @@ trait JvmWorkerApi {
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
-  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult] =
+  )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
     compileMixed(
       upstreamCompileOutput = upstreamCompileOutput,
       sources = sources,
@@ -141,6 +144,7 @@ trait JvmWorkerApi {
       scalacOptions = scalacOptions,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
+      compilerBridgeOpt = None,
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
       incrementalCompilation = incrementalCompilation,
@@ -161,6 +165,7 @@ trait JvmWorkerApi {
       scalaOrganization = scalaOrganization,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
+      compilerBridgeOpt = None,
       javaHome = javaHome,
       args = args,
       workDir = ctx.dest

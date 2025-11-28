@@ -71,8 +71,12 @@ object `package` extends MillStableScalaModule with BuildInfo {
       Deps.scala2Version,
       "Scala 2.13 version used by some workers."
     ),
-    BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value(
+      "scalaVersion",
+      Deps.scalaVersion,
+      "Scala version used to compile build.mill files"
+    ),
     BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version.")
   )
 }

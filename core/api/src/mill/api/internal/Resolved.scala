@@ -9,10 +9,12 @@ private[mill] sealed trait Resolved {
    * What segments selector was used to resolve this root module. Might not be
    * `rootModule.moduleSegments` as it might be an alias that we want to preserve
    */
-  def rootModuleSegments: Segments
+  def rootModulePrefix: String
   def taskSegments: Segments
   def cls: Class[?]
-  def fullSegments: Segments = rootModuleSegments ++ taskSegments
+  def fullSegments: Segments =
+    (if (rootModulePrefix.isEmpty) Segments() else Segments.labels(rootModulePrefix)) ++
+      taskSegments
 }
 
 private[mill] object Resolved {
@@ -33,19 +35,19 @@ private[mill] object Resolved {
 
   case class Module(
       rootModule: RootModule0,
-      rootModuleSegments: Segments,
+      rootModulePrefix: String,
       taskSegments: Segments,
       cls: Class[?]
   ) extends Resolved
   case class Command(
       rootModule: RootModule0,
-      rootModuleSegments: Segments,
+      rootModulePrefix: String,
       taskSegments: Segments,
       cls: Class[?]
   ) extends Resolved
   case class NamedTask(
       rootModule: RootModule0,
-      rootModuleSegments: Segments,
+      rootModulePrefix: String,
       taskSegments: Segments,
       cls: Class[?]
   ) extends Resolved

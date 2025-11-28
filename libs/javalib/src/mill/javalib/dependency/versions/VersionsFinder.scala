@@ -60,17 +60,20 @@ private[dependency] object VersionsFinder {
       )
 
       val bindDependency = javaModule.bindDependency()
-      val deps = javaModule.mvnDeps()
-      val compileMvnDeps = javaModule.compileMvnDeps()
-      val runMvnDeps = javaModule.runMvnDeps()
+      val deps = javaModule.mvnDeps().filterNot(_.version.isEmpty)
+      val compileMvnDeps = javaModule.compileMvnDeps().filterNot(_.version.isEmpty)
+      val runMvnDeps = javaModule.runMvnDeps().filterNot(_.version.isEmpty)
+      val bomMvnDeps = javaModule.bomMvnDeps()
+
       val repos = javaModule.repositoriesTask()
       val mapDeps = javaModule.mapDependencies()
       val custom = javaModule.resolutionCustomizer()
       val cacheCustom = javaModule.coursierCacheCustomizer()
+      val resolutionParams = javaModule.resolutionParams()
 
       val metadataLoaders = repos.flatMap(MetadataLoaderFactory(_, offline, clock))
 
-      val dependencies = (deps ++ compileMvnDeps ++ runMvnDeps)
+      val dependencies = (deps ++ compileMvnDeps ++ runMvnDeps ++ bomMvnDeps)
         .map(bindDependency)
         .iterator
         .toSeq
@@ -82,7 +85,7 @@ private[dependency] object VersionsFinder {
         customizer = custom,
         ctx = Option(Task.ctx()),
         coursierCacheCustomizer = cacheCustom,
-        resolutionParams = coursier.params.ResolutionParams(),
+        resolutionParams = resolutionParams,
         boms = Nil,
         checkGradleModules = javaModule.checkGradleModules(),
         config = coursierConfigModule.coursierConfig()

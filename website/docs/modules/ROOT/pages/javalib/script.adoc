@@ -47,3 +47,7 @@ include::partial$example/javalib/script/9-programmatic-module-deps.adoc[]
 include::partial$example/javalib/script/10-resources.adoc[]
 
 include::partial$Script_Footer.adoc[]
+
+== Custom JVM Versions
+
+include::partial$example/javalib/script/11-jvm-version.adoc[]

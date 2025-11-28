@@ -1,6 +1,7 @@
 package mill.javalib.api.internal
 
-import mill.api.{PathRef, Result}
+import mill.api.PathRef
+import mill.api.daemon.Result
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
@@ -60,6 +61,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
       scalacOptions: Seq[String],
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
@@ -78,6 +80,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
         scalacOptions = scalacOptions,
         compilerClasspath = compilerClasspath,
         scalacPluginClasspath = scalacPluginClasspath,
+        compilerBridgeOpt = compilerBridgeOpt,
         incrementalCompilation = incrementalCompilation,
         auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
         workDir = workDir
@@ -95,6 +98,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       javaHome: Option[Path],
       args: Seq[String],
       workDir: os.Path
@@ -105,6 +109,7 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
         scalaOrganization = scalaOrganization,
         compilerClasspath = compilerClasspath,
         scalacPluginClasspath = scalacPluginClasspath,
+        compilerBridgeOpt = compilerBridgeOpt,
         args = args,
         workDir = workDir
       ),

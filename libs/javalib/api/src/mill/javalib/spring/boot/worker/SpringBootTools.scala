@@ -2,7 +2,7 @@ package mill.javalib.spring.boot.worker
 
 import mill.api.TaskCtx
 
-@mill.api.experimental
+@mill.api.daemon.experimental
 trait SpringBootTools extends AutoCloseable {
   def repackageJar(
       dest: os.Path,
