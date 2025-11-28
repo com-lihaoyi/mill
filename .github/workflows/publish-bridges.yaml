@@ -29,7 +29,7 @@ jobs:
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
       MILL_COMPILER_BRIDGE_VERSIONS: ${{ inputs.bridge_versions }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
 
       - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts bridge.__.publishArtifacts
