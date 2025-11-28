@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
-import mill.constants.OutFiles.millProfile
+import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{JsonArrayLogger, PrefixLogger}
 

@@ -1,7 +1,7 @@
 package mill.javalib.spotless
 
 import mainargs.Flag
-import mill.constants.OutFiles.{out, bspOut}
+import mill.constants.OutFiles.OutFiles.{out, bspOut}
 import mill.api.*
 import mill.api.internal.RootModule0
 import mill.javalib.{CoursierModule, Dep, OfflineSupportModule}

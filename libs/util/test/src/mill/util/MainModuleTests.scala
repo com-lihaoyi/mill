@@ -1,7 +1,8 @@
 package mill.util
 
 import mill.api.{ExecResult, Result, Val}
-import mill.constants.{OutFiles, OutFolderMode}
+import mill.constants.{OutFolderMode}
+import mill.constants.OutFiles.OutFiles
 import mill.{Task, given}
 import mill.api.{Cross, DefaultTaskModule, Discover, Module, PathRef}
 import mill.testkit.UnitTester

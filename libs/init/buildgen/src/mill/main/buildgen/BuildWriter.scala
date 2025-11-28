@@ -1,7 +1,7 @@
 package mill.main.buildgen
 
 import mill.constants.CodeGenConstants.rootModuleAlias
-import mill.constants.OutFiles.millBuild
+import mill.constants.OutFiles.OutFiles.millBuild
 import mill.init.Util.buildFiles
 import mill.internal.Util.backtickWrap
 import mill.main.buildgen.ModuleConfig.*

@@ -6,7 +6,7 @@ import mill.*
 import mill.api.Result
 import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
-import mill.constants.OutFiles.*
+import mill.constants.OutFiles.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}

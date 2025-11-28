@@ -1,6 +1,7 @@
 package mill.daemon
 
-import mill.constants.{DaemonFiles, OutFiles, Util}
+import mill.constants.{DaemonFiles, Util}
+import mill.constants.OutFiles.OutFiles
 import mill.daemon.MillMain0.{handleMillException, main0}
 import mill.api.BuildCtx
 import mill.server.Server

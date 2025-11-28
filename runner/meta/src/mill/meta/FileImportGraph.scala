@@ -2,7 +2,7 @@ package mill.meta
 
 import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.*
-import mill.constants.OutFiles.*
+import mill.constants.OutFiles.OutFiles.*
 import mill.api.daemon.internal.MillScalaParser
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala

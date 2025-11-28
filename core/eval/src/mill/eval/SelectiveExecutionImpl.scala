@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.api.daemon.internal.TestReporter
 import mill.api.{ExecResult, Result, Val}
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
 import mill.api.*
 import mill.exec.{CodeSigUtils, Execution, PlanImpl}

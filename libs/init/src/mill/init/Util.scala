@@ -1,6 +1,8 @@
 package mill.init
+
 import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames}
-import mill.constants.OutFiles.{bspOut, millBuild, out}
+import mill.constants.OutFiles.OutFiles.{bspOut, millBuild, out}
+
 object Util {
 
   def scalafmtConfig: String =

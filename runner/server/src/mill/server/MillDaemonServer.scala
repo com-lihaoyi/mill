@@ -3,7 +3,8 @@ package mill.server
 import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.{Lock, Locks}
-import mill.constants.{OutFiles, ProxyStream}
+import mill.constants.{ProxyStream}
+import mill.constants.OutFiles.OutFiles
 import mill.server.MillDaemonServer.DaemonServerData
 import mill.server.Server.ConnectionData
 
