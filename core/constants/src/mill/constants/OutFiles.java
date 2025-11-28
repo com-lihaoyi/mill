@@ -12,9 +12,15 @@ public class OutFiles {
    */
   private static final String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
 
+  private static final String envBspOutOrNull = System.getenv(EnvVars.MILL_BSP_OUTPUT_DIR);
+
   /** @see EnvVars#MILL_NO_SEPARATE_BSP_OUTPUT_DIR */
   public static final boolean mergeBspOut =
-      "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR));
+    // explicit request
+    "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR))
+      // user specified MILL_OUTPUT_DIR but not MILL_BSP_OUTPUT_DIR
+      || ( envOutOrNull != null && envBspOutOrNull == null)
+    ;
 
   /**
    * Default hard-coded value for the Mill `out/` folder path. Unless you know
@@ -22,17 +28,22 @@ public class OutFiles {
    */
   public static final String defaultOut = "out";
 
+  public static final String defaultBspOut = ".bsp/mill-bsp-out";
+
   /**
    * Path of the Mill `out/` folder. Unless you know what you are doing, you should
    * favor using {@link #outFor} instead.
    */
-  public static final String out = envOutOrNull == null ? defaultOut : envOutOrNull;
+  public static final String out = envOutOrNull != null ? envOutOrNull : defaultOut;
 
   /**
    * Path of the Mill `out/` folder when Mill is running in BSP mode. Unless you know
    * what you are doing, you should favor using {@link #outFor} instead.
    */
-  public static final String bspOut = "out/mill-bsp-out";
+  public static final String bspOut =
+    mergeBspOut ? out
+      : envBspOutOrNull != null ? envBspOutOrNull
+        : defaultBspOut;
 
   /**
    * Path of the Mill {@link #out} folder.
@@ -40,14 +51,13 @@ public class OutFiles {
    * @param outMode If {@link #envOutOrNull} is set, this parameter is ignored.
    */
   public static String outFor(OutFolderMode outMode) {
-    if (envOutOrNull != null) return envOutOrNull;
     switch (outMode) {
-      case REGULAR:
-        return out;
-      case BSP:
-        return mergeBspOut ? out : bspOut;
-      default:
-        throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
+    case REGULAR:
+      return out;
+    case BSP:
+      return bspOut;
+    default:
+      throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
     }
   }
 
