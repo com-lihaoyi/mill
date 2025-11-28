@@ -301,6 +301,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
   }
 }
 
+@mill.api.experimental
 object GroovyModule {
   // Keep in sync with GroovyModule#KotlinTests, duplicated due to binary compatibility concerns
   trait GroovyTests0 extends JavaModule.JavaTests0 with GroovyModule {
