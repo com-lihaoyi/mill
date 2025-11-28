@@ -2,13 +2,15 @@ package mill.util
 
 import java.util.concurrent.LinkedBlockingQueue
 import coursier.core.Repository
-import mill.api.{PathRef, Discover, Evaluator, ExternalModule, MultiBiMap, SelectMode}
+import mill.api.{Discover, Evaluator, ExternalModule, MultiBiMap, PathRef, SelectMode}
 import mill.*
-import mill.api.{Result}
+import mill.api.Result
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
 import mill.api.BuildCtx
+
+import scala.annotation.nowarn
 
 object VisualizeModule extends ExternalModule {
   def repositories: Seq[Repository] =
@@ -62,6 +64,7 @@ object VisualizeModule extends ExternalModule {
     }
   }
 
+  // TODO: Remove bin-compat shim in Mill 2.x
   @deprecated("Use toolsClasspath instead", "0.13.0-M1")
   def classpath = toolsClasspath
 
@@ -88,6 +91,7 @@ object VisualizeModule extends ExternalModule {
    * everyone can use to call into Graphviz, which the Mill execution threads
    * can communicate via in/out queues.
    */
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   private[mill] def worker: Worker[(
       LinkedBlockingQueue[(
           scala.Seq[Task.Named[Any]],

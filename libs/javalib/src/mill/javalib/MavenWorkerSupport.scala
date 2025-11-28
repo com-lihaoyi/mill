@@ -5,6 +5,8 @@ import mill.javalib.publish.{Artifact, PublishInfo}
 import mill.util.Jvm
 import os.Path
 
+import scala.annotation.nowarn
+
 private[mill] trait MavenWorkerSupport extends CoursierModule with OfflineSupportModule {
   private def mavenWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
@@ -21,6 +23,7 @@ private[mill] trait MavenWorkerSupport extends CoursierModule with OfflineSuppor
     Jvm.createClassLoader(classPath = classPath, parent = getClass.getClassLoader)
   }
 
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   private[mill] def mavenWorker: Task.Worker[mill.javalib.internal.MavenWorkerSupport.Api] =
     Task.Worker {
       mavenWorkerClassloader().loadClass("mill.javalib.maven.worker.impl.WorkerImpl")
