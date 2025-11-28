@@ -304,14 +304,12 @@ final class EvaluatorImpl(
     }.flatten.toSeq
 
     for(newMetadata <- maybeNewMetadata) {
+      val failingTaskNames = allResults
+        .collect { case (t: Task.Named[_], r) if r.asSuccess.isEmpty => t.ctx.segments.render}
+        .toSet
+
       selective.saveMetadata(
-        newMetadata.copy(
-          forceRunTasks = allResults
-            .collect {
-              case (t: Task.Named[_], r) if r.asSuccess.isEmpty => t.ctx.segments.render 
-            }
-            .toSet
-        )
+        newMetadata.copy(forceRunTasks = failingTaskNames)
       )
     }
     
