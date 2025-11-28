@@ -1,4 +1,4 @@
 package mill.api.daemon.internal
 
-@mill.api.experimental
+@mill.api.daemon.experimental
 trait GroovyModuleApi extends JavaModuleApi
