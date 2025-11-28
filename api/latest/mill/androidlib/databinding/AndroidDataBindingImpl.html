@@ -36,6 +36,7 @@ node1 [id=node1, label="<span style=\"color: #FFFFFF;\">class <span data-unresol
 node2 [id=node2, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Any</span></span>", class="class vertex"];
 node3 [id=node3, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Matchable</span></span>", class="trait vertex"];
 node4 [id=node4, label="<span style=\"color: #FFFFFF;\">trait <a href=\"AndroidDataBindingWorker.html\" t=\"n\">AndroidDataBindingWorker</a></span>", class="trait vertex"];
+node5 [id=node5, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">AutoCloseable</span></span>", class="trait vertex"];
 
 
  node0 -> node1;
@@ -44,6 +45,8 @@ node1 -> node3;
 node3 -> node2;
 node0 -> node4;
 node4 -> node1;
+node4 -> node5;
+node5 -> node1;
 
 }
 </script>
@@ -56,6 +59,9 @@ node4 -> node1;
     <div class="mono-small-block supertypes">
      <div>
       trait <a href="AndroidDataBindingWorker.html" t="n">AndroidDataBindingWorker</a>
+     </div>
+     <div>
+      trait <span data-unresolved-link="" t="n">AutoCloseable</span>
      </div>
      <div>
       class <span data-unresolved-link="" t="n">Object</span>
@@ -170,9 +176,61 @@ node4 -> node1;
         </div>
        </div>
       </section>
+      <section id="Inherited-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Inherited methods</h4>
+        </div>
+        <div class="documentableElement" id="close-94c" data-f-keywords="override" data-f-inherited="AndroidDataBindingWorker">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="AndroidDataBindingImpl.html#close-94c" t="n" class="documentableName ">close</a>(<span t="k"></span>): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="AndroidDataBindingWorker.html#close-94c">AndroidDataBindingWorker</a> -&gt; <span data-unresolved-link="">AutoCloseable</span>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="AndroidDataBindingWorker.html#close-94c">AndroidDataBindingWorker</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/androidlib/databinding/src/mill/androidlib/databinding/AndroidDataBindingWorker.scala" target="_blank">AndroidDataBindingWorker.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
      </div>
     </section>
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>

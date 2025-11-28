@@ -10,7 +10,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="InternalJvmWorkerApi.html" t="n" class="documentableName ">InternalJvmWorkerApi</a><span t="k"> extends </span><a href="../JvmWorkerApi.html" t="t">JvmWorkerApi</a></span><span class="signature-long"></span>
+  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="InternalJvmWorkerApi.html" t="n" class="documentableName ">InternalJvmWorkerApi</a><span t="k"> extends </span><a href="../JvmWorkerApi.html" t="t">JvmWorkerApi</a><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">AutoCloseable</span></span>
  </div>
 </div>
 <div class="cover">
@@ -43,7 +43,8 @@ node1 [id=node1, label="<span style=\"color: #FFFFFF;\">class <span data-unresol
 node2 [id=node2, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Any</span></span>", class="class vertex"];
 node3 [id=node3, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Matchable</span></span>", class="trait vertex"];
 node4 [id=node4, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../JvmWorkerApi.html\" t=\"n\">JvmWorkerApi</a></span>", class="trait vertex"];
-node5 [id=node5, label="<span style=\"color: #FFFFFF;\">class <a href=\"../../worker/JvmWorkerImpl.html\" t=\"n\">JvmWorkerImpl</a></span>", class="class vertex"];
+node5 [id=node5, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">AutoCloseable</span></span>", class="trait vertex"];
+node6 [id=node6, label="<span style=\"color: #FFFFFF;\">class <a href=\"../../worker/JvmWorkerImpl.html\" t=\"n\">JvmWorkerImpl</a></span>", class="class vertex"];
 
 
  node0 -> node1;
@@ -52,7 +53,9 @@ node1 -> node3;
 node3 -> node2;
 node0 -> node4;
 node4 -> node1;
-node5 -> node0;
+node0 -> node5;
+node5 -> node1;
+node6 -> node0;
 
 }
 </script>
@@ -63,6 +66,9 @@ node5 -> node0;
    </dt>
    <dd class="body-medium">
     <div class="mono-small-block supertypes">
+     <div>
+      trait <span data-unresolved-link="" t="n">AutoCloseable</span>
+     </div>
      <div>
       trait <a href="../JvmWorkerApi.html" t="n">JvmWorkerApi</a>
      </div>
@@ -151,6 +157,44 @@ node5 -> node0;
         <div class="documentableList-expander">
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
+        </div>
+        <div class="documentableElement" id="close-94c" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="InternalJvmWorkerApi.html#close-94c" t="n" class="documentableName ">close</a>(<span t="k"></span>): <span data-unresolved-link="" t="t">Unit</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <span data-unresolved-link="">AutoCloseable</span>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/api/src/mill/javalib/api/internal/InternalJvmWorkerApi.scala" target="_blank">InternalJvmWorkerApi.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
         </div>
         <div class="documentableElement" id="compileJava-fffff312" data-f-keywords="override">
          <div class="documentableElement-expander">
