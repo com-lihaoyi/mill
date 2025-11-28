@@ -12,6 +12,7 @@ class GroovyWorkerManager()(implicit ctx: TaskCtx)
   def getValue(cl: ClassLoader) = GroovyWorkerManager.get(cl)
 }
 
+@mill.api.experimental
 object GroovyWorkerManager extends ExternalModule {
   def groovyWorker: Worker[GroovyWorkerManager] = Task.Worker {
     new GroovyWorkerManager()
