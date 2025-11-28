@@ -7,11 +7,15 @@ package mill.constants;
 public class OutFiles {
 
   /**
-   * Allows us to override the `out/` folder from the environment via the {@link EnvVars#MILL_OUTPUT_DIR}
+   * Allows users to override the `out/` folder from the environment via the {@link EnvVars#MILL_OUTPUT_DIR}
    * variable.
    */
   private static final String envOutOrNull = System.getenv(EnvVars.MILL_OUTPUT_DIR);
 
+  /**
+   * Allows users to override to `out/` used in BSP server mode from the environment via the
+   * {@link EnvVars#MILL_BSP_OUTPUT_DIR} variable.
+   */
   private static final String envBspOutOrNull = System.getenv(EnvVars.MILL_BSP_OUTPUT_DIR);
 
   /** @see EnvVars#MILL_NO_SEPARATE_BSP_OUTPUT_DIR */
@@ -22,22 +26,26 @@ public class OutFiles {
           || (envOutOrNull != null && envBspOutOrNull == null);
 
   /**
-   * Default hard-coded value for the Mill `out/` folder path. Unless you know
-   * what you are doing, you should favor using {@link #outFor} instead.
+   * Default hard-coded value for the Mill `out/` folder path.
+   * To get the effective out dir, use {@link #outFor}.
    */
   public static final String defaultOut = "out";
 
+  /**
+   * Default hard-coded value for the Mill `out/` folder path in BSP server mode.
+   * To get the effective out dir, use {@link #outFor}.
+   */
   public static final String defaultBspOut = ".bsp/mill-bsp-out";
 
   /**
-   * Path of the Mill `out/` folder. Unless you know what you are doing, you should
-   * favor using {@link #outFor} instead.
+   * Effective path of the Mill `out/` folder.
+   * You should favor using {@link #outFor} instead.
    */
   public static final String out = envOutOrNull != null ? envOutOrNull : defaultOut;
 
   /**
-   * Path of the Mill `out/` folder when Mill is running in BSP mode. Unless you know
-   * what you are doing, you should favor using {@link #outFor} instead.
+   * Effective path of the Mill `out/` folder when Mill is running in BSP mode.
+   * You should favor using {@link #outFor} instead.
    */
   public static final String bspOut =
       mergeBspOut ? out : envBspOutOrNull != null ? envBspOutOrNull : defaultBspOut;
@@ -45,7 +53,7 @@ public class OutFiles {
   /**
    * Path of the Mill {@link #out} folder.
    *
-   * @param outMode If {@link #envOutOrNull} is set, this parameter is ignored.
+   * @param outMode The mode for which the out folder is requested.
    */
   public static String outFor(OutFolderMode outMode) {
     switch (outMode) {
