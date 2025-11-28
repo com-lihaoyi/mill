@@ -22,7 +22,7 @@ public class OutFiles {
 
     /** @see EnvVars#MILL_NO_SEPARATE_BSP_OUTPUT_DIR */
     public final boolean mergeBspOut =
-      "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR));
+        "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR));
 
     /**
      * Default hard-coded value for the Mill `out/` folder path. Unless you know
@@ -52,12 +52,12 @@ public class OutFiles {
         return envOutOrNull;
       }
       switch (outMode) {
-      case REGULAR:
-        return out;
-      case BSP:
-        return mergeBspOut ? out : bspOut;
-      default:
-        throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
+        case REGULAR:
+          return out;
+        case BSP:
+          return mergeBspOut ? out : bspOut;
+        default:
+          throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
       }
     }
 
@@ -123,12 +123,11 @@ public class OutFiles {
      * Any active Mill command that is currently run, for debugging purposes
      */
     public final String millJavaHome = "mill-java-home";
-
   }
 
   /** @deprecated Use inner OutFiles instead */
   @Deprecated
-  public static  final boolean mergeBspOut = OutFiles.mergeBspOut;
+  public static final boolean mergeBspOut = OutFiles.mergeBspOut;
   /** @deprecated Use inner OutFiles instead */
   @Deprecated
   public static final String defaultOut = OutFiles.defaultOut;
@@ -143,6 +142,7 @@ public class OutFiles {
   public static String outFor(OutFolderMode outMode) {
     return OutFiles.outFor(outMode);
   }
+
   public static final String millBuild = OutFiles.millBuild;
   /** @deprecated Use inner OutFiles instead */
   @Deprecated
@@ -177,5 +177,4 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead */
   @Deprecated
   public static final String millJavaHome = OutFiles.millJavaHome;
-
 }
