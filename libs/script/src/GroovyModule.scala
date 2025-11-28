@@ -6,6 +6,7 @@ import mill.api.Discover
 import mill.api.ScriptModule
 import mill.javalib.TestModule
 
+@mill.api.experimental
 class GroovyModule(val scriptConfig: ScriptModule.Config) extends GroovyModule.Base {
   override lazy val millDiscover = Discover[this.type]
 }
