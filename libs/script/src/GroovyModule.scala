@@ -11,6 +11,7 @@ class GroovyModule(val scriptConfig: ScriptModule.Config) extends GroovyModule.B
   override lazy val millDiscover = Discover[this.type]
 }
 
+@mill.api.experimental
 object GroovyModule {
   class TestNg(scriptConfig: ScriptModule.Config) extends GroovyModule(scriptConfig)
       with TestModule.TestNg with mill.groovylib.GroovyModule.GroovyTests0 {
