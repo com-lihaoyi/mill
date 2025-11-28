@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.api.Result
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 import mill.*
 import mill.api.Evaluator
 import mill.api.SelectMode

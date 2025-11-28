@@ -9,7 +9,7 @@ import mill.api.daemon.internal.{
 }
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
-import mill.constants.OutFiles.{millBuild, millRunnerState}
+import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}

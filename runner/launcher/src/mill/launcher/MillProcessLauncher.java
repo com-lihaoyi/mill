@@ -1,6 +1,6 @@
 package mill.launcher;
 
-import static mill.constants.OutFiles.*;
+import static mill.constants.OutFiles.OutFiles;
 
 import io.github.alexarchambault.nativeterm.NativeTerminal;
 import io.github.alexarchambault.nativeterm.TerminalSize;
@@ -24,7 +24,7 @@ public class MillProcessLauncher {
       throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir =
-        Paths.get(".").resolve(outFor(outMode)).resolve(millNoDaemon).resolve(sig);
+        Paths.get(".").resolve(OutFiles.outFor(outMode)).resolve(OutFiles.millNoDaemon).resolve(sig);
 
     MillProcessLauncher.prepareMillRunFolder(processDir);
 
@@ -277,7 +277,7 @@ public class MillProcessLauncher {
       Supplier<String[]> block,
       Function<String[], Boolean> validate) {
     try {
-      Path cacheFile = Paths.get(".").resolve(outFor(outMode)).resolve("mill-launcher/" + name);
+      Path cacheFile = Paths.get(".").resolve(OutFiles.outFor(outMode)).resolve("mill-launcher/" + name);
       String[] value = null;
       if (Files.exists(cacheFile)) {
         String[] savedInfo = Files.readString(cacheFile).split("\n");

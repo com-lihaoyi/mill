@@ -9,7 +9,8 @@ import scala.util.chaining.given
 import ch.epfl.scala.bsp4j as b
 import mill.api.BuildInfo
 import mill.bsp.Constants
-import mill.constants.{OutFiles, OutFolderMode}
+import mill.constants.OutFolderMode
+import mill.constants.OutFiles.OutFiles
 import mill.integration.BspServerTestUtil.*
 import mill.javalib.testrunner.TestRunnerUtils
 import mill.testkit.UtestIntegrationTestSuite
