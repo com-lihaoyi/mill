@@ -56,9 +56,11 @@ object IntegrationTester {
     override def productIterator = productElements0.iterator
 
     def exitCode: Int = result.exitCode
-    private def cleanup(s: String) = fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText
-    def out = cleanup(result.out.trim())
-    def err = cleanup(result.err.trim())
+    private def cleanup(s: String) =
+      fansi.Str(s, errorMode = fansi.ErrorMode.Strip).plainText.trim()
+
+    def out = cleanup(result.out.text())
+    def err = cleanup(result.err.text())
     def isSuccess: Boolean = exitCode == 0
 
     def debugString: String = {

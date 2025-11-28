@@ -30,6 +30,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
     override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
+    override def scalaCompilerBridge: T[Option[PathRef]] = outer.scalaCompilerBridge()
     override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Seq[String]] =
       Task { super.mandatoryScalacOptions() }
@@ -233,6 +234,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   /**
+   * Manually supplied compiler bridge
+   *
+   * The file this points at can be either a JAR containing class files, or a directory
+   * with source files.
+   *
+   * If `None`, Mill fetches and compiles if needed a compiler bridge on its own.
+   * If set to `Some(...)`, Mill uses the passed bridge and doesn't attempt to fetch one.
+   */
+  def scalaCompilerBridge: T[Option[PathRef]] = Task(None)
+
+  /**
    * Classpath of the scaladoc (or dottydoc) tool.
    */
   def scalaDocClasspath: T[Seq[PathRef]] = Task {
@@ -297,6 +309,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
+        compilerBridgeOpt = scalaCompilerBridge(),
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
         workDir = Task.dest
@@ -339,6 +352,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaOrganization(),
             scalaDocClasspath(),
             scalacPluginClasspath(),
+            scalaCompilerBridge(),
             options ++ compileCp ++ scalaDocOptions() ++ files.map(_.toString()),
             workDir = Task.dest
           ),
@@ -649,6 +663,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           scalacOptions = scalacOptions,
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = semanticDbPluginClasspath(),
+          compilerBridgeOpt = scalaCompilerBridge(),
           incrementalCompilation = zincIncrementalCompilation(),
           auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
           workDir = Task.dest
@@ -688,6 +703,7 @@ object ScalaModule {
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
     override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
+    override def scalaCompilerBridge: T[Option[PathRef]] = outer.scalaCompilerBridge()
     override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Seq[String]] =
       Task { super.mandatoryScalacOptions() }

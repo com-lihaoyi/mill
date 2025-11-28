@@ -29,6 +29,7 @@ abstract class RootModule0(
 
   // `Discover` needs to be defined by every concrete `BaseModule` object, to gather
   // compile-time metadata about the tasks and commands at for use at runtime
+  // TODO: make protected, according to documentation
   def millDiscover: Discover
 
   // We need to propagate the `Discover` object implicitly throughout the module tree
