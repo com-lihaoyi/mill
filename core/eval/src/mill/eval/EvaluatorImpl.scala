@@ -304,22 +304,7 @@ final class EvaluatorImpl(
       .flatten
       .toSeq
 
-    maybeNewMetadata.foreach { newMetadata =>
-      val enclosingModules = PlanImpl
-        .plan(tasks)
-        .transitive
-        .collect { case n: Task.Named[_] => n.ctx.enclosingModule }
-        .distinct
-
-      val scriptBuildOverrides = enclosingModules.flatMap(_.moduleDynamicBuildOverrides)
-
-      val allBuildOverrides = (staticBuildOverrides ++ scriptBuildOverrides)
-        .map { case (k, v) => (k, v.##) }
-
-      this.selective.saveMetadata(
-        SelectiveExecution.Metadata(newMetadata.inputHashes, codeSignatures, allBuildOverrides)
-      )
-    }
+    maybeNewMetadata.foreach(selective.saveMetadata)
 
     val errorStr = ExecutionResultsApi.formatFailing(evaluated)
     evaluated.transitiveFailing.size match {
