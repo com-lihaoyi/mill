@@ -11,6 +11,7 @@ import os.Path
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
+@mill.api.experimental
 class GroovyWorkerImpl extends GroovyWorker {
 
   override def compileGroovyStubs(
