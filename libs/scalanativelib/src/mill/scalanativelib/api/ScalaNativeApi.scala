@@ -1,5 +1,6 @@
 package mill.scalanativelib.api
 
+import mill.api.JsonFormatters._
 import upickle._
 
 sealed abstract class LTO(val value: String)
@@ -77,4 +78,31 @@ object BuildTarget {
   implicit val rwLibraryDynamic: ReadWriter[LibraryDynamic.type] = macroRW[LibraryDynamic.type]
   implicit val rwLibraryStatic: ReadWriter[LibraryStatic.type] = macroRW[LibraryStatic.type]
   implicit val rw: ReadWriter[BuildTarget] = macroRW[BuildTarget]
+}
+
+/**
+ * Shall toolchain enable mechanism for generation for source level debugging
+ *  metadata.
+ */
+enum SourceLevelDebuggingConfig derives ReadWriter {
+  case Enabled(
+      /**
+       * Shall function contain additional information about source definition.
+       *  Enables source positions in stacktraces, but introduces a runtime penalty
+       *  for symbols deserialization
+       */
+      generateFunctionSourcePositions: Boolean = true,
+      /**
+       * Shall generate a metadata for local variables, allows to check state of
+       *  local variables in debugger. Recommended usage of LLDB with disabled
+       *  optimizations.
+       */
+      generateLocalVariables: Boolean = true,
+      /**
+       * List of custom source roots used to map symbols find in binary file (NIR)
+       *  with orignal Scala sources
+       */
+      customSourceRoots: Seq[os.Path] = Nil
+  ) extends SourceLevelDebuggingConfig
+  case Disabled
 }
