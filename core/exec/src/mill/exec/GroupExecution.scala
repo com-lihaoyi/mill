@@ -68,7 +68,7 @@ trait GroupExecution {
       }
 
       val parsed0 = BufferedValue.Obj(
-        BufferedValue.transform(mill.internal.Util.parseYaml0(path0.toString, rawText).get, upickle.reader[ModuleCtx.HeaderData])
+        mill.internal.Util.parseYaml0(path0.toString, rawText, upickle.reader[ModuleCtx.HeaderData]).get
           .rest
           .map{case (k, v) => (BufferedValue.Str(k, -1), v) }
           .to(mutable.ArrayBuffer),
