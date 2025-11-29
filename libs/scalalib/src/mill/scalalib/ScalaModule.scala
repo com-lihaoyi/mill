@@ -427,7 +427,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * Opens up a Scala console with your module and all dependencies present,
    * for you to test and operate your code interactively.
    */
-  def console(): Command[Unit] = Task.Command(exclusive = true) {
+  def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] = Task.Command(exclusive = true) {
     if (!mill.constants.Util.hasConsole()) {
       Task.fail("console needs to be run with the -i/--interactive flag")
     } else {
@@ -442,7 +442,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
         jvmArgs = forkArgs(),
         env = allForkEnv(),
-        mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
+        mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
         cwd = forkWorkingDir(),
         stdin = os.Inherit,
         stdout = os.Inherit
