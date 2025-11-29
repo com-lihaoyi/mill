@@ -211,23 +211,16 @@ class MillBuildBootstrap(
           rootModuleRes.flatMap { buildFileApi =>
             def tryReadParent(fileName: String) = {
               val p = currentRoot / ".." / fileName
-              Option.when(os.exists(p)) { mill.constants.Util.readBuildHeader(p.toNIO, fileName) }
+              Option.when(os.exists(p)) { p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName) }
             }
 
-            val jsonRes: Result[String] = tryReadParent("build.mill.yaml")
-              .orElse(tryReadParent("build.mill"))
-              .getOrElse(Result.Success(""))
-
-            jsonRes
-              .flatMap(json => upickle.read[Map[String, ujson.Value]](json))
-              .map((buildFileApi, _))
-
+            (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
           } match {
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
             case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
-              val staticBuildOverrides =
-                staticBuildOverrides0 ++
+              val staticBuildOverrideFiles =
+                staticBuildOverrides0.toSeq ++
                   nestedState.frames.lastOption.fold(Map())(_.buildOverrideFiles)
 
               Using.resource(makeEvaluator(
@@ -265,7 +258,7 @@ class MillBuildBootstrap(
                 depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
-                staticBuildOverrides = staticBuildOverrides
+                staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)

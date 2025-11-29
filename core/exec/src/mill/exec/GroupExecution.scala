@@ -39,7 +39,32 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
-  val staticBuildOverrides = staticBuildOverrideFiles.map { case (k, v) => (k, mill.internal.Util.parseYaml0(k.toString, v).get) }
+  import mill.api.internal.LocatedValue
+  val staticBuildOverrides: Map[String, LocatedValue] = staticBuildOverrideFiles
+    .flatMap { case (path0, rawText) =>
+      val path = os.Path(path0)
+      def rec(segments: Seq[String], bufValue: upickle.core.BufferedValue): Seq[(String, LocatedValue)] = {
+        val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
+        val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
+          k.toString.split(" +") match {
+            case Array(k) => Left((k, i, v))
+            case Array("object", k) => Right(rec(segments ++ Seq(k), v))
+          }
+        }
+        val currentResults: Seq[(String, LocatedValue)] =
+          rawKvs.toSeq.map{case (k, i, v) => (segments ++ Seq(k)).mkString(".") -> LocatedValue(path, i, v)}
+
+        val nestedResults: Seq[(String, LocatedValue)] = nested.flatten.toSeq
+
+        currentResults ++ nestedResults
+      }
+
+      rec(
+        path.subRelativeTo(workspace).segments,
+        mill.internal.Util.parseYaml0(path0.toString, rawText).get
+      )
+    }
+    .toMap
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -123,6 +148,7 @@ trait GroupExecution {
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
         staticBuildOverrides.get(labelled.ctx.segments.render)
+          .map(_.value)
           .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
           case Some(jsonData) => // apply build override

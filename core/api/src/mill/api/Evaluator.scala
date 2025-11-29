@@ -5,7 +5,7 @@ import mill.api.*
 import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
-import mill.api.internal.{Resolved, RootModule0}
+import mill.api.internal.{LocatedValue, Resolved, RootModule0}
 
 import scala.util.DynamicVariable
 import scala.collection.mutable
@@ -32,7 +32,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
-  private[mill] def staticBuildOverrides: Map[String, upickle.core.BufferedValue] = Map()
+  private[mill] def staticBuildOverrides: Map[String, LocatedValue] = Map()
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(
