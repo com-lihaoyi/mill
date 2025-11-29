@@ -45,7 +45,7 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
   private[mill] val moduleLinearized: Seq[Class[?]] =
     OverrideMapping.computeLinearization(this.getClass)
 
-  private[mill] def moduleDynamicBuildOverrides: Map[String, upickle.core.BufferedValue] = Map()
+  private[mill] def moduleDynamicBuildOverrides: Map[String, internal.LocatedValue] = Map()
 }
 
 object Module {

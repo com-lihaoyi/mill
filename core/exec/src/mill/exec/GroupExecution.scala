@@ -88,6 +88,7 @@ trait GroupExecution {
     }
     .toMap
 
+  mill.constants.DebugLog.println("staticBuildOverrides A " + pprint.apply(staticBuildOverrides))
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -171,7 +172,6 @@ trait GroupExecution {
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
         staticBuildOverrides.get(labelled.ctx.segments.render)
-          .map(_.value)
           .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
           case Some(jsonData) =>
@@ -180,9 +180,15 @@ trait GroupExecution {
                 // If the build override conflicts with a task defined in the mill-build/build.mill,
                 // it is probably a user error so fail loudly. In other scenarios, it may be an
                 // intentional override, but in this one case we can be reasonably sure it's a mistake
+
+                val lookupLineSuffix = fastparse
+                  .IndexedParserInput(os.read(jsonData.path).replace("\n//|", "\n"))
+                  .prettyIndex(jsonData.value.index)
+                  .takeWhile(_ != ':') // split off column since it's not that useful
+
                 (
                   ExecResult.Failure(
-                    s"Build header config conflicts with task defined " +
+                    s"Build header config in ${jsonData.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
                       s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
                   ),
                   Nil
@@ -194,7 +200,7 @@ trait GroupExecution {
                     PathRef.currentOverrideModulePath.withValue(
                       labelled.ctx.enclosingModule.moduleCtx.millSourcePath
                     ) {
-                      upickle.read[Any](interpolateEnvVarsInJson(jsonData))(
+                      upickle.read[Any](interpolateEnvVarsInJson(jsonData.value))(
                         using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
                       )
                     }
@@ -203,9 +209,9 @@ trait GroupExecution {
                   // Write build header override JSON to meta `.json` file to support `show`
                   writeCacheJson(
                     paths.meta,
-                    upickle.core.BufferedValue.transform(jsonData, ujson.Value),
+                    upickle.core.BufferedValue.transform(jsonData.value, ujson.Value),
                     resultData.##,
-                    inputsHash + jsonData.##
+                    inputsHash + jsonData.value.##
                   )
 
                   (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
