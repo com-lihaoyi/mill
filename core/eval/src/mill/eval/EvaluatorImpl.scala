@@ -308,7 +308,8 @@ final class EvaluatorImpl(
         .collect { case (t: Task.Named[_], r) if r.asSuccess.isEmpty => t.ctx.segments.render }
         .toSet
 
-      // For tasks that were not successful, force them to re-run next time even if not changed
+      // For tasks that were not successful, force them to re-run next time even
+      // if not changed so the user can see that there are still failures remaining
       selective.saveMetadata(newMetadata.copy(forceRunTasks = failingTaskNames))
     }
 
