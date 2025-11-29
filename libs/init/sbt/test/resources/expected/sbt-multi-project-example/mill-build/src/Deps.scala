@@ -1,7 +1,5 @@
 package millbuild
-
 import mill.javalib.*
-
 object Deps {
 
   val akkaStream = mvn"com.typesafe.akka::akka-stream:2.5.6"

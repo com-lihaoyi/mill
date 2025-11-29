@@ -4,18 +4,19 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.jvm.toolchain.JavaLanguageVersion
 
+import scala.jdk.CollectionConverters.*
 import scala.math.Ordered.orderingToOrdered
 
 /**
  * Gradle-version agnostic build API.
  */
 trait GradleBuildCtx {
-  def javaVersion(ext: JavaPluginExtension): Option[Int]
   def releaseVersion(opts: CompileOptions): Option[Int]
   def project(dep: ProjectDependency): Project
+  def sourceSets(javaPluginExt: JavaPluginExtension): Set[SourceSet]
 }
 object GradleBuildCtx {
 
@@ -29,12 +30,6 @@ object GradleBuildCtx {
       }
     }
 
-    def javaVersion(ext: JavaPluginExtension) =
-      // When not explicitly configured, the toolchain defaults to the JVM used to run the daemon.
-      if ((6, 7) <= gradleVersion) Option(ext.getToolchain)
-        .flatMap(tc => Option(tc.getLanguageVersion.getOrNull()))
-        .map(_.asInt())
-      else None
     def releaseVersion(opts: CompileOptions) =
       if ((6, 6) <= gradleVersion) opts.getRelease.getOrElse(0).intValue match {
         case 0 => None
@@ -44,5 +39,8 @@ object GradleBuildCtx {
     def project(dep: ProjectDependency) =
       if ((8, 11) <= gradleVersion) gradle.getRootProject.findProject(dep.getPath)
       else dep.getDependencyProject: @scala.annotation.nowarn("cat=deprecation")
+    def sourceSets(javaPluginExt: JavaPluginExtension) =
+      if ((7, 1) <= gradleVersion) javaPluginExt.getSourceSets.asScala.toSet
+      else Set.empty
   }
 }

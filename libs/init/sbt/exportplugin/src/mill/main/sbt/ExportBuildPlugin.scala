@@ -1,25 +1,25 @@
 package mill.main.sbt
 
-import _root_.sbt._
-import mill.main.buildgen.ModuleConfig._
-import mill.main.buildgen._
+import _root_.sbt.{Value => _, _}
+import mill.main.buildgen.ModuleSpec
+import mill.main.buildgen.ModuleSpec._
 
 import scala.util.Using
 
 object ExportBuildPlugin extends AutoPlugin {
   object autoImport {
-    val millInitExportBuild = taskKey[Unit]("exports data for all projects")
+    val millInitExportBuild = taskKey[Unit]("")
   }
   import autoImport._
 
-  val millInitExportDir = settingKey[os.Path]("directory to export data to")
-  val millInitExportProject = taskKey[Unit]("exports data for a project")
+  val millInitExportDir = settingKey[os.Path]("")
+  val millInitExportProject = taskKey[Unit]("")
 
-  // settings derived from third-party plugin settings
+  // Proxies for third-party plugin settings that are resolved using reflection.
   val millScalaJSModuleKind = settingKey[Option[String]]("")
 
-  // duplicated third-party plugin settings
-  val crossProjectBaseDirectory = settingKey[File]("base directory of the current cross project")
+  // Copies of third-party plugin settings that are resolved directly.
+  val crossProjectBaseDirectory = settingKey[File]("")
 
   override def requires = plugins.JvmPlugin
   override def trigger = allRequirements
@@ -32,13 +32,12 @@ object ExportBuildPlugin extends AutoPlugin {
     millInitExportProject := exportProject.value
   )
 
-  // https://github.com/scalacenter/bloop/blob/f6dff064ed96698c6d35daef43fe06e6cca74526/integrations/sbt-bloop/src/main/scala/bloop/integrations/sbt/SbtBloop.scala#L327
   private def scalaJSModuleKind = Def.settingDyn {
     try {
       val class0 = Class.forName("org.scalajs.linker.interface.StandardConfig")
       val method = class0.getMethod("moduleKind")
       Def.setting {
-        proxyForSetting("scalaJSLinkerConfig", class0).value.map(method.invoke(_).toString)
+        proxyForSetting("scalaJSLinkerConfig", class0).value.map("ModuleKind." + method.invoke(_))
       }
     } catch {
       case _: ClassNotFoundException => Def.setting(None)
@@ -46,14 +45,13 @@ object ExportBuildPlugin extends AutoPlugin {
     }
   }
 
-  // https://github.com/scalacenter/bloop/blob/f6dff064ed96698c6d35daef43fe06e6cca74526/integrations/sbt-bloop/src/main/scala/bloop/integrations/sbt/SbtBloop.scala#L305
   private def proxyForSetting(id: String, rt: Class[_]) = {
     val manifest = new Manifest[AnyRef] { def runtimeClass = rt }
     val anyRefWriter = implicitly[util.OptJsonWriter[AnyRef]]
     SettingKey(id)(manifest, anyRefWriter).?
   }
 
-  // this is required to export projects that are not aggregated by the root project
+  // This is required to export projects that are not aggregated by the root project.
   private def exportBuild = Def.taskDyn {
     val structure = Project.structure(Keys.state.value)
     Def.task {
@@ -70,262 +68,222 @@ object ExportBuildPlugin extends AutoPlugin {
     val scalaVersion = Keys.scalaVersion.value
     val outDir = millInitExportDir.value
     val outFile = outDir / s"${project.id}-$scalaVersion.json"
-    // ignore duplicate invocations triggered by cross-build execution
+    // Ignore duplicate invocations triggered by cross-build execution.
     Def.task(if (!os.exists(outFile)) {
-      val depsWithConfigs = Keys.libraryDependencies.value.collect {
-        case dep if !skipDep(dep) => (dep, dep.configurations.toSeq.flatMap(_.split(';')))
+      def hasAutoPlugin(label: String) = project.autoPlugins.exists(_.label == label)
+      val hasScalaJSPlugin = hasAutoPlugin("org.scalajs.sbtplugin.ScalaJSPlugin")
+      val hasScalaNativePlugin = hasAutoPlugin("scala.scalanative.sbtplugin.ScalaNativePlugin")
+      def skipDep(dep: ModuleID) = {
+        import dep.{name, organization => org}
+        (org == "org.scala-lang" && (
+          name.startsWith("scala-library") || name.startsWith("scala3-library")
+        )) ||
+        (org == "ch.epfl.lamp" && name.startsWith("dotty")) ||
+        (hasScalaJSPlugin && org == "org.scala-js" && !name.startsWith("scalajs-dom")) ||
+        (hasScalaNativePlugin && org == "org.scala-native")
       }
-      def mvnDeps(configsPredicate: Seq[String] => Boolean) = depsWithConfigs.iterator.collect {
-        case (dep, configs) if configsPredicate(configs) => toMvnDep(dep)
-      }.toSeq
 
-      val isCrossVersion = Keys.crossScalaVersions.value.length > 1
+      val depsWithConfigs = Keys.libraryDependencies.value.collect {
+        case dep if !skipDep(dep) => (dep, dep.configurations.getOrElse("compile").split(';').toSeq)
+      }
+      def mvnDeps(configs: String*) = depsWithConfigs.collect {
+        case (dep, configs0) if configs.exists(configs0.contains) => toMvnDep(dep)
+      }
+
+      val scalaVersion = Keys.scalaVersion.value
+      val crossScalaVersions = Keys.crossScalaVersions.value
+      val isCrossVersion = crossScalaVersions.length > 1
       val projectDepsWithConfigs = project.dependencies
-        .map(dep => dep -> dep.configuration.toSeq.flatMap(_.split(";")))
+        .map(dep => dep -> dep.configuration.getOrElse("compile").split(";").toSeq)
       val structure = Project.structure(Keys.state.value)
-      def moduleDeps(configsPredicate: Seq[String] => Boolean) =
-        projectDepsWithConfigs.collect {
-          case (dep, configs) if configsPredicate(configs) =>
-            for {
-              depBaseDir <- (dep.project / Keys.baseDirectory).get(structure.data)
-              depSegments = toSegments(os.Path(depBaseDir))
-              depCrossScalaVersions =
+      def moduleDeps(p: String => Boolean, nestedSegment: Option[String] = None): Seq[ModuleDep] =
+        projectDepsWithConfigs.flatMap {
+          case (dep, configs) if configs.exists(p) =>
+            (dep.project / Keys.baseDirectory).get(structure.data).flatMap { depBaseDir =>
+              val depCrossScalaVersions =
                 (dep.project / Keys.crossScalaVersions).get(structure.data).getOrElse(Nil)
-              depIsCrossVersion = depCrossScalaVersions.length > 1
-              if !depIsCrossVersion || depCrossScalaVersions.contains(scalaVersion)
-              crossArgs = if (depIsCrossVersion)
-                Map((depSegments.length - 1, if (isCrossVersion) Nil else Seq("scalaVersion()")))
-              else Map.empty[Int, Seq[String]]
-            } yield ModuleDep(depSegments, crossArgs)
-        }.flatten
+              if (depCrossScalaVersions.contains(scalaVersion)) {
+                val crossSuffix = if (depCrossScalaVersions.length < 2) None
+                else Some(if (isCrossVersion) "()" else s"""("$scalaVersion")""")
+                Some(ModuleDep(
+                  moduleDir(os.Path(depBaseDir)),
+                  crossSuffix,
+                  nestedSegment
+                ))
+              } else None
+            }
+          case _ => None
+        }
 
       val baseDir = os.Path(project.base)
-      val moduleDir = crossProjectBaseDirectory.?.value.fold(
-        // crossProjectBaseDirectory was added in v1.3.0
-        if (baseDir.last.matches("""^[.]?(js|jvm|native)$""")) baseDir / os.up else baseDir
-      )(os.Path(_))
-      val isCrossPlatform = baseDir != moduleDir
-
-      def hasAutoPlugin(label: String) = project.autoPlugins.exists(_.label == label)
-
-      val mainCoursierModule = Keys.resolvers.value
-        .diff(Seq(Resolver.mavenCentral, Resolver.mavenLocal))
-        .collect {
-          case r: MavenRepository => r.root
-        } match {
-        case Nil => None
-        case repositories => Some(CoursierModule(repositories))
-      }
-      val mainJavaHomeModule = JavaHomeModule.find(
-        javacOptions = Keys.javacOptions.value,
-        scalacOptions = Keys.scalacOptions.value
+      val crossProjectBaseDir = crossProjectBaseDirectory.?.value.map(os.Path(_)).orElse(
+        if (baseDir.last.matches("""^[.]?(js|jvm|native)$""")) Some(baseDir / os.up) else None
       )
-      val mainJavaModule = JavaModule(
-        mvnDeps = mvnDeps(cs => cs.isEmpty || cs.contains("compile")),
-        compileMvnDeps = mvnDeps(_.exists(c => c == "provided" || c == "optional")),
-        runMvnDeps = mvnDeps(_.contains("runtime")),
-        moduleDeps = moduleDeps(cs =>
-          cs.isEmpty || cs.exists(c => c == "compile" || c.startsWith("compile->"))
+      val useVersionRanges = (Compile / Keys.unmanagedSourceDirectories).value
+        .exists(dir => dir.name.last == '+' || dir.name.last == '-')
+      val useParentModuleDir = structure.allProjects.exists(p =>
+        p.aggregate.isEmpty && p.base == project.base && p.id != project.id
+      )
+
+      // Cross values are duplicated for ease of processing when combining cross-version specs.
+      implicit def value[A](base: Option[A]): Value[A] = Value(
+        base,
+        base match {
+          case Some(a) if isCrossVersion => Seq(scalaVersion -> a)
+          case _ => Nil
+        }
+      )
+      implicit def values[A](base: Seq[A]): Values[A] = Values(
+        base = base,
+        cross = if (isCrossVersion && base.nonEmpty) Seq(scalaVersion -> base) else Nil
+      )
+      var mainModule = ModuleSpec(
+        name = if (useParentModuleDir) project.id else moduleName(baseDir.last),
+        imports = Seq("import mill.scalalib.*"),
+        supertypes = Seq((crossProjectBaseDir.nonEmpty, isCrossVersion) match {
+          case (true, true) => "CrossSbtPlatformModule"
+          case (true, _) => "SbtPlatformModule"
+          case (_, true) => "CrossSbtModule"
+          case _ => "SbtModule"
+        }),
+        mixins = if (useVersionRanges) Seq("CrossScalaVersionRanges") else Nil,
+        useParentModuleDir = useParentModuleDir,
+        crossKeys = if (isCrossVersion) Seq(scalaVersion) else Nil,
+        repositories = Keys.resolvers.value
+          .diff(Seq(Resolver.mavenCentral, Resolver.mavenLocal))
+          .collect {
+            case r: MavenRepository => r.root
+          },
+        mvnDeps = mvnDeps("compile"),
+        compileMvnDeps = mvnDeps("provided", "optional"),
+        runMvnDeps = mvnDeps("runtime"),
+        moduleDeps = moduleDeps(config => config == "compile" || config.startsWith("compile->")),
+        compileModuleDeps = moduleDeps(config =>
+          config == "provided" || config.startsWith("provided->") ||
+            config == "optional" || config.startsWith("optional->")
         ),
-        compileModuleDeps = moduleDeps(_.exists(c =>
-          c == "provided" || c == "optional" ||
-            c.startsWith("provided->") || c.startsWith("optional->")
-        )),
-        runModuleDeps = moduleDeps(_.exists(c => c == "runtime" || c.startsWith("runtime->"))),
-        javacOptions = Keys.javacOptions.value,
-        artifactName = Keys.moduleName.value
+        runModuleDeps = moduleDeps(config => config == "runtime" || config.startsWith("runtime->")),
+        javacOptions = Opt.groups(Keys.javacOptions.value),
+        artifactName = Some(Keys.moduleName.value),
+        scalaVersion = if (isCrossVersion) None else Some(scalaVersion),
+        scalacOptions = Opt.groups(Keys.scalacOptions.value.filterNot(skipScalacOption)),
+        scalacPluginMvnDeps = mvnDeps("plugin->default(compile)"),
+        sourcesRootFolders = values(
+          if (crossProjectBaseDir.exists(dir => os.isDir(dir / "shared"))) Seq(os.sub / "shared")
+          else Nil
+        ).copy(extend = true)
       )
-      val mainPublishModule = if ((Keys.publish / Keys.skip).value || !Keys.publishArtifact.value)
-        None
-      else {
-        Some(PublishModule(
-          pomSettings = toPomSettings(Keys.projectInfo.value, Keys.organization.value),
-          publishVersion = Keys.version.value,
-          versionScheme = Keys.versionScheme.value.orNull
-        ))
+      if (!(Keys.publish / Keys.skip).value && Keys.publishArtifact.value) {
+        mainModule = mainModule.copy(
+          imports =
+            "import mill.javalib.PublishModule" +: "import mill.javalib.publish.*" +: mainModule.imports,
+          supertypes = "PublishModule" +: mainModule.supertypes,
+          pomSettings = Some(toPomSettings(Keys.projectInfo.value, Keys.organization.value)),
+          publishVersion = Some(Keys.version.value),
+          versionScheme = Keys.versionScheme.value.collect {
+            case "early-semver" => "VersionScheme.EarlySemVer"
+            case "pvp" => "VersionScheme.PVP"
+            case "semver-spec" => "VersionScheme.SemVerSpec"
+            case "strict" => "VersionScheme.Strict"
+          }
+        )
       }
-      val mainScalaModule = ScalaModule(
-        scalaVersion = if (isCrossVersion) null else scalaVersion,
-        scalacOptions = Keys.scalacOptions.value.filterNot(skipScalacOption),
-        scalacPluginMvnDeps = mvnDeps(_.contains("plugin->default(compile)"))
-      )
-      val mainScalaJSModule = if (hasAutoPlugin("org.scalajs.sbtplugin.ScalaJSPlugin")) {
+      if (hasScalaJSPlugin) {
         Keys.libraryDependencies.value.collectFirst {
           case dep
               if dep.organization == "org.scala-js" && dep.name.startsWith("scalajs-library") =>
-            ScalaJSModule(
-              scalaJSVersion = dep.revision,
-              moduleKind = ScalaJSModule.moduleKindOverride(scalaJSModuleKind.value.orNull)
+            mainModule = mainModule.copy(
+              imports =
+                "import mill.scalajslib.ScalaJSModule" +: "import mill.scalajslib.api.*" +: mainModule.imports,
+              supertypes = "ScalaJSModule" +: mainModule.supertypes,
+              scalaJSVersion = Some(dep.revision),
+              moduleKind = millScalaJSModuleKind.value
             )
         }
-      } else None
-      val mainScalaNativeModule =
-        if (hasAutoPlugin("scala.scalanative.sbtplugin.ScalaNativePlugin")) {
-          Keys.libraryDependencies.value.collectFirst {
-            case dep
-                if dep.organization == "org.scala-native" &&
-                  dep.configurations.contains("plugin->default(compile)") =>
-              ScalaNativeModule(dep.revision)
+      }
+      if (hasScalaNativePlugin) {
+        Keys.libraryDependencies.value.collectFirst {
+          case dep
+              if dep.organization == "org.scala-native" &&
+                dep.configurations.contains("plugin->default(compile)") =>
+            mainModule = mainModule.copy(
+              imports =
+                "import mill.scalanativelib.ScalaNativeModule" +: "import mill.scalanativelib.api.*" +: mainModule.imports,
+              supertypes = "ScalaNativeModule" +: mainModule.supertypes,
+              scalaNativeVersion = Some(dep.revision)
+            )
+        }
+      }
+      if ((Test / Keys.sourceDirectories).value.exists(_.exists)) {
+        val testMvnDeps = mvnDeps("test")
+        ModuleSpec.testModuleMixin(testMvnDeps).foreach { mixin =>
+          val supertypes = mainModule.supertypes.collect {
+            case "ScalaJSModule" => "ScalaJSTests"
+            case "ScalaNativeModule" => "ScalaNativeTests"
+            case "CrossSbtPlatformModule" => "CrossSbtPlatformTests"
+            case "SbtPlatformModule" => "SbtPlatformTests"
+            case "CrossSbtModule" => "CrossSbtTests"
+            case "SbtModule" => "SbtTests"
           }
-        } else None
-      val mainSbtPlatformModule = if (isCrossPlatform) {
-        Some(SbtPlatformModule(
-          // only sbtcrossproject.CrossType.Full requires additional configuration
-          sourcesRootFolders = if (os.isDir(moduleDir / "shared")) Seq("shared") else Nil
-        ))
-      } else None
-      val mainConfigs = Seq(
-        mainScalaJSModule,
-        mainScalaNativeModule
-      ).flatten ++ Seq(
-        mainJavaModule,
-        mainScalaModule
-      ) ++ Seq(
-        mainJavaHomeModule,
-        mainSbtPlatformModule,
-        mainPublishModule,
-        mainCoursierModule
-      ).flatten
-      val useVersionRanges = isCrossVersion && os.walk.stream(moduleDir).exists(path =>
-        os.isDir(path) && path.last.matches("""^scala-\d+\.\d*(-.*|\+)$""")
-      )
-      val (mainSupertypes, mainMixins) =
-        mainHierarchy(isCrossPlatform, isCrossVersion, useVersionRanges, mainConfigs)
-
-      val testModule = TestModule.mixin(mvnDeps(_.contains("test"))).map { testModuleMixin =>
-        val (testSupertypes, testMixins) =
-          testHierarchy(mainSupertypes ++ mainMixins, testModuleMixin)
-        // provided dependencies are included in run scope to reproduce SBT behavior
-        val testJavaModule = JavaModule(
-          mvnDeps = mvnDeps(_.contains("test")),
-          compileMvnDeps = mvnDeps(_.contains("provided")),
-          runMvnDeps = mvnDeps(_.contains("provided")),
-          moduleDeps = moduleDeps(_.exists(c => c == "test" || c == "test->compile")) ++
-            moduleDeps(_.contains("test->test")).map(dep => dep.copy(dep.segments :+ "test")),
-          compileModuleDeps =
-            moduleDeps(_.exists(c => c == "provided" || c == "test->provided")),
-          runModuleDeps = moduleDeps(_.exists(c => c == "provided" || c == "test->runtime"))
-        )
-        val testScalaJSModule = if (mainScalaJSModule.isEmpty) None else Some(ScalaJSModule())
-        val testScalaNativeModule =
-          if (mainScalaJSModule.isEmpty) None else Some(ScalaNativeModule())
-        val testConfigs = Seq(
-          testJavaModule,
-          // reproduce SBT behavior
-          TestModule(
-            testParallelism = "false",
-            testSandboxWorkingDir = "false"
+          val testModule = ModuleSpec(
+            name = "test",
+            supertypes = supertypes,
+            mixins = Seq(mixin),
+            mvnDeps = testMvnDeps,
+            compileMvnDeps = mainModule.compileMvnDeps,
+            runMvnDeps = mainModule.compileMvnDeps.base ++ mainModule.runMvnDeps.base,
+            moduleDeps = values(
+              moduleDeps(_ == "test") ++ moduleDeps(_ == "test->test", nestedSegment = Some("test"))
+            ).copy(extend = true),
+            compileModuleDeps = mainModule.compileModuleDeps.base,
+            runModuleDeps = mainModule.compileModuleDeps.base ++ mainModule.runModuleDeps.base,
+            testParallelism = Some(false),
+            testSandboxWorkingDir = Some(false)
           )
-        ) ++ Seq(
-          testScalaJSModule,
-          testScalaNativeModule
-        ).flatten
-        ModuleSpec(
-          name = "test",
-          supertypes = testSupertypes,
-          mixins = testMixins,
-          configs = testConfigs,
-          crossConfigs = if (isCrossVersion) Seq((scalaVersion, testConfigs)) else Nil
-        )
+          mainModule = mainModule.copy(test = Some(testModule))
+        }
       }
 
-      val mainModule = ModuleSpec(
-        name = toSegment(baseDir.last),
-        supertypes = mainSupertypes,
-        mixins = mainMixins,
-        configs = mainConfigs,
-        crossConfigs = if (isCrossVersion) Seq((scalaVersion, mainConfigs)) else Nil,
-        nestedModules = testModule.toSeq
+      val moduleDir0 = moduleDir(crossProjectBaseDir.getOrElse(baseDir))
+      val exportedData = SbtModuleSpec(
+        Either.cond(crossProjectBaseDir.nonEmpty || useParentModuleDir, moduleDir0, moduleDir0),
+        mainModule
       )
-
-      val segments = toSegments(moduleDir)
-      val moduleType =
-        if (isCrossPlatform) SbtModuleType.Platform(segments) else SbtModuleType.Default(segments)
-      val exportedData = SbtModuleSpec(moduleType, mainModule)
       Using.resource(os.write.outputStream(outFile))(
         upickle.default.writeToOutputStream(exportedData, _)
       )
     })
   }
 
-  private def mainHierarchy(
-      isCrossPlatform: Boolean,
-      isCrossVersion: Boolean,
-      useVersionRanges: Boolean,
-      configs: Seq[ModuleConfig]
-  ) = {
-    val supertypes = Seq.newBuilder[String]
-    val mixins = Seq.newBuilder[String]
-    supertypes ++= configs.collect {
-      case _: ScalaJSModule => "ScalaJSModule"
-      case _: ScalaNativeModule => "ScalaNativeModule"
-      case _: PublishModule => "PublishModule"
-      case _: SbtPlatformModule => "SbtPlatformModule"
-    }
-    if (isCrossVersion) {
-      mixins += (if (isCrossPlatform) "CrossSbtPlatformModule" else "CrossSbtModule")
-      if (useVersionRanges) mixins += "CrossScalaVersionRanges"
-    } else {
-      supertypes += "SbtModule"
-    }
-    (supertypes.result(), mixins.result())
-  }
-
-  private def testHierarchy(mainHierarchy: Seq[String], testModuleMixin: String) = {
-    val supertypes = Seq.newBuilder[String]
-    val mixins = Seq.newBuilder[String]
-    mainHierarchy.foreach {
-      case "ScalaJSModule" => supertypes += "ScalaJSTests"
-      case "ScalaNativeModule" => supertypes += "ScalaNativeTests"
-      case "SbtModule" => supertypes += "SbtTests"
-      case "SbtPlatformModule" => supertypes += "SbtPlatformTests"
-      case "CrossSbtModule" => mixins += "CrossSbtTests"
-      case "CrossSbtPlatformModule" => mixins += "CrossSbtPlatformTests"
-      case _ =>
-    }
-    mixins += testModuleMixin
-    (supertypes.result(), mixins.result())
-  }
-
-  private def skipDep(dep: ModuleID) = {
-    import dep._
-    (organization == "org.scala-lang" && (
-      name.startsWith("scala-library") ||
-        name.startsWith("scala3-library")
-    )) ||
-    (organization == "ch.epfl.lamp" && name.startsWith("dotty")) ||
-    (organization == "org.scala-js" && !name.startsWith("scalajs-dom")) ||
-    organization == "org.scala-native"
-  }
-
   private def skipScalacOption(s: String) =
     s.startsWith("-P") || s.startsWith("-Xplugin") || s.startsWith("-scalajs")
 
-  private def toSegment(s: String) =
-    // cleanup `CrossType.Pure` module names
-    s.stripPrefix(".")
+  // Cleanup `CrossType.Pure` module names.
+  private def moduleName(s: String) = s.stripPrefix(".")
 
-  private def toSegments(baseDir: os.Path) =
-    baseDir.relativeTo(os.pwd).segments.map(toSegment)
+  private def moduleDir(path: os.Path) = path.subRelativeTo(os.pwd).segments match {
+    case Seq() => os.sub
+    case init :+ last => os.sub / (init :+ moduleName(last))
+  }
 
   private def toMvnDep(dep: ModuleID) = {
-    import ModuleConfig.{CrossVersion => CV}
+    import ModuleSpec.{CrossVersion => CV}
     import dep._
     import librarymanagement.{For2_13Use3, For3Use2_13, Patch}
     val artifact = explicitArtifacts.find(_.name == name)
     MvnDep(
       organization = organization,
       name = name,
-      version = Option(revision),
+      version = revision,
       classifier = artifact.flatMap(_.classifier),
       `type` = artifact.map(_.`type`),
       excludes = exclusions.map(x => (x.organization, x.name)),
       cross = crossVersion match {
-        case v: Binary => CV.Binary(v.prefix.nonEmpty)
-        case v: Full => CV.Full(v.prefix.nonEmpty)
+        case v: Binary => CV.Binary(platformed = v.prefix.nonEmpty)
+        case v: Full => CV.Full(platformed = v.prefix.nonEmpty)
         case _: Patch => CV.Full(platformed = false)
-        case v: For2_13Use3 => CV.Constant("_3", v.prefix.nonEmpty)
-        case v: For3Use2_13 => CV.Constant("_2.13", v.prefix.nonEmpty)
+        case v: For2_13Use3 => CV.Constant("_3", platformed = v.prefix.nonEmpty)
+        case v: For3Use2_13 => CV.Constant("_2.13", platformed = v.prefix.nonEmpty)
         case _ => CV.Constant("", platformed = false)
       }
     )
@@ -334,9 +292,9 @@ object ExportBuildPlugin extends AutoPlugin {
   private def toPomSettings(moduleInfo: ModuleInfo, groupId: String) = {
     import moduleInfo._
     PomSettings(
-      description = Option(description),
-      organization = Option(groupId),
-      url = homepage.map(_.toExternalForm),
+      description = description,
+      organization = groupId,
+      url = homepage.fold("")(_.toExternalForm),
       licenses = licenses.map(toLicense),
       versionControl = toVersionControl(scmInfo),
       developers = developers.map(toDeveloper)
@@ -345,10 +303,10 @@ object ExportBuildPlugin extends AutoPlugin {
 
   private def toLicense(license: (String, URL)) = {
     val (name, url) = license
-    ModuleConfig.License(
+    ModuleSpec.License(
       name = name,
       url = url.toExternalForm,
-      distribution = "repo" // sbt hardcodes "repo"
+      distribution = "repo" // hardcoded by sbt
     )
   }
 
@@ -364,6 +322,6 @@ object ExportBuildPlugin extends AutoPlugin {
 
   private def toDeveloper(developer: librarymanagement.Developer) = {
     import developer._
-    ModuleConfig.Developer(id, name, url.toExternalForm)
+    ModuleSpec.Developer(id, name, url.toExternalForm)
   }
 }

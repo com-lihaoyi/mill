@@ -4,18 +4,20 @@ import mill.api.Discover
 import mill.init.Util
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.Jvm
 import mill.util.TokenReaders.*
 import mill.{PathRef, T}
 import utest.framework.TestPath
 
 import java.nio.file.FileSystems
 
-class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
+class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 
   def check(
-      generate: => Unit,
       sourceRel: os.SubPath,
       expectedRel: os.SubPath,
+      mainArgs: Seq[String] = Nil,
+      envJvmId: String = "zulu:17",
       updateSnapshots: Boolean = false // pass true to update test data on disk
   )(using
       tp: TestPath
@@ -24,7 +26,11 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
     val testRoot = os.pwd / tp.value
     os.copy.over(sourceRoot / sourceRel, testRoot, createFolders = true, replaceExisting = true)
 
-    os.dynamicPwd.withValue(testRoot)(generate)
+    val javaHome = Jvm.resolveJavaHome(envJvmId).get
+    val javaExe = Jvm.javaExe(Some(javaHome))
+    val mainEnv = Map("JAVA_HOME" -> javaHome.toString)
+    os.proc(javaExe, "-jar", mainAssembly, mainArgs)
+      .call(cwd = testRoot, env = mainEnv, stdout = os.Inherit)
 
     val buildFiles = Util.buildFiles(testRoot)
     object module extends TestRootModule with ScalafmtModule {
@@ -74,6 +80,12 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 }
 object BuildGenChecker {
 
-  def apply(sourceRoot: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))): BuildGenChecker =
-    new BuildGenChecker(sourceRoot, os.temp(Util.scalafmtConfig))
+  def apply(
+      mainAssembly: os.Path = os.Path(sys.env("TEST_MAIN_ASSEMBLY")),
+      sourceRoot: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+  ): BuildGenChecker = new BuildGenChecker(
+    mainAssembly = mainAssembly,
+    sourceRoot = sourceRoot,
+    scalafmtConfigFile = os.temp(Util.scalafmtConfig)
+  )
 }

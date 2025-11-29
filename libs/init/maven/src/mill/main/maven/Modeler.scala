@@ -10,14 +10,7 @@ import java.io.File
 import java.util.Properties
 import scala.jdk.CollectionConverters.*
 
-/**
- * The implementation is inspired by [[https://github.com/sbt/sbt-pom-reader/ sbt-pom-reader]].
- */
-class Modeler(
-    builder: ModelBuilder,
-    resolver: ModelResolver,
-    systemProperties: Properties
-) {
+class Modeler(builder: ModelBuilder, resolver: ModelResolver, systemProperties: Properties) {
 
   /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
   def buildAll(workspace: os.Path = os.pwd): Seq[ModelBuildingResult] = {
@@ -35,11 +28,17 @@ class Modeler(
   def build(pomFile: File): ModelBuildingResult = {
     val request = new DefaultModelBuildingRequest()
     request.setPomFile(pomFile)
-    request.setModelResolver(resolver.newCopy())
+    request.setModelResolver(resolver)
     request.setSystemProperties(systemProperties)
-
+    request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL)
+    request.setTwoPhaseBuilding(true)
     try {
-      builder.build(request)
+      val result1 = builder.build(request)
+      val depMgmt1 = Option(result1.getEffectiveModel.getDependencyManagement).map(_.clone)
+      val result2 = builder.build(request, result1)
+      // Restore dep mgmt from Phase 1 since Phase 2 substitutes BOM deps with their components.
+      depMgmt1.foreach(result2.getEffectiveModel.setDependencyManagement)
+      result2
     } catch {
       case e: ModelBuildingException =>
         e.getProblems.asScala.foreach(problem => println(s"ignoring $problem"))
@@ -73,8 +72,9 @@ object Modeler {
     )
 
   def defaultSystemProperties: Properties = {
-    val props = new Properties(System.getProperties)
+    val props = new Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
+    System.getProperties.forEach((k, v) => props.put(k, v))
     props
   }
 }
