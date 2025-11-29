@@ -109,20 +109,6 @@ object CodeGen {
             }
         }
 
-        def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
-          val resourcePath = resourceDest / path / "build-overrides.json"
-          val out = collection.mutable.Map.empty[String, upickle.core.BufferedValue]
-
-          processDataRest(data)(
-            onProperty = (k, v) => out(k) = v,
-            onNestedObject = (k, nestedData) => writeBuildOverrides(nestedData, path :+ k)
-          )
-          import mill.api.ModuleCtx.bufferedRw
-          os.write.over(resourcePath, upickle.write(out), createFolders = true)
-        }
-
-        writeBuildOverrides(parsedHeaderData, segments)
-
         val miscInfoWithResource = {
           val header = if (pkg.isBlank()) "" else s"package $pkg"
           val miscInfoBody = if (segments.isEmpty) {

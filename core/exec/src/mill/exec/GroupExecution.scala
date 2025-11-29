@@ -38,8 +38,8 @@ trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
-  def buildOverrides0: Map[String, String]
-  val staticBuildOverrides = buildOverrides0.map { case (k, v) => (k, mill.internal.Util.parseYaml0("???", v).get) }
+  def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+  val staticBuildOverrides = staticBuildOverrideFiles.map { case (k, v) => (k, mill.internal.Util.parseYaml0(k.toString, v).get) }
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =

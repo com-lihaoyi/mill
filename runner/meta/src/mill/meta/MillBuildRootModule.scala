@@ -159,22 +159,7 @@ trait MillBuildRootModule()(using
   }
 
   def millBuildRootModuleResult = Task {
-    val staticBuildOverrides: Map[String, String] = generatedScriptSources()
-      .resources
-      .map(_.path)
-      .filter(os.exists(_))
-      .flatMap { root =>
-        os.walk(root)
-          .filter(_.last == "build-overrides.json")
-          .flatMap { p =>
-            upickle.read[Map[String, ujson.Value]](os.read(p)).map { case (k, v) =>
-              (p.relativeTo(root).segments.dropRight(1).map(s => s"$s.").mkString + k, v.toString)
-            }
-          }
-      }
-      .toMap
-
-    Tuple4(runClasspath(), compile().classes, codeSignatures(), staticBuildOverrides)
+    Tuple4(runClasspath(), compile().classes, codeSignatures(), parseBuildFiles().seenScripts.collect{case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v) })
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
