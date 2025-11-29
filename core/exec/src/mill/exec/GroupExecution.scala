@@ -127,7 +127,7 @@ trait GroupExecution {
 
           case Some(jsonData) =>
             val (execRes, serializedPaths) =
-              if (labelled.ctx.fileName.endsWith("/mill-build/build.mill")) {
+              if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
                 // If the build override conflicts with a task defined in the mill-build/build.mill,
                 // it is probably a user error so fail loudly. In other scenarios, it may be an
                 // intentional override, but in this one case we can be reasonably sure it's a mistake
