@@ -19,7 +19,6 @@ import mill.meta.CliImports
 import mill.meta.FileImportGraph.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
-import mill.internal.Util.parseYaml
 
 import java.io.File
 import java.net.URLClassLoader
@@ -211,32 +210,19 @@ class MillBuildBootstrap(
           rootModuleRes.flatMap { buildFileApi =>
             def tryReadParent(fileName: String) = {
               val p = currentRoot / ".." / fileName
-              Option.when(os.exists(p)) { mill.constants.Util.readBuildHeader(p.toNIO, fileName) }
+              Option.when(os.exists(p)) {
+                p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName)
+              }
             }
 
-            val jsonRes: Result[ujson.Value] =
-              tryReadParent("build.mill.yaml").map(s =>
-                parseYaml("build.mill.yaml", s).map(parsed =>
-                  // For YAML files, extract the mill-build key if it exists, otherwise use empty map
-                  parsed.obj.get("mill-build") match {
-                    case Some(millBuildValue: ujson.Obj) => millBuildValue
-                    case _ => ujson.Obj()
-                  }
-                )
-              ).orElse(tryReadParent("build.mill").map(parseYaml("build.mill", _)))
-                .getOrElse(Result.Success(ujson.Obj()))
-
-            jsonRes
-              .flatMap(json => upickle.read[Map[String, ujson.Value]](json))
-              .map((buildFileApi, _))
-
+            (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
           } match {
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
             case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
-              val staticBuildOverrides =
-                staticBuildOverrides0 ++
-                  nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
+              val staticBuildOverrideFiles =
+                staticBuildOverrides0.toSeq ++
+                  nestedState.frames.lastOption.fold(Map())(_.buildOverrideFiles)
 
               Using.resource(makeEvaluator(
                 topLevelProjectRoot,
@@ -273,7 +259,7 @@ class MillBuildBootstrap(
                 depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
-                staticBuildOverrides = staticBuildOverrides
+                staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -341,7 +327,7 @@ class MillBuildBootstrap(
               runClasspath: Seq[PathRefApi],
               compileClasses: PathRefApi,
               codeSignatures: Map[String, Int],
-              buildOverrides0: Map[String, String]
+              buildOverrideFiles: Map[java.nio.file.Path, String]
             ))),
             evalWatches,
             moduleWatches
@@ -391,7 +377,7 @@ class MillBuildBootstrap(
           runClasspath,
           Some(compileClasses),
           Option(evaluator),
-          buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
+          buildOverrideFiles
         )
 
         nestedState.add(frame = evalState)
@@ -460,7 +446,7 @@ object MillBuildBootstrap {
       depth: Int,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
-      staticBuildOverrides: Map[String, ujson.Value]
+      staticBuildOverrideFiles: Map[java.nio.file.Path, String]
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -499,7 +485,7 @@ object MillBuildBootstrap {
           streams0,
           () => evaluator,
           offline,
-          staticBuildOverrides.map { case (k, v) => (k, v.toString) },
+          staticBuildOverrideFiles,
           enableTicker
         )
       ).asInstanceOf[EvaluatorApi]

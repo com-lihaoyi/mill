@@ -23,7 +23,12 @@ trait ScriptModule extends ExternalModule {
   private[mill] override def moduleDynamicBuildOverrides = scriptConfig
     .headerData
     .rest
-    .map { case (k, v) => ((moduleSegments ++ mill.api.Segment.Label(k)).render, v) }
+    .map { case (k, v) =>
+      (
+        (moduleSegments ++ mill.api.Segment.Label(k)).render,
+        internal.LocatedValue(scriptConfig.scriptFile, v.index, v)
+      )
+    }
 }
 @experimental
 object ScriptModule {

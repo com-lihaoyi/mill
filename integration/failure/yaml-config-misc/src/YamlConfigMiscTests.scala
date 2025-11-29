@@ -21,7 +21,7 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
 
       val res2 = tester.eval("mispelledextends.compile")
       assert(res2.err.contains(
-        "invalid build config in `mispelledextends/package.mill.yaml`: key \"mill-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"
+        "invalid build config in mispelledextends/package.mill.yaml:1 key \"mill-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"
       ))
     }
   }
