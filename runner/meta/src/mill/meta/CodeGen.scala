@@ -104,7 +104,10 @@ object CodeGen {
           for ((kString, v) <- data.rest.toSeq)
             yield kString.split(" +") match {
               case Array(k) => onProperty(k, v)
-              case Array("object", k) => onNestedObject(k, upickle.core.BufferedValue.transform(v, upickle.reader[HeaderData]))
+              case Array("object", k) => onNestedObject(
+                  k,
+                  upickle.core.BufferedValue.transform(v, upickle.reader[HeaderData])
+                )
               case _ => sys.error("Invalid key: " + kString)
             }
         }

@@ -19,7 +19,6 @@ import mill.meta.CliImports
 import mill.meta.FileImportGraph.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
-import mill.internal.Util.parseYaml
 
 import java.io.File
 import java.net.URLClassLoader
@@ -211,7 +210,9 @@ class MillBuildBootstrap(
           rootModuleRes.flatMap { buildFileApi =>
             def tryReadParent(fileName: String) = {
               val p = currentRoot / ".." / fileName
-              Option.when(os.exists(p)) { p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName) }
+              Option.when(os.exists(p)) {
+                p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName)
+              }
             }
 
             (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))

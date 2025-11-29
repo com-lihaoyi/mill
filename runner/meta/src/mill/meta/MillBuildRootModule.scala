@@ -159,7 +159,14 @@ trait MillBuildRootModule()(using
   }
 
   def millBuildRootModuleResult = Task {
-    Tuple4(runClasspath(), compile().classes, codeSignatures(), parseBuildFiles().seenScripts.collect{case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v) })
+    Tuple4(
+      runClasspath(),
+      compile().classes,
+      codeSignatures(),
+      parseBuildFiles().seenScripts.collect {
+        case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v)
+      }
+    )
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {

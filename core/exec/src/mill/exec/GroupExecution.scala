@@ -39,12 +39,17 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
-  mill.constants.DebugLog.println("staticBuildOverrideFiles " + pprint.apply(staticBuildOverrideFiles))
+  mill.constants.DebugLog.println(
+    "staticBuildOverrideFiles " + pprint.apply(staticBuildOverrideFiles)
+  )
   import mill.api.internal.LocatedValue
   val staticBuildOverrides: Map[String, LocatedValue] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
-      def rec(segments: Seq[String], bufValue: upickle.core.BufferedValue): Seq[(String, LocatedValue)] = {
+      def rec(
+          segments: Seq[String],
+          bufValue: upickle.core.BufferedValue
+      ): Seq[(String, LocatedValue)] = {
         val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
         val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
           k.toString.split(" +") match {
@@ -53,7 +58,10 @@ trait GroupExecution {
           }
         }
         val currentResults: Seq[(String, LocatedValue)] =
-          rawKvs.toSeq.collect{case (k, i, v) if k != "extends" => (segments ++ Seq(k)).mkString(".") -> LocatedValue(path, i, v)}
+          rawKvs.toSeq.collect {
+            case (k, i, v) if k != "extends" =>
+              (segments ++ Seq(k)).mkString(".") -> LocatedValue(path, i, v)
+          }
 
         val nestedResults: Seq[(String, LocatedValue)] = nested.flatten.toSeq
 

@@ -49,47 +49,59 @@ object ModuleCtx extends LowPriCtx {
   }
 
   import upickle.core.BufferedValue
-  implicit val bufferedRw: upickle.ReadWriter[BufferedValue] = new upickle.ReadWriter[BufferedValue] {
-   def visitArray(length: Int, index: Int): upickle.core.ArrVisitor[Any, BufferedValue] = new upickle.core.ArrVisitor[Any, BufferedValue] {
-     def subVisitor = bufferedRw
-     private[this] val vs = collection.mutable.ArrayBuffer.newBuilder[BufferedValue]
-     def visitValue(v: Any, index: Int): Unit = vs += v.asInstanceOf[BufferedValue]
+  implicit val bufferedRw: upickle.ReadWriter[BufferedValue] =
+    new upickle.ReadWriter[BufferedValue] {
+      def visitArray(length: Int, index: Int): upickle.core.ArrVisitor[Any, BufferedValue] =
+        new upickle.core.ArrVisitor[Any, BufferedValue] {
+          def subVisitor = bufferedRw
+          private[this] val vs = collection.mutable.ArrayBuffer.newBuilder[BufferedValue]
+          def visitValue(v: Any, index: Int): Unit = vs += v.asInstanceOf[BufferedValue]
 
-     def visitEnd(index: Int) = BufferedValue.Arr(vs.result(), index)
-   }
+          def visitEnd(index: Int) = BufferedValue.Arr(vs.result(), index)
+        }
 
-   def visitBinary(bytes: Array[Byte], offset: Int, len: Int, index: Int) = BufferedValue.Binary(bytes, offset, len, index)
-   def visitChar(s: Char, index: Int) = BufferedValue.Char(s, index)
-   def visitExt(tag: Byte, bytes: Array[Byte], offset: Int, len: Int, index: Int) = BufferedValue.Ext(tag, bytes, offset, len, index)
-   def visitFalse(index: Int) = BufferedValue.False(index)
-   def visitFloat32(d: Float, index: Int) = BufferedValue.Float32(d, index)
-   def visitFloat64(d: Double, index: Int) = BufferedValue.NumRaw(d, index)
-   def visitFloat64String(s: String, index: Int) = BufferedValue.Float64String(s, index)
-   def visitFloat64StringParts(s: CharSequence, decIndex: Int, expIndex: Int, index: Int) = BufferedValue.Num(s, decIndex, expIndex, index)
-   def visitInt32(i: Int, index: Int) = BufferedValue.Int32(i, index)
-   def visitInt64(i: Long, index: Int) = BufferedValue.Int64(i, index)
-   def visitNull(index: Int) = BufferedValue.Null(index)
-   def visitObject(length: Int, jsonableKeys: Boolean, index: Int): upickle.core.ObjVisitor[Any, BufferedValue] = new upickle.core.ObjVisitor[Any, BufferedValue] {
-     private[this] var key: BufferedValue = null
-     private[this] val vs = collection.mutable.ArrayBuffer.newBuilder[(BufferedValue, BufferedValue)]
+      def visitBinary(bytes: Array[Byte], offset: Int, len: Int, index: Int) =
+        BufferedValue.Binary(bytes, offset, len, index)
+      def visitChar(s: Char, index: Int) = BufferedValue.Char(s, index)
+      def visitExt(tag: Byte, bytes: Array[Byte], offset: Int, len: Int, index: Int) =
+        BufferedValue.Ext(tag, bytes, offset, len, index)
+      def visitFalse(index: Int) = BufferedValue.False(index)
+      def visitFloat32(d: Float, index: Int) = BufferedValue.Float32(d, index)
+      def visitFloat64(d: Double, index: Int) = BufferedValue.NumRaw(d, index)
+      def visitFloat64String(s: String, index: Int) = BufferedValue.Float64String(s, index)
+      def visitFloat64StringParts(s: CharSequence, decIndex: Int, expIndex: Int, index: Int) =
+        BufferedValue.Num(s, decIndex, expIndex, index)
+      def visitInt32(i: Int, index: Int) = BufferedValue.Int32(i, index)
+      def visitInt64(i: Long, index: Int) = BufferedValue.Int64(i, index)
+      def visitNull(index: Int) = BufferedValue.Null(index)
+      def visitObject(
+          length: Int,
+          jsonableKeys: Boolean,
+          index: Int
+      ): upickle.core.ObjVisitor[Any, BufferedValue] =
+        new upickle.core.ObjVisitor[Any, BufferedValue] {
+          private[this] var key: BufferedValue = null
+          private[this] val vs =
+            collection.mutable.ArrayBuffer.newBuilder[(BufferedValue, BufferedValue)]
 
-     def subVisitor = bufferedRw
+          def subVisitor = bufferedRw
 
-     def visitKey(index: Int) = bufferedRw
+          def visitKey(index: Int) = bufferedRw
 
-     def visitKeyValue(s: Any): Unit = key = s.asInstanceOf[BufferedValue]
+          def visitKeyValue(s: Any): Unit = key = s.asInstanceOf[BufferedValue]
 
-     def visitValue(v: Any, index: Int): Unit = vs += (key -> v.asInstanceOf[BufferedValue])
+          def visitValue(v: Any, index: Int): Unit = vs += (key -> v.asInstanceOf[BufferedValue])
 
-     def visitEnd(index: Int) = BufferedValue.Obj(vs.result(), jsonableKeys = true, index)
-   }
-   def visitString(s: CharSequence, index: Int) = BufferedValue.Str(s, index)
-   def visitTrue(index: Int) = BufferedValue.True(index)
-   def visitUInt64(i: Long, index: Int) = BufferedValue.UInt64(i, index)
-   
-   def write0[V](out: upickle.core.Visitor[?, V], v: BufferedValue): V = BufferedValue.transform(v, out)
+          def visitEnd(index: Int) = BufferedValue.Obj(vs.result(), jsonableKeys = true, index)
+        }
+      def visitString(s: CharSequence, index: Int) = BufferedValue.Str(s, index)
+      def visitTrue(index: Int) = BufferedValue.True(index)
+      def visitUInt64(i: Long, index: Int) = BufferedValue.UInt64(i, index)
 
-  }
+      def write0[V](out: upickle.core.Visitor[?, V], v: BufferedValue): V =
+        BufferedValue.transform(v, out)
+
+    }
   private[mill] case class HeaderData(
       `extends`: Seq[String] = Nil,
       moduleDeps: Seq[String] = Nil,
