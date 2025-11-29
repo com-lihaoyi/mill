@@ -39,6 +39,7 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+  mill.constants.DebugLog.println("staticBuildOverrideFiles " + pprint.apply(staticBuildOverrideFiles))
   import mill.api.internal.LocatedValue
   val staticBuildOverrides: Map[String, LocatedValue] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
@@ -52,7 +53,7 @@ trait GroupExecution {
           }
         }
         val currentResults: Seq[(String, LocatedValue)] =
-          rawKvs.toSeq.map{case (k, i, v) => (segments ++ Seq(k)).mkString(".") -> LocatedValue(path, i, v)}
+          rawKvs.toSeq.collect{case (k, i, v) if k != "extends" => (segments ++ Seq(k)).mkString(".") -> LocatedValue(path, i, v)}
 
         val nestedResults: Seq[(String, LocatedValue)] = nested.flatten.toSeq
 
@@ -60,11 +61,12 @@ trait GroupExecution {
       }
 
       rec(
-        path.subRelativeTo(workspace).segments,
+        (path / "..").subRelativeTo(workspace).segments,
         mill.internal.Util.parseYaml0(path0.toString, rawText).get
       )
     }
     .toMap
+  mill.constants.DebugLog.println("staticBuildOverrides " + pprint.apply(staticBuildOverrides))
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
