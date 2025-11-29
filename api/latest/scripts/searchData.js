@@ -4609,7 +4609,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/ScalaModule.html#ammoniteVersion-0","e":false,"i":"","n":"ammoniteVersion","t":"ammoniteVersion: Simple[String]","d":"mill.scalalib.ScalaModule","k":"def","x":""},
 {"l":"mill/scalalib/ScalaModule.html#artifactScalaVersion-0","e":false,"i":"","n":"artifactScalaVersion","t":"artifactScalaVersion: Simple[String]","d":"mill.scalalib.ScalaModule","k":"def","x":""},
 {"l":"mill/scalalib/ScalaModule.html#bindDependency-0","e":false,"i":"","n":"bindDependency","t":"bindDependency: Task[Dep => BoundDep]","d":"mill.scalalib.ScalaModule","k":"def","x":""},
-{"l":"mill/scalalib/ScalaModule.html#console-936","e":false,"i":"","n":"console","t":"console(): Command[Unit]","d":"mill.scalalib.ScalaModule","k":"def","x":""},
+{"l":"mill/scalalib/ScalaModule.html#console-fffffed9","e":false,"i":"","n":"console","t":"console(args: Args = ...): Command[Unit]","d":"mill.scalalib.ScalaModule","k":"def","x":""},
 {"l":"mill/scalalib/ScalaModule.html#consoleScalacOptions-0","e":false,"i":"","n":"consoleScalacOptions","t":"consoleScalacOptions: Simple[Seq[String]]","d":"mill.scalalib.ScalaModule","k":"def","x":""},
 {"l":"mill/scalalib/ScalaModule.html#crossFullScalaVersion-0","e":false,"i":"","n":"crossFullScalaVersion","t":"crossFullScalaVersion: Simple[Boolean]","d":"mill.scalalib.ScalaModule","k":"def","x":""},
 {"l":"mill/scalalib/ScalaModule.html#repl-fffff121","e":false,"i":"","n":"repl","t":"repl(replOptions: String*): Command[Unit]","d":"mill.scalalib.ScalaModule","k":"def","x":""},
