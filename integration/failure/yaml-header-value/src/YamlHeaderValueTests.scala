@@ -14,7 +14,7 @@ object YamlHeaderValueTests extends UtestIntegrationTestSuite {
 
       assert(res.isSuccess == false)
       val expectedError =
-        "mvnDeps Failed de-serializing config override: expected sequence got string"
+        "mvnDeps Failed de-serializing config override at build.mill:1 expected sequence got string"
       assert(res.err.contains(expectedError))
       // make sure we truncate the exception to the relevant bits
       assert(res.err.linesIterator.toList.length < 20)

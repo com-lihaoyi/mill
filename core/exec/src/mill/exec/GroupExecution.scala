@@ -11,6 +11,7 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+import upickle.core.BufferedValue
 
 import java.io.ByteArrayOutputStream
 
@@ -38,8 +39,59 @@ trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
-  def buildOverrides0: Map[String, String]
-  val staticBuildOverrides = buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
+  def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+
+  import mill.api.internal.LocatedValue
+  val staticBuildOverrides: Map[String, LocatedValue] = staticBuildOverrideFiles
+    .flatMap { case (path0, rawText) =>
+      val path = os.Path(path0)
+      def rec(
+          segments: Seq[String],
+          bufValue: upickle.core.BufferedValue
+      ): Seq[(String, LocatedValue)] = {
+        val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
+        val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
+          k.toString.split(" +") match {
+            case Array(k) => Left((k, i, v))
+            case Array("object", k) => Right(rec(segments ++ Seq(k), v))
+          }
+        }
+        val currentResults: Seq[(String, LocatedValue)] =
+          rawKvs.toSeq.collect {
+            case (k, i, v) if k != "extends" =>
+              (segments ++ Seq(k)).mkString(".") -> LocatedValue(path, i, v)
+          }
+
+        val nestedResults: Seq[(String, LocatedValue)] = nested.flatten.toSeq
+
+        currentResults ++ nestedResults
+      }
+
+      val parsed0 = BufferedValue.Obj(
+        mill.internal.Util.parseYaml0(
+          path0.toString,
+          rawText,
+          upickle.reader[ModuleCtx.HeaderData]
+        ).get
+          .rest
+          .map { case (k, v) => (BufferedValue.Str(k, -1), v) }
+          .to(mutable.ArrayBuffer),
+        true,
+        -1
+      )
+      rec(
+        (path / "..").subRelativeTo(workspace).segments,
+        if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+          parsed0
+            .value0
+            .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
+            .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
+        } else parsed0
+      )
+    }
+    .toMap
+
+  mill.constants.DebugLog.println("staticBuildOverrides A " + pprint.apply(staticBuildOverrides))
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -56,7 +108,7 @@ trait GroupExecution {
   )
 
   /** Recursively examine all `ujson.Str` values and replace '${VAR}' patterns. */
-  private def interpolateEnvVarsInJson(json: ujson.Value): ujson.Value = {
+  private def interpolateEnvVarsInJson(json: upickle.core.BufferedValue): ujson.Value = {
     import scala.jdk.CollectionConverters.*
     val envWithPwd = (env ++ envVarsForInterpolation).asJava
 
@@ -68,7 +120,7 @@ trait GroupExecution {
       case v => v
     }
 
-    rec(json)
+    rec(upickle.core.BufferedValue.transform(json, ujson.Value))
   }
 
   // the JVM running this code currently
@@ -126,14 +178,20 @@ trait GroupExecution {
           .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
           case Some(jsonData) =>
+            lazy val lookupLineSuffix = fastparse
+              .IndexedParserInput(os.read(jsonData.path).replace("\n//|", "\n"))
+              .prettyIndex(jsonData.value.index)
+              .takeWhile(_ != ':') // split off column since it's not that useful
+
             val (execRes, serializedPaths) =
               if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
                 // If the build override conflicts with a task defined in the mill-build/build.mill,
                 // it is probably a user error so fail loudly. In other scenarios, it may be an
                 // intentional override, but in this one case we can be reasonably sure it's a mistake
+
                 (
                   ExecResult.Failure(
-                    s"Build header config conflicts with task defined " +
+                    s"Build header config in ${jsonData.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
                       s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
                   ),
                   Nil
@@ -145,20 +203,26 @@ trait GroupExecution {
                     PathRef.currentOverrideModulePath.withValue(
                       labelled.ctx.enclosingModule.moduleCtx.millSourcePath
                     ) {
-                      upickle.read[Any](interpolateEnvVarsInJson(jsonData))(
+                      upickle.read[Any](interpolateEnvVarsInJson(jsonData.value))(
                         using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
                       )
                     }
                   }
 
                   // Write build header override JSON to meta `.json` file to support `show`
-                  writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash + jsonData.##)
+                  writeCacheJson(
+                    paths.meta,
+                    upickle.core.BufferedValue.transform(jsonData.value, ujson.Value),
+                    resultData.##,
+                    inputsHash + jsonData.value.##
+                  )
+
                   (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
                 } catch {
                   case e: upickle.core.TraceVisitor.TraceException =>
                     (
                       ExecResult.Failure(
-                        s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                        s"Failed de-serializing config override at ${jsonData.path.relativeTo(workspace)}:$lookupLineSuffix ${e.getCause.getMessage}"
                       ),
                       Nil
                     )
