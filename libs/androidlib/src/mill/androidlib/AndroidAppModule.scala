@@ -235,6 +235,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
   }
 
+  override def androidAaptOptions: T[Seq[String]] = Task {
+    super.androidAaptOptions().filterNot(_ == "--non-final-ids")
+  }
+
   /**
    * Regex patterns of files to be excluded from packaging into the APK.
    */

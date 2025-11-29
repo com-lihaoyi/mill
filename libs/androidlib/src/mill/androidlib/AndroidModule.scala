@@ -131,15 +131,24 @@ trait AndroidModule extends JavaModule { outer =>
    * Specifies AAPT options for Android resource compilation.
    */
   def androidAaptOptions: T[Seq[String]] = Task {
-    if (androidIsDebug()) {
-      Seq(
-        "--proguard-minimal-keep-rules",
-        "--debug-mode",
-        "--auto-add-overlay"
-      )
-    } else {
-      Seq("--auto-add-overlay")
-    }
+    val debugOptions = Seq(
+      "--proguard-minimal-keep-rules",
+      "--debug-mode"
+    )
+
+    // Add module dependencies' namespaces as extra packages
+    // TODO: cleanup once we properly pass resources from dependencies
+    val extraPackages = moduleDeps.collect {
+      case p: AndroidModule => Seq("--extra-packages", p.androidNamespace)
+    }.flatten
+
+    Seq(
+      "--auto-add-overlay",
+      "--no-version-vectors",
+      "--no-proguard-location-reference",
+      "--non-final-ids"
+    ) ++ extraPackages
+      ++ Option.when(androidIsDebug())(debugOptions).toSeq.flatten
   }
 
   def androidProviderProguardConfigRules: T[Seq[String]] = Task {
@@ -498,7 +507,8 @@ trait AndroidModule extends JavaModule { outer =>
     // * it will generate R.java for the library even library has no resources declared
     // * R.java will have not only resource ID from this library, but from other libraries as well. They should be stripped.
     val rClassDir = androidLinkedResources().path / "generatedSources/java"
-    val mainRClassPath = os.walk(rClassDir)
+    val rSources = os.walk(rClassDir).filter(p => os.isFile(p) && p.ext == "java")
+    val mainRClassPath = rSources
       .find(_.last == "R.java")
       .get
 
@@ -519,7 +529,7 @@ trait AndroidModule extends JavaModule { outer =>
       )
     } yield PathRef(libRClassPath)
 
-    libClasses :+ PathRef(mainRClassPath)
+    libClasses ++ rSources.map(PathRef(_))
   }
 
   /**
