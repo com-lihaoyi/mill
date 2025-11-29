@@ -14,7 +14,9 @@ object YamlHeaderMetaConflictTests extends UtestIntegrationTestSuite {
 
       assert(res.isSuccess == false)
 
-      assert(res.err.contains(""))
+      assert(res.err.contains(
+        "mvnDeps Build header config conflicts with task defined in mill-build/build.mill:7"
+      ))
       // make sure we truncate the exception to the relevant bits
       assert(res.err.linesIterator.toList.length < 20)
     }
