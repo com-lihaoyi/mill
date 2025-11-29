@@ -11,6 +11,7 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+import upickle.core.BufferedValue
 
 import java.io.ByteArrayOutputStream
 
@@ -39,9 +40,7 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
-  mill.constants.DebugLog.println(
-    "staticBuildOverrideFiles " + pprint.apply(staticBuildOverrideFiles)
-  )
+
   import mill.api.internal.LocatedValue
   val staticBuildOverrides: Map[String, LocatedValue] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
@@ -68,13 +67,21 @@ trait GroupExecution {
         currentResults ++ nestedResults
       }
 
+      val parsed0 = mill.internal.Util.parseYaml0(path0.toString, rawText).get
       rec(
         (path / "..").subRelativeTo(workspace).segments,
-        mill.internal.Util.parseYaml0(path0.toString, rawText).get
+        if (rootModule.isInstanceOf[mill.api.daemon.internal.MillBuildRootModuleApi] &&
+          path.last == "build.mill.yaml") {
+          parsed0.asInstanceOf[BufferedValue.Obj]
+            .value0
+            .collectFirst{case (BufferedValue.Str("mill-build", _), v) => v}
+            .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
+        }
+        else parsed0
       )
     }
     .toMap
-  mill.constants.DebugLog.println("staticBuildOverrides " + pprint.apply(staticBuildOverrides))
+
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
