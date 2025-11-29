@@ -71,8 +71,8 @@ object Util {
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
 
-    headerDataOpt.flatMap(parseYaml(relativePath.toString, _)).flatMap { parsed =>
-      try Result.Success(upickle.read[HeaderData](parsed))
+    headerDataOpt.flatMap(parseYaml0(relativePath.toString, _)).flatMap { parsed =>
+      try Result.Success(upickle.core.BufferedValue.transform(parsed, upickle.reader[HeaderData]))
       catch {
         case e: upickle.core.TraceVisitor.TraceException =>
           Result.Failure(
