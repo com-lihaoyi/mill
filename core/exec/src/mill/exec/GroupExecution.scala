@@ -67,12 +67,18 @@ trait GroupExecution {
         currentResults ++ nestedResults
       }
 
-      val parsed0 = mill.internal.Util.parseYaml0(path0.toString, rawText).get
+      val parsed0 = BufferedValue.Obj(
+        BufferedValue.transform(mill.internal.Util.parseYaml0(path0.toString, rawText).get, upickle.reader[ModuleCtx.HeaderData])
+          .rest
+          .map{case (k, v) => (BufferedValue.Str(k, -1), v) }
+          .to(mutable.ArrayBuffer),
+        true,
+        -1
+      )
       rec(
         (path / "..").subRelativeTo(workspace).segments,
-        if (rootModule.isInstanceOf[mill.api.daemon.internal.MillBuildRootModuleApi] &&
-          path.last == "build.mill.yaml") {
-          parsed0.asInstanceOf[BufferedValue.Obj]
+        if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+          parsed0
             .value0
             .collectFirst{case (BufferedValue.Str("mill-build", _), v) => v}
             .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))

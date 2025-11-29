@@ -82,9 +82,6 @@ object Util {
     }
   }
 
-  def parseYaml(fileName: String, headerData: String): Result[ujson.Value] =
-    parseYaml0(fileName, headerData).map(upickle.core.BufferedValue.transform(_, ujson.Value))
-
   def parseYaml0(fileName: String, headerData: String): Result[upickle.core.BufferedValue] =
     try Result.Success {
         import org.snakeyaml.engine.v2.api.{LoadSettings}
