@@ -271,7 +271,7 @@ final class EvaluatorImpl(
       serialCommandExec = serialCommandExec
     )
 
-    val allResults = evaluated.transitiveResults.iterator ++ selectiveResults
+    val allResults = evaluated.transitiveResults ++ selectiveResults
 
     @scala.annotation.nowarn("msg=cannot be checked at runtime")
     val watched = allResults.collect {
@@ -301,18 +301,16 @@ final class EvaluatorImpl(
           result.map(_.value).hashCode(),
           pretty
         ))
-    }.flatten.toSeq
+    }.flatten.toVector
 
-    for(newMetadata <- maybeNewMetadata) {
+    for (newMetadata <- maybeNewMetadata) {
       val failingTaskNames = allResults
-        .collect { case (t: Task.Named[_], r) if r.asSuccess.isEmpty => t.ctx.segments.render}
+        .collect { case (t: Task.Named[_], r) if r.asSuccess.isEmpty => t.ctx.segments.render }
         .toSet
 
-      selective.saveMetadata(
-        newMetadata.copy(forceRunTasks = failingTaskNames)
-      )
+      // For tasks that were not successful, force them to re-run next time even if not changed
+      selective.saveMetadata(newMetadata.copy(forceRunTasks = failingTaskNames))
     }
-    
 
     val errorStr = ExecutionResultsApi.formatFailing(evaluated)
     evaluated.transitiveFailing.size match {

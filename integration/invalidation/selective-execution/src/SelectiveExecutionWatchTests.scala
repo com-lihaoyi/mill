@@ -104,5 +104,45 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
         }
       }
     }
+
+    // Make sure that if a task fail/skipped/aborted during `--watch`, next time we
+    // run things selectively we run that task again to help ensure that the user
+    // seeing no failures in the terminal really means there are no failures left
+    test("rerun-failures") - retry(1) {
+      integrationTest { tester =>
+        import tester._
+
+        modifyFile(
+          workspacePath / "build.mill",
+          _.replace(
+            "def fooCommand() = Task.Command {",
+            "def fooCommand() = Task.Command { sys.error(\"boom foo\")"
+          )
+            .replace(
+              "def barCommand() = Task.Command {",
+              "def barCommand() = Task.Command { sys.error(\"boom bar\")"
+            )
+        )
+
+        val spawned = spawn(("-j1", "--watch", "{foo.fooCommand,bar.barCommand}"))
+
+        assertEventually { spawned.err.text().contains("boom") }
+
+        spawned.clear()
+        modifyFile(workspacePath / "build.mill", _.replace("sys.error(\"boom foo\")", ""))
+
+        assertEventually {
+          spawned.out.text().contains("Computing fooCommand") &&
+          // Make sure `bar` re-runs here and blows up again, even though we didn't modify the
+          // task, so the user is aware there is still a remaining failure after fixing foo
+          spawned.err.text().contains("boom bar")
+        }
+
+        spawned.clear()
+        modifyFile(workspacePath / "build.mill", _.replace("sys.error(\"boom bar\")", ""))
+
+        assertEventually { spawned.out.text().contains("Computing barCommand") }
+      }
+    }
   }
 }

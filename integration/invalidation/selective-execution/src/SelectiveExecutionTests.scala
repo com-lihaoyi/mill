@@ -56,4 +56,3 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
     }
   }
 }
-

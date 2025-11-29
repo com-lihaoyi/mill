@@ -5,8 +5,6 @@ import scala.concurrent.duration._
 import utest._
 import utest.asserts.{RetryMax, RetryInterval}
 
-
-
 object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
