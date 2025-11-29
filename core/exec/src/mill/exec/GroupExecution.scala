@@ -39,7 +39,7 @@ trait GroupExecution {
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def buildOverrides0: Map[String, String]
-  val staticBuildOverrides = buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
+  val staticBuildOverrides = buildOverrides0.map { case (k, v) => (k, mill.internal.Util.parseYaml0("???", v).get) }
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -56,7 +56,7 @@ trait GroupExecution {
   )
 
   /** Recursively examine all `ujson.Str` values and replace '${VAR}' patterns. */
-  private def interpolateEnvVarsInJson(json: ujson.Value): ujson.Value = {
+  private def interpolateEnvVarsInJson(json: upickle.core.BufferedValue): ujson.Value = {
     import scala.jdk.CollectionConverters.*
     val envWithPwd = (env ++ envVarsForInterpolation).asJava
 
@@ -68,7 +68,7 @@ trait GroupExecution {
       case v => v
     }
 
-    rec(json)
+    rec(upickle.core.BufferedValue.transform(json, ujson.Value))
   }
 
   // the JVM running this code currently
@@ -139,7 +139,12 @@ trait GroupExecution {
                 }
 
                 // Write build header override JSON to meta `.json` file to support `show`
-                writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash + jsonData.##)
+                writeCacheJson(
+                  paths.meta,
+                  upickle.core.BufferedValue.transform(jsonData, ujson.Value),
+                  resultData.##,
+                  inputsHash + jsonData.##
+                )
                 (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
               } catch {
                 case e: upickle.core.TraceVisitor.TraceException =>
