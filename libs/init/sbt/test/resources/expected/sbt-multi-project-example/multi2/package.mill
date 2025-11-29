@@ -1,13 +1,15 @@
 package build.multi2
-
-import mill.javalib.*
+import mill.*
+import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
-import millbuild.*
+import millbuild.Deps
+import millbuild.ProjectBaseModule
+object `package` extends ProjectBaseModule {
 
-object `package` extends SbtMultiProjectExampleBaseModule {
+  def moduleDeps = Seq(build.common)
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
+  def mvnDeps = Seq(
     Deps.logbackClassic,
     Deps.logstashLogbackEncoder,
     Deps.scalaLogging,
@@ -16,8 +18,6 @@ object `package` extends SbtMultiProjectExampleBaseModule {
     Deps.akkaStream,
     Deps.pureconfig
   )
-
-  def moduleDeps = super.moduleDeps ++ Seq(build.common)
 
   def artifactName = "multi2"
 
@@ -42,14 +42,6 @@ object `package` extends SbtMultiProjectExampleBaseModule {
     Seq(Developer("johnd", "John Doe", "https://example.com/johnd", None, None))
   )
 
-  object test extends SbtTests with TestModule.ScalaTest {
-
-    def mvnDeps = super.mvnDeps() ++ Seq(Deps.scalatest, Deps.scalacheck)
-
-    def testParallelism = false
-
-    def testSandboxWorkingDir = false
-
-  }
+  object test extends Tests {}
 
 }

@@ -8,7 +8,6 @@ object SbtBuildGenTests extends TestSuite {
     val checker = BuildGenChecker()
     test("scala-seed-project") {
       assert(checker.check(
-        generate = SbtBuildGenMain.main(Array.empty[String]),
         sourceRel = os.sub / "scala-seed-project",
         expectedRel = os.sub / "expected/scala-seed-project"
       ))
@@ -16,45 +15,42 @@ object SbtBuildGenTests extends TestSuite {
     // from https://github.com/pbassiner/sbt-multi-project-example/tree/master
     test("sbt-multi-project-example") {
       assert(checker.check(
-        generate = SbtBuildGenMain.main(Array.empty[String]),
         sourceRel = os.sub / "sbt-multi-project-example",
         expectedRel = "expected/sbt-multi-project-example"
       ))
     }
     test("cross-version") {
       assert(checker.check(
-        generate = SbtBuildGenMain.main(Array.empty[String]),
         sourceRel = os.sub / "cross-version",
         expectedRel = os.sub / "expected/cross-version"
       ))
     }
     test("crossproject") {
       assert(checker.check(
-        generate = SbtBuildGenMain.main(Array.empty[String]),
         sourceRel = os.sub / "crossproject",
         expectedRel = os.sub / "expected/crossproject"
       ))
     }
     test("crossproject-cross-version") {
       assert(checker.check(
-        generate = SbtBuildGenMain.main(Array.empty[String]),
         sourceRel = os.sub / "crossproject-cross-version",
         expectedRel = os.sub / "expected/crossproject-cross-version"
       ))
     }
     test("with-args") {
+      val args = Seq("--merge", "--no-meta")
       test("sbt-multi-project-example") {
         assert(checker.check(
-          generate = SbtBuildGenMain.main(Array("--merge", "--no-meta")),
           sourceRel = os.sub / "sbt-multi-project-example",
-          expectedRel = os.sub / "expected/with-args/sbt-multi-project-example"
+          expectedRel = os.sub / "expected/with-args/sbt-multi-project-example",
+          mainArgs = args
         ))
       }
       test("crossproject-cross-version") {
         assert(checker.check(
-          generate = SbtBuildGenMain.main(Array("--merge", "--no-meta")),
           sourceRel = os.sub / "crossproject-cross-version",
-          expectedRel = os.sub / "expected/with-args/crossproject-cross-version"
+          expectedRel = os.sub / "expected/with-args/crossproject-cross-version",
+          mainArgs = args
         ))
       }
     }

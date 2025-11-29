@@ -1,19 +1,21 @@
 package build.pure
-
 import mill.*
-import mill.javalib.*
+import mill.javalib.PublishModule
 import mill.javalib.publish.*
-import mill.scalajslib.*
+import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.*
 import mill.scalalib.*
-import mill.scalanativelib.*
-import millbuild.*
-
+import mill.scalanativelib.ScalaNativeModule
+import mill.scalanativelib.api.*
+import millbuild.Deps
+import millbuild.ProjectBaseModule
 object `package` extends Module {
 
-  object js extends ScalaJSModule with CrossprojectBaseModule {
+  object js extends ProjectBaseModule, ScalaJSModule {
 
     def scalaJSVersion = "1.16.0"
+
+    def moduleKind = ModuleKind.NoModule
 
     def artifactName = "pure"
 
@@ -26,23 +28,9 @@ object `package` extends Module {
       Seq()
     )
 
-    object test
-        extends ScalaJSTests
-        with SbtPlatformTests
-        with SbtTests
-        with TestModule.Utest {
-
-      def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
-
-      def testParallelism = false
-
-      def testSandboxWorkingDir = false
-
-    }
-
   }
 
-  object jvm extends CrossprojectBaseModule {
+  object jvm extends ProjectBaseModule {
 
     def mvnDeps = super.mvnDeps() ++ Seq(Deps.osLib)
 
@@ -57,19 +45,9 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends SbtPlatformTests with SbtTests with TestModule.Utest {
-
-      def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
-
-      def testParallelism = false
-
-      def testSandboxWorkingDir = false
-
-    }
-
   }
 
-  object native extends ScalaNativeModule with CrossprojectBaseModule {
+  object native extends ProjectBaseModule, ScalaNativeModule {
 
     def scalaNativeVersion = "0.5.4"
 
@@ -84,20 +62,5 @@ object `package` extends Module {
       Seq()
     )
 
-    object test
-        extends ScalaNativeTests
-        with SbtPlatformTests
-        with SbtTests
-        with TestModule.Utest {
-
-      def mvnDeps = super.mvnDeps() ++ Seq(Deps.utest)
-
-      def testParallelism = false
-
-      def testSandboxWorkingDir = false
-
-    }
-
   }
-
 }

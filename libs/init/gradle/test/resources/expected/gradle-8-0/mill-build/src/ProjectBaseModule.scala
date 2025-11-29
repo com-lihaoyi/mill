@@ -1,12 +1,11 @@
 package millbuild
-
+import mill.*
 import mill.javalib.*
-
+import mill.javalib.errorprone.ErrorProneModule
 trait ProjectBaseModule extends MavenModule {
 
-  def javacOptions = super.javacOptions() ++
-    Seq("-source", "11", "-target", "11")
+  def depManagement = Seq(Deps.commonsText)
 
-  def jvmId = "zulu:11"
+  def javacOptions = Seq("-source", "17", "-target", "17")
 
 }

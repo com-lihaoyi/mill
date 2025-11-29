@@ -1,17 +1,62 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: system
 package build
-
+import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
-import millbuild.*
+import millbuild.Deps
+object `package` extends MavenModule, PublishModule {
 
-object `package` extends MavenModule with PublishModule {
+  def mvnDeps = Seq(Deps.springBootStarterDataJdbc)
 
-  def mvnDeps = super.mvnDeps() ++ Seq(Deps.springBootStarterDataJdbc)
+  def bomMvnDeps = Seq(
+    Deps.activemqBom,
+    Deps.artemisBom,
+    Deps.assertjBom,
+    Deps.zipkinReporterBom,
+    Deps.braveBom,
+    Deps.javaDriverBom,
+    Deps.jaxbBom,
+    Deps.groovyBom,
+    Deps.infinispanBom,
+    Deps.jacksonBom,
+    Deps.jerseyBom,
+    Deps.jettyEe10Bom,
+    Deps.jettyBom,
+    Deps.junitBom,
+    Deps.kotlinBom,
+    Deps.kotlinxCoroutinesBom,
+    Deps.kotlinxSerializationBom,
+    Deps.log4jBom,
+    Deps.micrometerBom,
+    Deps.micrometerTracingBom,
+    Deps.mockitoBom,
+    Deps.mongodbDriverBom,
+    Deps.nettyBom,
+    Deps.opentelemetryBom,
+    Deps.prometheusMetricsBom,
+    Deps.simpleclient_bom,
+    Deps.pulsarBom,
+    Deps.pulsarClientReactiveBom,
+    Deps.querydslBom,
+    Deps.reactorBom,
+    Deps.restAssuredBom,
+    Deps.rsocketBom,
+    Deps.seleniumBom,
+    Deps.springAmqpBom,
+    Deps.springBatchBom,
+    Deps.springDataBom,
+    Deps.springFrameworkBom,
+    Deps.springIntegrationBom,
+    Deps.springPulsarBom,
+    Deps.springRestdocsBom,
+    Deps.springSecurityBom,
+    Deps.springSessionBom,
+    Deps.springWsBom,
+    Deps.testcontainersBom
+  )
 
   def artifactName = "demo"
-
-  def jvmId = "zulu:17"
 
   def pomParentProject = Some(
     Artifact("org.springframework.boot", "spring-boot-starter-parent", "3.5.6")
@@ -21,7 +66,7 @@ object `package` extends MavenModule with PublishModule {
     "Demo project for Spring Boot",
     "com.example",
     "",
-    Seq(License("", "", "", false, false, "")),
+    Seq(License("", "", "", false, false, "null")),
     VersionControl(Some(""), Some(""), Some(""), Some("")),
     Seq(Developer("", "", "", None, None))
   )

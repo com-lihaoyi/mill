@@ -1,0 +1,6 @@
+package build.list
+import mill.*
+import mill.javalib.*
+import millbuild.Deps
+import millbuild.ProjectBaseModule
+object `package` extends ProjectBaseModule {}

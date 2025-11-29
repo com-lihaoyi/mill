@@ -6,8 +6,6 @@
 
 > ./mill init
 
-> echo 21 > .mill-jvm-version # Repo needs Java >=21 to build and test
-
 > rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
 > rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test
 

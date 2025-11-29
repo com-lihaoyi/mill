@@ -1,6 +1,0 @@
-//| mill-version: SNAPSHOT
-package build
-
-import mill.*
-
-object `package` extends Module {}

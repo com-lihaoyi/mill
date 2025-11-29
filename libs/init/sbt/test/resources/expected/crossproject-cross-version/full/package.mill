@@ -1,24 +1,22 @@
 package build.full
-
 import mill.*
-import mill.javalib.*
+import mill.javalib.PublishModule
 import mill.javalib.publish.*
-import mill.scalajslib.*
+import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.*
 import mill.scalalib.*
-import mill.scalanativelib.*
-import millbuild.*
-
+import mill.scalanativelib.ScalaNativeModule
+import mill.scalanativelib.api.*
+import millbuild.Deps
+import millbuild.ProjectBaseModule
 object `package` extends Module {
 
   object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
-  trait JsModule
-      extends ScalaJSModule
-      with SbtPlatformModule
-      with CrossprojectCrossVersionBaseModule
-      with CrossSbtPlatformModule {
+  trait JsModule extends ProjectBaseModule, ScalaJSModule {
 
     def scalaJSVersion = "1.16.0"
+
+    def moduleKind = ModuleKind.NoModule
 
     def artifactName = "full"
 
@@ -34,12 +32,9 @@ object `package` extends Module {
   }
 
   object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
-  trait JvmModule
-      extends SbtPlatformModule
-      with CrossprojectCrossVersionBaseModule
-      with CrossSbtPlatformModule {
+  trait JvmModule extends ProjectBaseModule {
 
-    def moduleDeps = super.moduleDeps ++ Seq(build.`jvm-util`())
+    def moduleDeps = Seq(build.`jvm-util`())
 
     def artifactName = "full"
 
@@ -55,11 +50,7 @@ object `package` extends Module {
   }
 
   object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
-  trait NativeModule
-      extends ScalaNativeModule
-      with SbtPlatformModule
-      with CrossprojectCrossVersionBaseModule
-      with CrossSbtPlatformModule {
+  trait NativeModule extends ProjectBaseModule, ScalaNativeModule {
 
     def scalaNativeVersion = "0.5.4"
 
@@ -75,5 +66,4 @@ object `package` extends Module {
     )
 
   }
-
 }

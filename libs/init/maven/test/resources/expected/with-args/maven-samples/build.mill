@@ -1,10 +1,10 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: system
 package build
-
+import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
-
-object `package` extends MavenModule with PublishModule {
+object `package` extends MavenModule, PublishModule {
 
   def artifactName = "parent"
 
@@ -21,14 +21,11 @@ object `package` extends MavenModule with PublishModule {
 
   def publishVersion = "1.0-SNAPSHOT"
 
-  object `multi-module` extends MavenModule with PublishModule {
+  object `multi-module` extends MavenModule, PublishModule {
 
-    def javacOptions = super.javacOptions() ++
-      Seq("-source", "1.6", "-target", "1.6")
+    def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
     def artifactName = "multi-module-parent"
-
-    def jvmId = "zulu:11"
 
     def pomPackagingType = "pom"
 
@@ -48,19 +45,16 @@ object `package` extends MavenModule with PublishModule {
 
     def publishVersion = "1.0-SNAPSHOT"
 
-    def publishProperties = super.publishProperties() ++ Map(
+    def publishProperties = Map(
       ("project.build.sourceEncoding", "utf-8"),
       ("project.reporting.outputEncoding", "utf-8")
     )
 
-    object server extends MavenModule with PublishModule {
+    object server extends MavenModule, PublishModule {
 
-      def javacOptions = super.javacOptions() ++
-        Seq("-source", "1.6", "-target", "1.6")
+      def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
       def artifactName = "server"
-
-      def jvmId = "zulu:11"
 
       def pomParentProject = Some(Artifact(
         "com.example.maven-samples",
@@ -79,9 +73,14 @@ object `package` extends MavenModule with PublishModule {
 
       def publishVersion = "1.0-SNAPSHOT"
 
-      object test extends MavenTests with TestModule.Junit4 {
+      def publishProperties = Map(
+        ("project.build.sourceEncoding", "utf-8"),
+        ("project.reporting.outputEncoding", "utf-8")
+      )
 
-        def mvnDeps = super.mvnDeps() ++ Seq(
+      object test extends MavenTests, TestModule.Junit4 {
+
+        def mvnDeps = Seq(
           mvn"junit:junit-dep:4.10",
           mvn"org.hamcrest:hamcrest-core:1.2.1",
           mvn"org.hamcrest:hamcrest-library:1.2.1",
@@ -98,21 +97,18 @@ object `package` extends MavenModule with PublishModule {
 
     }
 
-    object webapp extends MavenModule with PublishModule {
+    object webapp extends MavenModule, PublishModule {
 
-      def compileMvnDeps = super.compileMvnDeps() ++ Seq(
+      def moduleDeps = Seq(build.`multi-module`.server)
+
+      def compileMvnDeps = Seq(
         mvn"javax.servlet:servlet-api:2.5",
         mvn"javax.servlet.jsp:jsp-api:2.2"
       )
 
-      def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
-
-      def javacOptions = super.javacOptions() ++
-        Seq("-source", "1.6", "-target", "1.6")
+      def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
       def artifactName = "webapp"
-
-      def jvmId = "zulu:11"
 
       def pomPackagingType = "war"
 
@@ -133,23 +129,24 @@ object `package` extends MavenModule with PublishModule {
 
       def publishVersion = "1.0-SNAPSHOT"
 
-    }
+      def publishProperties = Map(
+        ("project.build.sourceEncoding", "utf-8"),
+        ("project.reporting.outputEncoding", "utf-8")
+      )
 
+    }
   }
 
-  object `single-module` extends MavenModule with PublishModule {
+  object `single-module` extends MavenModule, PublishModule {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"javax.servlet:servlet-api:2.5",
       mvn"javax.servlet.jsp:jsp-api:2.2"
     )
 
-    def javacOptions = super.javacOptions() ++
-      Seq("-source", "1.6", "-target", "1.6")
+    def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
     def artifactName = "single-module-project"
-
-    def jvmId = "zulu:11"
 
     def pomSettings = PomSettings(
       "Sample single module Maven project with a working, deployable site.",
@@ -167,14 +164,14 @@ object `package` extends MavenModule with PublishModule {
 
     def publishVersion = "1.0-SNAPSHOT"
 
-    def publishProperties = super.publishProperties() ++ Map(
+    def publishProperties = Map(
       ("project.build.sourceEncoding", "utf-8"),
       ("project.reporting.outputEncoding", "utf-8")
     )
 
-    object test extends MavenTests with TestModule.Junit4 {
+    object test extends MavenTests, TestModule.Junit4 {
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         mvn"junit:junit-dep:4.10",
         mvn"org.hamcrest:hamcrest-core:1.2.1",
         mvn"org.hamcrest:hamcrest-library:1.2.1",
@@ -190,5 +187,4 @@ object `package` extends MavenModule with PublishModule {
     }
 
   }
-
 }
