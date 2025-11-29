@@ -125,30 +125,44 @@ trait GroupExecution {
         staticBuildOverrides.get(labelled.ctx.segments.render)
           .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
-          case Some(jsonData) => // apply build override
+          case Some(jsonData) =>
             val (execRes, serializedPaths) =
-              try {
-                val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-                  PathRef.currentOverrideModulePath.withValue(
-                    labelled.ctx.enclosingModule.moduleCtx.millSourcePath
-                  ) {
-                    upickle.read[Any](interpolateEnvVarsInJson(jsonData))(
-                      using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-                    )
+              if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
+                // If the build override conflicts with a task defined in the mill-build/build.mill,
+                // it is probably a user error so fail loudly. In other scenarios, it may be an
+                // intentional override, but in this one case we can be reasonably sure it's a mistake
+                (
+                  ExecResult.Failure(
+                    s"Build header config conflicts with task defined " +
+                      s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
+                  ),
+                  Nil
+                )
+              } else {
+                // apply build override
+                try {
+                  val (resultData, serializedPaths) = PathRef.withSerializedPaths {
+                    PathRef.currentOverrideModulePath.withValue(
+                      labelled.ctx.enclosingModule.moduleCtx.millSourcePath
+                    ) {
+                      upickle.read[Any](interpolateEnvVarsInJson(jsonData))(
+                        using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+                      )
+                    }
                   }
-                }
 
-                // Write build header override JSON to meta `.json` file to support `show`
-                writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash + jsonData.##)
-                (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
-              } catch {
-                case e: upickle.core.TraceVisitor.TraceException =>
-                  (
-                    ExecResult.Failure(
-                      s"Failed de-serializing config override: ${e.getCause.getMessage}"
-                    ),
-                    Nil
-                  )
+                  // Write build header override JSON to meta `.json` file to support `show`
+                  writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash + jsonData.##)
+                  (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
+                } catch {
+                  case e: upickle.core.TraceVisitor.TraceException =>
+                    (
+                      ExecResult.Failure(
+                        s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                      ),
+                      Nil
+                    )
+                }
               }
 
             GroupExecution.Results(
