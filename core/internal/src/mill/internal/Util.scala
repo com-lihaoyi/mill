@@ -71,19 +71,13 @@ object Util {
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
 
-    headerDataOpt.flatMap { data =>
-      try parseYaml0(relativePath.toString, data, upickle.reader[HeaderData])
-      catch {
-        case e: upickle.core.TraceVisitor.TraceException =>
-          Result.Failure(
-            s"Failed de-serializing config key ${e.jsonPath} in $relativePath: ${e.getCause.getMessage}"
-          )
-      }
-    }
+    headerDataOpt.flatMap(parseYaml0(relativePath.toString, _, upickle.reader[HeaderData]))
   }
 
-  def parseYaml0[T](fileName: String, headerData: String, visitor: upickle.core.Visitor[_, T]): Result[T] =
+  def parseYaml0[T](fileName: String, headerData: String, visitor0: upickle.core.Visitor[_, T]): Result[T] = {
+
     try Result.Success {
+      upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
         import org.snakeyaml.engine.v2.api.LoadSettings
         import org.snakeyaml.engine.v2.composer.Composer
         import org.snakeyaml.engine.v2.parser.ParserImpl
@@ -161,10 +155,16 @@ object Util {
           objVisitor.visitEnd(0)
         }
       }
+    }
     catch {
       case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
         Result.Failure(s"Failed de-serializing build header in $fileName: " + e.getMessage)
+      case e: upickle.core.TraceVisitor.TraceException =>
+        Result.Failure(
+          s"Failed de-serializing config key ${e.jsonPath} in $fileName: ${e.getCause.getMessage}"
+        )
     }
+  }
 
   def splitPreserveEOL(bytes: Array[Byte]): Seq[Array[Byte]] = {
     val out = scala.collection.mutable.ArrayBuffer[Array[Byte]]()

@@ -12,10 +12,10 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
       assert(!res.isSuccess)
 
       assert(res.err.contains(
-        "invalid build config in `build.mill.yaml`: key \"scalaVersionn\" does not override any task, did you mean \"scalaVersion\"?"
+        "invalid build config in build.mill.yaml:2 key \"scalaVersionn\" does not override any task, did you mean \"scalaVersion\"?"
       ))
       assert(res.err.replace('\\', '/').contains(
-        "invalid build config in `test/package.mill.yaml`: key \"scalaVersionWrongInner\" does not override any task"
+        "invalid build config in test/package.mill.yaml:2 key \"scalaVersionWrongInner\" does not override any task"
       ))
 
       tester.modifyFile(
@@ -30,10 +30,10 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
       val res2 = tester.eval(("-k", "__.compile"))
 
       assert(res2.err.contains(
-        "scalaVersion Failed de-serializing config override: expected string got sequence"
+        "scalaVersion Failed de-serializing config override at test/package.mill.yaml:2 expected string got sequence"
       ))
       assert(res2.err.contains(
-        "test.scalaVersion Failed de-serializing config override: expected string got sequence"
+        "test.scalaVersion Failed de-serializing config override at build.mill.yaml:2 expected string got sequence"
       ))
 
       tester.modifyFile(

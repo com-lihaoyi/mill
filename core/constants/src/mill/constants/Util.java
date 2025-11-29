@@ -82,8 +82,8 @@ public class Util {
 
   private static String throwBuildHeaderError(
       String errorFileName, int lineNumber, String line, String msg) {
-    throw new RuntimeException("Invalid YAML header comment at " + errorFileName + ":" + lineNumber
-        + ": " + line + "\n" + msg);
+    throw new RuntimeException("Invalid YAML header comment at " + errorFileName + ":" + (lineNumber + 1)
+        + " " + line + "\n" + msg);
   }
 
   public static String readBuildHeader(Path buildFile, String errorFileName) {

@@ -139,7 +139,7 @@ final class EvaluatorImpl(
         .flatMap(_._2.declaredTaskNameSet)
         .toSet
 
-      val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
+      val moduleBuildOverrides = allBuildOverrides.flatMap { case (k, v) =>
         val (prefix, taskSel) = k match {
           case s"$script:$rest" => (Seq(Segment.Label(s"$script:")), rest)
           case _ => (Nil, k)
@@ -148,7 +148,7 @@ final class EvaluatorImpl(
         val ("", rest) = ParseArgs.extractSegments(taskSel).get
 
         Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
-          rest.last.value
+          rest.last.value -> v
         }
       }
 
@@ -162,12 +162,16 @@ final class EvaluatorImpl(
         if (isRootBuildFile) moduleTaskNames ++ millKeys
         else moduleTaskNames
 
-      val invalidBuildOverrides = moduleBuildOverrides.filter(!validKeys.contains(_))
+      val invalidBuildOverrides = moduleBuildOverrides.filter{case (k, v) => !validKeys.contains(k)}
       import pprint.Util.literalize
 
       Option.when(invalidBuildOverrides.nonEmpty) {
-        invalidBuildOverrides.map { k =>
-          val prefix = s"invalid build config in `$filePath`: "
+        invalidBuildOverrides.map { case (k, v) =>
+          val lookupLineSuffix = fastparse
+            .IndexedParserInput(java.nio.file.Files.readString(v.path.toNIO).replace("\n//|", "\n"))
+            .prettyIndex(v.value.index)
+            .takeWhile(_ != ':') // split off column since it's not that useful
+          val prefix = s"invalid build config in $filePath:$lookupLineSuffix "
           val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
           mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
             case None =>

@@ -15,9 +15,9 @@ object YamlHeaderKeyTests extends UtestIntegrationTestSuite {
       assert(res.isSuccess == false)
       val expectedError =
         """
-          |invalid build config in `mill-build/build.mill`: key "invalidKey" does not override any task
-          |invalid build config in `mill-build/build.mill`: key "mvnDep" does not override any task, did you mean "mvnDeps"?
-          |invalid build config in `mill-build/build.mill`: key "mill-jm-version" does not override any task, did you mean "mill-jvm-version"?
+          |invalid build config in mill-build/build.mill:1 key "invalidKey" does not override any task
+          |invalid build config in mill-build/build.mill:2 key "mvnDep" does not override any task, did you mean "mvnDeps"?
+          |invalid build config in mill-build/build.mill:3 key "mill-jm-version" does not override any task, did you mean "mill-jvm-version"?
           |""".stripMargin.trim.replace("\r", "")
 
       assert(res.err.contains(expectedError))

@@ -175,16 +175,16 @@ trait GroupExecution {
           .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
           case Some(jsonData) =>
+            lazy val lookupLineSuffix = fastparse
+              .IndexedParserInput(os.read(jsonData.path).replace("\n//|", "\n"))
+              .prettyIndex(jsonData.value.index)
+              .takeWhile(_ != ':') // split off column since it's not that useful
+
             val (execRes, serializedPaths) =
               if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
                 // If the build override conflicts with a task defined in the mill-build/build.mill,
                 // it is probably a user error so fail loudly. In other scenarios, it may be an
                 // intentional override, but in this one case we can be reasonably sure it's a mistake
-
-                val lookupLineSuffix = fastparse
-                  .IndexedParserInput(os.read(jsonData.path).replace("\n//|", "\n"))
-                  .prettyIndex(jsonData.value.index)
-                  .takeWhile(_ != ':') // split off column since it's not that useful
 
                 (
                   ExecResult.Failure(
@@ -219,7 +219,7 @@ trait GroupExecution {
                   case e: upickle.core.TraceVisitor.TraceException =>
                     (
                       ExecResult.Failure(
-                        s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                        s"Failed de-serializing config override at ${jsonData.path.relativeTo(workspace)}:$lookupLineSuffix ${e.getCause.getMessage}"
                       ),
                       Nil
                     )

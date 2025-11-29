@@ -14,7 +14,7 @@ object YamlHeaderNoSpaceTests extends UtestIntegrationTestSuite {
 
       assert(res.isSuccess == false)
       val expectedError =
-        "Invalid YAML header comment at build.mill:0: //|mill-version: 1.0.0-RC1\n" +
+        "Invalid YAML header comment at build.mill:1 //|mill-version: 1.0.0-RC1\n" +
           "YAML header comments must start with `//| ` with a newline separating the `|` and the data on the right"
       assert(res.err.contains(expectedError))
     }
