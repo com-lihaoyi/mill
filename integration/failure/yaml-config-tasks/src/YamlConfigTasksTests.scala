@@ -30,10 +30,10 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
       val res2 = tester.eval(("-k", "__.compile"))
 
       assert(res2.err.contains(
-        "scalaVersion Failed de-serializing config override at test/package.mill.yaml:2 expected string got sequence"
+        "scalaVersion Failed de-serializing config override at build.mill.yaml:2 expected string got sequence"
       ))
       assert(res2.err.contains(
-        "test.scalaVersion Failed de-serializing config override at build.mill.yaml:2 expected string got sequence"
+        "test.scalaVersion Failed de-serializing config override at test/package.mill.yaml:2 expected string got sequence"
       ))
 
       tester.modifyFile(

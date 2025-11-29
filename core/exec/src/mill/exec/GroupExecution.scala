@@ -68,9 +68,13 @@ trait GroupExecution {
       }
 
       val parsed0 = BufferedValue.Obj(
-        mill.internal.Util.parseYaml0(path0.toString, rawText, upickle.reader[ModuleCtx.HeaderData]).get
+        mill.internal.Util.parseYaml0(
+          path0.toString,
+          rawText,
+          upickle.reader[ModuleCtx.HeaderData]
+        ).get
           .rest
-          .map{case (k, v) => (BufferedValue.Str(k, -1), v) }
+          .map { case (k, v) => (BufferedValue.Str(k, -1), v) }
           .to(mutable.ArrayBuffer),
         true,
         -1
@@ -80,10 +84,9 @@ trait GroupExecution {
         if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
           parsed0
             .value0
-            .collectFirst{case (BufferedValue.Str("mill-build", _), v) => v}
+            .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
             .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
-        }
-        else parsed0
+        } else parsed0
       )
     }
     .toMap

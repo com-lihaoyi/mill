@@ -162,7 +162,9 @@ final class EvaluatorImpl(
         if (isRootBuildFile) moduleTaskNames ++ millKeys
         else moduleTaskNames
 
-      val invalidBuildOverrides = moduleBuildOverrides.filter{case (k, v) => !validKeys.contains(k)}
+      val invalidBuildOverrides = moduleBuildOverrides.filter { case (k, _) =>
+        !validKeys.contains(k)
+      }
       import pprint.Util.literalize
 
       Option.when(invalidBuildOverrides.nonEmpty) {

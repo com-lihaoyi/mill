@@ -24,7 +24,10 @@ trait ScriptModule extends ExternalModule {
     .headerData
     .rest
     .map { case (k, v) =>
-      ((moduleSegments ++ mill.api.Segment.Label(k)).render, internal.LocatedValue(scriptConfig.scriptFile, v.index, v))
+      (
+        (moduleSegments ++ mill.api.Segment.Label(k)).render,
+        internal.LocatedValue(scriptConfig.scriptFile, v.index, v)
+      )
     }
 }
 @experimental

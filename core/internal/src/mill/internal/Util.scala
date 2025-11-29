@@ -74,88 +74,98 @@ object Util {
     headerDataOpt.flatMap(parseYaml0(relativePath.toString, _, upickle.reader[HeaderData]))
   }
 
-  def parseYaml0[T](fileName: String, headerData: String, visitor0: upickle.core.Visitor[_, T]): Result[T] = {
+  def parseYaml0[T](
+      fileName: String,
+      headerData: String,
+      visitor0: upickle.core.Visitor[_, T]
+  ): Result[T] = {
 
     try Result.Success {
-      upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
-        import org.snakeyaml.engine.v2.api.LoadSettings
-        import org.snakeyaml.engine.v2.composer.Composer
-        import org.snakeyaml.engine.v2.parser.ParserImpl
-        import org.snakeyaml.engine.v2.scanner.StreamReader
-        import org.snakeyaml.engine.v2.nodes._
-        import scala.jdk.CollectionConverters._
+        upickle.core.TraceVisitor.withTrace(true, visitor0) { visitor =>
+          import org.snakeyaml.engine.v2.api.LoadSettings
+          import org.snakeyaml.engine.v2.composer.Composer
+          import org.snakeyaml.engine.v2.parser.ParserImpl
+          import org.snakeyaml.engine.v2.scanner.StreamReader
+          import org.snakeyaml.engine.v2.nodes._
+          import scala.jdk.CollectionConverters._
 
-        val settings = LoadSettings.builder().build()
-        val reader = new StreamReader(settings, headerData)
-        val parser = new ParserImpl(settings, reader)
-        val composer = new Composer(settings, parser)
+          val settings = LoadSettings.builder().build()
+          val reader = new StreamReader(settings, headerData)
+          val parser = new ParserImpl(settings, reader)
+          val composer = new Composer(settings, parser)
 
-        // recursively convert Node using the visitor, preserving character offsets
-        def rec[J](node: Node, v: upickle.core.Visitor[_, J]): J = {
-          val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
+          // recursively convert Node using the visitor, preserving character offsets
+          def rec[J](node: Node, v: upickle.core.Visitor[_, J]): J = {
+            val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
 
-          node match {
-            case scalar: ScalarNode =>
-              val value = scalar.getValue
-              val tag = scalar.getTag.getValue
-              tag match {
-                case "tag:yaml.org,2002:null" => v.visitNull(index)
-                case "tag:yaml.org,2002:bool" =>
-                  if (value == "true") v.visitTrue(index)
-                  else v.visitFalse(index)
-                case "tag:yaml.org,2002:int" =>
-                  v.visitFloat64StringParts(value, -1, -1, index)
-                case "tag:yaml.org,2002:float" =>
-                  v.visitFloat64StringParts(value, -1, -1, index)
-                case _ => v.visitString(value, index)
-              }
-
-            case mapping: MappingNode =>
-              val objVisitor = v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
-                .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
-              for (tuple <- mapping.getValue.asScala) {
-                val keyNode = tuple.getKeyNode
-                val valueNode = tuple.getValueNode
-                val keyIndex = keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                val key = keyNode match {
-                  case s: ScalarNode => s.getValue
-                  case _ => keyNode.toString
+            node match {
+              case scalar: ScalarNode =>
+                val value = scalar.getValue
+                val tag = scalar.getTag.getValue
+                tag match {
+                  case "tag:yaml.org,2002:null" => v.visitNull(index)
+                  case "tag:yaml.org,2002:bool" =>
+                    if (value == "true") v.visitTrue(index)
+                    else v.visitFalse(index)
+                  case "tag:yaml.org,2002:int" =>
+                    v.visitFloat64StringParts(value, -1, -1, index)
+                  case "tag:yaml.org,2002:float" =>
+                    v.visitFloat64StringParts(value, -1, -1, index)
+                  case _ => v.visitString(value, index)
                 }
-                val keyVisitor = objVisitor.visitKey(keyIndex)
-                objVisitor.visitKeyValue(keyVisitor.visitString(key, keyIndex))
-                val valueResult = rec(valueNode, objVisitor.subVisitor)
-                objVisitor.visitValue(valueResult, valueNode.getStartMark.map(_.getIndex.intValue()).orElse(0))
-              }
-              objVisitor.visitEnd(index)
 
-            case sequence: SequenceNode =>
-              val arrVisitor = v.visitArray(sequence.getValue.size(), index)
-                .asInstanceOf[upickle.core.ArrVisitor[Any, J]]
-              for (item <- sequence.getValue.asScala) {
-                val itemResult = rec(item, arrVisitor.subVisitor)
-                arrVisitor.visitValue(itemResult, item.getStartMark.map(_.getIndex.intValue()).orElse(0))
-              }
-              arrVisitor.visitEnd(index)
-          }
-        }
+              case mapping: MappingNode =>
+                val objVisitor = v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
+                  .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+                for (tuple <- mapping.getValue.asScala) {
+                  val keyNode = tuple.getKeyNode
+                  val valueNode = tuple.getValueNode
+                  val keyIndex = keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                  val key = keyNode match {
+                    case s: ScalarNode => s.getValue
+                    case _ => keyNode.toString
+                  }
+                  val keyVisitor = objVisitor.visitKey(keyIndex)
+                  objVisitor.visitKeyValue(keyVisitor.visitString(key, keyIndex))
+                  val valueResult = rec(valueNode, objVisitor.subVisitor)
+                  objVisitor.visitValue(
+                    valueResult,
+                    valueNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                  )
+                }
+                objVisitor.visitEnd(index)
 
-        // Treat a top-level `null` or empty document as an empty object
-        if (composer.hasNext) {
-          val node = composer.next()
-          node match {
-            case scalar: ScalarNode if scalar.getTag.getValue == "tag:yaml.org,2002:null" =>
-              val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
-              val objVisitor = visitor.visitObject(0, jsonableKeys = true, index)
-              objVisitor.visitEnd(index)
-            case _ =>
-              rec(node, visitor)
+              case sequence: SequenceNode =>
+                val arrVisitor = v.visitArray(sequence.getValue.size(), index)
+                  .asInstanceOf[upickle.core.ArrVisitor[Any, J]]
+                for (item <- sequence.getValue.asScala) {
+                  val itemResult = rec(item, arrVisitor.subVisitor)
+                  arrVisitor.visitValue(
+                    itemResult,
+                    item.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                  )
+                }
+                arrVisitor.visitEnd(index)
+            }
           }
-        } else {
-          val objVisitor = visitor.visitObject(0, jsonableKeys = true, 0)
-          objVisitor.visitEnd(0)
+
+          // Treat a top-level `null` or empty document as an empty object
+          if (composer.hasNext) {
+            val node = composer.next()
+            node match {
+              case scalar: ScalarNode if scalar.getTag.getValue == "tag:yaml.org,2002:null" =>
+                val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                val objVisitor = visitor.visitObject(0, jsonableKeys = true, index)
+                objVisitor.visitEnd(index)
+              case _ =>
+                rec(node, visitor)
+            }
+          } else {
+            val objVisitor = visitor.visitObject(0, jsonableKeys = true, 0)
+            objVisitor.visitEnd(0)
+          }
         }
       }
-    }
     catch {
       case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
         Result.Failure(s"Failed de-serializing build header in $fileName: " + e.getMessage)
