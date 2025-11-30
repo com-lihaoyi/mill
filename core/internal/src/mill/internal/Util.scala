@@ -64,6 +64,11 @@ object Util {
     fastparse.IndexedParserInput(text).prettyIndex(index).takeWhile(_ != ':')
   }
 
+  def formatError(f: Result.Failure) = {
+    Iterator.unfold(Option(f))(_.map(t => t -> t.next)).toSeq
+      .map(f0 => formatError0(f0.path, f0.index, f0.error))
+      .mkString("\n")
+  }
   /**
    * Format an error message in dotty style with file location, code snippet, and pointer.
    *
@@ -73,19 +78,29 @@ object Util {
    * @param message The error message to display
    * @return A formatted error string with location, code snippet, pointer, and message
    */
-  def formatError(fileName: String, text: String, index: Int, message: String): String = {
-    val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", ""))
-    val prettyIndex = indexedParser.prettyIndex(index)
-    val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
+  def formatError0(path: java.nio.file.Path, index: Int, message: String): String = {
+    if (!java.nio.file.Files.exists(path)) message
+    else {
+      val text = java.nio.file.Files.readString(path)
+      val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", ""))
+      val prettyIndex = indexedParser.prettyIndex(index)
+      val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
 
-    // Get the line content
-    val lines = text.linesIterator.toVector
-    val lineContent = if (lineNum > 0 && lineNum <= lines.length) lines(lineNum - 1) else ""
+      // Get the line content
+      val lines = text.linesIterator.toVector
+      val lineContent = if (lineNum > 0 && lineNum <= lines.length) lines(lineNum - 1) else ""
 
-    // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
-    val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
+      // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
+      val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
 
-    mill.constants.Util.formatError(fileName, lineNum, colNum, lineContent, message)
+      mill.constants.Util.formatError(
+        mill.api.BuildCtx.workspaceRoot.toNIO.relativize(path).toString,
+        lineNum,
+        colNum,
+        lineContent,
+        message
+      )
+    }
   }
 
   def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {

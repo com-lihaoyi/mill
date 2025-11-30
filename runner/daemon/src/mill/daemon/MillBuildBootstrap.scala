@@ -152,7 +152,7 @@ class MillBuildBootstrap(
                   RunnerState(
                     None,
                     Nil,
-                    Some(f.error),
+                    Some(mill.internal.Util.formatError(f)),
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
@@ -217,7 +217,7 @@ class MillBuildBootstrap(
 
             (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
           } match {
-            case f: Result.Failure => nestedState.add(errorOpt = Some(f.error))
+            case f: Result.Failure => nestedState.add(errorOpt = Some(mill.internal.Util.formatError(f)))
             case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
               val staticBuildOverrideFiles =
@@ -320,7 +320,7 @@ class MillBuildBootstrap(
           Map()
         )
 
-        nestedState.add(frame = evalState, errorOpt = Some(f.error))
+        nestedState.add(frame = evalState, errorOpt = Some(mill.internal.Util.formatError(f)))
 
       case (
             Result.Success(Seq(Tuple4(

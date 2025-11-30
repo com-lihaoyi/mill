@@ -180,7 +180,7 @@ final class EvaluatorImpl(
         }
         Result.Failure(
           message,
-          os.Path(module.moduleCtx.fileName).toNIO,
+          v.path.toNIO,
           v.value.index
         )
       }
