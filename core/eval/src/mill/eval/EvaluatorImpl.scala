@@ -184,7 +184,7 @@ final class EvaluatorImpl(
             filePath.toString,
             originalText,
             v.value.index,
-            message,
+            message
           )
         }.mkString("\n")
       }
