@@ -115,7 +115,13 @@ private object TransformingReporter {
           else 1
 
         mill.constants.Util.formatError(
-          displayPath, line0, colNum, lineContent, message, pointerLength, shade
+          displayPath,
+          line0,
+          colNum,
+          lineContent,
+          message,
+          pointerLength,
+          shade
         )
     }
   }

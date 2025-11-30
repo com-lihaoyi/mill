@@ -20,7 +20,10 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       )
 
       val res2 = tester.eval("mispelledextends.compile")
-      assert(res2.err.replace('\\', '/').contains("[error] mispelledextends/package.mill.yaml:1:15"))
+      assert(res2.err.replace(
+        '\\',
+        '/'
+      ).contains("[error] mispelledextends/package.mill.yaml:1:15"))
       assert(res2.err.contains("mill-version: 1.0.0"))
       assert(res2.err.contains("              ^"))
       assert(res2.err.contains(
