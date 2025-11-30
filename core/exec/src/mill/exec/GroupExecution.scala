@@ -79,8 +79,7 @@ trait GroupExecution {
       val parsed0 = BufferedValue.Obj(
         mill.internal.Util.parseYaml0(
           path0.toString,
-          rawText,
-          os.read(path),
+          rawText.replace("\r", ""),
           headerDataReader
         ).get
           .rest
@@ -236,14 +235,12 @@ trait GroupExecution {
                       case abort: upickle.core.AbortException => abort.index
                       case _ => jsonData.value.index
                     }
+
                     (
                       ExecResult.Failure(
-                        mill.internal.Util.formatError(
-                          jsonData.path.relativeTo(workspace).toString,
-                          originalText,
-                          errorIndex,
-                          s"Failed de-serializing config override: ${e.getCause.getMessage}"
-                        )
+                        s"Failed de-serializing config override: ${e.getCause.getMessage}",
+                        path = jsonData.path.toNIO,
+                        index = errorIndex
                       ),
                       Nil
                     )
@@ -447,7 +444,7 @@ trait GroupExecution {
             try {
               task.evaluate(args) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
-                case Result.Failure(err) => ExecResult.Failure(err)
+                case f: Result.Failure => ExecResult.Failure(f.error, f.path, f.index)
               }
             } catch {
               case ex: Result.Exception => ExecResult.Failure(ex.error)

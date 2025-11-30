@@ -144,8 +144,8 @@ object CodeGen {
 
           def parseRender(moduleDep: String) = {
             mill.resolve.ParseArgs.extractSegments(moduleDep) match {
-              case Result.Failure(err) =>
-                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + err)
+              case f: Result.Failure =>
+                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + f.error)
               case Result.Success((rootModulePrefix, taskSegments)) =>
                 val renderedSegments = taskSegments.value
                   .map {

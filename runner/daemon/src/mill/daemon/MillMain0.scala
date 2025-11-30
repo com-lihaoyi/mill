@@ -123,8 +123,8 @@ object MillMain0 {
         withStreams(bspMode, streams0) { streams =>
           parserResult match {
             // Cannot parse args
-            case Result.Failure(msg) =>
-              streams.err.println(msg)
+            case f: Result.Failure =>
+              streams.err.println(f.error)
               (false, RunnerState.empty)
 
             case Result.Success(config) if config.help.value =>

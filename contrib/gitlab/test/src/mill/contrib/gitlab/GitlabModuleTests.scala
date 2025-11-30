@@ -48,7 +48,7 @@ object GitlabModuleTests extends TestSuite {
       val e = eval(GitlabModule.gitlabHeaders(Map.empty))
 
       assertMatch(e) {
-        case Left(Failure(s))
+        case Left(Failure(msg = s))
             if s.startsWith("Token lookup for PUBLISH repository") =>
       }
     }
@@ -58,7 +58,7 @@ object GitlabModuleTests extends TestSuite {
         val e = eval(GLMvnRepo.mavenRepository)
 
         assertMatch(e) {
-          case Left(Failure(s))
+          case Left(Failure(msg = s))
               if s.startsWith("Token lookup for PACKAGE repository") =>
         }
     }
