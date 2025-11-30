@@ -152,7 +152,7 @@ class MillBuildBootstrap(
                   RunnerState(
                     None,
                     Nil,
-                    Some(mill.internal.Util.formatError(f)),
+                    Some(mill.internal.Util.formatError(f, logger.prompt.errorColor)),
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
@@ -218,7 +218,7 @@ class MillBuildBootstrap(
             (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
           } match {
             case f: Result.Failure =>
-              nestedState.add(errorOpt = Some(mill.internal.Util.formatError(f)))
+              nestedState.add(errorOpt = Some(mill.internal.Util.formatError(f, logger.prompt.errorColor)))
             case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
               val staticBuildOverrideFiles =
@@ -321,7 +321,7 @@ class MillBuildBootstrap(
           Map()
         )
 
-        nestedState.add(frame = evalState, errorOpt = Some(mill.internal.Util.formatError(f)))
+        nestedState.add(frame = evalState, errorOpt = Some(mill.internal.Util.formatError(f, logger.prompt.errorColor)))
 
       case (
             Result.Success(Seq(Tuple4(
@@ -422,7 +422,7 @@ class MillBuildBootstrap(
     nestedState.add(
       frame = evalState,
       errorOpt = evaled match {
-        case f: Result.Failure => Some(mill.internal.Util.formatError(f))
+        case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
         case _ => None
       }
     )

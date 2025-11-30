@@ -64,9 +64,9 @@ object Util {
     fastparse.IndexedParserInput(text).prettyIndex(index).takeWhile(_ != ':')
   }
 
-  def formatError(f: Result.Failure) = {
+  def formatError(f: Result.Failure, highlight: String => String) = {
     Iterator.unfold(Option(f))(_.map(t => t -> t.next)).toSeq
-      .map(f0 => formatError0(f0.path, f0.index, f0.error))
+      .map(f0 => formatError0(f0.path, f0.index, f0.error, highlight))
       .mkString("\n")
   }
 
@@ -79,7 +79,7 @@ object Util {
    * @param message The error message to display
    * @return A formatted error string with location, code snippet, pointer, and message
    */
-  def formatError0(path: java.nio.file.Path, index: Int, message: String): String = {
+  def formatError0(path: java.nio.file.Path, index: Int, message: String, highlight: String => String): String = {
     if (path == null || !java.nio.file.Files.exists(path)) message
     else {
       val text = java.nio.file.Files.readString(path)
@@ -99,7 +99,8 @@ object Util {
         lineNum,
         colNum,
         lineContent,
-        message
+        message,
+        s => highlight(s)
       )
     }
   }

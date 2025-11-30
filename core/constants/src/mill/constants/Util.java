@@ -84,8 +84,9 @@ public class Util {
    * Formats an error message in dotty style with file location, code snippet, and pointer.
    */
   public static String formatError(
-      String fileName, int lineNum, int colNum, String lineContent, String message) {
-    return formatError("[error] " + fileName, lineNum, colNum, lineContent, message, 1, s -> s);
+      String fileName, int lineNum, int colNum, String lineContent, String message, Function<String, String> highlight) {
+    return formatError(
+      "[" + highlight.apply("error") + "] " + fileName, lineNum, colNum, lineContent, message, 1, highlight);
   }
 
   /**
@@ -115,7 +116,7 @@ public class Util {
       String errorFileName, int lineNumber, String line, String msg) {
     // lineNumber is 0-indexed, convert to 1-indexed for display
     // Column is 1 since the error applies to the start of the line
-    throw new RuntimeException(formatError(errorFileName, lineNumber + 1, 1, line, msg));
+    throw new RuntimeException(formatError(errorFileName, lineNumber + 1, 1, line, msg, s -> s));
   }
 
   public static String readBuildHeader(Path buildFile, String errorFileName) {
