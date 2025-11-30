@@ -79,7 +79,7 @@ object Util {
    * @return A formatted error string with location, code snippet, pointer, and message
    */
   def formatError0(path: java.nio.file.Path, index: Int, message: String): String = {
-    if (!java.nio.file.Files.exists(path)) message
+    if (path == null || !java.nio.file.Files.exists(path)) message
     else {
       val text = java.nio.file.Files.readString(path)
       val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", ""))

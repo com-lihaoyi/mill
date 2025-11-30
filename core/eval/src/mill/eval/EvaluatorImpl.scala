@@ -178,11 +178,9 @@ final class EvaluatorImpl(
           case Some(similar) =>
             s"$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
         }
-        Result.Failure(
-          message,
-          v.path.toNIO,
-          v.value.index
-        )
+        mill.constants.DebugLog.println("message " + pprint.apply(message))
+        mill.constants.DebugLog.println("v " + pprint.apply(v))
+        Result.Failure(message, v.path.toNIO, v.value.index)
       }
     }
   }
