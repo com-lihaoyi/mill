@@ -179,11 +179,12 @@ final class EvaluatorImpl(
             case Some(similar) =>
               s"$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
           }
+
           mill.internal.Util.formatError(
             filePath.toString,
             originalText,
             v.value.index,
-            message
+            message,
           )
         }.mkString("\n")
       }
