@@ -102,11 +102,12 @@ public class Util {
       String message,
       int pointerLength,
       Function<String, String> highlight) {
-    String pointer = colNum > 0 ? " ".repeat(colNum - 1) + highlight.apply("^".repeat(pointerLength)) : "";
-    String header =
-        (lineNum >= 0 && colNum >= 0)
-            ? highlight.apply(fileName) + ":" + highlight.apply(String.valueOf(lineNum)) + ":" + highlight.apply(String.valueOf(colNum))
-            : highlight.apply(fileName);
+    String pointer =
+        colNum > 0 ? " ".repeat(colNum - 1) + highlight.apply("^".repeat(pointerLength)) : "";
+    String header = (lineNum >= 0 && colNum >= 0)
+        ? highlight.apply(fileName) + ":" + highlight.apply(String.valueOf(lineNum)) + ":"
+            + highlight.apply(String.valueOf(colNum))
+        : highlight.apply(fileName);
     return header + "\n" + lineContent + "\n" + pointer + "\n" + message;
   }
 
