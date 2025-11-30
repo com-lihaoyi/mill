@@ -53,7 +53,7 @@ object ExecutionResultsApi {
     (for ((k, fs) <- evaluated.transitiveFailingApi)
       yield {
         val fss = fs match {
-          case ExecResult.Failure(t) => t
+          case ExecResult.Failure(t, path, inde, next) => t
           case ex: ExecResult.Exception => ex.toString
         }
         val keyPrefix = Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil))

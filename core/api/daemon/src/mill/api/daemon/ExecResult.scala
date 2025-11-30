@@ -79,7 +79,10 @@ object ExecResult {
    * @param msg The error message.
    * @tparam T The result type of the computed task.
    */
-  final case class Failure[T](msg: String) extends Failing[T] {
+  final case class Failure[T](msg: String,
+                              @com.lihaoyi.unroll path: java.nio.file.Path = null,
+                              index: Int = -1,
+                              next: Option[Failure[T]] = None) extends Failing[T] {
     def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg)
     def flatMap[V](f: T => ExecResult[V]): Failure[V] = { Failure(msg) }
     override def toString: String = s"Failure($msg)"

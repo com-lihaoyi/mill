@@ -119,13 +119,13 @@ final class EvaluatorImpl(
       }.flatMap { f =>
         validateModuleOverrides(f.map(_.ctx.enclosingModule).distinct) match {
           case Nil => Result.Success(f)
-          case errors => Result.Failure(errors.mkString("\n"))
+          case errors => Result.Failure.combine(errors)
         }
       }
     }
   }
 
-  def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]) = {
+  def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]): Seq[Result.Failure] = {
     val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
     val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
     allModules.flatMap { module =>
@@ -167,25 +167,22 @@ final class EvaluatorImpl(
       }
       import pprint.Util.literalize
 
-      Option.when(invalidBuildOverrides.nonEmpty) {
-        invalidBuildOverrides.map { case (k, v) =>
-          val originalText = java.nio.file.Files.readString(v.path.toNIO)
-          val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
-          val message = mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
-            case None =>
-              if (millKeys.contains(k))
-                s"key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
-              else doesNotOverridePrefix
-            case Some(similar) =>
-              s"$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
-          }
-          mill.internal.Util.formatError(
-            filePath.toString,
-            originalText,
-            v.value.index,
-            message
-          )
-        }.mkString("\n")
+      invalidBuildOverrides.map { case (k, v) =>
+        val originalText = java.nio.file.Files.readString(v.path.toNIO)
+        val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
+        val message = mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
+          case None =>
+            if (millKeys.contains(k))
+              s"key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
+            else doesNotOverridePrefix
+          case Some(similar) =>
+            s"$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
+        }
+        Result.Failure(
+          message,
+          os.Path(module.moduleCtx.fileName).toNIO,
+          v.value.index
+        )
       }
     }
   }

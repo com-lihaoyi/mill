@@ -35,7 +35,7 @@ object Result {
   }
   final case class Failure(error: String,
                            @com.lihaoyi.unroll path: java.nio.file.Path = null,
-                           line: Int = -1,
+                           index: Int = -1,
                            next: Option[Failure] = None) extends Result[Nothing] {
     def map[V](f: Nothing => V): Result[Nothing] = this
 
@@ -50,7 +50,7 @@ object Result {
     def combine(failures: Seq[Failure]): Failure = {
       val flattened: Seq[Failure] = failures.flatMap(Iterator.unfold(_)(t => t.next.map(n => n -> n)))
       flattened
-        .foldLeft(Option.empty[Failure])((f0, f) => Some(Failure(f.error, f.path, f.line, f0)))
+        .foldLeft(Option.empty[Failure])((f0, f) => Some(Failure(f.error, f.path, f.index, f0)))
         .get
     }
   }

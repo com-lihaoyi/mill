@@ -228,12 +228,9 @@ trait GroupExecution {
                     }
                     (
                       ExecResult.Failure(
-                        mill.internal.Util.formatError(
-                          jsonData.path.relativeTo(workspace).toString,
-                          originalText,
-                          errorIndex,
-                          s"Failed de-serializing config override: ${e.getCause.getMessage}"
-                        )
+                        s"Failed de-serializing config override: ${e.getCause.getMessage}",
+                        path = jsonData.path.toNIO,
+                        index = errorIndex
                       ),
                       Nil
                     )

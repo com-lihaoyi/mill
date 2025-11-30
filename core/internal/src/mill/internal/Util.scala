@@ -213,29 +213,35 @@ object Util {
       }
     catch {
       case e: upickle.core.TraceVisitor.TraceException =>
-        val msg = e.getCause match {
+        e.getCause match {
           case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
             val mark = e.getProblemMark.or(() => e.getContextMark)
             if (mark.isPresent) {
               val m = mark.get()
               val problem = Option(e.getProblem).getOrElse("YAML syntax error")
-              formatError(fileName, originalText, m.getIndex, problem)
+              Result.Failure(
+                problem,
+                os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO,
+                m.getIndex
+              )
             } else {
-              s"Failed parsing build header in $fileName: " + e.getMessage
+              Result.Failure(
+                s"Failed parsing build header in $fileName: " + e.getMessage
+              )
             }
           case abort: upickle.core.AbortException =>
-            formatError(
-              fileName,
-              originalText,
-              abort.index,
-              s"Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}"
+            Result.Failure(
+              s"Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}",
+              os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO,
+              abort.index
             )
 
           case _ =>
-            s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
+            Result.Failure(
+              s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
+            )
         }
 
-        Result.Failure(msg)
     }
   }
 
