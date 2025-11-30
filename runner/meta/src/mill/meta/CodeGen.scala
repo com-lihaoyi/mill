@@ -106,7 +106,10 @@ object CodeGen {
               case Array(k) => onProperty(k, v)
               case Array("object", k) => onNestedObject(
                   k,
-                  upickle.core.BufferedValue.transform(v, upickle.reader[HeaderData])
+                  upickle.core.BufferedValue.transform(
+                    v,
+                    HeaderData.headerDataReader(scriptPath)
+                  )
                 )
               case _ => sys.error("Invalid key: " + kString)
             }
@@ -132,7 +135,7 @@ object CodeGen {
         )
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
-          val extendsConfig = data.`extends`
+          val extendsConfig = data.`extends`.value.map(_.value)
           val definitions = processDataRest(data)(
             onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
             onNestedObject = (k, nestedData) =>
@@ -159,19 +162,19 @@ object CodeGen {
           }
 
           val moduleDepsSnippet =
-            if (data.moduleDeps.isEmpty) ""
+            if (data.moduleDeps.value.isEmpty) ""
             else
-              s"override def moduleDeps = Seq(${data.moduleDeps.map(parseRender).mkString(", ")})"
+              s"override def moduleDeps = Seq(${data.moduleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
 
           val compileModuleDepsSnippet =
-            if (data.compileModuleDeps.isEmpty) ""
+            if (data.compileModuleDeps.value.isEmpty) ""
             else
-              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.map(parseRender).mkString(", ")})"
+              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
 
           val runModuleDepsSnippet =
-            if (data.runModuleDeps.isEmpty) ""
+            if (data.runModuleDeps.value.isEmpty) ""
             else
-              s"override def runModuleDeps = Seq(${data.runModuleDeps.map(parseRender).mkString(", ")})"
+              s"override def runModuleDeps = Seq(${data.runModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)

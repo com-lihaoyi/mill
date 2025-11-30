@@ -11,10 +11,12 @@ object YamlHeaderHelperTests extends UtestIntegrationTestSuite {
       val res = eval("version")
 
       assert(res.isSuccess == false)
-      val expectedError =
-        "Invalid YAML header comment at helper.mill:1 //| mill-version: 1.0.0-RC1\n" +
-          "YAML header can only be defined in the `build.mill` file, not `helper.mill`"
-      assert(res.err.contains(expectedError))
+      assert(res.err.contains("[error] helper.mill:1:1"))
+      assert(res.err.contains("//| mill-version: 1.0.0-RC1"))
+      assert(res.err.contains("^"))
+      assert(res.err.contains(
+        "YAML header can only be defined in the `build.mill` file, not `helper.mill`"
+      ))
     }
   }
 }
