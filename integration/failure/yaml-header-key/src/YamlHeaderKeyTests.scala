@@ -18,16 +18,16 @@ object YamlHeaderKeyTests extends UtestIntegrationTestSuite {
       assert(res.err.contains("                ^"))
       assert(res.err.contains("key \"invalidKey\" does not override any task"))
 
-      assert(res.err.contains("[error] mill-build/build.mill:2:9"))
+      assert(res.err.contains("[error] mill-build/build.mill:2:8"))
       assert(res.err.contains("//| mvnDep: lols"))
-      assert(res.err.contains("        ^"))
+      assert(res.err.contains("       ^"))
       assert(
         res.err.contains("key \"mvnDep\" does not override any task, did you mean \"mvnDeps\"?")
       )
 
-      assert(res.err.contains("[error] mill-build/build.mill:3:14"))
+      assert(res.err.contains("[error] mill-build/build.mill:3:12"))
       assert(res.err.contains("//| mill-jm-version: lols"))
-      assert(res.err.contains("             ^"))
+      assert(res.err.contains("           ^"))
       assert(res.err.contains(
         "key \"mill-jm-version\" does not override any task, did you mean \"mill-jvm-version\"?"
       ))
