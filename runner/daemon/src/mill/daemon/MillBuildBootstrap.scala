@@ -148,11 +148,11 @@ class MillBuildBootstrap(
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
-                case Result.Failure(msg) =>
+                case f: Result.Failure =>
                   RunnerState(
                     None,
                     Nil,
-                    Some(msg),
+                    Some(f.error),
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
@@ -217,7 +217,7 @@ class MillBuildBootstrap(
 
             (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
           } match {
-            case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
+            case f: Result.Failure => nestedState.add(errorOpt = Some(f.error))
             case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
               val staticBuildOverrideFiles =
@@ -307,7 +307,7 @@ class MillBuildBootstrap(
       selectiveExecution = false,
       reporter = reporter(evaluator)
     ) match {
-      case (Result.Failure(error), evalWatches, moduleWatches) =>
+      case (f: Result.Failure, evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           evalWatches,
@@ -320,7 +320,7 @@ class MillBuildBootstrap(
           Map()
         )
 
-        nestedState.add(frame = evalState, errorOpt = Some(error))
+        nestedState.add(frame = evalState, errorOpt = Some(f.error))
 
       case (
             Result.Success(Seq(Tuple4(
@@ -578,12 +578,12 @@ object MillBuildBootstrap {
     )
 
     evalTaskResult match {
-      case Result.Failure(msg) =>
-        (Result.Failure(msg), evalWatchedValues.toSeq, moduleWatchedValues)
+      case f: Result.Failure =>
+        (f, evalWatchedValues.toSeq, moduleWatchedValues)
       case Result.Success(res: EvaluatorApi.Result[Any]) =>
         res.values match {
-          case Result.Failure(msg) =>
-            (Result.Failure(msg), res.watchable ++ evalWatchedValues, moduleWatchedValues)
+          case f: Result.Failure =>
+            (f, res.watchable ++ evalWatchedValues, moduleWatchedValues)
           case Result.Success(results) =>
             (Result.Success(results), res.watchable ++ evalWatchedValues, moduleWatchedValues)
         }
