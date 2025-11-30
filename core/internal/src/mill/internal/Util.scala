@@ -74,7 +74,7 @@ object Util {
    * @return A formatted error string with location, code snippet, pointer, and message
    */
   def formatError(fileName: String, text: String, index: Int, message: String): String = {
-    val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", ""))
+    val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", "").replace("\r", ""))
     val prettyIndex = indexedParser.prettyIndex(index)
     val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
 
