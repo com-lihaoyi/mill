@@ -23,7 +23,6 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       headerData: mill.api.ModuleCtx.HeaderData
   ): Result[ExternalModule] = {
     val scriptText = os.read(scriptFile)
-    val indexedParser = fastparse.IndexedParserInput(scriptText)
 
     def relativize(s: String) = {
       if (s.startsWith("."))
@@ -41,8 +40,8 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     if (allErrors.nonEmpty) {
       val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
       val errorMessages = allErrors.map { located =>
-        val lineNum = indexedParser.prettyIndex(located.index).takeWhile(_ != ':')
-        s"$relPath:$lineNum: Unable to resolve module ${pprint.Util.literalize(located.value)}"
+        val lineNum = mill.internal.Util.getLineNumber(scriptText, located.index)
+        s"$relPath:$lineNum Unable to resolve module ${pprint.Util.literalize(located.value)}"
       }
       Result.Failure(errorMessages.mkString("\n"))
     } else instantiate(
@@ -55,7 +54,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
         }
       },
       extendsConfigStrings.map(_.index),
-      indexedParser,
+      scriptText,
       ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
     )
   }
@@ -72,7 +71,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       scriptFile: os.Path,
       className: String,
       extendsIndex: Option[Int],
-      indexedParser: fastparse.IndexedParserInput,
+      scriptText: String,
       args: AnyRef*
   ): Result[ExternalModule] = {
     val clsOrErr =
@@ -84,9 +83,9 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           catch {
             case _: java.lang.ClassNotFoundException =>
               val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-              val lineNum = extendsIndex.map(idx => indexedParser.prettyIndex(idx).takeWhile(_ != ':')).getOrElse("1")
+              val lineNum = extendsIndex.map(idx => mill.internal.Util.getLineNumber(scriptText, idx)).getOrElse("1")
               Result.Failure(
-                s"$relPath:$lineNum: Script extends invalid class ${pprint.Util.literalize(className)}"
+                s"$relPath:$lineNum Script extends invalid class ${pprint.Util.literalize(className)}"
               )
           }
       }

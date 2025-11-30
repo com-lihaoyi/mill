@@ -60,6 +60,10 @@ object Util {
       else "`" + s + "`"
   }
 
+  def getLineNumber(text: String, index: Int): String = {
+    fastparse.IndexedParserInput(text).prettyIndex(index).takeWhile(_ != ':')
+  }
+
   def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
     val headerDataOpt = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       // If the module file got deleted, handle that gracefully
@@ -177,9 +181,8 @@ object Util {
           case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
             s"Failed parsing build header in $fileName: " + e.getMessage
           case abort: upickle.core.AbortException =>
-            val indexedParser = fastparse.IndexedParserInput(headerData)
-            val lineNum = ":" + indexedParser.prettyIndex(abort.index).takeWhile(_ != ':')
-            s"$fileName$lineNum Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
+            val lineNum = getLineNumber(headerData, abort.index)
+            s"$fileName:$lineNum Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}"
 
           case _ =>
             s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"

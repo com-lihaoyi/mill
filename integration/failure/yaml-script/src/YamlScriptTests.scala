@@ -9,20 +9,20 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
     integrationTest { tester =>
       locally {
         val res = tester.eval("./InvalidExtends.java")
-        assert(res.err.contains("InvalidExtends.java:1: Script extends invalid class \"doesntExist\""))
+        assert(res.err.contains("InvalidExtends.java:1 Script extends invalid class \"doesntExist\""))
         // make sure we truncate the exception to the relevant bits
         assert(res.err.linesIterator.toList.length < 20)
       }
       locally {
         val res = tester.eval("./InvalidModuleDepType.java")
         assert(res.err.contains(
-          "InvalidModuleDepType.java:1 Failed de-serializing config key $['moduleDeps'] expected sequence got string"
+          "InvalidModuleDepType.java:1 Failed de-serializing config key $['moduleDeps']: expected sequence got string"
         ))
         assert(res.err.linesIterator.toList.length < 20)
       }
       locally {
         val res = tester.eval("./ModuleDepResolveError.java")
-        assert(res.err.contains("ModuleDepResolveError.java:1: Unable to resolve module \"doesntExist\""))
+        assert(res.err.contains("ModuleDepResolveError.java:1 Unable to resolve module \"doesntExist\""))
       }
       locally {
         val res = tester.eval("./InvalidTaskType.java")
