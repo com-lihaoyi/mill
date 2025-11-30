@@ -83,8 +83,8 @@ object ExecResult {
                               @com.lihaoyi.unroll path: java.nio.file.Path = null,
                               index: Int = -1,
                               next: Option[Failure[T]] = None) extends Failing[T] {
-    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg)
-    def flatMap[V](f: T => ExecResult[V]): Failure[V] = { Failure(msg) }
+    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg, path, index, next.map(_.asInstanceOf[Failure[V]]))
+    def flatMap[V](f: T => ExecResult[V]): Failure[V] = { Failure(msg, path, index, next.map(_.asInstanceOf[Failure[V]])) }
     override def toString: String = s"Failure($msg)"
   }
 

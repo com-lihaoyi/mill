@@ -82,7 +82,7 @@ object Util {
     if (path == null || !java.nio.file.Files.exists(path)) message
     else {
       val text = java.nio.file.Files.readString(path)
-      val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", ""))
+      val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", "").replace("\r", ""))
       val prettyIndex = indexedParser.prettyIndex(index)
       val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
 
@@ -109,19 +109,15 @@ object Util {
       if (!os.exists(scriptFile)) Result.Success("")
       else mill.api.ExecResult.catchWrapException {
         mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
+          .replace("\r", "")
       }
     }
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-    val originalText =
-      if (!java.nio.file.Files.exists(scriptFile.toNIO)) ""
-      else java.nio.file.Files.readString(scriptFile.toNIO)
-
     given upickle.Reader[HeaderData] = HeaderData.headerDataReader(scriptFile)
     headerDataOpt.flatMap(parseYaml0(
       relativePath.toString,
       _,
-      originalText,
       upickle.reader[HeaderData]
     ))
   }
@@ -129,7 +125,6 @@ object Util {
   def parseYaml0[T](
       fileName: String,
       headerData: String,
-      originalText: String,
       visitor0: upickle.core.Visitor[_, T]
   ): Result[T] = {
 

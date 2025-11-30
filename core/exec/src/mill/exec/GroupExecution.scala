@@ -236,6 +236,7 @@ trait GroupExecution {
                       case abort: upickle.core.AbortException => abort.index
                       case _ => jsonData.value.index
                     }
+
                     (
                       ExecResult.Failure(
                         s"Failed de-serializing config override: ${e.getCause.getMessage}",
