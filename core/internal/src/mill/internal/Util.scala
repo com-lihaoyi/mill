@@ -120,8 +120,9 @@ object Util {
                   }
 
                 case mapping: MappingNode =>
-                  val objVisitor = v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
-                    .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+                  val objVisitor =
+                    v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
+                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
                   for (tuple <- mapping.getValue.asScala) {
                     val keyNode = tuple.getKeyNode
                     val valueNode = tuple.getValueNode

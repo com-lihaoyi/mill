@@ -83,7 +83,9 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           catch {
             case _: java.lang.ClassNotFoundException =>
               val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-              val lineNum = extendsIndex.map(idx => mill.internal.Util.getLineNumber(scriptText, idx)).getOrElse("1")
+              val lineNum = extendsIndex.map(idx =>
+                mill.internal.Util.getLineNumber(scriptText, idx)
+              ).getOrElse("1")
               Result.Failure(
                 s"$relPath:$lineNum Script extends invalid class ${pprint.Util.literalize(className)}"
               )
