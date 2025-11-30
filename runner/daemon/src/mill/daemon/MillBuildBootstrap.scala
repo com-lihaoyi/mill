@@ -418,7 +418,13 @@ class MillBuildBootstrap(
       Map()
     )
 
-    nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
+    nestedState.add(
+      frame = evalState,
+      errorOpt = evaled match {
+        case f: Result.Failure => Some(mill.internal.Util.formatError(f))
+        case _ => None
+      }
+    )
   }
 
 }
