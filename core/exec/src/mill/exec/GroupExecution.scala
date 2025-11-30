@@ -41,14 +41,14 @@ trait GroupExecution {
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
 
-  import mill.api.internal.{Located, LocatedValue}
-  val staticBuildOverrides: Map[String, LocatedValue] = staticBuildOverrideFiles
+  import mill.api.internal.Located
+  val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
       def rec(
           segments: Seq[String],
           bufValue: upickle.core.BufferedValue
-      ): Seq[(String, LocatedValue)] = {
+      ): Seq[(String, Located[BufferedValue])] = {
         val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
         val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
           k.toString.split(" +") match {
@@ -56,12 +56,12 @@ trait GroupExecution {
             case Array("object", k) => Right(rec(segments ++ Seq(k), v))
           }
         }
-        val currentResults: Seq[(String, LocatedValue)] =
+        val currentResults: Seq[(String, Located[BufferedValue])] =
           rawKvs.toSeq.map { case (k, i, v) =>
             (segments ++ Seq(k)).mkString(".") -> Located(path, i, v)
           }
 
-        val nestedResults: Seq[(String, LocatedValue)] = nested.flatten.toSeq
+        val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
 
         currentResults ++ nestedResults
       }

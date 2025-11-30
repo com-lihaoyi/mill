@@ -1,6 +1,7 @@
 package mill.api
 
 import mill.api.internal.{Located, OverrideMapping}
+import upickle.core.BufferedValue
 
 import scala.annotation.implicitNotFound
 import scala.quoted.*
@@ -45,7 +46,7 @@ object ModuleCtx extends LowPriCtx {
     def moduleSegments: Segments = moduleCtx.segments
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
-    private[mill] def moduleDynamicBuildOverrides: Map[String, internal.LocatedValue] = Map()
+    private[mill] def moduleDynamicBuildOverrides: Map[String, internal.Located[BufferedValue]] = Map()
   }
 
   import upickle.core.BufferedValue

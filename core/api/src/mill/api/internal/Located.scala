@@ -46,8 +46,5 @@ object Located {
       def visitExt(tag: Byte, bytes: Array[Byte], offset: Int, len: Int, index: Int) =
         wrap(index, r.visitExt(tag, bytes, offset, len, index))
     }
-  type LocatedValue = Located[upickle.core.BufferedValue]
 }
 
-// Backward compatibility alias
-type LocatedValue = Located[upickle.core.BufferedValue]
