@@ -38,7 +38,6 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     val (runModuleDepsErrors, runModuleDeps) = runModuleDepsStrings.partitionMap(resolveOrErr)
     val allErrors = moduleDepsErrors ++ compileModuleDepsErrors ++ runModuleDepsErrors
     if (allErrors.nonEmpty) {
-<<<<<<< HEAD
       val failures = allErrors.map { located =>
         Result.Failure(
           s"Unable to resolve module ${pprint.Util.literalize(located.value)}",
@@ -47,18 +46,6 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
         )
       }
       Result.Failure.combine(failures)
-=======
-      val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-      val errorMessages = allErrors.map { located =>
-        mill.internal.Util.formatError(
-          relPath.toString,
-          scriptText,
-          located.index,
-          s"Unable to resolve module ${pprint.Util.literalize(located.value)}"
-        )
-      }
-      Result.Failure(errorMessages.mkString("\n"))
->>>>>>> main
     } else instantiate(
       scriptFile,
       extendsConfigStrings.map(_.value).getOrElse {
