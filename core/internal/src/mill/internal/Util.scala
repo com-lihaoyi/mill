@@ -64,6 +64,36 @@ object Util {
     fastparse.IndexedParserInput(text).prettyIndex(index).takeWhile(_ != ':')
   }
 
+  /**
+   * Format an error message in dotty style with file location, code snippet, and pointer.
+   *
+   * @param fileName The file name or path to display
+   * @param text The full text content of the file
+   * @param index The character index where the error occurred
+   * @param message The error message to display
+   * @return A formatted error string with location, code snippet, pointer, and message
+   */
+  def formatError(fileName: String, text: String, index: Int, message: String): String = {
+    val indexedParser = fastparse.IndexedParserInput(text)
+    val prettyIndex = indexedParser.prettyIndex(index)
+    val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
+
+    // Get the line content
+    val lines = text.linesIterator.toVector
+    val lineContent = if (lineNum > 0 && lineNum <= lines.length) lines(lineNum - 1) else ""
+
+    // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
+    val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
+
+    // Create pointer line
+    val pointer = if (colNum > 0) " " * (colNum - 1) + "^" else ""
+
+    s"""$fileName:$lineNum:$colNum
+       |$lineContent
+       |$pointer
+       |$message""".stripMargin
+  }
+
   def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
     val headerDataOpt = mill.api.BuildCtx.withFilesystemCheckerDisabled {
       // If the module file got deleted, handle that gracefully
@@ -74,13 +104,15 @@ object Util {
     }
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
+    val originalText = if (os.exists(scriptFile)) os.read(scriptFile) else ""
 
-    headerDataOpt.flatMap(parseYaml0(relativePath.toString, _, upickle.reader[HeaderData]))
+    headerDataOpt.flatMap(parseYaml0(relativePath.toString, _, originalText, upickle.reader[HeaderData]))
   }
 
   def parseYaml0[T](
       fileName: String,
       headerData: String,
+      originalText: String,
       visitor0: upickle.core.Visitor[_, T]
   ): Result[T] = {
 
@@ -182,8 +214,12 @@ object Util {
           case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
             s"Failed parsing build header in $fileName: " + e.getMessage
           case abort: upickle.core.AbortException =>
-            val lineNum = getLineNumber(headerData, abort.index)
-            s"$fileName:$lineNum Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}"
+            formatError(
+              fileName,
+              originalText,
+              abort.index,
+              s"Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}"
+            )
 
           case _ =>
             s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"

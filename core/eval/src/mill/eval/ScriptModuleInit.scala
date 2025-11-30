@@ -40,8 +40,12 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     if (allErrors.nonEmpty) {
       val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
       val errorMessages = allErrors.map { located =>
-        val lineNum = mill.internal.Util.getLineNumber(scriptText, located.index)
-        s"$relPath:$lineNum Unable to resolve module ${pprint.Util.literalize(located.value)}"
+        mill.internal.Util.formatError(
+          relPath.toString,
+          scriptText,
+          located.index,
+          s"Unable to resolve module ${pprint.Util.literalize(located.value)}"
+        )
       }
       Result.Failure(errorMessages.mkString("\n"))
     } else instantiate(
@@ -83,12 +87,21 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           catch {
             case _: java.lang.ClassNotFoundException =>
               val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-              val lineNum = extendsIndex.map(idx =>
-                mill.internal.Util.getLineNumber(scriptText, idx)
-              ).getOrElse("1")
-              Result.Failure(
-                s"$relPath:$lineNum Script extends invalid class ${pprint.Util.literalize(className)}"
-              )
+              extendsIndex match {
+                case Some(idx) =>
+                  Result.Failure(
+                    mill.internal.Util.formatError(
+                      relPath.toString,
+                      scriptText,
+                      idx,
+                      s"Script extends invalid class ${pprint.Util.literalize(className)}"
+                    )
+                  )
+                case None =>
+                  Result.Failure(
+                    s"$relPath:1 Script extends invalid class ${pprint.Util.literalize(className)}"
+                  )
+              }
           }
       }
 

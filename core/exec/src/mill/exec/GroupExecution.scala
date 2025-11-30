@@ -70,6 +70,7 @@ trait GroupExecution {
         mill.internal.Util.parseYaml0(
           path0.toString,
           rawText,
+          os.read(path),
           upickle.reader[ModuleCtx.HeaderData]
         ).get
           .rest
