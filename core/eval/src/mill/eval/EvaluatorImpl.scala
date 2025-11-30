@@ -316,7 +316,6 @@ final class EvaluatorImpl(
       selective.saveMetadata(newMetadata.copy(forceRunTasks = failingTaskNames))
     }
 
-    val errorStr = ExecutionResultsApi.formatFailing(evaluated)
     evaluated.transitiveFailing.size match {
       case 0 =>
         Evaluator.Result(
@@ -328,7 +327,7 @@ final class EvaluatorImpl(
       case n =>
         Evaluator.Result(
           watched,
-          mill.api.Result.Failure(s"$n tasks failed\n$errorStr"),
+          ExecutionResultsApi.formatFailing(evaluated),
           selectedTasks,
           evaluated
         )
