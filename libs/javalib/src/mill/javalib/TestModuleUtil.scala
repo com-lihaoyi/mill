@@ -96,7 +96,7 @@ final class TestModuleUtil(
     val result = runTestQueueScheduler(filteredClassLists)
 
     result match {
-      case Result.Failure(errMsg) => Result.Failure(errMsg)
+      case f: Result.Failure => f
       case Result.Success((doneMsg, results)) =>
         if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
         try TestModuleUtil.handleResults(doneMsg, results, Task.ctx(), testReportXml)
@@ -550,15 +550,15 @@ private[mill] object TestModuleUtil {
       String,
       Option[Result[(String, Seq[TestResult])]]
   )]) = {
-    val failMap = mutable.Map.empty[String, String]
+    val failMap = mutable.Map.empty[String, Result.Failure]
     val successMap = mutable.Map.empty[String, (String, Seq[TestResult])]
     val subprocessResult = {
 
       outputs.foreach {
-        case (_, name, Some(Result.Failure(v))) =>
+        case (_, name, Some(f: Result.Failure)) =>
           failMap.updateWith(name) {
-            case Some(old) => Some(old + " " + v)
-            case None => Some(v)
+            case Some(old) => Some(Result.Failure.combine(Seq(old, f)))
+            case None => Some(f)
           }
         case (_, name, Some(Result.Success((msg, results)))) =>
           successMap.updateWith(name) {
@@ -569,7 +569,7 @@ private[mill] object TestModuleUtil {
       }
 
       if (failMap.nonEmpty) {
-        Result.Failure(failMap.values.mkString("\n"))
+        Result.Failure.combine(failMap.values.toSeq)
       } else {
         Result.Success((
           successMap.values.map(_._1).mkString("\n"),

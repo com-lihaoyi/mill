@@ -437,7 +437,7 @@ trait GroupExecution {
             try {
               task.evaluate(args) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
-                case Result.Failure(err) => ExecResult.Failure(err)
+                case f: Result.Failure => ExecResult.Failure(f.error)
               }
             } catch {
               case ex: Result.Exception => ExecResult.Failure(ex.error)

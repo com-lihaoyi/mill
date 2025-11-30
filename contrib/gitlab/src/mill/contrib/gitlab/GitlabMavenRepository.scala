@@ -20,8 +20,8 @@ trait GitlabMavenRepository {
         .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
 
     gitlabAuth match {
-      case Result.Failure(msg) =>
-        Task.fail(s"Token lookup for PACKAGE repository ($gitlabRepository) failed with $msg")
+      case f: Result.Failure =>
+        Task.fail(s"Token lookup for PACKAGE repository ($gitlabRepository) failed with ${f.error}")
       case Result.Success(value) => value
     }
   }
