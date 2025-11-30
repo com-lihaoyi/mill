@@ -85,7 +85,7 @@ public class Util {
    */
   public static String formatError(
       String fileName, int lineNum, int colNum, String lineContent, String message) {
-    return formatError(fileName, lineNum, colNum, lineContent, message, 1, s -> s);
+    return formatError("[error] " + fileName, lineNum, colNum, lineContent, message, 1, s -> s);
   }
 
   /**

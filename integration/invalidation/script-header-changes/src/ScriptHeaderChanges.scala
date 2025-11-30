@@ -17,7 +17,7 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
 
       val res2 = tester.eval("./Foo.java")
       assert(!res2.isSuccess)
-      assert(res2.err.contains("Foo.java:1:14"))
+      assert(res2.err.contains("[error] Foo.java:1:14"))
       assert(res2.err.contains("//| invalid: key"))
       assert(res2.err.contains("             ^"))
       assert(res2.err.contains("key \"invalid\" does not override any task"))
@@ -29,7 +29,7 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
 
       val res3 = tester.eval("./Foo.java")
       assert(!res3.isSuccess)
-      assert(res3.err.contains("Foo.java:1:14"))
+      assert(res3.err.contains("[error] Foo.java:1:14"))
       assert(res3.err.contains("//| mvnDeps: key"))
       assert(res3.err.contains("             ^"))
       assert(
@@ -48,7 +48,7 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
 
       val res5 = tester.eval("./Foo.java")
       assert(!res5.isSuccess)
-      assert(res5.err.contains("Foo.java:1:14"))
+      assert(res5.err.contains("[error] Foo.java:1:14"))
       assert(res5.err.contains("//| mvnDeps: [key]"))
       assert(res5.err.contains("             ^"))
       assert(

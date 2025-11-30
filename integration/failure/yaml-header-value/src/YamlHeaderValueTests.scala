@@ -13,7 +13,7 @@ object YamlHeaderValueTests extends UtestIntegrationTestSuite {
       val res = eval("version")
 
       assert(res.isSuccess == false)
-      assert(res.err.contains("build.mill:1:14"))
+      assert(res.err.contains("[error] build.mill:1:14"))
       assert(res.err.contains("//| mvnDeps: lols"))
       assert(res.err.contains("             ^"))
       assert(
