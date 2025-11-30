@@ -66,14 +66,14 @@ private object TransformingReporter {
 
     val severity = problem0.severity()
 
-    def shade(msg: String) =
+    val shade: java.util.function.Function[String, String] =
       if color then
         severity match {
-          case xsbti.Severity.Error => Console.RED + msg + Console.RESET
-          case xsbti.Severity.Warn => Console.YELLOW + msg + Console.RESET
-          case xsbti.Severity.Info => Console.BLUE + msg + Console.RESET
+          case xsbti.Severity.Error => msg => Console.RED + msg + Console.RESET
+          case xsbti.Severity.Warn => msg => Console.YELLOW + msg + Console.RESET
+          case xsbti.Severity.Info => msg => Console.BLUE + msg + Console.RESET
         }
-      else msg
+      else msg => msg
 
     val message = problem0.message()
 
@@ -114,17 +114,9 @@ private object TransformingReporter {
             math.max(1, math.min(endCol - pointer0, lineContent.length - space.length))
           else 1
 
-        // Build header and pointer with shading applied
-        val header =
-          if (line0 >= 0 && colNum >= 0)
-            s"${shade(displayPath)}:${shade(line0.toString)}:${shade(colNum.toString)}"
-          else shade(displayPath)
-        val pointer = if (colNum > 0) " " * (colNum - 1) + shade("^" * pointerLength) else ""
-
-        s"""$header
-           |$lineContent
-           |$pointer
-           |$message""".stripMargin
+        mill.constants.Util.formatError(
+          displayPath, line0, colNum, lineContent, message, pointerLength, shade
+        )
     }
   }
 

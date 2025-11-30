@@ -85,13 +85,14 @@ public class Util {
    */
   public static String formatError(
       String fileName, int lineNum, int colNum, String lineContent, String message) {
-    return formatError(fileName, lineNum, colNum, lineContent, message, 1);
+    return formatError(fileName, lineNum, colNum, lineContent, message, 1, s -> s);
   }
 
   /**
    * Formats an error message in dotty style with file location, code snippet, and pointer.
    *
    * @param pointerLength The number of ^ characters to show in the pointer
+   * @param highlight Function to apply highlighting/coloring to header and pointer
    */
   public static String formatError(
       String fileName,
@@ -99,10 +100,13 @@ public class Util {
       int colNum,
       String lineContent,
       String message,
-      int pointerLength) {
-    String pointer = colNum > 0 ? " ".repeat(colNum - 1) + "^".repeat(pointerLength) : "";
+      int pointerLength,
+      Function<String, String> highlight) {
+    String pointer = colNum > 0 ? " ".repeat(colNum - 1) + highlight.apply("^".repeat(pointerLength)) : "";
     String header =
-        (lineNum >= 0 && colNum >= 0) ? fileName + ":" + lineNum + ":" + colNum : fileName;
+        (lineNum >= 0 && colNum >= 0)
+            ? highlight.apply(fileName) + ":" + highlight.apply(String.valueOf(lineNum)) + ":" + highlight.apply(String.valueOf(colNum))
+            : highlight.apply(fileName);
     return header + "\n" + lineContent + "\n" + pointer + "\n" + message;
   }
 
