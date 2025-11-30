@@ -41,7 +41,7 @@ trait GroupExecution {
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
 
-  import mill.api.internal.LocatedValue
+  import mill.api.internal.{Located, LocatedValue}
   val staticBuildOverrides: Map[String, LocatedValue] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
@@ -57,9 +57,8 @@ trait GroupExecution {
           }
         }
         val currentResults: Seq[(String, LocatedValue)] =
-          rawKvs.toSeq.collect {
-            case (k, i, v) if k != "extends" =>
-              (segments ++ Seq(k)).mkString(".") -> LocatedValue(path, i, v)
+          rawKvs.toSeq.map { case (k, i, v) =>
+            (segments ++ Seq(k)).mkString(".") -> Located(path, i, v)
           }
 
         val nestedResults: Seq[(String, LocatedValue)] = nested.flatten.toSeq
@@ -91,7 +90,6 @@ trait GroupExecution {
     }
     .toMap
 
-  mill.constants.DebugLog.println("staticBuildOverrides A " + pprint.apply(staticBuildOverrides))
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
