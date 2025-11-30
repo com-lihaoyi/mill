@@ -51,9 +51,13 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         assert(res.err.linesIterator.toList.length < 20)
       }
       locally {
+        // //| extends: ]
+        //              ^ col 14
         val res = tester.eval("./InvalidYamlSyntax.java")
-        assert(res.err.contains("Failed parsing build header in InvalidYamlSyntax.java"))
-        assert(res.err.contains("in reader, line 1, column 10"))
+        assert(res.err.contains("InvalidYamlSyntax.java:1:14"))
+        assert(res.err.contains("//| extends: ]"))
+        assert(res.err.contains("             ^"))
+        assert(res.err.contains("expected the node content, but found ']'"))
         // make sure we truncate the exception to the relevant bits
         assert(res.err.linesIterator.toList.length < 30)
       }

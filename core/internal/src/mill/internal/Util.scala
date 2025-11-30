@@ -214,7 +214,14 @@ object Util {
       case e: upickle.core.TraceVisitor.TraceException =>
         val msg = e.getCause match {
           case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
-            s"Failed parsing build header in $fileName: " + e.getMessage
+            val mark = e.getProblemMark.or(() => e.getContextMark)
+            if (mark.isPresent) {
+              val m = mark.get()
+              val problem = Option(e.getProblem).getOrElse("YAML syntax error")
+              formatError(fileName, originalText, m.getIndex, problem)
+            } else {
+              s"Failed parsing build header in $fileName: " + e.getMessage
+            }
           case abort: upickle.core.AbortException =>
             formatError(
               fileName,
