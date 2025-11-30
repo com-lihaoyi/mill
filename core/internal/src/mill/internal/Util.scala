@@ -103,6 +103,7 @@ object Util {
         java.nio.file.Files.readString(scriptFile.toNIO)
       else ""
 
+    given upickle.Reader[HeaderData] = HeaderData.headerDataReader(scriptFile)
     headerDataOpt.flatMap(parseYaml0(
       relativePath.toString,
       _,

@@ -106,7 +106,10 @@ object CodeGen {
               case Array(k) => onProperty(k, v)
               case Array("object", k) => onNestedObject(
                   k,
-                  upickle.core.BufferedValue.transform(v, upickle.reader[HeaderData])
+                  upickle.core.BufferedValue.transform(
+                    v,
+                    HeaderData.headerDataReader(scriptPath)
+                  )
                 )
               case _ => sys.error("Invalid key: " + kString)
             }

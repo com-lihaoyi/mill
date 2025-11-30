@@ -110,7 +110,14 @@ object ModuleCtx extends LowPriCtx {
       compileModuleDeps: Located[Seq[Located[String]]] = Located(null, -1, Nil),
       runModuleDeps: Located[Seq[Located[String]]] = Located(null, -1, Nil),
       @upickle.implicits.flatten rest: Map[String, upickle.core.BufferedValue]
-  ) derives upickle.Reader
+  )
+  object HeaderData {
+
+    def headerDataReader(path: os.Path) = {
+      implicit def locatedReader[T: upickle.Reader]: Located.UpickleReader[T] = new Located.UpickleReader[T](path)
+      upickle.macroR[HeaderData]
+    }
+  }
 
   private case class Impl(
       enclosing: String,

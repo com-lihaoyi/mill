@@ -71,7 +71,7 @@ trait GroupExecution {
           path0.toString,
           rawText,
           os.read(path),
-          upickle.reader[ModuleCtx.HeaderData]
+          ModuleCtx.HeaderData.headerDataReader(path)
         ).get
           .rest
           .map { case (k, v) => (BufferedValue.Str(k, -1), v) }

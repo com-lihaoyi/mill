@@ -3,9 +3,9 @@ package mill.api.internal
 case class Located[T](path: os.Path, index: Int, value: T)
 
 object Located {
-   implicit def locatedReader[T](implicit r: upickle.Reader[T]): upickle.Reader[Located[T]] =
-    new upickle.Reader[Located[T]] {
-      private def wrap(index: Int, v: T): Located[T] = Located(null, index, v)
+   class UpickleReader[T](path: os.Path)(implicit r: upickle.Reader[T])
+     extends upickle.Reader[Located[T]] {
+      private def wrap(index: Int, v: T): Located[T] = Located(path, index, v)
 
       def visitArray(length: Int, index: Int): upickle.core.ArrVisitor[Any, Located[T]] = {
         val delegate = r.visitArray(length, index)
