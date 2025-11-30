@@ -169,20 +169,22 @@ final class EvaluatorImpl(
 
       Option.when(invalidBuildOverrides.nonEmpty) {
         invalidBuildOverrides.map { case (k, v) =>
-          val lookupLineSuffix = fastparse
-            .IndexedParserInput(java.nio.file.Files.readString(v.path.toNIO).replace("\n//|", "\n"))
-            .prettyIndex(v.value.index)
-            .takeWhile(_ != ':') // split off column since it's not that useful
-          val prefix = s"invalid build config in $filePath:$lookupLineSuffix "
+          val originalText = java.nio.file.Files.readString(v.path.toNIO)
           val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
-          mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
+          val message = mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
             case None =>
               if (millKeys.contains(k))
-                s"${prefix}key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
-              else s"$prefix$doesNotOverridePrefix"
+                s"key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
+              else doesNotOverridePrefix
             case Some(similar) =>
-              s"$prefix$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
+              s"$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
           }
+          mill.internal.Util.formatError(
+            filePath.toString,
+            originalText,
+            v.value.index,
+            message
+          )
         }.mkString("\n")
       }
     }

@@ -177,8 +177,10 @@ trait GroupExecution {
           .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
           case Some(jsonData) =>
+            lazy val originalText = os.read(jsonData.path)
+            lazy val strippedText = originalText.replace("\n//|", "\n")
             lazy val lookupLineSuffix = fastparse
-              .IndexedParserInput(os.read(jsonData.path).replace("\n//|", "\n"))
+              .IndexedParserInput(strippedText)
               .prettyIndex(jsonData.value.index)
               .takeWhile(_ != ':') // split off column since it's not that useful
 
@@ -219,9 +221,19 @@ trait GroupExecution {
                   (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
                 } catch {
                   case e: upickle.core.TraceVisitor.TraceException =>
+                    // Try to get more specific index from AbortException if available
+                    val errorIndex = e.getCause match {
+                      case abort: upickle.core.AbortException => abort.index
+                      case _ => jsonData.value.index
+                    }
                     (
                       ExecResult.Failure(
-                        s"Failed de-serializing config override at ${jsonData.path.relativeTo(workspace)}:$lookupLineSuffix ${e.getCause.getMessage}"
+                        mill.internal.Util.formatError(
+                          jsonData.path.relativeTo(workspace).toString,
+                          originalText,
+                          errorIndex,
+                          s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                        )
                       ),
                       Nil
                     )

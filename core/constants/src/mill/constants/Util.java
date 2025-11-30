@@ -80,10 +80,39 @@ public class Util {
     return hasConsole0;
   }
 
+  /**
+   * Formats an error message in dotty style with file location, code snippet, and pointer.
+   */
+  public static String formatError(
+      String fileName, int lineNum, int colNum, String lineContent, String message) {
+    return formatError(fileName, lineNum, colNum, lineContent, message, 1);
+  }
+
+  /**
+   * Formats an error message in dotty style with file location, code snippet, and pointer.
+   *
+   * @param pointerLength The number of ^ characters to show in the pointer
+   */
+  public static String formatError(
+      String fileName,
+      int lineNum,
+      int colNum,
+      String lineContent,
+      String message,
+      int pointerLength) {
+    String pointer = colNum > 0 ? " ".repeat(colNum - 1) + "^".repeat(pointerLength) : "";
+    String header =
+        (lineNum >= 0 && colNum >= 0)
+            ? fileName + ":" + lineNum + ":" + colNum
+            : fileName;
+    return header + "\n" + lineContent + "\n" + pointer + "\n" + message;
+  }
+
   private static String throwBuildHeaderError(
       String errorFileName, int lineNumber, String line, String msg) {
-    throw new RuntimeException("Invalid YAML header comment at " + errorFileName + ":"
-        + (lineNumber + 1) + " " + line + "\n" + msg);
+    // lineNumber is 0-indexed, convert to 1-indexed for display
+    // Column is 1 since the error applies to the start of the line
+    throw new RuntimeException(formatError(errorFileName, lineNumber + 1, 1, line, msg));
   }
 
   public static String readBuildHeader(Path buildFile, String errorFileName) {

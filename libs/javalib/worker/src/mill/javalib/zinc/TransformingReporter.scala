@@ -88,6 +88,7 @@ private object TransformingReporter {
 
         val line0 = intValue(pos.line(), -1)
         val pointer0 = intValue(pos.pointer(), -1)
+        val colNum = pointer0 + 1
 
         val space = pos.pointerSpace().orElse("")
         val endCol = intValue(pos.endColumn(), pointer0 + 1)
@@ -113,15 +114,17 @@ private object TransformingReporter {
             math.max(1, math.min(endCol - pointer0, lineContent.length - space.length))
           else 1
 
-        mill.api.internal.Util.formatError(
-          displayPath,
-          line0,
-          pointer0 + 1,
-          lineContent,
-          message,
-          pointerLength,
-          shade
-        )
+        // Build header and pointer with shading applied
+        val header =
+          if (line0 >= 0 && colNum >= 0)
+            s"${shade(displayPath)}:${shade(line0.toString)}:${shade(colNum.toString)}"
+          else shade(displayPath)
+        val pointer = if (colNum > 0) " " * (colNum - 1) + shade("^" * pointerLength) else ""
+
+        s"""$header
+           |$lineContent
+           |$pointer
+           |$message""".stripMargin
     }
   }
 

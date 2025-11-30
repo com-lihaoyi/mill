@@ -85,7 +85,7 @@ object Util {
     // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
     val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
 
-    mill.api.internal.Util.formatError(fileName, lineNum, colNum, lineContent, message)
+    mill.constants.Util.formatError(fileName, lineNum, colNum, lineContent, message)
   }
 
   def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
@@ -98,7 +98,10 @@ object Util {
     }
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-    val originalText = if (os.exists(scriptFile)) os.read(scriptFile) else ""
+    val originalText =
+      if (java.nio.file.Files.exists(scriptFile.toNIO))
+        java.nio.file.Files.readString(scriptFile.toNIO)
+      else ""
 
     headerDataOpt.flatMap(parseYaml0(
       relativePath.toString,
