@@ -11,9 +11,6 @@ object YamlHeaderPackageTests extends UtestIntegrationTestSuite {
       val res = eval("version")
 
       assert(res.isSuccess == false)
-      // package.mill:2:1
-      // //| mill-version: 1.0.0-RC1
-      // ^
       assert(res.err.contains("package.mill:2:1"))
       assert(res.err.contains("//| mill-version: 1.0.0-RC1"))
       assert(res.err.contains("^"))

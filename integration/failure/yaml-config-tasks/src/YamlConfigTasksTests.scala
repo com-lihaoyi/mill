@@ -11,19 +11,15 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
 
       assert(!res.isSuccess)
 
-      // build.mill.yaml:2:16
-      // scalaVersionn: []
-      //                ^
       assert(res.err.contains("build.mill.yaml:2:16"))
       assert(res.err.contains("scalaVersionn: []"))
+      assert(res.err.contains("               ^"))
       assert(res.err.contains(
         "key \"scalaVersionn\" does not override any task, did you mean \"scalaVersion\"?"
       ))
-      // test/package.mill.yaml:2:25
-      // scalaVersionWrongInner: []
-      //                         ^
       assert(res.err.replace('\\', '/').contains("test/package.mill.yaml:2:25"))
       assert(res.err.contains("scalaVersionWrongInner: []"))
+      assert(res.err.contains("                        ^"))
       assert(res.err.contains("key \"scalaVersionWrongInner\" does not override any task"))
 
       tester.modifyFile(
@@ -37,15 +33,12 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
 
       val res2 = tester.eval(("-k", "__.compile"))
 
-      // build.mill.yaml:2:15
-      // scalaVersion: []
-      //               ^
       assert(res2.err.contains("build.mill.yaml:2:15"))
       assert(res2.err.contains("scalaVersion: []"))
+      assert(res2.err.contains("              ^"))
       assert(
         res2.err.contains("Failed de-serializing config override: expected string got sequence")
       )
-      // test/package.mill.yaml:2:15
       assert(res2.err.replace('\\', '/').contains("test/package.mill.yaml:2:15"))
 
       tester.modifyFile(

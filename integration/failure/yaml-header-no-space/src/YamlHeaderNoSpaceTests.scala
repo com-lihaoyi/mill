@@ -13,9 +13,6 @@ object YamlHeaderNoSpaceTests extends UtestIntegrationTestSuite {
       val res = eval("version")
 
       assert(res.isSuccess == false)
-      // build.mill:1:1
-      // //|mill-version: 1.0.0-RC1
-      // ^
       assert(res.err.contains("build.mill:1:1"))
       assert(res.err.contains("//|mill-version: 1.0.0-RC1"))
       assert(res.err.contains("^"))
