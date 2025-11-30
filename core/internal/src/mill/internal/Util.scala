@@ -241,7 +241,6 @@ object Util {
               s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
             )
         }
-
     }
   }
 
