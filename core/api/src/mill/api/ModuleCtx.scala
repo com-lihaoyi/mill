@@ -55,9 +55,9 @@ object ModuleCtx extends LowPriCtx {
     new upickle.Reader.Delegate(BufferedValue.Builder)
 
   new upickle.Writer[BufferedValue] {
-      def write0[V](out: upickle.core.Visitor[?, V], v: BufferedValue): V =
-        BufferedValue.transform(v, out)
-    }
+    def write0[V](out: upickle.core.Visitor[?, V], v: BufferedValue): V =
+      BufferedValue.transform(v, out)
+  }
 
   private[mill] case class HeaderData(
       `extends`: Located[Seq[Located[String]]] = Located(null, -1, Nil),

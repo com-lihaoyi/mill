@@ -45,6 +45,7 @@ trait GroupExecution {
   val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
+      val headerDataReader = ModuleCtx.HeaderData.headerDataReader(path)
       def rec(
           segments: Seq[String],
           bufValue: upickle.core.BufferedValue
@@ -56,10 +57,19 @@ trait GroupExecution {
             case Array("object", k) => Right(rec(segments ++ Seq(k), v))
           }
         }
+
         val currentResults: Seq[(String, Located[BufferedValue])] =
-          rawKvs.toSeq.map { case (k, i, v) =>
-            (segments ++ Seq(k)).mkString(".") -> Located(path, i, v)
-          }
+          BufferedValue.transform(
+            BufferedValue.Obj(
+              rawKvs.map { case (k, i, v) => (BufferedValue.Str(k, i), v) }.to(mutable.ArrayBuffer),
+              true,
+              -1
+            ),
+            headerDataReader
+          )
+            .rest
+            .map { case (k, v) => (segments ++ Seq(k)).mkString(".") -> Located(path, v.index, v) }
+            .toSeq
 
         val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
 
@@ -71,7 +81,7 @@ trait GroupExecution {
           path0.toString,
           rawText,
           os.read(path),
-          ModuleCtx.HeaderData.headerDataReader(path)
+          headerDataReader
         ).get
           .rest
           .map { case (k, v) => (BufferedValue.Str(k, -1), v) }
