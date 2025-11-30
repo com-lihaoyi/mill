@@ -91,7 +91,6 @@ trait GroupExecution {
     }
     .toMap
 
-  mill.constants.DebugLog.println("staticBuildOverrides A " + pprint.apply(staticBuildOverrides))
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
