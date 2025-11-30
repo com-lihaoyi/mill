@@ -85,8 +85,8 @@ public class Util {
    */
   public static String formatError(
       String fileName, int lineNum, int colNum, String lineContent, String message, Function<String, String> highlight) {
-    return formatError(
-      "[" + highlight.apply("error") + "] " + fileName, lineNum, colNum, lineContent, message, 1, highlight);
+    return "[" + highlight.apply("error") + "] " + formatError(
+       fileName, lineNum, colNum, lineContent, message, 1, highlight);
   }
 
   /**
