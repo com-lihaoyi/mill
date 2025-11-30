@@ -16,7 +16,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
       locally {
         val res = tester.eval("./InvalidModuleDepType.java")
         assert(res.err.contains(
-          "Failed de-serializing config key $['moduleDeps'] in InvalidModuleDepType.java: expected sequence got string"
+          "InvalidModuleDepType.java:1 Failed de-serializing config key $['moduleDeps'] expected sequence got string"
         ))
         assert(res.err.linesIterator.toList.length < 20)
       }
@@ -34,9 +34,8 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
       }
       locally {
         val res = tester.eval("./InvalidYamlSyntax.java")
-        assert(res.err.contains(
-          "Failed de-serializing config key $ in InvalidYamlSyntax.java:"
-        ))
+        assert(res.err.contains("Failed parsing build header in InvalidYamlSyntax.java"))
+        assert(res.err.contains("in reader, line 1, column 10"))
         // make sure we truncate the exception to the relevant bits
         assert(res.err.linesIterator.toList.length < 30)
       }

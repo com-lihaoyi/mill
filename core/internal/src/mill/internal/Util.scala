@@ -98,54 +98,59 @@ object Util {
           def rec[J](node: Node, v: upickle.core.Visitor[_, J]): J = {
             val index = node.getStartMark.map(_.getIndex.intValue()).orElse(0)
 
-            node match {
-              case scalar: ScalarNode =>
-                val value = scalar.getValue
-                val tag = scalar.getTag.getValue
-                tag match {
-                  case "tag:yaml.org,2002:null" => v.visitNull(index)
-                  case "tag:yaml.org,2002:bool" =>
-                    if (value == "true") v.visitTrue(index)
-                    else v.visitFalse(index)
-                  case "tag:yaml.org,2002:int" =>
-                    v.visitFloat64StringParts(value, -1, -1, index)
-                  case "tag:yaml.org,2002:float" =>
-                    v.visitFloat64StringParts(value, -1, -1, index)
-                  case _ => v.visitString(value, index)
-                }
-
-              case mapping: MappingNode =>
-                val objVisitor = v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
-                  .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
-                for (tuple <- mapping.getValue.asScala) {
-                  val keyNode = tuple.getKeyNode
-                  val valueNode = tuple.getValueNode
-                  val keyIndex = keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                  val key = keyNode match {
-                    case s: ScalarNode => s.getValue
-                    case _ => keyNode.toString
+            try {
+              node match {
+                case scalar: ScalarNode =>
+                  val value = scalar.getValue
+                  val tag = scalar.getTag.getValue
+                  tag match {
+                    case "tag:yaml.org,2002:null" => v.visitNull(index)
+                    case "tag:yaml.org,2002:bool" =>
+                      if (value == "true") v.visitTrue(index)
+                      else v.visitFalse(index)
+                    case "tag:yaml.org,2002:int" =>
+                      v.visitFloat64StringParts(value, -1, -1, index)
+                    case "tag:yaml.org,2002:float" =>
+                      v.visitFloat64StringParts(value, -1, -1, index)
+                    case _ => v.visitString(value, index)
                   }
-                  val keyVisitor = objVisitor.visitKey(keyIndex)
-                  objVisitor.visitKeyValue(keyVisitor.visitString(key, keyIndex))
-                  val valueResult = rec(valueNode, objVisitor.subVisitor)
-                  objVisitor.visitValue(
-                    valueResult,
-                    valueNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                  )
-                }
-                objVisitor.visitEnd(index)
 
-              case sequence: SequenceNode =>
-                val arrVisitor = v.visitArray(sequence.getValue.size(), index)
-                  .asInstanceOf[upickle.core.ArrVisitor[Any, J]]
-                for (item <- sequence.getValue.asScala) {
-                  val itemResult = rec(item, arrVisitor.subVisitor)
-                  arrVisitor.visitValue(
-                    itemResult,
-                    item.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                  )
-                }
-                arrVisitor.visitEnd(index)
+                case mapping: MappingNode =>
+                  val objVisitor = v.visitObject(mapping.getValue.size(), jsonableKeys = true, index)
+                    .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+                  for (tuple <- mapping.getValue.asScala) {
+                    val keyNode = tuple.getKeyNode
+                    val valueNode = tuple.getValueNode
+                    val keyIndex = keyNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                    val key = keyNode match {
+                      case s: ScalarNode => s.getValue
+                      case _ => keyNode.toString
+                    }
+                    val keyVisitor = objVisitor.visitKey(keyIndex)
+                    objVisitor.visitKeyValue(keyVisitor.visitString(key, keyIndex))
+                    val valueResult = rec(valueNode, objVisitor.subVisitor)
+                    objVisitor.visitValue(
+                      valueResult,
+                      valueNode.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                    )
+                  }
+                  objVisitor.visitEnd(index)
+
+                case sequence: SequenceNode =>
+                  val arrVisitor = v.visitArray(sequence.getValue.size(), index)
+                    .asInstanceOf[upickle.core.ArrVisitor[Any, J]]
+                  for (item <- sequence.getValue.asScala) {
+                    val itemResult = rec(item, arrVisitor.subVisitor)
+                    arrVisitor.visitValue(
+                      itemResult,
+                      item.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                    )
+                  }
+                  arrVisitor.visitEnd(index)
+              }
+            } catch {
+              case e: upickle.core.Abort =>
+                throw upickle.core.AbortException(e.getMessage, index, -1, -1, e)
             }
           }
 
@@ -167,12 +172,20 @@ object Util {
         }
       }
     catch {
-      case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
-        Result.Failure(s"Failed de-serializing build header in $fileName: " + e.getMessage)
       case e: upickle.core.TraceVisitor.TraceException =>
-        Result.Failure(
-          s"Failed de-serializing config key ${e.jsonPath} in $fileName: ${e.getCause.getMessage}"
-        )
+        val msg = e.getCause match {
+          case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
+            s"Failed parsing build header in $fileName: " + e.getMessage
+          case abort: upickle.core.AbortException =>
+            val indexedParser = fastparse.IndexedParserInput(headerData)
+            val lineNum = ":" + indexedParser.prettyIndex(abort.index).takeWhile(_ != ':')
+            s"$fileName$lineNum Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
+
+          case _ =>
+            s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
+        }
+
+        Result.Failure(msg)
     }
   }
 
