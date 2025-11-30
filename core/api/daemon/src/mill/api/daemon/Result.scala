@@ -48,7 +48,9 @@ object Result {
 
   object Failure {
     def combine(failures: Seq[Failure]): Failure = {
-      val flattened: Seq[Failure] = failures.flatMap(Iterator.unfold(_)(t => t.next.map(n => n -> n)))
+      val flattened: Seq[Failure] = failures.flatMap(f =>
+        Iterator.unfold(Option(f))(_.map(t => t -> t.next))
+      )
       flattened
         .foldLeft(Option.empty[Failure])((f0, f) => Some(Failure(f.error, f.path, f.index, f0)))
         .get
