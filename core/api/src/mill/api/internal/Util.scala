@@ -11,4 +11,27 @@ object Util {
       case 0 => ""
       case n => s" ${n}s"
     }
+
+  def formatError(
+      fileName: String,
+      lineNum: Int,
+      colNum: Int,
+      lineContent: String,
+      message: String,
+      pointerLength: Int = 1,
+      shade: String => String = identity
+  ): String = {
+    // Create pointer line
+    val pointer = if (colNum > 0) " " * (colNum - 1) + shade("^" * pointerLength) else ""
+
+    val header =
+      if (lineNum >= 0 && colNum >= 0)
+        s"${shade(fileName)}:${shade(lineNum.toString)}:${shade(colNum.toString)}"
+      else shade(fileName)
+
+    s"""$header
+       |$lineContent
+       |$pointer
+       |$message""".stripMargin
+  }
 }

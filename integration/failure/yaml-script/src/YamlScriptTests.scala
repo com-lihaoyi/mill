@@ -25,7 +25,9 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         assert(res.err.contains("InvalidModuleDepType.java:1:17"))
         assert(res.err.contains("//| moduleDeps: dummy"))
         assert(res.err.contains("                ^"))
-        assert(res.err.contains("Failed de-serializing config key $['moduleDeps']: expected sequence got string"))
+        assert(res.err.contains(
+          "Failed de-serializing config key $['moduleDeps']: expected sequence got string"
+        ))
         assert(res.err.linesIterator.toList.length < 20)
       }
       locally {
