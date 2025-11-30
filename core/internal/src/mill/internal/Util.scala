@@ -74,7 +74,7 @@ object Util {
    * @return A formatted error string with location, code snippet, pointer, and message
    */
   def formatError(fileName: String, text: String, index: Int, message: String): String = {
-    val indexedParser = fastparse.IndexedParserInput(text)
+    val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", ""))
     val prettyIndex = indexedParser.prettyIndex(index)
     val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
 
@@ -99,9 +99,8 @@ object Util {
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
     val originalText =
-      if (java.nio.file.Files.exists(scriptFile.toNIO))
-        java.nio.file.Files.readString(scriptFile.toNIO)
-      else ""
+      if (!java.nio.file.Files.exists(scriptFile.toNIO)) ""
+      else java.nio.file.Files.readString(scriptFile.toNIO)
 
     given upickle.Reader[HeaderData] = HeaderData.headerDataReader(scriptFile)
     headerDataOpt.flatMap(parseYaml0(
