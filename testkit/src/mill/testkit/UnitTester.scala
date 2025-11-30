@@ -136,7 +136,7 @@ class UnitTester(
     getEvaluator = () => evaluator,
     offline = offline,
     enableTicker = false,
-    buildOverrides0 = Map()
+    staticBuildOverrideFiles = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

@@ -10,7 +10,7 @@ object UtilTests extends TestSuite {
       val yaml = """key1: value1
                    |key2: 123""".stripMargin
 
-      val parsed = Util.parseYaml0("test.yaml", yaml)
+      val parsed = Util.parseYaml0("test.yaml", yaml, yaml, BufferedValue.Builder)
 
       val expected = mill.api.Result.Success(
         BufferedValue.Obj(
@@ -30,7 +30,7 @@ object UtilTests extends TestSuite {
       val yaml = """outer:
                    |  inner: test""".stripMargin
 
-      val parsed = Util.parseYaml0("test.yaml", yaml)
+      val parsed = Util.parseYaml0("test.yaml", yaml, yaml, BufferedValue.Builder)
 
       val expected = mill.api.Result.Success(
         BufferedValue.Obj(
@@ -59,7 +59,7 @@ object UtilTests extends TestSuite {
                    |  - item1
                    |  - item2""".stripMargin
 
-      val parsed = Util.parseYaml0("test.yaml", yaml)
+      val parsed = Util.parseYaml0("test.yaml", yaml, yaml, BufferedValue.Builder)
 
       val expected = mill.api.Result.Success(
         BufferedValue.Obj(
@@ -85,7 +85,7 @@ object UtilTests extends TestSuite {
 
     test("parseYaml0 handles empty document") {
       val yaml = ""
-      val parsed = Util.parseYaml0("test.yaml", yaml)
+      val parsed = Util.parseYaml0("test.yaml", yaml, yaml, BufferedValue.Builder)
 
       val expected = mill.api.Result.Success(
         BufferedValue.Obj(ArrayBuffer.empty, jsonableKeys = true, index = 0)

@@ -427,29 +427,31 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * Opens up a Scala console with your module and all dependencies present,
    * for you to test and operate your code interactively.
    */
-  def console(): Command[Unit] = Task.Command(exclusive = true) {
-    if (!mill.constants.Util.hasConsole()) {
-      Task.fail("console needs to be run with the -i/--interactive flag")
-    } else {
-      val useJavaCp = "-usejavacp"
+  def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
+    Task.Command(exclusive = true) {
+      if (!mill.constants.Util.hasConsole()) {
+        Task.fail("console needs to be run with the -i/--interactive flag")
+      } else {
+        val useJavaCp = "-usejavacp"
 
-      Jvm.callProcess(
-        mainClass =
-          if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
-            "dotty.tools.repl.Main"
-          else
-            "scala.tools.nsc.MainGenericRunner",
-        classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
-        jvmArgs = forkArgs(),
-        env = allForkEnv(),
-        mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
-        cwd = forkWorkingDir(),
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
-      ()
+        Jvm.callProcess(
+          mainClass =
+            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
+              "dotty.tools.repl.Main"
+            else
+              "scala.tools.nsc.MainGenericRunner",
+          classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
+          jvmArgs = forkArgs(),
+          env = allForkEnv(),
+          mainArgs =
+            Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
+          cwd = forkWorkingDir(),
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
+        ()
+      }
     }
-  }
 
   /**
    * The classpath used to run the Scala console with [[console]].

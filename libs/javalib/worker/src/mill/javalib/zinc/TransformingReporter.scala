@@ -66,57 +66,33 @@ private object TransformingReporter {
 
     val severity = problem0.severity()
 
-    def shade(msg: String) =
+    val shade: java.util.function.Function[String, String] =
       if color then
         severity match {
-          case xsbti.Severity.Error => Console.RED + msg + Console.RESET
-          case xsbti.Severity.Warn => Console.YELLOW + msg + Console.RESET
-          case xsbti.Severity.Info => Console.BLUE + msg + Console.RESET
+          case xsbti.Severity.Error => msg => Console.RED + msg + Console.RESET
+          case xsbti.Severity.Warn => msg => Console.YELLOW + msg + Console.RESET
+          case xsbti.Severity.Info => msg => Console.BLUE + msg + Console.RESET
         }
-      else msg
+      else msg => msg
 
-    val errorCodeString = {
-      // The error code provided by the Scala 3 compiler seems pretty useless in
-      // general: you can't grep for it, you can't google for it, and it tells you
-      // nothing useful. It's distracting from the actual message. So just leave it out
-      ""
-//      problem0.diagnosticCode()
-//        .filter(_.code() != "-1")
-//        .map { inner =>
-//          val prefix = "[" + shade(s"E${inner.code()}") + "] "
-//          inner.explanation().map(e => s"$prefix$e: ").orElse(prefix)
-//        }
-//        .orElse("")
+    val message = problem0.message()
 
-    }
+    InterfaceUtil.jo2o(pos.sourcePath()) match {
+      case None => message
+      case Some(path) =>
+        val absPath = os.Path(path)
+        // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
+        val displayPath =
+          if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot).toString
+          else path
 
-    val message = errorCodeString + problem0.message()
+        val line0 = intValue(pos.line(), -1)
+        val pointer0 = intValue(pos.pointer(), -1)
+        val colNum = pointer0 + 1
 
-    val positionString = InterfaceUtil.jo2o(pos.sourcePath()).map { path =>
-      val absPath = os.Path(path)
-      // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
-      val displayPath =
-        if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot)
-        else path
+        val space = pos.pointerSpace().orElse("")
+        val endCol = intValue(pos.endColumn(), pointer0 + 1)
 
-      val line0 = intValue(pos.line(), -1)
-      val pointer0 = intValue(pos.pointer(), -1)
-      val shadedPath = shade(displayPath.toString)
-
-      if line0 >= 0 && pointer0 >= 0 then
-        s"$shadedPath:${shade(line0.toString)}:${shade((pointer0 + 1).toString)}"
-      else shadedPath
-    }
-
-    val header = positionString
-      .map(path => s"$path\n")
-      .getOrElse("")
-
-    val space = pos.pointerSpace().orElse("")
-    val pointer = intValue(pos.pointer(), -99)
-    val endCol = intValue(pos.endColumn(), pointer + 1)
-    val codeSnippet =
-      if (space.nonEmpty && pointer >= 0 && endCol >= 0) {
         // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
         // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
         val renderedLines = InterfaceUtil.jo2o(problem0.rendered())
@@ -126,22 +102,28 @@ private object TransformingReporter {
 
         // Just grab the first line from the dotty error code snippet, because dotty defaults to
         // rendering entire expressions which can be arbitrarily large and spammy in the terminal
-        val codeSnippet0 = renderedLines
+        val lineContent = renderedLines
           .collectFirst {
             case s"$pre |$rest" if pre.nonEmpty && fansi.Str(pre).plainText.forall(_.isDigit) =>
               rest
           }
-        val codeSnippet =
-          if (codeSnippet0.nonEmpty) codeSnippet0.mkString("\n")
-          else pos.lineContent() // fall back to plaintext line if no colored line found
+          .getOrElse(pos.lineContent()) // fall back to plaintext line if no colored line found
 
-        val arrowCount = math.max(1, math.min(endCol - pointer, codeSnippet.length - space.length))
-        s"""$codeSnippet
-           |$space${shade("^" * arrowCount)}
-           |""".stripMargin
-      } else ""
+        val pointerLength =
+          if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
+            math.max(1, math.min(endCol - pointer0, lineContent.length - space.length))
+          else 1
 
-    header + codeSnippet + message
+        mill.constants.Util.formatError(
+          displayPath,
+          line0,
+          colNum,
+          lineContent,
+          message,
+          pointerLength,
+          shade
+        )
+    }
   }
 
   /** Implements a transformation that returns the same list if the mapper has no effect */

@@ -40,7 +40,8 @@ object SelectiveExecution {
   case class Metadata(
       inputHashes: Map[String, Int],
       codeSignatures: Map[String, Int],
-      @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map()
+      @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map(),
+      @com.lihaoyi.unroll forceRunTasks: Set[String] = Set()
   )
   object Metadata {
     case class Computed(
