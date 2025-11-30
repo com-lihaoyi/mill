@@ -69,6 +69,7 @@ object Util {
       .map(f0 => formatError0(f0.path, f0.index, f0.error))
       .mkString("\n")
   }
+
   /**
    * Format an error message in dotty style with file location, code snippet, and pointer.
    *

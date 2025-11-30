@@ -50,16 +50,18 @@ trait ExecutionResultsApi {
 }
 object ExecutionResultsApi {
   private[mill] def formatFailing(evaluated: ExecutionResultsApi): Result.Failure = {
-    Result.Failure.combine (
+    Result.Failure.combine(
       for ((k, fs) <- evaluated.transitiveFailingApi.toSeq)
-      yield {
-        val keyPrefix = Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil)) + k + " "
-        fs match {
-          case ExecResult.Failure(t, path, index, next) => Result.Failure(keyPrefix + t, path, index)
-          case ex: ExecResult.Exception => Result.Failure(keyPrefix + ex.toString)
-        }
+        yield {
+          val keyPrefix =
+            Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil)) + k + " "
+          fs match {
+            case ExecResult.Failure(t, path, index, next) =>
+              Result.Failure(keyPrefix + t, path, index)
+            case ex: ExecResult.Exception => Result.Failure(keyPrefix + ex.toString)
+          }
 
-      }
+        }
     )
   }
 

@@ -80,7 +80,6 @@ trait GroupExecution {
         mill.internal.Util.parseYaml0(
           path0.toString,
           rawText,
-          os.read(path),
           headerDataReader
         ).get
           .rest

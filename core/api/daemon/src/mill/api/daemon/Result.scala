@@ -33,10 +33,12 @@ object Result {
     def toEither: Either[String, T] = Right(value)
     def errorOpt: Option[String] = None
   }
-  final case class Failure(error: String,
-                           @com.lihaoyi.unroll path: java.nio.file.Path = null,
-                           index: Int = -1,
-                           next: Option[Failure] = None) extends Result[Nothing] {
+  final case class Failure(
+      error: String,
+      @com.lihaoyi.unroll path: java.nio.file.Path = null,
+      index: Int = -1,
+      next: Option[Failure] = None
+  ) extends Result[Nothing] {
     def map[V](f: Nothing => V): Result[Nothing] = this
 
     def flatMap[V](f: Nothing => Result[V]): Result[Nothing] = this

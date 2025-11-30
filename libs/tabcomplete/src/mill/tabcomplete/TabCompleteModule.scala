@@ -253,7 +253,7 @@ private object TabCompleteModule extends ExternalModule {
         case Some(u) if filtered.exists(_._1 == u) =>
           ev.resolveRaw(Seq(u + "._"), SelectMode.Multi) match {
             case Result.Success(v) => v.map { res => res.fullSegments.render -> getDocs(res) }
-            case f: Result.Failure => Nil
+            case _: Result.Failure => Nil
           }
 
         case _ => Nil

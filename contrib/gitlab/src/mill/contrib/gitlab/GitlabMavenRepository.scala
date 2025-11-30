@@ -3,7 +3,7 @@ package mill.contrib.gitlab
 import coursier.core.Authentication
 import coursier.maven.MavenRepository
 import mill.api.Result
-import mill.api.Result.{Failure, Success}
+import mill.api.Result.Success
 import mill.api.Task
 import mill.api.BuildCtx
 

@@ -168,7 +168,7 @@ final class EvaluatorImpl(
       import pprint.Util.literalize
 
       invalidBuildOverrides.map { case (k, v) =>
-        val originalText = java.nio.file.Files.readString(v.path.toNIO)
+        java.nio.file.Files.readString(v.path.toNIO)
         val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
         val message = mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
           case None =>
@@ -323,7 +323,7 @@ final class EvaluatorImpl(
           selectedTasks,
           evaluated
         )
-      case n =>
+      case _ =>
         Evaluator.Result(
           watched,
           ExecutionResultsApi.formatFailing(evaluated),
