@@ -16,7 +16,9 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
       //                ^
       assert(res.err.contains("build.mill.yaml:2:16"))
       assert(res.err.contains("scalaVersionn: []"))
-      assert(res.err.contains("key \"scalaVersionn\" does not override any task, did you mean \"scalaVersion\"?"))
+      assert(res.err.contains(
+        "key \"scalaVersionn\" does not override any task, did you mean \"scalaVersion\"?"
+      ))
       // test/package.mill.yaml:2:25
       // scalaVersionWrongInner: []
       //                         ^
@@ -40,7 +42,9 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
       //               ^
       assert(res2.err.contains("build.mill.yaml:2:15"))
       assert(res2.err.contains("scalaVersion: []"))
-      assert(res2.err.contains("Failed de-serializing config override: expected string got sequence"))
+      assert(
+        res2.err.contains("Failed de-serializing config override: expected string got sequence")
+      )
       // test/package.mill.yaml:2:15
       assert(res2.err.replace('\\', '/').contains("test/package.mill.yaml:2:15"))
 

@@ -17,7 +17,9 @@ object YamlHeaderHelperTests extends UtestIntegrationTestSuite {
       assert(res.err.contains("helper.mill:1:1"))
       assert(res.err.contains("//| mill-version: 1.0.0-RC1"))
       assert(res.err.contains("^"))
-      assert(res.err.contains("YAML header can only be defined in the `build.mill` file, not `helper.mill`"))
+      assert(res.err.contains(
+        "YAML header can only be defined in the `build.mill` file, not `helper.mill`"
+      ))
     }
   }
 }

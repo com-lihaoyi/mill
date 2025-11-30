@@ -102,9 +102,7 @@ public class Util {
       int pointerLength) {
     String pointer = colNum > 0 ? " ".repeat(colNum - 1) + "^".repeat(pointerLength) : "";
     String header =
-        (lineNum >= 0 && colNum >= 0)
-            ? fileName + ":" + lineNum + ":" + colNum
-            : fileName;
+        (lineNum >= 0 && colNum >= 0) ? fileName + ":" + lineNum + ":" + colNum : fileName;
     return header + "\n" + lineContent + "\n" + pointer + "\n" + message;
   }
 

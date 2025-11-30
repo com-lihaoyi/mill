@@ -18,7 +18,9 @@ object YamlHeaderValueTests extends UtestIntegrationTestSuite {
       assert(res.err.contains("build.mill:1:14"))
       assert(res.err.contains("//| mvnDeps: lols"))
       assert(res.err.contains("             ^"))
-      assert(res.err.contains("Failed de-serializing config override: expected sequence got string"))
+      assert(
+        res.err.contains("Failed de-serializing config override: expected sequence got string")
+      )
       // make sure we truncate the exception to the relevant bits
       assert(res.err.linesIterator.toList.length < 20)
     }
