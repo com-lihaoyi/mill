@@ -79,7 +79,7 @@ trait GroupExecution {
       val parsed0 = BufferedValue.Obj(
         mill.internal.Util.parseYaml0(
           path0.toString,
-          rawText,
+          rawText.replace("\r", ""),
           headerDataReader
         ).get
           .rest

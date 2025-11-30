@@ -323,10 +323,15 @@ final class EvaluatorImpl(
           selectedTasks,
           evaluated
         )
-      case _ =>
+      case n =>
         Evaluator.Result(
           watched,
-          ExecutionResultsApi.formatFailing(evaluated),
+          Result.Failure.combine(
+            Seq(
+              ExecutionResultsApi.formatFailing(evaluated),
+              Result.Failure(s"$n tasks failed")
+            )
+          ),
           selectedTasks,
           evaluated
         )
