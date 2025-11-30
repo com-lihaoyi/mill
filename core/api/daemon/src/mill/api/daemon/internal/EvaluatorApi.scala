@@ -55,12 +55,15 @@ object ExecutionResultsApi {
         yield {
           val keyPrefix =
             Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil)) + k + " "
-          fs match {
-            case ExecResult.Failure(t, path, index, next) =>
-              Result.Failure(keyPrefix + t, path, index)
-            case ex: ExecResult.Exception => Result.Failure(keyPrefix + ex.toString)
+
+          def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
+            Result.Failure(keyPrefix + f.msg, f.path, f.index, f.next.map(convertFailure))
           }
 
+          fs match {
+            case f: ExecResult.Failure[_] => convertFailure(f)
+            case ex: ExecResult.Exception => Result.Failure(keyPrefix + ex.toString)
+          }
         }
     )
   }
