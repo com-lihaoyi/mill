@@ -40,7 +40,7 @@ object `package` extends mill.Module {
     }
   }
 
-  trait IntegrationTestModule extends Cross.Module[String] {
+  trait IntegrationTestModule extends Cross.Module[String] with DefaultTaskModule{
     def moduleDir = super.moduleDir / crossValue
 
     def moduleDeps = Seq(build.libs.util.test, build.testkit, build.runner.daemon)
@@ -111,6 +111,12 @@ object `package` extends mill.Module {
       def runClasspath = IntegrationTestModule.this.runClasspath()
       def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
 
+    }
+
+    // Set `packaged.daemon` as the default way to run integration and example tests
+    override def defaultTask(): String = "testForked"
+    def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] = Task.Command {
+      packaged.daemon.testForked(args*)()
     }
 
     object local extends IntegrationLauncherModule {
