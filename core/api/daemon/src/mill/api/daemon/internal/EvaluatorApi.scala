@@ -48,3 +48,6 @@ trait ExecutionResultsApi {
 
   def values: Seq[Val]
 }
+object ExecutionResultsApi {
+
+}
