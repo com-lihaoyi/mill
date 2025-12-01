@@ -60,7 +60,6 @@ object ExecutionResultsApi {
             Result.Failure(keyPrefix + f.msg, f.path, f.index, next = f.next.map(convertFailure))
           }
 
-
           fs match {
             case f: ExecResult.Failure[_] => convertFailure(f)
             case ex: ExecResult.Exception =>
