@@ -51,8 +51,9 @@ object `package` extends mill.Module {
     def forkEnv: T[Map[String, String]]
     def forkArgs: T[Seq[String]]
     def testExclusive = false
-
+    def testClasspath: T[Seq[PathRef]]
     trait ModeModule extends MillBaseTestsModule {
+      override def testClasspath: T[Seq[PathRef]] = IntegrationTestModule.this.testClasspath()
       def useSharedOut = false
       override def enableBsp = false
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
@@ -162,6 +163,7 @@ object `package` extends mill.Module {
   object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
   object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
+    override def testClasspath = Seq(compile().classes)
     override lazy val test: MillScalaTests = new MillScalaTests {
       // This `test` module isn't used, since `this` contains the test code we want to
       // compile and the `ModeModule`s contain the entrypoints to run that code
