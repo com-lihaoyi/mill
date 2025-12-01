@@ -111,13 +111,12 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] done compiling",
           "<digits>] compile compiling 1 Java source to out/compile.dest/classes ...",
           "<digits>] [error] src/foo/Foo.java:36:10",
-          "<digits>] ",
+          "<digits>] class Bar",
           "<digits>]          ^",
           "<digits>] reached end of file while parsing",
           "<digits>] compile task failed",
           ".../..., 1 failed] ============================== jar ==============================",
-          "1 tasks failed",
-          "<digits>] compile javac returned non-zero exit code"
+          "<digits>] [error] compile javac returned non-zero exit code"
         )
       )
 
@@ -134,15 +133,14 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         List(
           "============================== jar ==============================",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] build.mill:58:1",
+          "build.mill-<digits>] [error] build.mill:63:1",
           "build.mill-<digits>] ?",
           "build.mill-<digits>] ^",
           "build.mill-<digits>] Illegal start of toplevel definition",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] compile task failed",
           ".../..., 1 failed] ============================== jar ==============================",
-          "1 tasks failed",
-          "build.mill-<digits>] compile Compilation failed"
+          "build.mill-<digits>] [error] compile Compilation failed"
         )
       )
     }
@@ -182,13 +180,12 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           ".../..., 1 failed] ============================== exception ==============================",
-          "1 tasks failed",
-          "<digits>] exception ",
+          "<digits>] [error] exception",
           "java.lang.Exception: boom",
           "  build_.package_.exceptionHelper(build.mill:<digits>)",
           "  build_.package_.exception$$anonfun$1(build.mill:<digits>)",
           "  mill.api.Task$Named.evaluate(Task.scala:<digits>)",
-          "  mill.api.Task$Named.evaluate$(ask.scala:<digits>)",
+          "  mill.api.Task$Named.evaluate$(Task.scala:<digits>)",
           "  mill.api.Task$Command.evaluate(Task.scala:<digits>)",
           "java.lang.RuntimeException: bang",
           "  build_.package_.exceptionHelper(build.mill:<digits>)",
