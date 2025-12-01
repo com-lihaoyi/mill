@@ -37,7 +37,7 @@ object MillScalaParserImpl extends MillScalaParser {
   ): Either[String, (String, Seq[String], Seq[String])] = {
     val source = SourceFile.virtual(fileName, rawCode)
     def mergeErrors(errors: List[String]): String =
-      s"$fileName failed to parse:" + System.lineSeparator + errors.mkString(System.lineSeparator)
+      System.lineSeparator + errors.mkString(System.lineSeparator)
     splitScriptSource(source).left.map(mergeErrors)
   }
 

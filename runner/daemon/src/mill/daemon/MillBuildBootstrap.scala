@@ -152,7 +152,7 @@ class MillBuildBootstrap(
                   RunnerState(
                     None,
                     Nil,
-                    Some(mill.internal.Util.formatError(f, logger.prompt.errorColor, logger.prompt.infoColor)),
+                    Some(mill.internal.Util.formatError(f, logger.prompt.errorColor)),
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
@@ -219,7 +219,7 @@ class MillBuildBootstrap(
           } match {
             case f: Result.Failure =>
               nestedState.add(errorOpt =
-                Some(mill.internal.Util.formatError(f, logger.prompt.errorColor, logger.prompt.infoColor))
+                Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
               )
             case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
@@ -325,7 +325,7 @@ class MillBuildBootstrap(
 
         nestedState.add(
           frame = evalState,
-          errorOpt = Some(mill.internal.Util.formatError(f, logger.prompt.errorColor, logger.prompt.infoColor))
+          errorOpt = Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
         )
 
       case (
@@ -427,7 +427,7 @@ class MillBuildBootstrap(
     nestedState.add(
       frame = evalState,
       errorOpt = evaled match {
-        case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor, logger.prompt.infoColor))
+        case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
         case _ => None
       }
     )
