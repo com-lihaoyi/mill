@@ -3,8 +3,8 @@ package mill.testkit
 import mill.Task
 import mill.api.{BuildCtx, DummyInputStream, ExecResult, Result, SystemStreams, Val}
 import mill.api.ExecResult.OuterStack
-import mill.constants.OutFiles.millChromeProfile
-import mill.constants.OutFiles.millProfile
+import mill.constants.OutFiles.OutFiles.millChromeProfile
+import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
 import mill.internal.JsonArrayLogger

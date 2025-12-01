@@ -1,7 +1,7 @@
 package mill.integration
 
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
-import mill.constants.OutFiles.*
+import mill.constants.OutFiles.OutFiles.*
 import mill.daemon.RunnerState
 import utest.*
 

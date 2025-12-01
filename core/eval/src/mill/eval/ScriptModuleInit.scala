@@ -3,6 +3,7 @@ package mill.eval
 import mill.api.daemon.SelectMode
 import mill.api.internal.Located
 import mill.api.{Evaluator, ExternalModule, Result, ScriptModule}
+
 // Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
 // we don't duplicate script modules when e.g. multiple downstream modules refer to the
 // same upstream module. But we cannot cache them for longer because between evaluations
@@ -148,7 +149,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     import mill.api.BuildCtx.workspaceRoot
     discoverScriptFiles(
       workspaceRoot,
-      os.Path(mill.constants.OutFiles.out, workspaceRoot),
+      os.Path(mill.constants.OutFiles.OutFiles.out, workspaceRoot),
       skipPath
     )
       .flatMap { scriptPath =>
