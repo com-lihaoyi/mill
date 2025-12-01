@@ -56,7 +56,9 @@ object Result {
         Iterator.unfold(Option(f))(_.map(t => t -> t.next))
       )
       flattened
-        .foldLeft(Option.empty[Failure])((f0, f) => Some(Failure(f.error, f.path, f.index, f.exception, f0)))
+        .foldLeft(Option.empty[Failure])((f0, f) =>
+          Some(Failure(f.error, f.path, f.index, f.exception, f0))
+        )
         .get
     }
   }

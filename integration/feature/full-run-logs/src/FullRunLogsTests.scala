@@ -169,7 +169,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assert(millChromeProfile.exists(_.obj.get("name") == Some(ujson.Str("show"))))
     }
 
-
     test("exception") - integrationTest { tester =>
       import tester._
 

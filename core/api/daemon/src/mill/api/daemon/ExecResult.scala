@@ -117,7 +117,7 @@ object ExecResult {
 
     override def toString: String = {
       structured
-        .flatMap{
+        .flatMap {
           case Result.Failure.ExceptionInfo(clsName, msg, elements) =>
             Seq(clsName + ": " + msg) ++ elements.map("    " + _)
         }

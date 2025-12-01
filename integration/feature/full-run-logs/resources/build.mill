@@ -3,7 +3,7 @@ import mill._, javalib._
 
 object `package` extends JavaModule {
   def exceptionHelper() = throw new Exception("boom")
-  def exception() = Task.Command{
+  def exception() = Task.Command {
     exceptionHelper()
     ()
   }

@@ -82,8 +82,15 @@ object Util {
    * @param message The error message to display
    * @return A formatted error string with location, code snippet, pointer, and message
    */
-  def formatError0(path: java.nio.file.Path, index: Int, message: String, exception: Seq[ExceptionInfo], highlight: String => String): String = {
-    val exceptionSuffix = if (exception.nonEmpty) Some(formatException(exception, highlight)) else None
+  def formatError0(
+      path: java.nio.file.Path,
+      index: Int,
+      message: String,
+      exception: Seq[ExceptionInfo],
+      highlight: String => String
+  ): String = {
+    val exceptionSuffix =
+      if (exception.nonEmpty) Some(formatException(exception, highlight)) else None
     val positionedMessage =
       if (path == null || !java.nio.file.Files.exists(path)) message
       else {

@@ -84,9 +84,14 @@ public class Util {
    * Formats an error message in dotty style with file location, code snippet, and pointer.
    */
   public static String formatError(
-      String fileName, int lineNum, int colNum, String lineContent, String message, Function<String, String> highlight) {
-    return "[" + highlight.apply("error") + "] " + formatError(
-       fileName, lineNum, colNum, lineContent, message, 1, highlight);
+      String fileName,
+      int lineNum,
+      int colNum,
+      String lineContent,
+      String message,
+      Function<String, String> highlight) {
+    return "[" + highlight.apply("error") + "] "
+        + formatError(fileName, lineNum, colNum, lineContent, message, 1, highlight);
   }
 
   /**
