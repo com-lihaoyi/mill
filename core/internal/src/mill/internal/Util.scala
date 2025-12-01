@@ -71,7 +71,7 @@ object Util {
 
   def formatError(f: Result.Failure, highlight: String => String) = {
     Iterator.unfold(Option(f))(_.map(t => t -> t.next)).toSeq
-      .map(f0 => formatError0(f0.path, f0.index, f0.error, f0.exception, highlight))
+      .map(f0 => formatError0(f0.path, f0.index, f0.error, f0.exception, f0.tickerPrefix, highlight))
       .mkString("\n")
   }
 
@@ -89,12 +89,14 @@ object Util {
       index: Int,
       message: String,
       exception: Seq[ExceptionInfo],
+      tickerPrefix: String,
       highlight: String => String
   ): String = {
     val exceptionSuffix =
       if (exception.nonEmpty) Some(formatException(exception, highlight)) else None
+
     val positionedMessage =
-      if (path == null || !java.nio.file.Files.exists(path)) highlight(message)
+      if (path == null || !java.nio.file.Files.exists(path)) "[" + highlight("error") + "] " + message
       else {
         val text = java.nio.file.Files.readString(path)
         val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", "").replace("\r", ""))
@@ -118,7 +120,9 @@ object Util {
         )
       }
 
-    (Seq(positionedMessage) ++ exceptionSuffix).mkString("\n")
+    val prefix = highlight(tickerPrefix)
+
+    (Seq(prefix + positionedMessage) ++ exceptionSuffix).mkString("\n")
   }
 
   def formatException(exception: Seq[ExceptionInfo], highlight: String => String): String = {
@@ -338,10 +342,10 @@ object Util {
       for ((k, fs) <- evaluated.transitiveFailingApi.toSeq)
         yield {
           val keyPrefix =
-            Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil)) + k + " "
+            Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil))
 
           def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
-            Result.Failure(f.msg, f.path, f.index, tickerPrefix = keyPrefix, next = f.next.map(convertFailure))
+            Result.Failure(s"$k ${f.msg}", f.path, f.index, tickerPrefix = keyPrefix, next = f.next.map(convertFailure))
           }
 
           fs match {
@@ -355,7 +359,7 @@ object Util {
                 Result.Failure.ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
               }
 
-              Result.Failure(keyPrefix, exception = exceptionInfos)
+              Result.Failure(k.toString, tickerPrefix = keyPrefix, exception = exceptionInfos)
           }
         }
     )
