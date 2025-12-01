@@ -412,7 +412,7 @@ class MillBuildBootstrap(
       selectiveExecution,
       reporter = reporter(evaluator)
     )
-    mill.constants.DebugLog.println("evaled " + pprint.apply(evaled))
+
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
       evalWatched,
@@ -590,7 +590,6 @@ object MillBuildBootstrap {
       selectiveExecution = selectiveExecution
     )
 
-    mill.constants.DebugLog.println("evalTaskResult " + pprint.apply(evalTaskResult))
     evalTaskResult match {
       case f: Result.Failure =>
         (f, evalWatchedValues.toSeq, moduleWatchedValues)
