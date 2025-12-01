@@ -321,7 +321,7 @@ object MainModuleTests extends TestSuite {
           errStream = new PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
-          val Left(ExecResult.Failure(failureMsg)) =
+          val Left(ExecResult.Failure(msg = failureMsg)) =
             evaluator.apply("show", "helloCommand"): @unchecked
           assert(
             failureMsg.contains("Expected Signature: helloCommand"),

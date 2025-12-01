@@ -224,8 +224,8 @@ class BspEvaluators(
     result.flatMap {
       case (scriptPath: java.nio.file.Path, mill.api.Result.Success(module: BspModuleApi)) =>
         Some((new BuildTargetIdentifier(Utils.sanitizeUri(scriptPath)), (module, eval)))
-      case (scriptPath: java.nio.file.Path, mill.api.Result.Failure(msg: String)) =>
-        println(s"Failed to instantiate script module for BSP: $scriptPath failed with $msg")
+      case (scriptPath: java.nio.file.Path, f: mill.api.Result.Failure) =>
+        println(s"Failed to instantiate script module for BSP: $scriptPath failed with ${f.error}")
         None
     }
   }

@@ -59,7 +59,7 @@ jobs:
       LC_ALL: "en_US.UTF-8"
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
 
       - run: ./mill -i mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}

@@ -4,7 +4,7 @@ import mill.api.PathRef
 
 import java.io.File
 
-class ScalaPBWorker {
+class ScalaPBWorker extends AutoCloseable {
 
   private def scalaPB(scalaPBClasspath: Seq[PathRef])(using ctx: mill.api.TaskCtx) = {
     val instance = new ScalaPBWorkerApi {
@@ -97,5 +97,9 @@ class ScalaPBWorker {
       generators
     )
     mill.api.Result.Success(PathRef(dest))
+  }
+
+  override def close(): Unit = {
+    // no-op
   }
 }

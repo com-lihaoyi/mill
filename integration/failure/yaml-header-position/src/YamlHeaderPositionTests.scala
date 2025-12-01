@@ -4,7 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object YamlBuildSyntaxTests extends UtestIntegrationTestSuite {
+object YamlHeaderPositionTests extends UtestIntegrationTestSuite {
   override def cleanupProcessIdFile =
     false // process never launches due to yaml header syntax error
   val tests: Tests = Tests {
@@ -13,10 +13,10 @@ object YamlBuildSyntaxTests extends UtestIntegrationTestSuite {
       val res = eval("version")
 
       assert(res.isSuccess == false)
-      val expectedError = "Failed de-serializing build header in build.mill:"
-      assert(res.err.contains(expectedError))
-      // make sure we truncate the exception to the relevant bits
-      assert(res.err.linesIterator.toList.length < 30)
+      assert(res.err.contains("[error] build.mill:3:1"))
+      assert(res.err.contains("//| mill-version: 1.0.0-RC1"))
+      assert(res.err.contains("^"))
+      assert(res.err.contains("YAML header comments can only occur at the start of the file"))
     }
   }
 }

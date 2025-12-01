@@ -218,7 +218,7 @@ private object ResolveCore {
             }
 
             resOrErr match {
-              case mill.api.Result.Failure(err) => Error(err)
+              case f: mill.api.Result.Failure => Error(f.error)
               case mill.api.Result.Success(res) => recurse(res.distinct)
             }
 
@@ -248,7 +248,7 @@ private object ResolveCore {
                     }
                   )
               } match {
-                case mill.api.Result.Failure(err) => Error(err)
+                case f: mill.api.Result.Failure => Error(f.error)
                 case mill.api.Result.Success(searchModules) =>
                   recurse(
                     searchModules
@@ -307,7 +307,7 @@ private object ResolveCore {
               .asInstanceOf[Module]
           )
 
-        case (mill.api.Result.Failure(err), _) => mill.api.Result.Failure(err)
+        case (f: mill.api.Result.Failure, _) => f
       }
 
     }
@@ -349,7 +349,7 @@ private object ResolveCore {
               cache
             ))
           }
-        case mill.api.Result.Failure(err) => Seq(mill.api.Result.Failure(err))
+        case f: mill.api.Result.Failure => Seq(f)
       }
 
       val errOrIndirect = mill.api.Result.sequence(errOrIndirect0).map(_.flatten)

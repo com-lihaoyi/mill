@@ -9,7 +9,7 @@ import mill.javalib.api.JvmWorkerApi.Ctx
 import mill.javalib.api.internal.ZincOp
 import os.Path
 
-trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
+trait InternalJvmWorkerApi extends PublicJvmWorkerApi, AutoCloseable {
 
   /** Compile a Java-only project. */
   def apply(
@@ -119,7 +119,12 @@ trait InternalJvmWorkerApi extends PublicJvmWorkerApi {
       reportCachedProblems = false
     )
   }
+
+  override def close(): Unit = {
+    // bin-compat shim
+  }
 }
+
 object InternalJvmWorkerApi {
   type Ctx = PublicJvmWorkerApi.Ctx
 }

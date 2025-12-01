@@ -49,16 +49,23 @@ trait ExecutionResultsApi {
   def values: Seq[Val]
 }
 object ExecutionResultsApi {
-  private[mill] def formatFailing(evaluated: ExecutionResultsApi): String = {
-    (for ((k, fs) <- evaluated.transitiveFailingApi)
-      yield {
-        val fss = fs match {
-          case ExecResult.Failure(t) => t
-          case ex: ExecResult.Exception => ex.toString
+  private[mill] def formatFailing(evaluated: ExecutionResultsApi): Result.Failure = {
+    Result.Failure.combine(
+      for ((k, fs) <- evaluated.transitiveFailingApi.toSeq)
+        yield {
+          val keyPrefix =
+            Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil)) + k + " "
+
+          def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
+            Result.Failure(keyPrefix + f.msg, f.path, f.index, f.next.map(convertFailure))
+          }
+
+          fs match {
+            case f: ExecResult.Failure[_] => convertFailure(f)
+            case ex: ExecResult.Exception => Result.Failure(keyPrefix + ex.toString)
+          }
         }
-        val keyPrefix = Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil))
-        s"$keyPrefix$k $fss"
-      }).mkString("\n")
+    )
   }
 
 }

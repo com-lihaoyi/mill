@@ -4,14 +4,17 @@ import mill.contrib.flyway.ConsoleLog.Level
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
 import org.flywaydb.core.api.logging.LogFactory
-import org.flywaydb.core.internal.configuration.{ConfigUtils => flyway}
+import org.flywaydb.core.internal.configuration.ConfigUtils as flyway
 import org.flywaydb.core.internal.info.MigrationInfoDumper
-import scala.jdk.CollectionConverters._
 
+import scala.jdk.CollectionConverters.*
 import mill.*
 import mill.api.PathRef
+import mill.api.daemon.MillURLClassLoader
 import mill.javalib.{Dep, JavaModule}
 import org.flywaydb.core.api.output.{BaselineResult, CleanResult, MigrateOutput, MigrateResult}
+
+import scala.annotation.nowarn
 
 trait FlywayModule extends JavaModule {
   import FlywayModule._
@@ -34,10 +37,12 @@ trait FlywayModule extends JavaModule {
       .filter(_.nonEmpty)
       .map(key -> _)
 
-  def flywayClassloader = Task.Worker {
+  def flywayClassloader: Worker[MillURLClassLoader] = Task.Worker {
     mill.util.Jvm.createClassLoader(jdbcClasspath().map(_.path))
   }
-  def flywayInstance = Task.Worker {
+
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
+  def flywayInstance: Worker[Flyway] = Task.Worker {
     val jdbcClassloader = flywayClassloader()
 
     val configProps = Map(flyway.URL -> flywayUrl()) ++

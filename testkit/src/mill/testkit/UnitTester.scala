@@ -136,7 +136,7 @@ class UnitTester(
     getEvaluator = () => evaluator,
     offline = offline,
     enableTicker = false,
-    buildOverrides0 = Map()
+    staticBuildOverrideFiles = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
@@ -149,7 +149,7 @@ class UnitTester(
     Evaluator.withCurrentEvaluator(evaluator) {
       evaluator.resolveTasks(args, SelectMode.Separated)
     } match {
-      case Result.Failure(err) => Left(ExecResult.Failure(err))
+      case f: Result.Failure => Left(ExecResult.Failure(f.error))
       case Result.Success(resolved) => apply(resolved)
     }
   }

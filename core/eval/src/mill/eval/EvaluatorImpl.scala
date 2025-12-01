@@ -118,13 +118,13 @@ final class EvaluatorImpl(
       }.flatMap { f =>
         validateModuleOverrides(f.map(_.ctx.enclosingModule).distinct) match {
           case Nil => Result.Success(f)
-          case errors => Result.Failure(errors.mkString("\n"))
+          case errors => Result.Failure.combine(errors)
         }
       }
     }
   }
 
-  def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]) = {
+  def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]): Seq[Result.Failure] = {
     val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
     val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
     allModules.flatMap { module =>
@@ -138,7 +138,7 @@ final class EvaluatorImpl(
         .flatMap(_._2.declaredTaskNameSet)
         .toSet
 
-      val moduleBuildOverrides = allBuildOverrides.keySet.flatMap { k =>
+      val moduleBuildOverrides = allBuildOverrides.flatMap { case (k, v) =>
         val (prefix, taskSel) = k match {
           case s"$script:$rest" => (Seq(Segment.Label(s"$script:")), rest)
           case _ => (Nil, k)
@@ -147,7 +147,7 @@ final class EvaluatorImpl(
         val ("", rest) = ParseArgs.extractSegments(taskSel).get
 
         Option.when(module.moduleSegments == Segments(prefix ++ rest.value.dropRight(1))) {
-          rest.last.value
+          rest.last.value -> v
         }
       }
 
@@ -161,22 +161,24 @@ final class EvaluatorImpl(
         if (isRootBuildFile) moduleTaskNames ++ millKeys
         else moduleTaskNames
 
-      val invalidBuildOverrides = moduleBuildOverrides.filter(!validKeys.contains(_))
+      val invalidBuildOverrides = moduleBuildOverrides.filter { case (k, _) =>
+        !validKeys.contains(k)
+      }
       import pprint.Util.literalize
 
-      Option.when(invalidBuildOverrides.nonEmpty) {
-        invalidBuildOverrides.map { k =>
-          val prefix = s"invalid build config in `$filePath`: "
-          val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
-          mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
-            case None =>
-              if (millKeys.contains(k))
-                s"${prefix}key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
-              else s"$prefix$doesNotOverridePrefix"
-            case Some(similar) =>
-              s"$prefix$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
-          }
-        }.mkString("\n")
+      invalidBuildOverrides.map { case (k, v) =>
+        java.nio.file.Files.readString(v.path.toNIO)
+        val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
+        val message = mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
+          case None =>
+            if (millKeys.contains(k))
+              s"key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
+            else doesNotOverridePrefix
+          case Some(similar) =>
+            s"$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
+        }
+
+        Result.Failure(message, v.path.toNIO, v.value.index)
       }
     }
   }
@@ -270,57 +272,48 @@ final class EvaluatorImpl(
       serialCommandExec = serialCommandExec
     )
 
+    val allResults = evaluated.transitiveResults ++ selectiveResults
+
     @scala.annotation.nowarn("msg=cannot be checked at runtime")
-    val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
-      .collect {
-        case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
-          ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
-        case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
-          Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
-        case (t: Task.Input[_], result) =>
+    val watched = allResults.collect {
+      case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+        ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
+      case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
+        Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
+      case (t: Task.Input[_], result) =>
 
-          val ctx = new mill.api.TaskCtx.Impl(
-            args = Vector(),
-            dest0 = () => null,
-            log = logger,
-            env = this.execution.env,
-            reporter = reporter,
-            testReporter = testReporter,
-            workspace = workspace,
-            _systemExitWithReason = (reason, exitCode) =>
-              throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
-            fork = null,
-            jobs = execution.effectiveThreadCount,
-            offline = offline
-          )
-          val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
-          Seq(Watchable.Value(
-            () => t.evaluate(ctx).hashCode(),
-            result.map(_.value).hashCode(),
-            pretty
-          ))
-      }
-      .flatten
-      .toSeq
+        val ctx = new mill.api.TaskCtx.Impl(
+          args = Vector(),
+          dest0 = () => null,
+          log = logger,
+          env = this.execution.env,
+          reporter = reporter,
+          testReporter = testReporter,
+          workspace = workspace,
+          _systemExitWithReason = (reason, exitCode) =>
+            throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
+          fork = null,
+          jobs = execution.effectiveThreadCount,
+          offline = offline
+        )
+        val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
+        Seq(Watchable.Value(
+          () => t.evaluate(ctx).hashCode(),
+          result.map(_.value).hashCode(),
+          pretty
+        ))
+    }.flatten.toVector
 
-    maybeNewMetadata.foreach { newMetadata =>
-      val enclosingModules = PlanImpl
-        .plan(tasks)
-        .transitive
-        .collect { case n: Task.Named[_] => n.ctx.enclosingModule }
-        .distinct
+    for (newMetadata <- maybeNewMetadata) {
+      val failingTaskNames = allResults
+        .collect { case (t: Task.Named[_], r) if r.asSuccess.isEmpty => t.ctx.segments.render }
+        .toSet
 
-      val scriptBuildOverrides = enclosingModules.flatMap(_.moduleDynamicBuildOverrides)
-
-      val allBuildOverrides = (staticBuildOverrides ++ scriptBuildOverrides)
-        .map { case (k, v) => (k, v.##) }
-
-      this.selective.saveMetadata(
-        SelectiveExecution.Metadata(newMetadata.inputHashes, codeSignatures, allBuildOverrides)
-      )
+      // For tasks that were not successful, force them to re-run next time even
+      // if not changed so the user can see that there are still failures remaining
+      selective.saveMetadata(newMetadata.copy(forceRunTasks = failingTaskNames))
     }
 
-    val errorStr = ExecutionResultsApi.formatFailing(evaluated)
     evaluated.transitiveFailing.size match {
       case 0 =>
         Evaluator.Result(
@@ -332,7 +325,12 @@ final class EvaluatorImpl(
       case n =>
         Evaluator.Result(
           watched,
-          mill.api.Result.Failure(s"$n tasks failed\n$errorStr"),
+          Result.Failure.combine(
+            Seq(
+              ExecutionResultsApi.formatFailing(evaluated),
+              Result.Failure(s"$n tasks failed")
+            )
+          ),
           selectedTasks,
           evaluated
         )

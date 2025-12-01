@@ -33,7 +33,12 @@ object Result {
     def toEither: Either[String, T] = Right(value)
     def errorOpt: Option[String] = None
   }
-  final case class Failure(error: String) extends Result[Nothing] {
+  final case class Failure(
+      error: String,
+      @com.lihaoyi.unroll path: java.nio.file.Path = null,
+      index: Int = -1,
+      next: Option[Failure] = None
+  ) extends Result[Nothing] {
     def map[V](f: Nothing => V): Result[Nothing] = this
 
     def flatMap[V](f: Nothing => Result[V]): Result[Nothing] = this
@@ -41,6 +46,17 @@ object Result {
     def toOption: Option[Nothing] = None
     def toEither: Either[String, Nothing] = Left(error)
     def errorOpt: Option[String] = Some(error)
+  }
+
+  object Failure {
+    def combine(failures: Seq[Failure]): Failure = {
+      val flattened: Seq[Failure] = failures.flatMap(f =>
+        Iterator.unfold(Option(f))(_.map(t => t -> t.next))
+      )
+      flattened
+        .foldLeft(Option.empty[Failure])((f0, f) => Some(Failure(f.error, f.path, f.index, f0)))
+        .get
+    }
   }
 
   def fromEither[T](either: Either[String, T]) = either match {
@@ -63,7 +79,7 @@ object Result {
       builder.sizeHint(in)
       in.iterator.foreach {
         case Success(b) => builder += b
-        case Failure(error) => boundary.break(Failure(error))
+        case f: Failure => boundary.break(f)
       }
 
       builder.result()
@@ -81,7 +97,7 @@ object Result {
       builder.sizeHint(collection)
       collection.iterator.map(_.flatMap(f)).foreach {
         case Success(b) => builder += b
-        case Failure(error) => boundary.break(Failure(error))
+        case f: Failure => boundary.break(f)
       }
 
       builder.result()
