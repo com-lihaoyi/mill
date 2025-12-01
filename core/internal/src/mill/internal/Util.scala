@@ -126,11 +126,7 @@ object Util {
         val filenameFrag: fansi.Str = frame.getFileName match {
           case null => "Unknown"
           case fileName =>
-            fansi.Str(
-              highlight(fileName),
-              ":",
-              highlight(frame.getLineNumber.toString)
-            )
+            fansi.Str(highlight(fileName), ":", highlight(frame.getLineNumber.toString))
         }
 
         output.append(
