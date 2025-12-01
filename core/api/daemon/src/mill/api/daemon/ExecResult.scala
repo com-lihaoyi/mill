@@ -85,7 +85,6 @@ object ExecResult {
       msg: String,
       @com.lihaoyi.unroll res: Result.Failure = null
   ) extends Failing[T] {
-    val x=  1
     def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg, res)
     def flatMap[V](f: T => ExecResult[V]): Failure[V] = Failure(msg, res)
     override def toString: String = s"Failure($msg)"
