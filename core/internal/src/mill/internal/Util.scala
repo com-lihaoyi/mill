@@ -348,14 +348,11 @@ object Util {
             Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil))
 
           def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
-            Result.Failure(
-              s"$k ${f.msg}",
-              f.path,
-              f.index,
-              tickerPrefix = keyPrefix,
-              exception = f.exception,
-              next = f.next.map(convertFailure)
-            )
+            val newMsg = s"$k ${f.msg}"
+            f.res match{
+              case null => Result.Failure(error = newMsg)
+              case res => res.copy(error = newMsg)
+            }
           }
 
           fs match {

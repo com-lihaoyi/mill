@@ -83,16 +83,10 @@ object ExecResult {
    */
   final case class Failure[T](
       msg: String,
-      @com.lihaoyi.unroll path: java.nio.file.Path = null,
-      index: Int = -1,
-      exception: Seq[Result.Failure.ExceptionInfo] = Nil,
-      next: Option[Failure[T]] = None
+      @com.lihaoyi.unroll res: Result.Failure = null
   ) extends Failing[T] {
-    def map[V](f: T => V): Failure[V] =
-      ExecResult.Failure(msg, path, index, exception, next.map(_.asInstanceOf[Failure[V]]))
-    def flatMap[V](f: T => ExecResult[V]): Failure[V] = {
-      Failure(msg, path, index, exception, next.map(_.asInstanceOf[Failure[V]]))
-    }
+    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg, res)
+    def flatMap[V](f: T => ExecResult[V]): Failure[V] = Failure(msg, res)
     override def toString: String = s"Failure($msg)"
   }
 
