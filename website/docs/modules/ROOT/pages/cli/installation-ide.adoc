@@ -257,7 +257,7 @@ are using a less-common editor that does not have this support builtin.
 ==== BSP output directory
 
 When running Mill in BSP mode, default output directory is
-`out/mill-bsp-out` under the project workspace. This ensures BSP mode is not blocked by regular
+`.bsp/mill-bsp-out` under the project workspace. This ensures BSP mode is not blocked by regular
 Mill operations, however this also means that we need to compile the sources twice, which incurs
 extra CPU and memory usage. If you'd rather reuse regular `out/` directory, set
 the `MILL_NO_SEPARATE_BSP_OUTPUT_DIR` environment variable to `1` when running Mill in BSP mode.
