@@ -9,7 +9,7 @@ import mill.api.daemon.internal.{
 }
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
-import mill.constants.OutFiles.{millBuild, millRunnerState}
+import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}
@@ -152,7 +152,7 @@ class MillBuildBootstrap(
                   RunnerState(
                     None,
                     Nil,
-                    Some(mill.internal.Util.formatError(f)),
+                    Some(mill.internal.Util.formatError(f, logger.prompt.errorColor)),
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
@@ -218,7 +218,9 @@ class MillBuildBootstrap(
             (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
           } match {
             case f: Result.Failure =>
-              nestedState.add(errorOpt = Some(mill.internal.Util.formatError(f)))
+              nestedState.add(errorOpt =
+                Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+              )
             case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
               val staticBuildOverrideFiles =
@@ -321,7 +323,10 @@ class MillBuildBootstrap(
           Map()
         )
 
-        nestedState.add(frame = evalState, errorOpt = Some(mill.internal.Util.formatError(f)))
+        nestedState.add(
+          frame = evalState,
+          errorOpt = Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+        )
 
       case (
             Result.Success(Seq(Tuple4(
@@ -407,6 +412,7 @@ class MillBuildBootstrap(
       selectiveExecution,
       reporter = reporter(evaluator)
     )
+
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
       evalWatched,
@@ -422,7 +428,7 @@ class MillBuildBootstrap(
     nestedState.add(
       frame = evalState,
       errorOpt = evaled match {
-        case f: Result.Failure => Some(mill.internal.Util.formatError(f))
+        case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
         case _ => None
       }
     )

@@ -278,7 +278,7 @@ trait TaskTests extends TestSuite {
         check(build.sometimesFailing(false)) ==> Right(Result("Success", 0))
       }
       test("failure") - withEnv { (build, check) =>
-        check(build.sometimesFailing(true)) ==> Left(ExecResult.Failure("Failure"))
+        val Left(ExecResult.Failure(msg = "Failure")) = check(build.sometimesFailing(true))
       }
     }
     test("sometimeFailingWithException") {
@@ -286,7 +286,8 @@ trait TaskTests extends TestSuite {
         check(build.sometimesFailingWithException(false)) ==> Right(Result("Success", 0))
       }
       test("failure") - withEnv { (build, check) =>
-        check(build.sometimesFailingWithException(true)) ==> Left(ExecResult.Failure("Failure"))
+        val Left(ExecResult.Failure(msg = "Failure")) =
+          check(build.sometimesFailingWithException(true))
       }
     }
   }

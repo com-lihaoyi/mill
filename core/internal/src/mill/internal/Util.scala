@@ -2,7 +2,12 @@ package mill.internal
 
 import scala.reflect.NameTransformer.encode
 import mill.api.Result
+import mill.api.Logger
+import mill.api.ExecResult
+import mill.api.Result.Failure.ExceptionInfo
 import mill.api.ModuleCtx.HeaderData
+import mill.api.daemon.internal.ExecutionResultsApi
+import scala.collection.mutable
 
 object Util {
 
@@ -64,9 +69,11 @@ object Util {
     fastparse.IndexedParserInput(text).prettyIndex(index).takeWhile(_ != ':')
   }
 
-  def formatError(f: Result.Failure) = {
+  def formatError(f: Result.Failure, highlight: String => String) = {
     Iterator.unfold(Option(f))(_.map(t => t -> t.next)).toSeq
-      .map(f0 => formatError0(f0.path, f0.index, f0.error))
+      .map(f0 =>
+        formatError0(f0.path, f0.index, f0.error, f0.exception, f0.tickerPrefix, highlight)
+      )
       .mkString("\n")
   }
 
@@ -79,29 +86,78 @@ object Util {
    * @param message The error message to display
    * @return A formatted error string with location, code snippet, pointer, and message
    */
-  def formatError0(path: java.nio.file.Path, index: Int, message: String): String = {
-    if (path == null || !java.nio.file.Files.exists(path)) message
-    else {
-      val text = java.nio.file.Files.readString(path)
-      val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", "").replace("\r", ""))
-      val prettyIndex = indexedParser.prettyIndex(index)
-      val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
+  def formatError0(
+      path: java.nio.file.Path,
+      index: Int,
+      message: String,
+      exception: Seq[ExceptionInfo],
+      tickerPrefix: String,
+      highlight: String => String
+  ): String = {
+    val exceptionSuffix =
+      if (exception.nonEmpty) Some(formatException(exception, highlight)) else None
 
-      // Get the line content
-      val lines = text.linesIterator.toVector
-      val lineContent = if (lineNum > 0 && lineNum <= lines.length) lines(lineNum - 1) else ""
+    val positionedMessage =
+      if (path == null || !java.nio.file.Files.exists(path))
+        "[" + highlight("error") + "] " + message
+      else {
+        val text = java.nio.file.Files.readString(path)
+        val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", "").replace("\r", ""))
+        val prettyIndex = indexedParser.prettyIndex(index)
+        val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
 
-      // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
-      val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
+        // Get the line content
+        val lines = text.linesIterator.toVector
+        val lineContent = if (lineNum > 0 && lineNum <= lines.length) lines(lineNum - 1) else ""
 
-      mill.constants.Util.formatError(
-        mill.api.BuildCtx.workspaceRoot.toNIO.relativize(path).toString,
-        lineNum,
-        colNum,
-        lineContent,
-        message
+        // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
+        val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
+
+        mill.constants.Util.formatError(
+          mill.api.BuildCtx.workspaceRoot.toNIO.relativize(path).toString,
+          lineNum,
+          colNum,
+          lineContent,
+          message,
+          s => highlight(s)
+        )
+      }
+
+    val prefix = highlight(tickerPrefix)
+
+    (Seq(prefix + positionedMessage) ++ exceptionSuffix).mkString("\n")
+  }
+
+  def formatException(exception: Seq[ExceptionInfo], highlight: String => String): String = {
+    val output = mutable.Buffer.empty[fansi.Str]
+    for (ExceptionInfo(clsName, msg, stack) <- exception) {
+      val exCls = highlight(clsName)
+      output.append(
+        msg match {
+          case null => fansi.Str(exCls)
+          case nonNull => fansi.Str.join(Seq(exCls, ": ", nonNull))
+        }
       )
+
+      for (frame <- stack) {
+        val filenameFrag: fansi.Str = frame.getFileName match {
+          case null => "Unknown"
+          case fileName =>
+            fansi.Str(highlight(fileName), ":", highlight(frame.getLineNumber.toString))
+        }
+
+        output.append(
+          fansi.Str(
+            "  ",
+            highlight(frame.getClassName + "." + frame.getMethodName),
+            "(",
+            filenameFrag,
+            ")"
+          )
+        )
+      }
     }
+    fansi.Str.join(output, "\n").render
   }
 
   def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
@@ -284,4 +340,30 @@ object Util {
     out.toSeq
   }
 
+  def formatFailing(evaluated: ExecutionResultsApi): Result.Failure = {
+    Result.Failure.combine(
+      for ((k, fs) <- evaluated.transitiveFailingApi.toSeq)
+        yield {
+          val keyPrefix =
+            Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil))
+
+          def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
+            val newMsg = s"$k ${f.msg}"
+            f.res match {
+              case null => Result.Failure(error = newMsg, tickerPrefix = keyPrefix)
+              case res => res.copy(error = newMsg, tickerPrefix = keyPrefix)
+            }
+          }
+
+          fs match {
+            case f: ExecResult.Failure[_] => convertFailure(f)
+            case ex: ExecResult.Exception =>
+              mill.api.daemon.ExecResult.exceptionToFailure(ex.throwable, ex.outerStack).copy(
+                error = k.toString,
+                tickerPrefix = keyPrefix
+              )
+          }
+        }
+    )
+  }
 }

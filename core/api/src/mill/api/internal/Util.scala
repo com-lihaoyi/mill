@@ -11,4 +11,22 @@ object Util {
       case 0 => ""
       case n => s" ${n}s"
     }
+
+  /**
+   * Scrape colored line content from Dotty/Zinc rendered output.
+   * Looks for lines matching the pattern `  <linenum> |<code>` and extracts the code part.
+   *
+   * @param renderedLines The lines from the rendered error output
+   * @param fallback A fallback value if no matching line is found
+   * @return The scraped line content or the fallback
+   */
+  def scrapeColoredLineContent(renderedLines: Seq[String], fallback: => String): String = {
+    renderedLines
+      .collectFirst {
+        case s"$pre |$rest" if pre.nonEmpty && fansi.Str(pre).plainText.trim.forall(_.isDigit) =>
+          rest
+      }
+      .getOrElse(fallback)
+  }
+
 }

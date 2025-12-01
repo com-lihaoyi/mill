@@ -86,7 +86,7 @@ private object TransformingReporter {
           if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot).toString
           else path
 
-        val line0 = intValue(pos.line(), -1)
+        val line = intValue(pos.line(), -1)
         val pointer0 = intValue(pos.pointer(), -1)
         val colNum = pointer0 + 1
 
@@ -98,16 +98,22 @@ private object TransformingReporter {
         val renderedLines = InterfaceUtil.jo2o(problem0.rendered())
           .iterator
           .flatMap(_.linesIterator)
-          .toList
+          .toSeq
 
         // Just grab the first line from the dotty error code snippet, because dotty defaults to
         // rendering entire expressions which can be arbitrarily large and spammy in the terminal
-        val lineContent = renderedLines
-          .collectFirst {
-            case s"$pre |$rest" if pre.nonEmpty && fansi.Str(pre).plainText.forall(_.isDigit) =>
-              rest
-          }
-          .getOrElse(pos.lineContent()) // fall back to plaintext line if no colored line found
+        val lineContent = mill.api.internal.Util.scrapeColoredLineContent(
+          renderedLines,
+          pos.lineContent()
+        ) match {
+          case "" =>
+            // Some errors like Java `unclosed string literal` errors don't provide any
+            // message at all to `rendered` for us to scrape the line content, so instead
+            // try to scrape it ourselves from the filesystem
+            try os.read.lines(absPath).apply(line - 1)
+            catch { case _: Exception => "" }
+          case s => s
+        }
 
         val pointerLength =
           if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
@@ -116,7 +122,7 @@ private object TransformingReporter {
 
         mill.constants.Util.formatError(
           displayPath,
-          line0,
+          line,
           colNum,
           lineContent,
           message,
