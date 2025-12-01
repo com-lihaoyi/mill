@@ -236,11 +236,11 @@ trait GroupExecution {
                       case _ => jsonData.value.index
                     }
 
+                    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
                     (
                       ExecResult.Failure(
                         s"Failed de-serializing config override: ${e.getCause.getMessage}",
-                        path = jsonData.path.toNIO,
-                        index = errorIndex
+                        Result.Failure(msg, path = jsonData.path.toNIO, index = errorIndex)
                       ),
                       Nil
                     )
@@ -444,7 +444,7 @@ trait GroupExecution {
             try {
               task.evaluate(args) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
-                case f: Result.Failure => ExecResult.Failure(f.error, f.path, f.index)
+                case f: Result.Failure => ExecResult.Failure(f.error, f)
               }
             } catch {
               case ex: Result.Exception => ExecResult.Failure(ex.error)

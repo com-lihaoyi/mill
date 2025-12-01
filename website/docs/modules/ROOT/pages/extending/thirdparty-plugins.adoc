@@ -356,7 +356,6 @@ Found undeclared dependencies: (add these to mvnDeps)
 Found unimported dependencies: (remove these from mvnDeps)
     mvn"org.typelevel::cats-effect:3.3.6",
 
-1 tasks failed
 main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies
 ----
 
@@ -1011,7 +1010,6 @@ object project extends ScalaModule, ScalafixModule {
 /project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
   private var hashLength = 7
           ^^^
-1 tasks failed
 project.fix A Scalafix linter error was reported
 ----
 

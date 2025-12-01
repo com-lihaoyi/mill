@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
+import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 import mill.constants.OutFiles.OutFiles
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
@@ -322,15 +322,10 @@ final class EvaluatorImpl(
           selectedTasks,
           evaluated
         )
-      case n =>
+      case _ =>
         Evaluator.Result(
           watched,
-          Result.Failure.combine(
-            Seq(
-              ExecutionResultsApi.formatFailing(evaluated),
-              Result.Failure(s"$n tasks failed")
-            )
-          ),
+          mill.internal.Util.formatFailing(evaluated),
           selectedTasks,
           evaluated
         )

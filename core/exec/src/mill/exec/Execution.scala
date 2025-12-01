@@ -142,7 +142,7 @@ case class Execution(
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
       def formatHeaderPrefix(countMsg: String, keySuffix: String) =
-        s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
+        s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), logger.prompt.errorColor)}"
 
       val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
       val downstreamEdges: Map[Task[?], Set[Task[?]]] =
@@ -357,8 +357,8 @@ object Execution {
    * Format a failed count as a string to be used in status messages.
    * Returns ", N failed" if count > 0, otherwise an empty string.
    */
-  def formatFailedCount(count: Int): String = {
-    if (count > 0) s", $count failed" else ""
+  def formatFailedCount(count: Int, color: String => String): String = {
+    if (count > 0) s", " + color(s"$count failed") else ""
   }
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])

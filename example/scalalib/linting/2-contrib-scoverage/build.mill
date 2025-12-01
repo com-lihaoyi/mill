@@ -71,6 +71,5 @@ Branch coverage....: 100.00%
 > ./mill scoverage.validateCoverageMinimums
 error: Exception while validating coverage minimums. Coverage minimums violated:
 error: This project's statement coverage (10.53) did not meet the minimum desired by the project. (15.0)
-error: 1 tasks failed
 
 */
