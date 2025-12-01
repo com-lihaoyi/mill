@@ -2,6 +2,30 @@
   "items": [
     {
       "target": {
+        "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/app"
       },
       "resources": []
