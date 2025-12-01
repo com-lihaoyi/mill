@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill.api.{Cached, SelectMode}
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 import ujson.Value
 
 import scala.concurrent.duration.*

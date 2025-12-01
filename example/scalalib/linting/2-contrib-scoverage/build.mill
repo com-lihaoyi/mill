@@ -66,11 +66,10 @@ Branch coverage....: 100.00%
 Statement coverage.: 10.53%
 Branch coverage....: 100.00%
 
-> sed -i 's/10.00/15.00/' build.mill
+> sed -i.bak 's/10.00/15.00/' build.mill
 
 > ./mill scoverage.validateCoverageMinimums
 error: Exception while validating coverage minimums. Coverage minimums violated:
 error: This project's statement coverage (10.53) did not meet the minimum desired by the project. (15.0)
-error: 1 tasks failed
 
 */

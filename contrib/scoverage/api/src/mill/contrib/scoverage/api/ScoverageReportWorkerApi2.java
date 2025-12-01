@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public interface ScoverageReportWorkerApi2 {
+public interface ScoverageReportWorkerApi2 extends AutoCloseable {
 
   interface Logger {
     void error(String msg);
@@ -104,5 +104,10 @@ public interface ScoverageReportWorkerApi2 {
     } else {
       Files.createDirectories(path);
     }
+  }
+
+  @Override
+  default void close() throws Exception {
+    // no-op
   }
 }

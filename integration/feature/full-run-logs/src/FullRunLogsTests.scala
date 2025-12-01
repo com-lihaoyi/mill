@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
@@ -10,6 +10,7 @@ import utest.*
 object FullRunLogsTests extends UtestIntegrationTestSuite {
 
   def normalize(s: String) = s.replace('\\', '/')
+    .replaceAll("\\(([a-zA-Z.]+):\\d+\\)", "($1:<digits>)")
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+/\\d+", ".../...")
@@ -110,11 +111,12 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] done compiling",
           "<digits>] compile compiling 1 Java source to out/compile.dest/classes ...",
           "<digits>] [error] src/foo/Foo.java:36:10",
+          "<digits>] class Bar",
+          "<digits>]          ^",
           "<digits>] reached end of file while parsing",
           "<digits>] compile task failed",
           ".../..., 1 failed] ============================== jar ==============================",
-          "1 tasks failed",
-          "<digits>] compile javac returned non-zero exit code"
+          "<digits>] [error] compile javac returned non-zero exit code"
         )
       )
 
@@ -131,13 +133,14 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         List(
           "============================== jar ==============================",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] build.mill:58:1",
+          "build.mill-<digits>] [error] build.mill:63:1",
+          "build.mill-<digits>] ?",
+          "build.mill-<digits>] ^",
           "build.mill-<digits>] Illegal start of toplevel definition",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] compile task failed",
           ".../..., 1 failed] ============================== jar ==============================",
-          "1 tasks failed",
-          "build.mill-<digits>] compile Compilation failed"
+          "build.mill-<digits>] [error] compile Compilation failed"
         )
       )
     }
@@ -162,6 +165,36 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // Profile logs for show itself
       assert(millProfile.exists(_.obj("label").str == "show"))
       assert(millChromeProfile.exists(_.obj.get("name") == Some(ujson.Str("show"))))
+    }
+
+    test("exception") - integrationTest { tester =>
+      import tester._
+
+      val res = eval(("--ticker", "true", "exception"), mergeErrIntoOut = true)
+      res.isSuccess ==> false
+
+      assertGoldenLiteral(
+        normalize(res.result.out.text()),
+        List(
+          "============================== exception ==============================",
+          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          ".../..., 1 failed] ============================== exception ==============================",
+          "<digits>] [error] exception",
+          "java.lang.Exception: boom",
+          "  build_.package_.exceptionHelper(build.mill:<digits>)",
+          "  build_.package_.exception$$anonfun$1(build.mill:<digits>)",
+          "  mill.api.Task$Named.evaluate(Task.scala:<digits>)",
+          "  mill.api.Task$Named.evaluate$(Task.scala:<digits>)",
+          "  mill.api.Task$Command.evaluate(Task.scala:<digits>)",
+          "java.lang.RuntimeException: bang",
+          "  build_.package_.exceptionHelper(build.mill:<digits>)",
+          "  build_.package_.exception$$anonfun$1(build.mill:<digits>)",
+          "  mill.api.Task$Named.evaluate(Task.scala:<digits>)",
+          "  mill.api.Task$Named.evaluate$(Task.scala:<digits>)",
+          "  mill.api.Task$Command.evaluate(Task.scala:<digits>)"
+        )
+      )
     }
 
     test("colors") - integrationTest { tester =>

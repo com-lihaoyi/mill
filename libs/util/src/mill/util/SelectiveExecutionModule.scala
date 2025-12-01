@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.api.Result
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 import mill.*
 import mill.api.Evaluator
 import mill.api.SelectMode
@@ -82,7 +82,7 @@ trait SelectiveExecutionModule extends mill.api.Module {
         evaluator.selective.resolve0(tasks).flatMap { resolved =>
           if (resolved.isEmpty) Result.Success(())
           else evaluator.evaluate(resolved.toSeq, SelectMode.Multi).flatMap {
-            case Evaluator.Result(_, Result.Failure(err), _, _) => Result.Failure(err)
+            case Evaluator.Result(_, f: Result.Failure, _, _) => f
             case Evaluator.Result(_, Result.Success(_), _, _) =>
           }
         }

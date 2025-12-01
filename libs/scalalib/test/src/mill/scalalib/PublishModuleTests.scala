@@ -198,7 +198,7 @@ object PublishModuleTests extends TestSuite {
       test(
         "should throw exception if neither environment variables or direct argument were not passed"
       ) - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
-        val Left(ExecResult.Failure(msg)) =
+        val Left(ExecResult.Failure(msg = msg)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds("")): @unchecked
 
         assert(

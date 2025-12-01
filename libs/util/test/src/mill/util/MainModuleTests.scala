@@ -1,7 +1,8 @@
 package mill.util
 
 import mill.api.{ExecResult, Result, Val}
-import mill.constants.{OutFiles, OutFolderMode}
+import mill.constants.{OutFolderMode}
+import mill.constants.OutFiles.OutFiles
 import mill.{Task, given}
 import mill.api.{Cross, DefaultTaskModule, Discover, Module, PathRef}
 import mill.testkit.UnitTester
@@ -320,7 +321,7 @@ object MainModuleTests extends TestSuite {
           errStream = new PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
-          val Left(ExecResult.Failure(failureMsg)) =
+          val Left(ExecResult.Failure(msg = failureMsg)) =
             evaluator.apply("show", "helloCommand"): @unchecked
           assert(
             failureMsg.contains("Expected Signature: helloCommand"),

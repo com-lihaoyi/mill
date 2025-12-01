@@ -1,6 +1,6 @@
 package mill.integration
 
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 import mill.testkit.*
 import os.RelPath
 import utest.*

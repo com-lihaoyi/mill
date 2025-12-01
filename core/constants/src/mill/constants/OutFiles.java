@@ -138,4 +138,57 @@ public class OutFiles {
     public final String millJavaHome = "mill-java-home";
   }
 
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final boolean mergeBspOut = OutFiles.mergeBspOut;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String defaultOut = OutFiles.defaultOut;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String out = OutFiles.out;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String bspOut = OutFiles.bspOut;
+
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static String outFor(OutFolderMode outMode) {
+    return OutFiles.outFor(outMode);
+  }
+
+  public static final String millBuild = OutFiles.millBuild;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millChromeProfile = OutFiles.millChromeProfile;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millProfile = OutFiles.millProfile;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millRunnerState = OutFiles.millRunnerState;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millDaemon = OutFiles.millDaemon;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millNoDaemon = OutFiles.millNoDaemon;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millOutLock = OutFiles.millOutLock;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millActiveCommand = OutFiles.millActiveCommand;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millSelectiveExecution = OutFiles.millSelectiveExecution;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millDependencyTree = OutFiles.millDependencyTree;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millInvalidationTree = OutFiles.millInvalidationTree;
+  /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
+  @Deprecated
+  public static final String millJavaHome = OutFiles.millJavaHome;
 }
