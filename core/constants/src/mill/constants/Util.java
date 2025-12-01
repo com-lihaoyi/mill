@@ -90,7 +90,8 @@ public class Util {
       String lineContent,
       String message,
       Function<String, String> highlight) {
-    return "[" + highlight.apply("error") + "] " + formatError(fileName, lineNum, colNum, lineContent, message, 1, highlight);
+    return "[" + highlight.apply("error") + "] "
+        + formatError(fileName, lineNum, colNum, lineContent, message, 1, highlight);
   }
 
   /**
@@ -112,7 +113,8 @@ public class Util {
         colNum > 0 ? " ".repeat(colNum - 1) + highlight.apply("^".repeat(pointerLength)) : "";
 
     String header = (lineNum >= 0 && colNum >= 0)
-        ? highlight.apply(fileName) + ":" + highlight.apply(""+lineNum) + ":" + highlight.apply(""+colNum)
+        ? highlight.apply(fileName) + ":" + highlight.apply("" + lineNum) + ":"
+            + highlight.apply("" + colNum)
         : highlight.apply(fileName);
 
     return header + "\n" + lineContent + "\n" + pointer + "\n" + message;
@@ -122,9 +124,7 @@ public class Util {
       String errorFileName, int lineNumber, String line, String msg) {
     // lineNumber is 0-indexed, convert to 1-indexed for display
     // Column is 1 since the error applies to the start of the line
-    throw new RuntimeException(
-      formatError(errorFileName, lineNumber + 1, 1, line, msg, s -> s)
-    );
+    throw new RuntimeException(formatError(errorFileName, lineNumber + 1, 1, line, msg, s -> s));
   }
 
   public static String readBuildHeader(Path buildFile, String errorFileName) {

@@ -10,7 +10,6 @@ import coursier.maven.Pom
 import mill.api.*
 import mill.api.daemon.internal.{
   EvaluatorApi,
-  ExecutionResultsApi,
   JavaModuleApi,
   MillBuildRootModuleApi,
   ModuleApi,

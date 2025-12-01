@@ -111,7 +111,7 @@ private object TransformingReporter {
             // message at all to `rendered` for us to scrape the line content, so instead
             // try to scrape it ourselves from the filesystem
             try os.read.lines(absPath).apply(line - 1)
-            catch { case e: Exception => "" }
+            catch { case _: Exception => "" }
           case s => s
         }
 
