@@ -1,17 +1,14 @@
 package build.`multi-module`
-
+import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
-import millbuild.*
+import millbuild.Deps
+import millbuild.ProjectBaseModule
+object `package` extends ProjectBaseModule {
 
-object `package` extends MavenSamplesBaseModule {
-
-  def javacOptions = super.javacOptions() ++
-    Seq("-source", "1.6", "-target", "1.6")
+  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
   def artifactName = "multi-module-parent"
-
-  def jvmId = "zulu:11"
 
   def pomPackagingType = "pom"
 

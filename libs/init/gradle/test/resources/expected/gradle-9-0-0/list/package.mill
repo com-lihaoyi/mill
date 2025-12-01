@@ -1,23 +1,34 @@
 package build.list
-
+import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
-import millbuild.*
-
-object `package` extends ProjectPublishModule {
+import millbuild.Deps
+import millbuild.ProjectBaseModule
+object `package` extends ProjectBaseModule, PublishModule {
 
   def artifactName = "list"
 
-  object test extends MavenTests with TestModule.Junit5 {
+  def pomSettings = PomSettings(
+    "",
+    "org.gradle.sample",
+    "http://www.example.com/library",
+    Seq(License(
+      "",
+      "The Apache License, Version 2.0",
+      "http://www.apache.org/licenses/LICENSE-2.0.txt",
+      false,
+      false,
+      ""
+    )),
+    VersionControl(
+      Some("http://example.com/my-library/"),
+      Some("scm:git:git://example.com/my-library.git"),
+      Some("scm:git:ssh://example.com/my-library.git"),
+      None
+    ),
+    Seq(Developer("johnd", "John Doe", "", None, None))
+  )
 
-    def mvnDeps = super.mvnDeps() ++ Seq(Deps.junitJupiter)
-
-    def runMvnDeps = super.runMvnDeps() ++ Seq(Deps.junitPlatformLauncher)
-
-    def testParallelism = false
-
-    def testSandboxWorkingDir = false
-
-  }
+  def publishVersion = "unspecified"
 
 }
