@@ -130,15 +130,16 @@ There are two six of these tests, `.{local,assembly,native}.{daemon,fork}`.
 
 The first label specifies how the Mill code is packaged before testing
 
-1. `.local` runs using all compiled Mill code directly in the `out/` folder. This is the fastest
-and should be used for most testing
 
-2. `.assembly` runs using the compiled Mill code either packaged into an assembly (for the Mill executable).
-This is slower than `.local`, and normally isn't necessary unless you are debugging issues in the Mill
-packaging logic.
+
+1. `.packaged` runs using the compiled Mill code either packaged into an assembly or into jars.
+This is the default for commands like `example.basic[3-simple]`
 
 3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
 This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
+
+4. `.shared` runs without packaging code into jars and re-uses the `out/` folder the Mill daemon between runs.
+This isn't intended for manual usage, but is used in CI to speed up running large numbers of tests
 
 The second label specifies how the Mill process is managed during the test:
 

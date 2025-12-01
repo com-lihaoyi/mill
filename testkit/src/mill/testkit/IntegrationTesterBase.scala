@@ -47,21 +47,25 @@ trait IntegrationTesterBase {
   def initWorkspace(): Unit = {
     println(s"Preparing integration test in $workspacePath")
     os.makeDir.all(workspacePath)
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR"))
+    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
       Retry(logger = Retry.printStreamLogger(System.err)) {
         val tmp = os.temp.dir()
         val outDir = os.Path(out, workspacePath)
         if (os.exists(outDir)) os.move.into(outDir, tmp)
         os.remove.all(tmp)
       }
-
-    os.list(workspacePath).foreach { p =>
-      if (p.last != "out") os.remove.all(p)
+      for (p <- os.list(workspacePath)) os.remove.all(p)
+    } else {
+      // if `MILL_TEST_SHARED_OUTPUT_DIR` is provided, keep `out/` intact
+      // to re-use the daemon
+      for (p <- os.list(workspacePath) if p.last != "out") os.remove.all(p)
     }
+
     val outRelPathOpt = os.FilePath(out) match {
       case relPath: os.RelPath if relPath.ups == 0 => Some(relPath)
       case _ => None
     }
+
     os.list(workspaceSourcePath)
       .filter(
         outRelPathOpt match {
