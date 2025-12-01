@@ -22,6 +22,7 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // internal stuff
     ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),
     ProblemFilter.exclude[Problem]("mill.javalib.internal.*"),
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.MillScalaParser.*"),
     // Replaced static-forwarder (to the same method in companion objects) by non-static method
     // This is a real breakage, but probably one that won't hurt any Mill user
     ProblemFilter.exclude[StaticVirtualMemberProblem]("mill.javalib.AssemblyModule.prepareOffline"),

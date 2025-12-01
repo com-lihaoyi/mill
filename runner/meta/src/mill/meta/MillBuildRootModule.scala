@@ -80,7 +80,8 @@ trait MillBuildRootModule()(using
         rootModuleInfo.projectRoot / os.up,
         rootModuleInfo.output,
         MillScalaParser.current.value,
-        scriptSources().map(_.path)
+        scriptSources().map(_.path),
+        Task.log.prompt.colored
       )
     }
   }

@@ -10,7 +10,6 @@ import coursier.maven.Pom
 import mill.api.*
 import mill.api.daemon.internal.{
   EvaluatorApi,
-  ExecutionResultsApi,
   JavaModuleApi,
   MillBuildRootModuleApi,
   ModuleApi,
@@ -170,7 +169,7 @@ class GenIdeaImpl(
         evaluator.executeApi(tasks).executionResults match {
           case r if r.transitiveFailingApi.nonEmpty =>
             throw GenIdeaException(
-              s"Failure during resolving modules: ${ExecutionResultsApi.formatFailing(r)}"
+              s"Failure during resolving modules: ${mill.internal.Util.formatFailing(r)}"
             )
           case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
         }

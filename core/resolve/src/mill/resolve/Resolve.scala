@@ -13,7 +13,6 @@ import mill.api.{
   SimpleTaskTokenReader,
   Task
 }
-import mill.resolve.ResolveCore.makeResultException
 
 object Resolve {
   object Segments extends Resolve[Segments] {
@@ -297,7 +296,7 @@ object Resolve {
     } match {
       case mainargs.Result.Success(v: Task.Command[_]) => Result.Success(v)
       case mainargs.Result.Failure.Exception(e) =>
-        Result.Failure(makeResultException(e, new Exception()).left.get)
+        mill.api.daemon.ExecResult.exceptionToFailure(e, new java.lang.Exception())
       case f: mainargs.Result.Failure =>
         Result.Failure(
           mainargs.Renderer.renderResult(
@@ -377,13 +376,13 @@ trait Resolve[T] {
             resolveRootModule(rootModule, rootModulePrefix) match {
               case f: Result.Failure => handleScriptModule(group, f)
               case Result.Success(rootModuleSels) =>
-                val res =
-                  resolveNonEmptyAndHandle1(
-                    rootModuleSels,
-                    rootModulePrefix,
-                    sel,
-                    cache
-                  )
+                val res = resolveNonEmptyAndHandle1(
+                  rootModuleSels,
+                  rootModulePrefix,
+                  sel,
+                  cache
+                )
+
                 def notFoundResult = resolveNonEmptyAndHandle2(
                   rootModuleSels,
                   rootModulePrefix,
@@ -480,7 +479,7 @@ trait Resolve[T] {
           possibleNexts = possibleNexts,
           allPossibleNames = allPossibleNames
         ))
-      case ResolveCore.Error(value) => Result.Failure(value)
+      case ResolveCore.Error(failures) => failures
     }
 
     resolved.flatMap { r =>
