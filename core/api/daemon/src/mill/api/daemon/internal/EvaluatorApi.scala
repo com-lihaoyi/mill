@@ -48,6 +48,6 @@ trait ExecutionResultsApi {
 
   def values: Seq[Val]
 }
-object ExecutionResultsApi {
+object ExecutionResultsApi {// stub for binary compatibility
 
 }
