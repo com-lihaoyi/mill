@@ -28,10 +28,10 @@ public class OutFiles {
 
     /** @see EnvVars#MILL_NO_SEPARATE_BSP_OUTPUT_DIR */
     public final boolean mergeBspOut =
-      // explicit request
-      "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR))
-        // user specified MILL_OUTPUT_DIR but not MILL_BSP_OUTPUT_DIR
-        || (envOutOrNull != null && envBspOutOrNull == null);
+        // explicit request
+        "1".equals(System.getenv(EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR))
+            // user specified MILL_OUTPUT_DIR but not MILL_BSP_OUTPUT_DIR
+            || (envOutOrNull != null && envBspOutOrNull == null);
 
     /**
      * Default hard-coded value for the Mill `out/` folder path.
@@ -56,7 +56,7 @@ public class OutFiles {
      * You should favor using {@link #outFor} instead.
      */
     public final String bspOut =
-      mergeBspOut ? out : envBspOutOrNull != null ? envBspOutOrNull : defaultBspOut;
+        mergeBspOut ? out : envBspOutOrNull != null ? envBspOutOrNull : defaultBspOut;
 
     /**
      * Path of the Mill {@link #out} folder.
@@ -65,12 +65,12 @@ public class OutFiles {
      */
     public String outFor(OutFolderMode outMode) {
       switch (outMode) {
-      case REGULAR:
-        return out;
-      case BSP:
-        return bspOut;
-      default:
-        throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
+        case REGULAR:
+          return out;
+        case BSP:
+          return bspOut;
+        default:
+          throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
       }
     }
 
