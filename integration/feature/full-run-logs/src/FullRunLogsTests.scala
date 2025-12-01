@@ -10,6 +10,7 @@ import utest.*
 object FullRunLogsTests extends UtestIntegrationTestSuite {
 
   def normalize(s: String) = s.replace('\\', '/')
+    .replaceAll("\\(([a-zA-Z.]+):\\d+\\)", "($1:<digits>)")
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+/\\d+", ".../...")
@@ -166,6 +167,32 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // Profile logs for show itself
       assert(millProfile.exists(_.obj("label").str == "show"))
       assert(millChromeProfile.exists(_.obj.get("name") == Some(ujson.Str("show"))))
+    }
+
+
+    test("exception") - integrationTest { tester =>
+      import tester._
+
+      val res = eval(("--ticker", "true", "exception"), mergeErrIntoOut = true)
+      res.isSuccess ==> false
+
+      assertGoldenLiteral(
+        normalize(res.result.out.text()),
+        List(
+          "============================== exception ==============================",
+          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          ".../..., 1 failed] ============================== exception ==============================",
+          "1 tasks failed",
+          "<digits>] exception ",
+          "java.lang.Exception: boom",
+          "  build_.package_.exceptionHelper(build.mill:<digits>)",
+          "  build_.package_.exception$$anonfun$1(build.mill:<digits>)",
+          "  mill.api.Task$Named.evaluate(Task.scala:<digits>)",
+          "  mill.api.Task$Named.evaluate$(Task.scala:<digits>)",
+          "  mill.api.Task$Command.evaluate(Task.scala:<digits>)"
+        )
+      )
     }
 
     test("colors") - integrationTest { tester =>

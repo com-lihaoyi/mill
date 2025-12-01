@@ -83,7 +83,7 @@ object Util {
    * @return A formatted error string with location, code snippet, pointer, and message
    */
   def formatError0(path: java.nio.file.Path, index: Int, message: String, exception: Seq[ExceptionInfo], highlight: String => String): String = {
-    val exceptionSuffix = if (exception.nonEmpty) "\n" + formatException(exception, highlight) else ""
+    val exceptionSuffix = if (exception.nonEmpty) Some(formatException(exception, highlight)) else None
     val positionedMessage =
       if (path == null || !java.nio.file.Files.exists(path)) message
       else {
@@ -108,7 +108,8 @@ object Util {
           s => highlight(s)
         )
       }
-    positionedMessage + exceptionSuffix
+
+    (Seq(positionedMessage) ++ exceptionSuffix).mkString("\n")
   }
 
   def formatException(exception: Seq[ExceptionInfo], highlight: String => String): String = {
