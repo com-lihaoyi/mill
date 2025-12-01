@@ -328,7 +328,7 @@ final class EvaluatorImpl(
           watched,
           Result.Failure.combine(
             Seq(
-              ExecutionResultsApi.formatFailing(evaluated),
+              mill.internal.Util.formatFailing(evaluated),
               Result.Failure(s"$n tasks failed")
             )
           ),

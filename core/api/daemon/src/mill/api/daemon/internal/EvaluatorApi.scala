@@ -48,33 +48,3 @@ trait ExecutionResultsApi {
 
   def values: Seq[Val]
 }
-object ExecutionResultsApi {
-  private[mill] def formatFailing(evaluated: ExecutionResultsApi): Result.Failure = {
-    Result.Failure.combine(
-      for ((k, fs) <- evaluated.transitiveFailingApi.toSeq)
-        yield {
-          val keyPrefix =
-            Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil)) + k + " "
-
-          def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
-            Result.Failure(keyPrefix + f.msg, f.path, f.index, next = f.next.map(convertFailure))
-          }
-
-          fs match {
-            case f: ExecResult.Failure[_] => convertFailure(f)
-            case ex: ExecResult.Exception =>
-              var current = List(ex.throwable)
-              while (current.head.getCause != null) current = current.head.getCause :: current
-
-              val exceptionInfos = current.reverse.map { e =>
-                val elements = e.getStackTrace.dropRight(ex.outerStack.value.length)
-                Result.Failure.ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
-              }
-
-              Result.Failure(keyPrefix, exception = exceptionInfos)
-          }
-        }
-    )
-  }
-
-}
