@@ -103,18 +103,6 @@ object ExecResult {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => ExecResult[V]): Exception = this
 
-    def structured: Seq[Result.Failure.ExceptionInfo] = {
-
-      var current = List(throwable)
-      while (current.head.getCause != null) {
-        current = current.head.getCause :: current
-      }
-      current.reverse.map { ex =>
-        val elements = ex.getStackTrace.dropRight(outerStack.value.length)
-        Result.Failure.ExceptionInfo(ex.getClass.getName, ex.getMessage, elements.toSeq)
-      }
-    }
-
     override def toString: String = {
       structured
         .flatMap {

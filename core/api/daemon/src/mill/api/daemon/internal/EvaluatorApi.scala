@@ -60,9 +60,20 @@ object ExecutionResultsApi {
             Result.Failure(keyPrefix + f.msg, f.path, f.index, next = f.next.map(convertFailure))
           }
 
+
           fs match {
             case f: ExecResult.Failure[_] => convertFailure(f)
-            case ex: ExecResult.Exception => Result.Failure(keyPrefix, exception = ex.structured)
+            case ex: ExecResult.Exception =>
+              var current = List(ex.throwable)
+
+              while (current.head.getCause != null) current = current.head.getCause :: current
+
+              val exceptionInfos = current.reverse.map { ex =>
+                val elements = ex.getStackTrace.dropRight(outerStack.value.length)
+                Result.Failure.ExceptionInfo(ex.getClass.getName, ex.getMessage, elements.toSeq)
+              }
+
+              Result.Failure(keyPrefix, exception = exceptionInfos)
           }
         }
     )
