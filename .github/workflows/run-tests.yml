@@ -142,16 +142,16 @@ jobs:
             millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
 
           - java-version: 17
-            millargs: "example.kotlinlib.__.local.daemon"
+            millargs: "example.kotlinlib.__.shared.daemon"
 
           - java-version: 17
-            millargs: "example.scalalib.__.local.daemon"
+            millargs: "example.scalalib.__.shared.daemon"
 
           - java-version: 21
-            millargs: "example.javalib.__.local.daemon"
+            millargs: "example.javalib.__.shared.daemon"
 
           - java-version: 17
-            millargs: "'example.androidlib.__.local.daemon'"
+            millargs: "'example.androidlib.__.shared.daemon'"
             setup-android: true
 
           - java-version: 17
@@ -159,14 +159,14 @@ jobs:
             setup-android: true
 
           - java-version: 24
-            millargs: "'example.migrating.scalalib.__.local.daemon'"
+            millargs: "'example.migrating.scalalib.__.shared.daemon'"
             install-sbt: true
 
           - java-version: 24
-            millargs: "'example.{pythonlib,javascriptlib}.__.local.daemon'"
+            millargs: "'example.{pythonlib,javascriptlib}.__.shared.daemon'"
 
           - java-version: 21
-            millargs: "'example.{cli,fundamentals,depth,extending,large}.__.local.daemon'"
+            millargs: "'example.{cli,fundamentals,depth,extending,large}.__.shared.daemon'"
 
           - java-version: 21
             millargs: "'integration.{feature,ide}.__.packaged.daemon'"
