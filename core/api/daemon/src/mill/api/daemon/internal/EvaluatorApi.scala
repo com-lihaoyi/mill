@@ -57,12 +57,12 @@ object ExecutionResultsApi {
             Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil)) + k + " "
 
           def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
-            Result.Failure(keyPrefix + f.msg, f.path, f.index, f.next.map(convertFailure))
+            Result.Failure(keyPrefix + f.msg, f.path, f.index, next = f.next.map(convertFailure))
           }
 
           fs match {
             case f: ExecResult.Failure[_] => convertFailure(f)
-            case ex: ExecResult.Exception => Result.Failure(keyPrefix + ex.toString)
+            case ex: ExecResult.Exception => Result.Failure(keyPrefix, exception = ex.structured)
           }
         }
     )

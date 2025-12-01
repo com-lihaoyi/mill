@@ -103,20 +103,23 @@ object ExecResult {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => ExecResult[V]): Exception = this
 
-    override def toString: String = {
+    def structured: Seq[Result.Failure.ExceptionInfo] = {
+
       var current = List(throwable)
       while (current.head.getCause != null) {
         current = current.head.getCause :: current
       }
-      current.reverse
-        .flatMap { ex =>
-          val elements = ex.getStackTrace.dropRight(outerStack.value.length)
-          val formatted =
-            // for some reason .map without the explicit ArrayOps conversion doesn't work,
-            // and results in `ExecResult[String]` instead of `Array[String]`
-            new scala.collection.ArrayOps(elements).map("    " + _)
-          Seq(ex.toString) ++ formatted
+      current.reverse.map { ex =>
+        val elements = ex.getStackTrace.dropRight(outerStack.value.length)
+        Result.Failure.ExceptionInfo(ex.getClass.getName, ex.getMessage, elements.toSeq)
+      }
+    }
 
+    override def toString: String = {
+      structured
+        .flatMap{
+          case Result.Failure.ExceptionInfo(clsName, msg, elements) =>
+            Seq(clsName + ": " + msg) ++ elements.map("    " + _)
         }
         .mkString("\n")
     }
