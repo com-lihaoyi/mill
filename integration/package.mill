@@ -22,11 +22,11 @@ object `package` extends mill.Module {
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
 
-  def localOutFolder = Task.Worker {
+  def sharedOutFolder = Task.Worker {
     val counter = new java.util.concurrent.atomic.AtomicInteger(0)
     new mill.util.CachedFactory[Unit, os.Path] {
       def setup(key: Unit): os.Path = {
-        val res = Task.dest / s"local-${counter.getAndIncrement()}" / "out"
+        val res = Task.dest / s"shared-${counter.getAndIncrement()}" / "out"
         os.remove.all(res)
         os.makeDir.all(res)
         res
@@ -58,7 +58,7 @@ object `package` extends mill.Module {
       override def enableBsp = false
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
 
-        localOutFolder().withValue(()) { sharedOutFolder =>
+        sharedOutFolder().withValue(()) { sharedOutFolder =>
           val testModuleUtil = new mill.javalib.TestModuleUtil(
             testUseArgsFile(),
             forkArgs(),
@@ -119,7 +119,7 @@ object `package` extends mill.Module {
     override def defaultTask(): String = "testForked"
     def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
       Task.Command {
-        local.daemon.testForked(args*)()
+        shared.daemon.testForked(args*)()
       }
 
     object shared extends IntegrationLauncherModule {

@@ -55,13 +55,11 @@ trait IntegrationTesterBase {
         os.remove.all(tmp)
       }
       for (p <- os.list(workspacePath)) os.remove.all(p)
-    } else{
+    } else {
       // if `MILL_TEST_SHARED_OUTPUT_DIR` is provided, keep `out/` intact
       // to re-use the daemon
       for (p <- os.list(workspacePath) if p.last != "out") os.remove.all(p)
     }
-
-
 
     val outRelPathOpt = os.FilePath(out) match {
       case relPath: os.RelPath if relPath.ups == 0 => Some(relPath)
