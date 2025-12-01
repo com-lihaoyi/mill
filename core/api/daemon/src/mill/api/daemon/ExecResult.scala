@@ -102,15 +102,6 @@ object ExecResult {
       extends java.lang.Exception(throwable) with Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => ExecResult[V]): Exception = this
-
-    override def toString: String = {
-      structured
-        .flatMap {
-          case Result.Failure.ExceptionInfo(clsName, msg, elements) =>
-            Seq(clsName + ": " + msg) ++ elements.map("    " + _)
-        }
-        .mkString("\n")
-    }
   }
 
   final class OuterStack(val value: Seq[StackTraceElement]) {

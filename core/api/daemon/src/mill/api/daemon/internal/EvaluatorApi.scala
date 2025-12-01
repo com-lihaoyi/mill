@@ -64,7 +64,6 @@ object ExecutionResultsApi {
             case f: ExecResult.Failure[_] => convertFailure(f)
             case ex: ExecResult.Exception =>
               var current = List(ex.throwable)
-
               while (current.head.getCause != null) current = current.head.getCause :: current
 
               val exceptionInfos = current.reverse.map { ex =>
