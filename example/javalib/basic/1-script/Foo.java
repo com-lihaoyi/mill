@@ -21,7 +21,7 @@ public class Foo {
     ArgumentParser parser = ArgumentParsers.newFor("template")
         .build()
         .defaultHelp(true)
-        .description("Inserts text into a HTML template");
+        .description("Inserts text into a HTML template);
 
     parser.addArgument("-t", "--text").required(true).help("text to insert");
 
