@@ -326,12 +326,7 @@ final class EvaluatorImpl(
       case n =>
         Evaluator.Result(
           watched,
-          Result.Failure.combine(
-            Seq(
-              mill.internal.Util.formatFailing(evaluated),
-              Result.Failure(s"$n tasks failed")
-            )
-          ),
+          mill.internal.Util.formatFailing(evaluated),
           selectedTasks,
           evaluated
         )

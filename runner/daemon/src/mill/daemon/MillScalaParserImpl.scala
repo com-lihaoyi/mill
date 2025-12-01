@@ -415,10 +415,6 @@ object MillScalaParserImpl extends MillScalaParser {
       val path = pos.source.file.path
       if pos.exists then s"$path:${pos.line + 1}:${pos.column + 1}" else path
     }
-
-    /** strip color from result */
-    override def messageAndPos(dia: Diagnostic)(using Context): String =
-      super.messageAndPos(dia).replaceAll("\u001B\\[[;\\d]*m", "")
   }
 
   /** The MillDriver contains code for initializing a Context and reporting errors. */

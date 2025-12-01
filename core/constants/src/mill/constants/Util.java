@@ -115,7 +115,7 @@ public class Util {
         ? highlight.apply(fileName) + ":" + highlight.apply(""+lineNum) + ":" + highlight.apply(""+colNum)
         : highlight.apply(fileName);
 
-    return header + "\n" + lineContent + "\n" + pointer + "\n" + highlight.apply(message);
+    return header + "\n" + lineContent + "\n" + pointer + "\n" + message;
   }
 
   private static String throwBuildHeaderError(

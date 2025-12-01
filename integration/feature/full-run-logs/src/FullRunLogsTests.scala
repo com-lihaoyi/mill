@@ -188,7 +188,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "  build_.package_.exceptionHelper(build.mill:<digits>)",
           "  build_.package_.exception$$anonfun$1(build.mill:<digits>)",
           "  mill.api.Task$Named.evaluate(Task.scala:<digits>)",
-          "  mill.api.Task$Named.evaluate$(Task.scala:<digits>)",
+          "  mill.api.Task$Named.evaluate$(ask.scala:<digits>)",
           "  mill.api.Task$Command.evaluate(Task.scala:<digits>)",
           "java.lang.RuntimeException: bang",
           "  build_.package_.exceptionHelper(build.mill:<digits>)",

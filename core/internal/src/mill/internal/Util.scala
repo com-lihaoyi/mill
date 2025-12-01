@@ -69,10 +69,11 @@ object Util {
     fastparse.IndexedParserInput(text).prettyIndex(index).takeWhile(_ != ':')
   }
 
-  def formatError(f: Result.Failure, highlight: String => String) = {
-    Iterator.unfold(Option(f))(_.map(t => t -> t.next)).toSeq
-      .map(f0 => formatError0(f0.path, f0.index, f0.error, f0.exception, f0.tickerPrefix, highlight))
-      .mkString("\n")
+  def formatError(f: Result.Failure, highlight: String => String, ticker: String => String) = {
+    val failures = Iterator.unfold(Option(f))(_.map(t => t -> t.next)).toSeq
+      failures
+        .map(f0 => formatError0(f0.path, f0.index, f0.error, f0.exception, f0.tickerPrefix, highlight, ticker))
+        .mkString("\n")
   }
 
   /**
@@ -90,7 +91,8 @@ object Util {
       message: String,
       exception: Seq[ExceptionInfo],
       tickerPrefix: String,
-      highlight: String => String
+      highlight: String => String,
+      ticker: String => String
   ): String = {
     val exceptionSuffix =
       if (exception.nonEmpty) Some(formatException(exception, highlight)) else None
@@ -120,7 +122,7 @@ object Util {
         )
       }
 
-    val prefix = highlight(tickerPrefix)
+    val prefix = ticker(tickerPrefix)
 
     (Seq(prefix + positionedMessage) ++ exceptionSuffix).mkString("\n")
   }
