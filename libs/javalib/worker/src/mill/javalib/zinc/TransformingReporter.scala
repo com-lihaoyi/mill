@@ -98,23 +98,20 @@ private object TransformingReporter {
         val renderedLines = InterfaceUtil.jo2o(problem0.rendered())
           .iterator
           .flatMap(_.linesIterator)
-          .toList
+          .toSeq
 
         // Just grab the first line from the dotty error code snippet, because dotty defaults to
         // rendering entire expressions which can be arbitrarily large and spammy in the terminal
-        val lineContent = renderedLines
-          .collectFirst {
-            case s"$pre |$rest" if pre.nonEmpty && fansi.Str(pre).plainText.forall(_.isDigit) =>
-              rest
-          }
-          // fall back to plaintext line if no colored line found
-          .getOrElse(pos.lineContent()) match{
+        val lineContent = mill.api.internal.Util.scrapeColoredLineContent(
+          renderedLines,
+          pos.lineContent()
+        ) match {
           case "" =>
             // Some errors like Java `unclosed string literal` errors don't provide any
             // message at all to `rendered` for us to scrape the line content, so instead
             // try to scrape it ourselves from the filesystem
             try os.read.lines(absPath).apply(line - 1)
-            catch{case e: Exception => "" }
+            catch { case e: Exception => "" }
           case s => s
         }
 

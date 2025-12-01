@@ -39,7 +39,8 @@ object FileImportGraph {
       projectRoot: os.Path,
       output: os.Path,
       parser: MillScalaParser,
-      walked: Seq[os.Path]
+      walked: Seq[os.Path],
+      colored: Boolean
   ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[String]
@@ -56,7 +57,7 @@ object FileImportGraph {
             catch { case e: RuntimeException => Left(e.getMessage) }
 
         if (s.last.endsWith(".yaml")) seenScripts(s) = os.read(s)
-        else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName)) match {
+        else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName, colored)) match {
           case Right((prefix, pkgs, stmts)) =>
             val importSegments = pkgs.mkString(".")
 
