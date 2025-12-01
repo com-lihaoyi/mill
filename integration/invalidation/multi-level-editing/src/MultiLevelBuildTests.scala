@@ -405,7 +405,8 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
         evalCheckErr(
           tester,
           "build.mill",
-          "[error] runClasspath", "java.lang.Exception: boom"
+          "[error] runClasspath",
+          "java.lang.Exception: boom"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester))
         checkChangedClassloaders(tester, null, null, true)
@@ -414,7 +415,8 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
         evalCheckErr(
           tester,
           "build.mill",
-          "[error] foo.runClasspath", "java.lang.Exception: boom"
+          "[error] foo.runClasspath",
+          "java.lang.Exception: boom"
         )
         checkWatchedFiles(
           tester,

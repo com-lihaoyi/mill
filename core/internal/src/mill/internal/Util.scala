@@ -349,7 +349,7 @@ object Util {
 
           def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
             val newMsg = s"$k ${f.msg}"
-            f.res match{
+            f.res match {
               case null => Result.Failure(error = newMsg)
               case res => res.copy(error = newMsg)
             }

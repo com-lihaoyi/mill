@@ -207,13 +207,13 @@ object ErrorTests extends TestSuite {
   }
 
   def isShortError(x: Result[?], s: String) = {
-    x match{
+    x match {
       case f: Result.Failure =>
         val str = mill.internal.Util.formatError(f, s => s)
         str.contains(s) &&
-          // Make sure the stack traces are truncated and short-ish, and do not
-          // contain the entire Mill internal call stack at point of failure
-          str.linesIterator.size < 25
+        // Make sure the stack traces are truncated and short-ish, and do not
+        // contain the entire Mill internal call stack at point of failure
+        str.linesIterator.size < 25
       case _ => false
     }
 
