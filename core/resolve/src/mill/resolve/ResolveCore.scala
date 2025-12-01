@@ -37,7 +37,7 @@ private object ResolveCore {
       possibleNexts: Set[Segment]
   ) extends Failed
 
-  case class Error(msg: String) extends Failed
+  case class Error(failure: Result.Failure) extends Failed
 
   /**
    * Cache for modules instantiated during task and resolution.
@@ -100,7 +100,7 @@ private object ResolveCore {
             .map { r =>
               val rClasses = moduleClasses(Set(r))
               if (seenModules.intersect(rClasses).nonEmpty) {
-                Error(cyclicModuleErrorMsg(r.taskSegments))
+                Error(Result.Failure(cyclicModuleErrorMsg(r.taskSegments)))
               } else {
                 resolve(
                   rootModule,
@@ -120,12 +120,12 @@ private object ResolveCore {
               case f: Failed => Left(f)
             }
 
-          val (errors, notFounds) = failures.partitionMap {
+          val (resFailures, notFounds) = failures.partitionMap {
             case s: NotFound => Right(s)
-            case s: Error => Left(s.msg)
+            case s: Error => Left(s.failure)
           }
 
-          if (errors.nonEmpty) Error(errors.mkString("\n"))
+          if (resFailures.nonEmpty) Error(Result.Failure.combine(resFailures))
           else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
           else notFounds.size match {
             case 1 => notFounds.head
@@ -215,7 +215,7 @@ private object ResolveCore {
             }
 
             resOrErr match {
-              case f: mill.api.Result.Failure => Error(f.error)
+              case f: mill.api.Result.Failure => Error(f)
               case mill.api.Result.Success(res) => recurse(res.distinct)
             }
 
@@ -245,7 +245,7 @@ private object ResolveCore {
                     }
                   )
               } match {
-                case f: mill.api.Result.Failure => Error(f.error)
+                case f: mill.api.Result.Failure => Error(f)
                 case mill.api.Result.Success(searchModules) =>
                   recurse(
                     searchModules

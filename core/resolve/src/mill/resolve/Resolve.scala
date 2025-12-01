@@ -376,13 +376,13 @@ trait Resolve[T] {
             resolveRootModule(rootModule, rootModulePrefix) match {
               case f: Result.Failure => handleScriptModule(group, f)
               case Result.Success(rootModuleSels) =>
-                val res =
-                  resolveNonEmptyAndHandle1(
-                    rootModuleSels,
-                    rootModulePrefix,
-                    sel,
-                    cache
-                  )
+                val res = resolveNonEmptyAndHandle1(
+                  rootModuleSels,
+                  rootModulePrefix,
+                  sel,
+                  cache
+                )
+
                 def notFoundResult = resolveNonEmptyAndHandle2(
                   rootModuleSels,
                   rootModulePrefix,
@@ -479,7 +479,7 @@ trait Resolve[T] {
           possibleNexts = possibleNexts,
           allPossibleNames = allPossibleNames
         ))
-      case ResolveCore.Error(value) => Result.Failure(value)
+      case ResolveCore.Error(failures) => failures
     }
 
     resolved.flatMap { r =>
