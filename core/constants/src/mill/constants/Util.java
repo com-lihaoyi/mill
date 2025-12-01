@@ -111,8 +111,7 @@ public class Util {
     String pointer =
         colNum > 0 ? " ".repeat(colNum - 1) + highlight.apply("^".repeat(pointerLength)) : "";
     String header = (lineNum >= 0 && colNum >= 0)
-        ? highlight.apply(fileName) + ":" + highlight.apply(String.valueOf(lineNum)) + ":"
-            + highlight.apply(String.valueOf(colNum))
+        ? highlight.apply(fileName) + ":" + highlight.apply(""+lineNum) + ":" + highlight.apply(""+colNum)
         : highlight.apply(fileName);
     return header + "\n" + lineContent + "\n" + pointer + "\n" + highlight.apply(message);
   }
