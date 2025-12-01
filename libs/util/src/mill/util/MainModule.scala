@@ -46,6 +46,7 @@ trait MainModule extends RootModule0, MainModuleApi {
     Task.Command(exclusive = true) {
       val resolved = evaluator.resolveSegments(tasks, SelectMode.Multi)
 
+      mill.constants.DebugLog.println("resolved " + pprint.apply(resolved))
       resolved.map { resolvedSegmentsList =>
         val resolvedStrings = resolvedSegmentsList.map(_.render)
         resolvedStrings.foreach(println)

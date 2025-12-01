@@ -353,6 +353,7 @@ object Util {
               f.path,
               f.index,
               tickerPrefix = keyPrefix,
+              exception = f.exception,
               next = f.next.map(convertFailure)
             )
           }
