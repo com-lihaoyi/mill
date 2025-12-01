@@ -92,7 +92,7 @@ object Util {
     val exceptionSuffix =
       if (exception.nonEmpty) Some(formatException(exception, highlight)) else None
     val positionedMessage =
-      if (path == null || !java.nio.file.Files.exists(path)) message
+      if (path == null || !java.nio.file.Files.exists(path)) highlight(message)
       else {
         val text = java.nio.file.Files.readString(path)
         val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", "").replace("\r", ""))
