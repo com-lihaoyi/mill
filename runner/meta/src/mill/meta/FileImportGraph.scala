@@ -92,9 +92,10 @@ object FileImportGraph {
 
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
-    walked.foreach(p =>
-      processScript(p, useDummy = useDummy && p == projectRoot / foundRootBuildFileName)
-    )
+    val foundRootBuildFile = projectRoot / foundRootBuildFileName
+    processScript(foundRootBuildFile, useDummy)
+
+    walked.filter(_ != foundRootBuildFile).foreach(processScript(_))
 
     new FileImportGraph(seenScripts.toMap, errors.toSeq)
   }

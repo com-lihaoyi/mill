@@ -74,9 +74,6 @@ private object ResolveCore {
     }
   }
 
-  def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =
-    mill.api.ExecResult.makeResultException(e, base)
-
   def cyclicModuleErrorMsg(segments: Segments): String = {
     s"Cyclic module reference detected at ${segments.render}, " +
       s"it's required to wrap it in ModuleRef."

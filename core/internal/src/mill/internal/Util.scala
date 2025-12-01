@@ -360,18 +360,12 @@ object Util {
           fs match {
             case f: ExecResult.Failure[_] => convertFailure(f)
             case ex: ExecResult.Exception =>
-              var current = List(ex.throwable)
-              while (current.head.getCause != null) current = current.head.getCause :: current
-
-              val exceptionInfos = current.reverse.map { e =>
-                val elements = e.getStackTrace.dropRight(ex.outerStack.value.length)
-                Result.Failure.ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
-              }
-
-              Result.Failure(k.toString, tickerPrefix = keyPrefix, exception = exceptionInfos)
+              mill.api.daemon.ExecResult.exceptionToFailure(ex.throwable, ex.outerStack).copy(
+                error = k.toString,
+                tickerPrefix = keyPrefix
+              )
           }
         }
     )
   }
-
 }
