@@ -2,7 +2,7 @@ package build
 import mill._, javalib._
 
 object `package` extends JavaModule {
-  def exceptionHelper() = throw new Exception("boom")
+  def exceptionHelper() = throw new Exception("boom", new RuntimeException("bang"))
   def exception() = Task.Command {
     exceptionHelper()
     ()
