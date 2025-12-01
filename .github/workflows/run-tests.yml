@@ -21,7 +21,7 @@
 #      - uses: sbt/setup-sbt@v1
 #
 #
-#      - run:  ./mill 'integration.migrating[init].local.daemon.testOnly' mill.integration.MillInitSbtGatlingTests
+#      - run:  ./mill 'integration.migrating[init].shared.daemon.testOnly' mill.integration.MillInitSbtGatlingTests
 #
 
 

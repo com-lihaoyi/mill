@@ -127,10 +127,6 @@ object `package` extends mill.Module {
       def millIntegrationLauncher = build.dist.launcher()
       def millIntegrationIsPackagedLauncher = Task(false)
     }
-    object local extends IntegrationLauncherModule {
-      def millIntegrationLauncher = build.dist.launcher()
-      def millIntegrationIsPackagedLauncher = Task(false)
-    }
     object packaged extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
