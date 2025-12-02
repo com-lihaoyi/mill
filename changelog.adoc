@@ -13,6 +13,53 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1-1-0-RC3]
+=== 1.1.0-RC3
+:version: 1.1.0-RC3
+:milestone-name: 1.1.0-RC3
+:milestone: 135
+:prev-version: 1.1.0-RC2
+_2025-12-02_
+
+_Changes since {prev-version}:_
+
+* Overhaul of the `Result.Failure` data type ({link-pr}/6278[#6278], {link-pr}/6279[#6279],
+  {link-pr}/6284[#6284]). Rather than being a thin wrapper around `String`, `Result.Failure`
+  now models a linked list of ``error: String``s along with optional file-position and stack-trace
+  metadata for any error, with a new `.zip` method that aggregates errors and aggregating errors
+  in `Result.sequence` and `Result.traverse`. This allows us to improve the command-line formatting
+  for structured errors while being backwards compatible with existing code that will just use the
+  `error: String` and ignoring the other metadata
+
+* Many improvements to the error reporting of YAML errors in `build.mill.yaml`/`package.mill.yaml`
+  files and `//|` build headers {link-pr}/6234[#6234] {link-pr}/6248[#6248] {link-pr}/6273[#6273] {link-pr}/6275[#6275]
+
+* Report error if build header comment conflicts with task defined in `mill-build/build.mill`
+  {link-pr}/6271[#6271]
+
+* Allow `console`/`--repl` to take arguments from the command line {link-pr}/6269[#6269]
+
+* Make unsuccessful tasks always run the subsequent time when --watch is active {link-pr}/6263[#6263]
+
+* Fix deadlock in logging infrastructure caused by locking on wrong stream. {link-pr}/6255[#6255]
+
+* Add TestModule#testArgsDefault {link-pr}/6252[#6252]
+
+* Use Scala 3.8.0-RC2 for build files {link-pr}/6242[#6242] {link-pr}/6268[#6268]
+
+* Many formatting and stability improvements for the terminal logging {link-pr}/6223[#6223]
+  {link-pr}/6235[#6235] {link-pr}/6241[#6241]
+
+* Add PublishCredentialsModule, MavenPublish and MavenPublishModule {link-pr}/6231[#6231]
+
+* Make `run` commands exclusive {link-pr}/6220[#6220]
+
+* Support for generating Software Bill Of Materials (SBOM) {link-pr}/4757[#4757]
+
+* Improvements to Android build support {link-pr}/6219[#6219] {link-pr}/6233[#6233]
+
+* Improvements to Spring-Boot support {link-pr}/6208[#6208]
+
 [#1-1-0-RC2]
 === 1.1.0-RC2
 :version: 1.1.0-RC2
