@@ -210,6 +210,7 @@ object ErrorTests extends TestSuite {
     x match {
       case f: Result.Failure =>
         val str = mill.internal.Util.formatError(f, s => s)
+        pprint.log(str)
         str.contains(s) &&
         // Make sure the stack traces are truncated and short-ish, and do not
         // contain the entire Mill internal call stack at point of failure
@@ -352,7 +353,9 @@ object ErrorTests extends TestSuite {
           // the sub-modules to resolve their paths
           test - check.checkSeq0(
             Seq("myCross._.foo"),
-            isShortError(_, "MyCross Boom"),
+            s => {
+              isShortError(s, "MyCross Boom")
+            },
             _ == Result.Success(List(
               "myCross[1].foo",
               "myCross[2].foo",
