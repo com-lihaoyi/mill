@@ -58,7 +58,10 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       import tester._
       eval(("selective.prepare", "qux.quxCommand"), check = true)
 
-      modifyFile(workspacePath / "build.mill", _.replace("Computing quxCommand", "Computing quxCommand!"))
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("Computing quxCommand", "Computing quxCommand!")
+      )
 
       val cached = eval(("selective.run", "qux.quxCommand"), stderr = os.Pipe)
 
