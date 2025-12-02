@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.api.Logger
 import mill.api.ExecResult
 import mill.api.Result.Failure.ExceptionInfo
-import mill.api.ModuleCtx.HeaderData
+import mill.api.internal.HeaderData
 import mill.api.daemon.internal.ExecutionResultsApi
 import scala.collection.mutable
 

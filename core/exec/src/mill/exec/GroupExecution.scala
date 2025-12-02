@@ -45,7 +45,7 @@ trait GroupExecution {
   val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
-      val headerDataReader = ModuleCtx.HeaderData.headerDataReader(path)
+      val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
       def rec(
           segments: Seq[String],
           bufValue: upickle.core.BufferedValue

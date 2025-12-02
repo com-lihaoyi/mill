@@ -21,7 +21,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       compileModuleDepsStrings: Seq[Located[String]],
       runModuleDepsStrings: Seq[Located[String]],
       eval: Evaluator,
-      headerData: mill.api.ModuleCtx.HeaderData
+      headerData: mill.api.internal.HeaderData
   ): Result[ExternalModule] = {
     val scriptText = os.read(scriptFile)
 
