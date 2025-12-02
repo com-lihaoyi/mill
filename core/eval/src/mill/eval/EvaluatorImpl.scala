@@ -116,10 +116,7 @@ final class EvaluatorImpl(
           scriptModuleResolver = scriptModuleInit(_, this)
         )
       }.flatMap { f =>
-        validateModuleOverrides(f.map(_.ctx.enclosingModule).distinct) match {
-          case Nil => Result.Success(f)
-          case errors => Result.Failure.combine(errors)
-        }
+        Result.sequence(validateModuleOverrides(f.map(_.ctx.enclosingModule).distinct)).map(_ => f)
       }
     }
   }

@@ -6,7 +6,7 @@ import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
-import mill.api.ModuleCtx.HeaderData
+import mill.api.internal.HeaderData
 import mill.api.daemon.Segment
 
 import scala.util.control.Breaks.*

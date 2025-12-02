@@ -161,7 +161,7 @@ object Resolve {
                     nullCommandDefaults,
                     allowPositionalCommandArgs
                   ).map(Some(_))
-                case r => sys.error("Unexepcted direct child " + r + " of " + r)
+                case r => sys.error("Unexpected direct child " + r + " of " + r)
               }
             )
           case _ => Result.Success(None)
@@ -244,7 +244,7 @@ object Resolve {
       )
 
       invoked
-    }.flatMap(x => x)
+    }.flatten
   }
 
   private def invokeCommand0(
@@ -483,11 +483,10 @@ trait Resolve[T] {
     }
 
     resolved.flatMap { r =>
-      val sorted = r.sorted
       handleResolved(
         rootModule,
         rootModulePrefix,
-        sorted,
+        r.sorted,
         args,
         sel,
         nullCommandDefaults,

@@ -134,8 +134,8 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
   def resolve0(tasks: Seq[String]): Result[Array[String]] = {
     for {
-      resolved <- evaluator.resolveTasks(tasks, SelectMode.Separated)
-      changedTasks <- this.computeChangedTasks(tasks)
+      (resolved, changedTasks) <-
+        evaluator.resolveTasks(tasks, SelectMode.Separated).zip(this.computeChangedTasks(tasks))
     } yield {
       val resolvedSet = resolved.map(_.ctx.segments.render).toSet
       val downstreamSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet

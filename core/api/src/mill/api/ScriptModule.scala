@@ -3,7 +3,7 @@ package mill.api
 import mill.*
 import mill.api.{ExternalModule, ModuleCtx}
 import mill.api.daemon.Segments
-import mill.api.ModuleCtx.HeaderData
+import mill.api.internal.HeaderData
 @experimental
 trait ScriptModule extends ExternalModule {
   override def moduleCtx: ModuleCtx = super.moduleCtx
