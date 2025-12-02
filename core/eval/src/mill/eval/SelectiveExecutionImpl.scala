@@ -133,17 +133,19 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def resolve0(tasks: Seq[String]): Result[Array[String]] = {
-    for ((resolvedSet0, downstreamSet0) <- resolveTasks0(tasks)) yield {
-      val resolvedSet = resolvedSet0.map(_.ctx.segments.render).toSet
-      val downstreamSet = downstreamSet0.map(_.ctx.segments.render).toSet
-      resolvedSet.intersect(downstreamSet).toArray.sorted
-    }
+    resolveTasks0(tasks).map(_.map(_.ctx.segments.render))
   }
-  def resolveTasks0(tasks: Seq[String]): Result[(Seq[Task.Named[?]], Seq[Task.Named[?]])] = {
+  def resolveTasks0(tasks: Seq[String]): Result[Array[Task.Named[?]]] = {
     for {
       (resolved, changedTasks) <-
         evaluator.resolveTasks(tasks, SelectMode.Separated).zip(this.computeChangedTasks(tasks))
-    } yield (resolved, changedTasks.downstreamTasks)
+    } yield {
+      val downstreamTasksRendered = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+
+      resolved
+        .filter(t => downstreamTasksRendered.contains(t.ctx.segments.render))
+        .toArray
+    }
   }
 
   def resolveChanged(tasks: Seq[String]): Result[Seq[String]] = {

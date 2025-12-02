@@ -27,7 +27,7 @@ private[mill] trait SelectiveExecution {
 
   def resolve0(tasks: Seq[String]): Result[Array[String]]
 
-  def resolveTasks0(tasks: Seq[String]): Result[(Seq[Task.Named[?]], Seq[Task.Named[?]])]
+  def resolveTasks0(tasks: Seq[String]): Result[Array[Task.Named[?]]]
 
   def resolveChanged(tasks: Seq[String]): Result[Seq[String]]
 
