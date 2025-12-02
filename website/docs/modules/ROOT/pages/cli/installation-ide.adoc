@@ -384,7 +384,7 @@ A lot of other editors may work too, since {link-metals}[Metals], the Language S
 === Debugging IDE issues
 
 Mill's BSP IDE integration writes to log files under
-`out/mill-bsp/`, where you can find various information about what's
+`.bsp/mill-bsp-out/mill-bsp/`, where you can find various information about what's
 going on. It contains regular Mill output accompanied by additional BSP
 client-server communication details. This can be useful to look at if your
 IDE fails to import your Mill project
