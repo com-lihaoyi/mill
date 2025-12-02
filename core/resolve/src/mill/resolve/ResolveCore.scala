@@ -125,7 +125,7 @@ private object ResolveCore {
             case s: Error => Left(s.failure)
           }
 
-          if (resFailures.nonEmpty) Error(Result.Failure.combine(resFailures))
+          if (resFailures.nonEmpty) Error(Result.Failure.join(resFailures))
           else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
           else notFounds.size match {
             case 1 => notFounds.head

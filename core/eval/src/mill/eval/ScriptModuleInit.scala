@@ -46,7 +46,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           index = located.index
         )
       }
-      Result.Failure.combine(failures)
+      Result.Failure.join(failures)
     } else instantiate(
       scriptFile,
       extendsConfigStrings.map(_.value).getOrElse {

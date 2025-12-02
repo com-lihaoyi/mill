@@ -557,7 +557,7 @@ private[mill] object TestModuleUtil {
       outputs.foreach {
         case (_, name, Some(f: Result.Failure)) =>
           failMap.updateWith(name) {
-            case Some(old) => Some(Result.Failure.combine(Seq(old, f)))
+            case Some(old) => Some(Result.Failure.join(Seq(old, f)))
             case None => Some(f)
           }
         case (_, name, Some(Result.Success((msg, results)))) =>
@@ -569,7 +569,7 @@ private[mill] object TestModuleUtil {
       }
 
       if (failMap.nonEmpty) {
-        Result.Failure.combine(failMap.values.toSeq)
+        Result.Failure.join(failMap.values.toSeq)
       } else {
         Result.Success((
           successMap.values.map(_._1).mkString("\n"),

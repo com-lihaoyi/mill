@@ -118,7 +118,7 @@ final class EvaluatorImpl(
       }.flatMap { f =>
         validateModuleOverrides(f.map(_.ctx.enclosingModule).distinct) match {
           case Nil => Result.Success(f)
-          case errors => Result.Failure.combine(errors)
+          case errors => Result.Failure.join(errors)
         }
       }
     }

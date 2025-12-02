@@ -70,7 +70,8 @@ object Util {
   }
 
   def formatError(f: Result.Failure, highlight: String => String) = {
-    Iterator.unfold(Option(f))(_.map(t => t -> t.next)).toSeq
+    Result.Failure
+      .split(f)
       .map(f0 =>
         formatError0(f0.path, f0.index, f0.error, f0.exception, f0.tickerPrefix, highlight)
       )
@@ -341,7 +342,7 @@ object Util {
   }
 
   def formatFailing(evaluated: ExecutionResultsApi): Result.Failure = {
-    Result.Failure.combine(
+    Result.Failure.join(
       for ((k, fs) <- evaluated.transitiveFailingApi.toSeq)
         yield {
           val keyPrefix =

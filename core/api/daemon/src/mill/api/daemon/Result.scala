@@ -1,7 +1,6 @@
 package mill.api.daemon
 
 import scala.collection.Factory
-import scala.util.boundary
 
 /**
  * Represents a computation that either succeeds with a value [[T]] or
@@ -37,7 +36,7 @@ object Result {
   /**
    * Models the kind of error reporting supported by Mill's terminal UI. Apart from the simple
    * `error: String`, also supports file position and exception stack trace metadata to
-   * provide richer error diagnostics, and can be chained together via `Failure.combine`
+   * provide richer error diagnostics, and can be chained together via `Failure.join`
    * to return multiple failures at once.
    */
   final case class Failure(
@@ -59,15 +58,12 @@ object Result {
 
   object Failure {
     case class ExceptionInfo(clsName: String, msg: String, stack: Seq[StackTraceElement])
-    def combine(failures: Seq[Failure]): Failure = {
-      val flattened: Seq[Failure] = failures.flatMap(f =>
-        Iterator.unfold(Option(f))(_.map(t => t -> t.next))
-      )
+    def split(f: Failure) = Iterator.unfold(Option(f))(_.map(t => t.copy(next = None) -> t.next))
+    def join(failures: Seq[Failure]): Failure = {
+      val flattened: Seq[Failure] = failures.flatMap(split)
       flattened
-        .foldLeft(Option.empty[Failure])((f0, f) =>
-          Some(Failure(f.error, f.path, f.index, f.exception, f.tickerPrefix, f0))
-        )
-        .get
+        .foldLeft(Option.empty[Failure])((f0, f) => Some(f.copy(next = f0)))
+        .getOrElse(sys.error("Failure.join cannot take an empty Seq"))
     }
   }
 
@@ -86,16 +82,13 @@ object Result {
   def sequence[B, M[X] <: IterableOnce[X]](in: M[Result[B]])(using
       factory: Factory[B, M[B]]
   ): Result[M[B]] = {
-    boundary {
-      val builder = factory.newBuilder
-      builder.sizeHint(in)
-      in.iterator.foreach {
-        case Success(b) => builder += b
-        case f: Failure => boundary.break(f)
-      }
-
-      builder.result()
+    val (failures, successes) = in.iterator.toSeq.partitionMap{
+      case Success(b) => Right(b)
+      case f: Failure => Left(f)
     }
+
+    if (failures.nonEmpty) Failure.join(failures)
+    else Result.Success(factory.fromSpecific(successes))
   }
 
   /**
@@ -104,16 +97,7 @@ object Result {
   def traverse[A, B, Collection[x] <: IterableOnce[x]](collection: Collection[Result[A]])(
       f: A => Result[B]
   )(using factory: Factory[B, Collection[B]]): Result[Collection[B]] = {
-    boundary {
-      val builder = factory.newBuilder
-      builder.sizeHint(collection)
-      collection.iterator.map(_.flatMap(f)).foreach {
-        case Success(b) => builder += b
-        case f: Failure => boundary.break(f)
-      }
-
-      builder.result()
-    }
+    sequence[B, Seq](collection.iterator.map(_.flatMap(f)).toSeq).map(factory.fromSpecific)
   }
 
   final class Exception(val error: String) extends java.lang.Exception(error)
