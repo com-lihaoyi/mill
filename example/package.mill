@@ -220,7 +220,7 @@ object `package` extends Module {
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def testRepoSourceRoot: T[PathRef] = Task.Source(moduleDir)
     def testRepoRoot: T[PathRef] = Task { testRepoSourceRoot() }
-    def testClasspath: T[Seq[PathRef]] = Nil
+    def testClasspath: T[Seq[PathRef]] = localRunClasspath()
     def sources0 = Task.Sources(moduleDir)
     def sources = Task {
       sources0()
