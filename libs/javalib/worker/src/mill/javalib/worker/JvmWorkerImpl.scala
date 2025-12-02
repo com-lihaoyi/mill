@@ -66,7 +66,20 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         key: SubprocessZincApi.Key,
         initData: => SubprocessZincApi.Initialize,
         value: SubprocessZincApi.Value
-    ): Boolean = value.launchedServer.isAlive
+    ): Boolean = {
+      if (!value.launchedServer.isAlive) false
+      else {
+        // Verify the socket is still reachable; the process may have died
+        // after the isAlive check but before we try to connect
+        try {
+          val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), value.port)
+          socket.close()
+          true
+        } catch {
+          case _: java.net.ConnectException => false
+        }
+      }
+    }
 
     private var memoryLocksByDaemonDir = Map.empty[os.Path, MemoryLock]
     private def memLockFor(daemonDir: os.Path): MemoryLock = {
