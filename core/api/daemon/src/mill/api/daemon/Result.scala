@@ -14,6 +14,13 @@ sealed trait Result[+T] {
   def toOption: Option[T]
   def toEither: Either[String, T]
   def errorOpt: Option[String]
+
+  def zip[V](rhs: Result[V]): Result[(T, V)] = (this, rhs) match {
+    case (Result.Success(l), Result.Success(r)) => Result.Success((l, r))
+    case (f: Result.Failure, Result.Success(_)) => f
+    case (Result.Success(_), f: Result.Failure) => f
+    case (f1: Result.Failure, f2: Result.Failure) => Result.Failure.join(Seq(f1, f2))
+  }
 }
 object Result {
   implicit def create[T](value: T): Result[T] =

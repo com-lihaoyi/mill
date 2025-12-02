@@ -351,10 +351,8 @@ private object ResolveCore {
 
       val errOrIndirect = mill.api.Result.sequence(errOrIndirect0).map(_.flatten)
 
-      for {
-        direct <- errOrDirect
-        indirect <- errOrIndirect
-      } yield direct ++ indirect
+      for ((direct, indirect) <- errOrDirect.zip(errOrIndirect))
+      yield direct ++ indirect
     }
   }
 
@@ -426,11 +424,9 @@ private object ResolveCore {
     }
 
     for {
-      crosses <- crossesOrErr
-      direct0 <-
-        resolveDirectChildren0(rootModule, rootModulePrefix, segments, cls, nameOpt, cache)
-      direct <- mill.api.Result.Success(expandSegments(direct0))
-    } yield direct ++ crosses
+      (crosses, direct0) <- crossesOrErr
+        .zip(resolveDirectChildren0(rootModule, rootModulePrefix, segments, cls, nameOpt, cache))
+    } yield expandSegments(direct0) ++ crosses
   }
 
   def resolveDirectChildren0(
