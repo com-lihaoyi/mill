@@ -21,4 +21,4 @@ jobs:
 
       - uses: scala-steward-org/scala-steward-action@v2.78.0
         with:
-          mill-version: 0.12.1
+          mill-version: '1.1.0-RC2-40-0576e4'
