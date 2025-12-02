@@ -79,7 +79,7 @@ object SbtBuildGenMain {
       .map(path => upickle.default.read[SbtModuleSpec](path.toNIO)).toSeq
     exportedBuild = normalizeSbtBuild(exportedBuild)
 
-    val packages = exportedBuild.groupMap(_.sharedModuleDir)(_.module).map {
+    val packages = exportedBuild.groupMap(_.sharedBaseDir)(_.module).map {
       case (Left(moduleDir), Seq(module)) =>
         PackageSpec(moduleDir, module)
       case (Left(moduleDir), crossVersionSpecs) =>

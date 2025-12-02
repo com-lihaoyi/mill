@@ -96,20 +96,22 @@ object ExportBuildPlugin extends AutoPlugin {
       val projectDepsWithConfigs = project.dependencies
         .map(dep => dep -> dep.configuration.getOrElse("compile").split(";").toSeq)
       val structure = Project.structure(Keys.state.value)
+      def isBaseDirShared(baseDir: File) =
+        structure.allProjects.iterator.filter(_.aggregate.isEmpty).count(_.base == baseDir) > 1
+      val useParentModuleDir = isBaseDirShared(project.base)
       def moduleDeps(p: String => Boolean, nestedSegment: Option[String] = None): Seq[ModuleDep] =
         projectDepsWithConfigs.flatMap {
           case (dep, configs) if configs.exists(p) =>
             (dep.project / Keys.baseDirectory).get(structure.data).flatMap { depBaseDir =>
+              var depModuleDir = moduleDir(os.Path(depBaseDir))
+              if (isBaseDirShared(depBaseDir))
+                depModuleDir = depModuleDir / os.RelPath(dep.project.project)
               val depCrossScalaVersions =
                 (dep.project / Keys.crossScalaVersions).get(structure.data).getOrElse(Nil)
               if (depCrossScalaVersions.contains(scalaVersion)) {
                 val crossSuffix = if (depCrossScalaVersions.length < 2) None
                 else Some(if (isCrossVersion) "()" else s"""("$scalaVersion")""")
-                Some(ModuleDep(
-                  moduleDir(os.Path(depBaseDir)),
-                  crossSuffix,
-                  nestedSegment
-                ))
+                Some(ModuleDep(depModuleDir, crossSuffix, nestedSegment))
               } else None
             }
           case _ => None
@@ -121,9 +123,6 @@ object ExportBuildPlugin extends AutoPlugin {
       )
       val useVersionRanges = (Compile / Keys.unmanagedSourceDirectories).value
         .exists(dir => dir.name.last == '+' || dir.name.last == '-')
-      val useParentModuleDir = structure.allProjects.exists(p =>
-        p.aggregate.isEmpty && p.base == project.base && p.id != project.id
-      )
 
       // Cross values are duplicated for ease of processing when combining cross-version specs.
       implicit def value[A](base: Option[A]): Value[A] = Value(
