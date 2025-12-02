@@ -120,7 +120,7 @@ object `package` extends mill.Module {
     override def defaultTask(): String = "testForked"
     def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
       Task.Command {
-        shared.daemon.testForked(args*)()
+        packaged.daemon.testForked(args*)()
       }
 
     object shared extends IntegrationLauncherModule {
