@@ -65,7 +65,12 @@ object Result {
 
   object Failure {
     case class ExceptionInfo(clsName: String, msg: String, stack: Seq[StackTraceElement])
-    def split(f: Failure) = Iterator.unfold(Option(f))(_.map(t => t.copy(next = None) -> t.next))
+    def split(f: Failure) = Iterator
+      .unfold(Option(f))(_.map(t => t.copy(next = None) -> t.next))
+      // Sometimes multiple code paths result in exactly the same failure,
+      // so call `distinct` to try and de-duplicate such cases
+      .distinct
+
     def join(failures: Seq[Failure]): Failure = {
       val flattened: Seq[Failure] = failures.flatMap(split)
       flattened
@@ -89,7 +94,7 @@ object Result {
   def sequence[B, M[X] <: IterableOnce[X]](in: M[Result[B]])(using
       factory: Factory[B, M[B]]
   ): Result[M[B]] = {
-    val (failures, successes) = in.iterator.toSeq.partitionMap{
+    val (failures, successes) = in.iterator.toSeq.partitionMap {
       case Success(b) => Right(b)
       case f: Failure => Left(f)
     }

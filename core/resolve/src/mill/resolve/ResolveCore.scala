@@ -352,7 +352,7 @@ private object ResolveCore {
       val errOrIndirect = mill.api.Result.sequence(errOrIndirect0).map(_.flatten)
 
       for ((direct, indirect) <- errOrDirect.zip(errOrIndirect))
-      yield direct ++ indirect
+        yield direct ++ indirect
     }
   }
 
