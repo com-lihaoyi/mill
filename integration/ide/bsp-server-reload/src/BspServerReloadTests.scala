@@ -98,9 +98,7 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
           "app" -> b.BuildTargetEventKind.DELETED,
           "my-app" -> b.BuildTargetEventKind.CREATED,
           "lib" -> b.BuildTargetEventKind.CHANGED,
-          "mill-build" -> b.BuildTargetEventKind.CHANGED,
-          "MillMiscInfo.scala" -> b.BuildTargetEventKind.CHANGED,
-          "BuildFileImpl.scala" -> b.BuildTargetEventKind.CHANGED
+          "mill-build" -> b.BuildTargetEventKind.CHANGED
         )
         val changes = didChangeParams.getChanges().asScala.map(eventData).toSet
         assert(expectedChanges == changes)
@@ -184,8 +182,8 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
           "Lib.scala" -> b.BuildTargetEventKind.DELETED,
           "TheApp.scala" -> b.BuildTargetEventKind.DELETED,
           "mill-build" -> b.BuildTargetEventKind.CHANGED,
-          "MillMiscInfo.scala" -> b.BuildTargetEventKind.CHANGED,
-          "BuildFileImpl.scala" -> b.BuildTargetEventKind.CHANGED
+          "MillMiscInfo.scala" -> b.BuildTargetEventKind.DELETED,
+          "BuildFileImpl.scala" -> b.BuildTargetEventKind.DELETED
         )
         val changes = didChangeParams.getChanges().asScala.map(eventData).toSet
         assert(expectedChanges == changes)
