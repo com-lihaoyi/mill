@@ -52,9 +52,10 @@ object `package` extends mill.Module {
     def forkArgs: T[Seq[String]]
     def testExclusive = false
     def testClasspath: T[Seq[PathRef]]
+
     trait ModeModule extends MillBaseTestsModule {
       override def testClasspath: T[Seq[PathRef]] = IntegrationTestModule.this.testClasspath()
-      def useSharedOut = false
+      def useSharedOut: Boolean
       override def enableBsp = false
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
 
@@ -123,7 +124,7 @@ object `package` extends mill.Module {
       }
 
     object shared extends IntegrationLauncherModule {
-      def useSharedOut = true
+      override def useSharedOut = true
       def millIntegrationLauncher = build.dist.launcher()
       def millIntegrationIsPackagedLauncher = Task(false)
     }
@@ -136,14 +137,17 @@ object `package` extends mill.Module {
       def millIntegrationIsPackagedLauncher = Task(true)
     }
     trait IntegrationLauncherModule extends Module {
+      def useSharedOut = false
       def millIntegrationLauncher: T[PathRef]
       def millIntegrationIsPackagedLauncher: Task[Boolean]
       object nodaemon extends ModeModule {
+        override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
       object daemon extends ModeModule {
+        override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
