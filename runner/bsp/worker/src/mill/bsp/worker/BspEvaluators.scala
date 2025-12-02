@@ -109,7 +109,7 @@ class BspEvaluators(
     ev.executeApi(bspSourceTasks)
       .values
       .get
-      .flatMap { case resources: Seq[Path] =>
+      .flatMap { resources: Seq[Path] =>
         resources.map(os.Path(_, workspaceDir).subRelativeTo(workspaceDir))
       }
   }
@@ -124,7 +124,7 @@ class BspEvaluators(
       ev.executeApi(bspScriptIgnore)
         .values
         .get
-        .flatMap { case sources: Seq[String] => sources }
+        .flatMap { sources: Seq[String] => sources }
 
     }
   }
