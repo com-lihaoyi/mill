@@ -48,6 +48,7 @@ trait IntegrationTesterBase {
     println(s"Preparing integration test in $workspacePath")
     os.makeDir.all(workspacePath)
     if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
+      println("Clearing out folder")
       Retry(logger = Retry.printStreamLogger(System.err)) {
         val tmp = os.temp.dir()
         val outDir = os.Path(out, workspacePath)
@@ -56,6 +57,7 @@ trait IntegrationTesterBase {
       }
       for (p <- os.list(workspacePath)) os.remove.all(p)
     } else {
+      println("Re-using out folder")
       // if `MILL_TEST_SHARED_OUTPUT_DIR` is provided, keep `out/` intact
       // to re-use the daemon
       for (p <- os.list(workspacePath) if p.last != "out") os.remove.all(p)
