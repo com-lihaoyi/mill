@@ -42,6 +42,7 @@ trait MillBuildRootModule()(using
     "**/src-*/",
     "**/resources/",
     "**/out/",
+    "**/.bsp/mill-bsp-out/",
     "**/target/"
   )
 

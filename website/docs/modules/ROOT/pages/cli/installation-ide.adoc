@@ -257,7 +257,7 @@ are using a less-common editor that does not have this support builtin.
 ==== BSP output directory
 
 When running Mill in BSP mode, default output directory is
-`out/mill-bsp-out` under the project workspace. This ensures BSP mode is not blocked by regular
+`.bsp/mill-bsp-out` under the project workspace. This ensures BSP mode is not blocked by regular
 Mill operations, however this also means that we need to compile the sources twice, which incurs
 extra CPU and memory usage. If you'd rather reuse regular `out/` directory, set
 the `MILL_NO_SEPARATE_BSP_OUTPUT_DIR` environment variable to `1` when running Mill in BSP mode.
@@ -384,7 +384,7 @@ A lot of other editors may work too, since {link-metals}[Metals], the Language S
 === Debugging IDE issues
 
 Mill's BSP IDE integration writes to log files under
-`out/mill-bsp/`, where you can find various information about what's
+`.bsp/mill-bsp-out/mill-bsp/`, where you can find various information about what's
 going on. It contains regular Mill output accompanied by additional BSP
 client-server communication details. This can be useful to look at if your
 IDE fails to import your Mill project
