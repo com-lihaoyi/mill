@@ -1,6 +1,6 @@
 package mill.api
 
-import mill.api.internal.{Located, OverrideMapping}
+import mill.api.internal.OverrideMapping
 import upickle.core.BufferedValue
 
 import scala.annotation.implicitNotFound
