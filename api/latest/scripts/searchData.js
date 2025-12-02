@@ -1728,6 +1728,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/eval/SelectiveExecutionImpl.html#computeMetadata-c67","e":false,"i":"","n":"computeMetadata","t":"computeMetadata(tasks: Seq[Named[_]]): Computed","d":"mill.eval.SelectiveExecutionImpl","k":"def","x":""},
 {"l":"mill/eval/SelectiveExecutionImpl.html#resolve0-4ac","e":false,"i":"","n":"resolve0","t":"resolve0(tasks: Seq[String]): Result[Array[String]]","d":"mill.eval.SelectiveExecutionImpl","k":"def","x":""},
 {"l":"mill/eval/SelectiveExecutionImpl.html#resolveChanged-4ac","e":false,"i":"","n":"resolveChanged","t":"resolveChanged(tasks: Seq[String]): Result[Seq[String]]","d":"mill.eval.SelectiveExecutionImpl","k":"def","x":""},
+{"l":"mill/eval/SelectiveExecutionImpl.html#resolveTasks0-4ac","e":false,"i":"","n":"resolveTasks0","t":"resolveTasks0(tasks: Seq[String]): Result[Array[Named[_]]]","d":"mill.eval.SelectiveExecutionImpl","k":"def","x":""},
 {"l":"mill/eval/SelectiveExecutionImpl.html#resolveTree-4ac","e":false,"i":"","n":"resolveTree","t":"resolveTree(tasks: Seq[String]): Result[Value]","d":"mill.eval.SelectiveExecutionImpl","k":"def","x":""},
 {"l":"mill/eval/SelectiveExecutionImpl.html#saveMetadata-187","e":false,"i":"","n":"saveMetadata","t":"saveMetadata(metadata: Metadata): Unit","d":"mill.eval.SelectiveExecutionImpl","k":"def","x":""},
 {"l":"mill/eval/SelectiveExecutionImpl$.html#","e":false,"i":"","n":"SelectiveExecutionImpl","t":"SelectiveExecutionImpl","d":"mill.eval","k":"object","x":""},
