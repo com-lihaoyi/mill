@@ -79,9 +79,9 @@ trait SelectiveExecutionModule extends mill.api.Module {
       if (!os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
         Result.Failure("`selective.run` can only be run after `selective.prepare`")
       } else {
-        evaluator.selective.resolve0(tasks).flatMap { resolved =>
-          if (resolved.isEmpty) Result.Success(())
-          else evaluator.evaluate(resolved.toSeq, SelectMode.Multi).flatMap {
+        evaluator.selective.resolveTasks0(tasks).flatMap { resolvedTasks =>
+          if (resolvedTasks.isEmpty) Result.Success(())
+          else evaluator.execute(resolvedTasks) match {
             case Evaluator.Result(_, f: Result.Failure, _, _) => f
             case Evaluator.Result(_, Result.Success(_), _, _) =>
           }

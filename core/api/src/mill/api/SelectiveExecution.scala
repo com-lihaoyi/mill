@@ -27,6 +27,8 @@ private[mill] trait SelectiveExecution {
 
   def resolve0(tasks: Seq[String]): Result[Array[String]]
 
+  def resolveTasks0(tasks: Seq[String]): Result[Array[Task.Named[?]]]
+
   def resolveChanged(tasks: Seq[String]): Result[Seq[String]]
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value]
