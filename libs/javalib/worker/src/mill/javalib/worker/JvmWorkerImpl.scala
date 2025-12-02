@@ -69,8 +69,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
     ): Boolean = {
       if (!value.launchedServer.isAlive) false
       else {
-        // Verify the socket is still reachable; the process may have died
-        // after the isAlive check but before we try to connect
+        // Verify the socket is still reachable; sometimes the worker gets into a
+        // bad state where the process is alive but the listening socket has died
         try {
           val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), value.port)
           socket.close()
