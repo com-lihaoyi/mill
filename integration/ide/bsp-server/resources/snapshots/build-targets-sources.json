@@ -2,54 +2,6 @@
   "items": [
     {
       "target": {
-        "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala"
-      },
-      "sources": [
-        {
-          "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala",
-          "kind": 1,
-          "generated": false
-        }
-      ]
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala"
-      },
-      "sources": [
-        {
-          "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala",
-          "kind": 1,
-          "generated": false
-        }
-      ]
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala"
-      },
-      "sources": [
-        {
-          "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala",
-          "kind": 1,
-          "generated": false
-        }
-      ]
-    },
-    {
-      "target": {
-        "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala"
-      },
-      "sources": [
-        {
-          "uri": "file:///workspace/.bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala",
-          "kind": 1,
-          "generated": false
-        }
-      ]
-    },
-    {
-      "target": {
         "uri": "file:///workspace/app"
       },
       "sources": [

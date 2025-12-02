@@ -299,20 +299,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
           assertGoldenLiteral(
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
-              ".bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala" -> List(),
               "diag/many" -> List(),
-              ".bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala" -> List(
-              ),
               "mill-build" -> Seq("build.mill.semanticdb"),
               "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
               "scripts/folder1/script.scala" -> Seq(),
+              "errored/exception" -> List(),
               "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
               "diag" -> Seq("diag/src/DiagCheck.scala.semanticdb"),
-              ".bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala" -> List(
-              ),
               "delayed" -> List(),
-              "errored/exception" -> List(),
-              ".bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala" -> List(),
               "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> Seq(),
@@ -343,10 +337,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           assertGoldenLiteral(
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
-              ".bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala" -> List(),
               "scripts/folder2/FooTest.java" -> Seq("scripts/folder2/FooTest.java.semanticdb"),
-              ".bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/BuildFileImpl.scala" -> List(
-              ),
               "mill-build" -> Seq("build.mill.semanticdb"),
               "hello-kotlin" -> Seq(),
               "hello-java" -> Seq(),
@@ -354,19 +345,16 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "app" -> Seq("app/src/App.java.semanticdb"),
               "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
               "scripts/folder1/script.scala" -> Seq(),
+              "errored/exception" -> List(),
               "scripts/ignored-folder-2/negated-not-ignored.java" -> Seq(),
               "app/test" -> Seq(),
               "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
               "scripts/folder2/Foo.java" -> Seq("scripts/folder2/Foo.java.semanticdb"),
               "diag/many" -> List(),
               "diag" -> Seq("diag/src/DiagCheck.scala.semanticdb"),
-              ".bsp/mill-bsp-out/mill-build/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala" -> List(
-              ),
               "delayed" -> List(),
               "lib" -> Seq(),
               "scripts/foldershared/Foo.java" -> Seq("scripts/foldershared/Foo.java.semanticdb"),
-              "errored/exception" -> List(),
-              ".bsp/mill-bsp-out/mill-build/generatedScriptSources.dest/support/build_/MillMiscInfo.scala" -> List(),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> Seq(),
               "sourcesNeedCompile" -> Seq(),
