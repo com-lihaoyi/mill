@@ -137,6 +137,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.remove(value.daemonDir / DaemonFiles.processId)
         while (value.launchedServer.isAlive) Thread.sleep(1)
 
+        try value.lock.close() catch{case e => () }
         // On Windows it takes some time until the file handles are released, so we have
         // to wait for that as well.
         if (scala.util.Properties.isWin) {
