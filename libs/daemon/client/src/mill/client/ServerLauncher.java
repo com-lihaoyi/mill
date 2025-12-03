@@ -97,6 +97,7 @@ public abstract class ServerLauncher {
   public static class Launched implements AutoCloseable {
     public int port;
     public Socket socket;
+    public Locks locks;
     public LaunchedServer launchedServer;
 
     @Override
@@ -154,6 +155,7 @@ public abstract class ServerLauncher {
             } else if (result instanceof ServerLaunchResult.AlreadyRunning) {
               launched.launchedServer = ((ServerLaunchResult.AlreadyRunning) result).server;
             }
+            launched.locks = locks;
             return Optional.of(launched);
           } else {
             var processDied = (ServerLaunchResult.ServerDied) result;

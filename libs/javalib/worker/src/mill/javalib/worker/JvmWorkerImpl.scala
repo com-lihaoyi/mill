@@ -148,13 +148,15 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         false // openSocket
       )
 
-      SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer)
+      SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer, launched.locks)
     }
 
     override def teardown(key: SubprocessZincApi.Key, value: SubprocessZincApi.Value): Unit = {
       println("removing " + value.daemonDir / DaemonFiles.processId)
       os.remove(value.daemonDir / DaemonFiles.processId)
       while (value.launchedServer.isAlive) Thread.sleep(1)
+
+      value.lock.close()
 
       // On Windows it takes some time until the file handles are released, so we have
       // to wait for that as well.

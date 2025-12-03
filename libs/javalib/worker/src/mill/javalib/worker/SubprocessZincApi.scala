@@ -2,6 +2,7 @@ package mill.javalib.worker
 import mill.api.*
 import mill.api.daemon.*
 import mill.api.daemon.internal.CompileProblemReporter
+import mill.client.lock.Locks
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.javalib.api.internal.*
 import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
@@ -129,5 +130,5 @@ object SubprocessZincApi {
 
   case class Key(javaHome: Option[os.Path], runtimeOptions: Seq[String])
   case class Initialize(taskDest: os.Path, log: Logger)
-  case class Value(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer)
+  case class Value(port: Int, daemonDir: os.Path, launchedServer: LaunchedServer, lock: Locks)
 }
