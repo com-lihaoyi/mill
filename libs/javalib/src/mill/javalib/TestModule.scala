@@ -87,11 +87,9 @@ trait TestModule
    * @see [[testCached]]
    */
   def testForked(
-      addDefault: Boolean = true,
       args: String*
   ): Task.Command[(msg: String, results: Seq[TestResult])] = {
-    val argsTask =
-      if (addDefault) Task.Anon { testArgsDefault() ++ args } else Task.Anon { args }
+    val argsTask = Task.Anon { testArgsDefault() ++ args }
     Task.Command {
       testTask(argsTask, Task.Anon { Seq.empty[String] })()
     }
@@ -155,10 +153,7 @@ trait TestModule
    * (includes package name) 1. end with "foo", 2. exactly "foobar", 3. start
    * with "bar", with "arguments" as arguments passing to test framework.
    */
-  def testOnly(
-      addDefault: Boolean = true,
-      args: String*
-  ): Task.Command[(msg: String, results: Seq[TestResult])] = {
+  def testOnly(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] = {
     val (selector, testArgs) = args.indexOf("--") match {
       case -1 => (args, Seq.empty)
       case pos =>
@@ -166,8 +161,7 @@ trait TestModule
         (s, t.tail)
     }
 
-    val argsTask =
-      if (addDefault) Task.Anon { testArgsDefault() ++ testArgs } else Task.Anon { testArgs }
+    val argsTask = Task.Anon { testArgsDefault() ++ testArgs }
     Task.Command {
       testTask(argsTask, Task.Anon { selector })()
     }
