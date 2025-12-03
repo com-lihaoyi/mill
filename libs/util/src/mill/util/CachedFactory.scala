@@ -42,11 +42,7 @@ abstract class CachedFactoryWithInitData[K, InitData, V] extends AutoCloseable {
           // Remove the entry from the list, as it will be reinserted at the end of this function
           keyValues = keyValues.patch(index, Nil, 1)
           // Check if the cache entry is still valid
-          if (cacheEntryStillValid(key, initData, v)) Some(v)
-          else {
-            teardown(key, v)
-            None
-          }
+          if (!cacheEntryStillValid(key, initData, v)) None else Some(v)
       }
     }
 
