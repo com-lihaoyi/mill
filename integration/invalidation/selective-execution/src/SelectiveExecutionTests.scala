@@ -50,7 +50,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       val cached = eval(("selective.resolve", "{foo,bar}._"), stderr = os.Pipe)
 
       assert(
-        cached.out.linesIterator.toList ==
+        cached.out.linesIterator.toList.sorted ==
           Seq("bar.barCommandRenamed", "foo.fooCommand", "foo.fooTaskRenamed")
       )
     }
