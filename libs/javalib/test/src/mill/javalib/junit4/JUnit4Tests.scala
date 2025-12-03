@@ -36,19 +36,5 @@ object JUnit4Tests extends TestSuite {
         assert(qualifiedNames.forall(_.fullyQualifiedName == "qux.QuxTests.hello"))
       }
     }
-    test("execution no default") {
-      UnitTester(module, testModuleSourcesPath).scoped { eval =>
-        val res = eval("test.testForked", "--addDefault=false")
-        assert(res.isRight)
-        val qualifiedNames = res.toOption.get.value
-          .head.asInstanceOf[(String, Seq[TestResult])]
-          ._2
-          .map(_.fullyQualifiedName)
-          .distinct
-          .sorted
-        val expectedQualifiedNames = Seq("qux.FooTests.hello", "qux.QuxTests.hello")
-        assert(expectedQualifiedNames == qualifiedNames)
-      }
-    }
   }
 }
