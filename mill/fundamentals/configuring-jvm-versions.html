@@ -653,7 +653,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC2</span>
+    <span class="version">1.1.0-RC3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -662,11 +662,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC2-82-c17265/index.html">dev-1.1.0-RC2-82-c17265</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC2</a>
+          <a href="../index.html">1.1.0-RC3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -723,7 +720,7 @@ use your artifacts.</p>
 <ul>
 <li>
 <p>For libraries is best to set your <code>mill-jvm-version</code> to the lowest version possible, e.g.
-<code>mill-jvm-version: 11</code> in this example which is the lowest version supported by Mill.</p>
+<code>mill-jvm-version: 17</code> in this example which is the lowest version supported by Mill.</p>
 </li>
 <li>
 <p>For applications without downstream projects, using the highest available JVM version is
@@ -753,13 +750,13 @@ of any <code>JavaModule</code>, <code>ScalaModule</code>, or <code>KotlinModule<
 and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/depth/javahome/1-custom-jvms">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, javalib.*
 import mill.api.ModuleRef
 
 object foo extends JavaModule {
-  def jvmId = "temurin:18.0.2"
+  def jvmId = "temurin:11.0.21"
 
   object test extends JavaTests, TestModule.Junit4
 }</code></pre>
@@ -768,10 +765,10 @@ object foo extends JavaModule {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
-Foo running on Java 18.0.2
+Foo running on Java 11.0.21
 
 &gt; ./mill foo.test
-Testing with JVM version: 18.0.2
+Testing with JVM version: 11.0.21
 Test foo.FooTest.testSimple finished...</code></pre>
 </div>
 </div>

@@ -653,7 +653,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC2</span>
+    <span class="version">1.1.0-RC3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -662,11 +662,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC2-82-c17265/index.html">dev-1.1.0-RC2-82-c17265</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC2</a>
+          <a href="../index.html">1.1.0-RC3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -728,7 +725,7 @@ with your Mill build.</p>
 <p>The following examples will be assuming the <code>build.mill</code> file given below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-cli-builtins-1-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/cli/builtins/1-builtin-commands">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-cli-builtins-1-builtin-commands.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/cli/builtins/1-builtin-commands">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -747,7 +744,8 @@ object foo extends MyModule {
 object bar extends MyModule {
   def mvnDeps = Seq(
     mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 }</code></pre>
 </div>

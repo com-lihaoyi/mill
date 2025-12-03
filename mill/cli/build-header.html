@@ -653,7 +653,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC2</span>
+    <span class="version">1.1.0-RC3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -662,11 +662,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC2-82-c17265/index.html">dev-1.1.0-RC2-82-c17265</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC2</a>
+          <a href="../index.html">1.1.0-RC3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -857,7 +854,7 @@ version used for any JVMs spawned by Mill to <code>run</code> or <code>test</cod
 YAML key:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: temurin:17.0.6
 
@@ -873,8 +870,18 @@ Java version: 17.0.6</code></pre>
 <div class="paragraph">
 <p>An explicit <code>mill-jvm-version</code> can help ensure your project uses a consistent JVM version and
 behaves identically regardless of what the developer may have installed on their laptop
-or dev environment. If <code>mill-jvm-version</code> is not provided, Mill uses the default version
-<code>zulu:21</code>.</p>
+or dev environment.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If <code>mill-jvm-version</code> is not provided, Mill uses the default version <code>zulu:21</code>.</p>
+</li>
+<li>
+<p>Note that Mill requires a minimum of Java 17 for the build tool itself to run. However, it
+supports user-defined modules down to Java 11.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>If you wish to use your system <code>java</code> installation, you can set <code>mill-jvm-version: system</code>.
@@ -910,10 +917,10 @@ in Mill&#8217;s jvm index version) or an older JVM index.</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/cli/header/4-jvm-index-version">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/cli/header/4-jvm-index-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-index-version: 0.0.4-88-f9ba3d
-//| mill-jvm-version: temurin:11
+//| mill-jvm-version: temurin:17
 
 package build
 
@@ -926,13 +933,13 @@ def printJavaVersion() = Task.Command {
 </div>
 <div class="paragraph">
 <p>This example uses an older <code>mill-jvm-index-version</code> to ensure the resolved version
-of <code>temurin:11</code> gets appropriately downgraded from <code>11.0.28</code> (the most recent <code>11.x</code> version)
-to <code>11.0.26</code> (the version of <code>11.x</code> available when the JVM index <code>0.0.4-88-f9ba3d</code> was released)</p>
+of <code>temurin:17</code> gets appropriately downgraded from <code>17.0.17</code> (the most recent <code>17.x</code> version)
+to <code>17.0.14</code> (the version of <code>17.x</code> available when the JVM index <code>0.0.4-88-f9ba3d</code> was released)</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill printJavaVersion
-Java version: 11.0.26</code></pre>
+Java version: 17.0.14</code></pre>
 </div>
 </div>
 </div>
@@ -989,7 +996,7 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: ["-Wunused:privates", "-Xfatal-warnings"]
 
@@ -1003,7 +1010,7 @@ private def foo = 1</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill version
 error: ...unused private member
-...No warnings can be incurred under -Werror (or -Xfatal-warnings)</code></pre>
+...No warnings can be incurred under -Werror</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1013,7 +1020,7 @@ For simple projects defined with a <code>build.mill.yaml</code> file, meta-build
 is put in the <code>mill-build:</code> key of the <code>build.mill.yaml</code> file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
   scalacOptions: ["-verbose"]</code></pre>

@@ -653,7 +653,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC2</span>
+    <span class="version">1.1.0-RC3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -662,11 +662,8 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC2-82-c17265/index.html">dev-1.1.0-RC2-82-c17265</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC2</a>
+          <a href="../index.html">1.1.0-RC3</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -733,18 +730,18 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
-1.1.0-RC2</code></pre>
+1.1.0-RC3</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2/mill-dist-1.1.0-RC2-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-mill.bat -o mill.bat
 &gt; ./mill version
-1.1.0-RC2</code></pre>
+1.1.0-RC3</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -795,6 +792,27 @@ update your bootstrap scripts which ensures the script version and Mill version 
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_global_installation"><a class="anchor" href="#_global_installation"></a>Global Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also install the Mill bootstrap script globally on Mac and Linux via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo sh -c '(curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill) &gt; /usr/local/bin/mill &amp;&amp; chmod +x /usr/local/bin/mill'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This can be useful when using Mill to run script files (written in <a href="../javalib/script.html" class="xref page">Java</a>,
+<a href="../scalalib/script.html" class="xref page">Scala</a>, or <a href="../kotlinlib/script.html" class="xref page">Kotlin</a>) which may not belong
+to any particular project. However, for projects that use Mill, it is recommended you use the
+<a href="#_bootstrap_scripts">per-project bootstrap scripts</a> discussed above to ensure that anyone
+with the project codebase on disk will be able to build the project without needing a separate
+installation</p>
 </div>
 <div class="sect2">
 <h3 id="_jvm_version"><a class="anchor" href="#_jvm_version"></a>JVM Version</h3>
@@ -1047,7 +1065,7 @@ are using a less-common editor that does not have this support builtin.</p>
 <h4 id="_bsp_output_directory"><a class="anchor" href="#_bsp_output_directory"></a>BSP output directory</h4>
 <div class="paragraph">
 <p>When running Mill in BSP mode, default output directory is
-<code>out/mill-bsp-out</code> under the project workspace. This ensures BSP mode is not blocked by regular
+<code>.bsp/mill-bsp-out</code> under the project workspace. This ensures BSP mode is not blocked by regular
 Mill operations, however this also means that we need to compile the sources twice, which incurs
 extra CPU and memory usage. If you&#8217;d rather reuse regular <code>out/</code> directory, set
 the <code>MILL_NO_SEPARATE_BSP_OUTPUT_DIR</code> environment variable to <code>1</code> when running Mill in BSP mode.</p>
@@ -1241,7 +1259,7 @@ inside the Eclipse workspace by selecting them and hitting <code>F5</code>.</p>
 <h3 id="_debugging_ide_issues"><a class="anchor" href="#_debugging_ide_issues"></a>Debugging IDE issues</h3>
 <div class="paragraph">
 <p>Mill&#8217;s BSP IDE integration writes to log files under
-<code>out/mill-bsp/</code>, where you can find various information about what&#8217;s
+<code>.bsp/mill-bsp-out/mill-bsp/</code>, where you can find various information about what&#8217;s
 going on. It contains regular Mill output accompanied by additional BSP
 client-server communication details. This can be useful to look at if your
 IDE fails to import your Mill project</p>
@@ -1258,8 +1276,7 @@ The typical symptom will be error messages which look like this;</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">1 tasks failed
-mill.scalalib.JvmWorkerModule.classpath
+<pre class="highlightjs highlight"><code class="language-none hljs">mill.scalalib.JvmWorkerModule.classpath
 Resolution failed for 1 modules:
 --------------------------------------------
   com.lihaoyi:mill-libs-scalalib-worker_2.13:0.11.1
