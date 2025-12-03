@@ -170,7 +170,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("exception") - integrationTest { tester =>
       import tester._
 
-      val res = eval(("--ticker", "true", "exception"), mergeErrIntoOut = true, propagateEnv = false)
+      val res =
+        eval(("--ticker", "true", "exception"), mergeErrIntoOut = true, propagateEnv = false)
       res.isSuccess ==> false
 
       assertGoldenLiteral(
@@ -289,7 +290,11 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       )
       // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
       retry(3) {
-        val res2 = eval(("-i", "--ticker=true", "--color=true", "test"), mergeErrIntoOut = true, propagateEnv = false)
+        val res2 = eval(
+          ("-i", "--ticker=true", "--color=true", "test"),
+          mergeErrIntoOut = true,
+          propagateEnv = false
+        )
         assertGoldenLiteral(
           normalize(res2.result.out.text()),
           List(
@@ -437,7 +442,11 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
       retry(3) {
         val res4 =
-          eval(("-i", "--ticker=true", "--color=true", "test.printColors"), mergeErrIntoOut = true, propagateEnv = false)
+          eval(
+            ("-i", "--ticker=true", "--color=true", "test.printColors"),
+            mergeErrIntoOut = true,
+            propagateEnv = false
+          )
 
         assertGoldenLiteral(
           normalize(res4.result.out.text()),
