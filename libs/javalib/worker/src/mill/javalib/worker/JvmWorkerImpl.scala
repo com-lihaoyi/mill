@@ -163,7 +163,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         def tryRemoving(): Boolean = {
           try { os.remove.all(daemonLock); true }
           catch { case e: FileSystemException =>
-            println(e + "\n" + e.getStackTrace.mkString("\n"))
+            println("" + e + "\n" + e.getStackTrace.mkString("\n"))
             false
           }
         }
