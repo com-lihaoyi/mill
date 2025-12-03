@@ -311,7 +311,7 @@ object TabCompleteTests extends TestSuite {
             "--help                    Print this help message and exit.",
             "--jobs                    <str> The number of parallel threads. It can be an integer e.g. `5` meaning 5 threads, an expression e.g. `0.5C` meaning half as many threads as available cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables parallelism and `0` (the default) uses 1 thread per core.",
             "--ticker                  <bool> Enable or disable the ticker log, which provides information on running tasks and where each log line came from",
-            "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set",
+            "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive or FORCE_COLOR environment variable is set, and NO_COLOR environment variable is not set",
             "--version                 Show mill version information and exit.",
             "--task                    <str> The name or a query of the tasks(s) you want to build.",
             "--help-advanced           Print a internal or advanced command flags not intended for common usage",
