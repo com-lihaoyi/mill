@@ -152,6 +152,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
     }
 
     override def teardown(key: SubprocessZincApi.Key, value: SubprocessZincApi.Value): Unit = {
+      println("removing " + value.daemonDir / DaemonFiles.processId)
       os.remove(value.daemonDir / DaemonFiles.processId)
       while (value.launchedServer.isAlive) Thread.sleep(1)
 
