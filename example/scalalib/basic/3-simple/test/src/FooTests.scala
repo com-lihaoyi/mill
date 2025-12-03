@@ -14,6 +14,5 @@ object FooTests extends TestSuite {
       assert(result == "<h1>&lt;hello&gt;</h1>")
       result
     }
-    ???
   }
 }
