@@ -95,9 +95,6 @@ trait TestModule
     }
   }
 
-  def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
-    testForked(addDefault = true, args*)
-
   def getTestEnvironmentVars(args: String*): Task.Command[(
       mainClass: String,
       testRunnerClasspathArg: String,
@@ -166,9 +163,6 @@ trait TestModule
       testTask(argsTask, Task.Anon { selector })()
     }
   }
-
-  private[mill] def testOnly(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
-    testOnly(addDefault = true, args*)
 
   /**
    * Controls whether the TestRunner should receive its arguments via an args-file instead of a long parameter list.
