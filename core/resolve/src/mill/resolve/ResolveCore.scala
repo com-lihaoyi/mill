@@ -284,14 +284,18 @@ private object ResolveCore {
             current.getClass,
             Some(s),
             cache = cache
-          ).flatMap {
-            case Seq((_, Some(f))) => f(current)
-            case unknown =>
-              sys.error(
-                s"Unable to resolve single child " +
-                  s"rootModule: ${rootModule}, segments: ${segments.render}," +
-                  s"current: $current, s: ${s}, unknown: $unknown"
-              )
+          ).flatMap { results =>
+            // When resolving a module, filter out non-module results (commands/tasks have None getter)
+            // This handles cases where a user module has the same name as a built-in command (e.g. "init")
+            results.filter(_._2.isDefined) match {
+              case Seq((_, Some(f))) => f(current)
+              case unknown =>
+                sys.error(
+                  s"Unable to resolve single child " +
+                    s"rootModule: ${rootModule}, segments: ${segments.render}," +
+                    s"current: $current, s: ${s}, unknown: $unknown"
+                )
+            }
           }
 
         case (mill.api.Result.Success(current), Segment.Cross(vs)) =>
