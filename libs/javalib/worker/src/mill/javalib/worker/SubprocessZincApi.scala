@@ -9,7 +9,7 @@ import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.CachedFactoryWithInitData
+import mill.util.RefCountedCache
 
 import java.io.*
 import scala.util.Using
@@ -23,7 +23,8 @@ class SubprocessZincApi(
     runtimeOptions: Seq[String],
     ctx: ZincWorker.LocalConfig,
     log: Logger,
-    subprocessCache: CachedFactoryWithInitData[
+    subprocessCache: RefCountedCache[
+      SubprocessZincApi.Key,
       SubprocessZincApi.Key,
       SubprocessZincApi.Initialize,
       SubprocessZincApi.Value
@@ -80,10 +81,9 @@ class SubprocessZincApi(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   ): op.Response = {
-    subprocessCache.withValue(
-      cacheKey,
-      SubprocessZincApi.Initialize(compilerBridge.workspace, log)
-    ) { case SubprocessZincApi.Value(port, daemonDir, _) =>
+    val SubprocessZincApi.Value(port, _, _, _) =
+      subprocessCache.get(cacheKey, SubprocessZincApi.Initialize(compilerBridge.workspace, log))
+    try {
       Using.Manager { use =>
         val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
         val debugName =
@@ -123,6 +123,8 @@ class SubprocessZincApi(
           }
         )
       }.get
+    } finally {
+      subprocessCache.release(cacheKey)
     }
   }
 }
