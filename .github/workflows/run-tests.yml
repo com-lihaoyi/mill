@@ -55,6 +55,9 @@ concurrency:
   group: cancel-old-pr-runs-${{ github.workflow }}-${{ (github.repository != 'com-lihaoyi/mill' && github.ref_name) || (github.head_ref || github.run_id) }}
   cancel-in-progress: true
 
+env:
+  FORCE_COLOR: '1'
+
 jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into

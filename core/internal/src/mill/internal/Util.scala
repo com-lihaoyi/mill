@@ -343,16 +343,24 @@ object Util {
 
   def formatFailing(evaluated: ExecutionResultsApi): Result.Failure = {
     Result.Failure.join(
-      for ((k, fs) <- evaluated.transitiveFailingApi.toSeq)
+      for ((key, fs) <- evaluated.transitiveFailingApi.toSeq)
         yield {
           val keyPrefix =
-            Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil))
+            Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(key, Nil))
 
           def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
-            val newMsg = s"$k ${f.msg}"
             f.res match {
-              case null => Result.Failure(error = newMsg, tickerPrefix = keyPrefix)
-              case res => res.copy(error = newMsg, tickerPrefix = keyPrefix)
+              // If there is no associated `Result.Failure`,
+              // synthesize one based on the `key` and the `f.msg`
+              case null => Result.Failure(error = s"$key ${f.msg}", tickerPrefix = keyPrefix)
+              case res =>
+                // If there is an associated `Result.Failure` with no prefix, set the prefix to the
+                // current `keyPrefix` and prefix `error` with `key`
+                if (res.tickerPrefix == "")
+                  res.copy(error = s"$key ${res.error}", tickerPrefix = keyPrefix)
+                // If there is an associated `Result.Failure` with its own prefix, preserve it
+                // and chain together a new `Result.Failure` entry representing the current key
+                else Result.Failure(error = s"$key", tickerPrefix = keyPrefix, next = Some(res))
             }
           }
 
@@ -360,7 +368,7 @@ object Util {
             case f: ExecResult.Failure[_] => convertFailure(f)
             case ex: ExecResult.Exception =>
               mill.api.daemon.ExecResult.exceptionToFailure(ex.throwable, ex.outerStack).copy(
-                error = k.toString,
+                error = key.toString,
                 tickerPrefix = keyPrefix
               )
           }

@@ -167,7 +167,10 @@ object MillMain0 {
 
             case Result.Success(config) =>
               val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
-              val colored = config.color.getOrElse(mainInteractive && !noColorViaEnv)
+              val forceColorViaEnv = env.get("FORCE_COLOR").exists(_.nonEmpty)
+              val colored = config.color.getOrElse(
+                (mainInteractive || forceColorViaEnv) && !noColorViaEnv
+              )
               val colors =
                 if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
 
