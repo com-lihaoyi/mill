@@ -23,7 +23,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("noticker") - integrationTest { tester =>
       import tester._
 
-      val res = eval(("--ticker", "false", "run", "--text", "hello"))
+      val res = eval(("--ticker", "false", "run", "--text", "hello"), propagateEnv = false)
 
       res.isSuccess ==> true
       assert(res.out == "<h1>hello</h1>")
@@ -43,7 +43,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("ticker") - integrationTest { tester =>
       import tester._
 
-      val res = eval(("--ticker", "true", "run", "--text", "hello"))
+      val res = eval(("--ticker", "true", "run", "--text", "hello"), propagateEnv = false)
       res.isSuccess ==> true
 
       assertGoldenLiteral(
@@ -100,7 +100,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       import tester._
 
       modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar")
-      val res = eval(("--ticker", "true", "--keep-going", "jar"))
+      val res = eval(("--ticker", "true", "--keep-going", "jar"), propagateEnv = false)
       res.isSuccess ==> false
 
       assertGoldenLiteral(
@@ -125,7 +125,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       import tester._
       modifyFile(workspacePath / "build.mill", _ + "?")
 
-      val res2 = eval(("--ticker", "true", "--keep-going", "jar"))
+      val res2 = eval(("--ticker", "true", "--keep-going", "jar"), propagateEnv = false)
       res2.isSuccess ==> false
 
       assertGoldenLiteral(
@@ -149,7 +149,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // Make sure when we have nested evaluations, e.g. due to usage of evaluator commands
       // like `show`, both outer and inner evaluations hae their metadata end up in the
       // same profile files so a user can see what's going on in either
-      eval(("show", "compile"))
+      eval(("show", "compile"), propagateEnv = false)
       val millProfile = ujson.read(os.read(workspacePath / OutFiles.out / "mill-profile.json")).arr
       val millChromeProfile =
         ujson.read(os.read(workspacePath / OutFiles.out / "mill-chrome-profile.json")).arr
@@ -170,7 +170,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("exception") - integrationTest { tester =>
       import tester._
 
-      val res = eval(("--ticker", "true", "exception"), mergeErrIntoOut = true)
+      val res = eval(("--ticker", "true", "exception"), mergeErrIntoOut = true, propagateEnv = false)
       res.isSuccess ==> false
 
       assertGoldenLiteral(
@@ -218,7 +218,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         )
       }
 
-      val res = eval(("-i", "--ticker", "true", "test.run"))
+      val res = eval(("-i", "--ticker", "true", "test.run"), propagateEnv = false)
 
       assert(res.isSuccess)
       assertGoldenLiteral(
@@ -289,7 +289,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       )
       // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
       retry(3) {
-        val res2 = eval(("-i", "--ticker=true", "--color=true", "test"), mergeErrIntoOut = true)
+        val res2 = eval(("-i", "--ticker=true", "--color=true", "test"), mergeErrIntoOut = true, propagateEnv = false)
         assertGoldenLiteral(
           normalize(res2.result.out.text()),
           List(
@@ -365,7 +365,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         )
       }
 
-      val res3 = eval(("-i", "--ticker", "true", "test.printColors"))
+      val res3 = eval(("-i", "--ticker", "true", "test.printColors"), propagateEnv = false)
 
       assertGoldenLiteral(
         normalize(res3.result.out.text()),
@@ -437,7 +437,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
       retry(3) {
         val res4 =
-          eval(("-i", "--ticker=true", "--color=true", "test.printColors"), mergeErrIntoOut = true)
+          eval(("-i", "--ticker=true", "--color=true", "test.printColors"), mergeErrIntoOut = true, propagateEnv = false)
 
         assertGoldenLiteral(
           normalize(res4.result.out.text()),
