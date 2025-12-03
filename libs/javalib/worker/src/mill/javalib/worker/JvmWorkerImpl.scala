@@ -131,7 +131,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           false // openSocket
         )
 
-        SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer, launched.locks)
+        SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer, fileLocks)
       },
       closeValue = value => {
         os.remove(value.daemonDir / DaemonFiles.processId)
