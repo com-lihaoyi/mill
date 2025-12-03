@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Scala Single-File Scripts :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/scalalib/script.html">
+    <link rel="prev" href="config.html">
+    <link rel="next" href="module-config.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.1.0-RC2-79-66b078">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.1.0-RC2-79-66b078</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.1.0-RC2-79-66b078</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.1.0-RC2</a>
+        </li>
+        <li class="version">
+          <a href="../../1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Scala Single-File Scripts</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page documents the use cases and features of Mill&#8217;s single-file Scala modules, or "scripts".
+These are Scala modules with a single source file, with build configuration included
+in a header comment block at the top of the file.</p>
+</div>
+<div class="paragraph">
+<p>Scala single-file scripts can be standalone or <a href="#_project_moduledeps">part of a larger Mill project</a>.
+They can be run via <code>./mill Foo.scala</code> from the command line, or have other tasks on
+them executed via <code>./mill Foo.scala:compile</code> or <code>./mill Foo.scala:assembly</code>.
+Apart from being limited to a single source file, single-file script modules otherwise
+support all the same tasks that normal <code>ScalaModule</code>s do.</p>
+</div>
+<div class="paragraph">
+<p>Mill Single-file Scala programs can make it more convenient to script simple command-line
+workflows interacting with files, subprocesses, and HTTP endpoints. This section walks through
+a few examples where one-off single-file Scala programs can be useful in day-to-day
+development and how you can configure them.</p>
+</div>
+<div class="paragraph">
+<p>While initially single-file Scala programs may be a bit more verbose than the equivalent
+Bash script containing <code>cp</code> or <code>curl</code> commands, as the script grows in complexity the value
+of IDE support, typechecking, and JVM libraries makes writing them in Scala an attractive
+proposition. This is especially true if you already have developers fluent in Scala which
+may not be as familiar with the intricacies of writing robust and maintainable Bash code.</p>
+</div>
+<div class="paragraph">
+<p>Mill Scala scripts typically make use of their <a href="#_bundled_libraries">Bundled Libraries</a>
+to provide an easy-to-get-started experience writing Scala scripts.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_script_use_cases"><a class="anchor" href="#_script_use_cases"></a>Script Use Cases</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_html_web_scraper"><a class="anchor" href="#_html_web_scraper"></a>HTML Web Scraper</h3>
+<div class="paragraph">
+<p>Below is crawler that scrapes Wikipedia&#8217;s 's HTML pages using JSoup.
+JSoup is not bundled with Mill, but can be included easily via <code>mvnDeps</code> header declaration:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-1-html-scraper.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/1-html-scraper/HtmlScraper.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [org.jsoup:jsoup:1.7.2]
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" =&gt; rest }
+}
+
+@main
+def main(startArticle: String, depth: Int) = {
+  var seen = Set(startArticle)
+  var current = Set(startArticle)
+  for (i &lt;- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+
+  pprint.log(seen, height = Int.MaxValue)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill HtmlScraper.scala --start-article singapore --depth 1
+...
+  "Hokkien",
+  "Conscription_in_Singapore",
+  "Malaysia_Agreement",
+  "Government_of_Singapore",
+...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_json_api_client"><a class="anchor" href="#_json_api_client"></a>JSON API Client</h3>
+<div class="paragraph">
+<p>Below is another web crawler, but instead of crawling Wikipedia&#8217;s HTML pages using JSoup,
+it uses Mill&#8217;s bundled Scala libraries to write a
+crawls wikipedia&#8217;s JSON API and saves the crawl results to a file:</p>
+</div>
+<div class="listingblock">
+<div class="title">JsonApiClient.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-2-json-api-client.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/2-json-api-client/JsonApiClient.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def fetchLinks(title: String): Seq[String] = {
+  val resp = requests.get.stream(
+    "https://en.wikipedia.org/w/api.php",
+    params = Seq(
+      "action" -&gt; "query",
+      "titles" -&gt; title,
+      "prop" -&gt; "links",
+      "format" -&gt; "json"
+    )
+  )
+  for {
+    page &lt;- ujson.read(resp)("query")("pages").obj.values.toSeq
+    links &lt;- page.obj.get("links").toSeq
+    link &lt;- links.arr
+  } yield link("title").str
+}
+
+@main
+def main(startArticle: String, depth: Int) = {
+  var seen = Set(startArticle)
+  var current = Set(startArticle)
+  for (i &lt;- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+
+  pprint.log(seen)
+  os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4))
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill JsonApiClient.scala --start-article singapore --depth 2
+...
+  "Calling code",
+  "+65",
+  "British Empire",
+  "1st Parliament of Singapore",
+...
+)
+
+&gt; cat fetched.json
+[
+    "Calling code",
+    "+65",
+    "British Empire",
+    "1st Parliament of Singapore",
+    ...
+]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_web_server"><a class="anchor" href="#_web_server"></a>Web Server</h3>
+<div class="paragraph">
+<p>This example shows off running a simple webserver in a single-file script. While
+a production-quality website is a lot more complex and would need a proper <code>build.mill</code>
+file, sometimes you just need a simple webserver running for local testing or experimentation.
+In these scenarios, writing a single-file script in Scala to run the server is a great
+way to start, and it can always grow into a more full-featured project later if necessary.</p>
+</div>
+<div class="paragraph">
+<p>In this example, the webserver script uses the <a href="https://github.com/com-lihaoyi/cask">Cask</a> framework
+to run the web server</p>
+</div>
+<div class="listingblock">
+<div class="title">WebServer.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-3-web-server.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/3-web-server/WebServer.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [com.lihaoyi::cask:0.9.1]
+
+object WebServer extends cask.MainRoutes {
+  @cask.post("/reverse-string")
+  def doThing(request: cask.Request) = {
+    request.text().reverse
+  }
+
+  initialize()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill WebServer.scala:runBackground
+
+&gt; curl -d 'helloworld' localhost:8080/reverse-string
+dlrowolleh</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_database_queries"><a class="anchor" href="#_database_queries"></a>Database Queries</h3>
+<div class="paragraph">
+<p>This example shows populating and querying a simple database using a Scala script.
+While you often want to query databases using SQL directly, sometimes it is useful to be
+be able to query them programmatically from Scala, possibly making use of the Scala
+libraries and application code you use in the rest of your codebase. It uses a local
+Sqlite database populated by the contents of a local <code>sqlite-customers.sql</code> file.</p>
+</div>
+<div class="paragraph">
+<p>In this case, we make use of the popular <a href="https://github.com/com-lihaoyi/scalasql">ScalaSql</a>
+library to perform the queries:</p>
+</div>
+<div class="listingblock">
+<div class="title">Database.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-4-database.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/4-database/Database.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//| - com.lihaoyi::scalasql:0.2.3
+//| - com.lihaoyi::scalasql-namedtuples:0.2.3
+//| - org.xerial:sqlite-jdbc:3.43.0.0
+
+import scalasql.simple._, SqliteDialect._
+import java.time.LocalDate
+
+case class Buyer(id: Int, name: String, dateOfBirth: LocalDate)
+object Buyer extends SimpleTable[Buyer]
+
+case class ShippingInfo(id: Int, buyerId: Int, shippingDate: LocalDate)
+object ShippingInfo extends SimpleTable[ShippingInfo]
+
+def main(args: Array[String]): Unit = {
+  // Initialize database
+  val dataSource = new org.sqlite.SQLiteDataSource()
+  dataSource.setUrl(s"jdbc:sqlite:./file.db")
+  val sqliteClient = new scalasql.DbClient.DataSource(dataSource, config = new scalasql.Config {})
+
+  sqliteClient.transaction { db =&gt;
+    db.updateRaw(os.read(os.pwd / "sqlite-customers.sql")) // Populate database from SQL file
+
+    val names = db.run( // Find names of buyers whose shipping date is today or later
+      Buyer.select.join(ShippingInfo)(_.id === _.buyerId)
+        .filter { case (b, s) =&gt; s.shippingDate &gt;= LocalDate.parse(args(0)) }
+        .map { case (b, s) =&gt; b.name })
+
+    for (name &lt;- names) println(name)
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Database.scala 2011-01-01
+James Bond
+John Doe</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_static_site_generator"><a class="anchor" href="#_static_site_generator"></a>Static Site Generator</h3>
+<div class="paragraph">
+<p>This example is a small static site generator written as a single-file Scala script.
+It lists markdown files in a <code>post/</code> folder, converts them to HTML using the
+<a href="https://github.com/commonmark/commonmark-java">Commonmark-Java</a> library, wraps them in
+a HTML template and writes them to HTML files in an <code>out/</code> folder along with an <code>index.html</code>
+page that links to them:</p>
+</div>
+<div class="listingblock">
+<div class="title">StaticSite.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-5-static-site.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/5-static-site/StaticSite.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//| - com.lihaoyi::scalatags:0.13.1
+//| - com.atlassian.commonmark:commonmark:0.13.1
+import scalatags.Text.all._
+
+@main def main() = {
+  val postInfo = os
+    .list(os.pwd / "post")
+    .map { p =&gt;
+      val s"$prefix - $suffix.md" = p.last
+      (prefix, suffix, p)
+    }
+    .sortBy(_._1.toInt)
+
+  os.remove.all(os.pwd / "site-out")
+  os.makeDir.all(os.pwd / "site-out/post")
+
+  for ((_, suffix, path) &lt;- postInfo) {
+    val parser = org.commonmark.parser.Parser.builder().build()
+    val document = parser.parse(os.read(path))
+    val renderer = org.commonmark.renderer.html.HtmlRenderer.builder().build()
+    val output = renderer.render(document)
+    os.write(
+      os.pwd / "site-out/post" / (suffix.replace(" ", "-").toLowerCase + ".html"),
+      doctype("html")(
+        html(
+          body(
+            h1(a("Blog"), " / ", suffix),
+            raw(output)
+          )
+        )
+      )
+    )
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -i StaticSite.scala
+
+&gt; cat site-out/post/my-first-post.html
+&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;&lt;h1&gt;&lt;a&gt;Blog&lt;/a&gt; / My First Post&lt;/h1&gt;&lt;p&gt;Sometimes you want numbered lists:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;One&lt;/li&gt;
+&lt;li&gt;Two&lt;/li&gt;
+&lt;li&gt;Three&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/body&gt;&lt;/html&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_packaging_assemblies_and_native_binaries"><a class="anchor" href="#_packaging_assemblies_and_native_binaries"></a>Packaging Assemblies and Native Binaries</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill Single-File Scripts can be packaged into executable assemblies or Graal
+native images for convenient distribution or deployment. Note that to create
+Graal native image binaries, you need to define your <code>jvmId</code> to be a <code>graalvm</code>
+version</p>
+</div>
+<div class="listingblock">
+<div class="title">Bar.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-6-packaging.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/6-packaging/Bar.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalaVersion: 3.7.3
+//| jvmId: "graalvm-community:17"
+//| nativeImageOptions: ["--no-fallback"]
+@main def main() = {
+  println("Hello World")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Bar.scala:assembly
+
+&gt; ./out/Bar.scala/assembly.dest/out.jar # mac/linux
+Hello World
+
+&gt; ./mill Bar.scala:nativeImage
+
+&gt; ./out/Bar.scala/nativeImage.dest/native-executable
+Hello World</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_opening_a_script_repl"><a class="anchor" href="#_opening_a_script_repl"></a>Opening a Script REPL</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To open a Scala REPL with your script loaded and available, you can use the following command.
+This can be useful to interactively exercise and experiment with the code defined in
+your script.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">./mill -i Foo.scala:console</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_custom_script_module_classes"><a class="anchor" href="#_custom_script_module_classes"></a>Custom Script Module Classes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default, Mill single-file Scala modules inherit their behavior from the builtin
+<code>mill.script.ScalaModule</code>.
+However, you can also customize them to inherit from a custom <code>Module</code> class that you define
+as part of your meta-build in <code>mill-build/src/</code>. For example, if we want to add a resource
+file generated by processing the source file of the script, this can be done in a custom
+<code>LineCountScalaModule</code> as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">Qux.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-7-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/7-custom-class/Qux.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: [millbuild.LineCountScalaModule]
+//| scalaVersion: 3.7.3
+package qux
+
+def getLineCount() = {
+  scala.io.Source
+    .fromResource("line-count.txt")
+    .mkString
+}
+
+@main def main() = {
+  println(s"Line Count: ${getLineCount()}")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">mill-build/src/LineCountScalaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-7-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/7-custom-class/mill-build/src/LineCountScalaModule.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
+import mill.*, scalalib.*
+
+class LineCountScalaModule(scriptConfig: mill.api.ScriptModule.Config)
+    extends mill.script.ScalaModule(scriptConfig) {
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Qux.scala
+...
+Line Count: 17
+
+&gt; ./mill show Qux.scala:lineCount
+17</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Your custom <code>LineCountScalaModule</code> must be a <code>class</code> take a
+<code>mill.script.ScriptModule.Config</code> as a parameter that is passed to the
+<code>mill.script.ScalaModule</code>. Custom script module classes allows you to
+customize the semantics of your Java, Scala, or Kotlin single-file script modules.
+If you have a large number of scripts with a similar configuration, or you need
+customizations that cannot be done in the YAML build header, placing these customizations
+in a custom script module class can let you centrally define the behavior and standardize
+it across all scripts that inherit it via <code>extends.</code></p>
+</div>
+<div class="paragraph">
+<p>Note that single-file scripts can only inherit from a single concrete module <code>class</code>,
+unlike normal <a href="../javalib/intro.html#_config_based_modules" class="xref page">config-based</a> or
+<a href="../javalib/intro.html#_programmatic_modules" class="xref page">programmatic modules</a> that can inherit
+from one-or-more abstract module `trait`s. This difference arises from the way scripts
+are instantiated dynamically when resolved, rather than being compiled ahead-of-time like
+other modules are.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_relative_and_absolute_script_moduledeps"><a class="anchor" href="#_relative_and_absolute_script_moduledeps"></a>Relative and Absolute Script moduleDeps</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill single-file scripts can import each other via either relative or absolute imports.
+For example, given a <code>bar/Bar.scala</code> file such as below:</p>
+</div>
+<div class="listingblock">
+<div class="title">bar/Bar.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-8-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/8-relative-imports/bar/Bar.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalaVersion: 3.7.1
+package bar
+
+def generateHtml(text: String) = "&lt;h1&gt;" + text + "&lt;/h1&gt;"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It can be imported via a <code>./Bar.scala</code> import relative to its own enclosing folder
+(in this case <code>bar/</code>), as shown below where it is imported from the <code>bar/BarTests.scala</code>
+test suite in the same folder:</p>
+</div>
+<div class="listingblock">
+<div class="title">bar/BarTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-8-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/8-relative-imports/bar/BarTests.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: [mill.script.ScalaModule.Utest]
+//| moduleDeps: [./Bar.scala]
+//| mvnDeps:
+//| - com.lihaoyi::utest:0.9.1
+package bar
+import utest.*
+object BarTests extends TestSuite {
+  def tests = Tests {
+    assert(generateHtml("hello") == "&lt;h1&gt;hello&lt;/h1&gt;")
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or it can be imported via <code>bar/Bar.scala</code> absolute import, as shown below where it
+is imported from the <code>foo/Foo.scala</code></p>
+</div>
+<div class="listingblock">
+<div class="title">foo/Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-8-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/8-relative-imports/foo/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| moduleDeps: [bar/Bar.scala]
+//| scalaVersion: 3.7.1
+
+package foo
+
+def main(args: Array[String]): Unit = println(bar.generateHtml(args(0)))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This examples can be exercised as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar/Bar.scala:compile
+&gt; ./mill bar/BarTests.scala
+&gt; ./mill foo/Foo.scala --text hello</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_project_moduledeps"><a class="anchor" href="#_project_moduledeps"></a>Project <code>moduleDeps</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Single-file scripts can depend on programmatic modules. This can be useful to integrate
+your scripts into a large project, where your scripts may make of classes and methods
+defined in your library or application code to perform domain-specific actions that may
+not be available in the standard library or third-party libraries.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-9-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/9-programmatic-module-deps">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+object bar extends ScalaModule {
+  def scalaVersion = "3.7.1"
+  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-9-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/9-programmatic-module-deps/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| moduleDeps: [bar]
+
+def main(args: Array[String]) = {
+  println(bar.Bar.generateHtml(args(0)))
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.scala hello
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_script_resources"><a class="anchor" href="#_script_resources"></a>Script Resources</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill single-file Scala modules do not have any classpath resources enabled by
+default, but you can include them via a <code>resources</code> key in the build header:</p>
+</div>
+<div class="listingblock">
+<div class="title">Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-10-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/10-resources/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| resources: ["resources"]
+
+package foo
+
+@main def main() = {
+  println(os.read(os.resource / "file.txt"))
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.scala
+Hello World Resource File</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Classpath resources are useful because unlike files or disk, they get included when
+a script is packaged into an assembly or executable. This means that you can distribute
+the final assembly with access to the classpath resources without needing to worry about
+also distributing loose files used by it.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show Foo.scala:assembly
+".../out/Foo.scala/assembly.dest/out.jar"
+
+&gt; out/Foo.scala/assembly.dest/out.jar
+Hello World Resource File</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_custom_jvm_versions"><a class="anchor" href="#_custom_jvm_versions"></a>Custom JVM Versions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill single-file Scala modules use version zulu:21 of the JVM
+by default. You can customize it by specifying a <code>jvmId</code> in the script header:</p>
+</div>
+<div class="listingblock">
+<div class="title">Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-11-jvm-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/11-jvm-version/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| jvmId: 11.0.21
+//| scalaVersion: 3.7.4
+
+@main def main() = {
+  println("java.version " + System.getProperty("java.version"))
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.scala
+java.version 11.0.21</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that you may need to pick an a compatible version of Scala with your JVM version,
+e.g. in this example as we are setting <code>jvmId</code> to <code>11.x</code>, the default <code>scalaVersion</code> of <code>3.8.x</code>
+is not compatible, and so we need to explicitly set an earlier <code>scalaVersion: 3.7.4</code></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bundled_libraries"><a class="anchor" href="#_bundled_libraries"></a>Bundled Libraries</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill Scala scripts come with a number of bundled libraries for these use cases. These
+are largely the same as the <a href="../fundamentals/bundled-libraries.html" class="xref page">libraries available in Mill build files</a>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/upickle">uPickle</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/PPrint">PPrint</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These libraries can make it more convenient to script simple command-line workflows
+interacting with files, subprocesses, and HTTP endpoints.
+These bundled libraries are only available in single-file scripts for convenience; in
+config-based modules or programmatic modules, you would need to add them to <code>mvnDeps</code> explicitly.
+Furthermore, <code>@main</code> in Mill scala scripts is aliased to <code>@mainargs.main</code>.
+And as we saw earlier, you can include any other libraries you wish using <code>//| mvnDeps</code>.</p>
+</div>
+<div class="paragraph">
+<p>If you do not want these default bundled libraries, you can make your script extend
+<code>mill.script.ScalaModule.Raw</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-12-raw.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/12-raw/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: [mill.script.ScalaModule.Raw]
+
+def main(args: Array[String]): Unit = {
+  println(os.read(os.pwd / "file.txt"))
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.scala
+error: ...Not found: os</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If your script extends <code>mill.script.ScalaModule.Raw</code>, you no longer have access to
+these libraries by default. You can instead use classes from the Java standard library:</p>
+</div>
+<div class="listingblock">
+<div class="title">Bar.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-12-raw.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/12-raw/Bar.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: [mill.script.ScalaModule.Raw]
+
+def main(args: Array[String]): Unit = {
+  println(java.nio.file.Files.readString(java.nio.file.Path.of("file.txt")))
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Bar.scala
+hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or you can include the libraries you need explicitly via <code>mvnDeps</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">Qux.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC2-79-66b078/mill-dist-1.1.0-RC2-79-66b078-example-scalalib-script-12-raw.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC2-79-66b078/example/scalalib/script/12-raw/Qux.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| extends: [mill.script.ScalaModule.Raw]
+//| mvnDeps: [com.lihaoyi::os-lib:0.11.4]
+
+def main(args: Array[String]): Unit = {
+  println(os.read(os.pwd / "file.txt"))
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Qux.scala
+hello</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_script_ide_integration"><a class="anchor" href="#_script_ide_integration"></a>Script IDE Integration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill&#8217;s Intellij/VSCode BSP support treats scripts as single-file modules,
+but differ in how they are discovered. When importing a project
+into your IDE, Mill recursively walks your workspace folder looking for
+<code>.java</code>, <code>.scala</code>, or <code>.kt</code> files that may be scripts, skipping those in:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>sources</code></p>
+</li>
+<li>
+<p><code>out/</code></p>
+</li>
+<li>
+<p><code>**/src/</code></p>
+</li>
+<li>
+<p><code><strong>*/src-</strong>/</code></p>
+</li>
+<li>
+<p><code>**/resources/</code></p>
+</li>
+<li>
+<p><code>**/out/</code></p>
+</li>
+<li>
+<p><code>**/target/</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>While these default script ignore paths should be enough for most projects,
+you can add additional folders to this list via <code>//| bspScriptIgnore: [&#8230;&#8203;]</code>
+in your <code>build.mill</code> or <code>mill-build: bspScriptIgnore: [&#8230;&#8203;]</code> in your
+<code>build.mill.yaml</code>. <code>bspScriptIgnore</code> takes a sequence of strings that
+follow the <code>.gitignore</code> syntax, allowing:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>*</code> for wildcards within a single path segment</p>
+</li>
+<li>
+<p><code>**</code> for wildcards across multiple path segments</p>
+</li>
+<li>
+<p><code>!</code> to negate an ignore line.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This can be useful if your proj</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="config.html">Config-Based Scala Modules</a></span>
+  <span class="next"><a href="module-config.html">Scala Module Configuration</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>
