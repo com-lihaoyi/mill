@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>The Mill Evaluation Model :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/depth/evaluation-model.html">
+    <link rel="prev" href="../large/multi-language-builds.html">
+    <link rel="next" href="caching.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.1.0-RC2-78-d9bc9a">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.1.0-RC2-78-d9bc9a</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.1.0-RC2-78-d9bc9a</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.1.0-RC2</a>
+        </li>
+        <li class="version">
+          <a href="../../1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">The Mill Evaluation Model</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page does a deep dive on how Mill evaluates your build tasks, so you can better understand
+what Mill is doing behind the scenes when building your project.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example_project"><a class="anchor" href="#_example_project"></a>Example Project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For the purposes of this article, we will be using the following example build
+as the basis for discussion:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule {}
+
+object bar extends JavaModule {
+  def moduleDeps = Seq(foo)
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    Seq(PathRef(Task.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a simple two-module build with two <code>JavaModule</code>s, one that depends on the other.
+There is a custom task <code>bar.lineCount</code> implemented that replaces the default <code>resources/</code>
+folder with a generated resource file for use at runtime, as a simple example of a
+<a href="../javalib/intro.html#_custom_build_logic" class="xref page">Custom Build Logic</a>.</p>
+</div>
+<div class="paragraph">
+<p>This expects the source layout:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">foo/
+    src/
+        *.java files
+    package.mill (optional)
+bar/
+    src/
+        *.java files
+    package.mill (optional)
+build.mill</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can operate on this build via commands such as</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.compile
+
+&gt; ./mill foo.run
+
+&gt; ./mill _.assembly # evaluates both foo.compile and bar.compile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For the purposes of this article, we will consider what happens when you run
+<code>./mill _.assembly</code> on the above example codebase.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_primary_phases"><a class="anchor" href="#_primary_phases"></a>Primary Phases</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_compilation"><a class="anchor" href="#_compilation"></a>Compilation</h3>
+<div class="paragraph">
+<p>Initial <code>.mill</code> build files:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">bar/
+    package.mill #optional
+foo/
+    package.mill #optional
+build.mill</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This stage involves compiling your <code>build.mill</code> and any
+<a href="../large/multi-file-builds.html" class="xref page">subfolder package.mill files</a> into JVM classfiles.
+Mill build files are <a href="why-scala.html" class="xref page">written in Scala</a>, so this is done
+using the normal Mill Scala compilation toolchain (<code>mill.scalalib.ScalaModule</code>), with
+some minor pre-processing to turn <code>.mill</code> files into valid <code>.scala</code> files.</p>
+</div>
+<div class="paragraph">
+<p>Compilation of your build is <em>global</em> but <em>incremental</em>: running any <code>./mill</code> command
+requires that you compile all <code>build.mill</code> and <code>package.mill</code> files in your entire
+project, which can take some time the first time you run a <code>./mill</code> command in a project.
+However, once that is done, updates to any <code>.mill</code> file are re-compiled incrementally,
+such that updates can happen relatively quickly even in large projects.</p>
+</div>
+<div class="paragraph">
+<p>After compilation, the <code>.mill</code> files are converted into JVM classfiles as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">bar/
+    package.class
+foo/
+    package.class
+build.class</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These classfiles are dynamically loaded into the Mill process and instantiated into
+a concrete Mill <code>RootModule</code> object, which is then used in the subsequent tasks below:</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_resolution"><a class="anchor" href="#_resolution"></a>Resolution</h3>
+<div class="paragraph">
+<p>Resolution converts the Mill <a href="../cli/query-syntax.html" class="xref page">task selector</a> <code>_.assembly</code> given from the command line
+into a list of<a href="../fundamentals/tasks.html" class="xref page">Task</a> objects. This explores the <code>build</code> and <code>package</code>
+files generated in the <a href="#_compilation">Compilation</a> step above, instantiates the <a href="../fundamentals/modules.html" class="xref page">Modules</a>
+and <a href="../fundamentals/tasks.html" class="xref page">Tasks</a> as necessary, and returns a list of the final tasks that
+were selected by selector:</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="206px" height="154px"
+ viewBox="0.00 0.00 205.87 154.40" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 150.4)">
+<title>G</title>
+<!-- build -->
+<g id="node1" class="node">
+<title>build</title>
+<polygon fill="white" stroke="black" points="121.41,-146.3 76.85,-146.3 76.85,-121.7 121.41,-121.7 121.41,-146.3"/>
+<text text-anchor="middle" x="99.13" y="-129.8" font-family="Times,serif" font-size="14.00">build</text>
+</g>
+<!-- foo -->
+<g id="node2" class="node">
+<title>foo</title>
+<polygon fill="white" stroke="black" points="90.29,-85.5 55.97,-85.5 55.97,-60.9 90.29,-60.9 90.29,-85.5"/>
+<text text-anchor="middle" x="73.13" y="-69" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<!-- build&#45;&gt;foo -->
+<g id="edge1" class="edge">
+<title>build&#45;&gt;foo</title>
+<path fill="none" stroke="black" d="M94.12,-121.66C90.74,-114.02 86.18,-103.71 82.17,-94.65"/>
+<polygon fill="black" stroke="black" points="85.37,-93.23 78.13,-85.5 78.97,-96.06 85.37,-93.23"/>
+</g>
+<!-- bar -->
+<g id="node4" class="node">
+<title>bar</title>
+<polygon fill="white" stroke="black" points="156.01,-85.5 122.25,-85.5 122.25,-60.9 156.01,-60.9 156.01,-85.5"/>
+<text text-anchor="middle" x="139.13" y="-69" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- build&#45;&gt;bar -->
+<g id="edge3" class="edge">
+<title>build&#45;&gt;bar</title>
+<path fill="none" stroke="black" d="M106.84,-121.66C112.21,-113.77 119.51,-103.05 125.8,-93.79"/>
+<polygon fill="black" stroke="black" points="128.71,-95.74 131.44,-85.5 122.92,-91.8 128.71,-95.74"/>
+</g>
+<!-- foo.assembly -->
+<g id="node3" class="node">
+<title>foo.assembly</title>
+<polygon fill="white" stroke="black" points="90.39,-24.7 -0.13,-24.7 -0.13,-0.1 90.39,-0.1 90.39,-24.7"/>
+<text text-anchor="middle" x="45.13" y="-8.2" font-family="Times,serif" font-size="14.00">foo.assembly</text>
+</g>
+<!-- foo&#45;&gt;foo.assembly -->
+<g id="edge2" class="edge">
+<title>foo&#45;&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M67.73,-60.86C64.09,-53.22 59.18,-42.91 54.87,-33.85"/>
+<polygon fill="black" stroke="black" points="57.97,-32.23 50.51,-24.7 51.65,-35.24 57.97,-32.23"/>
+</g>
+<!-- bar.assembly -->
+<g id="node5" class="node">
+<title>bar.assembly</title>
+<polygon fill="white" stroke="black" points="198.11,-24.7 108.15,-24.7 108.15,-0.1 198.11,-0.1 198.11,-24.7"/>
+<text text-anchor="middle" x="153.13" y="-8.2" font-family="Times,serif" font-size="14.00">bar.assembly</text>
+</g>
+<!-- bar&#45;&gt;bar.assembly -->
+<g id="edge4" class="edge">
+<title>bar&#45;&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M141.83,-60.86C143.61,-53.38 146,-43.35 148.12,-34.43"/>
+<polygon fill="black" stroke="black" points="151.53,-35.24 150.44,-24.7 144.72,-33.62 151.53,-35.24"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>Mill starts from the root module <code>build</code> instantiated after <a href="#_compilation">Compilation</a>, and uses
+Java reflection to walk the tree of modules and tasks to find the tasks that match
+your given selector.</p>
+</div>
+<div class="paragraph">
+<p>Task and module resolution is <em>lazy</em>, so only modules that are required by the given
+selector <code>_.assembly</code> are instantiated. This can help keep task resolution fast even
+when working within a large codebase by avoiding instantiation of modules that are
+unrelated to the selector you are running.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_planning"><a class="anchor" href="#_planning"></a>Planning</h3>
+<div class="paragraph">
+<p>Planning is the step of turning the tasks selected during <a href="#_resolution">Resolution</a> into a full
+build graph that includes all transitive upstream dependencies. This is done by
+traversing the graph of task dependencies, and generates a (simplified) task graph
+as shown below:</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="620px" height="248px"
+ viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
+<title>G</title>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
+<text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<!-- foo.sources -->
+<g id="node1" class="node">
+<title>foo.sources</title>
+<polygon fill="white" stroke="black" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"/>
+<text text-anchor="middle" x="56.07" y="-139.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
+</g>
+<!-- foo.compile -->
+<g id="node2" class="node">
+<title>foo.compile</title>
+<polygon fill="white" stroke="black" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"/>
+<text text-anchor="middle" x="173.77" y="-139.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
+</g>
+<!-- foo.sources&#45;&gt;foo.compile -->
+<g id="edge1" class="edge">
+<title>foo.sources&#45;&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"/>
+<polygon fill="black" stroke="black" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"/>
+</g>
+<!-- foo.classPath -->
+<g id="node3" class="node">
+<title>foo.classPath</title>
+<polygon fill="white" stroke="black" points="342.96,-156.3 252.44,-156.3 252.44,-131.7 342.96,-131.7 342.96,-156.3"/>
+<text text-anchor="middle" x="297.7" y="-139.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
+</g>
+<!-- foo.compile&#45;&gt;foo.classPath -->
+<g id="edge2" class="edge">
+<title>foo.compile&#45;&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M215.71,-144C224.16,-144 233.2,-144 242.05,-144"/>
+<polygon fill="black" stroke="black" points="242.31,-147.5 252.31,-144 242.31,-140.5 242.31,-147.5"/>
+</g>
+<!-- foo.assembly -->
+<g id="node4" class="node">
+<title>foo.assembly</title>
+<polygon fill="white" stroke="black" points="470.39,-177.3 379.87,-177.3 379.87,-152.7 470.39,-152.7 470.39,-177.3"/>
+<text text-anchor="middle" x="425.13" y="-160.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
+</g>
+<!-- foo.classPath&#45;&gt;foo.assembly -->
+<g id="edge3" class="edge">
+<title>foo.classPath&#45;&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M342.92,-151.4C351.63,-152.86 360.87,-154.41 369.87,-155.91"/>
+<polygon fill="black" stroke="black" points="369.44,-159.39 379.88,-157.59 370.6,-152.49 369.44,-159.39"/>
+</g>
+<!-- bar.compile -->
+<g id="node7" class="node">
+<title>bar.compile</title>
+<polygon fill="white" stroke="black" points="339.18,-83.3 256.22,-83.3 256.22,-58.7 339.18,-58.7 339.18,-83.3"/>
+<text text-anchor="middle" x="297.7" y="-66.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
+</g>
+<!-- foo.classPath&#45;&gt;bar.compile -->
+<g id="edge11" class="edge">
+<title>foo.classPath&#45;&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M297.7,-131.25C297.7,-118.7 297.7,-106.16 297.7,-93.61"/>
+<polygon fill="black" stroke="black" points="301.2,-93.55 297.7,-83.55 294.2,-93.55 301.2,-93.55"/>
+</g>
+<!-- bar.classPath -->
+<g id="node8" class="node">
+<title>bar.classPath</title>
+<polygon fill="white" stroke="black" points="470.1,-83.3 380.16,-83.3 380.16,-58.7 470.1,-58.7 470.1,-83.3"/>
+<text text-anchor="middle" x="425.13" y="-66.8" font-family="Times,serif" font-size="14.00">bar.classPath</text>
+</g>
+<!-- foo.classPath&#45;&gt;bar.classPath -->
+<g id="edge12" class="edge">
+<title>foo.classPath&#45;&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M322.83,-131.57C329.72,-127.93 337.19,-123.88 344,-120 361.53,-110.01 380.83,-98.23 396.09,-88.73"/>
+<polygon fill="black" stroke="black" points="397.95,-91.69 404.57,-83.42 394.24,-85.76 397.95,-91.69"/>
+</g>
+<!-- foo.resources -->
+<g id="node5" class="node">
+<title>foo.resources</title>
+<polygon fill="white" stroke="black" points="343.22,-199.3 252.19,-199.3 252.19,-174.7 343.22,-174.7 343.22,-199.3"/>
+<text text-anchor="middle" x="297.7" y="-182.8" font-family="Times,serif" font-size="14.00">foo.resources</text>
+</g>
+<!-- foo.resources&#45;&gt;foo.assembly -->
+<g id="edge4" class="edge">
+<title>foo.resources&#45;&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M343.28,-179.18C351.87,-177.67 360.96,-176.08 369.83,-174.52"/>
+<polygon fill="black" stroke="black" points="370.45,-177.97 379.7,-172.79 369.24,-171.07 370.45,-177.97"/>
+</g>
+<!-- bar.sources -->
+<g id="node6" class="node">
+<title>bar.sources</title>
+<polygon fill="white" stroke="black" points="213.63,-61.3 133.92,-61.3 133.92,-36.7 213.63,-36.7 213.63,-61.3"/>
+<text text-anchor="middle" x="173.77" y="-44.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
+</g>
+<!-- bar.sources&#45;&gt;bar.compile -->
+<g id="edge5" class="edge">
+<title>bar.sources&#45;&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M213.69,-56.02C223.93,-57.87 235.14,-59.89 245.91,-61.84"/>
+<polygon fill="black" stroke="black" points="245.59,-65.34 256.06,-63.67 246.84,-58.45 245.59,-65.34"/>
+</g>
+<!-- bar.lineCount -->
+<g id="node10" class="node">
+<title>bar.lineCount</title>
+<polygon fill="white" stroke="black" points="343.8,-40.3 251.6,-40.3 251.6,-15.7 343.8,-15.7 343.8,-40.3"/>
+<text text-anchor="middle" x="297.7" y="-23.8" font-family="Times,serif" font-size="14.00">bar.lineCount</text>
+</g>
+<!-- bar.sources&#45;&gt;bar.lineCount -->
+<g id="edge8" class="edge">
+<title>bar.sources&#45;&gt;bar.lineCount</title>
+<path fill="none" stroke="black" d="M213.69,-42.3C222.49,-40.78 232,-39.14 241.34,-37.54"/>
+<polygon fill="black" stroke="black" points="242.09,-40.96 251.35,-35.81 240.91,-34.06 242.09,-40.96"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.classPath -->
+<g id="edge6" class="edge">
+<title>bar.compile&#45;&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M339.08,-71C348.96,-71 359.69,-71 370.1,-71"/>
+<polygon fill="black" stroke="black" points="370.36,-74.5 380.36,-71 370.36,-67.5 370.36,-74.5"/>
+</g>
+<!-- bar.assembly -->
+<g id="node9" class="node">
+<title>bar.assembly</title>
+<polygon fill="white" stroke="black" points="595.97,-61.3 506.02,-61.3 506.02,-36.7 595.97,-36.7 595.97,-61.3"/>
+<text text-anchor="middle" x="551" y="-44.8" font-family="Times,serif" font-size="14.00">bar.assembly</text>
+</g>
+<!-- bar.classPath&#45;&gt;bar.assembly -->
+<g id="edge7" class="edge">
+<title>bar.classPath&#45;&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M470.15,-63.18C478.55,-61.69 487.42,-60.11 496.09,-58.57"/>
+<polygon fill="black" stroke="black" points="496.89,-61.99 506.12,-56.79 495.66,-55.1 496.89,-61.99"/>
+</g>
+<!-- bar.resources -->
+<g id="node11" class="node">
+<title>bar.resources</title>
+<polygon fill="white" stroke="black" points="470.36,-40.3 379.9,-40.3 379.9,-15.7 470.36,-15.7 470.36,-40.3"/>
+<text text-anchor="middle" x="425.13" y="-23.8" font-family="Times,serif" font-size="14.00">bar.resources</text>
+</g>
+<!-- bar.lineCount&#45;&gt;bar.resources -->
+<g id="edge9" class="edge">
+<title>bar.lineCount&#45;&gt;bar.resources</title>
+<path fill="none" stroke="black" d="M343.98,-28C352.26,-28 360.99,-28 369.51,-28"/>
+<polygon fill="black" stroke="black" points="369.75,-31.5 379.75,-28 369.75,-24.5 369.75,-31.5"/>
+</g>
+<!-- bar.resources&#45;&gt;bar.assembly -->
+<g id="edge10" class="edge">
+<title>bar.resources&#45;&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M470.5,-35.52C478.78,-36.93 487.52,-38.41 496.05,-39.85"/>
+<polygon fill="black" stroke="black" points="495.49,-43.31 505.94,-41.53 496.66,-36.41 495.49,-43.31"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>In this graph, we can see that even though <a href="#_resolution">Resolution</a> only selected <code>foo.assembly</code>
+and <code>bar.assembly</code>, their upstream task graph requires tasks such as <code>foo.compile</code>,
+<code>bar.compile</code>, as well as our custom task <code>bar.lineCount</code> and our override of <code>bar.resources</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can use <a href="../cli/builtin-commands.html#_plan" class="xref page">./mill plan</a> to see what tasks would be
+planned out for a given selector, or run <a href="../cli/builtin-commands.html#_visualizeplan" class="xref page">./mill visualizePlan</a>
+or look at <a href="../fundamentals/out-dir.html#_mill_dependency_tree_json" class="xref page">mill-dependency-tree.json</a> after
+evaluation to see how how these upstream tasks are depended upon by the tasks you selected.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_execution"><a class="anchor" href="#_execution"></a>Execution</h3>
+<div class="paragraph">
+<p>The last phase is execution. Execution depends not only on the tasks you selected at the
+command line, and those discovered during <a href="#_resolution">Resolution</a>, but also what input files changed
+on disk. Tasks that were not affected by input
+changes may have their value loaded from cache (if already evaluated earlier) or skipped entirely
+(e.g. due to <a href="../large/selective-execution.html" class="xref page">Selective Execution</a>).</p>
+</div>
+<div class="paragraph">
+<p>For example, a change to <code>foo/src/*.java</code> would affect the <code>foo.sources</code> task, which
+would invalidate and cause evaluation of the tasks highlighted in red below:</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="620px" height="248px"
+ viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
+<title>G</title>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
+<text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<!-- foo.sources -->
+<g id="node1" class="node">
+<title>foo.sources</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"/>
+<text text-anchor="middle" x="56.07" y="-139.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
+</g>
+<!-- foo.compile -->
+<g id="node2" class="node">
+<title>foo.compile</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"/>
+<text text-anchor="middle" x="173.77" y="-139.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
+</g>
+<!-- foo.sources&#45;&gt;foo.compile -->
+<g id="edge1" class="edge">
+<title>foo.sources&#45;&gt;foo.compile</title>
+<path fill="none" stroke="red" stroke-width="2" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"/>
+</g>
+<!-- foo.classPath -->
+<g id="node3" class="node">
+<title>foo.classPath</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="342.96,-156.3 252.44,-156.3 252.44,-131.7 342.96,-131.7 342.96,-156.3"/>
+<text text-anchor="middle" x="297.7" y="-139.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
+</g>
+<!-- foo.compile&#45;&gt;foo.classPath -->
+<g id="edge2" class="edge">
+<title>foo.compile&#45;&gt;foo.classPath</title>
+<path fill="none" stroke="red" stroke-width="2" d="M215.71,-144C224.16,-144 233.2,-144 242.05,-144"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="242.31,-147.5 252.31,-144 242.31,-140.5 242.31,-147.5"/>
+</g>
+<!-- foo.assembly -->
+<g id="node4" class="node">
+<title>foo.assembly</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="470.39,-177.3 379.87,-177.3 379.87,-152.7 470.39,-152.7 470.39,-177.3"/>
+<text text-anchor="middle" x="425.13" y="-160.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
+</g>
+<!-- foo.classPath&#45;&gt;foo.assembly -->
+<g id="edge3" class="edge">
+<title>foo.classPath&#45;&gt;foo.assembly</title>
+<path fill="none" stroke="red" stroke-width="2" d="M342.92,-151.4C351.63,-152.86 360.87,-154.41 369.87,-155.91"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="369.44,-159.39 379.88,-157.59 370.6,-152.49 369.44,-159.39"/>
+</g>
+<!-- bar.compile -->
+<g id="node7" class="node">
+<title>bar.compile</title>
+<polygon fill="white" stroke="black" points="339.18,-83.3 256.22,-83.3 256.22,-58.7 339.18,-58.7 339.18,-83.3"/>
+<text text-anchor="middle" x="297.7" y="-66.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
+</g>
+<!-- foo.classPath&#45;&gt;bar.compile -->
+<g id="edge11" class="edge">
+<title>foo.classPath&#45;&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M297.7,-131.25C297.7,-118.7 297.7,-106.16 297.7,-93.61"/>
+<polygon fill="black" stroke="black" points="301.2,-93.55 297.7,-83.55 294.2,-93.55 301.2,-93.55"/>
+</g>
+<!-- bar.classPath -->
+<g id="node8" class="node">
+<title>bar.classPath</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="470.1,-83.3 380.16,-83.3 380.16,-58.7 470.1,-58.7 470.1,-83.3"/>
+<text text-anchor="middle" x="425.13" y="-66.8" font-family="Times,serif" font-size="14.00">bar.classPath</text>
+</g>
+<!-- foo.classPath&#45;&gt;bar.classPath -->
+<g id="edge12" class="edge">
+<title>foo.classPath&#45;&gt;bar.classPath</title>
+<path fill="none" stroke="red" stroke-width="2" d="M322.83,-131.57C329.72,-127.93 337.19,-123.88 344,-120 361.53,-110.01 380.83,-98.23 396.09,-88.73"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="397.95,-91.69 404.57,-83.42 394.24,-85.76 397.95,-91.69"/>
+</g>
+<!-- foo.resources -->
+<g id="node5" class="node">
+<title>foo.resources</title>
+<polygon fill="white" stroke="black" points="343.22,-199.3 252.19,-199.3 252.19,-174.7 343.22,-174.7 343.22,-199.3"/>
+<text text-anchor="middle" x="297.7" y="-182.8" font-family="Times,serif" font-size="14.00">foo.resources</text>
+</g>
+<!-- foo.resources&#45;&gt;foo.assembly -->
+<g id="edge4" class="edge">
+<title>foo.resources&#45;&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M343.28,-179.18C351.87,-177.67 360.96,-176.08 369.83,-174.52"/>
+<polygon fill="black" stroke="black" points="370.45,-177.97 379.7,-172.79 369.24,-171.07 370.45,-177.97"/>
+</g>
+<!-- bar.sources -->
+<g id="node6" class="node">
+<title>bar.sources</title>
+<polygon fill="white" stroke="black" points="213.63,-61.3 133.92,-61.3 133.92,-36.7 213.63,-36.7 213.63,-61.3"/>
+<text text-anchor="middle" x="173.77" y="-44.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
+</g>
+<!-- bar.sources&#45;&gt;bar.compile -->
+<g id="edge5" class="edge">
+<title>bar.sources&#45;&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M213.69,-56.02C223.93,-57.87 235.14,-59.89 245.91,-61.84"/>
+<polygon fill="black" stroke="black" points="245.59,-65.34 256.06,-63.67 246.84,-58.45 245.59,-65.34"/>
+</g>
+<!-- bar.lineCount -->
+<g id="node10" class="node">
+<title>bar.lineCount</title>
+<polygon fill="white" stroke="black" points="343.8,-40.3 251.6,-40.3 251.6,-15.7 343.8,-15.7 343.8,-40.3"/>
+<text text-anchor="middle" x="297.7" y="-23.8" font-family="Times,serif" font-size="14.00">bar.lineCount</text>
+</g>
+<!-- bar.sources&#45;&gt;bar.lineCount -->
+<g id="edge8" class="edge">
+<title>bar.sources&#45;&gt;bar.lineCount</title>
+<path fill="none" stroke="black" d="M213.69,-42.3C222.49,-40.78 232,-39.14 241.34,-37.54"/>
+<polygon fill="black" stroke="black" points="242.09,-40.96 251.35,-35.81 240.91,-34.06 242.09,-40.96"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.classPath -->
+<g id="edge6" class="edge">
+<title>bar.compile&#45;&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M339.08,-71C348.96,-71 359.69,-71 370.1,-71"/>
+<polygon fill="black" stroke="black" points="370.36,-74.5 380.36,-71 370.36,-67.5 370.36,-74.5"/>
+</g>
+<!-- bar.assembly -->
+<g id="node9" class="node">
+<title>bar.assembly</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="595.97,-61.3 506.02,-61.3 506.02,-36.7 595.97,-36.7 595.97,-61.3"/>
+<text text-anchor="middle" x="551" y="-44.8" font-family="Times,serif" font-size="14.00">bar.assembly</text>
+</g>
+<!-- bar.classPath&#45;&gt;bar.assembly -->
+<g id="edge7" class="edge">
+<title>bar.classPath&#45;&gt;bar.assembly</title>
+<path fill="none" stroke="red" stroke-width="2" d="M470.15,-63.18C478.55,-61.69 487.42,-60.11 496.09,-58.57"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="496.89,-61.99 506.12,-56.79 495.66,-55.1 496.89,-61.99"/>
+</g>
+<!-- bar.resources -->
+<g id="node11" class="node">
+<title>bar.resources</title>
+<polygon fill="white" stroke="black" points="470.36,-40.3 379.9,-40.3 379.9,-15.7 470.36,-15.7 470.36,-40.3"/>
+<text text-anchor="middle" x="425.13" y="-23.8" font-family="Times,serif" font-size="14.00">bar.resources</text>
+</g>
+<!-- bar.lineCount&#45;&gt;bar.resources -->
+<g id="edge9" class="edge">
+<title>bar.lineCount&#45;&gt;bar.resources</title>
+<path fill="none" stroke="black" d="M343.98,-28C352.26,-28 360.99,-28 369.51,-28"/>
+<polygon fill="black" stroke="black" points="369.75,-31.5 379.75,-28 369.75,-24.5 369.75,-31.5"/>
+</g>
+<!-- bar.resources&#45;&gt;bar.assembly -->
+<g id="edge10" class="edge">
+<title>bar.resources&#45;&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M470.5,-35.52C478.78,-36.93 487.52,-38.41 496.05,-39.85"/>
+<polygon fill="black" stroke="black" points="495.49,-43.31 505.94,-41.53 496.66,-36.41 495.49,-43.31"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>On the other hand a change to <code>bar/src/*.java</code> would affect the <code>bar.sources</code> task, which
+would invalidate and cause evaluation of the tasks highlighted in red below:</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="620px" height="248px"
+ viewBox="0.00 0.00 619.73 248.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
+<title>G</title>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"/>
+<text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"/>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<!-- foo.sources -->
+<g id="node1" class="node">
+<title>foo.sources</title>
+<polygon fill="white" stroke="black" points="96.21,-156.3 15.93,-156.3 15.93,-131.7 96.21,-131.7 96.21,-156.3"/>
+<text text-anchor="middle" x="56.07" y="-139.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
+</g>
+<!-- foo.compile -->
+<g id="node2" class="node">
+<title>foo.compile</title>
+<polygon fill="white" stroke="black" points="215.53,-156.3 132.01,-156.3 132.01,-131.7 215.53,-131.7 215.53,-156.3"/>
+<text text-anchor="middle" x="173.77" y="-139.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
+</g>
+<!-- foo.sources&#45;&gt;foo.compile -->
+<g id="edge1" class="edge">
+<title>foo.sources&#45;&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M96.24,-144C104.53,-144 113.4,-144 122.05,-144"/>
+<polygon fill="black" stroke="black" points="122.06,-147.5 132.06,-144 122.06,-140.5 122.06,-147.5"/>
+</g>
+<!-- foo.classPath -->
+<g id="node3" class="node">
+<title>foo.classPath</title>
+<polygon fill="white" stroke="black" points="342.96,-156.3 252.44,-156.3 252.44,-131.7 342.96,-131.7 342.96,-156.3"/>
+<text text-anchor="middle" x="297.7" y="-139.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
+</g>
+<!-- foo.compile&#45;&gt;foo.classPath -->
+<g id="edge2" class="edge">
+<title>foo.compile&#45;&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M215.71,-144C224.16,-144 233.2,-144 242.05,-144"/>
+<polygon fill="black" stroke="black" points="242.31,-147.5 252.31,-144 242.31,-140.5 242.31,-147.5"/>
+</g>
+<!-- foo.assembly -->
+<g id="node4" class="node">
+<title>foo.assembly</title>
+<polygon fill="white" stroke="black" points="470.39,-177.3 379.87,-177.3 379.87,-152.7 470.39,-152.7 470.39,-177.3"/>
+<text text-anchor="middle" x="425.13" y="-160.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
+</g>
+<!-- foo.classPath&#45;&gt;foo.assembly -->
+<g id="edge3" class="edge">
+<title>foo.classPath&#45;&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M342.92,-151.4C351.63,-152.86 360.87,-154.41 369.87,-155.91"/>
+<polygon fill="black" stroke="black" points="369.44,-159.39 379.88,-157.59 370.6,-152.49 369.44,-159.39"/>
+</g>
+<!-- bar.compile -->
+<g id="node7" class="node">
+<title>bar.compile</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="339.18,-83.3 256.22,-83.3 256.22,-58.7 339.18,-58.7 339.18,-83.3"/>
+<text text-anchor="middle" x="297.7" y="-66.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
+</g>
+<!-- foo.classPath&#45;&gt;bar.compile -->
+<g id="edge11" class="edge">
+<title>foo.classPath&#45;&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M297.7,-131.25C297.7,-118.7 297.7,-106.16 297.7,-93.61"/>
+<polygon fill="black" stroke="black" points="301.2,-93.55 297.7,-83.55 294.2,-93.55 301.2,-93.55"/>
+</g>
+<!-- bar.classPath -->
+<g id="node8" class="node">
+<title>bar.classPath</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="470.1,-83.3 380.16,-83.3 380.16,-58.7 470.1,-58.7 470.1,-83.3"/>
+<text text-anchor="middle" x="425.13" y="-66.8" font-family="Times,serif" font-size="14.00">bar.classPath</text>
+</g>
+<!-- foo.classPath&#45;&gt;bar.classPath -->
+<g id="edge12" class="edge">
+<title>foo.classPath&#45;&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M322.83,-131.57C329.72,-127.93 337.19,-123.88 344,-120 361.53,-110.01 380.83,-98.23 396.09,-88.73"/>
+<polygon fill="black" stroke="black" points="397.95,-91.69 404.57,-83.42 394.24,-85.76 397.95,-91.69"/>
+</g>
+<!-- foo.resources -->
+<g id="node5" class="node">
+<title>foo.resources</title>
+<polygon fill="white" stroke="black" points="343.22,-199.3 252.19,-199.3 252.19,-174.7 343.22,-174.7 343.22,-199.3"/>
+<text text-anchor="middle" x="297.7" y="-182.8" font-family="Times,serif" font-size="14.00">foo.resources</text>
+</g>
+<!-- foo.resources&#45;&gt;foo.assembly -->
+<g id="edge4" class="edge">
+<title>foo.resources&#45;&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M343.28,-179.18C351.87,-177.67 360.96,-176.08 369.83,-174.52"/>
+<polygon fill="black" stroke="black" points="370.45,-177.97 379.7,-172.79 369.24,-171.07 370.45,-177.97"/>
+</g>
+<!-- bar.sources -->
+<g id="node6" class="node">
+<title>bar.sources</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="213.63,-61.3 133.92,-61.3 133.92,-36.7 213.63,-36.7 213.63,-61.3"/>
+<text text-anchor="middle" x="173.77" y="-44.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
+</g>
+<!-- bar.sources&#45;&gt;bar.compile -->
+<g id="edge5" class="edge">
+<title>bar.sources&#45;&gt;bar.compile</title>
+<path fill="none" stroke="red" stroke-width="2" d="M213.69,-56.02C223.93,-57.87 235.14,-59.89 245.91,-61.84"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="245.59,-65.34 256.06,-63.67 246.84,-58.45 245.59,-65.34"/>
+</g>
+<!-- bar.lineCount -->
+<g id="node10" class="node">
+<title>bar.lineCount</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="343.8,-40.3 251.6,-40.3 251.6,-15.7 343.8,-15.7 343.8,-40.3"/>
+<text text-anchor="middle" x="297.7" y="-23.8" font-family="Times,serif" font-size="14.00">bar.lineCount</text>
+</g>
+<!-- bar.sources&#45;&gt;bar.lineCount -->
+<g id="edge8" class="edge">
+<title>bar.sources&#45;&gt;bar.lineCount</title>
+<path fill="none" stroke="red" stroke-width="2" d="M213.69,-42.3C222.49,-40.78 232,-39.14 241.34,-37.54"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="242.09,-40.96 251.35,-35.81 240.91,-34.06 242.09,-40.96"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.classPath -->
+<g id="edge6" class="edge">
+<title>bar.compile&#45;&gt;bar.classPath</title>
+<path fill="none" stroke="red" stroke-width="2" d="M339.08,-71C348.96,-71 359.69,-71 370.1,-71"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="370.36,-74.5 380.36,-71 370.36,-67.5 370.36,-74.5"/>
+</g>
+<!-- bar.assembly -->
+<g id="node9" class="node">
+<title>bar.assembly</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="595.97,-61.3 506.02,-61.3 506.02,-36.7 595.97,-36.7 595.97,-61.3"/>
+<text text-anchor="middle" x="551" y="-44.8" font-family="Times,serif" font-size="14.00">bar.assembly</text>
+</g>
+<!-- bar.classPath&#45;&gt;bar.assembly -->
+<g id="edge7" class="edge">
+<title>bar.classPath&#45;&gt;bar.assembly</title>
+<path fill="none" stroke="red" stroke-width="2" d="M470.15,-63.18C478.55,-61.69 487.42,-60.11 496.09,-58.57"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="496.89,-61.99 506.12,-56.79 495.66,-55.1 496.89,-61.99"/>
+</g>
+<!-- bar.resources -->
+<g id="node11" class="node">
+<title>bar.resources</title>
+<polygon fill="white" stroke="red" stroke-width="2" points="470.36,-40.3 379.9,-40.3 379.9,-15.7 470.36,-15.7 470.36,-40.3"/>
+<text text-anchor="middle" x="425.13" y="-23.8" font-family="Times,serif" font-size="14.00">bar.resources</text>
+</g>
+<!-- bar.lineCount&#45;&gt;bar.resources -->
+<g id="edge9" class="edge">
+<title>bar.lineCount&#45;&gt;bar.resources</title>
+<path fill="none" stroke="red" stroke-width="2" d="M343.98,-28C352.26,-28 360.99,-28 369.51,-28"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="369.75,-31.5 379.75,-28 369.75,-24.5 369.75,-31.5"/>
+</g>
+<!-- bar.resources&#45;&gt;bar.assembly -->
+<g id="edge10" class="edge">
+<title>bar.resources&#45;&gt;bar.assembly</title>
+<path fill="none" stroke="red" stroke-width="2" d="M470.5,-35.52C478.78,-36.93 487.52,-38.41 496.05,-39.85"/>
+<polygon fill="red" stroke="red" stroke-width="2" points="495.49,-43.31 505.94,-41.53 496.66,-36.41 495.49,-43.31"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>In the example changing <code>bar/src/*.java</code>, Mill may also take the opportunity to parallelize
+things:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>bar.compile</code> and <code>bar.classPath</code> can run on a separate thread from <code>bar.lineCount</code> and <code>bar.resources</code></p>
+</li>
+<li>
+<p><code>bar.assembly</code> must wait for both <code>bar.classPath</code> and <code>bar.resources</code> to complete before proceeding.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This parallelization is automatically done by Mill, and requires no effort from the user to enable.
+The exact parallelism may depend on the number of CPU cores available and exactly when each task
+starts and how long it takes to run, but Mill will generally parallelize things where possible
+to minimize the time taken to execute your tasks.</p>
+</div>
+<div class="paragraph">
+<p>Some other things to note:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Tasks have their metadata cached to <a href="../fundamentals/out-dir.html#_task_json" class="xref page">&lt;task&gt;.json</a> files
+in the <a href="../fundamentals/out-dir.html" class="xref page">out/ folder</a>, with any files created by the task are cached
+in <a href="../fundamentals/out-dir.html#_task_dest" class="xref page">&lt;task&gt;.dest/</a> folders. These file paths are all
+automatically assigned by Mill.</p>
+</li>
+<li>
+<p>Mill treats builtin tasks (e.g. <code>compile</code>) and user-defined (e.g. <code>lineCount</code>) exactly the same:
+both get automatically cached and parallelized where possible.
+This happens without the task author needing to do anything to enable caching or parallelization</p>
+</li>
+<li>
+<p>Mill evaluation does not care about the <em>module</em> structure of <code>foo</code> and <code>bar</code>. Mill modules are
+simply a way to define and re-use parts of the task graph, but it is the task graph that matters
+during evaluation</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bootstrapping"><a class="anchor" href="#_bootstrapping"></a>Bootstrapping</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One part of the Mill evaluation model that is skimmed over above is what happens before
+<strong>Compilation</strong>: how does Mill actually get everything necessary to compile your <code>build.mill</code>
+and <code>package.mill</code> files? This is called bootstrapping, and proceeds roughly in the following phases:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Mill&#8217;s <a href="../cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> first checks
+if the right version of Mill is already present, and if not it downloads the launcher executable
+(either <a href="../cli/installation-ide.html#_mill_native_and_jvm_executables" class="xref page">a JVM assembly jar or
+Graal native image</a>) to <code>~/.cache/mill/download</code></p>
+</li>
+<li>
+<p>The Mill launcher resolves and downloads dependencies for the Mill daemon using Coursier, and
+spawns the daemon sub-process if necessary.</p>
+</li>
+<li>
+<p>The Mill daemon instantiates an in-memory <code>MillBuildRootModule.BootstrapModule</code>,
+which is a hard-coded <code>build.mill</code> used for bootstrapping Mill</p>
+</li>
+<li>
+<p>If there is a <a href="../extending/meta-build.html" class="xref page">meta-build</a> present <code>mill-build/build.mill</code>, Mill processes that
+first and uses the <code>MillBuildRootModule</code> returned for the next steps.
+Otherwise it uses the <code>MillBuildRootModule.BootstrapModule</code> directly</p>
+</li>
+<li>
+<p>Mill evaluates the <code>MillBuildRootModule</code> to parse the <code>build.mill</code>, generate
+a list of <code>mvnDeps</code> as well as appropriately wrapped Scala code that we can
+compile, and compiles it to classfiles (<a href="#_compilation">Compilation</a> above)</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>For most users, you do not need to care about the details of the Mill bootstrapping
+process, except to know that you only need a JVM installed to begin with and
+Mill will download everything necessary from the standard Maven Central package repository
+starting from just the bootstrap script (available as <code>./mill</code> for Linux/Mac and <code>./mill.bat</code>
+for Windows). The documentation for <a href="../extending/meta-build.html" class="xref page">The Mill Meta Build</a>
+goes into more detail of how you can configure and make use of it.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_consequences_of_the_mill_execution_model"><a class="anchor" href="#_consequences_of_the_mill_execution_model"></a>Consequences of the Mill Execution Model</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This four-phase evaluation model has consequences for how you structure your
+build. For example:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>You can have arbitrary code outside of <code>Task</code>s that helps
+set up your task graph and module hierarchy, e.g. computing what keys exist
+in a <code>Cross</code> module, or specifying your <code>def moduleDeps</code>. This code runs
+during <a href="#_resolution">Resolution</a></p>
+</li>
+<li>
+<p>You can have arbitrary code inside of <code>Task</code>s, to perform your build
+actions. This code runs during <a href="#_execution">Execution</a></p>
+</li>
+<li>
+<p><strong>But</strong> your code inside of <code>Task</code>s cannot influence the shape of the task
+graph or module hierarchy, as all <a href="#_resolution">Resolution</a> logic happens first
+<strong>before</strong> any <a href="#_execution">Execution</a> of the <code>Task</code>s bodies.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This should not be a problem for most builds, but it is something to be aware
+of. In general, we have found that having "two places" to put code - outside of
+<code>Task</code>s to run during <a href="#_planning">Planning</a> or inside of <code>Task</code>s to run during
+<a href="#_execution">Execution</a> - is generally enough flexibility for most use cases. You
+can generally just write "direct style" business logic you need - in the example
+above counting the lints in <code>allSourceFiles</code> - and Mill handles all the caching,
+invalidation, and parallelism for you without any additional work.</p>
+</div>
+<div class="paragraph">
+<p>The hard boundary between these two phases is what lets users easily query
+and visualize their module hierarchy and task graph without running them: using
+<a href="../cli/builtin-commands.html#_inspect" class="xref page">inspect</a>, <a href="../cli/builtin-commands.html#_plan" class="xref page">plan</a>,
+<a href="../cli/builtin-commands.html#_visualize" class="xref page">visualize</a>, etc.. This helps keep your
+Mill build discoverable even as the <code>build.mill</code> codebase grows.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="../large/multi-language-builds.html">Multi-Language Builds</a></span>
+  <span class="next"><a href="caching.html">Caching in Mill</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>
