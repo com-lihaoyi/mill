@@ -14,6 +14,7 @@ object foo extends ScalaModule {
 /** Usage
 
 > ./mill show foo.docJar
+"ref:...out/foo/docJar.dest/out.jar"
 
 > unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
 ...
@@ -24,6 +25,19 @@ object foo extends ScalaModule {
 //// SNIPPET:END
 
 //// SNIPPET:SCALA3
+
+// You can also browse the unpackaged directory directly under the `scalaDocGenerated` task.
+
+/** Usage
+
+> ./mill show foo.scalaDocGenerated
+"ref:...out/foo/scalaDocGenerated.dest/javadoc"
+
+> cat out/foo/scalaDocGenerated.dest/javadoc/foo/Foo.html
+...
+...My Awesome Docs for class Foo...
+
+*/
 
 // When using Scala 3 you're also able to use Scaladoc to generate a full static
 // site next to your API documention. This can include general documenation for
@@ -76,3 +90,12 @@ object bar extends ScalaModule {
 ...<p>My Awesome Docs for class Bar</p>...
 
 */
+
+// If you want to include source links, you can provide a path-to-URL mapping with the `-source-links` option.
+//
+// [source,scala]
+// ----
+// def scalaDocOptions = Seq(
+//   s"-source-links:${mill.api.BuildCtx.workspaceRoot}=github://owner/repo/main"
+//)
+// ----
