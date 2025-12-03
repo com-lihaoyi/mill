@@ -23,6 +23,10 @@ _2025-12-02_
 
 _Changes since {prev-version}:_
 
+* Support `FORCE_COLOR` environment variable {link-pr}/6300[#6300]
+
+* Improve lifecycle management and stability of `ZincWorkerMain` subprocesses {link-pr}/6295[#6295]
+
 * Overhaul of the `Result.Failure` data type ({link-pr}/6278[#6278], {link-pr}/6279[#6279],
   {link-pr}/6284[#6284]). Rather than being a thin wrapper around `String`, `Result.Failure`
   now models a linked list of ``error: String``s along with optional file-position and stack-trace
