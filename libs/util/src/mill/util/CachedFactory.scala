@@ -41,17 +41,19 @@ abstract class CachedFactoryWithInitData[K, InitData, V] extends AutoCloseable {
         case Some((v, index)) =>
           // Remove the entry from the list, as it will be reinserted at the end of this function
           keyValues = keyValues.patch(index, Nil, 1)
-          // Check if the cache entry is still valid
-          if (cacheEntryStillValid(key, initData, v)) Some(v)
-          else {
-            teardown(key, v)
-            None
-          }
+          Some(v)
       }
     }
 
     val value: V = valueOpt match {
-      case Some(v) => v
+      case Some(v) =>
+        // Check if the cache entry is still valid
+        if (cacheEntryStillValid(key, initData, v)) v
+        else {
+          teardown(key, v)
+          setup(key, initData)
+        }
+
       case None => setup(key, initData)
     }
 
