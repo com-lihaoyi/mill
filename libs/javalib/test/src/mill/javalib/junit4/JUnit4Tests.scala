@@ -3,7 +3,6 @@ package mill.javalib.junit4
 import mill.api.Discover
 import mill.javalib.JavaModule
 import mill.javalib.TestModule
-import mill.javalib.testrunner.TestResult
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders._
