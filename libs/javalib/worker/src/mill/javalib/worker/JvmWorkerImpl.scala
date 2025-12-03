@@ -161,7 +161,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         val daemonLock = value.daemonDir / DaemonFiles.daemonLock
 
         def tryRemoving(): Boolean = {
-          try { os.remove(daemonLock); true }
+          try { os.remove.all(daemonLock); true }
           catch { case _: FileSystemException => false }
         }
 
