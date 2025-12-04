@@ -227,7 +227,7 @@ object CodeGen {
              |import mill.*, scalalib.*, javalib.*, kotlinlib.*
              |$aliasImports
              |$prelude
-             |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
+             |///SOURCE_CODE_START:$scriptPath
              |object package_ extends $newParent, package_ {
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
              |  $childAliases
