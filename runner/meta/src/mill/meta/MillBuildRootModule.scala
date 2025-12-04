@@ -297,7 +297,11 @@ trait MillBuildRootModule()(using
     super.mandatoryScalacOptions() ++
       // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
       // but Mill generally handles these fine, so no need to warn the user
-      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent", "-Ymagic-offset-header:SOURCE_CODE_START")
+      Seq(
+        "-deprecation",
+        "-Wconf:msg=will be encoded on the classpath:silent",
+        "-Ymagic-offset-header:SOURCE_CODE_START"
+      )
   }
 
   /** Used in BSP IntelliJ, which can only work with directories */

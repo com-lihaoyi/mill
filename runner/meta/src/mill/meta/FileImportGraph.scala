@@ -17,7 +17,11 @@ import mill.internal.Util.backtickWrap
  * @param metaBuild If `true`, a meta-build is enabled
  */
 @internal
-case class FileImportGraph(seenScripts: Map[os.Path, String], errors: Seq[String], seenPkgStatements: Map[os.Path, String])
+case class FileImportGraph(
+    seenScripts: Map[os.Path, String],
+    errors: Seq[String],
+    seenPkgStatements: Map[os.Path, String]
+)
 
 /**
  * Logic around traversing the `import $file` graph, extracting necessary info

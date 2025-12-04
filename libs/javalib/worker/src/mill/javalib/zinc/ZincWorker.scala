@@ -406,7 +406,6 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
     val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
 
-
     val newReporter = reporter match {
       case None =>
         new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter

@@ -32,7 +32,6 @@ object CodeGen {
     // Provide `build` as an alias to the root `build_.package_`, since from the user's
     // perspective it looks like they're writing things that live in `package build`,
     // but at compile-time we rename things, we so provide an alias to preserve the fiction
-    val aliasImports = "import build_.{package_ => build}"
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
