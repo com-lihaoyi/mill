@@ -78,7 +78,7 @@ object GenIdeaUtils {
       .replace("//$USER_HOME$/AppData/Local/Coursier/cache/", "//$USER_HOME$/COURSIER_CACHE/")
       .replace("//$USER_HOME$/.cache/coursier/", "//$USER_HOME$/COURSIER_CACHE/")
       .replace("//$USER_HOME$/Library/Caches/Coursier/", "//$USER_HOME$/COURSIER_CACHE/")
-      .replace("-$coursierVersion.jar", ".jar")
+      .replace(s"-$coursierVersion.jar", ".jar")
   }
 
   val ignoreString = "<!-- IGNORE -->"
