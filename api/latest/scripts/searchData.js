@@ -732,6 +732,8 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/CrossVersion$.html#","e":false,"i":"","n":"CrossVersion","t":"CrossVersion","d":"mill.api","k":"object","x":""},
 {"l":"mill/api/CrossVersion$.html#derived$ReadWriter-0","e":false,"i":"","n":"derived$ReadWriter","t":"derived$ReadWriter: ReadWriter[CrossVersion]","d":"mill.api.CrossVersion","k":"given","x":""},
 {"l":"mill/api/CrossVersion$.html#empty-8ec","e":false,"i":"","n":"empty","t":"empty(platformed: Boolean): Constant","d":"mill.api.CrossVersion","k":"def","x":""},
+{"l":"mill/api/Debug$.html#","e":false,"i":"","n":"Debug","t":"Debug","d":"mill.api","k":"object","x":""},
+{"l":"mill/api/Debug$.html#apply-666","e":false,"i":"","n":"apply","t":"apply[T](x: Text[T], tag: String = ..., width: Int = ..., height: Int = ..., indent: Int = ..., escapeUnicode: Boolean = ..., showFieldNames: Boolean = ...)(implicit line: Line, fileName: FileName): T","d":"mill.api.Debug","k":"def","x":""},
 {"l":"mill/api/DefaultTaskModule.html#","e":false,"i":"","n":"DefaultTaskModule","t":"DefaultTaskModule extends Module","d":"mill.api","k":"trait","x":""},
 {"l":"mill/api/DefaultTaskModule.html#defaultTask-665","e":false,"i":"","n":"defaultTask","t":"defaultTask(): String","d":"mill.api.DefaultTaskModule","k":"def","x":""},
 {"l":"mill/api/Discover.html#","e":false,"i":"","n":"Discover","t":"Discover(val classInfo: Map[Class[_], ClassInfo])","d":"mill.api","k":"class","x":""},
