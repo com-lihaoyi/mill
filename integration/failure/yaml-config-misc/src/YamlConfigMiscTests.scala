@@ -11,7 +11,7 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
     integrationTest { tester =>
       val res = tester.eval("version")
       assert(res.err.replace('\\', '/').contains("mispelledextends/package.mill.yaml"))
-      assert(res.err.contains("trait package_ extends mill.javalib.JavaModuleTypod"))
+      assert(res.err.contains("extends: [mill.javalib.JavaModuleTypod]"))
       assert(res.err.contains("type JavaModuleTypod is not a member of mill.javalib"))
 
       tester.modifyFile(
