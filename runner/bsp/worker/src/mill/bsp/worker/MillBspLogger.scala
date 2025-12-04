@@ -25,7 +25,7 @@ private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
     try {
       val progressString = s.split(" ")(0)
       val progress = progressString.substring(1, progressString.length - 1).split("/")
-      val params = new TaskProgressParams(new TaskId(taskId.toString))
+      val params = TaskProgressParams(TaskId(taskId.toString))
       params.setEventTime(System.currentTimeMillis())
       params.setMessage(s)
       params.setUnit(s.split(" ")(1))

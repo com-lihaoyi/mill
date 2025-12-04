@@ -379,7 +379,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       .toArray
 
     val incOptions = IncOptions.of().withAuxiliaryClassFiles(
-      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+      auxiliaryClassFileExtensions.map(AuxiliaryClassFileExtension(_)).toArray
     )
     val compileProgress = reporter.map { reporter =>
       new CompileProgress {
@@ -504,9 +504,9 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     // Use a double-lock here because we need mutex both between threads within this
     // process, as well as between different processes since sometimes we are initializing
     // the compiler bridge inside a separate `ZincWorkerMain` subprocess
-    val doubleLock = new DoubleLock(
+    val doubleLock = DoubleLock(
       memoryLock,
-      new FileLock(
+      FileLock(
         (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString
       )
     )

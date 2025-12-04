@@ -82,7 +82,7 @@ trait MillRpcServer[
 
     while (responseReceived.isEmpty) {
       val clientToServerMsg = readAndTryToParse[MillRpcClientToServer[R]]().getOrElse(
-        throw new InterruptedException(
+        throw InterruptedException(
           s"Transport wire broken while waiting for response to request."
         )
       )
@@ -116,7 +116,7 @@ trait MillRpcServer[
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {
     (msg: ServerToClient) =>
-      val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
+      val clientToServer = initializedOnClientMessage.getOrElse(throw IllegalStateException(
         "Client to server channel should have been initialized"
       ))
 

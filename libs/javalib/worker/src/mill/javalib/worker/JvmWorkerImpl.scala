@@ -37,7 +37,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
 
     val zincApi =
       if (javaRuntimeOptions.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
-      else new SubprocessZincApi(
+      else SubprocessZincApi(
         javaHome,
         javaRuntimeOptions,
         zincCtx,

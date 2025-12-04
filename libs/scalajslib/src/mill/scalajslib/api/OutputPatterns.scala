@@ -49,7 +49,7 @@ class OutputPatterns private (
       jsFileURI: String = jsFileURI,
       sourceMapURI: String = sourceMapURI
   ): OutputPatterns = {
-    new OutputPatterns(jsFile, sourceMapFile, moduleName, jsFileURI, sourceMapURI)
+    OutputPatterns(jsFile, sourceMapFile, moduleName, jsFileURI, sourceMapURI)
   }
 }
 
@@ -68,7 +68,7 @@ object OutputPatterns {
    *  - `sourceMapURI`: relative URI (same as `sourceMapFile`).
    */
   def fromJSFile(jsFile: String): OutputPatterns = {
-    new OutputPatterns(
+    OutputPatterns(
       jsFile = jsFile,
       sourceMapFile = s"$jsFile.map",
       moduleName = s"./$jsFile",
@@ -84,7 +84,7 @@ object OutputPatterns {
       moduleName: String,
       jsFileURI: String,
       sourceMapURI: String
-  ): OutputPatterns = new OutputPatterns(
+  ): OutputPatterns = OutputPatterns(
     jsFile,
     sourceMapFile,
     moduleName,

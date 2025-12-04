@@ -293,7 +293,7 @@ class GenIdeaImpl(
      */
     def sbtLibraryNameFromPom(pomPath: os.Path): String = {
       val pom = xmlParseDom(os.read(pomPath)).flatMap(Pom.project)
-        .getOrElse(throw new RuntimeException(s"Could not parse pom file: ${pomPath}"))
+        .getOrElse(throw RuntimeException(s"Could not parse pom file: ${pomPath}"))
 
       val artifactId = pom.module.name.value
       val scalaArtifactRegex = ".*_[23]\\.[0-9]{1,2}".r
@@ -354,9 +354,9 @@ class GenIdeaImpl(
     // Create IgnoreNode from bspScriptIgnore patterns
     val ignoreRules = bspScriptIgnore
       .filter(l => !l.startsWith("#"))
-      .map(pattern => (pattern, new FastIgnoreRule(pattern)))
+      .map(pattern => (pattern, FastIgnoreRule(pattern)))
 
-    val ignoreNode = new IgnoreNode(ignoreRules.map(_._2).asJava)
+    val ignoreNode = IgnoreNode(ignoreRules.map(_._2).asJava)
 
     // Extract directory prefixes from negation patterns (patterns starting with !)
     // These directories need to be walked even if they're ignored, because they contain
@@ -617,7 +617,7 @@ class GenIdeaImpl(
       else
         element.attributes.toSeq.reverse.foldLeft(Null.asInstanceOf[MetaData]) {
           case (prevAttr, (k, v)) =>
-            new UnprefixedAttribute(k, v, prevAttr)
+            UnprefixedAttribute(k, v, prevAttr)
         }
 
     new Elem(
@@ -925,7 +925,7 @@ object GenIdeaImpl {
    */
   def moduleName(p: Segments): String =
     p.value
-      .foldLeft(new StringBuilder()) {
+      .foldLeft(StringBuilder()) {
         case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
         case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
         case (sb, Segment.Label(s)) => sb.append(".").append(s)

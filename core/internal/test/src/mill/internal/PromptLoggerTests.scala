@@ -8,16 +8,16 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 object PromptLoggerTests extends TestSuite {
 
   def setup(now: () => Long, terminfoPath: os.Path) = {
-    val baos = new ByteArrayOutputStream()
-    val baosOut = new PrintStream(new ProxyStream.Output(baos, ProxyStream.OUT))
-    val baosErr = new PrintStream(new ProxyStream.Output(baos, ProxyStream.ERR))
+    val baos = ByteArrayOutputStream()
+    val baosOut = PrintStream(new ProxyStream.Output(baos, ProxyStream.OUT))
+    val baosErr = PrintStream(new ProxyStream.Output(baos, ProxyStream.ERR))
     val promptLogger = new PromptLogger(
       colored = false,
       enableTicker = true,
       infoColor = fansi.Attrs.Empty,
       warnColor = fansi.Attrs.Empty,
       errorColor = fansi.Attrs.Empty,
-      systemStreams0 = new SystemStreams(baosOut, baosErr, System.in),
+      systemStreams0 = SystemStreams(baosOut, baosErr, System.in),
       debugEnabled = false,
       titleText = "TITLE",
       terminfoPath = terminfoPath,
@@ -32,7 +32,7 @@ object PromptLoggerTests extends TestSuite {
         super.refreshPrompt(ending)
       }
     }
-    val prefixLogger = new PrefixLogger(promptLogger, Seq("1"))
+    val prefixLogger = PrefixLogger(promptLogger, Seq("1"))
     (baos, promptLogger, prefixLogger)
   }
 
@@ -42,11 +42,11 @@ object PromptLoggerTests extends TestSuite {
       width: Int = 80
   )(expected: String*) = {
     promptLogger.streamsAwaitPumperEmpty()
-    val finalBaos = new ByteArrayOutputStream()
+    val finalBaos = ByteArrayOutputStream()
     val pumper =
-      new ProxyStream.Pumper(new ByteArrayInputStream(baos.toByteArray), finalBaos, finalBaos)
+      new ProxyStream.Pumper(ByteArrayInputStream(baos.toByteArray), finalBaos, finalBaos)
     pumper.run()
-    val term = new TestTerminal(width)
+    val term = TestTerminal(width)
     term.writeAll(finalBaos.toString)
     val lines = term.grid.map(_.stripSuffix("\r"))
 
@@ -141,14 +141,14 @@ object PromptLoggerTests extends TestSuite {
       // Adding new ticker entries doesn't appear immediately,
       // Only after some time has passed do we start displaying the new ticker entry,
       // to ensure it is meaningful to read and not just something that will flash and disappear
-      val newPrefixLogger2 = new PrefixLogger(promptLogger, Seq("2"))
+      val newPrefixLogger2 = PrefixLogger(promptLogger, Seq("2"))
       newPrefixLogger2.prompt.setPromptLine(Seq("2"), "/456", "my-task-new")
       newPrefixLogger2.streams.err.println("I AM COW")
       newPrefixLogger2.streams.err.println("HEAR ME MOO")
 
       // For short-lived ticker entries that are removed quickly, they never
       // appear in the prompt at all even though they can run and generate logs
-      val newPrefixLogger3 = new PrefixLogger(promptLogger, Seq("3"))
+      val newPrefixLogger3 = PrefixLogger(promptLogger, Seq("3"))
       newPrefixLogger3.prompt.setPromptLine(Seq("3"), "/456", "my-task-short-lived")
       newPrefixLogger3.streams.err.println("hello short lived")
       newPrefixLogger3.streams.err.println("goodbye short lived")

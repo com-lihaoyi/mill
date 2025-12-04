@@ -31,7 +31,7 @@ object GradleBuildGenMain {
     println("converting Gradle build")
 
     val gradleWrapperProperties = {
-      val properties = new Properties()
+      val properties = Properties()
       val file = os.pwd / "gradle/wrapper/gradle-wrapper.properties"
       if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
       properties

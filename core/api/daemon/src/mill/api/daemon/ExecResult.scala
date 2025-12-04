@@ -28,7 +28,7 @@ object ExecResult {
     try Success(t)
     catch {
       case e: Throwable =>
-        Exception(e, new OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq))
+        Exception(e, OuterStack(new java.lang.Exception().getStackTrace.toIndexedSeq))
     }
   }
 

@@ -40,7 +40,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
 
   def androidDataBindingCompilerVersion: T[String] = Task {
     isBindingEnabled match {
-      case true => throw new Exception(
+      case true => throw Exception(
           "androidDataBindingCompilerVersion must be set (e.g. \"8.13.0\") when view or data binding is enabled."
         )
       case false => ""

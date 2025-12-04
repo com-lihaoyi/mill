@@ -19,7 +19,7 @@ object TestUtil {
           .map(os.Path(_))
       ),
       (_, _) => false,
-      new Logger(testLogFolder, Some(testLogFolder)),
+      Logger(testLogFolder, Some(testLogFolder)),
       () => None
     )
   }

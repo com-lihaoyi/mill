@@ -16,7 +16,7 @@ class ZincProblem(base: xsbti.Problem) extends Problem {
 
   override def message: String = base.message()
 
-  override def position: ProblemPosition = new ZincProblemPosition(base.position())
+  override def position: ProblemPosition = ZincProblemPosition(base.position())
 
   override def diagnosticCode: Option[DiagnosticCode] =
     base.diagnosticCode().toScala.map(ZincDiagnosticCode(_))

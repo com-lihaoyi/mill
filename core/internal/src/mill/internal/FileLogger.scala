@@ -29,7 +29,7 @@ class FileLogger(
       folderCreated = true
       Files.newOutputStream(file.toNIO, options*)
     }
-    new PrintStream(new OutputStream {
+    PrintStream(new OutputStream {
       override def write(b: Int): Unit = inner.write(b)
 
       override def write(b: Array[Byte]): Unit = inner.write(b)
@@ -42,7 +42,7 @@ class FileLogger(
     })
   }
 
-  val streams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
+  val streams = SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
   def info(s: String): Unit = streams.out.println(s)
   def warn(s: String): Unit = streams.out.println(s)
   def error(s: String): Unit = streams.out.println(s)

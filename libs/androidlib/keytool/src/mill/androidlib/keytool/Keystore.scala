@@ -13,16 +13,16 @@ object Keystore:
     ks
 
   def saveKeystore(ks: KeyStore, filePath: String, password: String): Unit =
-    saveKeystore(ks, new File(os.Path(filePath, os.pwd).toString), password.toCharArray)
+    saveKeystore(ks, File(os.Path(filePath, os.pwd).toString), password.toCharArray)
 
   def saveKeystore(ks: KeyStore, filePath: os.Path, password: String): Unit =
-    saveKeystore(ks, new File(filePath.toString), password.toCharArray)
+    saveKeystore(ks, File(filePath.toString), password.toCharArray)
 
   private def saveKeystore(ks: KeyStore, file: File, password: Array[Char]): Unit =
     // Ensure the parent directory exists
     if (!file.getParentFile.exists())
-      throw new IllegalArgumentException(s"Parent directory does not exist: ${file.getParentFile}")
-    val fos = new FileOutputStream(file)
+      throw IllegalArgumentException(s"Parent directory does not exist: ${file.getParentFile}")
+    val fos = FileOutputStream(file)
     try ks.store(fos, password)
     finally fos.close()
 
@@ -35,11 +35,11 @@ object Keystore:
     saveKeystore(ks, filePath, password)
 
   def loadKeystore(filePath: String, password: String, ksType: String = "PKCS12"): KeyStore =
-    loadKeystore(new File(filePath), password.toCharArray, ksType)
+    loadKeystore(File(filePath), password.toCharArray, ksType)
 
   private def loadKeystore(file: File, password: Array[Char], ksType: String): KeyStore =
     val ks = KeyStore.getInstance(ksType)
-    val fis = new FileInputStream(file)
+    val fis = FileInputStream(file)
     try ks.load(fis, password)
     finally fis.close()
     ks

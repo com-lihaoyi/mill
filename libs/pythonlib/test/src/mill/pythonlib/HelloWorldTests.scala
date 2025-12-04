@@ -27,8 +27,8 @@ object HelloWorldTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-python"
   def tests: Tests = Tests {
     test("run") {
-      val baos = new ByteArrayOutputStream()
-      UnitTester(HelloWorldPython, resourcePath, outStream = new PrintStream(baos)).scoped { eval =>
+      val baos = ByteArrayOutputStream()
+      UnitTester(HelloWorldPython, resourcePath, outStream = PrintStream(baos)).scoped { eval =>
 
         val Right(_) = eval.apply(HelloWorldPython.qux.run(Args())): @unchecked
 

@@ -103,14 +103,14 @@ object VisualizeModule extends ExternalModule {
       LinkedBlockingQueue[Result[Seq[PathRef]]]
   )] = mill.api.Task.Worker {
     val in =
-      new LinkedBlockingQueue[(
+      LinkedBlockingQueue[(
           scala.Seq[Task.Named[Any]],
           scala.Seq[Task.Named[Any]],
           MultiBiMap[Task.Named[Any], Task[?]],
           mill.api.Plan,
           os.Path
       )]()
-    val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
+    val out = LinkedBlockingQueue[Result[Seq[PathRef]]]()
     val visualizeThread = new java.lang.Thread(() =>
       while (true) {
         val res = Result.Success {

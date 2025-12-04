@@ -62,7 +62,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
     }
 
     private def checkStateForReceive(): Unit = {
-      if (closedByWriter || closedByReader) throw new IOException("Pipe closed")
+      if (closedByWriter || closedByReader) throw IOException("Pipe closed")
     }
 
     private def awaitSpace(): Unit = {
@@ -88,7 +88,7 @@ class PipeStreams(val bufferSize: Int = 1024) { pipe =>
     }
 
     override def read(): Int = synchronized {
-      if (closedByReader) throw new IOException("Pipe closed")
+      if (closedByReader) throw IOException("Pipe closed")
       while (in < 0) {
         if (closedByWriter) return -1 /* closed by writer, return EOF */
 

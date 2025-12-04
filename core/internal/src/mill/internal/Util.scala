@@ -196,9 +196,9 @@ object Util {
           import scala.jdk.CollectionConverters._
 
           val settings = LoadSettings.builder().build()
-          val reader = new StreamReader(settings, headerData)
-          val parser = new ParserImpl(settings, reader)
-          val composer = new Composer(settings, parser)
+          val reader = StreamReader(settings, headerData)
+          val parser = ParserImpl(settings, reader)
+          val composer = Composer(settings, parser)
 
           // recursively convert Node using the visitor, preserving character offsets
           def rec[J](node: Node, v: upickle.core.Visitor[_, J]): J = {

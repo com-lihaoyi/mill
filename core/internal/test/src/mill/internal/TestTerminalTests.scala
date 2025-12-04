@@ -79,7 +79,7 @@ object TestTerminalTests extends TestSuite {
 
   val tests = Tests {
     test("wrap") {
-      val t = new TestTerminal(width = 10)
+      val t = TestTerminal(width = 10)
       t.writeAll("1234567890abcdef")
       t.grid ==> Seq(
         "1234567890",
@@ -87,7 +87,7 @@ object TestTerminalTests extends TestSuite {
       )
     }
     test("newline") {
-      val t = new TestTerminal(width = 10)
+      val t = TestTerminal(width = 10)
       t.writeAll("12345\n67890")
       t.grid ==> Seq(
         "12345",
@@ -95,7 +95,7 @@ object TestTerminalTests extends TestSuite {
       )
     }
     test("trailingNewline") {
-      val t = new TestTerminal(width = 10)
+      val t = TestTerminal(width = 10)
       t.writeAll("12345\n")
       t.grid ==> Seq(
         "12345",
@@ -103,7 +103,7 @@ object TestTerminalTests extends TestSuite {
       )
     }
     test("wrapNewline") {
-      val t = new TestTerminal(width = 10)
+      val t = TestTerminal(width = 10)
       t.writeAll("1234567890\nabcdef")
       t.grid ==> Seq(
         "1234567890",
@@ -111,7 +111,7 @@ object TestTerminalTests extends TestSuite {
       )
     }
     test("wrapNewline2") {
-      val t = new TestTerminal(width = 10)
+      val t = TestTerminal(width = 10)
       t.writeAll("1234567890\n\nabcdef")
       t.grid ==> Seq(
         "1234567890",
@@ -120,7 +120,7 @@ object TestTerminalTests extends TestSuite {
       )
     }
     test("up") {
-      val t = new TestTerminal(width = 15)
+      val t = TestTerminal(width = 15)
       t.writeAll(s"1234567890\nabcdef${AnsiNav.up(1)}X")
       t.grid ==> Seq(
         "123456X890",
@@ -128,7 +128,7 @@ object TestTerminalTests extends TestSuite {
       )
     }
     test("left") {
-      val t = new TestTerminal(width = 15)
+      val t = TestTerminal(width = 15)
       t.writeAll(s"1234567890\nabcdef${AnsiNav.left(3)}X")
       t.grid ==> Seq(
         "1234567890",
@@ -136,7 +136,7 @@ object TestTerminalTests extends TestSuite {
       )
     }
     test("upLeftClearLine") {
-      val t = new TestTerminal(width = 15)
+      val t = TestTerminal(width = 15)
       t.writeAll(s"1234567890\nabcdef${AnsiNav.up(1)}${AnsiNav.left(3)}X${AnsiNav.clearLine(0)}")
       t.grid ==> Seq(
         "123X",
@@ -144,12 +144,12 @@ object TestTerminalTests extends TestSuite {
       )
     }
     test("upLeftClearScreen") {
-      val t = new TestTerminal(width = 15)
+      val t = TestTerminal(width = 15)
       t.writeAll(s"1234567890\nabcdef${AnsiNav.up(1)}${AnsiNav.left(3)}X${AnsiNav.clearScreen(0)}")
       t.grid ==> Seq("123X")
     }
     test("wrapUpClearLine") {
-      val t = new TestTerminal(width = 10)
+      val t = TestTerminal(width = 10)
       t.writeAll(s"1234567890abcdef${AnsiNav.up(1)}${AnsiNav.left(3)}X${AnsiNav.clearLine(0)}")
       t.grid ==> Seq(
         "123X",
@@ -157,7 +157,7 @@ object TestTerminalTests extends TestSuite {
       )
     }
     test("wrapUpClearScreen") {
-      val t = new TestTerminal(width = 10)
+      val t = TestTerminal(width = 10)
       t.writeAll(s"1234567890abcdef${AnsiNav.up(1)}${AnsiNav.left(3)}X${AnsiNav.clearScreen(0)}")
       t.grid ==> Seq("123X")
     }

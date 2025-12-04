@@ -6,12 +6,12 @@ import scala.jdk.CollectionConverters._
 object BashTokenizer {
   def tokenize(string: CharSequence): Seq[String] = {
     // taken from https://stackoverflow.com/a/20725050
-    val tokens: List[String] = new ArrayList[String]()
+    val tokens: List[String] = ArrayList[String]()
     var escaping = false
     var quoteChar = ' '
     var quoting = false
     var lastCloseQuoteIndex = Integer.MIN_VALUE
-    val current = new StringBuilder()
+    val current = StringBuilder()
     for (i <- 0 until string.length()) {
       val c = string.charAt(i)
       if (escaping) {

@@ -12,7 +12,7 @@ trait PublishModule extends PythonModule {
   override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
     case m: PublishModule => m
     case other =>
-      throw new Exception(
+      throw Exception(
         s"PublishModule moduleDeps need to be also PublishModules. $other is not a PublishModule"
       )
   }

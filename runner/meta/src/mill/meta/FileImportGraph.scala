@@ -97,7 +97,7 @@ object FileImportGraph {
 
     walked.filter(_ != foundRootBuildFile).foreach(processScript(_))
 
-    new FileImportGraph(seenScripts.toMap, errors.toSeq)
+    FileImportGraph(seenScripts.toMap, errors.toSeq)
   }
 
   def findRootBuildFiles(projectRoot: os.Path) = {

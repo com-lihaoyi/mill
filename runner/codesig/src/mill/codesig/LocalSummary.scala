@@ -49,8 +49,8 @@ object LocalSummary {
   def apply(classStreams: Iterator[java.io.InputStream])(using st: SymbolTable): LocalSummary = {
     val visitors = classStreams
       .map { cs =>
-        val visitor = new MyClassVisitor()
-        new ClassReader(cs).accept(visitor, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG)
+        val visitor = MyClassVisitor()
+        ClassReader(cs).accept(visitor, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG)
         visitor
       }
       .toVector
@@ -118,7 +118,7 @@ object LocalSummary {
         signature: String,
         exceptions: Array[String]
     ): MethodVisitor = {
-      new MyMethodVisitor(clsType, this, name, descriptor, access)
+      MyMethodVisitor(clsType, this, name, descriptor, access)
     }
 
     override def visitEnd(): Unit = {}

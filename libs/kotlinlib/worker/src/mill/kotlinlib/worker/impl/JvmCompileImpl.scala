@@ -14,7 +14,7 @@ class JvmCompileImpl() extends Compiler {
 
     val allArgs = args ++ sources.map(_.toString)
 
-    val compiler = new K2JVMCompiler()
+    val compiler = K2JVMCompiler()
     val exitCode = compiler.exec(ctx.log.streams.err, allArgs*)
 
     (exitCode.getCode(), exitCode.name())

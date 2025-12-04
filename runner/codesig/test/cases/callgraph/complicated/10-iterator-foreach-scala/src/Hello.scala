@@ -13,7 +13,7 @@ class SubTestIter() extends TestIter[Nothing] {
 
 object Hello {
   def minimizedIterator(): Array[Int] = {
-    val iterator = new SubTestIter()
+    val iterator = SubTestIter()
     val holder = Array(1)
     iterator.foreach(x => holder(0) = x)
     holder

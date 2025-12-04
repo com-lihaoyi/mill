@@ -164,7 +164,7 @@ object ModuleCtx extends LowPriCtx {
 
 trait LowPriCtx {
   // Binary compatibility stub
-  def dummyInfo: ModuleCtx = throw new Exception(LowPriCtx.errorMessage)
+  def dummyInfo: ModuleCtx = throw Exception(LowPriCtx.errorMessage)
 
   // Dummy `Ctx` available in implicit scope but never actually used.
   // as it is provided by the codegen. Defined for IDEs to think that one is available
@@ -184,6 +184,6 @@ object LowPriCtx {
       sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
     ) {
       report.errorAndAbort(errorMessage)
-    } else '{ throw new Exception(${ Expr(errorMessage) }) }
+    } else '{ throw Exception(${ Expr(errorMessage) }) }
   }
 }

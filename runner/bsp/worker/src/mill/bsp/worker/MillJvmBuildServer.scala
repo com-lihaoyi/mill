@@ -25,7 +25,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       : CompletableFuture[JvmRunEnvironmentResult] = {
     jvmRunEnvironmentFor(
       params.getTargets.asScala,
-      new JvmRunEnvironmentResult(_),
+      JvmRunEnvironmentResult(_),
       params.getOriginId
     )
   }
@@ -34,7 +34,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       : CompletableFuture[JvmTestEnvironmentResult] = {
     jvmTestEnvironmentFor(
       params.getTargets.asScala,
-      new JvmTestEnvironmentResult(_),
+      JvmTestEnvironmentResult(_),
       params.getOriginId
     )
   }
@@ -68,14 +68,14 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           ) =>
         val fullMainArgs: List[String] =
           List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
-        val item = new JvmEnvironmentItem(
+        val item = JvmEnvironmentItem(
           id,
           testEnvVars.classpath.map(sanitizeUri).asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),
           forkEnv.asJava
         )
-        item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
+        item.setMainClasses(List(testEnvVars.mainClass).map(JvmMainClass(
           _,
           fullMainArgs.asJava
         )).asJava)
@@ -104,7 +104,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             res
           ) =>
         val classpath = res.runClasspath.map(sanitizeUri)
-        val item = new JvmEnvironmentItem(
+        val item = JvmEnvironmentItem(
           id,
           classpath.asJava,
           res.forkArgs.asJava,
@@ -113,7 +113,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         )
 
         val classes = res.mainClass.toList ++ res.localMainClasses
-        item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
+        item.setMainClasses(classes.map(JvmMainClass(_, Nil.asJava)).asJava)
         item
     } {
       agg
@@ -132,8 +132,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       originId = ""
     ) {
       case (ev, _, id, _, compileClasspath) =>
-        new JvmCompileClasspathItem(id, compileClasspath(ev).asJava)
+        JvmCompileClasspathItem(id, compileClasspath(ev).asJava)
     } {
-      new JvmCompileClasspathResult(_)
+      JvmCompileClasspathResult(_)
     }
 }

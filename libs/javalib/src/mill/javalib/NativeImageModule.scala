@@ -117,9 +117,9 @@ trait NativeImageModule extends WithJvmWorkerModule {
         if (os.exists(path))
           // native-image is externally managed, better revalidate it at least once
           PathRef(path).withRevalidateOnce
-        else throw new RuntimeException(s"$path not found")
+        else throw RuntimeException(s"$path not found")
       case None =>
-        throw new RuntimeException("JvmWorkerModule.javaHome/GRAALVM_HOME not defined")
+        throw RuntimeException("JvmWorkerModule.javaHome/GRAALVM_HOME not defined")
     }
   }
 }

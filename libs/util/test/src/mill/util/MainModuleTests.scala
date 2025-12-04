@@ -115,7 +115,7 @@ object MainModuleTests extends TestSuite {
 
     trait Cleanable extends Module {
       def theWorker = Task.Worker {
-        new TestWorker("shared", workers)
+        TestWorker("shared", workers)
       }
     }
 
@@ -124,7 +124,7 @@ object MainModuleTests extends TestSuite {
     }
     object bar extends Cleanable {
       override def theWorker = Task.Worker {
-        new TestWorker("bar", workers)
+        TestWorker("bar", workers)
       }
     }
     object bazz extends Cross[Bazz]("1", "2", "3")
@@ -237,13 +237,13 @@ object MainModuleTests extends TestSuite {
       }
 
       test("single") {
-        val outStream = new ByteArrayOutputStream()
-        val errStream = new ByteArrayOutputStream()
+        val outStream = ByteArrayOutputStream()
+        val errStream = ByteArrayOutputStream()
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(outStream, true),
-          errStream = new PrintStream(errStream, true)
+          outStream = PrintStream(outStream, true),
+          errStream = PrintStream(errStream, true)
         ).scoped { evaluator =>
 
           val results =
@@ -270,13 +270,13 @@ object MainModuleTests extends TestSuite {
         }
       }
       test("multi") {
-        val outStream = new ByteArrayOutputStream()
-        val errStream = new ByteArrayOutputStream()
+        val outStream = ByteArrayOutputStream()
+        val errStream = ByteArrayOutputStream()
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(outStream, true),
-          errStream = new PrintStream(errStream, true)
+          outStream = PrintStream(outStream, true),
+          errStream = PrintStream(errStream, true)
         ).scoped { evaluator =>
 
           val results =
@@ -317,8 +317,8 @@ object MainModuleTests extends TestSuite {
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
-          errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+          outStream = PrintStream(OutputStream.nullOutputStream(), true),
+          errStream = PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
           val Left(ExecResult.Failure(msg = failureMsg)) =
@@ -340,8 +340,8 @@ object MainModuleTests extends TestSuite {
         UnitTester(
           mainModule,
           null,
-          outStream = new PrintStream(OutputStream.nullOutputStream(), true),
-          errStream = new PrintStream(OutputStream.nullOutputStream(), true)
+          outStream = PrintStream(OutputStream.nullOutputStream(), true),
+          errStream = PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
           val Right(result) = evaluator.apply("show", "helloWorker"): @unchecked
@@ -487,7 +487,7 @@ object MainModuleTests extends TestSuite {
     test("cleanWorker") {
       test("all") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
@@ -502,7 +502,7 @@ object MainModuleTests extends TestSuite {
 
       test("single-task") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
@@ -534,7 +534,7 @@ object MainModuleTests extends TestSuite {
 
       test("single-task via rm") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
@@ -583,7 +583,7 @@ object MainModuleTests extends TestSuite {
       }
       test("single-module") {
         val workers = new mutable.HashSet[TestWorker]
-        val workerModule = new WorkerModule(workers)
+        val workerModule = WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
 
           val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults

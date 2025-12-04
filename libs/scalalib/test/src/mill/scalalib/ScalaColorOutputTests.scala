@@ -24,12 +24,12 @@ object ScalaColorOutputTests extends TestSuite {
   def tests: Tests = Tests {
     test("color-output") {
 
-      val errStream = new ByteArrayOutputStream()
+      val errStream = ByteArrayOutputStream()
 
       UnitTester(
         HelloWorldColorOutput,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-color-output",
-        errStream = new PrintStream(errStream, true)
+        errStream = PrintStream(errStream, true)
       ).scoped { eval =>
         val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(HelloWorldColorOutput.core.compile): @unchecked

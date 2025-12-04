@@ -65,7 +65,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
         val useECMAScript2015: Boolean = input.esFeatures.esVersion match {
           case ESVersion.ES5_1 => false
           case ESVersion.ES2015 => true
-          case v => throw new Exception(
+          case v => throw Exception(
               s"ESVersion $v is not supported with Scala.js < 1.6. Either update Scala.js or use one of ESVersion.ES5_1 or ESVersion.ES2015"
             )
         }
@@ -113,7 +113,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
             case v @ ModuleSplitStyle.SmallModulesFor(packages*) =>
               if (minorIsGreaterThanOrEqual(10))
                 ScalaJSModuleSplitStyle.SmallModulesFor(packages.toList)
-              else throw new Exception(
+              else throw Exception(
                 s"ModuleSplitStyle $v is not supported with Scala.js < 1.10. Either update Scala.js or use one of ModuleSplitStyle.SmallestModules or ModuleSplitStyle.FewestModules"
               )
           }
@@ -123,7 +123,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
       def withModuleSplitStyle_1_2_minus(config: StandardConfig): StandardConfig = {
         input.moduleSplitStyle match {
           case ModuleSplitStyle.FewestModules =>
-          case v => throw new Exception(
+          case v => throw Exception(
               s"ModuleSplitStyle $v is not supported with Scala.js < 1.2. Either update Scala.js or use ModuleSplitStyle.FewestModules"
             )
         }
@@ -157,7 +157,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
           case (_, false) => withMinify
           case (true, true) => withMinify.withExperimentalUseWebAssembly(true)
           case (false, true) =>
-            throw new Exception("Emitting wasm is not supported with Scala.js < 1.17")
+            throw Exception("Emitting wasm is not supported with Scala.js < 1.17")
         }
 
       val linker = StandardImpl.clearableLinker(withWasm)
@@ -230,7 +230,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
         irFiles0
       } else {
         if (!minorIsGreaterThanOrEqual(16)) {
-          throw new Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
+          throw Exception("scalaJSImportMap is not supported with Scala.js < 1.16.")
         }
         val remapFunction = (rawImport: String) => {
           importMap
@@ -246,7 +246,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
       report <-
         if (useLegacy) {
           val jsFileName = "out.js"
-          val jsFile = new File(dest, jsFileName).toPath()
+          val jsFile = File(dest, jsFileName).toPath()
           var linkerOutput = LinkerOutput(PathOutputFile(jsFile))
             .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
           val sourceMapNameOpt = Option.when(sourceMap)(s"${jsFile.getFileName}.map")
@@ -318,7 +318,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
             )
 
             for ((std, dest, name, checkAvailable) <- sources) {
-              val t = new Thread(
+              val t = Thread(
                 new InputPumper(() => std, () => dest, checkAvailable),
                 name
               )
@@ -340,7 +340,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
     val logger = createLogger()
     val tconfig = TestAdapter.Config().withLogger(logger)
 
-    val adapter = new TestAdapter(env, input, tconfig)
+    val adapter = TestAdapter(env, input, tconfig)
 
     (
       () => adapter.close(),
@@ -348,7 +348,7 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
         .loadFrameworks(List(List(frameworkName)))
         .flatten
         .headOption
-        .getOrElse(throw new RuntimeException(
+        .getOrElse(throw RuntimeException(
           """|Test framework class was not found. Please check that:
              |- the correct Scala.js dependency of the framework is used (like mvn"group::artifact::version", instead of mvn"group::artifact:version" for JVM Scala. Note the extra : before the version.)
              |- there are no typos in the framework class name.
@@ -374,12 +374,12 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
   }
 
   def jsEnvInput(report: Report): Seq[Input] = {
-    val mainModule = report.publicModules.find(_.moduleID == "main").getOrElse(throw new Exception(
+    val mainModule = report.publicModules.find(_.moduleID == "main").getOrElse(throw Exception(
       "Cannot determine `jsEnvInput`: Linking result does not have a " +
         "module named `main`.\n" +
         s"Full report:\n$report"
     ))
-    val path = new File(report.dest, mainModule.jsFileName).toPath
+    val path = File(report.dest, mainModule.jsFileName).toPath
     val input = mainModule.moduleKind match {
       case ModuleKind.NoModule => Input.Script(path)
       case ModuleKind.ESModule => Input.ESModule(path)

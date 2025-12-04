@@ -99,7 +99,7 @@ object OverrideTests extends TestSuite {
       // the main publicly-available task
       import canOverrideSuper._
 
-      val checker = new Checker(canOverrideSuper)
+      val checker = Checker(canOverrideSuper)
       checker(foo, Seq("base", "object"), Seq(foo), extraEvaled = -1)
 
       val public = os.read(checker.execution.outPath / "foo.json")
@@ -119,7 +119,7 @@ object OverrideTests extends TestSuite {
       // the main publicly-available command
       import canOverrideSuper._
 
-      val checker = new Checker(canOverrideSuper)
+      val checker = Checker(canOverrideSuper)
       val runCmd = cmd(1)
       checker(
         runCmd,
@@ -146,7 +146,7 @@ object OverrideTests extends TestSuite {
       // the main publicly-available command
       import StackableOverrides._
 
-      val checker = new Checker(StackableOverrides)
+      val checker = Checker(StackableOverrides)
       checker(
         m.f,
         6,
@@ -168,7 +168,7 @@ object OverrideTests extends TestSuite {
       // When the supers have the same name, qualify them until they are distinct
       import StackableOverrides2._
 
-      val checker = new Checker(StackableOverrides2)
+      val checker = Checker(StackableOverrides2)
       checker(
         m.f,
         6,
@@ -190,7 +190,7 @@ object OverrideTests extends TestSuite {
       // When the supers have the same name, qualify them until they are distinct
       import StackableOverrides3._
 
-      val checker = new Checker(StackableOverrides3)
+      val checker = Checker(StackableOverrides3)
       checker(
         m.f,
         6,
@@ -213,7 +213,7 @@ object OverrideTests extends TestSuite {
       // disk regardless of whether or not the override is part of the current evaluation
       import OptionalOverride._
 
-      val checker = new Checker(OptionalOverride)
+      val checker = Checker(OptionalOverride)
       test {
         checker(m.f, 11, Seq(m.f), extraEvaled = -1)
         assert(
@@ -233,7 +233,7 @@ object OverrideTests extends TestSuite {
       // Make sure we can have private cached tasks in different trait with the same name,
       // and caching still works when these traits are mixed together
       import PrivateTasksInMixedTraits._
-      val checker = new Checker(PrivateTasksInMixedTraits)
+      val checker = Checker(PrivateTasksInMixedTraits)
       checker(
         mod.bar,
         "foo-m1",

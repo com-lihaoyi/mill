@@ -29,7 +29,7 @@ object RunBackgroundTests extends TestSuite {
 
         def sleepIfTimeAvailable(error: String) = {
           Thread.sleep(100)
-          if (System.currentTimeMillis() - now1 > maxSleep) throw new Exception(error)
+          if (System.currentTimeMillis() - now1 > maxSleep) throw Exception(error)
         }
 
         Thread.sleep(1000) // Make sure that the file remains locked even after a significant sleep

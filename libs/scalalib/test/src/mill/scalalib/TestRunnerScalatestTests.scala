@@ -25,7 +25,7 @@ object TestRunnerScalatestTests extends TestSuite {
     }
 
     test("testOnly") - {
-      scala.util.Using.resource(new TestOnlyTester(_.scalatest)) { tester =>
+      scala.util.Using.resource(TestOnlyTester(_.scalatest)) { tester =>
 
         // Run all tests re-using the same `tester` object for performance reasons
         // singleClass

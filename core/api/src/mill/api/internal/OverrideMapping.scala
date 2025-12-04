@@ -60,7 +60,7 @@ private[mill] object OverrideMapping {
       taskClassName: String
   ) = {
     // StringTokenizer is faster than String#split due to not using regexes
-    def splitEnclosing(s: String) = new StringTokenizer(s, ".# $")
+    def splitEnclosing(s: String) = StringTokenizer(s, ".# $")
       .asIterator()
       .asScala.map(_.asInstanceOf[String])
       .filter(_ != "<empty>")

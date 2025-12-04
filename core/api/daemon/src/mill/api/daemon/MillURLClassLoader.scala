@@ -71,7 +71,7 @@ object MillURLClassLoader {
 
   private[mill] def addOpenClassloader(label: String) =
     openClassloaders.synchronized {
-      // println(s"addOpenClassLoader ${classPath.hashCode}\n  " + new Exception().getStackTrace.mkString("\n  "))
+      // println(s"addOpenClassLoader ${classPath.hashCode}\n  " + Exception().getStackTrace.mkString("\n  "))
 
       openClassloaders.updateWith(label) {
         case None => Some(1)
@@ -81,7 +81,7 @@ object MillURLClassLoader {
 
   private[mill] def removeOpenClassloader(label: String) =
     openClassloaders.synchronized {
-      // println(s"removeOpenClassLoader ${classPath.hashCode}\n  " + new Exception().getStackTrace.mkString("\n  "))
+      // println(s"removeOpenClassLoader ${classPath.hashCode}\n  " + Exception().getStackTrace.mkString("\n  "))
       openClassloaders.updateWith(label) {
         case Some(1) => None
         case Some(n) => Some(n - 1)

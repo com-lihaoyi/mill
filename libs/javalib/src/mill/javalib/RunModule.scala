@@ -268,9 +268,9 @@ object RunModule {
     method.setAccessible(true)
     val modifiers = method.getModifiers
     if (!Modifier.isPublic(modifiers))
-      throw new NoSuchMethodException(mainClassName + ".main is not public")
+      throw NoSuchMethodException(mainClassName + ".main is not public")
     if (!Modifier.isStatic(modifiers))
-      throw new NoSuchMethodException(mainClassName + ".main is not static")
+      throw NoSuchMethodException(mainClassName + ".main is not static")
     method
   }
 

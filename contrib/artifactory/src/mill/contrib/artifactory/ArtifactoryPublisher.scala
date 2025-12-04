@@ -16,7 +16,7 @@ class ArtifactoryPublisher(
 
   private def prepareCreds(credentials: String, repoUri: String): String = {
     if (credentials.isEmpty) {
-      val hostname = new URI(repoUri).getHost
+      val hostname = URI(repoUri).getHost
       val coursierCreds = CoursierConfig.default().credentials.map(_.get).flatten
       coursierCreds.find(cred =>
         cred.host == hostname && cred.usernameOpt.isDefined && cred.passwordOpt.isDefined
@@ -63,7 +63,7 @@ class ArtifactoryPublisher(
       payloads: Map[os.SubPath, Array[Byte]],
       artifacts: Seq[Artifact]
   ): Unit = {
-    val api = new ArtifactoryHttpApi(
+    val api = ArtifactoryHttpApi(
       credentials = prepareCreds(credentials, repoUri),
       readTimeout = readTimeout,
       connectTimeout = connectTimeout
@@ -87,7 +87,7 @@ class ArtifactoryPublisher(
       val errors = publishResults.filterNot(_.is2xx).map { response =>
         s"Code: ${response.statusCode}, message: ${response.text()}"
       }
-      throw new RuntimeException(
+      throw RuntimeException(
         s"Failed to publish ${artifacts.map(_.id).mkString(", ")} to Artifactory. Errors: \n${errors.mkString("\n")}"
       )
     }

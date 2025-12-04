@@ -45,17 +45,17 @@ case class PrefixLogger(
     s"PrefixLogger($logger0, $key0)"
 
   def prefixPrintStream(logToOut: Boolean) = {
-    new PrintStream(
-      new LineBufferingOutputStream(logMsg => prompt.logPrefixedLine(logKey, logMsg, logToOut))
+    PrintStream(
+      LineBufferingOutputStream(logMsg => prompt.logPrefixedLine(logKey, logMsg, logToOut))
     )
   }
-  val streams = new SystemStreams(
+  val streams = SystemStreams(
     out = prefixPrintStream(true && !redirectOutToErr),
     err = prefixPrintStream(false),
     logger0.streams.in
   )
 
-  override val unprefixedStreams = new SystemStreams(
+  override val unprefixedStreams = SystemStreams(
     if (redirectOutToErr) logger0.unprefixedStreams.err else logger0.unprefixedStreams.out,
     logger0.unprefixedStreams.err,
     logger0.unprefixedStreams.in

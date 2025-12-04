@@ -51,10 +51,10 @@ private class BspTestReporter(
   var totalTime: Long = 0
 
   override def logStart(event: Event): Unit = {
-    val taskStartParams = new TaskStartParams(taskId)
+    val taskStartParams = TaskStartParams(taskId)
     taskStartParams.setEventTime(System.currentTimeMillis())
     taskStartParams.setDataKind(TaskStartDataKind.TEST_START)
-    taskStartParams.setData(new TestStart(getDisplayName(event)))
+    taskStartParams.setData(TestStart(getDisplayName(event)))
     taskStartParams.setMessage("Starting running: " + getDisplayName(event))
     client.onBuildTaskStart(taskStartParams)
   }
@@ -73,7 +73,7 @@ private class BspTestReporter(
 
   override def logFinish(event: Event): Unit = {
     totalTime += event.duration()
-    val taskFinishParams = new TaskFinishParams(
+    val taskFinishParams = TaskFinishParams(
       taskId,
       event.status() match {
         case sbt.testing.Status.Canceled => StatusCode.CANCELLED
@@ -107,7 +107,7 @@ private class BspTestReporter(
 
     taskFinishParams.setDataKind(TaskFinishDataKind.TEST_FINISH)
     taskFinishParams.setData({
-      val testFinish = new TestFinish(getDisplayName(event), status)
+      val testFinish = TestFinish(getDisplayName(event), status)
       if (event.throwable.isDefined)
         testFinish.setMessage(throwableToString(event.throwable().get()))
       testFinish
@@ -118,7 +118,7 @@ private class BspTestReporter(
 
   private def throwableToString(t: Throwable): String = {
     val sw = new StringWriter
-    val pw = new PrintWriter(sw)
+    val pw = PrintWriter(sw)
     t.printStackTrace(pw)
     sw.toString
   }
@@ -126,7 +126,7 @@ private class BspTestReporter(
   // Compute the test report data structure that will go into
   // the task finish notification after all tests are ran.
   def getTestReport: TestReport = {
-    val report = new TestReport(targetId, passed, failed, ignored, cancelled, skipped)
+    val report = TestReport(targetId, passed, failed, ignored, cancelled, skipped)
     report.setTime(totalTime)
     report
   }

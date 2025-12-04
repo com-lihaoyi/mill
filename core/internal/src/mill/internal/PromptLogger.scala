@@ -128,7 +128,7 @@ class PromptLogger(
       )
     }
 
-    val threadNumberer = new ThreadNumberer()
+    val threadNumberer = ThreadNumberer()
     override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setHeaderPrefix(s)
     }
@@ -188,7 +188,7 @@ class PromptLogger(
             // color. This ensures that any trailing colors in the original `bufferString` do not
             // get ignored since they would affect zero characters.
             val extendedString = fansi.Str.apply(
-              new String(continuationColoredLine) + "x",
+              String(continuationColoredLine) + "x",
               fansi.ErrorMode.Sanitize
             )
 
@@ -367,12 +367,12 @@ object PromptLogger {
     // `ProxyStream`, as we need to preserve the ordering of writes to each individual
     // stream, and also need to know when *both* streams are quiescent so that we can
     // print the prompt at the bottom
-    val pipe = new PipeStreams()
+    val pipe = PipeStreams()
     val proxyOut = new ProxyStream.Output(pipe.output, ProxyStream.OUT)
     val proxyErr = new ProxyStream.Output(pipe.output, ProxyStream.ERR)
-    val proxySystemStreams = new SystemStreams(
-      new PrintStream(proxyOut),
-      new PrintStream(proxyErr),
+    val proxySystemStreams = SystemStreams(
+      PrintStream(proxyOut),
+      PrintStream(proxyErr),
       systemStreams0.in
     )
 
@@ -384,7 +384,7 @@ object PromptLogger {
       if (!paused()) {
         val currentPrompt = getCurrentPrompt()
         systemStreams0.err.write(currentPrompt)
-        if (interactive()) lastPromptHeight = new String(currentPrompt).linesIterator.size
+        if (interactive()) lastPromptHeight = String(currentPrompt).linesIterator.size
         else lastPromptHeight = 0
       } else lastPromptHeight = 0
 
@@ -458,7 +458,7 @@ object PromptLogger {
       }
     }
 
-    val pumperThread = new Thread(pumper, "prompt-logger-stream-pumper-thread")
+    val pumperThread = Thread(pumper, "prompt-logger-stream-pumper-thread")
     pumperThread.start()
 
     def close(): Unit = {
