@@ -33,7 +33,7 @@ The following table contains the main ways you can test the code in
 
 In general, `println` or `pprint.log` should work in most places and be sufficient for
 instrumenting and debugging the Mill codebase. In the occasional spot where `println`
-doesn't work you can use `mill.constants.DebugLog.println` which writes to a file
+doesn't work you can use `mill.constants.DebugLog.println`/`mill.api.Debug` which writes to a file
 `~/mill-debug-log.txt` in your home folder. `DebugLog` is useful for scenarios like
 debugging Mill's terminal UI (where `println` would mess things up) or subprocesses
 (where stdout/stderr may get captured or used and cannot be used to display your own
