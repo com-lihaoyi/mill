@@ -1,4 +1,3 @@
-//| mill-version: 1.0.6
 package build
 
 import mill.*
@@ -35,3 +34,42 @@ object `package` extends SpringBootModule, KotlinMavenModule { outer =>
     def jvmId = "graalvm-community:23.0.1"
   }
 }
+
+// This example demonstrates how to configure mill for a simple initializr project with GraalVM Native Support,
+// using https://start.spring.io/[https://start.spring.io/] by choosing:
+//
+//* Project: Gradle
+//* Language: Kotlin
+//* Dependencies: Spring Web, GraalVM Native Support
+//
+// The structure of this project follows the MavenModule structure (i.e. the same structure
+// as generated from the initialzr tool).
+//
+// For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
+
+/** Usage
+
+> ./mill show native.nativeImage
+...out/native/nativeImage.dest/native-executable...
+
+> ./mill native.nativeRunBackground
+
+> curl http://localhost:9099/hello
+...Hello, World!...
+
+> curl http://localhost:9099/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean native.nativeRunBackground
+
+> ./mill prod.runBackground
+
+> curl http://localhost:9099/hello
+...Hello, World!...
+
+> curl http://localhost:9099/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean prod.runBackground
+
+*/
