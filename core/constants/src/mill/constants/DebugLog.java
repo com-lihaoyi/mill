@@ -17,7 +17,7 @@ public class DebugLog {
     if (System.getenv("CI") != null) {
       throw new RuntimeException("DebugLog cannot be run in CI");
     }
-    
+
     Path path = Paths.get(System.getProperty("user.home"), "mill-debug-log.txt");
     try {
       if (!Files.exists(path)) Files.createFile(path);

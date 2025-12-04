@@ -133,7 +133,8 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with DefaultTas
       classPath = scalafmtClasspath().map(_.path),
       cwd = BuildCtx.workspaceRoot,
       stdin = os.Inherit,
-      stdout = os.Inherit
+      stdout = os.Inherit,
+      stderr = os.Inherit
     )
   }
 
