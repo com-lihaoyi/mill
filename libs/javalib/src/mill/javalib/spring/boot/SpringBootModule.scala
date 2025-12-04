@@ -176,6 +176,8 @@ trait SpringBootModule extends JavaModule {
      * Collects the metadata from [[nativeGraalVMReachabilityMetadata]] if
      * there is a direct dependency from the [[outer]] module matching metadata.
      * It does not take into account transitive dependencies.
+     *
+     * For more information see also [[https://www.graalvm.org/latest/reference-manual/native-image/metadata/]]
      */
     def nativeMvnDepsMetadata: T[Seq[PathRef]] = Task {
       val metadataPath = nativeGraalVMReachabilityMetadata().path
@@ -192,6 +194,8 @@ trait SpringBootModule extends JavaModule {
     /**
      * Prepares the directory structure as expected from the [[nativeImage]]
      * with the dependency metadata collected from [[nativeMvnDepsMetadata]]
+     *
+     * For more information see also [[https://www.graalvm.org/latest/reference-manual/native-image/metadata/]]
      */
     def nativeDepsMetaInf: T[PathRef] = Task {
       val dest = Task.dest / "resources/META-INF/native-image"
@@ -208,7 +212,7 @@ trait SpringBootModule extends JavaModule {
     override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
       val configurationsPath = outer.springBootProcessAOT().path / "resources/META-INF"
       val libsMetaInf = nativeDepsMetaInf().path / "META-INF"
-      val paths = Seq(configurationsPath, libsMetaInf)
+      val paths = Seq(configurationsPath, libsMetaInf).filter(os.exists)
       super.nativeImageOptions() ++ Seq(
         "--configurations-path",
         paths.mkString(java.io.File.pathSeparator)
