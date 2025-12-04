@@ -732,7 +732,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-4-330fe8/mill-dist-1.1.0-RC3-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-5-7c85cb/mill-dist-1.1.0-RC3-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
 1.1.0-RC3</code></pre>
@@ -741,7 +741,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-4-330fe8/mill-dist-1.1.0-RC3-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-5-7c85cb/mill-dist-1.1.0-RC3-mill.bat -o mill.bat
 &gt; ./mill version
 1.1.0-RC3</code></pre>
 </div>
@@ -1265,6 +1265,51 @@ inside the Eclipse workspace by selecting them and hitting <code>F5</code>.</p>
 going on. It contains regular Mill output accompanied by additional BSP
 client-server communication details. This can be useful to look at if your
 IDE fails to import your Mill project</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setting_up_mill_in_ci"><a class="anchor" href="#_setting_up_mill_in_ci"></a>Setting up Mill in CI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Due to Mill’s usage of <a href="#_bootstrap_scripts">Bootstrap Scripts</a>, you typically do not
+need to setup anything in your CI system to make Mill work. Any Mill project should be
+buildable via <code>./mill</code> on your CI machines without needing to first install Java, Mill,
+or other dependencies, and the <code>./mill</code> bootstrap script will download these dependencies
+as necessary.</p>
+</div>
+<div class="paragraph">
+<p>One thing that you should set up manually is to enable a <a href="https://force-color.org/">FORCE_COLOR</a>
+environment variable in your CI system. For example, in Github Actions this can be configured
+in your workflow <code>.yml</code> file via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">env:
+  FORCE_COLOR: '1'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>FORCE_COLOR</code> ensures Mill produces ANSI-colored output logs despite being called
+programmatically in on your CI machines. Most CI systems process and render ANSI
+colors nicely in the browser, and this can make your CI logs much easier to read
+than if they were black-and-white:</p>
+</div>
+<div class="paragraph">
+<p><strong>Without FORCE_COLOR</strong></p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/ForceColor0.png" alt="ForceColor0" />
+</div>
+</div>
+<div class="paragraph">
+<p><strong>With FORCE_COLOR=1</strong></p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/ForceColor1.png" alt="ForceColor1" />
 </div>
 </div>
 </div>
