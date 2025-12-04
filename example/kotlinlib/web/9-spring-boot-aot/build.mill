@@ -1,11 +1,10 @@
 package build
 
 import mill.*
-import mill.javalib.*
+import mill.kotlinlib.*
 import mill.javalib.spring.boot.SpringBootModule
 import mill.javalib.TestModule.{Junit4, Junit5}
 import mill.javalib.publish.*
-import mill.kotlinlib.KotlinModule
 
 object `package` extends SpringBootModule, KotlinModule { outer =>
 
@@ -14,7 +13,12 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
   override def kotlinVersion = "2.2.21"
   override def artifactName: T[String] = "spring-boot-native-demo"
 
-  override def kotlincOptions: T[Seq[String]] = super.kotlincOptions() ++ Seq("-jvm-target", "17")
+  override def kotlincOptions: T[Seq[String]] = super.kotlincOptions() ++ Seq(
+    "-jvm-target",
+    "17",
+    "-Xjsr305=strict",
+    "-Xannotation-default-target=param-property"
+  )
 
   override def mvnDeps = Seq(
     mvn"org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion()}",
@@ -22,15 +26,35 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
     mvn"org.springframework.boot:spring-boot-starter-web"
   )
 
+  // FIXME workaround until mill supports graalvm-reachability-metadata
+  override def springBootProcessAOT = Task {
+    val dest = super.springBootProcessAOT()
+    val downloadedMetadata = Task.dest / "graalvm-reachability-metadata.zip"
+    os.write(
+      downloadedMetadata,
+      requests.get(
+        "https://github.com/oracle/graalvm-reachability-metadata/releases/download/0.3.32/graalvm-reachability-metadata-0.3.32.zip"
+      )
+    )
+    val nativeDir = Task.dest / "native"
+    val metadataDir = Task.dest / "graalvm-reachability-metadata"
+    os.unzip(downloadedMetadata, metadataDir)
+    os.copy(dest.path, nativeDir, createFolders = true)
+    os.list(metadataDir).foreach(dir =>
+      os.copy.into(dir, nativeDir / "resources/META-INF/native-image")
+    )
+    PathRef(nativeDir)
+  }
+
   object prod extends SpringBootOptimisedBuildModule, KotlinModule {
     override def kotlinVersion = outer.kotlinVersion()
-    override def kotlincOptions = outer.kotlincOptions()
+    override def kotlincOptions = super.kotlincOptions() ++ outer.kotlincOptions()
   }
 
   object native extends KotlinModule, NativeSpringBootBuildModule {
     override def kotlinVersion = outer.kotlinVersion()
-    override def kotlincOptions = outer.kotlincOptions()
-    def jvmId = "graalvm-community:23.0.1"
+    override def kotlincOptions = super.kotlincOptions() ++ outer.kotlincOptions()
+    def jvmId = "graalvm-community:25.0.1"
   }
 
   object test extends SpringBootTestsModule, KotlinTests, TestModule.Junit5 {
