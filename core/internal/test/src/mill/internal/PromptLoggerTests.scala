@@ -1,6 +1,5 @@
 package mill.internal
 
-import mill.api.SystemStreams
 import mill.constants.ProxyStream
 import utest.*
 

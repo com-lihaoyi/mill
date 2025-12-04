@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.api.{BuildInfo, MillException}
+import mill.api.BuildInfo
 import mill.api.{Task, Segment}
 
 import scala.reflect.NameTransformer.encode

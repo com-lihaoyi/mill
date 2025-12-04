@@ -1,6 +1,6 @@
 package mill.internal
 
-import mill.api.{Logger, SystemStreams}
+import mill.api.Logger
 
 import java.io.PrintStream
 
