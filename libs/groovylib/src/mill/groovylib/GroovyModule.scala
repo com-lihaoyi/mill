@@ -226,7 +226,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
         workerGroovyResult match {
           case Result.Success(_) =>
             CompilationResult(analysisFile, PathRef(classes))
-          case Result.Failure(reason) => Result.Failure(reason)
+          case f: Result.Failure => f
         }
       }
 
