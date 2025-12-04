@@ -171,9 +171,48 @@ trait SpringBootModule extends JavaModule {
    * parent module as a native GraalVM application, provided the [[outer.springBootProcessAOT]] works.
    */
   trait NativeSpringBootBuildModule extends SpringBootOptimisedBuildModule, NativeImageModule {
+
+    /**
+     * Collects the metadata from [[nativeGraalVMReachabilityMetadata]] if
+     * there is a direct dependency from the [[outer]] module matching metadata.
+     * It does not take into account transitive dependencies.
+     */
+    def nativeMvnDepsMetadata: T[Seq[PathRef]] = Task {
+      val metadataPath = nativeGraalVMReachabilityMetadata().path
+      outer.mvnDeps().flatMap {
+        dep =>
+          val reachabilityPath = metadataPath / dep.organization / dep.name
+          if (os.exists(reachabilityPath))
+            Some(PathRef(reachabilityPath))
+          else
+            None
+      }
+    }
+
+    /**
+     * Prepares the directory structure as expected from the [[nativeImage]]
+     * with the dependency metadata collected from [[nativeMvnDepsMetadata]]
+     */
+    def nativeDepsMetaInf: T[PathRef] = Task {
+      val dest = Task.dest / "resources/META-INF/native-image"
+      nativeMvnDepsMetadata().foreach(pr => os.copy.into(pr.path, dest, createFolders = true))
+      PathRef(Task.dest / "resources")
+    }
+
+    override def runClasspath: T[Seq[PathRef]] = super.runClasspath() ++ Seq(nativeDepsMetaInf())
+
+    /**
+     * Uses the configuration path from both [[outer.springBootProcessAOT]] and
+     * [[nativeDepsMetaInf]]
+     */
     override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
       val configurationsPath = outer.springBootProcessAOT().path / "resources/META-INF"
-      super.nativeImageOptions() ++ Seq("--configurations-path", configurationsPath.toString)
+      val libsMetaInf = nativeDepsMetaInf().path / "META-INF"
+      val paths = Seq(configurationsPath, libsMetaInf)
+      super.nativeImageOptions() ++ Seq(
+        "--configurations-path",
+        paths.mkString(java.io.File.pathSeparator)
+      )
     }
   }
 

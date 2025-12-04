@@ -122,4 +122,28 @@ trait NativeImageModule extends WithJvmWorkerModule {
         throw new RuntimeException("JvmWorkerModule.javaHome/GRAALVM_HOME not defined")
     }
   }
+
+  def nativeGraalVMReachabilityMetadataVersion: T[String] = Task {
+    "0.3.32"
+  }
+
+  def nativeGraalVMReachabilityMetadataRepo: Task[PathRef] = Task.Anon {
+    val downloadedMetadata = Task.dest / "graalvm-reachability-metadata.zip"
+    val version = nativeGraalVMReachabilityMetadataVersion()
+    os.write(
+      downloadedMetadata,
+      requests.get(
+        s"https://github.com/oracle/graalvm-reachability-metadata/releases/download/$version/graalvm-reachability-metadata-$version.zip"
+      )
+    )
+
+    PathRef(downloadedMetadata)
+  }
+
+  def nativeGraalVMReachabilityMetadata: T[PathRef] = Task {
+    val dest = Task.dest / "metadata"
+    os.unzip(nativeGraalVMReachabilityMetadataRepo().path, dest)
+    PathRef(dest)
+  }
+
 }

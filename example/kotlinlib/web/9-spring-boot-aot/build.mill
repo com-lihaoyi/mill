@@ -26,26 +26,6 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
     mvn"org.springframework.boot:spring-boot-starter-web"
   )
 
-  // FIXME workaround until mill supports graalvm-reachability-metadata
-  override def springBootProcessAOT = Task {
-    val dest = super.springBootProcessAOT()
-    val downloadedMetadata = Task.dest / "graalvm-reachability-metadata.zip"
-    os.write(
-      downloadedMetadata,
-      requests.get(
-        "https://github.com/oracle/graalvm-reachability-metadata/releases/download/0.3.32/graalvm-reachability-metadata-0.3.32.zip"
-      )
-    )
-    val nativeDir = Task.dest / "native"
-    val metadataDir = Task.dest / "graalvm-reachability-metadata"
-    os.unzip(downloadedMetadata, metadataDir)
-    os.copy(dest.path, nativeDir, createFolders = true)
-    os.list(metadataDir).foreach(dir =>
-      os.copy.into(dir, nativeDir / "resources/META-INF/native-image")
-    )
-    PathRef(nativeDir)
-  }
-
   object prod extends SpringBootOptimisedBuildModule, KotlinModule {
     override def kotlinVersion = outer.kotlinVersion()
     override def kotlincOptions = super.kotlincOptions() ++ outer.kotlincOptions()
