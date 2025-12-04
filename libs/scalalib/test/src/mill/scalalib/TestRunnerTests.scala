@@ -12,28 +12,28 @@ object TestRunnerTests extends TestSuite {
 
     test("doneMessage") {
       test("failure") {
-        val outStream = new ByteArrayOutputStream()
+        val outStream = ByteArrayOutputStream()
         UnitTester(
           testrunner,
-          outStream = new PrintStream(outStream, true),
+          outStream = PrintStream(outStream, true),
           sourceRoot = resourcePath
         ).scoped { eval =>
           val Right(UnitTester.Result(("test failure done message", Nil), _)) =
             eval.apply(testrunner.doneMessageFailure.testForked()): @unchecked
-          val stdout = new String(outStream.toByteArray)
+          val stdout = String(outStream.toByteArray)
           assert(stdout.contains("test failure done message"))
         }
       }
 
       test("success") {
-        val outStream = new ByteArrayOutputStream()
+        val outStream = ByteArrayOutputStream()
         UnitTester(
           testrunner,
-          outStream = new PrintStream(outStream, true),
+          outStream = PrintStream(outStream, true),
           sourceRoot = resourcePath
         ).scoped { eval =>
           val Right(_) = eval(testrunner.doneMessageSuccess.testForked()): @unchecked
-          val stdout = new String(outStream.toByteArray)
+          val stdout = String(outStream.toByteArray)
           assert(stdout.contains("test success done message"))
         }
       }

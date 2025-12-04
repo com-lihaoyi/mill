@@ -10,15 +10,15 @@ class MultiLogger(
     val inStream0: InputStream
 ) extends Logger {
   override def toString: String = s"MultiLogger($logger1, $logger2)"
-  lazy val streams = new SystemStreams(
-    new MultiStream(logger1.streams.out, logger2.streams.out),
-    new MultiStream(logger1.streams.err, logger2.streams.err),
+  lazy val streams = SystemStreams(
+    MultiStream(logger1.streams.out, logger2.streams.out),
+    MultiStream(logger1.streams.err, logger2.streams.err),
     inStream0
   )
 
-  override lazy val unprefixedStreams: SystemStreams = new SystemStreams(
-    new MultiStream(logger1.unprefixedStreams.out, logger2.unprefixedStreams.out),
-    new MultiStream(logger1.unprefixedStreams.err, logger2.unprefixedStreams.err),
+  override lazy val unprefixedStreams: SystemStreams = SystemStreams(
+    MultiStream(logger1.unprefixedStreams.out, logger2.unprefixedStreams.out),
+    MultiStream(logger1.unprefixedStreams.err, logger2.unprefixedStreams.err),
     inStream0
   )
 
@@ -131,13 +131,13 @@ class MultiLogger(
   override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
   override def redirectOutToErr: Boolean = logger1.redirectOutToErr || logger1.redirectOutToErr
-  override def withRedirectOutToErr() = new MultiLogger(
+  override def withRedirectOutToErr() = MultiLogger(
     logger1.withRedirectOutToErr(),
     logger2.withRedirectOutToErr(),
     inStream0
   )
   override def withOutStream(outStream: PrintStream): Logger = {
-    new MultiLogger(
+    MultiLogger(
       logger1.withOutStream(outStream),
       logger2.withOutStream(outStream),
       inStream0

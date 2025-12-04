@@ -42,7 +42,7 @@ class SonatypeHttpApi(
     )
 
     if (!response.is2xx) {
-      throw new Exception(
+      throw Exception(
         s"$uri/staging/profiles returned ${response.statusCode}\n${response.text()}"
       )
     }
@@ -55,7 +55,7 @@ class SonatypeHttpApi(
         .map(_("resourceURI").str)
 
     resourceUri.getOrElse(
-      throw new RuntimeException(
+      throw RuntimeException(
         s"Could not find staging profile for groupId: ${groupId}"
       )
     )
@@ -70,7 +70,7 @@ class SonatypeHttpApi(
       ujson.read(response.text())("type").str
     } catch {
       case e: ParseException =>
-        throw new RuntimeException(
+        throw RuntimeException(
           s"Could not parse HTTP response. ${e.getMessage()}" + "\n" + s"Raw response: ${response}",
           e
         )
@@ -86,7 +86,7 @@ class SonatypeHttpApi(
     ))
 
     if (!response.is2xx) {
-      throw new RuntimeException(
+      throw RuntimeException(
         s"$uri/staging/profiles returned ${response.statusCode}\n${response.text()}"
       )
     }
@@ -166,6 +166,6 @@ class SonatypeHttpApi(
   }
 
   private def base64(s: String) =
-    new String(Base64.getEncoder.encode(s.getBytes))
+    String(Base64.getEncoder.encode(s.getBytes))
 
 }

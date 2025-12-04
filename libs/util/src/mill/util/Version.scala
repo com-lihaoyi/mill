@@ -28,9 +28,9 @@ class Version private (
   def isAtLeast(other: Version)(using ordering: Ordering[Version]): Boolean =
     ordering.compare(this, other) >= 0
 
-  def asMaven: MavenVersion = new MavenVersion(this)
-  def asOsgiVersion: OsgiVersion = new OsgiVersion(this)
-  def asIgnoreQualifierVersion: IgnoreQualifierVersion = new IgnoreQualifierVersion(this)
+  def asMaven: MavenVersion = MavenVersion(this)
+  def asOsgiVersion: OsgiVersion = OsgiVersion(this)
+  def asIgnoreQualifierVersion: IgnoreQualifierVersion = IgnoreQualifierVersion(this)
 }
 
 final class MavenVersion(val underlying: Version) extends AnyVal {
@@ -130,7 +130,7 @@ object Version {
   def parse(version: String): Version = {
     version match {
       case Pattern(major, _, minor, _, micro, _, qualifierSep, qualifier) =>
-        new Version(
+        Version(
           major.toInt,
           Option(minor).map(_.toInt),
           Option(micro).map(_.toInt),

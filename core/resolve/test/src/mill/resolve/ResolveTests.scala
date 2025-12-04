@@ -28,7 +28,7 @@ object ResolveTests extends TestSuite {
 
   val tests = Tests {
     test("single") {
-      val check = new Checker(singleton)
+      val check = Checker(singleton)
       test("pos") - check("single", Result.Success(Set(_.single)), Set("single"))
       test("wildcard") - check("_", Result.Success(Set(_.single)), Set("single"))
       test("neg1") - check("sngle", Result.Failure("Cannot resolve sngle. Did you mean single?"))
@@ -59,7 +59,7 @@ object ResolveTests extends TestSuite {
       )
     }
     test("backtickIdentifiers") {
-      val check = new Checker(bactickIdentifiers)
+      val check = Checker(bactickIdentifiers)
       test("pos1") - check("up-task", Result.Success(Set(_.`up-task`)), Set("up-task"))
       test("pos2") - check(
         "a-down-task",
@@ -111,7 +111,7 @@ object ResolveTests extends TestSuite {
       }
     }
     test("nested") {
-      val check = new Checker(nestedModule)
+      val check = Checker(nestedModule)
       test("pos1") - check("single", Result.Success(Set(_.single)), Set("single"))
       test("pos2") - check(
         "nested.single",
@@ -222,7 +222,7 @@ object ResolveTests extends TestSuite {
       )
     }
     test("doubleNested") {
-      val check = new Checker(doubleNestedModule)
+      val check = Checker(doubleNestedModule)
       test("pos1") - check("single", Result.Success(Set(_.single)), Set("single"))
       test("pos2") - check(
         "nested.single",

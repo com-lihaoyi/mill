@@ -243,7 +243,7 @@ trait TestModule
       globSelectors: Task[Seq[String]]
   ): Task[(msg: String, results: Seq[TestResult])] =
     Task.Anon {
-      val testModuleUtil = new TestModuleUtil(
+      val testModuleUtil = TestModuleUtil(
         testUseArgsFile(),
         forkArgs(),
         globSelectors(),

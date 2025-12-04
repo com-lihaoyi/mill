@@ -105,8 +105,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       socketPortFile: os.Path
   ): Option[Handled] = {
     serverLog("server file locked")
-    val serverSocket = new ServerSocket(0, 0, InetAddress.getByName(null))
-    val exitCodeVar = new AtomicReference[Option[Handled]](None)
+    val serverSocket = ServerSocket(0, 0, InetAddress.getByName(null))
+    val exitCodeVar = AtomicReference[Option[Handled]](None)
     def closeServer(exitCodeOpt: Option[Handled]) = {
       // Don't System.exit immediately, but instead store the exit code for later and close the
       // `serverSocket` so the methods return normally with a single exit point
@@ -363,7 +363,7 @@ object Server {
   /// can detect when the Mill client goes away, which is necessary to handle
   /// the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
   def overrideSigIntHandling(handler: SignalHandler = _ => ()): Unit = {
-    Signal.handle(new Signal("INT"), handler)
+    Signal.handle(Signal("INT"), handler)
   }
 
   def computeProcessId(): Long = ProcessHandle.current().pid()

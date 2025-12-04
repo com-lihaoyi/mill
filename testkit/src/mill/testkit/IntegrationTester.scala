@@ -292,7 +292,7 @@ object IntegrationTester {
      * Helpers to read the `.json` metadata files belonging to a particular task
      * (specified by [[selector0]]) from the `out/` folder.
      */
-    def out(selector0: String): Meta = new Meta(selector0)
+    def out(selector0: String): Meta = Meta(selector0)
 
     class Meta(selector0: String) {
 

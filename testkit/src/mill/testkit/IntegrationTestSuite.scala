@@ -48,7 +48,7 @@ trait IntegrationTestSuite {
       count = if (sys.env.contains("CI")) 1 else 0,
       timeoutMillis = 10.minutes.toMillis
     ) {
-      val tester = new IntegrationTester(
+      val tester = IntegrationTester(
         daemonMode,
         workspaceSourcePath,
         millExecutable,

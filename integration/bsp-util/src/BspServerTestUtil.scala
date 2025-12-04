@@ -48,7 +48,7 @@ object BspServerTestUtil {
     def onRunPrintStdout(params: b.PrintParams): Unit = ()
   }
 
-  val gson: Gson = new GsonBuilder().setPrettyPrinting().create()
+  val gson: Gson = GsonBuilder().setPrettyPrinting().create()
   def compareWithGsonSnapshot[T: ClassTag](
       value: T,
       snapshotPath: os.Path,
@@ -100,7 +100,7 @@ object BspServerTestUtil {
     new ThreadFactory {
       val counter = new AtomicInteger
       def newThread(runnable: Runnable): Thread = {
-        val t = new Thread(runnable, s"mill-bsp-integration-${counter.incrementAndGet()}")
+        val t = Thread(runnable, s"mill-bsp-integration-${counter.incrementAndGet()}")
         t.setDaemon(true)
         t
       }

@@ -286,11 +286,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .getItems
             .asScala
             .map { item =>
-              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+              val shortId = os.Path(Paths.get(URI(item.getTarget.getUri)))
                 .relativeTo(workspacePath)
                 .asSubPath
               val semDbs = findSemanticdbs(
-                os.Path(Paths.get(new URI(item.getClassDirectory)))
+                os.Path(Paths.get(URI(item.getClassDirectory)))
               )
               shortId -> semDbs
             }
@@ -324,11 +324,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .getItems
             .asScala
             .map { item =>
-              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+              val shortId = os.Path(Paths.get(URI(item.getTarget.getUri)))
                 .relativeTo(workspacePath)
                 .asSubPath
               val semDbs = findSemanticdbs(
-                os.Path(Paths.get(new URI(item.getClassDirectory)))
+                os.Path(Paths.get(URI(item.getClassDirectory)))
               )
               shortId -> semDbs
             }
@@ -474,7 +474,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
       )
 
       def uriAsSubPath(strUri: String): os.SubPath =
-        os.Path(Paths.get(new URI(strUri))).relativeTo(workspacePath).asSubPath
+        os.Path(Paths.get(URI(strUri))).relativeTo(workspacePath).asSubPath
 
       val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
         scalaVersionNormalizedValues()

@@ -95,7 +95,7 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
 
     val timestampRegex = """<timestamp>(\d{8}\.\d{6})</timestamp>""".r
     val timestamp = timestampRegex.findFirstMatchIn(metadataContents).map(_.group(1)).getOrElse {
-      throw new Exception(
+      throw Exception(
         s"No timestamp found via $timestampRegex in $metadataFile:\n$metadataContents"
       )
     }

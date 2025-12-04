@@ -137,7 +137,7 @@ trait ScalaPBModule extends ScalaModule {
     val cp = scalaPBProtoClasspath()
     val dest = Task.dest
     cp.iterator.foreach { ref =>
-      Using(new ZipInputStream(ref.path.getInputStream)) { zip =>
+      Using(ZipInputStream(ref.path.getInputStream)) { zip =>
         while ({
           Option(zip.getNextEntry) match {
             case None => false

@@ -70,7 +70,7 @@ trait InitModule extends Module {
             } yield rel
 
             if (conflicting.nonEmpty) {
-              throw new Exception(
+              throw Exception(
                 "Unable to unpack example because it conflicts with existing file: " +
                   conflicting.mkString(", ")
               )

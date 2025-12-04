@@ -90,5 +90,5 @@ object SonatypeHelpers {
   private def sha1 = MessageDigest.getInstance("sha1")
 
   private def hexArray(arr: Array[Byte]) =
-    String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
+    String.format("%0" + (arr.length << 1) + "x", BigInteger(1, arr))
 }

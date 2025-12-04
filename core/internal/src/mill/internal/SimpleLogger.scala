@@ -13,10 +13,10 @@ class SimpleLogger(
 
   private val linePrefix: String = Logger.formatPrefix(logKey)
   private def prefixPrintStream(stream: java.io.OutputStream) = {
-    new PrintStream(new LineBufferingOutputStream(s => stream.write((linePrefix + s).getBytes)))
+    PrintStream(LineBufferingOutputStream(s => stream.write((linePrefix + s).getBytes)))
   }
 
-  val streams = new SystemStreams(
+  val streams = SystemStreams(
     out = prefixPrintStream(unprefixedStreams.out),
     err = prefixPrintStream(unprefixedStreams.err),
     unprefixedStreams.in

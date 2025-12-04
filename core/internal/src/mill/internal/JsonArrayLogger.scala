@@ -15,13 +15,13 @@ class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
       Seq(StandardOpenOption.TRUNCATE_EXISTING)
     ).flatten
     os.makeDir.all(outPath / os.up)
-    new PrintStream(new BufferedOutputStream(Files.newOutputStream(outPath.toNIO, options*)))
+    PrintStream(BufferedOutputStream(Files.newOutputStream(outPath.toNIO, options*)))
   }
 
   // Log the JSON entries asynchronously on a separate thread to try and avoid blocking
   // the main execution, but keep the size bounded so if the logging falls behind the
   // main thread will get blocked until logging can catch up
-  val buffer = new ArrayBlockingQueue[Option[T]](100)
+  val buffer = ArrayBlockingQueue[Option[T]](100)
   val writeThread = mill.api.daemon.StartThread("JsonArrayLogger " + outPath.last) {
     // Make sure all writes to `traceStream` are synchronized, as we
     // have two threads writing to it (one while active, one on close()

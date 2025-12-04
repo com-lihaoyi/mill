@@ -17,7 +17,7 @@ object Hello {
 
     def next(): A
 
-    def filter(p: A => Boolean): BigTestIterator[A] = new FilterBigTestIterator[A](this, p)
+    def filter(p: A => Boolean): BigTestIterator[A] = FilterBigTestIterator[A](this, p)
   }
 
   class FilterBigTestIterator[A](parent: BigTestIterator[A], pred: A => Boolean)
@@ -41,7 +41,7 @@ object Hello {
   }
 
   def manualIterator3(n: Int): Int = {
-    val iter = new SingletonBigTestIterator(n).filter(_ % 2 == 0)
+    val iter = SingletonBigTestIterator(n).filter(_ % 2 == 0)
     if (iter.hasNext) iter.next()
     else n
   }

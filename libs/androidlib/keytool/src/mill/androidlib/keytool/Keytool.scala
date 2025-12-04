@@ -9,14 +9,14 @@ object Keytool {
     def shortName: String = "validity"
     def read(tokens: Seq[String]): Either[String, FiniteDuration] = {
       if (tokens.isEmpty)
-        throw new IllegalArgumentException("Duration cannot be empty")
+        throw IllegalArgumentException("Duration cannot be empty")
       val durationString = tokens.mkString(" ")
       val duration = Duration(durationString)
       if (duration < Duration.Zero)
-        throw new IllegalArgumentException(s"Duration cannot be negative: $durationString")
+        throw IllegalArgumentException(s"Duration cannot be negative: $durationString")
       duration match {
         case d: FiniteDuration => Right(d)
-        case _ => throw new IllegalArgumentException(s"Duration must be finite: $durationString")
+        case _ => throw IllegalArgumentException(s"Duration must be finite: $durationString")
       }
     }
   }

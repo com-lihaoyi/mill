@@ -218,7 +218,7 @@ object BuildInfo {
            |      .getResourceAsStream("${buildInfoObjectName}.buildinfo.properties")
            |
            |    if(buildInfoInputStream == null)
-           |      throw new RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
+           |      throw RuntimeException("Could not load resource ${buildInfoObjectName}.buildinfo.properties")
            |    else try {
            |      buildInfoProperties.load(buildInfoInputStream)
            |    } finally {
@@ -269,12 +269,12 @@ object BuildInfo {
            |    try {
            |      buildInfoProperties.load(buildInfoInputStream);
            |    } catch (java.io.IOException e) {
-           |      throw new RuntimeException(e);
+           |      throw RuntimeException(e);
            |    } finally {
            |      try {
            |        buildInfoInputStream.close();
            |      } catch (java.io.IOException e) {
-           |        throw new RuntimeException(e);
+           |        throw RuntimeException(e);
            |      }
            |    }
            |  }

@@ -10,19 +10,19 @@ import scala.concurrent.duration.Duration.*
 object PipeStreamsTests extends TestSuite {
   val tests = Tests {
     test("hello") { // Single write and read works
-      val pipe = new PipeStreams()
+      val pipe = PipeStreams()
       val data = Array[Byte](1, 2, 3, 4, 5, 0, 3)
       assert(data.length < pipe.bufferSize)
 
       pipe.output.write(data)
 
-      val out = new Array[Byte](7)
+      val out = Array[Byte](7)
       pipe.input.read(out)
       out ==> data
     }
 
     test("multiple") { // Single sequential write and read works
-      val pipe = new PipeStreams()
+      val pipe = PipeStreams()
       val chunkSize = 10
       val chunkCount = 100
       for (i <- Range(0, chunkCount)) {
@@ -34,7 +34,7 @@ object PipeStreamsTests extends TestSuite {
       }
     }
     test("concurrentWriteRead") { // Single sequential write and read works
-      val pipe = new PipeStreams(bufferSize = 13)
+      val pipe = PipeStreams(bufferSize = 13)
       val chunkSize = 20
       val chunkCount = 100
       assert(pipe.bufferSize < chunkSize * chunkCount) // ensure it gets filled
@@ -59,7 +59,7 @@ object PipeStreamsTests extends TestSuite {
     test("multiThreadWrite") { // multiple writes across different threads followed by read
       val chunkSize = 10
       val chunkCount = 100
-      val pipe = new PipeStreams()
+      val pipe = PipeStreams()
       assert(chunkSize * chunkCount < pipe.bufferSize)
       val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(40))
       val writeFutures =
@@ -84,7 +84,7 @@ object PipeStreamsTests extends TestSuite {
     ) { // multiple writes across different threads interleaved by reads
       val chunkSize = 20
       val chunkCount = 100
-      val pipe = new PipeStreams(bufferSize = 113)
+      val pipe = PipeStreams(bufferSize = 113)
       assert(chunkSize * chunkCount > pipe.bufferSize)
       val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(40))
       for (i <- Range(0, chunkCount)) yield Future {
@@ -105,7 +105,7 @@ object PipeStreamsTests extends TestSuite {
     //    test("multiThreadWriteMultiThreadRead"){ // multiple writes across different threads interleaved by reads
     //      val chunkSize = 20
     //      val chunkCount = 100
-    //      val pipe = new PipeStreams(bufferSize = 137)
+    //      val pipe = PipeStreams(bufferSize = 137)
     //      val writerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
     //      val readerPool = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(100))
     //      for(i <- Range(0, chunkCount)) yield Future{

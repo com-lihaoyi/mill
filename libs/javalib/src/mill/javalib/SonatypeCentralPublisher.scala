@@ -53,7 +53,7 @@ class SonatypeCentralPublisher(
   )
 
   private val sonatypeCentralClient =
-    new SyncSonatypeClient(
+    SyncSonatypeClient(
       credentials = STCreds(credentials.username, credentials.password),
       readTimeout = readTimeout,
       connectTimeout = connectTimeout
@@ -206,7 +206,7 @@ class SonatypeCentralPublisher(
       }
     } catch {
       case ex: Throwable => {
-        throw new RuntimeException(
+        throw RuntimeException(
           s"Failed to publish ${deploymentName.unapply} to Sonatype Central",
           ex
         )
@@ -223,7 +223,7 @@ class SonatypeCentralPublisher(
     val zipFile =
       (wd / s"$fileNameWithoutExtension.zip")
     val fileOutputStream = Files.newOutputStream(zipFile.toNIO)
-    val jarOutputStream = new JarOutputStream(fileOutputStream)
+    val jarOutputStream = JarOutputStream(fileOutputStream)
     try {
       func(jarOutputStream)
     } finally {
@@ -237,7 +237,7 @@ class SonatypeCentralPublisher(
       jarOutputStream: JarOutputStream
   ): Unit = {
     files.foreach { case (filename, fileAsBytes) =>
-      val zipEntry = new ZipEntry(filename.toString)
+      val zipEntry = ZipEntry(filename.toString)
       jarOutputStream.putNextEntry(zipEntry)
       jarOutputStream.write(fileAsBytes)
       jarOutputStream.closeEntry()

@@ -16,7 +16,7 @@ object Hello {
   }
 
   def staticSpecialInterfaceMethods(): Int = {
-    new TestElements().run(new TestCallbackImpl())
+    TestElements().run(TestCallbackImpl())
   }
 }
 

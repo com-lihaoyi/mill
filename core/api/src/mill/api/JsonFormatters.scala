@@ -68,7 +68,7 @@ trait JsonFormatters {
           "lineNumber" -> ujson.Num(ste.getLineNumber)
         ),
       json =>
-        new StackTraceElement(
+        StackTraceElement(
           json("declaringClass").str.toString,
           json("methodName").str.toString,
           json("fileName").arr.headOption.map(_.str.toString).orNull,

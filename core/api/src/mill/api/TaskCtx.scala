@@ -57,7 +57,7 @@ object TaskCtx {
 
     def arg[T](index: Int): T = {
       if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
-      else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
+      else throw IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
     }
 
     def fail(msg: String): Nothing = throw Result.Exception(msg)

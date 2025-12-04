@@ -554,7 +554,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       Task.log.error(
         s"Error trying to install android emulator system image ${installCall.err.text()}"
       )
-      throw new Exception(s"Failed to install system image $image: ${installCall.exitCode}")
+      throw Exception(s"Failed to install system image $image: ${installCall.exitCode}")
     }
     image
   }
@@ -577,7 +577,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     ))
     if (command.exitCode != 0) {
       Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")
-      throw new Exception(s"Failed to create android virtual device: ${command.exitCode}")
+      throw Exception(s"Failed to create android virtual device: ${command.exitCode}")
     }
     s"DeviceName: $androidVirtualDeviceIdentifier, DeviceId: $androidDeviceId"
   }
@@ -646,7 +646,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }).findFirst().toScala
 
     if (bootMessage.isEmpty) {
-      throw new Exception(s"Emulator failed to start: ${startEmuCmd.exitCode()}")
+      throw Exception(s"Emulator failed to start: ${startEmuCmd.exitCode()}")
     }
 
     val emulator: String = waitForDevice(androidSdkModule().adbExe(), runningEmulator(), Task.log)
@@ -840,7 +840,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     if (bootflag == BootedIndicator)
       emulator
     else
-      throw new Exception("Device failed to boot")
+      throw Exception("Device failed to boot")
   }
 
   /**

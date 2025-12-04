@@ -10,7 +10,7 @@ object CodeSig {
       logger: Logger,
       prevTransitiveCallGraphHashesOpt: () => Option[Map[String, Int]]
   ): CallGraphAnalysis = {
-    implicit val st: SymbolTable = new SymbolTable()
+    implicit val st: SymbolTable = SymbolTable()
 
     val localSummary = LocalSummary.apply(classFiles.iterator.map(os.read.inputStream(_)))
     logger.log(localSummary)
@@ -21,7 +21,7 @@ object CodeSig {
     val resolvedMethodCalls = ResolvedCalls.apply(localSummary, externalSummary)
     logger.log(resolvedMethodCalls)
 
-    new CallGraphAnalysis(
+    CallGraphAnalysis(
       localSummary,
       resolvedMethodCalls,
       externalSummary,

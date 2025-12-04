@@ -94,7 +94,7 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
 
     if (errors.nonEmpty) {
       // Throw exception with all error messages
-      throw new RuntimeException(
+      throw RuntimeException(
         s"Coverage minimums violated:\n${errors.mkString("\n")}"
       )
     } else {
@@ -126,13 +126,13 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi2 {
           ScoverageReportWorkerApi2.makeAllDirs(folder)
           reportType match {
             case ReportType.Html =>
-              new ScoverageHtmlWriter(sourceFolders, folder.toFile, None)
+              ScoverageHtmlWriter(sourceFolders, folder.toFile, None)
                 .write(coverage)
             case ReportType.Xml =>
-              new ScoverageXmlWriter(sourceFolders, folder.toFile, false, None)
+              ScoverageXmlWriter(sourceFolders, folder.toFile, false, None)
                 .write(coverage)
             case ReportType.XmlCobertura =>
-              new CoberturaXmlWriter(sourceFolders, folder.toFile, None)
+              CoberturaXmlWriter(sourceFolders, folder.toFile, None)
                 .write(coverage)
             case ReportType.Console =>
               ctx.log.info(s"Statement coverage.: ${coverage.statementCoverageFormatted}%")

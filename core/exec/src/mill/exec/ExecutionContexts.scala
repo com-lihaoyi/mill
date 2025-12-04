@@ -58,7 +58,7 @@ object ExecutionContexts {
       val submitterPwd = os.dynamicPwdFunction.value
       val submitterChecker = os.checker.value
       val submitterStreams = new mill.api.SystemStreams(Console.out, Console.err, System.in)
-      executor.execute(new PriorityRunnable(
+      executor.execute(PriorityRunnable(
         0,
         () =>
           os.checker.withValue(submitterChecker) {
@@ -108,9 +108,9 @@ object ExecutionContexts {
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(using
         ctx: mill.api.TaskCtx
     ): Future[T] = {
-      val logger = new MultiLogger(
-        new PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
-        new FileLogger(dest / os.up / s"${dest.last}.log", false),
+      val logger = MultiLogger(
+        PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
+        FileLogger(dest / os.up / s"${dest.last}.log", false),
         ctx.log.streams.in
       )
 
@@ -124,7 +124,7 @@ object ExecutionContexts {
         dest
       }
       val promise = concurrent.Promise[T]
-      val runnable = new PriorityRunnable(
+      val runnable = PriorityRunnable(
         priority = priority,
         run0 = () => {
           val result = scala.util.Try(logger.withPromptLine {
@@ -147,7 +147,7 @@ object ExecutionContexts {
   def createExecutor(threadCount: Int): ThreadPoolExecutor = {
     val executorIndex = executorCounter.incrementAndGet()
     val threadCounter = new AtomicInteger
-    new ThreadPoolExecutor(
+    ThreadPoolExecutor(
       threadCount,
       threadCount,
       0,
@@ -156,10 +156,10 @@ object ExecutionContexts {
       // operations reversed, providing elements in a LIFO order. This ensures that
       // child `fork.async` tasks always take priority over parent tasks, avoiding
       // large numbers of blocked parent tasks from piling up
-      new PriorityBlockingQueue[Runnable](),
+      PriorityBlockingQueue[Runnable](),
       runnable => {
         val threadIndex = threadCounter.incrementAndGet()
-        val t = new Thread(
+        val t = Thread(
           runnable,
           s"execution-contexts-threadpool-$executorIndex-thread-$threadIndex"
         )

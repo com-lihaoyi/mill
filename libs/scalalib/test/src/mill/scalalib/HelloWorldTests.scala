@@ -101,9 +101,9 @@ object HelloWorldTests extends TestSuite {
 
   def readFileFromJar(jar: JarFile, name: String): String = {
     Using.resource(jar.getInputStream(jar.getEntry(name))) { is =>
-      val baos = new ByteArrayOutputStream()
+      val baos = ByteArrayOutputStream()
       os.Internals.transfer(is, baos)
-      new String(baos.toByteArray)
+      String(baos.toByteArray)
     }
   }
 
@@ -273,7 +273,7 @@ object HelloWorldTests extends TestSuite {
           result.evalCount > 0
         )
 
-        Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+        Using.resource(JarFile(result.value.path.toIO)) { jarFile =>
           val entries = jarFile.entries().asScala.map(_.getName).toSeq.sorted
 
           val otherFiles = Seq(

@@ -50,7 +50,7 @@ object MillDaemonMain0 {
       val acceptTimeout =
         Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
 
-      val exitCode = new MillDaemonMain0(
+      val exitCode = MillDaemonMain0(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
         Locks.files(args.daemonDir.toString),

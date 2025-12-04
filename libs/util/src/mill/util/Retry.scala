@@ -75,7 +75,7 @@ object Retry {
 
   private def printException(ex: Throwable): String = {
     val baos = new ByteArrayOutputStream
-    ex.printStackTrace(new PrintStream(baos, true, StandardCharsets.UTF_8))
-    new String(baos.toByteArray, StandardCharsets.UTF_8)
+    ex.printStackTrace(PrintStream(baos, true, StandardCharsets.UTF_8))
+    String(baos.toByteArray, StandardCharsets.UTF_8)
   }
 }

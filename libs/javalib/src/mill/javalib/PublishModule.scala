@@ -18,7 +18,7 @@ trait PublishModule extends JavaModule { outer =>
   override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
     case m: PublishModule => m
     case other =>
-      throw new Exception(
+      throw Exception(
         s"PublishModule moduleDeps need to be also PublishModules. $other is not a PublishModule"
       )
   }
@@ -26,7 +26,7 @@ trait PublishModule extends JavaModule { outer =>
   override def bomModuleDeps: Seq[BomModule & PublishModule] = super.bomModuleDeps.map {
     case m: (BomModule & PublishModule) => m
     case other =>
-      throw new Exception(
+      throw Exception(
         s"PublishModule bomModuleDeps need to be also PublishModules. $other is not a PublishModule"
       )
   }
@@ -393,7 +393,7 @@ trait PublishModule extends JavaModule { outer =>
         val contents = publishLocalContentsTask(sources = sources, doc = doc)()
         val publisher = localIvyRepo() match {
           case None => LocalIvyPublisher
-          case Some(path) => new LocalIvyPublisher(path)
+          case Some(path) => LocalIvyPublisher(path)
         }
         publisher.publishLocal(contents.artifact, contents.contents)
       }
@@ -469,7 +469,7 @@ trait PublishModule extends JavaModule { outer =>
     val path = m2RepoPath()
     val contents = publishM2LocalContentsTask(sources = sources, docs = docs)()
 
-    new LocalM2Publisher(path)
+    LocalM2Publisher(path)
       .publish(contents.artifact, contents.contents)
       .map(PathRef(_).withRevalidateOnce)
   }
@@ -582,7 +582,7 @@ trait PublishModule extends JavaModule { outer =>
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
     )
-    new SonatypePublisher(
+    SonatypePublisher(
       uri = sonatypeLegacyOssrhUri,
       snapshotUri = sonatypeCentralSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
@@ -621,7 +621,7 @@ trait PublishModule extends JavaModule { outer =>
    * for example.
    */
   def publishLocalTestRepo: Task[PathRef] = Task {
-    val publisher = new LocalM2Publisher(Task.dest)
+    val publisher = LocalM2Publisher(Task.dest)
     val publishInfos = defaultPublishInfos(sources = false, docs = false)() ++
       Seq(PublishInfo.sourcesJar(sourceJar())) ++
       extraPublish()
@@ -751,7 +751,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
         GpgArgs.fromUserProvided(gpgArgs)
       )
 
-    new SonatypePublisher(
+    SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       internal.PublishModule.checkSonatypeCreds(sonatypeCreds)(),

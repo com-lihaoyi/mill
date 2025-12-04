@@ -246,14 +246,14 @@ private[mill] object Inspect {
             case Right(task) => pprintTask(task, evaluator)
           }
           val defaults = pprint.PPrinter()
-          val renderer = new Renderer(
+          val renderer = Renderer(
             defaults.defaultWidth,
             defaults.colorApplyPrefix,
             defaults.colorLiteral,
             defaults.defaultIndent
           )
           val rendered = renderer.rec(tree, 0, 0).iter
-          val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
+          val truncated = Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
           (truncated ++ Iterator("\n")).mkString
         }
         val output = output0.mkString("\n")

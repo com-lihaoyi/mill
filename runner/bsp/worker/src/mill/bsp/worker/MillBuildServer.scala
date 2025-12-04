@@ -141,7 +141,7 @@ private class MillBuildServer(
         evaluators
 
     // update the evaluator promise for the thread processing requests to pick it up
-    val evaluators0 = new BspEvaluators(
+    val evaluators0 = BspEvaluators(
       topLevelProjectRoot,
       updatedEvaluators,
       s => baseLogger.debug(s()),
@@ -231,8 +231,8 @@ private class MillBuildServer(
 
       capabilities.setBuildTargetChangedProvider(true)
       capabilities.setCanReload(canReload)
-      capabilities.setCompileProvider(new CompileProvider(supportedLangs))
-      capabilities.setDebugProvider(new DebugProvider(Seq().asJava))
+      capabilities.setCompileProvider(CompileProvider(supportedLangs))
+      capabilities.setDebugProvider(DebugProvider(Seq().asJava))
       capabilities.setDependencyModulesProvider(true)
       capabilities.setDependencySourcesProvider(true)
       capabilities.setInverseSourcesProvider(true)
@@ -241,8 +241,8 @@ private class MillBuildServer(
       capabilities.setJvmTestEnvironmentProvider(true)
       capabilities.setOutputPathsProvider(true)
       capabilities.setResourcesProvider(true)
-      capabilities.setRunProvider(new RunProvider(supportedLangs))
-      capabilities.setTestProvider(new TestProvider(supportedLangs))
+      capabilities.setRunProvider(RunProvider(supportedLangs))
+      capabilities.setTestProvider(TestProvider(supportedLangs))
 
       def readVersion(json: JsonObject, name: String): Option[String] =
         if (json.has(name)) {
@@ -276,7 +276,7 @@ private class MillBuildServer(
         clientWantsSemanticDb = clientWantsSemanticDb,
         enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
       )
-      new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
+      InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
     }
 
   override def onBuildInitialized(): Unit = {
@@ -338,7 +338,7 @@ private class MillBuildServer(
       makeBuildTarget(id, depsIds, bt, data)
 
     } { (targets, state) =>
-      new WorkspaceBuildTargetsResult(
+      WorkspaceBuildTargetsResult(
         (targets.asScala ++ state.syntheticRootBspBuildTarget.map(_.target))
           .sortBy(_.getId.getUri)
           .asJava
@@ -362,7 +362,7 @@ private class MillBuildServer(
   override def buildTargetSources(sourcesParams: SourcesParams)
       : CompletableFuture[SourcesResult] = {
 
-    def sourceItem(source: os.Path, generated: Boolean) = new SourceItem(
+    def sourceItem(source: os.Path, generated: Boolean) = SourceItem(
       sanitizeUri(source.toNIO),
       if (source.toIO.isFile) SourceItemKind.FILE else SourceItemKind.DIRECTORY,
       generated
@@ -375,7 +375,7 @@ private class MillBuildServer(
         s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}",
       originId = ""
     ) {
-      case (_, _, id, _, result) => new SourcesItem(
+      case (_, _, id, _, result) => SourcesItem(
           id,
           (
             result.sources.map(p => sourceItem(os.Path(p), false)) ++
@@ -383,7 +383,7 @@ private class MillBuildServer(
           ).asJava
         )
     } { (sourceItems, state) =>
-      new SourcesResult(
+      SourcesResult(
         (sourceItems.asScala ++ state.syntheticRootBspBuildTarget.map(_.synthSources))
           .sortBy(_.getTarget.getUri)
           .asJava
@@ -417,7 +417,7 @@ private class MillBuildServer(
         }
         .flatten
 
-      new InverseSourcesResult(ids.asJava)
+      InverseSourcesResult(ids.asJava)
     }
   }
 
@@ -445,10 +445,10 @@ private class MillBuildServer(
     ) {
       case (_, _, id, _, result) =>
         val cp = (result.resolvedDepsSources ++ result.unmanagedClasspath).map(sanitizeUri)
-        new DependencySourcesItem(id, cp.asJava)
+        DependencySourcesItem(id, cp.asJava)
 
     } { values =>
-      new DependencySourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
+      DependencySourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   /**
@@ -470,16 +470,16 @@ private class MillBuildServer(
       case (_, _, id, _, result) =>
         val deps = result.mvnDeps.collect {
           case (org, repr, version) if org != "mill-internal" =>
-            new DependencyModule(repr, version)
+            DependencyModule(repr, version)
         }
 
         val unmanaged = result.unmanagedClasspath.map { dep =>
-          new DependencyModule(s"unmanaged-${dep.getFileName}", "")
+          DependencyModule(s"unmanaged-${dep.getFileName}", "")
         }
-        new DependencyModulesItem(id, (deps ++ unmanaged).asJava)
+        DependencyModulesItem(id, (deps ++ unmanaged).asJava)
 
     } { values =>
-      new DependencyModulesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
+      DependencyModulesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
@@ -492,10 +492,10 @@ private class MillBuildServer(
       case (_, _, id, _, resources) =>
         val resourcesUrls =
           resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
-        new ResourcesItem(id, resourcesUrls.asJava)
+        ResourcesItem(id, resourcesUrls.asJava)
 
     } { values =>
-      new ResourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
+      ResourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   // TODO: if the client wants to give compilation arguments and the module
@@ -549,7 +549,7 @@ private class MillBuildServer(
           )
         }
         .toSeq
-      val compileResult = new CompileResult(Utils.getStatusCode(result))
+      val compileResult = CompileResult(Utils.getStatusCode(result))
       compileResult.setOriginId(p.getOriginId)
       compileResult // TODO: See in what form IntelliJ expects data about products of compilation in order to set data field
     }
@@ -561,7 +561,7 @@ private class MillBuildServer(
         synthTarget <- state.syntheticRootBspBuildTarget
         if params.getTargets.contains(synthTarget.id)
         baseDir <- synthTarget.bt.baseDirectory
-      } yield new OutputPathsItem(
+      } yield OutputPathsItem(
         synthTarget.id,
         outputPaths(os.Path(baseDir), topLevelProjectRoot).asJava
       )
@@ -575,7 +575,7 @@ private class MillBuildServer(
           topLevelProjectRoot
         )
 
-        new OutputPathsItem(target, items.asJava)
+        OutputPathsItem(target, items.asJava)
       }
 
       new OutputPathsResult((items ++ synthOutpaths).sortBy(_.getTarget.getUri).asJava)
@@ -598,8 +598,8 @@ private class MillBuildServer(
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client)
       )
       val response = runResult.transitiveResultsApi(runTask) match {
-        case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
-        case _ => new RunResult(StatusCode.ERROR)
+        case r if r.asSuccess.isDefined => RunResult(StatusCode.OK)
+        case _ => RunResult(StatusCode.ERROR)
       }
       params.getOriginId match {
         case Some(id) => response.setOriginId(id)
@@ -642,18 +642,18 @@ private class MillBuildServer(
               val testTask = testModule.testLocal(argsMap(targetId.getUri)*)
 
               // notifying the client that the testing of this build target started
-              val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
+              val taskStartParams = TaskStartParams(TaskId(testTask.hashCode().toString))
               taskStartParams.setEventTime(System.currentTimeMillis())
               taskStartParams.setMessage("Testing target: " + targetId)
               taskStartParams.setDataKind(TaskStartDataKind.TEST_TASK)
-              taskStartParams.setData(new TestTask(targetId))
+              taskStartParams.setData(TestTask(targetId))
               client.onBuildTaskStart(taskStartParams)
 
               val testReporter =
-                new BspTestReporter(
+                BspTestReporter(
                   client,
                   targetId,
-                  new TaskId(testTask.hashCode().toString)
+                  TaskId(testTask.hashCode().toString)
                 )
 
               val results = evaluate(
@@ -672,7 +672,7 @@ private class MillBuildServer(
 
               // Notifying the client that the testing of this build target ended
               val taskFinishParams =
-                new TaskFinishParams(new TaskId(testTask.hashCode().toString), statusCode)
+                TaskFinishParams(TaskId(testTask.hashCode().toString), statusCode)
               taskFinishParams.setEventTime(System.currentTimeMillis())
               taskFinishParams.setMessage(
                 s"Finished testing target${testModule.bspBuildTarget.displayName}"
@@ -691,7 +691,7 @@ private class MillBuildServer(
           }
         }
 
-      val testResult = new TestResult(overallStatusCode)
+      val testResult = TestResult(overallStatusCode)
       params.getOriginId match {
         case None => testResult
         case Some(id) =>
@@ -743,7 +743,7 @@ private class MillBuildServer(
             }
         }
 
-      new CleanCacheResult(cleaned).tap { it =>
+      CleanCacheResult(cleaned).tap { it =>
         it.setMessage(msg)
       }
     }
@@ -752,7 +752,7 @@ private class MillBuildServer(
       : CompletableFuture[DebugSessionAddress] =
     handlerEvaluators() { (state, _) =>
       debugParams.setTargets(state.filterNonSynthetic(debugParams.getTargets))
-      throw new NotImplementedError("debugSessionStart endpoint is not implemented")
+      throw NotImplementedError("debugSessionStart endpoint is not implemented")
     }
 
   /**
@@ -831,7 +831,7 @@ private class MillBuildServer(
           def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
             val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
             logger.error(msg)
-            client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
+            client.onBuildLogMessage(LogMessageParams(MessageType.ERROR, msg))
           }
 
           resultsById.flatMap {
@@ -849,7 +849,7 @@ private class MillBuildServer(
     }
   }
 
-  private val queue = new LinkedBlockingQueue[(BspEvaluators => Unit, Logger, String)]
+  private val queue = LinkedBlockingQueue[(BspEvaluators => Unit, Logger, String)]
   private var stopped = false
   private val evaluatorRequestsThread: Thread =
     // Make this a daemon thread so if the main thread exits this doesn't keep the process alive
@@ -906,7 +906,7 @@ private class MillBuildServer(
     if (checkInitialized && !initialized) {
       val msg = s"Can not respond to $prefix request before receiving the `initialize` request."
       logger.error(msg)
-      future.completeExceptionally(new Exception(msg))
+      future.completeExceptionally(Exception(msg))
     } else {
       val proceed: BspEvaluators => Unit = { evaluators =>
         if (future.isCancelled())
@@ -977,10 +977,10 @@ private class MillBuildServer(
   protected def createLogger()(using enclosing: sourcecode.Enclosing): Logger = {
     val requestCount0 = requestCount.incrementAndGet()
     val name = enclosingRequestName
-    new MillBspLogger(
+    MillBspLogger(
       client,
       requestCount0,
-      new PrefixLogger(
+      PrefixLogger(
         new ProxyLogger(baseLogger) {
           override def logKey: Seq[String] = {
             val logKey0 = super.logKey
@@ -1020,7 +1020,7 @@ private class MillBuildServer(
       case Some(error) =>
         logger.warn(error)
         logger.info("Failed")
-        client.onBuildLogMessage(new LogMessageParams(MessageType.WARNING, error))
+        client.onBuildLogMessage(LogMessageParams(MessageType.WARNING, error))
     }
     result.executionResults
   }

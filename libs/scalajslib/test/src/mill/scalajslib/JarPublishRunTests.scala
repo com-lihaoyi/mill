@@ -18,7 +18,7 @@ object JarPublishRunTests extends TestSuite {
         val Right(result) =
           eval(HelloJSWorld.build(scala, scalaJS).jar): @unchecked
         val jar = result.value.path
-        val jarFile = new JarFile(jar.toIO)
+        val jarFile = JarFile(jar.toIO)
         try {
           val entries = jarFile.entries().asScala.map(_.getName)
           assert(entries.contains("Main$.sjsir"))

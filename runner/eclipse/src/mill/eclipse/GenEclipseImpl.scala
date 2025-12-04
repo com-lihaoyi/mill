@@ -422,7 +422,7 @@ object GenEclipseImpl {
    */
   private def moduleName(segments: Segments, path: Path): String = {
     val name = segments.value
-      .foldLeft(new StringBuilder()) {
+      .foldLeft(StringBuilder()) {
         case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
         case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
         case (sb, Segment.Label(s)) => sb.append(".").append(s)

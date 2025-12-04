@@ -35,7 +35,7 @@ trait CrossModuleBase extends ScalaModule with Cross.Module[String] {
           )
           .collectFirst { case x => x }
           .getOrElse(
-            throw new Exception(
+            throw Exception(
               s"Unable to find compatible cross version between $crossScalaVersion and " +
                 c.crossModules.map(_.crossScalaVersion).mkString(",")
             )

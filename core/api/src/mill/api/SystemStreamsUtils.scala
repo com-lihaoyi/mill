@@ -33,11 +33,11 @@ object SystemStreamsUtils {
 
     val inheritOut =
       if (systemStreams.out eq original.out) os.InheritRaw
-      else new PumpedProcessOutput(systemStreams.out)
+      else PumpedProcessOutput(systemStreams.out)
 
     val inheritErr =
       if (systemStreams.err eq original.err) os.InheritRaw
-      else new PumpedProcessOutput(systemStreams.err)
+      else PumpedProcessOutput(systemStreams.err)
 
     ThreadLocalStreams.current.withValue(systemStreams) {
       Console.withIn(systemStreams.in) {
@@ -133,38 +133,38 @@ object SystemStreamsUtils {
   private def debugPrintln(s: String) = ()
   private[mill] class DebugDelegateStream(delegate0: mill.api.SystemStreams)
       extends mill.api.SystemStreams(
-        new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
+        PrintStream(new ThreadLocalStreams.ProxyOutputStream {
           override def delegate(): OutputStream = delegate0.out
 
           override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-            debugPrintln(new String(b, off, len))
+            debugPrintln(String(b, off, len))
             super.write(b, off, len)
           }
 
           override def write(b: Array[Byte]): Unit = {
-            debugPrintln(new String(b))
+            debugPrintln(String(b))
             super.write(b)
           }
 
           override def write(b: Int): Unit = {
-            debugPrintln(new String(Array(b.toByte)))
+            debugPrintln(String(Array(b.toByte)))
             super.write(b)
           }
         }),
-        new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
+        PrintStream(new ThreadLocalStreams.ProxyOutputStream {
           override def delegate(): OutputStream = delegate0.err
           override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-            debugPrintln(new String(b, off, len))
+            debugPrintln(String(b, off, len))
             super.write(b, off, len)
           }
 
           override def write(b: Array[Byte]): Unit = {
-            debugPrintln(new String(b))
+            debugPrintln(String(b))
             super.write(b)
           }
 
           override def write(b: Int): Unit = {
-            debugPrintln(new String(Array(b.toByte)))
+            debugPrintln(String(Array(b.toByte)))
             super.write(b)
           }
         }),

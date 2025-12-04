@@ -397,7 +397,7 @@ private[mill] object Mirrors {
         val defaultCase = CaseDef(
           Wildcard(),
           None,
-          '{ throw new IllegalArgumentException(s"Unknown argument ${$arg}") }.asTerm
+          '{ throw IllegalArgumentException(s"Unknown argument ${$arg}") }.asTerm
         )
         val matchExpr = Match(arg.asTerm, cases :+ defaultCase)
         matchExpr.asExprOf[Int]

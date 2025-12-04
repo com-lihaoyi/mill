@@ -470,7 +470,7 @@ object MillBuildBootstrap {
       )
 
     val outPath = recOut(output, depth)
-    val baseLogger = new PrefixLogger(logger, bootLogPrefix)
+    val baseLogger = PrefixLogger(logger, bootLogPrefix)
     val cl = rootModule.getClass.getClassLoader
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")

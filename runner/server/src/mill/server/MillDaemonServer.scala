@@ -64,12 +64,12 @@ abstract class MillDaemonServer[State](
       stopServer: Server.StopServer
   ): DaemonServerData = {
     val stdout =
-      new PrintStream(
+      PrintStream(
         new ProxyStream.Output(connectionData.serverToClient, ProxyStream.OUT),
         true
       )
     val stderr =
-      new PrintStream(
+      PrintStream(
         new ProxyStream.Output(connectionData.serverToClient, ProxyStream.ERR),
         true
       )
@@ -94,8 +94,8 @@ abstract class MillDaemonServer[State](
         out = outFolder,
         millActiveCommandMessage = "checking server mill version and java version",
         streams = new mill.api.daemon.SystemStreams(
-          new PrintStream(mill.api.daemon.DummyOutputStream),
-          new PrintStream(mill.api.daemon.DummyOutputStream),
+          PrintStream(mill.api.daemon.DummyOutputStream),
+          PrintStream(mill.api.daemon.DummyOutputStream),
           mill.api.daemon.DummyInputStream
         ),
         outLock = outLock,
@@ -134,7 +134,7 @@ abstract class MillDaemonServer[State](
       data.clientData.args,
       stateCache,
       data.clientData.interactive,
-      new SystemStreams(data.stdout, data.stderr, connectionData.clientToServer),
+      SystemStreams(data.stdout, data.stderr, connectionData.clientToServer),
       data.clientData.env.asScala.toMap,
       setIdle(_),
       data.clientData.userSpecifiedProperties.asScala.toMap,
@@ -219,14 +219,14 @@ object MillDaemonServer {
       Using.resource {
         val tryLocked = outLock.tryLock()
         if (tryLocked.isLocked) tryLocked
-        else if (noWaitForBuildLock) throw new Exception(s"$activeTaskPrefix failing")
+        else if (noWaitForBuildLock) throw Exception(s"$activeTaskPrefix failing")
         else {
           streams.err.println(s"$activeTaskPrefix waiting for it to be done...")
           outLock.lock()
         }
       } { _ =>
         setIdle(false)
-        if (Thread.interrupted()) throw new InterruptedException()
+        if (Thread.interrupted()) throw InterruptedException()
         os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
         try t
         finally os.remove.all(out / OutFiles.millActiveCommand)

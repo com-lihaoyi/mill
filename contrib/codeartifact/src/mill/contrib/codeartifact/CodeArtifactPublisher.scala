@@ -14,7 +14,7 @@ class CodeartifactPublisher(
     connectTimeout: Int,
     log: Logger
 ) {
-  private val api = new CodeartifactHttpApi(
+  private val api = CodeartifactHttpApi(
     credentials,
     readTimeout = readTimeout,
     connectTimeout = connectTimeout
@@ -112,7 +112,7 @@ class CodeartifactPublisher(
       val errors = publishResults.filterNot(_.is2xx).map { response =>
         s"Code: ${response.statusCode}, message: ${response.text()}"
       }
-      throw new RuntimeException(
+      throw RuntimeException(
         s"Failed to publish ${artifacts.map(_.id).mkString(", ")} to AWS Codeartifact. Errors: \n${errors
             .mkString("\n")}"
       )
