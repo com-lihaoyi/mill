@@ -19,6 +19,7 @@ object CodeGen {
   def generateWrappedAndSupportSources(
       projectRoot: os.Path,
       allScriptCode: Map[os.Path, String],
+      allPackageStatements: Map[os.Path, String],
       wrappedDest: os.Path,
       supportDest: os.Path,
       resourceDest: os.Path,
@@ -67,6 +68,32 @@ object CodeGen {
           s"final lazy val $lhs: $rhs.type = $rhs // subfolder module reference"
         }
         .mkString("\n  ")
+
+      val aliasImports = Seq(
+        // Provide `build` as an alias to the root `build_.package_`, since from the user's
+        // perspective it looks like they're writing things that live in `package build`,
+        // but at compile-time we rename things, we so provide an alias to preserve the fiction
+        "import build_.{package_ => build}"
+      ).mkString("\n")
+
+      val strippedPackageStatementComment = allPackageStatements.get(scriptPath) match {
+        // Add another comment after the marker comment to substitute any package statement
+        // that was stripped during codegen and ensure the offsets line up properly
+        case None => "\n"
+        case Some("package ") => "\n"
+        case Some(s) => "\n//" + s.drop(2)
+      }
+
+      val markerComment = s"///SOURCE_CODE_START:$scriptPath" + strippedPackageStatementComment
+
+      val siblingScripts = scriptSources
+        .filter(_ != scriptPath)
+        .filter(p => (p / os.up) == (scriptPath / os.up))
+        .map(_.last.split('.').head + "_")
+
+      val importSiblingScripts = siblingScripts
+        .filter(s => s != "build_" && s != "package_")
+        .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
       if (scriptFolderPath == projectRoot) {
         val buildFileImplCode = generateBuildFileImpl(pkg)
@@ -230,19 +257,6 @@ object CodeGen {
 
           val scriptCode = allScriptCode(scriptPath)
 
-          val markerComment =
-            s"""//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-               |//SOURCECODE_ORIGINAL_CODE_START_MARKER""".stripMargin
-
-          val siblingScripts = scriptSources
-            .filter(_ != scriptPath)
-            .filter(p => (p / os.up) == (scriptPath / os.up))
-            .map(_.last.split('.').head + "_")
-
-          val importSiblingScripts = siblingScripts
-            .filter(s => s != "build_" && s != "package_")
-            .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
-
           if (isBuildScript) {
             os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
           }
@@ -257,8 +271,7 @@ object CodeGen {
                   |$importSiblingScripts
                   |
                   |object $wrapperName {
-                  |$markerComment
-                  |$scriptCode
+                  |$markerComment$scriptCode
                   |}
                   |
                   |export $wrapperName._
@@ -379,17 +392,8 @@ object CodeGen {
           case None =>
             ()
         }
-        objectData.finalStat match {
-          case Some((_, finalStat)) =>
-            val statLines = finalStat.text.linesWithSeparators.toSeq
-            val fenced = Seq(
-              "",
-              if statLines.sizeIs > 1 then statLines.tail.mkString else finalStat.text
-            ).mkString(System.lineSeparator())
-            newScriptCode = finalStat.applyTo(newScriptCode, fenced)
-          case None => ()
-        }
 
+        var generatedStub: String = ""
         newScriptCode = objectData.parent.applyTo(
           newScriptCode,
           if (objectData.parent.text == null) {
@@ -409,24 +413,32 @@ object CodeGen {
               else ", " // no separator found, just use `,` by default
             }
 
-            newParent + sep + objectData.parent.text
+            val stub = "_MillRootModuleParents"
+              .take(objectData.parent.text.length)
+              .padTo(objectData.parent.text.length, ' ')
+
+            generatedStub = s"abstract class $stub extends $newParent$sep${objectData.parent.text}"
+
+            stub
           }
         )
 
         newScriptCode = objectData.name.applyTo(newScriptCode, CGConst.wrapperObjectName)
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
+        newScriptCode = objectData.obj.applyTo(newScriptCode, "class")
 
         s"""$headerCode
-           |$markerComment
-           |$newScriptCode
-           |""".stripMargin
+           |
+           |$markerComment$newScriptCode""".stripMargin +
+          // Not sure why we need to mix System.lineSeparator and \n here, but it seems to
+          // result in the correct error position reporting for the following code on both
+          // windows and mac
+          System.lineSeparator + "\n" + generatedStub
 
       case None =>
         s"""$headerCode
            |abstract class ${CGConst.wrapperObjectName}
            |    extends $newParent { this: ${CGConst.wrapperObjectName}.type =>
-           |$markerComment
-           |$scriptCode
+           |$markerComment$scriptCode
            |}""".stripMargin
 
     }
