@@ -111,6 +111,7 @@ object JsonFormatters extends JsonFormatters {
       }
     )
 
+    given resultFailureExceptionInfoRw: RW[Result.Failure.ExceptionInfo] = RW.derived
     given resultRW[A: { Reader, Writer }]: RW[Result[A]] = RW.derived
   }
 }

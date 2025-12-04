@@ -174,22 +174,22 @@ object ResolveDepsTests extends TestSuite {
     test("errOnInvalidOrgDeps") {
       val deps = Seq(mvn"xxx.yyy.invalid::pprint:0.5.3")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg) = evalDeps(deps): @unchecked
-      assert(errMsg.contains("xxx.yyy.invalid"))
+      val (f: Result.Failure) = evalDeps(deps): @unchecked
+      assert(f.error.contains("xxx.yyy.invalid"))
     }
 
     test("errOnInvalidVersionDeps") {
       val deps = Seq(mvn"com.lihaoyi::pprint:invalid.version.num")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg) = evalDeps(deps): @unchecked
-      assert(errMsg.contains("invalid.version.num"))
+      val (f: Result.Failure) = evalDeps(deps): @unchecked
+      assert(f.error.contains("invalid.version.num"))
     }
 
     test("errOnPartialSuccess") {
       val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3", mvn"fake::fake:fake")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg) = evalDeps(deps): @unchecked
-      assert(errMsg.contains("fake"))
+      val (f: Result.Failure) = evalDeps(deps): @unchecked
+      assert(f.error.contains("fake"))
     }
 
     test("pomArtifactType") {

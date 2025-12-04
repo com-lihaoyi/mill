@@ -27,8 +27,7 @@ The following table contains the main ways you can test the code in
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
 | In-Process Tests | `core.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process w/o packaging/publishing| `example.\\__.local.daemon`, `integration.__.local.daemon` | `dist.run` | `test-mill-dev.sh`
-| Sub-Process w/ packaging/publishing | `example.\\__.packaged.daemon`, `integration.__.packaged.daemon` | `dist.assembly` | `test-mill-release.sh`
+| Sub-Process Tests| `example.\\__.local.daemon`, `integration.__.local.daemon` | `dist.run` | `test-mill-dev.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
 |===
 
@@ -58,19 +57,15 @@ The various `contrib` modules also have tests in this style, e.g.
 Note that the in-memory tests compile the `BaseModule` together with the test suite,
 and do not exercise the Mill script-file bootstrapping, transformation, and compilation process.
 
-=== Sub-Process Tests *without* Packaging/Publishing
+=== Sub-Process Tests
 
-`example.\\__.local.daemon` and `integration.__.local.daemon` tests run Mill end-to-end in a subprocess,
-but *without* the expensive/slow steps of packaging the core packages into an assembly jar
-and publishing the remaining packages to
-`~/.ivy2/local`.
-You can reproduce these tests manually using
+In general, you use `example.basic[3-simple]` or `integration.feature[inspect]` to run subproxess
+tests using the default configuration. You can reproduce these tests manually using
 `./mill dist.run <test-folder-path> <command>`.
 
 `example` tests are written in a single `build.mill` file, with the test commands written
 in a comment with a bash-like syntax together with the build code and comments that explain
-the example.
-These serve three purposes:
+the example.These serve three purposes:
 
 1. Basic smoke-tests to make sure the functionality works at all, without covering every
 edge case
@@ -95,14 +90,14 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,console]
 ----
-> ./mill "example.javalib.basic[3-simple].local.daemon"
+> ./mill "example.javalib.basic[3-simple]"
 ----
 
 **Manual Test**
 
 [source,console]
 ----
-> ./mill dist.run example/javalib/basic/3-simple foo.run --text hello
+> ./mill -i dist.run example/javalib/basic/3-simple -i foo.run --text hello
 ----
 
 **Manual Test using Launcher Script**
@@ -112,7 +107,7 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 > ./mill dist.launcher && (cd example/javalib/basic/3-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
 ----
 
-=== Sub-Process Tests *with* Packaging/Publishing
+==== Different Flavors or Sub-Process Tests
 
 `example.\\__.daemon`, `integration.__.daemon`, `example.\\__.nodaemon` and
 `integration.__.nodaemon` cover the same test cases as the `.local.daemon` tests described above, but
@@ -135,15 +130,16 @@ There are two six of these tests, `.{local,assembly,native}.{daemon,fork}`.
 
 The first label specifies how the Mill code is packaged before testing
 
-1. `.local` runs using all compiled Mill code directly in the `out/` folder. This is the fastest
-and should be used for most testing
 
-2. `.assembly` runs using the compiled Mill code either packaged into an assembly (for the Mill executable).
-This is slower than `.local`, and normally isn't necessary unless you are debugging issues in the Mill
-packaging logic.
+
+1. `.packaged` runs using the compiled Mill code either packaged into an assembly or into jars.
+This is the default for commands like `example.basic[3-simple]`
 
 3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
 This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
+
+4. `.shared` runs without packaging code into jars and re-uses the `out/` folder the Mill daemon between runs.
+This isn't intended for manual usage, but is used in CI to speed up running large numbers of tests
 
 The second label specifies how the Mill process is managed during the test:
 

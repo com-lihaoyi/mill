@@ -13,7 +13,7 @@
 #    runs-on: ubuntu-latest
 ##    runs-on: windows-latest
 #    steps:
-#      - uses: actions/checkout@v6
+#      - uses: actions/checkout@v5
 #        with: { fetch-depth: 1 }
 #
 #      - run: "echo temurin:11 > .mill-jvm-version"
@@ -21,7 +21,7 @@
 #      - uses: sbt/setup-sbt@v1
 #
 #
-#      - run:  ./mill 'integration.migrating[init].local.daemon.testOnly' mill.integration.MillInitSbtGatlingTests
+#      - run:  ./mill 'integration.migrating[init].shared.daemon.testOnly' mill.integration.MillInitSbtGatlingTests
 #
 
 
@@ -55,6 +55,9 @@ concurrency:
   group: cancel-old-pr-runs-${{ github.workflow }}-${{ (github.repository != 'com-lihaoyi/mill' && github.ref_name) || (github.head_ref || github.run_id) }}
   cancel-in-progress: true
 
+env:
+  FORCE_COLOR: '1'
+
 jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
   # in the list should be the one that's most worth looking into
@@ -76,7 +79,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
         with: { fetch-depth: 1 }
 
       - run: ./mill -i website.fastPages + website.checkBrokenLinks
@@ -101,7 +104,7 @@ jobs:
             millargs: "'example.thirdparty[{jimfs,commons-io}].native.daemon'"
             java-version: 24
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
         with: { fetch-depth: 1 }
 
       - uses: ./.github/actions/pre-build-setup
@@ -142,16 +145,16 @@ jobs:
             millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
 
           - java-version: 17
-            millargs: "example.kotlinlib.__.local.daemon"
-
-          - java-version: 24
-            millargs: "example.scalalib.__.local.daemon"
-
-          - java-version: 21
-            millargs: "example.javalib.__.local.daemon"
+            millargs: "example.kotlinlib.__.shared.daemon"
 
           - java-version: 17
-            millargs: "'example.androidlib.__.local.daemon'"
+            millargs: "example.scalalib.__.shared.daemon"
+
+          - java-version: 21
+            millargs: "example.javalib.__.shared.daemon"
+
+          - java-version: 17
+            millargs: "'example.androidlib.__.shared.daemon'"
             setup-android: true
 
           - java-version: 17
@@ -163,14 +166,14 @@ jobs:
             setup-android: true
 
           - java-version: 24
-            millargs: "'example.migrating.scalalib.__.local.daemon'"
+            millargs: "'example.migrating.scalalib.__.shared.daemon'"
             install-sbt: true
 
           - java-version: 24
-            millargs: "'example.{pythonlib,javascriptlib}.__.local.daemon'"
+            millargs: "'example.{pythonlib,javascriptlib}.__.shared.daemon'"
 
           - java-version: 21
-            millargs: "'example.{cli,fundamentals,depth,extending,large}.__.local.daemon'"
+            millargs: "'example.{cli,fundamentals,depth,extending,large}.__.shared.daemon'"
 
           - java-version: 21
             millargs: "'integration.{feature,ide}.__.packaged.daemon'"

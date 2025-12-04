@@ -104,7 +104,7 @@ Professor
 Hello James Bond Professor
 
 > ./mill qux.test
-PASS .../qux.test.ts
+...PASS .../qux.test.ts
 ...
 
 > npm i -g mill-realistic

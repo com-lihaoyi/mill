@@ -47,7 +47,7 @@ trait JavaHomeTests(jvmId0: String, expectedPrefix: String, expectedBytes: Seq[B
           os.read(path).startsWith(expectedPrefix)
         )
 
-        val Left(ExecResult.Failure(_)) =
+        val Left(_: ExecResult.Failure[_]) =
           eval.apply(HelloJavaJavaHome11Override.core.test.testForked()): @unchecked
 
         //        assert(

@@ -1,6 +1,7 @@
 package mill.integration
 
-import mill.constants.{EnvVars, OutFiles}
+import mill.constants.EnvVars
+import mill.constants.OutFiles.OutFiles
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
 

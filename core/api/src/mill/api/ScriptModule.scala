@@ -3,7 +3,7 @@ package mill.api
 import mill.*
 import mill.api.{ExternalModule, ModuleCtx}
 import mill.api.daemon.Segments
-import mill.api.ModuleCtx.HeaderData
+import mill.api.internal.HeaderData
 @experimental
 trait ScriptModule extends ExternalModule {
   override def moduleCtx: ModuleCtx = super.moduleCtx
@@ -23,7 +23,12 @@ trait ScriptModule extends ExternalModule {
   private[mill] override def moduleDynamicBuildOverrides = scriptConfig
     .headerData
     .rest
-    .map { case (k, v) => ((moduleSegments ++ mill.api.Segment.Label(k)).render, v) }
+    .map { case (k, v) =>
+      (
+        (moduleSegments ++ mill.api.Segment.Label(k)).render,
+        internal.Located(scriptConfig.scriptFile, v.index, v)
+      )
+    }
 }
 @experimental
 object ScriptModule {

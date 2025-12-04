@@ -33,14 +33,14 @@ object server extends TypeScriptModule {
 /** Usage
 
 > ./mill client.test
-PASS src/test/App.test.tsx
+...PASS .../test/App.test.tsx
 ...
 
 > ./mill client.bundle   # bundle the react app;
 ...
 
 > ./mill server.test
-PASS .../server.test.ts
+...PASS .../server.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...

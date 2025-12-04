@@ -9,7 +9,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/delayed/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/delayed/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/delayed/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -22,7 +22,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/diag/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/diag/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/diag/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -35,7 +35,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/diag/many/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/diag/many/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/diag/many/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -46,7 +46,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/errored/compilation-error/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/errored/compilation-error/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/errored/compilation-error/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -57,7 +57,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/errored/exception/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/errored/exception/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/errored/exception/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -68,7 +68,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/hello-scala/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/hello-scala/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -82,10 +82,10 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources",
-        "file:///workspace/out/mill-bsp-out/hello-scala/compile.dest/classes",
+        "file:///workspace/.bsp/mill-bsp-out/hello-scala/compile.dest/classes",
         "file:///workspace/hello-scala/test/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/hello-scala/test/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/hello-scala/test/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -111,7 +111,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/folder1/script.scala/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/scripts/folder1/script.scala/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -137,7 +137,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/foldershared/script.scala/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/scripts/foldershared/script.scala/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -148,7 +148,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/sourcesNeedCompile/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/sourcesNeedCompile/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/sourcesNeedCompile/compiledClassesAndSemanticDbFiles.dest"
     }
   ]
 }
