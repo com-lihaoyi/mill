@@ -4,9 +4,6 @@ import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 
-import java.util.Properties
-import scala.util.Using
-
 /**
  * A module that can be used to configure Spring Boot projects and provides functionality
  * for AOT processing and native GraalVM builds.
@@ -175,20 +172,8 @@ trait SpringBootModule extends JavaModule {
    */
   trait NativeSpringBootBuildModule extends SpringBootOptimisedBuildModule, NativeImageModule {
     override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
-
-      val nativeImageArgs: Seq[String] =
-        val nativeImageProps = outer.springBootAOTNativeProperties().path
-        if (os.exists(nativeImageProps) && os.isFile(nativeImageProps)) {
-          val properties = new Properties()
-          Using.resource[
-            java.io.InputStream,
-            Unit
-          ](os.read.inputStream(nativeImageProps))(properties.load)
-          properties.getProperty("Args").split(" ")
-        } else
-          Seq.empty
-
-      nativeImageArgs
+      val configurationsPath = outer.springBootProcessAOT().path / "resources/META-INF"
+      super.nativeImageOptions() ++ Seq("--configurations-path", configurationsPath.toString)
     }
   }
 
