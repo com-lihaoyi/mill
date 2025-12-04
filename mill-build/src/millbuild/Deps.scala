@@ -149,6 +149,9 @@ object Deps {
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
   val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
+
+  val graalReachabilityMetadata = mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3"
+
   // can't use newer versions, as these need higher Java versions
   val testng_lowerBound = mvn"org.testng:testng:7.5.1"
   val testng = mvn"org.testng:testng:7.11.0"

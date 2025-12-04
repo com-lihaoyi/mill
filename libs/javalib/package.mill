@@ -151,6 +151,13 @@ object `package` extends MillStableScalaModule {
     )
   }
 
+  object `graalvm-reachability-worker` extends MillPublishScalaModule {
+    def moduleDeps = Seq(api)
+    def compileMvnDeps = Seq(
+      Deps.graalReachabilityMetadata, mvn"com.github.openjson:openjson:1.0.13"
+    )
+  }
+
   object `spotless-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.javalib)
     def mvnDeps = Seq(Deps.spotlessLibExtra, Deps.jgit)

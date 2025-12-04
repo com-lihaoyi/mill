@@ -1,4 +1,32 @@
-/** See Also: build.mill.yaml */
+package build
+
+import mill._
+import mill.javalib._, spring.boot._
+import mill.javalib.publish._
+
+object `package` extends SpringBootModule, MavenModule {
+
+  def springBootPlatformVersion = "3.5.7"
+
+  def springBootArtifactId = "sb-demo-websocket"
+
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-webflux",
+    
+  )
+
+  object native extends NativeSpringBootBuildModule, MavenModule {
+    def jvmId = "graalvm-community:25.0.1"
+  }
+
+  object test extends MavenTests with TestModule.Junit5 {
+
+    def mvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-starter-test",
+      mvn"io.projectreactor:reactor-test"
+    )
+  }
+}
 
 // This example demonstrates how to configure mill for a Websocket server using Spring Ractive Web via
 // the initializr project,
@@ -15,8 +43,8 @@
 
 /** Usage
 
-> ./mill test
-...Test com.example.websocketdemo.WebsocketdemoApplicationTests#getMessage() finished...
-...Test com.example.websocketdemo.WebsocketdemoApplicationTests finished...
+ > ./mill test
+ ...Test com.example.websocketdemo.WebsocketdemoApplicationTests#getMessage() finished...
+ ...Test com.example.websocketdemo.WebsocketdemoApplicationTests finished...
 
-*/
+ */
