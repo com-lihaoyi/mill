@@ -13,9 +13,7 @@ class BspLogger(
 
   override def redirectOutToErr: Boolean = false
   private val linePrefix: String = Logger.formatPrefix(logKey)
-  private def prefixPrintStream(stream: java.io.OutputStream) = {
-    new PrintStream(new LineBufferingOutputStream(s => stream.write((linePrefix + s).getBytes)))
-  }
+  
 
   val prompt = new Logger.Prompt.NoOp {
     override def logPrefixedLine(
