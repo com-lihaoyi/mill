@@ -60,7 +60,8 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
 
       val res = eval(
         ("--ticker", "true", "exclusives.printingC"),
-        mergeErrIntoOut = true, propagateEnv = false
+        mergeErrIntoOut = true,
+        propagateEnv = false
       )
       assert(res.isSuccess)
 
@@ -92,7 +93,8 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
 
       val res = eval(
         ("--ticker", "true", "--color=true", "logging"),
-        mergeErrIntoOut = true, propagateEnv = false
+        mergeErrIntoOut = true,
+        propagateEnv = false
       )
       assert(res.isSuccess)
 
@@ -113,7 +115,10 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       // Make sure the `.log` files on disk contain what we expect
       assertGoldenLiteral(
         normalize(os.read(workspacePath / "out/mill-build/compile.log")),
-        List("compiling 3 Scala sources to out/mill-build/compile.dest/classes ...", "done compiling")
+        List(
+          "compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "done compiling"
+        )
       )
       assertGoldenLiteral(
         normalize(os.read(workspacePath / "out/logging.log")),
