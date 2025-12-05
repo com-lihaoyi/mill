@@ -2,7 +2,7 @@ package mill.javalib.spring.boot
 
 import coursier.core.VariantSelector.ConfigurationBased
 import mill.{T, Task}
-import mill.api.{BuildCtx, ModuleRef, PathRef}
+import mill.api.{ModuleRef, PathRef}
 import mill.javalib.graalvm.MetadataQuery
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 
@@ -190,19 +190,10 @@ trait SpringBootModule extends JavaModule {
         nativeGraalVmMetadataQuery()
       )
 
-      BuildCtx.withFilesystemCheckerDisabled {
-        paths.foreach {
-          p =>
-            val groupName = (p / os.up / os.up).last
-            val artifactName = (p / os.up).last
-            os.copy.into(
-              p,
-              Task.dest / "resources/META-INF/native-image" / groupName / artifactName,
-              createFolders = true
-            )
-        }
-      }
-      PathRef(Task.dest / "resources")
+      val dest = Task.dest / "resources"
+      nativeGraalVMReachabilityMetadataWorker().copyDirectoryConfiguration(paths, dest)
+
+      PathRef(dest)
     }
 
     /**
@@ -228,7 +219,10 @@ trait SpringBootModule extends JavaModule {
       val resolution = millResolver().resolution(Seq(mill.javalib.BoundDep(dep, force = false)))
 
       val deps =
-        resolution.dependencies.map(d => s"${d.mavenPrefix}:${d.versionConstraint.asString}")
+        resolution.dependencies
+          .map(d =>
+            s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
+          )
 
       MetadataQuery(
         rootPath = metadataPath,

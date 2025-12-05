@@ -11,3 +11,15 @@ case class MetadataQuery(
 object MetadataQuery {
   implicit val rw: upickle.ReadWriter[MetadataQuery] = upickle.macroRW
 }
+
+case class MetadataResult(
+    dependencyGroupId: String,
+    dependencyArtifactId: String,
+    dependencyVersion: String,
+    metadataLocation: os.Path,
+    isOverride: Boolean
+)
+
+object MetadataResult {
+  implicit val rw: upickle.ReadWriter[MetadataResult] = upickle.macroRW
+}

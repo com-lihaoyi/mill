@@ -1,11 +1,17 @@
 package mill.javalib.graalvm
 
-import org.graalvm.reachability.Query
+import org.graalvm.reachability.{DirectoryConfiguration, Query}
 import org.graalvm.reachability.internal.FileSystemRepository
 
 import java.util.function.Consumer
 import scala.jdk.CollectionConverters.*
 
+/**
+ * Uses [[org.graalvm.reachability.internal.FileSystemRepository]] to discover
+ * reachability metadata from the graalvm-reachability-metadata repository.
+ *
+ * For more information go to [[https://github.com/oracle/graalvm-reachability-metadata]] and [[https://github.com/graalvm/native-build-tools]]
+ */
 class GraalVMMetadataWorkerImpl extends GraalVMMetadataWorker {
 
   override def reachabilityMetadataVersion: String = Versions.graalVmReachabilityMetadata
@@ -27,7 +33,7 @@ class GraalVMMetadataWorkerImpl extends GraalVMMetadataWorker {
     rootDir
   }
 
-  override def findConfigurations(metadataQuery: MetadataQuery): Set[os.Path] = {
+  override def findConfigurations(metadataQuery: MetadataQuery): Set[MetadataResult] = {
     val repository: FileSystemRepository = new FileSystemRepository(metadataQuery.rootPath.toNIO)
     val queryBuilder: Consumer[Query] = (q: Query) => {
       q.forArtifacts(metadataQuery.deps.toSeq*)
@@ -35,9 +41,33 @@ class GraalVMMetadataWorkerImpl extends GraalVMMetadataWorker {
         q.useLatestConfigWhenVersionIsUntested()
       }
     }
-    repository.findConfigurationsFor(queryBuilder).asScala.toSet.map(
-      _.getDirectory
-    ).map(p => os.Path(p.toString))
+    repository.findConfigurationsFor(queryBuilder).asScala.toSet.map(d =>
+      MetadataResult(
+        dependencyGroupId = d.getGroupId,
+        dependencyArtifactId = d.getArtifactId,
+        dependencyVersion = d.getVersion,
+        metadataLocation = os.Path(d.getDirectory),
+        isOverride = d.isOverride
+      )
+    )
+  }
+
+  override def copyDirectoryConfiguration(
+      metadataResults: Set[MetadataResult],
+      destination: os.Path
+  ): Unit = {
+    DirectoryConfiguration.copy(
+      metadataResults.map(mr =>
+        new DirectoryConfiguration(
+          mr.dependencyGroupId,
+          mr.dependencyArtifactId,
+          mr.dependencyVersion,
+          mr.metadataLocation.toNIO,
+          mr.isOverride
+        )
+      ).asJavaCollection,
+      destination.toNIO
+    )
   }
 
   override def close(): Unit = {
