@@ -150,7 +150,9 @@ object Deps {
   val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
   val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
 
-  val graalReachabilityMetadata = mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3"
+  val graalVmReachabilityMetadataVersion = "0.3.32"
+  val graalVMReachabilityMetadataBuildTool = mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3"
+  val openJson = mvn"com.github.openjson:openjson:1.0.13"
 
   // can't use newer versions, as these need higher Java versions
   val testng_lowerBound = mvn"org.testng:testng:7.5.1"
