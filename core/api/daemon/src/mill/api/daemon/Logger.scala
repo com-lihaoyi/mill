@@ -9,7 +9,7 @@ import java.io.{ByteArrayOutputStream, ByteArrayInputStream, PrintStream}
  * but when `show` is used both are forwarded to stderr and stdout is only
  * used to display the final `show` output for easy piping.
  */
-trait Logger extends Logger.Actions {
+trait Logger extends Logger.Actions with Logger.Upstream {
 
   /**
    * This Logger's versions of stdin, stdout, and stderr. Typically enabled
@@ -92,6 +92,16 @@ trait Logger extends Logger.Actions {
 }
 
 object Logger {
+  trait Upstream {
+    private[mill] def logKey: Seq[String]
+
+    private[mill] def prompt: Logger.Prompt
+
+    private[mill] def unprefixedStreams: SystemStreams
+
+    private[mill] def redirectOutToErr: Boolean
+  }
+
   private[mill] def formatPrefix0(s: Seq[String], keySuffix: String = "") =
     if (s == Nil) "" else s"${s.mkString("-")}$keySuffix]"
 

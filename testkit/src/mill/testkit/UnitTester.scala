@@ -117,7 +117,7 @@ class UnitTester(
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
   val execution = new mill.exec.Execution(
-    baseLogger = logger,
+    baseLogger = new mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
