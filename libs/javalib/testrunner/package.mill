@@ -7,8 +7,8 @@ import millbuild.*
  * The JVM testrunner used for discovering and running Junit/Scalatest/Kotest/etc.
  * test suites, both in-process and in a sub-process
  */
-object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.libs.javalib.api, entrypoint, build.libs.util)
+object `package` extends MillPublishScalaModule with MillJava11ScalaModule {
+  def moduleDeps = Seq(build.libs.javalib.api, entrypoint, build.libs.util.java11)
 
   object entrypoint extends MillPublishJavaModule {
     override def mvnDeps = Seq(Deps.sbtTestInterface)
