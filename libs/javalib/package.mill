@@ -60,9 +60,9 @@ object `package` extends MillStableScalaModule {
     def jvmId = "11"
   }
 
-  object api extends MillStableScalaModule with BuildInfo {
+  object api extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
 
-    def moduleDeps = Seq(build.core.api, build.libs.rpc, build.libs.util)
+    def moduleDeps = Seq(build.core.api.java11, build.libs.rpc, build.libs.util.java11)
     def buildInfoPackageName = "mill.javalib.api"
     def buildInfoObjectName = "Versions"
 

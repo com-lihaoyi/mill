@@ -11,27 +11,33 @@ import millbuild.*
  * defining Tasks, Modules, helper code, and other related data structures.
  */
 object `package` extends MillStableScalaModule with BuildInfo {
+  object java11 extends MillPublishScalaModule with MillJava11ScalaModule {
+    def moduleDeps = Seq(build.core.api.daemon)
+
+    def mvnDeps = Seq(
+      Deps.millModuledefs,
+      // TODO: somewhere sourcecode is included transitively,
+      // but we need the latest version to bring the macro improvements.
+      Deps.sourcecode,
+      Deps.osLib,
+      Deps.mainargs,
+      Deps.upickle,
+      Deps.upickleNamedTuples,
+      Deps.pprint,
+      Deps.fansi,
+      Deps.mainargs,
+      Deps.fastparse
+    )
+  }
+
+  def unmanagedClasspath = Seq(java11.compile().classes)
+  def mvnDeps = java11.mvnDeps()
   def moduleDeps = Seq(build.core.api.daemon)
 
   def compileMvnDeps = Task {
     if (scalaVersion().startsWith("3.")) Seq(Deps.scalaCompiler(scalaVersion()))
     else Seq(Deps.scalaReflect(scalaVersion()))
   }
-
-  def mvnDeps = Seq(
-    Deps.millModuledefs,
-    // TODO: somewhere sourcecode is included transitively,
-    // but we need the latest version to bring the macro improvements.
-    Deps.sourcecode,
-    Deps.osLib,
-    Deps.mainargs,
-    Deps.upickle,
-    Deps.upickleNamedTuples,
-    Deps.pprint,
-    Deps.fansi,
-    Deps.mainargs,
-    Deps.fastparse
-  )
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
   def testMvnDeps = Seq(Deps.coursierInterface)
