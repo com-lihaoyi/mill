@@ -297,7 +297,12 @@ class ScalaJSWorkerImpl(jobs: Int) extends ScalaJSWorkerApi {
         Left(e.getMessage)
     }
 
-    Await.result(resultFuture, Duration.Inf)
+    val res = Await.result(resultFuture, Duration.Inf)
+    linker match {
+      case cl: ClearableLinker => cl.clear()
+      case _ => // no-op
+    }
+    res
   }
 
   def run(config: JsEnvConfig, report: Report): Unit = {
