@@ -40,7 +40,8 @@ object `package` extends MillStableScalaModule {
       `classgraph-worker`,
       `jarjarabrams-worker`,
       `spotless-worker`,
-      `scalameta-worker`
+      `scalameta-worker`,
+      `codesig-worker`
     )
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
@@ -188,5 +189,13 @@ object `package` extends MillStableScalaModule {
   object `scalameta-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.javalib)
     def mvnDeps = Seq(Deps.semanticDbShared)
+  }
+
+  /**
+   * Worker module for computing bytecode-level method signatures using codesig.
+   * Used by testQuick for fine-grained change detection.
+   */
+  object `codesig-worker` extends MillPublishScalaModule {
+    def moduleDeps = Seq(api, build.runner.codesig)
   }
 }

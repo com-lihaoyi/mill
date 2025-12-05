@@ -23,6 +23,7 @@ import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
+import mill.javalib.codesig.{CodeSigWorkerApi, CodeSigWorkerModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
@@ -69,6 +70,11 @@ trait JavaModule
     () => genIdeaInternalExt()
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
+
+  /**
+   * Module reference for the CodeSig worker, used for computing bytecode-level method signatures.
+   */
+  def codesigWorkerModule: ModuleRef[CodeSigWorkerModule] = ModuleRef(CodeSigWorkerModule)
 
   // Keep in sync with JavaModule.JavaTests0, duplicated due to binary compatibility concerns
   trait JavaTests extends JavaModule with TestModule {
@@ -1018,6 +1024,33 @@ trait JavaModule
    * Keep return value in sync with [[bspCompileClasspath]].
    */
   def compileClasspath: T[Seq[PathRef]] = Task { compileClasspathTask(CompileFor.Regular)() }
+
+  /**
+   * Computes bytecode-level method code hash signatures for this module's compiled classes.
+   * These signatures are used by testQuick for fine-grained change detection.
+   *
+   * The hash for each method includes:
+   * - The method's own bytecode
+   * - All methods it transitively calls (via the call graph)
+   *
+   * Returns a Map from fully-qualified class name to its aggregated method hash.
+   */
+  def methodCodeHashSignatures: T[Map[String, Int]] = Task {
+    val compiled = compile()
+    val classFiles = os.walk(compiled.classes.path).filter(_.ext == "class")
+    val upstream = compileClasspath().map(_.path).filter(p => os.exists(p))
+
+    val worker = codesigWorkerModule().codesigWorker()
+    val methodSigs = worker.computeCodeSignatures(
+      classFiles = classFiles,
+      upstreamClasspath = upstream,
+      logDir = None,
+      prevHashesOpt = None
+    )
+
+    // Convert method-level signatures to class-level for testQuick
+    CodeSigWorkerApi.toClassSignatures(methodSigs)
+  }
 
   /**
    * All classfiles and resources from upstream modules and dependencies

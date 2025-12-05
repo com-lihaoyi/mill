@@ -39,6 +39,12 @@ trait TestModule
   def testClasspath: T[Seq[PathRef]] = Task { localRunClasspath() }
 
   /**
+   * Method-level code hash signatures for the module under test.
+   * Used by [[testQuick]] for fine-grained change detection.
+   */
+  def methodCodeHashSignatures: T[Map[String, Int]]
+
+  /**
    * The test framework to use to discover and run run tests.
    *
    * For convenience, you can also mix-in one of these predefined traits:
@@ -120,6 +126,122 @@ trait TestModule
    */
   def testCached: T[(msg: String, results: Seq[TestResult])] = Task {
     testTask(testCachedArgs, Task.Anon { Seq.empty[String] })()
+  }
+
+  /**
+   * Runs only tests affected by code changes since the last successful run.
+   * Uses bytecode-level method signatures (via codesig) to detect which classes changed,
+   * then runs only tests that depend on those classes plus any previously failed tests.
+   *
+   * This provides much faster feedback during development than running all tests,
+   * while still ensuring that affected tests are executed.
+   *
+   * The change detection is at class granularity and includes:
+   * - Changes to the test class itself
+   * - Changes to any class in the module dependencies (moduleDeps)
+   * - Tests that failed in the previous run
+   *
+   * @see [[testCached]] for running all tests with caching
+   * @see [[methodCodeHashSignatures]] for how change detection works
+   */
+  def testQuick: T[(msg: String, results: Seq[TestResult])] = Task(persistent = true) {
+    val stateFile = Task.dest / "testQuick-state.json"
+
+    // Load previous state
+    case class TestQuickState(
+        classHashes: Map[String, Int],
+        failedTests: Set[String]
+    )
+
+    val previousState: TestQuickState = if (os.exists(stateFile)) {
+      try {
+        val json = ujson.read(os.read(stateFile))
+        TestQuickState(
+          classHashes = json("classHashes").obj.map { case (k, v) => k -> v.num.toInt }.toMap,
+          failedTests = json("failedTests").arr.map(_.str).toSet
+        )
+      } catch {
+        case _: Exception =>
+          Task.log.info("testQuick: Could not load previous state, running all tests")
+          TestQuickState(Map.empty, Set.empty)
+      }
+    } else {
+      TestQuickState(Map.empty, Set.empty)
+    }
+
+    // Compute current class signatures
+    val currentHashes: Map[String, Int] = methodCodeHashSignatures()
+
+    // Get all discovered test classes
+    val allTests = discoveredTestClasses()
+
+    // Determine changed classes
+    val changedClasses: Set[String] = currentHashes.collect {
+      case (cls, hash) if previousState.classHashes.get(cls) != Some(hash) => cls
+    }.toSet
+
+    // Determine tests to run
+    val testsToRun: Seq[String] = if (previousState.classHashes.isEmpty) {
+      // First run - execute all tests
+      Task.log.info("testQuick: First run - executing all tests")
+      allTests
+    } else if (changedClasses.isEmpty && previousState.failedTests.isEmpty) {
+      // No changes, no failures - nothing to run
+      Task.log.info("testQuick: No changes detected, no failed tests - skipping")
+      Seq.empty
+    } else {
+      // Run failed tests + tests in changed classes
+      val affectedTests = allTests.filter { test =>
+        changedClasses.exists(cls => test.startsWith(cls) || cls.startsWith(test.takeWhile(_ != '$')))
+      }
+      val toRun = (affectedTests ++ previousState.failedTests.intersect(allTests.toSet)).distinct
+      Task.log.info(s"testQuick: Running ${toRun.size} tests (${affectedTests.size} affected by changes, ${previousState.failedTests.size} previously failed)")
+      toRun
+    }
+
+    // Run the selected tests
+    val (msg, results) = if (testsToRun.isEmpty) {
+      ("No tests to run", Seq.empty[TestResult])
+    } else {
+      val testModuleUtil = new TestModuleUtil(
+        testUseArgsFile(),
+        forkArgs(),
+        testsToRun, // Use our filtered test list as selectors
+        jvmWorker().scalalibClasspath(),
+        resources(),
+        testFramework(),
+        runClasspath(),
+        testClasspath(),
+        testCachedArgs(),
+        Seq(testsToRun), // testForkGrouping with our tests
+        jvmWorker().testrunnerEntrypointClasspath(),
+        allForkEnv(),
+        testSandboxWorkingDir(),
+        forkWorkingDir(),
+        testReportXml(),
+        javaHome().map(_.path),
+        testParallelism(),
+        testLogLevel(),
+        propagateEnv(),
+        jvmWorker().internalWorker()
+      )
+      testModuleUtil.runTests()
+    }
+
+    // Determine failed tests from results
+    val currentFailedTests: Set[String] = results
+      .filter(r => r.status == "Failure" || r.status == "Error")
+      .map(_.fullyQualifiedName)
+      .toSet
+
+    // Save state for next run
+    val newState = ujson.Obj(
+      "classHashes" -> ujson.Obj.from(currentHashes.map { case (k, v) => k -> ujson.Num(v) }),
+      "failedTests" -> ujson.Arr.from(currentFailedTests.map(ujson.Str(_)))
+    )
+    os.write.over(stateFile, ujson.write(newState, indent = 2))
+
+    TestModule.handleResults(msg, results, Task.ctx(), testReportXml())
   }
 
   /**
