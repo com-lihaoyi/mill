@@ -133,19 +133,15 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       // errors themselves are printed whole and not interleaved with
       assertGoldenLiteral(
         normalize(
-          res.result.out.text()
-            // Normalize the `brokenN` module names since those may occur in different orders
-            .replace("broken1", "brokenN")
-            .replace("broken2", "brokenN")
-            .replace("broken3", "brokenN")
+          // Normalize the `brokenN` module names since those may occur in different orders
+          res.result.out.text().replace("broken1", "brokenN").replace("broken2", "brokenN")
         ),
         List(
-          "============================== {brokenN,brokenN,brokenN}.compile ==============================",
+          "============================== {brokenN,brokenN}.compile ==============================",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
           "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
-          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
           "<digits>] [error] broken/src/Foo.java:1:0",
           "<digits>] ?",
           "<digits>] ",
@@ -154,14 +150,30 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] ?",
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
-          "<digits>] [error] broken/src/Foo.java:1:0",
-          "<digits>] ?",
-          "<digits>] ",
-          "<digits>] class, interface, enum, or record expected",
-          ".../..., 3 failed] ===================== {brokenN,brokenN,brokenN}.compile ====================",
-          "<digits>] [error] brokenN.compile javac returned non-zero exit code",
+          ".../..., 2 failed] ========================== {brokenN,brokenN}.compile =========================",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code"
+        )
+      )
+      // Make sure the `.log` files on disk contain what we expect
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/broken1/compile.log")),
+        List(
+          "compiling 1 Java source to out/broken1/compile.dest/classes ...",
+          "[error] broken/src/Foo.java:1:0",
+          "?",
+          "",
+          "class, interface, enum, or record expected"
+        )
+      )
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/broken2/compile.log")),
+        List(
+          "compiling 1 Java source to out/broken2/compile.dest/classes ...",
+          "[error] broken/src/Foo.java:1:0",
+          "?",
+          "",
+          "class, interface, enum, or record expected"
         )
       )
     }
