@@ -45,13 +45,13 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
         normalize(res.result.err.text()),
         // Should have no colors because we called it programmatically
         List(
-          "============================== run --text hello ==============================",
+          "<dashes> run --text hello <dashes>",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] compile compiling 1 Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
           "<digits>] run",
-          "63/<digits>] ============================== run --text hello =============================="
+          "63/<digits>] <dashes> run --text hello <dashes>"
         )
       )
     }
@@ -71,7 +71,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
-          "============================== exclusives.printingC ==============================",
+          "<dashes> exclusives.printingC <dashes>",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] exclusives.printingA",
@@ -84,7 +84,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "Hello C",
           "World C",
           "Exclusive C",
-          "4/<digits>] ============================== exclusives.printingC =============================="
+          "4/<digits>] <dashes> exclusives.printingC <dashes>"
         )
       )
     }
@@ -102,14 +102,14 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
-          "============================== logging ==============================",
+          "<dashes> logging <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] logging(X) MY PRINTLN",
           "(B)<digits>](X) MY INFO LOGS",
           "(B)<digits>](X) [(Y)warn(X)] MY WARN LOGS",
           "(B)<digits>](X) [(R)error(X)] MY ERROR LOGS",
-          "1/<digits>] ============================== logging =============================="
+          "1/<digits>] <dashes> logging <dashes>"
         )
       )
       // Make sure the `.log` files on disk contain what we expect

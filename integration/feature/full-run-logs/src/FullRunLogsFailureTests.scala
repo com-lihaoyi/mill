@@ -25,7 +25,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res.result.err.text()),
         // We passed in `--color=true` so we should expect colored output
         List(
-          "============================== jar ==============================",
+          "<dashes> jar <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] compile(X) compiling 1 Java source to out/compile.dest/classes ...",
@@ -34,7 +34,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X)          (R)^(Z)",
           "(B)<digits>](X) reached end of file while parsing",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 failed(X)] ============================== jar ==============================",
+          ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile javac returned non-zero exit code"
         )
       )
@@ -50,7 +50,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res2.result.err.text()),
         List(
-          "============================== jar ==============================",
+          "<dashes> jar <dashes>",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] [error] build.mill:76:1",
           "build.mill-<digits>] ?",
@@ -58,7 +58,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] Illegal start of toplevel definition",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] [error] compile task failed",
-          ".../..., 1 failed] ============================== jar ==============================",
+          ".../..., 1 failed] <dashes> jar <dashes>",
           "build.mill-<digits>] [error] compile Compilation failed"
         )
       )
@@ -99,10 +99,10 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
-          "============================== exception ==============================",
+          "<dashes> exception <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
-          ".../..., (R)1 failed(X)] ============================== exception =============================",
+          ".../..., (R)1 failed(X)] <dashes> exception <dashes>",
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)5(X))",
@@ -137,7 +137,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           res.result.out.text().replace("broken1", "brokenN").replace("broken2", "brokenN")
         ),
         List(
-          "============================== {brokenN,brokenN}.compile ==============================",
+          "<dashes> {brokenN,brokenN}.compile <dashes>",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
@@ -150,7 +150,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] ?",
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
-          ".../..., 2 failed] ========================== {brokenN,brokenN}.compile =========================",
+          ".../..., 2 failed] <dashes> {brokenN,brokenN}.compile <dashes>",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code"
         )

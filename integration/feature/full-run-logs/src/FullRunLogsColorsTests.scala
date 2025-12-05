@@ -97,7 +97,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
         assertGoldenLiteral(
           normalize(res2.result.out.text()),
           List(
-            "============================== test ==============================",
+            "<dashes> test <dashes>",
             "(B)<digits>] test.testForked(X) Running Test Class foo.FooTest",
             "(B)<digits>](X) (B)Test run (Z)foo.(Y)FooTest(Z)(B) started(Z)",
             "(B)<digits>](X) Test foo.(Y)FooTest(Z).(C)testSimple(Z) started",
@@ -164,7 +164,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (Y)(Z)",
             "(B)<digits>](X) Test foo.(Y)FooTest(Z).(C)testSimple(Z) finished, took .../... sec",
             "(B)<digits>](X) (B)Test run (Z)foo.(Y)FooTest(Z)(B) finished: (Z)(B)0 failed(Z)(B), (Z)(B)0 ignored(Z)(B), 1 total, .../...s(Z)",
-            "102/<digits>] ============================== test =============================="
+            "102/<digits>] <dashes> test <dashes>"
           )
         )
       }
@@ -250,7 +250,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
         assertGoldenLiteral(
           normalize(res4.result.out.text()),
           List(
-            "============================== test.printColors ==============================",
+            "<dashes> test.printColors <dashes>",
             "(B)<digits>] test.printColors(X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_1(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_2(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_3(X)",
@@ -312,7 +312,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_59(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_60(X)",
             "(B)<digits>](X) (Y)(Z)",
-            "1/<digits>] ============================== test.printColors =============================="
+            "1/<digits>] <dashes> test.printColors <dashes>"
           )
         )
       }
