@@ -34,11 +34,11 @@ object MillRpcClient {
     def logDebug(msg: String): Unit = log.debug(s"[RPC:${wireTransport.name}] $msg")
 
     def handleServerLog(msg: RpcLogger.Message): Unit = msg match {
-      case RpcLogger.Message.Error(msg) => log.error(s"[RPC-SERVER:${wireTransport.name}] $msg")
-      case RpcLogger.Message.Warn(msg) => log.warn(s"[RPC-SERVER:${wireTransport.name}] $msg")
-      case RpcLogger.Message.Info(msg) => log.info(s"[RPC-SERVER:${wireTransport.name}] $msg")
-      case RpcLogger.Message.Debug(msg) => log.debug(s"[RPC-SERVER:${wireTransport.name}] $msg")
-      case RpcLogger.Message.Ticker(msg) => log.ticker(s"[RPC-SERVER:${wireTransport.name}] $msg")
+      case RpcLogger.Message.Error(msg) => log.error(msg)
+      case RpcLogger.Message.Warn(msg) => log.warn(msg)
+      case RpcLogger.Message.Info(msg) => log.info(msg)
+      case RpcLogger.Message.Debug(msg) => log.debug(msg)
+      case RpcLogger.Message.Ticker(msg) => log.ticker(msg)
     }
 
     def awaitForResponse[A: Reader]: A = {

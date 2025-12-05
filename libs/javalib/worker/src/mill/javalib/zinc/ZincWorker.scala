@@ -163,11 +163,11 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   }
 
   def compileJava(
-      op: ZincOp.CompileJava,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean,
-      ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig
+                   op: ZincOp.CompileJava,
+                   reporter: Option[CompileProblemReporter],
+                   reportCachedProblems: Boolean,
+                   localConfig: ZincWorker.LocalConfig,
+                   processConfig: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
     val cacheKey = JavaCompilerCacheKey(op.javacOptions)
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
@@ -182,19 +182,19 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = op.incrementalCompilation,
         auxiliaryClassFileExtensions = Seq.empty,
-        ctx = ctx,
-        deps = deps,
+        localConfig = localConfig,
+        processConfig = processConfig,
         workDir = op.workDir
       )
     }
   }
 
   def compileMixed(
-      op: ZincOp.CompileMixed,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean,
-      ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig
+                    op: ZincOp.CompileMixed,
+                    reporter: Option[CompileProblemReporter],
+                    reportCachedProblems: Boolean,
+                    localConfig: ZincWorker.LocalConfig,
+                    processConfig: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
     withScalaCompilers(
       scalaVersion = op.scalaVersion,
@@ -203,7 +203,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalacPluginClasspath = op.scalacPluginClasspath,
       compilerBridgeOpt = op.compilerBridgeOpt,
       javacOptions = op.javacOptions,
-      deps.compilerBridgeProvider
+      processConfig.compilerBridgeProvider
     ) { compilers =>
       compileInternal(
         upstreamCompileOutput = op.upstreamCompileOutput,
@@ -216,8 +216,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = op.incrementalCompilation,
         auxiliaryClassFileExtensions = op.auxiliaryClassFileExtensions,
-        ctx = ctx,
-        deps = deps,
+        localConfig = localConfig,
+        processConfig = processConfig,
         workDir = op.workDir
       )
     }
@@ -307,28 +307,28 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   }
 
   private def compileInternal(
-      upstreamCompileOutput: Seq[CompilationResult],
-      sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
-      javacOptions: Seq[String],
-      scalacOptions: Seq[String],
-      compilers: Compilers,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean,
-      incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String],
-      zincCache: os.SubPath = os.sub / "zinc",
-      ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig,
-      workDir: os.Path
+                               upstreamCompileOutput: Seq[CompilationResult],
+                               sources: Seq[os.Path],
+                               compileClasspath: Seq[os.Path],
+                               javacOptions: Seq[String],
+                               scalacOptions: Seq[String],
+                               compilers: Compilers,
+                               reporter: Option[CompileProblemReporter],
+                               reportCachedProblems: Boolean,
+                               incrementalCompilation: Boolean,
+                               auxiliaryClassFileExtensions: Seq[String],
+                               zincCache: os.SubPath = os.sub / "zinc",
+                               localConfig: ZincWorker.LocalConfig,
+                               processConfig: ZincWorker.ProcessConfig,
+                               workDir: os.Path
   ): Result[CompilationResult] = {
 
     os.makeDir.all(workDir)
 
     val classesDir = workDir / "classes"
 
-    if (ctx.logDebugEnabled) {
-      deps.log.debug(
+    if (localConfig.logDebugEnabled) {
+      processConfig.log.debug(
         s"""Compiling:
            |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
            |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
@@ -343,11 +343,11 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
     val consoleAppender = SbtLoggerUtils.ConciseLevelConsoleAppender(
       name = "ZincLogAppender",
-      consoleOut = deps.consoleOut,
-      ansiCodesSupported0 = ctx.logPromptColored
+      log = s => processConfig.log.info(s),
+      ansiCodesSupported0 = localConfig.logPromptColored
     )
     val loggerId = Thread.currentThread().getId.toString
-    val zincLogLevel = if (ctx.logDebugEnabled) sbt.util.Level.Debug else sbt.util.Level.Info
+    val zincLogLevel = if (localConfig.logDebugEnabled) sbt.util.Level.Debug else sbt.util.Level.Info
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
 
     val maxErrors = reporter.map(_.maxErrors).getOrElse(CompileProblemReporter.defaultMaxErrors)
@@ -396,7 +396,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     }
 
     val addColorNeverOption = Option.when(
-      !ctx.logPromptColored &&
+      !localConfig.logPromptColored &&
         compilers.scalac().scalaInstance().version().startsWith("3.") &&
         // might be too broad
         !scalacOptions.exists(_.startsWith("-color:"))
@@ -411,12 +411,12 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     val newReporter = reporter match {
       case None =>
         new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull, ctx.workspaceRoot) {}
+          with TransformingReporter(localConfig.logPromptColored, posMapperOpt.orNull, localConfig.workspaceRoot) {}
       case Some(forwarder) =>
         new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, posMapperOpt.orNull, ctx.workspaceRoot) {}
+          with TransformingReporter(localConfig.logPromptColored, posMapperOpt.orNull, localConfig.workspaceRoot) {}
     }
 
     val inputs = incrementalCompiler.inputs(
@@ -455,7 +455,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     val scalaColorProp = "scala.color"
     val previousScalaColor = sys.props(scalaColorProp)
     try {
-      sys.props(scalaColorProp) = if (ctx.logPromptColored) "true" else "false"
+      sys.props(scalaColorProp) = if (localConfig.logPromptColored) "true" else "false"
 
       val newResult = incrementalCompiler.compile(in = inputs, logger = logger)
 
@@ -540,21 +540,21 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   }
 
   def apply(
-      op: ZincOp,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean,
-      ctx: ZincWorker.LocalConfig,
-      deps: ZincWorker.ProcessConfig
+             op: ZincOp,
+             reporter: Option[CompileProblemReporter],
+             reportCachedProblems: Boolean,
+             localConfig: ZincWorker.LocalConfig,
+             processConfig: ZincWorker.ProcessConfig
   ): op.Response = {
     op match {
       case msg: ZincOp.CompileJava =>
-        compileJava(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
+        compileJava(msg, reporter, reportCachedProblems, localConfig, processConfig).asInstanceOf[op.Response]
 
       case msg: ZincOp.CompileMixed =>
-        compileMixed(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
+        compileMixed(msg, reporter, reportCachedProblems, localConfig, processConfig).asInstanceOf[op.Response]
 
       case msg: ZincOp.ScaladocJar =>
-        scaladocJar(msg, deps.compilerBridgeProvider).asInstanceOf[op.Response]
+        scaladocJar(msg, processConfig.compilerBridgeProvider).asInstanceOf[op.Response]
 
       case msg: ZincOp.DiscoverTests =>
         mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]

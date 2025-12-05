@@ -68,15 +68,15 @@ case class PrefixLogger(
     baos
   }
 
-  override def info(s: String): Unit = {
+  override def info(s: String): Unit = prompt.logLock{
     prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
   }
 
-  override def warn(s: String): Unit = {
+  override def warn(s: String): Unit = prompt.logLock{
     prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
   }
 
-  override def error(s: String): Unit = {
+  override def error(s: String): Unit = prompt.logLock{
     prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
   }
 
@@ -84,7 +84,7 @@ case class PrefixLogger(
 
   def prompt = logger0.prompt
 
-  override def debug(s: String): Unit = {
+  override def debug(s: String): Unit = prompt.logLock{
     if (debugEnabled) {
       if (prompt.debugEnabled) {
         val baos = new java.io.ByteArrayOutputStream()

@@ -103,7 +103,10 @@ class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
-
+    val logLockObject = new Object()
+    def logLock[T](block: => T): T = logLockObject.synchronized {
+      block
+    }
     def beginChromeProfileEntry(text: String): Unit = {
       logBeginChromeProfileEntry(text, System.nanoTime())
     }

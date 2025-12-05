@@ -162,6 +162,7 @@ object Logger {
    * to logger unchanged without any customization.
    */
   private[mill] trait Prompt {
+    def logLock[T](block: => T): T
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
     private[mill] def logPrefixedLine(
         key: Seq[String],
@@ -192,6 +193,7 @@ object Logger {
   }
   private[mill] object Prompt {
     class NoOp extends Prompt {
+      def logLock[T](block: => T): T = block
       private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ()
       private[mill] def logPrefixedLine(
           key: Seq[String],
