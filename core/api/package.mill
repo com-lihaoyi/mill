@@ -11,7 +11,7 @@ import millbuild.*
  * defining Tasks, Modules, helper code, and other related data structures.
  */
 object `package` extends MillStableScalaModule with BuildInfo {
-  object java11 extends MillStableScalaModule with MillJava11ScalaModule {
+  object java11 extends MillPublishScalaModule with MillJava11ScalaModule {
     def moduleDeps = Seq(build.core.api.daemon)
 
     def mvnDeps = Seq(
@@ -28,9 +28,12 @@ object `package` extends MillStableScalaModule with BuildInfo {
       Deps.mainargs,
       Deps.fastparse
     )
-
   }
-  def moduleDeps = Seq(build.core.api.daemon, java11)
+
+
+  def unmanagedClasspath = Seq(java11.compile().classes)
+  def mvnDeps = java11.mvnDeps()
+  def moduleDeps = Seq(build.core.api.daemon)
 
   def compileMvnDeps = Task {
     if (scalaVersion().startsWith("3.")) Seq(Deps.scalaCompiler(scalaVersion()))

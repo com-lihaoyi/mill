@@ -15,12 +15,14 @@ import millbuild.*
  * isolation between them
  */
 object `package` extends MillStableScalaModule with BuildInfo {
-  object java11 extends MillStableScalaModule with MillJava11ScalaModule {
+  object java11 extends MillPublishScalaModule with MillJava11ScalaModule {
     def mvnDeps = Seq(Deps.jline)
     def compileMvnDeps = Seq(Deps.coursierJvm)
     def runMvnDeps = Seq(Deps.coursierJvm)
     def moduleDeps = Seq(build.core.api.java11)
   }
+
+  def unmanagedClasspath = Seq(java11.compile().classes)
 
   def compileMvnDeps = Seq(
     Deps.nativeTerminal,
@@ -36,10 +38,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     Deps.coursierJvm
   )
 
-  def moduleDeps = Seq(
-    build.core.api,
-    java11
-  )
+  def moduleDeps = Seq(build.core.api)
 
   // Exclude most coursier transitive dependencies from the compile classpath so users
   // can't compile against them, but include them at runtime as they are necessary.
