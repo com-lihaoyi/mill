@@ -11,15 +11,15 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
 
       assert(!res.isSuccess)
 
-      assert(res.err.contains("[error] build.mill.yaml:2:16"))
+      assert(res.err.contains("[error] build.mill.yaml:2:1"))
       assert(res.err.contains("scalaVersionn: []"))
-      assert(res.err.contains("               ^"))
+      assert(res.err.contains("^"))
       assert(res.err.contains(
         "key \"scalaVersionn\" does not override any task, did you mean \"scalaVersion\"?"
       ))
-      assert(res.err.replace('\\', '/').contains("[error] test/package.mill.yaml:2:25"))
+      assert(res.err.replace('\\', '/').contains("[error] test/package.mill.yaml:2:1"))
       assert(res.err.contains("scalaVersionWrongInner: []"))
-      assert(res.err.contains("                        ^"))
+      assert(res.err.contains("^"))
       assert(res.err.contains("key \"scalaVersionWrongInner\" does not override any task"))
 
       tester.modifyFile(

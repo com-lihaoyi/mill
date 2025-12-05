@@ -12,7 +12,7 @@
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="scala-SDK-3.8.0-RC2" level="project"/>
+        <orderEntry type="library" name="scala-SDK-3.8.0-RC3" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" name="asm-9.9.jar" level="project"/>
         <orderEntry type="library" name="asm-tree-9.9.jar" level="project"/>
@@ -86,7 +86,7 @@
         <orderEntry type="library" scope="RUNTIME" name="mill-libs-tabcomplete_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-util_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" name="mill-moduledefs_3-0.12.3.jar" level="project"/>
+        <orderEntry type="library" name="mill-moduledefs_3-0.12.4.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-codesig_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-meta_3-SNAPSHOT.jar" level="project"/>
@@ -103,12 +103,12 @@
         <orderEntry type="library" scope="RUNTIME" name="scala-collection-compat_2.13-2.13.0.jar" level="project"/>
         <orderEntry type="library" name="scala-collection-compat_3-2.12.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala-library-2.13.12.jar" level="project"/>
-        <orderEntry type="library" name="scala-library-3.8.0-RC2.jar" level="project"/>
+        <orderEntry type="library" name="scala-library-3.8.0-RC3.jar" level="project"/>
         <orderEntry type="library" name="scala-reflect-2.13.15.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="scala-xml_2.13-2.4.0.jar" level="project"/>
         <orderEntry type="library" name="scala-xml_3-2.4.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
-        <orderEntry type="library" name="scala3-library_3-3.8.0-RC2.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_3-3.8.0-RC3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="slf4j-api-2.0.17.jar" level="project"/>
         <orderEntry type="library" name="snakeyaml-engine-3.0.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.6.0.jar" level="project"/>
@@ -118,13 +118,13 @@
         <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.9.0.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="tika-core-3.2.2.jar" level="project"/>
-        <orderEntry type="library" name="ujson_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="ujson_3-4.4.2-RC.jar" level="project"/>
         <orderEntry type="library" name="unroll-annotation_3-0.2.0.jar" level="project"/>
-        <orderEntry type="library" name="upack_3-4.4.1.jar" level="project"/>
-        <orderEntry type="library" name="upickle-core_3-4.4.1.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.4.1.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits_3-4.4.1.jar" level="project"/>
-        <orderEntry type="library" name="upickle_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upack_3-4.4.2-RC.jar" level="project"/>
+        <orderEntry type="library" name="upickle-core_3-4.4.2-RC.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.4.2-RC.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits_3-4.4.2-RC.jar" level="project"/>
+        <orderEntry type="library" name="upickle_3-4.4.2-RC.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-ansi-0.0.6.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-0.3.3.jar" level="project"/>

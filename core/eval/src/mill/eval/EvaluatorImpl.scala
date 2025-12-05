@@ -124,6 +124,7 @@ final class EvaluatorImpl(
   def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]): Seq[Result.Failure] = {
     val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
     val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
+
     allModules.flatMap { module =>
       val discover = module match {
         case x: ExternalModule => x.millDiscover
@@ -175,7 +176,7 @@ final class EvaluatorImpl(
             s"$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
         }
 
-        Result.Failure(message, v.path.toNIO, v.value.index)
+        Result.Failure(message, v.path.toNIO, v.index)
       }
     }
   }

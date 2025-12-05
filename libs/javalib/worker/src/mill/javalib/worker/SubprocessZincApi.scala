@@ -55,14 +55,10 @@ class SubprocessZincApi(
             reporter match {
               case Some(reporter) => msg.problem match {
                   case RpcProblemMessage.Start => reporter.start()
-                  case RpcProblemMessage.LogError(problem) =>
-                    reporter.logError(problem)
-                  case RpcProblemMessage.LogWarning(problem) =>
-                    reporter.logWarning(problem)
-                  case RpcProblemMessage.LogInfo(problem) =>
-                    reporter.logInfo(problem)
-                  case RpcProblemMessage.FileVisited(file) =>
-                    reporter.fileVisited(file.toNIO)
+                  case RpcProblemMessage.LogError(problem) => reporter.logError(problem)
+                  case RpcProblemMessage.LogWarning(problem) => reporter.logWarning(problem)
+                  case RpcProblemMessage.LogInfo(problem) => reporter.logInfo(problem)
+                  case RpcProblemMessage.FileVisited(file) => reporter.fileVisited(file.toNIO)
                   case RpcProblemMessage.PrintSummary => reporter.printSummary()
                   case RpcProblemMessage.Finish => reporter.finish()
                   case RpcProblemMessage.NotifyProgress(progress, total) =>
