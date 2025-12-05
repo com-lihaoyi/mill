@@ -34,7 +34,7 @@ case class PrefixLogger(
     case None => logger0.redirectOutToErr
     case Some(b) => b
   }
-  override val logKey = key0
+  override val logKey = logger0.logKey ++ key0
 
   assert(key0.forall(_.nonEmpty))
   val linePrefix: String = Logger.formatPrefix(
