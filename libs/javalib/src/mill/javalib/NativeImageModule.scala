@@ -2,10 +2,12 @@ package mill.javalib
 
 import mill.*
 import mill.constants.{DaemonFiles, Util}
+import coursier.core.VariantSelector.ConfigurationBased
 
 import scala.util.Properties
 import mill.api.BuildCtx
 import mill.javalib.graalvm.GraalVMMetadataWorker
+import mill.javalib.graalvm.MetadataQuery
 
 /**
  * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].
@@ -22,6 +24,7 @@ import mill.javalib.graalvm.GraalVMMetadataWorker
 @mill.api.experimental
 trait NativeImageModule extends WithJvmWorkerModule {
   def runClasspath: T[Seq[PathRef]]
+
   def finalMainClass: T[String]
 
   /**
@@ -51,6 +54,7 @@ trait NativeImageModule extends WithJvmWorkerModule {
 
   /**
    * Runs the Native Image from [[nativeImage]]
+   *
    * @param args
    */
   def nativeRun(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
@@ -93,13 +97,17 @@ trait NativeImageModule extends WithJvmWorkerModule {
    * The classpath to use to generate the native image. Defaults to [[runClasspath]].
    */
   def nativeImageClasspath: T[Seq[PathRef]] = Task {
-    runClasspath()
+    runClasspath() ++ nativeMvnDepsMetadata().toSeq
   }
 
   /**
    * Additional options for the `native-image` Tool.
    */
-  def nativeImageOptions: T[Seq[String]] = Seq()
+  def nativeImageOptions: T[Seq[String]] = Task {
+    nativeMvnDepsMetadata().toSeq.flatMap(md =>
+      Seq("--configurations-path", (md.path / "META-INF").toString)
+    )
+  }
 
   /**
    * Path to the [[https://www.graalvm.org/latest/reference-manual/native-image/ `native-image` Tool]].
@@ -147,23 +155,13 @@ trait NativeImageModule extends WithJvmWorkerModule {
   }
 
   /**
-   * Deps for the [[nativeGraalVMReachabilityMetadataWorker]]
-   */
-  def nativeGraalVMReachabilityMetadataToolsDeps: T[Seq[Dep]] = Task {
-    Seq(
-      mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3",
-      mvn"com.github.openjson:openjson:1.0.13"
-    )
-  }
-
-  /**
-   * Resolved classpath of [[nativeGraalVMReachabilityMetadataToolsDeps]]
+   * Resolved classpath of mill-libs-javalib-graalvm-reachability-worker
    */
   def nativeGraalVMReachabilityMetadataClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
         Dep.millProjectModule("mill-libs-javalib-graalvm-reachability-worker")
-      ) ++ nativeGraalVMReachabilityMetadataToolsDeps()
+      )
     )
   }
 
@@ -185,6 +183,74 @@ trait NativeImageModule extends WithJvmWorkerModule {
     nativeGraalVMReachabilityMetadataClassloader()
       .loadClass("mill.javalib.graalvm.GraalVMMetadataWorkerImpl").getConstructor().newInstance()
       .asInstanceOf[GraalVMMetadataWorker]
+  }
+
+  /**
+   * Collects the metadata from [[nativeGraalVMReachabilityMetadata]]
+   * for the dependencies defined in [[nativeGraalVmMetadataQuery]].
+   *
+   * The resulting path is compatible with the runClasspath expactations of the native
+   * image pointing to resources directory which contains a `META-INF/native-image/<group-id>/<artifact-id>`
+   * structure.
+   *
+   * For more information see also [[https://www.graalvm.org/latest/reference-manual/native-image/metadata/]]
+   */
+  def nativeMvnDepsMetadata: T[Option[PathRef]] = this match {
+    case _: JavaModule => Task {
+        val paths = nativeGraalVMReachabilityMetadataWorker().findConfigurations(
+          nativeGraalVmMetadataQuery()
+        )
+        val dest = Task.dest / "resources"
+        nativeGraalVMReachabilityMetadataWorker().copyDirectoryConfiguration(paths, dest)
+        Some(PathRef(dest))
+      }
+    case _ => Task {
+        None
+      }
+  }
+
+  /**
+   * Whether to use the latest graalvm reachability metadata config
+   * if the dependency version is not listed in the tested versions.
+   *
+   * Defaults to `true`
+   */
+  def nativeUseLatestConfigWhenVersionIsUntested: T[Boolean] = Task {
+    true
+  }
+
+  /**
+   * Defines the query to run for finding reachability metadata via [[mill.javalib.graalvm.GraalVMMetadataWorker]].
+   *
+   * For more information and implementation details go to [[https://github.com/graalvm/native-build-tools/blob/master/common/graalvm-reachability-metadata/src/main/java/org/graalvm/reachability/internal/FileSystemRepository.java]]
+   */
+  def nativeGraalVmMetadataQuery: T[MetadataQuery] = this match {
+    case m: JavaModule => Task {
+        val metadataPath = nativeGraalVMReachabilityMetadata().path
+
+        val dep = m.coursierDependencyTask().withVariantSelector(
+          ConfigurationBased(coursier.core.Configuration.defaultRuntime)
+        )
+        val resolution =
+          m.millResolver().resolution(Seq(mill.javalib.BoundDep(dep, force = false)))
+        val deps = resolution.dependencies
+          .map(d =>
+            s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
+          )
+        MetadataQuery(
+          rootPath = metadataPath,
+          deps = deps,
+          useLatestConfigWhenVersionIsUntested = nativeUseLatestConfigWhenVersionIsUntested()
+        )
+      }
+    case _ => Task {
+        MetadataQuery(
+          rootPath = Task.dest,
+          deps = Set.empty,
+          useLatestConfigWhenVersionIsUntested = false
+        )
+      }
+
   }
 
 }

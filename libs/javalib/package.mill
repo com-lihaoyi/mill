@@ -153,7 +153,7 @@ object `package` extends MillStableScalaModule {
 
   object `graalvm-reachability-worker` extends MillPublishScalaModule, BuildInfo {
     def moduleDeps = Seq(api)
-    def compileMvnDeps = Seq(
+    def mvnDeps = Seq(
       Deps.graalVMReachabilityMetadataBuildTool,
       Deps.openJson
     )
