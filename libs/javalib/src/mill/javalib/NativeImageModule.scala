@@ -236,7 +236,7 @@ trait NativeImageModule extends WithJvmWorkerModule {
         val deps = resolution.dependencies
           .map(d =>
             s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
-          )
+          ).filter(_.split(':').length == 3) // gav requirements for graalvm metadata artifact query
         MetadataQuery(
           rootPath = metadataPath,
           deps = deps,
