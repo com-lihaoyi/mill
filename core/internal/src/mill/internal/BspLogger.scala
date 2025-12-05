@@ -2,7 +2,6 @@ package mill.internal
 
 import mill.api.{SystemStreams, Logger}
 
-
 class BspLogger(
     override val unprefixedStreams: SystemStreams,
     override val logKey: Seq[String],
