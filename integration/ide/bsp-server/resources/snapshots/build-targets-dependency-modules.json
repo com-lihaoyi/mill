@@ -219,7 +219,7 @@
         },
         {
           "name": "com.lihaoyi:upickle_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         },
         {
           "name": "com.lihaoyi:requests_3",
@@ -259,15 +259,15 @@
         },
         {
           "name": "com.lihaoyi:ujson_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         },
         {
           "name": "com.lihaoyi:upack_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         },
         {
           "name": "com.lihaoyi:upickle-implicits_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         },
         {
           "name": "org.scala-lang.modules:scala-collection-compat_3",
@@ -275,7 +275,7 @@
         },
         {
           "name": "com.lihaoyi:upickle-core_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         }
       ]
     },
@@ -447,7 +447,7 @@
         },
         {
           "name": "com.lihaoyi:upickle_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         },
         {
           "name": "com.lihaoyi:requests_3",
@@ -487,15 +487,15 @@
         },
         {
           "name": "com.lihaoyi:ujson_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         },
         {
           "name": "com.lihaoyi:upack_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         },
         {
           "name": "com.lihaoyi:upickle-implicits_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         },
         {
           "name": "org.scala-lang.modules:scala-collection-compat_3",
@@ -503,7 +503,7 @@
         },
         {
           "name": "com.lihaoyi:upickle-core_3",
-          "version": "4.4.1"
+          "version": "4.4.2-RC"
         }
       ]
     },

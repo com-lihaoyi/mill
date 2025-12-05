@@ -68,7 +68,9 @@ trait GroupExecution {
             headerDataReader
           )
             .rest
-            .map { case (k, v) => (segments ++ Seq(k)).mkString(".") -> Located(path, v.index, v) }
+            .map { case (k, v) =>
+              (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, v)
+            }
             .toSeq
 
         val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
@@ -83,7 +85,7 @@ trait GroupExecution {
           headerDataReader
         ).get
           .rest
-          .map { case (k, v) => (BufferedValue.Str(k, -1), v) }
+          .map { case (k, v) => (BufferedValue.Str(k.value, k.index), v) }
           .to(mutable.ArrayBuffer),
         true,
         -1
@@ -190,7 +192,7 @@ trait GroupExecution {
             lazy val strippedText = originalText.replace("\n//|", "\n")
             lazy val lookupLineSuffix = fastparse
               .IndexedParserInput(strippedText)
-              .prettyIndex(jsonData.value.index)
+              .prettyIndex(jsonData.index)
               .takeWhile(_ != ':') // split off column since it's not that useful
 
             val (execRes, serializedPaths) =

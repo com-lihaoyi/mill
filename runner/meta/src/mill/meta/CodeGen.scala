@@ -101,8 +101,8 @@ object CodeGen {
             onProperty: (String, upickle.core.BufferedValue) => T,
             onNestedObject: (String, HeaderData) => T
         ): Seq[T] = {
-          for ((kString, v) <- data.rest.toSeq)
-            yield kString.split(" +") match {
+          for ((locatedKeyString, v) <- data.rest.toSeq)
+            yield locatedKeyString.value.split(" +") match {
               case Array(k) => onProperty(k, v)
               case Array("object", k) => onNestedObject(
                   k,
@@ -111,7 +111,7 @@ object CodeGen {
                     HeaderData.headerDataReader(scriptPath)
                   )
                 )
-              case _ => sys.error("Invalid key: " + kString)
+              case _ => sys.error("Invalid key: " + locatedKeyString.value)
             }
         }
 
