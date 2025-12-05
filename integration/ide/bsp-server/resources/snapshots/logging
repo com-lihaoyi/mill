@@ -14,11 +14,11 @@ bsp-init-build.mill-61] [warn] one warning found
 bsp-init-build.mill-61] done compiling
 bsp-init-114] compiling * Scala source to * ...
 bsp-init-114] done compiling
-bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
+bsp-init] [warn] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
 bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
 bsp-init] SNAPSHOT
 2-workspaceBuildTargets] Entered workspaceBuildTargets
-bsp-init] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
+bsp-init] [warn] BSP disabled for target file:///workspace/dependsOnSkipped because of its dependencies file:///workspace/skipped
 bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#enableBsp
 2-workspaceBuildTargets] Evaluating * tasks
 2-workspaceBuildTargets] Done
@@ -48,7 +48,7 @@ bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#ena
 5-compile-57]   ^^^^
 5-compile-57] not found: value nope
 5-compile-57] [error] one error found
-5-compile-57] errored.compilation-error.semanticDbDataDetailed task failed
+5-compile-57] [error] errored.compilation-error.semanticDbDataDetailed task failed
 5-compile] Done
 5-compile] buildTargetCompile took * msec
 6-compile] Entered buildTargetCompile
