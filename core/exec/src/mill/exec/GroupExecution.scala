@@ -68,7 +68,9 @@ trait GroupExecution {
             headerDataReader
           )
             .rest
-            .map { case (k, v) => (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, v) }
+            .map { case (k, v) =>
+              (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, v)
+            }
             .toSeq
 
         val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
