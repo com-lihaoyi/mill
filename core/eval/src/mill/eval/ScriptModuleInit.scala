@@ -1,7 +1,9 @@
 package mill.eval
 
 import mill.api.daemon.SelectMode
+import mill.api.internal.Located
 import mill.api.{Evaluator, ExternalModule, Result, ScriptModule}
+
 // Cache instantiated script modules on a per-evaluation basis. This allows us to ensure
 // we don't duplicate script modules when e.g. multiple downstream modules refer to the
 // same upstream module. But we cannot cache them for longer because between evaluations
@@ -14,38 +16,48 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
 
   def moduleFor(
       scriptFile: os.Path,
-      extendsConfigStrings: Option[String],
-      moduleDepsStrings: Seq[String],
-      compileModuleDepsStrings: Seq[String],
-      runModuleDepsStrings: Seq[String],
+      extendsConfigStrings: Option[Located[String]],
+      moduleDepsStrings: Seq[Located[String]],
+      compileModuleDepsStrings: Seq[Located[String]],
+      runModuleDepsStrings: Seq[Located[String]],
       eval: Evaluator,
-      headerData: mill.api.ModuleCtx.HeaderData
+      headerData: mill.api.internal.HeaderData
   ): Result[ExternalModule] = {
+    val scriptText = os.read(scriptFile)
+
     def relativize(s: String) = {
       if (s.startsWith("."))
         (scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.up / os.RelPath(s)).toString
       else s
     }
 
-    def resolveOrErr(s: String) = resolveModuleDep(eval, relativize(s)).toRight(s)
+    def resolveOrErr(located: Located[String]) =
+      resolveModuleDep(eval, relativize(located.value)).toRight(located)
     val (moduleDepsErrors, moduleDeps) = moduleDepsStrings.partitionMap(resolveOrErr)
     val (compileModuleDepsErrors, compileModuleDeps) =
       compileModuleDepsStrings.partitionMap(resolveOrErr)
     val (runModuleDepsErrors, runModuleDeps) = runModuleDepsStrings.partitionMap(resolveOrErr)
     val allErrors = moduleDepsErrors ++ compileModuleDepsErrors ++ runModuleDepsErrors
     if (allErrors.nonEmpty) {
-      Result.Failure(
-        "Unable to resolve modules: " + allErrors.map(pprint.Util.literalize(_)).mkString(", ")
-      )
+      val failures = allErrors.map { located =>
+        Result.Failure(
+          s"Unable to resolve module ${pprint.Util.literalize(located.value)}",
+          path = scriptFile.toNIO,
+          index = located.index
+        )
+      }
+      Result.Failure.join(failures)
     } else instantiate(
       scriptFile,
-      extendsConfigStrings.getOrElse {
+      extendsConfigStrings.map(_.value).getOrElse {
         scriptFile.ext match {
           case "java" => "mill.script.JavaModule"
           case "kt" => "mill.script.KotlinModule"
           case "scala" => "mill.script.ScalaModule"
         }
       },
+      extendsConfigStrings.map(_.index),
+      scriptText,
       ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
     )
   }
@@ -61,6 +73,8 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   def instantiate(
       scriptFile: os.Path,
       className: String,
+      extendsIndex: Option[Int],
+      scriptText: String,
       args: AnyRef*
   ): Result[ExternalModule] = {
     val clsOrErr =
@@ -72,9 +86,18 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           catch {
             case _: java.lang.ClassNotFoundException =>
               val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-              Result.Failure(
-                s"Script $relPath extends invalid class ${pprint.Util.literalize(className)}"
-              )
+              extendsIndex match {
+                case Some(idx) =>
+                  Result.Failure(
+                    s"Script extends invalid class ${pprint.Util.literalize(className)}",
+                    path = scriptFile.toNIO,
+                    index = idx
+                  )
+                case None =>
+                  Result.Failure(
+                    s"$relPath:1 Script extends invalid class ${pprint.Util.literalize(className)}"
+                  )
+              }
           }
       }
 
@@ -102,10 +125,10 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       mill.internal.Util.parseHeaderData(scriptFile).flatMap(parsedHeaderData =>
         moduleFor(
           scriptFile,
-          parsedHeaderData.`extends`.headOption,
-          parsedHeaderData.moduleDeps,
-          parsedHeaderData.compileModuleDeps,
-          parsedHeaderData.runModuleDeps,
+          parsedHeaderData.`extends`.value.headOption,
+          parsedHeaderData.moduleDeps.value,
+          parsedHeaderData.compileModuleDeps.value,
+          parsedHeaderData.runModuleDeps.value,
           eval,
           parsedHeaderData
         )
@@ -126,7 +149,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     import mill.api.BuildCtx.workspaceRoot
     discoverScriptFiles(
       workspaceRoot,
-      os.Path(mill.constants.OutFiles.out, workspaceRoot),
+      os.Path(mill.constants.OutFiles.OutFiles.out, workspaceRoot),
       skipPath
     )
       .flatMap { scriptPath =>

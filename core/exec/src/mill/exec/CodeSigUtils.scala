@@ -82,8 +82,21 @@ object CodeSigUtils {
       case None => encode(namedTask.ctx.segments.last.pathSegments.head)
     }
 
+    // For .super tasks (e.g., qux.quxCommand.super.QuxModule), we need to look up
+    // the signature for the super class (QuxModule), not the subclass (qux$).
+    // The super class name is in the last segment.
+    val superClassName = superTaskName.map(_ => namedTask.ctx.segments.last.pathSegments.head)
+
+    def classNameMatches(cls: Class[?], simpleName: String): Boolean = {
+      val clsName = cls.getName
+      // Match either "package$ClassName" (for nested classes) or "package.ClassName" (for top-level)
+      clsName.endsWith("$" + simpleName) || clsName.endsWith("." + simpleName)
+    }
+
     val methodOpt = for {
       parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
+      // For .super tasks, only consider the class that matches the super class name
+      if superClassName.forall(scn => classNameMatches(parentCls, scn))
       m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
     } yield m
 

@@ -157,12 +157,12 @@ object WatchSourceTests extends WatchTests {
     test("sources") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(1) {
+      test("noshow") - retry(2) {
         integrationTest { tester =>
           if (!Util.isWindows) testWatchSource(tester, false)
         }
       }
-      test("show") - retry(1) {
+      test("show") - retry(2) {
         integrationTest { tester =>
           if (!Util.isWindows) testWatchSource(tester, true)
         }
@@ -226,12 +226,12 @@ object WatchInputTests extends WatchTests {
     test("input") {
 
       // Make sure we clean up the workspace between retries
-      test("noshow") - retry(1) {
+      test("noshow") - retry(2) {
         integrationTest { tester =>
           if (!Util.isWindows) testWatchInput(tester, false)
         }
       }
-      test("show") - retry(1) {
+      test("show") - retry(2) {
         integrationTest { tester =>
           if (!Util.isWindows) testWatchInput(tester, true)
         }

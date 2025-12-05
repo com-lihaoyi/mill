@@ -9,7 +9,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/delayed/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/delayed/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/delayed/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -22,7 +22,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/diag/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/diag/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/diag/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -35,7 +35,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/diag/many/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/diag/many/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/diag/many/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -46,7 +46,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/errored/compilation-error/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/errored/compilation-error/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/errored/compilation-error/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -57,7 +57,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/errored/exception/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/errored/exception/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/errored/exception/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -68,7 +68,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/hello-scala/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/hello-scala/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -82,10 +82,10 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
         "file:///workspace/hello-scala/compile-resources",
-        "file:///workspace/out/mill-bsp-out/hello-scala/compile.dest/classes",
+        "file:///workspace/.bsp/mill-bsp-out/hello-scala/compile.dest/classes",
         "file:///workspace/hello-scala/test/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/hello-scala/test/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/hello-scala/test/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -94,9 +94,9 @@
       "options": [],
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.5/pprint_3-0.9.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.6/pprint_3-0.9.6.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.1/upickle_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.2-RC/upickle_3-4.4.2-RC.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.7/mainargs_3-0.7.7.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/0.12.0/scalatags_3-0.12.0.jar",
@@ -105,13 +105,13 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/0.11.5/os-zip-0.11.5.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.4.1/ujson_3-4.4.1.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.1/upack_3-4.4.1.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.1/upickle-implicits_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.4.2-RC/ujson_3-4.4.2-RC.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.2-RC/upack_3-4.4.2-RC.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.2-RC/upickle-implicits_3-4.4.2-RC.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar"
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.2-RC/upickle-core_3-4.4.2-RC.jar"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/folder1/script.scala/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/scripts/folder1/script.scala/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -120,9 +120,9 @@
       "options": [],
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.5/pprint_3-0.9.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.6/pprint_3-0.9.6.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.1/upickle_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.2-RC/upickle_3-4.4.2-RC.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.7/mainargs_3-0.7.7.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/0.12.0/scalatags_3-0.12.0.jar",
@@ -131,13 +131,13 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/0.11.5/os-zip-0.11.5.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.4.1/ujson_3-4.4.1.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.1/upack_3-4.4.1.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.1/upickle-implicits_3-4.4.1.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.4.2-RC/ujson_3-4.4.2-RC.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.2-RC/upack_3-4.4.2-RC.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.2-RC/upickle-implicits_3-4.4.2-RC.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.12.0/scala-collection-compat_3-2.12.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.1/upickle-core_3-4.4.1.jar"
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/4.4.2-RC/upickle-core_3-4.4.2-RC.jar"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/scripts/foldershared/script.scala/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/scripts/foldershared/script.scala/compiledClassesAndSemanticDbFiles.dest"
     },
     {
       "target": {
@@ -148,7 +148,7 @@
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
         "file:///workspace/sourcesNeedCompile/compile-resources"
       ],
-      "classDirectory": "file:///workspace/out/mill-bsp-out/sourcesNeedCompile/compiledClassesAndSemanticDbFiles.dest"
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/sourcesNeedCompile/compiledClassesAndSemanticDbFiles.dest"
     }
   ]
 }

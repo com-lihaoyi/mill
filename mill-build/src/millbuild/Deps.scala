@@ -6,7 +6,7 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.8.0-RC1"
+  val scalaVersion = "3.8.0-RC3"
 
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.15"
@@ -140,9 +140,9 @@ object Deps {
   val osLibVersion = "0.11.5"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
-  val pprint = mvn"com.lihaoyi::pprint:0.9.5"
+  val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.7"
-  val millModuledefsVersion = "0.12.2"
+  val millModuledefsVersion = "0.12.4"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -177,8 +177,8 @@ object Deps {
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
-  val upickle = mvn"com.lihaoyi::upickle:4.4.1"
-  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.4.1"
+  val upickle = mvn"com.lihaoyi::upickle:4.4.2-RC"
+  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.4.2-RC"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
@@ -295,7 +295,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.9.2"
+    val utest = mvn"com.lihaoyi::utest:0.9.4"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 

@@ -11,6 +11,7 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+import upickle.core.BufferedValue
 
 import java.io.ByteArrayOutputStream
 
@@ -38,8 +39,69 @@ trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
-  def buildOverrides0: Map[String, String]
-  val staticBuildOverrides = buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
+  def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+
+  import mill.api.internal.Located
+  val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
+    .flatMap { case (path0, rawText) =>
+      val path = os.Path(path0)
+      val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
+      def rec(
+          segments: Seq[String],
+          bufValue: upickle.core.BufferedValue
+      ): Seq[(String, Located[BufferedValue])] = {
+        val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
+        val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
+          k.toString.split(" +") match {
+            case Array(k) => Left((k, i, v))
+            case Array("object", k) => Right(rec(segments ++ Seq(k), v))
+          }
+        }
+
+        val currentResults: Seq[(String, Located[BufferedValue])] =
+          BufferedValue.transform(
+            BufferedValue.Obj(
+              rawKvs.map { case (k, i, v) => (BufferedValue.Str(k, i), v) }.to(mutable.ArrayBuffer),
+              true,
+              -1
+            ),
+            headerDataReader
+          )
+            .rest
+            .map { case (k, v) =>
+              (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, v)
+            }
+            .toSeq
+
+        val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
+
+        currentResults ++ nestedResults
+      }
+
+      val parsed0 = BufferedValue.Obj(
+        mill.internal.Util.parseYaml0(
+          path0.toString,
+          rawText.replace("\r", ""),
+          headerDataReader
+        ).get
+          .rest
+          .map { case (k, v) => (BufferedValue.Str(k.value, k.index), v) }
+          .to(mutable.ArrayBuffer),
+        true,
+        -1
+      )
+      rec(
+        (path / "..").subRelativeTo(workspace).segments,
+        if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+          parsed0
+            .value0
+            .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
+            .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
+        } else parsed0
+      )
+    }
+    .toMap
+
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -56,7 +118,7 @@ trait GroupExecution {
   )
 
   /** Recursively examine all `ujson.Str` values and replace '${VAR}' patterns. */
-  private def interpolateEnvVarsInJson(json: ujson.Value): ujson.Value = {
+  private def interpolateEnvVarsInJson(json: upickle.core.BufferedValue): ujson.Value = {
     import scala.jdk.CollectionConverters.*
     val envWithPwd = (env ++ envVarsForInterpolation).asJava
 
@@ -68,7 +130,7 @@ trait GroupExecution {
       case v => v
     }
 
-    rec(json)
+    rec(upickle.core.BufferedValue.transform(json, ujson.Value))
   }
 
   // the JVM running this code currently
@@ -125,30 +187,66 @@ trait GroupExecution {
         staticBuildOverrides.get(labelled.ctx.segments.render)
           .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
-          case Some(jsonData) => // apply build override
-            val (execRes, serializedPaths) =
-              try {
-                val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-                  PathRef.currentOverrideModulePath.withValue(
-                    labelled.ctx.enclosingModule.moduleCtx.millSourcePath
-                  ) {
-                    upickle.read[Any](interpolateEnvVarsInJson(jsonData))(
-                      using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-                    )
-                  }
-                }
+          case Some(jsonData) =>
+            lazy val originalText = os.read(jsonData.path)
+            lazy val strippedText = originalText.replace("\n//|", "\n")
+            lazy val lookupLineSuffix = fastparse
+              .IndexedParserInput(strippedText)
+              .prettyIndex(jsonData.index)
+              .takeWhile(_ != ':') // split off column since it's not that useful
 
-                // Write build header override JSON to meta `.json` file to support `show`
-                writeCacheJson(paths.meta, jsonData, resultData.##, inputsHash + jsonData.##)
-                (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
-              } catch {
-                case e: upickle.core.TraceVisitor.TraceException =>
-                  (
-                    ExecResult.Failure(
-                      s"Failed de-serializing config override: ${e.getCause.getMessage}"
-                    ),
-                    Nil
+            val (execRes, serializedPaths) =
+              if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
+                // If the build override conflicts with a task defined in the mill-build/build.mill,
+                // it is probably a user error so fail loudly. In other scenarios, it may be an
+                // intentional override, but in this one case we can be reasonably sure it's a mistake
+
+                (
+                  ExecResult.Failure(
+                    s"Build header config in ${jsonData.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
+                      s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
+                  ),
+                  Nil
+                )
+              } else {
+                // apply build override
+                try {
+                  val (resultData, serializedPaths) = PathRef.withSerializedPaths {
+                    PathRef.currentOverrideModulePath.withValue(
+                      labelled.ctx.enclosingModule.moduleCtx.millSourcePath
+                    ) {
+                      upickle.read[Any](interpolateEnvVarsInJson(jsonData.value))(
+                        using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+                      )
+                    }
+                  }
+
+                  // Write build header override JSON to meta `.json` file to support `show`
+                  writeCacheJson(
+                    paths.meta,
+                    upickle.core.BufferedValue.transform(jsonData.value, ujson.Value),
+                    resultData.##,
+                    inputsHash + jsonData.value.##
                   )
+
+                  (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
+                } catch {
+                  case e: upickle.core.TraceVisitor.TraceException =>
+                    // Try to get more specific index from AbortException if available
+                    val errorIndex = e.getCause match {
+                      case abort: upickle.core.AbortException => abort.index
+                      case _ => jsonData.value.index
+                    }
+
+                    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                    (
+                      ExecResult.Failure(
+                        s"Failed de-serializing config override: ${e.getCause.getMessage}",
+                        Result.Failure(msg, path = jsonData.path.toNIO, index = errorIndex)
+                      ),
+                      Nil
+                    )
+                }
               }
 
             GroupExecution.Results(
@@ -348,7 +446,7 @@ trait GroupExecution {
             try {
               task.evaluate(args) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
-                case Result.Failure(err) => ExecResult.Failure(err)
+                case f: Result.Failure => ExecResult.Failure(f.error, f)
               }
             } catch {
               case ex: Result.Exception => ExecResult.Failure(ex.error)

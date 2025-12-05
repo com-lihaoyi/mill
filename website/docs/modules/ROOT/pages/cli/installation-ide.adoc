@@ -257,7 +257,7 @@ are using a less-common editor that does not have this support builtin.
 ==== BSP output directory
 
 When running Mill in BSP mode, default output directory is
-`out/mill-bsp-out` under the project workspace. This ensures BSP mode is not blocked by regular
+`.bsp/mill-bsp-out` under the project workspace. This ensures BSP mode is not blocked by regular
 Mill operations, however this also means that we need to compile the sources twice, which incurs
 extra CPU and memory usage. If you'd rather reuse regular `out/` directory, set
 the `MILL_NO_SEPARATE_BSP_OUTPUT_DIR` environment variable to `1` when running Mill in BSP mode.
@@ -384,10 +384,41 @@ A lot of other editors may work too, since {link-metals}[Metals], the Language S
 === Debugging IDE issues
 
 Mill's BSP IDE integration writes to log files under
-`out/mill-bsp/`, where you can find various information about what's
+`.bsp/mill-bsp-out/mill-bsp/`, where you can find various information about what's
 going on. It contains regular Mill output accompanied by additional BSP
 client-server communication details. This can be useful to look at if your
 IDE fails to import your Mill project
+
+
+== Setting up Mill in CI
+
+Due to Mill's usage of xref:#_bootstrap_scripts[Bootstrap Scripts], you typically do not
+need to setup anything in your CI system to make Mill work. Any Mill project should be
+buildable via `./mill` on your CI machines without needing to first install Java, Mill,
+or other dependencies, and the `./mill` bootstrap script will download these dependencies
+as necessary.
+
+One thing that you should set up manually is to enable a https://force-color.org/[FORCE_COLOR]
+environment variable in your CI system. For example, in Github Actions this can be configured
+in your workflow `.yml` file via:
+
+```yaml
+env:
+  FORCE_COLOR: '1'
+```
+
+`FORCE_COLOR` ensures Mill produces ANSI-colored output logs despite being called
+programmatically in on your CI machines. Most CI systems process and render ANSI
+colors nicely in the browser, and this can make your CI logs much easier to read
+than if they were black-and-white:
+
+**Without FORCE_COLOR**
+
+image::basic/ForceColor0.png[]
+
+**With FORCE_COLOR=1**
+
+image::basic/ForceColor1.png[]
 
 == Using Mill without access to Maven Central
 
@@ -396,7 +427,6 @@ The typical symptom will be error messages which look like this;
 
 [source]
 ----
-1 tasks failed
 mill.scalalib.JvmWorkerModule.classpath
 Resolution failed for 1 modules:
 --------------------------------------------

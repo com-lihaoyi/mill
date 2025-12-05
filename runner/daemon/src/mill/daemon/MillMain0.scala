@@ -6,7 +6,8 @@ import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
-import mill.constants.{DaemonFiles, OutFiles, OutFolderMode}
+import mill.constants.{DaemonFiles, OutFolderMode}
+import mill.constants.OutFiles.OutFiles
 import mill.api.BuildCtx
 import mill.internal.{
   Colors,
@@ -123,8 +124,8 @@ object MillMain0 {
         withStreams(bspMode, streams0) { streams =>
           parserResult match {
             // Cannot parse args
-            case Result.Failure(msg) =>
-              streams.err.println(msg)
+            case f: Result.Failure =>
+              streams.err.println(f.error)
               (false, RunnerState.empty)
 
             case Result.Success(config) if config.help.value =>
@@ -166,7 +167,10 @@ object MillMain0 {
 
             case Result.Success(config) =>
               val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
-              val colored = config.color.getOrElse(mainInteractive && !noColorViaEnv)
+              val forceColorViaEnv = env.get("FORCE_COLOR").exists(_.nonEmpty)
+              val colored = config.color.getOrElse(
+                (mainInteractive || forceColorViaEnv) && !noColorViaEnv
+              )
               val colors =
                 if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
 

@@ -62,7 +62,7 @@ object server extends JavaModule {
 /** Usage
 
 > ./mill client.test
-PASS src/test/App.test.tsx
+...PASS .../test/App.test.tsx
 ...Text Analysis Tool
 ...renders the app with initial UI...
 ...displays sentiment result...

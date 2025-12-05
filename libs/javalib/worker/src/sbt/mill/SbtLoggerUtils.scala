@@ -19,11 +19,11 @@ object SbtLoggerUtils {
   // per line, and skips it for INFO logging where it is usually unhelpful
   class ConciseLevelConsoleAppender(
       name: String,
-      consoleOut: ConsoleOut,
+      log: String => Unit,
       ansiCodesSupported0: Boolean
   ) extends ConsoleAppender(
         name,
-        ConsoleAppender.Properties.from(consoleOut, ansiCodesSupported0, false),
+        ConsoleAppender.Properties.from(ConsoleOut.NullConsoleOut, ansiCodesSupported0, false),
         suppressedMessage = _ => None
       ) {
     override def appendLog(level: Level.Value, message0: => String): Unit = {
@@ -66,7 +66,7 @@ object SbtLoggerUtils {
         case _ => ""
       }
 
-      consoleOut.println(severityPrefix + message)
+      log(severityPrefix + message)
     }
   }
 }

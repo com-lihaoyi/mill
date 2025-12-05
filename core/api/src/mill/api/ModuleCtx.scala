@@ -1,6 +1,7 @@
 package mill.api
 
 import mill.api.internal.OverrideMapping
+import upickle.core.BufferedValue
 
 import scala.annotation.implicitNotFound
 import scala.quoted.*
@@ -45,16 +46,9 @@ object ModuleCtx extends LowPriCtx {
     def moduleSegments: Segments = moduleCtx.segments
     def moduleCtx: ModuleCtx
     private[mill] def moduleLinearized: Seq[Class[?]]
-    private[mill] def moduleDynamicBuildOverrides: Map[String, ujson.Value] = Map()
+    private[mill] def moduleDynamicBuildOverrides: Map[String, internal.Located[BufferedValue]] =
+      Map()
   }
-
-  private[mill] case class HeaderData(
-      `extends`: Seq[String] = Nil,
-      moduleDeps: Seq[String] = Nil,
-      compileModuleDeps: Seq[String] = Nil,
-      runModuleDeps: Seq[String] = Nil,
-      @upickle.implicits.flatten rest: Map[String, ujson.Value]
-  ) derives upickle.ReadWriter
 
   private case class Impl(
       enclosing: String,
