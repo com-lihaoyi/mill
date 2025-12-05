@@ -19,7 +19,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     def mvnDeps = Seq(Deps.jline)
     def compileMvnDeps = Seq(Deps.coursierJvm)
     def runMvnDeps = Seq(Deps.coursierJvm)
-    def moduleDeps = Seq(build.core.api.java11)
+    def compileModuleDeps = Seq(build.core.api.java11)
   }
 
   def unmanagedClasspath = Seq(java11.compile().classes)

@@ -51,7 +51,6 @@
         <orderEntry type="library" scope="RUNTIME" name="logback-core-1.5.18.jar" level="project"/>
         <orderEntry type="library" name="mainargs_3-0.7.7.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api-daemon_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-api-java11_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3-SNAPSHOT.jar" level="project"/>
@@ -81,7 +80,6 @@
         <orderEntry type="library" name="mill-libs-scalanativelib_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-script_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-libs-tabcomplete_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-util-java11_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-util_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.12.4.jar" level="project"/>
