@@ -91,26 +91,33 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       import tester.*
 
       val res = eval(
-        ("--ticker", "true", "logging"),
+        ("--ticker", "true", "--color=true", "logging"),
         mergeErrIntoOut = true, propagateEnv = false
       )
       assert(res.isSuccess)
 
-      // Make sure when running `exclusive` tasks, we always print the name of the task
-      // before it starts, we turn off the ticker and otherwise there's no way to know what
-      // task each section of logs belongs to
+      // Make sure various kinds of logs are properly rendered
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
           "============================== logging ==============================",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] done compiling",
-          "<digits>] logging MY PRINTLN",
-          "<digits>] MY INFO LOGS",
-          "<digits>] [warn] MY WARN LOGS",
-          "<digits>] [error] MY ERROR LOGS",
+          "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "(B)build.mill-<digits>](X) done compiling",
+          "(B)<digits>] logging(X) MY PRINTLN",
+          "(B)<digits>](X) MY INFO LOGS",
+          "(B)<digits>](X) [(Y)warn(X)] MY WARN LOGS",
+          "(B)<digits>](X) [(R)error(X)] MY ERROR LOGS",
           "1/<digits>] ============================== logging =============================="
         )
+      )
+      // Make sure the `.log` files on disk contain what we expect
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/mill-build/compile.log")),
+        List("compiling 3 Scala sources to out/mill-build/compile.dest/classes ...", "done compiling")
+      )
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/logging.log")),
+        List("MY PRINTLN", "MY INFO LOGS", "MY WARN LOGS", "MY ERROR LOGS")
       )
     }
   }
