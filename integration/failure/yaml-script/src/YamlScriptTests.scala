@@ -53,23 +53,23 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
 
       locally {
         val res = tester.eval("invalid-key/Foo.java")
-        assert(res.err.replace('\\', '/').contains("[error] invalid-key/Foo.java:1:16"))
+        assert(res.err.replace('\\', '/').contains("[error] invalid-key/Foo.java:1:5"))
         assert(res.err.contains("//| moduleDep: [doesntExist]"))
-        assert(res.err.contains("               ^"))
+        assert(res.err.contains("    ^"))
         assert(res.err.contains("key \"moduleDep\" does not override any task"))
         assert(res.err.linesIterator.toList.length < 20)
 
         val res2 = tester.eval("invalid-key/Foo.scala")
-        assert(res2.err.replace('\\', '/').contains("[error] invalid-key/Foo.scala:1:16"))
+        assert(res2.err.replace('\\', '/').contains("[error] invalid-key/Foo.scala:1:5"))
         assert(res2.err.contains("//| moduleDep: [doesntExist]"))
-        assert(res2.err.contains("               ^"))
+        assert(res2.err.contains("    ^"))
         assert(res2.err.contains("key \"moduleDep\" does not override any task"))
         assert(res2.err.linesIterator.toList.length < 20)
 
         val res3 = tester.eval("invalid-key/Foo.kt")
-        assert(res3.err.replace('\\', '/').contains("[error] invalid-key/Foo.kt:1:16"))
+        assert(res3.err.replace('\\', '/').contains("[error] invalid-key/Foo.kt:1:5"))
         assert(res3.err.contains("//| moduleDep: [doesntExist]"))
-        assert(res3.err.contains("               ^"))
+        assert(res3.err.contains("    ^"))
         assert(res3.err.contains("key \"moduleDep\" does not override any task"))
         assert(res3.err.linesIterator.toList.length < 20)
       }
@@ -84,9 +84,9 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
       }
       locally {
         val res = tester.eval("InvalidJvmVersion.java")
-        assert(res.err.contains("[error] InvalidJvmVersion.java:1:23"))
+        assert(res.err.contains("[error] InvalidJvmVersion.java:1:5"))
         assert(res.err.contains("//| mill-jvm-version: 17"))
-        assert(res.err.contains("                      ^"))
+        assert(res.err.contains("    ^"))
         assert(res.err.contains(
           "key \"mill-jvm-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"
         ))

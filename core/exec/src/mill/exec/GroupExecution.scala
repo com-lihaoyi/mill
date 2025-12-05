@@ -190,7 +190,7 @@ trait GroupExecution {
             lazy val strippedText = originalText.replace("\n//|", "\n")
             lazy val lookupLineSuffix = fastparse
               .IndexedParserInput(strippedText)
-              .prettyIndex(jsonData.value.index)
+              .prettyIndex(jsonData.index)
               .takeWhile(_ != ':') // split off column since it's not that useful
 
             val (execRes, serializedPaths) =
