@@ -25,7 +25,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res.result.err.text()),
         // We passed in `--color=true` so we should expect colored output
         List(
-          "============================== jar ==============================",
+          "<dashes> jar <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] compile(X) compiling 1 Java source to out/compile.dest/classes ...",
@@ -34,7 +34,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X)          (R)^(Z)",
           "(B)<digits>](X) reached end of file while parsing",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 failed(X)] ============================== jar ==============================",
+          ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile javac returned non-zero exit code"
         )
       )
@@ -50,15 +50,15 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res2.result.err.text()),
         List(
-          "============================== jar ==============================",
+          "<dashes> jar <dashes>",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] build.mill:79:1",
+          "build.mill-<digits>] [error] build.mill:76:1",
           "build.mill-<digits>] ?",
           "build.mill-<digits>] ^",
           "build.mill-<digits>] Illegal start of toplevel definition",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] [error] compile task failed",
-          ".../..., 1 failed] ============================== jar ==============================",
+          ".../..., 1 failed] <dashes> jar <dashes>",
           "build.mill-<digits>] [error] compile Compilation failed"
         )
       )
@@ -99,10 +99,10 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
-          "============================== exception ==============================",
+          "<dashes> exception <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
-          ".../..., (R)1 failed(X)] ============================== exception =============================",
+          ".../..., (R)1 failed(X)] <dashes> exception <dashes>",
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)5(X))",
@@ -133,19 +133,15 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       // errors themselves are printed whole and not interleaved with
       assertGoldenLiteral(
         normalize(
-          res.result.out.text()
-            // Normalize the `brokenN` module names since those may occur in different orders
-            .replace("broken1", "brokenN")
-            .replace("broken2", "brokenN")
-            .replace("broken3", "brokenN")
+          // Normalize the `brokenN` module names since those may occur in different orders
+          res.result.out.text().replace("broken1", "brokenN").replace("broken2", "brokenN")
         ),
         List(
-          "============================== {brokenN,brokenN,brokenN}.compile ==============================",
+          "<dashes> {brokenN,brokenN}.compile <dashes>",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
           "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
-          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
           "<digits>] [error] broken/src/Foo.java:1:0",
           "<digits>] ?",
           "<digits>] ",
@@ -154,14 +150,30 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] ?",
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
-          "<digits>] [error] broken/src/Foo.java:1:0",
-          "<digits>] ?",
-          "<digits>] ",
-          "<digits>] class, interface, enum, or record expected",
-          ".../..., 3 failed] ===================== {brokenN,brokenN,brokenN}.compile ====================",
-          "<digits>] [error] brokenN.compile javac returned non-zero exit code",
+          ".../..., 2 failed] <dashes> {brokenN,brokenN}.compile <dashes>",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code"
+        )
+      )
+      // Make sure the `.log` files on disk contain what we expect
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/broken1/compile.log")),
+        List(
+          "compiling 1 Java source to out/broken1/compile.dest/classes ...",
+          "[error] broken/src/Foo.java:1:0",
+          "?",
+          "",
+          "class, interface, enum, or record expected"
+        )
+      )
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/broken2/compile.log")),
+        List(
+          "compiling 1 Java source to out/broken2/compile.dest/classes ...",
+          "[error] broken/src/Foo.java:1:0",
+          "?",
+          "",
+          "class, interface, enum, or record expected"
         )
       )
     }

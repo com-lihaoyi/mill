@@ -21,6 +21,7 @@ object FullRunLogsUtils {
     .replaceAll("\\d+/\\d+", ".../...")
     .replaceAll("\\d+\\.\\d+", ".../...")
     .replaceAll(" \\d+s", "")
+    .replaceAll("===+", "<dashes>")
     .linesIterator
     .toList
 
