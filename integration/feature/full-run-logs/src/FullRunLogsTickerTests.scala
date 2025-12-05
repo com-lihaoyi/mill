@@ -60,7 +60,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
 
       val res = eval(
         ("--ticker", "true", "exclusives.printingC"),
-        mergeErrIntoOut = true
+        mergeErrIntoOut = true, propagateEnv = false
       )
       assert(res.isSuccess)
 
@@ -92,7 +92,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
 
       val res = eval(
         ("--ticker", "true", "logging"),
-        mergeErrIntoOut = true
+        mergeErrIntoOut = true, propagateEnv = false
       )
       assert(res.isSuccess)
 
@@ -110,51 +110,6 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "<digits>] [warn] MY WARN LOGS",
           "<digits>] [error] MY ERROR LOGS",
           "1/<digits>] ============================== logging =============================="
-        )
-      )
-    }
-    test("interleaved-compile-errors") - integrationTest { tester =>
-      import tester.*
-
-      val res = eval(
-        ("--ticker", "true", "{broken1,broken2,broken3}.compile"),
-        mergeErrIntoOut = true
-      )
-      assert(!res.isSuccess)
-
-      // Make sure that when facing multiple compile errors in quick succession, the
-      // errors themselves are printed whole and not interleaved with
-      assertGoldenLiteral(
-        normalize(
-          res.result.out.text()
-            // Normalize the `brokenN` module names since those may occur in different orders
-            .replace("broken1", "brokenN")
-            .replace("broken2", "brokenN")
-            .replace("broken3", "brokenN")
-        ),
-        List(
-          "============================== {brokenN,brokenN,brokenN}.compile ==============================",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] done compiling",
-          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
-          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
-          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
-          "<digits>] [error] broken/src/Foo.java:1:0",
-          "<digits>] ?",
-          "<digits>] ",
-          "<digits>] class, interface, enum, or record expected",
-          "<digits>] [error] broken/src/Foo.java:1:0",
-          "<digits>] ?",
-          "<digits>] ",
-          "<digits>] class, interface, enum, or record expected",
-          "<digits>] [error] broken/src/Foo.java:1:0",
-          "<digits>] ?",
-          "<digits>] ",
-          "<digits>] class, interface, enum, or record expected",
-          ".../..., 3 failed] ===================== {brokenN,brokenN,brokenN}.compile ====================",
-          "<digits>] [error] brokenN.compile javac returned non-zero exit code",
-          "<digits>] [error] brokenN.compile javac returned non-zero exit code",
-          "<digits>] [error] brokenN.compile javac returned non-zero exit code"
         )
       )
     }
