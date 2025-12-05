@@ -83,7 +83,7 @@ trait GroupExecution {
           headerDataReader
         ).get
           .rest
-          .map { case (k, v) => (BufferedValue.Str(k, -1), v) }
+          .map { case (k, v) => (BufferedValue.Str(k.value, k.index), v) }
           .to(mutable.ArrayBuffer),
         true,
         -1
