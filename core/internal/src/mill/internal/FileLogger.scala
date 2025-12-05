@@ -42,6 +42,8 @@ class FileLogger(
     })
   }
 
+  override def withPromptLine[T](t: => T): T = t
+
   val streams = new SystemStreams(fileStream, fileStream, mill.api.DummyInputStream)
   def info(s: String): Unit = streams.out.println(s)
   def warn(s: String): Unit = streams.out.println(s)

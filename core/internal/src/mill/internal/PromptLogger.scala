@@ -283,6 +283,7 @@ class PromptLogger(
 
   def debug(s: String): Unit = if (debugEnabled) streams.err.println(s)
 
+  override def withPromptLine[T](t: => T): T = t
   override def close(): Unit = {
     synchronized {
       if (enableTicker) refreshPrompt(ending = true)

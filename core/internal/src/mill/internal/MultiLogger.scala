@@ -39,6 +39,10 @@ class MultiLogger(
     logger2.ticker(s)
   }
 
+  override def withPromptLine[T](t: => T): T = {
+    logger1.withPromptLine(logger2.withPromptLine(t))
+  }
+
   def prompt: Logger.Prompt = new Logger.Prompt {
 
     override def logLock[T](block: => T): T = logger1.prompt.logLock{
@@ -130,10 +134,6 @@ class MultiLogger(
   }
 
   override def logKey = logger1.logKey ++ logger2.logKey
-
-  override def message = logger1.message ++ logger2.message
-
-  override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
   override def redirectOutToErr: Boolean = logger1.redirectOutToErr || logger1.redirectOutToErr
   override def withRedirectOutToErr() = new MultiLogger(
