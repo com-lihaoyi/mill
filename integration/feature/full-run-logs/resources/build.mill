@@ -15,6 +15,15 @@ object `package` extends JavaModule {
     ()
   }
 
+  object broken1 extends JavaModule {
+    def moduleDir = build.moduleDir / "broken"
+  }
+  object broken2 extends JavaModule {
+    def moduleDir = build.moduleDir / "broken"
+  }
+  object broken3 extends JavaModule {
+    def moduleDir = build.moduleDir / "broken"
+  }
   object exclusives extends Module {
 
     def printingA() = Task.Command(exclusive = true) {

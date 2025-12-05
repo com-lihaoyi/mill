@@ -73,11 +73,11 @@ case class PrefixLogger(
   }
 
   override def warn(s: String): Unit = prompt.logLock{
-    prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
+    prompt.logPrefixedLine(logKey, baosFor("[" + prompt.warnColor("warn")+ "] " + s), false && !redirectOutToErr)
   }
 
   override def error(s: String): Unit = prompt.logLock{
-    prompt.logPrefixedLine(logKey, baosFor(s), false && !redirectOutToErr)
+    prompt.logPrefixedLine(logKey, baosFor("[" + prompt.errorColor("error")+ "] " + s), false && !redirectOutToErr)
   }
 
   override def ticker(s: String): Unit = prompt.setPromptDetail(logKey, s)
