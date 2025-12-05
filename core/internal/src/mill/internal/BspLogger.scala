@@ -2,7 +2,6 @@ package mill.internal
 
 import mill.api.{SystemStreams, Logger}
 
-import java.io.PrintStream
 
 class BspLogger(
     override val unprefixedStreams: SystemStreams,
@@ -12,8 +11,7 @@ class BspLogger(
   override def toString: String = s"SimpleLogger($unprefixedStreams, $debugEnabled)"
 
   override def redirectOutToErr: Boolean = false
-  private val linePrefix: String = Logger.formatPrefix(logKey)
-  
+  Logger.formatPrefix(logKey)
 
   val prompt = new Logger.Prompt.NoOp {
     override def logPrefixedLine(
