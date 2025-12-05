@@ -254,9 +254,7 @@ private[mill] object Inspect {
           )
           val rendered = renderer.rec(tree, 0, 0).iter
           val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
-          val sb = new StringBuilder()
-          for { str <- truncated ++ Iterator("\n") } sb.append(str)
-          sb.toString()
+          (truncated ++ Iterator("\n")).mkString
         }
         val output = output0.mkString("\n")
         println(output)

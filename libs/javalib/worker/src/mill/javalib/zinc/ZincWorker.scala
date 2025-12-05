@@ -78,18 +78,20 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
       override def setup(
           key: ScalaCompilerCacheKey,
-          compilerBridge: ZincCompilerBridgeProvider
+          compilerBridgeProvider: ZincCompilerBridgeProvider
       ): ScalaCompilerCached = {
         import key.*
 
         val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
-        val compiledCompilerBridge = compileBridgeIfNeeded(
-          scalaVersion,
-          scalaOrganization,
-          compilerClasspath.map(_.path),
-          compilerBridge
-        )
+        val compiledCompilerBridge = compilerBridgeOpt.map(_.path).getOrElse {
+          compileBridgeIfNeeded(
+            scalaVersion,
+            scalaOrganization,
+            compilerClasspath.map(_.path),
+            compilerBridgeProvider
+          )
+        }
         val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
         val scalaInstance = new inc.ScalaInstance(
           version = key.scalaVersion,
@@ -199,8 +201,9 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalaOrganization = op.scalaOrganization,
       compilerClasspath = op.compilerClasspath,
       scalacPluginClasspath = op.scalacPluginClasspath,
+      compilerBridgeOpt = op.compilerBridgeOpt,
       javacOptions = op.javacOptions,
-      deps.compilerBridge
+      deps.compilerBridgeProvider
     ) { compilers =>
       compileInternal(
         upstreamCompileOutput = op.upstreamCompileOutput,
@@ -220,14 +223,18 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     }
   }
 
-  def scaladocJar(op: ZincOp.ScaladocJar, compilerBridge: ZincCompilerBridgeProvider): Boolean = {
+  def scaladocJar(
+      op: ZincOp.ScaladocJar,
+      compilerBridgeProvider: ZincCompilerBridgeProvider
+  ): Boolean = {
     withScalaCompilers(
       scalaVersion = op.scalaVersion,
       scalaOrganization = op.scalaOrganization,
       compilerClasspath = op.compilerClasspath,
       scalacPluginClasspath = op.scalacPluginClasspath,
+      compilerBridgeOpt = op.compilerBridgeOpt,
       javacOptions = Nil,
-      compilerBridge = compilerBridge
+      compilerBridgeProvider = compilerBridgeProvider
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
@@ -282,17 +289,19 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       javacOptions: Seq[String],
-      compilerBridge: ZincCompilerBridgeProvider
+      compilerBridgeProvider: ZincCompilerBridgeProvider
   )(f: Compilers => T) = {
     val cacheKey = ScalaCompilerCacheKey(
       scalaVersion,
       compilerClasspath,
       scalacPluginClasspath,
+      compilerBridgeOpt,
       scalaOrganization,
       javacOptions
     )
-    scalaCompilerCache.withValue(cacheKey, compilerBridge) { cached =>
+    scalaCompilerCache.withValue(cacheKey, compilerBridgeProvider) { cached =>
       f(cached.compilers)
     }
   }
@@ -482,11 +491,11 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalaVersion: String,
       scalaOrganization: String,
       compilerClasspath: Seq[os.Path],
-      compilerBridge: ZincCompilerBridgeProvider
+      compilerBridgeProvider: ZincCompilerBridgeProvider
   ): os.Path = {
-    val workingDir = compilerBridge.workspace / s"zinc-${Versions.zinc}" / scalaVersion
+    val workingDir = compilerBridgeProvider.workspace / s"zinc-${Versions.zinc}" / scalaVersion
 
-    os.makeDir.all(compilerBridge.workspace / "compiler-bridge-locks")
+    os.makeDir.all(compilerBridgeProvider.workspace / "compiler-bridge-locks")
     val memoryLock = synchronized(
       compilerBridgeLocks.getOrElseUpdate(scalaVersion, new MemoryLock)
     )
@@ -497,20 +506,25 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     // the compiler bridge inside a separate `ZincWorkerMain` subprocess
     val doubleLock = new DoubleLock(
       memoryLock,
-      new FileLock((compilerBridge.workspace / "compiler-bridge-locks" / scalaVersion).toString)
+      new FileLock(
+        (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString
+      )
     )
     try {
       doubleLock.lock()
       if (os.exists(doneFile)) compiledDest
       else {
         val acquired =
-          compilerBridge.acquire(scalaVersion = scalaVersion, scalaOrganization = scalaOrganization)
+          compilerBridgeProvider.acquire(
+            scalaVersion = scalaVersion,
+            scalaOrganization = scalaOrganization
+          )
 
         acquired match {
           case AcquireResult.Compiled(bridgeJar) => bridgeJar
           case AcquireResult.NotCompiled(bridgeClasspath, bridgeSourcesJar) =>
             ZincCompilerBridgeProvider.compile(
-              compilerBridge.logInfo,
+              compilerBridgeProvider.logInfo,
               workingDir,
               compiledDest,
               scalaVersion,
@@ -540,7 +554,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         compileMixed(msg, reporter, reportCachedProblems, ctx, deps).asInstanceOf[op.Response]
 
       case msg: ZincOp.ScaladocJar =>
-        scaladocJar(msg, deps.compilerBridge).asInstanceOf[op.Response]
+        scaladocJar(msg, deps.compilerBridgeProvider).asInstanceOf[op.Response]
 
       case msg: ZincOp.DiscoverTests =>
         mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]
@@ -565,7 +579,7 @@ object ZincWorker {
   case class ProcessConfig(
       log: Logger.Actions,
       consoleOut: ConsoleOut,
-      compilerBridge: ZincCompilerBridgeProvider
+      compilerBridgeProvider: ZincCompilerBridgeProvider
   )
 
   /** The invocation context, always comes from the Mill's process. */
@@ -580,6 +594,7 @@ object ZincWorker {
       scalaVersion: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       scalaOrganization: String,
       javacOptions: Seq[String]
   ) {

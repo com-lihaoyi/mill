@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.api.daemon.internal.TestReporter
 import mill.api.{ExecResult, Result, Val}
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
 import mill.api.*
 import mill.exec.{CodeSigUtils, Execution, PlanImpl}
@@ -63,8 +63,9 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       newHashes.buildOverrideSignatures
     )
 
-    val changedRootTasks = (changedInputNames ++ changedCodeNames ++ changedBuildOverrides)
-      .flatMap(namesToTasks.get(_): Option[Task[?]])
+    val changedRootTasks =
+      (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
+        .flatMap(namesToTasks.get(_): Option[Task[?]])
 
     val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
     val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
@@ -117,7 +118,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       val transitiveNamed = PlanImpl.transitiveNamed(tasks)
       val oldMetadata = upickle.read[SelectiveExecution.Metadata](oldMetadataTxt)
       val (changedRootTasks, downstreamTasks) =
-        evaluator.selective.computeDownstream(
+        computeDownstream(
           transitiveNamed,
           oldMetadata,
           computedMetadata.metadata
@@ -132,13 +133,18 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def resolve0(tasks: Seq[String]): Result[Array[String]] = {
+    resolveTasks0(tasks).map(_.map(_.ctx.segments.render))
+  }
+  def resolveTasks0(tasks: Seq[String]): Result[Array[Task.Named[?]]] = {
     for {
-      resolved <- evaluator.resolveTasks(tasks, SelectMode.Separated)
-      changedTasks <- this.computeChangedTasks(tasks)
+      (resolved, changedTasks) <-
+        evaluator.resolveTasks(tasks, SelectMode.Separated).zip(this.computeChangedTasks(tasks))
     } yield {
-      val resolvedSet = resolved.map(_.ctx.segments.render).toSet
-      val downstreamSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
-      resolvedSet.intersect(downstreamSet).toArray.sorted
+      val downstreamTasksRendered = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+
+      resolved
+        .filter(t => downstreamTasksRendered.contains(t.ctx.segments.render))
+        .toArray
     }
   }
 

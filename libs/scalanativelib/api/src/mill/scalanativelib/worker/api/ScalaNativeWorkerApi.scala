@@ -1,6 +1,7 @@
 package mill.scalanativelib.worker.api
 
 import java.io.File
+import java.nio.file.Path
 
 private[scalanativelib] trait ScalaNativeWorkerApi {
 
@@ -30,7 +31,9 @@ private[scalanativelib] trait ScalaNativeWorkerApi {
       nativeMultithreading: Option[Boolean],
       nativeServiceProviders: Map[String, Seq[String]],
       logLevel: NativeLogLevel,
-      buildTarget: BuildTarget
+      buildTarget: BuildTarget,
+      sourceLevelDebuggingConfig: SourceLevelDebuggingConfig,
+      baseName: String
   ): Either[String, Object]
 
   def nativeLink(nativeConfig: Object, outPath: File): File
@@ -58,3 +61,10 @@ private[scalanativelib] object BuildTarget {
   case object LibraryDynamic extends BuildTarget
   case object LibraryStatic extends BuildTarget
 }
+
+private[scalanativelib] case class SourceLevelDebuggingConfig(
+    enabled: Boolean,
+    generateFunctionSourcePositions: Boolean,
+    generateLocalVariables: Boolean,
+    customSourceRoots: Seq[Path]
+)

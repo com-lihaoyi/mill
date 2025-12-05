@@ -59,7 +59,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       )
   }
 
-  object `ksp2-api` extends MillPublishScalaModule
+  object `ksp2-api` extends MillPublishScalaModule with MillJava11ScalaModule
 
   object ksp2 extends MillPublishScalaModule {
     def moduleDeps = Seq(`ksp2-api`)

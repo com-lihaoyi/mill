@@ -1,0 +1,31 @@
+/** See Also: build.mill.yaml */
+
+// This is a larger example using Spring Boot, using Mill's
+// xref:javalib/intro.adoc#_programmatic_modules[programmatic build.mill] syntax,
+// implementing the well known https://todomvc.com/[TodoMVC] example app. Apart from
+// running a webserver, this example also demonstrates:
+//
+// * Serving HTML templates using Thymeleaf
+// * Serving static Javascript and CSS using Webjars
+// * Querying a SQL database using JPA and H2
+// * Unit testing using a H2 in-memory database
+// * Integration testing using Testcontainers Postgres in Docker
+
+/** Usage
+
+> ./mill test
+...com.example.TodomvcTests#homePageLoads() finished...
+...com.example.TodomvcTests#addNewTodoItem() finished...
+
+> ./mill integration
+...com.example.TodomvcIntegrationTests#homePageLoads() finished...
+...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
+
+> ./mill test.runBackground
+
+> curl http://localhost:8087
+...<h1>todos</h1>...
+
+> ./mill clean runBackground
+
+*/

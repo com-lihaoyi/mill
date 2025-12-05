@@ -1,6 +1,5 @@
 package mill.javalib
 
-import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.api.daemon.Logger
 import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.MavenWorkerSupport as InternalMavenWorkerSupport

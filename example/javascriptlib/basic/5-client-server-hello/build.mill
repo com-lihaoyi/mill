@@ -24,7 +24,7 @@ object server extends TypeScriptModule {
 /** Usage
 
 > ./mill client.test
-PASS .../App.test.tsx
+...PASS .../App.test.tsx
 ...
 
 > ./mill client.bundle   # bundle the react app;
