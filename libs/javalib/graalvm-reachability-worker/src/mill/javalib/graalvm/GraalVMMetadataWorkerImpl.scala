@@ -8,6 +8,8 @@ import scala.jdk.CollectionConverters.*
 
 class GraalVMMetadataWorkerImpl extends GraalVMMetadataWorker {
 
+  override def reachabilityMetadataVersion: String = Versions.graalVmReachabilityMetadata
+
   override def downloadRepo(workDir: os.Path, version: String): os.Path = {
     val downloadedMetadata = workDir / "graalvm-reachability-metadata.zip"
 
@@ -36,5 +38,9 @@ class GraalVMMetadataWorkerImpl extends GraalVMMetadataWorker {
     repository.findConfigurationsFor(queryBuilder).asScala.toSet.map(
       _.getDirectory
     ).map(p => os.Path(p.toString))
+  }
+
+  override def close(): Unit = {
+    // no op
   }
 }

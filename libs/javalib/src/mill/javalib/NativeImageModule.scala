@@ -5,6 +5,7 @@ import mill.constants.{DaemonFiles, Util}
 
 import scala.util.Properties
 import mill.api.BuildCtx
+import mill.javalib.graalvm.GraalVMMetadataWorker
 
 /**
  * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].
@@ -123,27 +124,68 @@ trait NativeImageModule extends WithJvmWorkerModule {
     }
   }
 
+  /**
+   * The version of the reachability metadata as found in
+   * [[https://github.com/oracle/graalvm-reachability-metadata]]
+   *
+   * Default value is retrieved from the [[nativeGraalVMReachabilityMetadataWorker]]
+   *
+   */
   def nativeGraalVMReachabilityMetadataVersion: T[String] = Task {
-    "0.3.32"
+    nativeGraalVMReachabilityMetadataWorker().reachabilityMetadataVersion
   }
 
-  def nativeGraalVMReachabilityMetadataRepo: Task[PathRef] = Task.Anon {
-    val downloadedMetadata = Task.dest / "graalvm-reachability-metadata.zip"
-    val version = nativeGraalVMReachabilityMetadataVersion()
-    os.write(
-      downloadedMetadata,
-      requests.get(
-        s"https://github.com/oracle/graalvm-reachability-metadata/releases/download/$version/graalvm-reachability-metadata-$version.zip"
-      )
-    )
-
-    PathRef(downloadedMetadata)
-  }
-
+  /**
+   * Downloads the version [[nativeGraalVMReachabilityMetadataVersion]] graalvm-reachability-metadata
+   * from [[https://github.com/oracle/graalvm-reachability-metadata]]
+   */
   def nativeGraalVMReachabilityMetadata: T[PathRef] = Task {
-    val dest = Task.dest / "metadata"
-    os.unzip(nativeGraalVMReachabilityMetadataRepo().path, dest)
-    PathRef(dest)
+    val rootDir =
+      nativeGraalVMReachabilityMetadataWorker()
+        .downloadRepo(Task.dest, nativeGraalVMReachabilityMetadataVersion())
+
+    PathRef(rootDir)
+  }
+
+  /**
+   * Deps for the [[nativeGraalVMReachabilityMetadataWorker]]
+   */
+  def nativeGraalVMReachabilityMetadataToolsDeps: T[Seq[Dep]] = Task {
+    Seq(
+      mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3",
+      mvn"com.github.openjson:openjson:1.0.13"
+    )
+  }
+
+  /**
+   * Resolved classpath of [[nativeGraalVMReachabilityMetadataToolsDeps]]
+   */
+  def nativeGraalVMReachabilityMetadataClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      Seq(
+        Dep.millProjectModule("mill-libs-javalib-graalvm-reachability-worker")
+      ) ++ nativeGraalVMReachabilityMetadataToolsDeps()
+    )
+  }
+
+  /**
+   * Classloader with [[nativeGraalVMReachabilityMetadataClasspath]]
+   */
+  def nativeGraalVMReachabilityMetadataClassloader: Worker[ClassLoader] = Task.Worker {
+    mill.util.Jvm.createClassLoader(
+      classPath = nativeGraalVMReachabilityMetadataClasspath().map(_.path),
+      parent = getClass.getClassLoader
+    )
+  }
+
+  /**
+   * Worker that fetches the graalvm-reachability-metadata and collects any relevant
+   * metadata
+   */
+  def nativeGraalVMReachabilityMetadataWorker: Worker[GraalVMMetadataWorker] = Task.Worker {
+    nativeGraalVMReachabilityMetadataClassloader()
+      .loadClass("mill.javalib.graalvm.GraalVMMetadataWorkerImpl").getConstructor().newInstance()
+      .asInstanceOf[GraalVMMetadataWorker]
   }
 
 }
