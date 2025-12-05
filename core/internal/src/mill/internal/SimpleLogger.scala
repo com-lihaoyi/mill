@@ -40,7 +40,13 @@ class SimpleLogger(
         logToOut: Boolean
     ): Unit = {
       if (logMsg.size() != 0) {
-        val bytes = Logger.formatPrefix(key).getBytes ++ logMsg.toByteArray
+        val bytes = logMsg
+          .toString
+          .linesWithSeparators
+          .map(Logger.formatPrefix(key).getBytes ++ _.getBytes)
+          .toArray
+          .flatten
+
         if (logToOut) unprefixedStreams.out.write(bytes)
         else unprefixedStreams.err.write(bytes)
       }
