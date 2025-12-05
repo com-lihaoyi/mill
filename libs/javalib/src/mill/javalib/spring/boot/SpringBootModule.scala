@@ -1,7 +1,9 @@
 package mill.javalib.spring.boot
 
+import coursier.core.VariantSelector.ConfigurationBased
 import mill.{T, Task}
-import mill.api.{ModuleRef, PathRef}
+import mill.api.{BuildCtx, ModuleRef, PathRef}
+import mill.javalib.graalvm.MetadataQuery
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 
 /**
@@ -173,45 +175,79 @@ trait SpringBootModule extends JavaModule {
   trait NativeSpringBootBuildModule extends SpringBootOptimisedBuildModule, NativeImageModule {
 
     /**
-     * Collects the metadata from [[nativeGraalVMReachabilityMetadata]] if
-     * there is a direct dependency from the [[outer]] module matching metadata.
-     * It does not take into account transitive dependencies.
+     * Collects the metadata from [[nativeGraalVMReachabilityMetadata]]
+     * for the dependencies defined in [[nativeGraalVmMetadataQuery]].
+     *
+     * The resulting path is compatible with the runClasspath expactations of the native
+     * image pointing to resources directory which contains a `META-INF/native-image/<group-id>/<artifact-id>`
+     * structure.
      *
      * For more information see also [[https://www.graalvm.org/latest/reference-manual/native-image/metadata/]]
      */
-    def nativeMvnDepsMetadata: T[Seq[PathRef]] = Task {
-      val metadataPath = nativeGraalVMReachabilityMetadata().path
-      outer.mvnDeps().flatMap {
-        dep =>
-          val reachabilityPath = metadataPath / dep.organization / dep.name
-          if (os.exists(reachabilityPath))
-            Some(PathRef(reachabilityPath))
-          else
-            None
-      }
-    }
+    def nativeMvnDepsMetadata: T[PathRef] = Task {
 
-    /**
-     * Prepares the directory structure as expected from the [[nativeImage]]
-     * with the dependency metadata collected from [[nativeMvnDepsMetadata]]
-     *
-     * For more information see also [[https://www.graalvm.org/latest/reference-manual/native-image/metadata/]]
-     */
-    def nativeDepsMetaInf: T[PathRef] = Task {
-      val dest = Task.dest / "resources/META-INF/native-image"
-      nativeMvnDepsMetadata().foreach(pr => os.copy.into(pr.path, dest, createFolders = true))
+      val paths = nativeGraalVMReachabilityMetadataWorker().findConfigurations(
+        nativeGraalVmMetadataQuery()
+      )
+
+      BuildCtx.withFilesystemCheckerDisabled {
+        paths.foreach {
+          p =>
+            val groupName = (p / os.up / os.up).last
+            val artifactName = (p / os.up).last
+            os.copy.into(
+              p,
+              Task.dest / "resources/META-INF/native-image" / groupName / artifactName,
+              createFolders = true
+            )
+        }
+      }
       PathRef(Task.dest / "resources")
     }
 
-    override def runClasspath: T[Seq[PathRef]] = super.runClasspath() ++ Seq(nativeDepsMetaInf())
+    /**
+     * Whether to use the latest graalvm reachability metadata config
+     * if the dependency version is not listed in the tested versions.
+     *
+     * Defaults to `true`
+     */
+    def nativeUseLatestConfigWhenVersionIsUntested: T[Boolean] = Task {
+      true
+    }
+
+    /**
+     * Defines the query to run for finding reachability metadata via [[mill.javalib.graalvm.GraalVMMetadataWorker]].
+     *
+     * For more information and implementation details go to [[https://github.com/graalvm/native-build-tools/blob/master/common/graalvm-reachability-metadata/src/main/java/org/graalvm/reachability/internal/FileSystemRepository.java]]
+     */
+    def nativeGraalVmMetadataQuery: T[MetadataQuery] = Task {
+      val metadataPath = nativeGraalVMReachabilityMetadata().path
+      val dep = coursierDependencyTask().withVariantSelector(
+        ConfigurationBased(coursier.core.Configuration.defaultRuntime)
+      )
+      val resolution = millResolver().resolution(Seq(mill.javalib.BoundDep(dep, force = false)))
+
+      val deps =
+        resolution.dependencies.map(d => s"${d.mavenPrefix}:${d.versionConstraint.asString}")
+
+      MetadataQuery(
+        rootPath = metadataPath,
+        deps = deps,
+        useLatestConfigWhenVersionIsUntested = nativeUseLatestConfigWhenVersionIsUntested()
+      )
+
+    }
+
+    override def runClasspath: T[Seq[PathRef]] =
+      super.runClasspath() ++ Seq(nativeMvnDepsMetadata())
 
     /**
      * Uses the configuration path from both [[outer.springBootProcessAOT]] and
-     * [[nativeDepsMetaInf]]
+     * [[nativeMvnDepsMetadata]]
      */
     override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
       val configurationsPath = outer.springBootProcessAOT().path / "resources/META-INF"
-      val libsMetaInf = nativeDepsMetaInf().path / "META-INF"
+      val libsMetaInf = nativeMvnDepsMetadata().path / "META-INF"
       val paths = Seq(configurationsPath, libsMetaInf).filter(os.exists)
       super.nativeImageOptions() ++ Seq(
         "--configurations-path",

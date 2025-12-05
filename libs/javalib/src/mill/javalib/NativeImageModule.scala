@@ -129,7 +129,6 @@ trait NativeImageModule extends WithJvmWorkerModule {
    * [[https://github.com/oracle/graalvm-reachability-metadata]]
    *
    * Default value is retrieved from the [[nativeGraalVMReachabilityMetadataWorker]]
-   *
    */
   def nativeGraalVMReachabilityMetadataVersion: T[String] = Task {
     nativeGraalVMReachabilityMetadataWorker().reachabilityMetadataVersion

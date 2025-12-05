@@ -12,6 +12,8 @@ object TestMetadataWorkerImpl extends TestSuite {
 
   val rootDir = metadata.downloadRepo(workDir, version)
 
+  val copyIntoDir = os.temp.dir()
+
   val tests = Tests {
     test("ch.qos.logback:logback-classic") {
       // logback available versions in 0.3.32 are 1.2.11, 1.4.1 and 1.4.9
