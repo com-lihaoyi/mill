@@ -7,7 +7,20 @@ object `package` extends JavaModule {
     exceptionHelper()
     ()
   }
+  def logging() = Task.Command {
+    println("MY PRINTLN")
+    Task.log.info("MY INFO LOGS")
+    Task.log.warn("MY WARN LOGS")
+    Task.log.error("MY ERROR LOGS")
+    ()
+  }
 
+  object broken1 extends JavaModule {
+    def moduleDir = build.moduleDir / "broken"
+  }
+  object broken2 extends JavaModule {
+    def moduleDir = build.moduleDir / "broken"
+  }
   object exclusives extends Module {
 
     def printingA() = Task.Command(exclusive = true) {
