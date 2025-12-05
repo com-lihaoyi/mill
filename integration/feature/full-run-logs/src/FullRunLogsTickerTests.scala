@@ -1,5 +1,4 @@
 package mill.integration
-import mill.constants.OutFiles.OutFiles
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
@@ -123,18 +122,23 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       )
       assert(!res.isSuccess)
 
-      // Make sure when running `exclusive` tasks, we always print the name of the task
-      // before it starts, we turn off the ticker and otherwise there's no way to know what
-      // task each section of logs belongs to
+      // Make sure that when facing multiple compile errors in quick succession, the
+      // errors themselves are printed whole and not interleaved with
       assertGoldenLiteral(
-        normalize(res.result.out.text()),
+        normalize(
+          res.result.out.text()
+            // Normalize the `brokenN` module names since those may occur in different orders
+            .replace("broken1", "brokenN")
+            .replace("broken2", "brokenN")
+            .replace("broken3", "brokenN")
+        ),
         List(
-          "============================== {broken1,broken2,broken3}.compile ==============================",
+          "============================== {brokenN,brokenN,brokenN}.compile ==============================",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
-          "<digits>] broken3.compile compiling 1 Java source to out/broken3/compile.dest/classes ...",
-          "<digits>] broken2.compile compiling 1 Java source to out/broken2/compile.dest/classes ...",
-          "<digits>] broken1.compile compiling 1 Java source to out/broken1/compile.dest/classes ...",
+          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
+          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
+          "<digits>] brokenN.compile compiling 1 Java source to out/brokenN/compile.dest/classes ...",
           "<digits>] [error] broken/src/Foo.java:1:0",
           "<digits>] ?",
           "<digits>] ",
@@ -147,10 +151,10 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "<digits>] ?",
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
-          ".../..., 2 failed] ===================== {broken1,broken2,broken3}.compile ====================",
-          "<digits>] [error] broken3.compile javac returned non-zero exit code",
-          "<digits>] [error] broken1.compile javac returned non-zero exit code",
-          "<digits>] [error] broken2.compile javac returned non-zero exit code"
+          ".../..., 3 failed] ===================== {brokenN,brokenN,brokenN}.compile ====================",
+          "<digits>] [error] brokenN.compile javac returned non-zero exit code",
+          "<digits>] [error] brokenN.compile javac returned non-zero exit code",
+          "<digits>] [error] brokenN.compile javac returned non-zero exit code"
         )
       )
     }

@@ -1,12 +1,9 @@
 package mill.integration
-import mill.constants.OutFiles.OutFiles
-import mill.testkit.UtestIntegrationTestSuite
-import utest.*
 
 // Run simple commands on a simple build and check their entire output and some
 // metadata files, ensuring we don't get spurious warnings or logging messages
 // slipping in and the important parts of the logs and output files are present
-object FullRunLogsUtils  {
+object FullRunLogsUtils {
 
   def normalize(s: String) = s
     .replace(fansi.Attr.Reset.escape, "(Z)")

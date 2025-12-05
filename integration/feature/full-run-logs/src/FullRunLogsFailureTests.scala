@@ -17,7 +17,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar")
       val res = eval(
         ("--ticker", "true", "--color=true", "--keep-going", "jar"),
-        propagateEnv = false,
+        propagateEnv = false
       )
       res.isSuccess ==> false
 
