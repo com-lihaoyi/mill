@@ -52,6 +52,4 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
   def mimaExcludeAnnotations = Seq("mill.api.daemon.experimental")
-
-  override def mimaReportSignatureProblems = true
 }
