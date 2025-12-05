@@ -35,7 +35,11 @@ trait Logger extends Logger.Actions {
    * Helper method to enable this logger as a line item in the global prompt
    * while the given code block is running
    */
-  private[mill] def withPromptLine[T](t: => T): T
+  private[mill] final def withPromptLine[T](t: => T): T = {
+    prompt.setPromptLine(logKey, keySuffix, message)
+    try t
+    finally prompt.removePromptLine(logKey, message)
+  }
 
   /**
    * Helper method to enable this logger as a line item in the global prompt
@@ -54,6 +58,20 @@ trait Logger extends Logger.Actions {
    * where logs get interleaved. Typically a single ID number or sequence of numbers.
    */
   private[mill] def logKey: Seq[String] = Nil
+
+  /**
+   * A longer one-liner message describing this logger that is the first time a log
+   * line is generated. Useful for cross-referencing the short [[logKey]] with a more
+   * meaningful module path and task name.
+   */
+  private[mill] def message: String = ""
+
+  /**
+   * A suffix appended to the [[logKey]] when the [[message]] is printed. Usually
+   * the total task count, so the task ID in [[logKey]] can be compared to the total
+   * task count to judge how much of the build has been completed
+   */
+  private[mill] def keySuffix: String = ""
 
   /**
    * Creates a new logger identical to this one but with stdout redirected
@@ -87,8 +105,6 @@ object Logger {
       new PrintStream(_ => ()),
       new ByteArrayInputStream(Array())
     )
-
-    private[mill] def withPromptLine[T](t: => T): T = t
 
     def info(s: String) = ()
 

@@ -33,8 +33,6 @@ class SimpleLogger(
   def error(s: String): Unit =
     unprefixedStreams.err.println(s)
 
-  override def withPromptLine[T](t: => T): T = t
-
   val prompt = new Logger.Prompt.NoOp {
     override def logPrefixedLine(
         key: Seq[String],

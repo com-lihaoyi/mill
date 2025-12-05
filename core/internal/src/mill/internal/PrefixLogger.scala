@@ -21,8 +21,8 @@ import java.io.PrintStream
 case class PrefixLogger(
     logger0: Logger,
     key0: Seq[String],
-    keySuffix: String = "",
-    message: String = "",
+    override val keySuffix: String = "",
+    override val message: String = "",
     // Disable printing the prefix, but continue reporting the `key` to `logPrefixedLine`. Used
     // for `exclusive` commands where we don't want the prefix, but we do want the header
     // above the output of every command that gets run so we can see who the output belongs to
@@ -94,13 +94,6 @@ case class PrefixLogger(
       }
     }
   }
-
-  def withPromptLine[T](t: => T): T = {
-    prompt.setPromptLine(logKey, keySuffix, message)
-    try t
-    finally prompt.removePromptLine(logKey, message)
-  }
-
 
   override def withRedirectOutToErr() = this.copy(redirectOutToErr0 = Some(true))
 }

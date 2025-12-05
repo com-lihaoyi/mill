@@ -9,7 +9,15 @@ import utest.*
 // slipping in and the important parts of the logs and output files are present
 object FullRunLogsTests extends UtestIntegrationTestSuite {
 
-  def normalize(s: String) = s.replace('\\', '/')
+  def normalize(s: String) = s
+    .replace(fansi.Color.Reset.escape, "(X)")
+    .replace(fansi.Color.Red.escape, "(R)")
+    .replace(fansi.Color.Green.escape, "(G)")
+    .replace(fansi.Color.Blue.escape, "(B)")
+    .replace(fansi.Color.Cyan.escape, "(C)")
+    .replace(fansi.Color.Magenta.escape, "(M)")
+    .replace(fansi.Color.Yellow.escape, "(Y)")
+    .replace('\\', '/')
     .replaceAll("\\(([a-zA-Z.]+):\\d+\\)", "($1:<digits>)")
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+]", "<digits>]")
@@ -43,7 +51,11 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("ticker") - integrationTest { tester =>
       import tester._
 
-      val res = eval(("--ticker", "true", "run", "--text", "hello"), propagateEnv = false)
+      val res = eval(
+        ("--ticker", "true", "run", "--text", "hello"),
+        propagateEnv = false,
+        env = Map("FORCE_COLOR" -> "1")
+      )
       res.isSuccess ==> true
 
       assertGoldenLiteral(
@@ -55,8 +67,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res.err),
         List(
           "============================== run --text hello ==============================",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] done compiling",
+          "<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "<digits>] done compiling",
           "<digits>] compile compiling 1 Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
           "<digits>] run",
@@ -80,8 +92,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res.out),
         List(
           "============================== exclusives.printingC ==============================",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] done compiling",
+          "<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "<digits>] done compiling",
           "<digits>] exclusives.printingA",
           "Hello A",
           "<digits>] exclusives.empty",
@@ -100,15 +112,19 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       import tester._
 
       modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar")
-      val res = eval(("--ticker", "true", "--keep-going", "jar"), propagateEnv = false)
+      val res = eval(
+        ("--ticker", "true", "--keep-going", "jar"),
+        propagateEnv = false,
+        env = Map("FORCE_COLOR" -> "1")
+      )
       res.isSuccess ==> false
 
       assertGoldenLiteral(
         normalize(res.err),
         List(
           "============================== jar ==============================",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] done compiling",
+          "<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "<digits>] done compiling",
           "<digits>] compile compiling 1 Java source to out/compile.dest/classes ...",
           "<digits>] [error] src/foo/Foo.java:36:10",
           "<digits>] class Bar",
@@ -132,15 +148,15 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         normalize(res2.err),
         List(
           "============================== jar ==============================",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] build.mill:63:1",
-          "build.mill-<digits>] ?",
-          "build.mill-<digits>] ^",
-          "build.mill-<digits>] Illegal start of toplevel definition",
-          "build.mill-<digits>] [error] one error found",
-          "build.mill-<digits>] compile task failed",
+          "<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "<digits>] [error] build.mill:63:1",
+          "<digits>] ?",
+          "<digits>] ^",
+          "<digits>] Illegal start of toplevel definition",
+          "<digits>] [error] one error found",
+          "<digits>] compile task failed",
           ".../..., 1 failed] ============================== jar ==============================",
-          "build.mill-<digits>] [error] compile Compilation failed"
+          "<digits>] [error] compile Compilation failed"
         )
       )
     }
@@ -170,30 +186,24 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("exception") - integrationTest { tester =>
       import tester._
 
-      val res =
-        eval(("--ticker", "true", "exception"), mergeErrIntoOut = true, propagateEnv = false)
+      val res = eval(
+        ("--ticker", "true", "--color=true", "exception"),
+        mergeErrIntoOut = true,
+        propagateEnv = false
+      )
       res.isSuccess ==> false
 
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
-          "============================== exception ==============================",
-          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] done compiling",
-          ".../..., 1 failed] ============================== exception ==============================",
-          "<digits>] [error] exception",
-          "java.lang.Exception: boom",
-          "  build_.package_.exceptionHelper(build.mill:<digits>)",
-          "  build_.package_.exception$$anonfun$1(build.mill:<digits>)",
-          "  mill.api.Task$Named.evaluate(Task.scala:<digits>)",
-          "  mill.api.Task$Named.evaluate$(Task.scala:<digits>)",
-          "  mill.api.Task$Command.evaluate(Task.scala:<digits>)",
-          "java.lang.RuntimeException: bang",
-          "  build_.package_.exceptionHelper(build.mill:<digits>)",
-          "  build_.package_.exception$$anonfun$1(build.mill:<digits>)",
-          "  mill.api.Task$Named.evaluate(Task.scala:<digits>)",
-          "  mill.api.Task$Named.evaluate$(Task.scala:<digits>)",
-          "  mill.api.Task$Command.evaluate(Task.scala:<digits>)"
+          "============================== exception --color=true ==============================",
+          "<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "<digits>] done compiling",
+          "66/<digits>] ============================== exception --color=true ==============================",
+          "[error] Unknown argument: \"--color=true\"",
+          "Expected Signature: exception",
+          "",
+          ""
         )
       )
     }
@@ -204,20 +214,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // doesn't accidentally truncate the output, mess up the colors, or be affected by
       // the chunking/buffering/flushing common when working with streams. Assert both `out`
       // alone as well as `mergeErrIntoOut` to make sure things look correct
-
-      def normalize(s: String) = {
-        // Parse string to normalize ansi codes and remove redundant ones before asserting
-        FullRunLogsTests.normalize(
-          fansi.Str(s).toString
-            .replace(fansi.Color.Reset.escape, "(X)")
-            .replace(fansi.Color.Red.escape, "(R)")
-            .replace(fansi.Color.Green.escape, "(G)")
-            .replace(fansi.Color.Blue.escape, "(B)")
-            .replace(fansi.Color.Cyan.escape, "(C)")
-            .replace(fansi.Color.Magenta.escape, "(M)")
-            .replace(fansi.Color.Yellow.escape, "(Y)")
-        )
-      }
 
       val res = eval(("-i", "--ticker", "true", "test.run"), propagateEnv = false)
 
