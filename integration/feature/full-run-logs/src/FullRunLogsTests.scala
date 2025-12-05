@@ -9,15 +9,7 @@ import utest.*
 // slipping in and the important parts of the logs and output files are present
 object FullRunLogsTests extends UtestIntegrationTestSuite {
 
-  def normalize(s: String) = s
-    .replace(fansi.Color.Reset.escape, "(X)")
-    .replace(fansi.Color.Red.escape, "(R)")
-    .replace(fansi.Color.Green.escape, "(G)")
-    .replace(fansi.Color.Blue.escape, "(B)")
-    .replace(fansi.Color.Cyan.escape, "(C)")
-    .replace(fansi.Color.Magenta.escape, "(M)")
-    .replace(fansi.Color.Yellow.escape, "(Y)")
-    .replace('\\', '/')
+  def normalize(s: String) = s.replace('\\', '/')
     .replaceAll("\\(([a-zA-Z.]+):\\d+\\)", "($1:<digits>)")
     .replaceAll("\\d+]", "<digits>]")
     .replaceAll("\\d+]", "<digits>]")
@@ -51,11 +43,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("ticker") - integrationTest { tester =>
       import tester._
 
-      val res = eval(
-        ("--ticker", "true", "run", "--text", "hello"),
-        propagateEnv = false,
-        env = Map("FORCE_COLOR" -> "1")
-      )
+      val res = eval(("--ticker", "true", "run", "--text", "hello"), propagateEnv = false)
       res.isSuccess ==> true
 
       assertGoldenLiteral(
@@ -112,11 +100,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       import tester._
 
       modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar")
-      val res = eval(
-        ("--ticker", "true", "--keep-going", "jar"),
-        propagateEnv = false,
-        env = Map("FORCE_COLOR" -> "1")
-      )
+      val res = eval(("--ticker", "true", "--keep-going", "jar"), propagateEnv = false)
       res.isSuccess ==> false
 
       assertGoldenLiteral(
@@ -186,33 +170,30 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
     test("exception") - integrationTest { tester =>
       import tester._
 
-      val res = eval(
-        ("--ticker", "true", "--color=true", "exception"),
-        mergeErrIntoOut = true,
-        propagateEnv = false
-      )
+      val res =
+        eval(("--ticker", "true", "exception"), mergeErrIntoOut = true, propagateEnv = false)
       res.isSuccess ==> false
 
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
           "============================== exception ==============================",
-          "(B)<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "(B)<digits>](X) done compiling",
-          ".../..., (R)1 failed(X)] ============================== exception =============================",
-          "(R)<digits>] (X)[(R)error(X)] exception",
-          "(R)java.lang.Exception(X): boom",
-          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)5(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)7(X))",
-          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
-          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
-          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))",
-          "(R)java.lang.RuntimeException(X): bang",
-          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)5(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)7(X))",
-          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
-          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
-          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))"
+          "<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "<digits>] done compiling",
+          ".../..., 1 failed] ============================== exception ==============================",
+          "<digits>] [error] exception",
+          "java.lang.Exception: boom",
+          "  build_.package_.exceptionHelper(build.mill:<digits>)",
+          "  build_.package_.exception$$anonfun$1(build.mill:<digits>)",
+          "  mill.api.Task$Named.evaluate(Task.scala:<digits>)",
+          "  mill.api.Task$Named.evaluate$(Task.scala:<digits>)",
+          "  mill.api.Task$Command.evaluate(Task.scala:<digits>)",
+          "java.lang.RuntimeException: bang",
+          "  build_.package_.exceptionHelper(build.mill:<digits>)",
+          "  build_.package_.exception$$anonfun$1(build.mill:<digits>)",
+          "  mill.api.Task$Named.evaluate(Task.scala:<digits>)",
+          "  mill.api.Task$Named.evaluate$(Task.scala:<digits>)",
+          "  mill.api.Task$Command.evaluate(Task.scala:<digits>)"
         )
       )
     }
@@ -223,6 +204,20 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       // doesn't accidentally truncate the output, mess up the colors, or be affected by
       // the chunking/buffering/flushing common when working with streams. Assert both `out`
       // alone as well as `mergeErrIntoOut` to make sure things look correct
+
+      def normalize(s: String) = {
+        // Parse string to normalize ansi codes and remove redundant ones before asserting
+        FullRunLogsTests.normalize(
+          fansi.Str(s).toString
+            .replace(fansi.Color.Reset.escape, "(X)")
+            .replace(fansi.Color.Red.escape, "(R)")
+            .replace(fansi.Color.Green.escape, "(G)")
+            .replace(fansi.Color.Blue.escape, "(B)")
+            .replace(fansi.Color.Cyan.escape, "(C)")
+            .replace(fansi.Color.Magenta.escape, "(M)")
+            .replace(fansi.Color.Yellow.escape, "(Y)")
+        )
+      }
 
       val res = eval(("-i", "--ticker", "true", "test.run"), propagateEnv = false)
 
@@ -290,7 +285,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_58",
           "ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_59",
           "ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_60",
-          "\u001b[0m"
+          "(X)"
         )
       )
       // Sometimes order can be mixed up between stdout and stderr, even with mergeErrIntoOut
@@ -305,8 +300,8 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           List(
             "============================== test ==============================",
             "(B)<digits>] test.testForked(X) Running Test Class foo.FooTest",
-            "(B)<digits>](X) (B)Test run \u001b[0mfoo.(Y)FooTest\u001b[0m(B) started\u001b[0m",
-            "(B)<digits>](X) Test foo.(Y)FooTest\u001b[0m.(C)testSimple\u001b[0m started",
+            "(B)<digits>](X) (B)Test run (X)foo.(Y)FooTest(B) started(X)",
+            "(B)<digits>](X) Test foo.(Y)FooTest(X).(C)testSimple(X) started",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_1(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_2(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_3(X)",
@@ -317,7 +312,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_8(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_9(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_10(X)",
-            "(B)<digits>](X) (R)(G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_11(X)",
+            "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_11(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_12(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_13(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_14(X)",
@@ -327,7 +322,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_18(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_19(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_20(X)",
-            "(B)<digits>](X) (G)(B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_21(X)",
+            "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_21(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_22(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_23(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_24(X)",
@@ -337,7 +332,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_28(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_29(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_30(X)",
-            "(B)<digits>](X) (B)(C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_31(X)",
+            "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_31(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_32(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_33(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_34(X)",
@@ -347,7 +342,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_38(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_39(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_40(X)",
-            "(B)<digits>](X) (C)(M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_41(X)",
+            "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_41(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_42(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_43(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_44(X)",
@@ -357,7 +352,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_48(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_49(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_50(X)",
-            "(B)<digits>](X) (M)(Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_51(X)",
+            "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_51(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_52(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_53(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_54(X)",
@@ -367,9 +362,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_58(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_59(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_60(X)",
-            "(B)<digits>](X) (Y)\u001b[0m",
-            "(B)<digits>](X) Test foo.(Y)FooTest\u001b[0m.(C)testSimple\u001b[0m finished, took .../... sec",
-            "(B)<digits>](X) (B)Test run \u001b[0mfoo.(Y)FooTest\u001b[0m(B) finished: \u001b[0m(B)0 failed\u001b[0m(B), \u001b[0m(B)0 ignored\u001b[0m(B), 1 total, .../...s\u001b[0m",
+            "(B)<digits>](X) ",
+            "(B)<digits>](X) Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took .../... sec",
+            "(B)<digits>](X) (B)Test run (X)foo.(Y)FooTest(B) finished: 0 failed, 0 ignored, 1 total, .../...s(X)",
             "102/<digits>] ============================== test =============================="
           )
         )
@@ -390,7 +385,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "<digits>] (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_8(X)",
           "<digits>] (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_9(X)",
           "<digits>] (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_10(X)",
-          "<digits>] (R)(G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_11(X)",
+          "<digits>] (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_11(X)",
           "<digits>] (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_12(X)",
           "<digits>] (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_13(X)",
           "<digits>] (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_14(X)",
@@ -400,7 +395,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "<digits>] (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_18(X)",
           "<digits>] (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_19(X)",
           "<digits>] (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_20(X)",
-          "<digits>] (G)(B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_21(X)",
+          "<digits>] (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_21(X)",
           "<digits>] (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_22(X)",
           "<digits>] (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_23(X)",
           "<digits>] (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_24(X)",
@@ -410,7 +405,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "<digits>] (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_28(X)",
           "<digits>] (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_29(X)",
           "<digits>] (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_30(X)",
-          "<digits>] (B)(C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_31(X)",
+          "<digits>] (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_31(X)",
           "<digits>] (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_32(X)",
           "<digits>] (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_33(X)",
           "<digits>] (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_34(X)",
@@ -420,7 +415,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "<digits>] (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_38(X)",
           "<digits>] (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_39(X)",
           "<digits>] (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_40(X)",
-          "<digits>] (C)(M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_41(X)",
+          "<digits>] (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_41(X)",
           "<digits>] (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_42(X)",
           "<digits>] (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_43(X)",
           "<digits>] (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_44(X)",
@@ -430,7 +425,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "<digits>] (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_48(X)",
           "<digits>] (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_49(X)",
           "<digits>] (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_50(X)",
-          "<digits>] (M)(Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_51(X)",
+          "<digits>] (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_51(X)",
           "<digits>] (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_52(X)",
           "<digits>] (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_53(X)",
           "<digits>] (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_54(X)",
@@ -440,7 +435,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "<digits>] (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_58(X)",
           "<digits>] (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_59(X)",
           "<digits>] (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_60(X)",
-          "<digits>] (Y)\u001b[0m"
+          "<digits>] "
         )
       )
 
@@ -467,7 +462,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_8(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_9(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_10(X)",
-            "(B)<digits>](X) (R)(G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_11(X)",
+            "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_11(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_12(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_13(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_14(X)",
@@ -477,7 +472,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_18(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_19(X)",
             "(B)<digits>](X) (G)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_20(X)",
-            "(B)<digits>](X) (G)(B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_21(X)",
+            "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_21(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_22(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_23(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_24(X)",
@@ -487,7 +482,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_28(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_29(X)",
             "(B)<digits>](X) (B)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_30(X)",
-            "(B)<digits>](X) (B)(C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_31(X)",
+            "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_31(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_32(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_33(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_34(X)",
@@ -497,7 +492,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_38(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_39(X)",
             "(B)<digits>](X) (C)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_40(X)",
-            "(B)<digits>](X) (C)(M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_41(X)",
+            "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_41(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_42(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_43(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_44(X)",
@@ -507,7 +502,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_48(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_49(X)",
             "(B)<digits>](X) (M)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_50(X)",
-            "(B)<digits>](X) (M)(Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_51(X)",
+            "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_51(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_52(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_53(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_54(X)",
@@ -517,7 +512,7 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_58(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_59(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_60(X)",
-            "(B)<digits>](X) (Y)\u001b[0m",
+            "(B)<digits>](X) ",
             "1/<digits>] ============================== test.printColors =============================="
           )
         )
