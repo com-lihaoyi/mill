@@ -7,6 +7,13 @@ object `package` extends JavaModule {
     exceptionHelper()
     ()
   }
+  def logging() = Task.Command {
+    println("MY PRINTLN")
+    Task.log.info("MY INFO LOGS")
+    Task.log.warn("MY WARN LOGS")
+    Task.log.error("MY WARN LOGS")
+    ()
+  }
 
   object exclusives extends Module {
 
