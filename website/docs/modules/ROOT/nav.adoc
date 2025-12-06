@@ -105,6 +105,7 @@
 *** xref:contrib/proguard.adoc[]
 *** xref:contrib/scalapblib.adoc[]
 *** xref:contrib/scoverage.adoc[]
+*** xref:contrib/sbom.adoc[]
 *** xref:contrib/sonatypecentral.adoc[]
 *** xref:contrib/testng.adoc[]
 *** xref:contrib/twirllib.adoc[]
