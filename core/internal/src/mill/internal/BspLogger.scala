@@ -10,7 +10,6 @@ class BspLogger(
   override def toString: String = s"SimpleLogger($unprefixedStreams, $debugEnabled)"
 
   override def redirectOutToErr: Boolean = false
-  Logger.formatPrefix(logKey)
 
   val prompt = new Logger.Prompt.NoOp {
     override def logPrefixedLine(
