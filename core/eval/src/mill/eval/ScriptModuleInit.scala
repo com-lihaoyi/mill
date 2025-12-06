@@ -53,9 +53,9 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           case "java" => Result.Success("mill.script.JavaModule")
           case "kt" => Result.Success("mill.script.KotlinModule")
           case "scala" => Result.Success("mill.script.ScalaModule")
-          case s =>
-            Result.Success(
-              s"Script $scriptFile has no `extends` clause configured and is of an unknown extension `${scriptFile.ext}`"
+          case _ =>
+            Result.Failure(
+              s"Script ${scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)} has no `extends` clause configured and is of an unknown extension `${scriptFile.ext}`"
             )
         }
       }
