@@ -29,10 +29,14 @@ class PromptLogger(
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true,
     val chromeProfileLogger: JsonArrayLogger.ChromeProfile
-) extends Logger with AutoCloseable {
+) extends Logger.Upstream with AutoCloseable {
   prompt.beginChromeProfileEntry("mill " + titleText)
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger.*
+
+  override def logKey: Seq[String] = Nil
+  override def redirectOutToErr: Boolean = false
+  override def unprefixedStreams: SystemStreams = streams
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 

@@ -29,6 +29,20 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       assert(res2.err.contains(
         "key \"mill-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"
       ))
+
+      tester.modifyFile(
+        tester.workspacePath / "mispelledextends/package.mill.yaml",
+        _ => "objec lols:\n"
+      )
+
+      val res3 = tester.eval("mispelledextends.compile")
+      assert(res3.err.replace(
+        '\\',
+        '/'
+      ).contains("[error] mispelledextends/package.mill.yaml:1:1"))
+      assert(res3.err.contains("objec lols:"))
+      assert(res3.err.contains("^"))
+      assert(res3.err.contains("generatedScriptSources Invalid key: objec lols"))
     }
   }
 }
