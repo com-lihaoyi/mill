@@ -113,7 +113,7 @@ object Result {
   }
 
   final class Exception(
-    val error: String,
-    @com.lihaoyi.unroll val failure: Option[Failure] = None
+      val error: String,
+      @com.lihaoyi.unroll val failure: Option[Failure] = None
   ) extends java.lang.Exception(error)
 }

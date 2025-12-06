@@ -112,13 +112,13 @@ object CodeGen {
                   )
                 )
               case _ => throw new Result.Exception(
-                "",
-                Some(Result.Failure(
-                  "Invalid key: " + locatedKeyString.value,
-                  scriptPath.toNIO,
-                  locatedKeyString.index
-                ))
-              )
+                  "",
+                  Some(Result.Failure(
+                    "Invalid key: " + locatedKeyString.value,
+                    scriptPath.toNIO,
+                    locatedKeyString.index
+                  ))
+                )
             }
         }
 
