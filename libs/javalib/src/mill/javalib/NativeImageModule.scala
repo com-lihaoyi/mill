@@ -227,19 +227,9 @@ trait NativeImageModule extends WithJvmWorkerModule {
   def nativeGraalVmMetadataQuery: T[MetadataQuery] = this match {
     case m: JavaModule => Task {
         val metadataPath = nativeGraalVMReachabilityMetadata().path
-
-        val dep = m.coursierDependencyTask().withVariantSelector(
-          ConfigurationBased(coursier.core.Configuration.defaultRuntime)
-        )
-        val resolution =
-          m.millResolver().resolution(Seq(mill.javalib.BoundDep(dep, force = false)))
-        val deps = resolution.dependencies
-          .map(d =>
-            s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
-          ).filter(_.split(':').length == 3) // gav requirements for graalvm metadata artifact query
         MetadataQuery(
           rootPath = metadataPath,
-          deps = deps,
+          deps = nativeGraalVmQueryDeps(),
           useLatestConfigWhenVersionIsUntested = nativeUseLatestConfigWhenVersionIsUntested()
         )
       }
@@ -250,7 +240,46 @@ trait NativeImageModule extends WithJvmWorkerModule {
           useLatestConfigWhenVersionIsUntested = false
         )
       }
+  }
 
+  /**
+   * The GAV coordinates of the dependencies to search for reachability metadata
+   * in [[nativeGraalVMReachabilityMetadata]].
+   *
+   * This task must be compatible with [[https://github.com/graalvm/native-build-tools/blob/54db68cfcc20ab6a43ccbf4e04130325210f5b3a/common/graalvm-reachability-metadata/src/main/java/org/graalvm/reachability/internal/DefaultArtifactQuery.java#L57]]
+   */
+  def nativeGraalVmQueryDeps: T[Set[String]] = this match {
+    case m: JavaModule => Task {
+        val metadataPath = nativeGraalVMReachabilityMetadata().path
+
+        def isValidGAV(d: coursier.core.Dependency): Boolean =
+          d.module.organization.value.nonEmpty && d.module.name.value.nonEmpty && d.versionConstraint.asString.nonEmpty
+
+        def artifactQueryGav(d: coursier.core.Dependency): String =
+          s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
+
+        val dep = m.coursierDependencyTask().withVariantSelector(
+          ConfigurationBased(coursier.core.Configuration.defaultRuntime)
+        )
+        val resolution =
+          m.millResolver().resolution(Seq(mill.javalib.BoundDep(dep, force = false)))
+        val deps = resolution.dependencies
+          .groupBy(isValidGAV)
+
+        val skippedDeps = deps.getOrElse(false, Set.empty)
+        val validDeps = deps.getOrElse(true, Set.empty)
+
+        skippedDeps.foreach {
+          dep =>
+            Task.log.info(s"Skipping dependency: ${dep.module.repr} due to invalid GAV coordinates")
+        }
+
+        validDeps.map(artifactQueryGav)
+      }
+    case _ =>
+      Task {
+        Set.empty[String]
+      }
   }
 
 }

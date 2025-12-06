@@ -158,6 +158,10 @@ object `package` extends MillStableScalaModule {
       Deps.openJson
     )
 
+    def compileMvnDeps = Seq(
+      Deps.requests
+    )
+
     def buildInfoPackageName = "mill.javalib.graalvm"
 
     def buildInfoObjectName = "Versions"
