@@ -117,7 +117,8 @@ public class Util {
             + highlight.apply("" + colNum)
         : highlight.apply(fileName);
 
-    return header + "\n" + lineContent + "\n" + pointer + "\n" + message;
+    // Add an extra trailing newline to visually separate this block from following logs
+    return header + "\n" + lineContent + "\n" + pointer + "\n" + message + "\n";
   }
 
   private static String throwBuildHeaderError(

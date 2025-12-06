@@ -48,7 +48,6 @@ trait IntegrationTesterBase {
     println(s"Preparing integration test in $workspacePath")
     os.makeDir.all(workspacePath)
     if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
-      println("Clearing out folder")
       Retry(logger = Retry.printStreamLogger(System.err)) {
         val tmp = os.temp.dir()
         val outDir = os.Path(out, workspacePath)
