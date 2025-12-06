@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Case Study: Mill vs sbt :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/comparisons/sbt.html">
+    <link rel="prev" href="gradle.html">
+    <link rel="next" href="../cli/installation-ide.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.1.0-RC3-19-3730cf">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-release.html">Android Release Guide</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/ide.html">Android IDE Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-native-example.html">Android Native Example</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/web-examples.html">Python Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.1.0-RC3-19-3730cf</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.1.0-RC3-19-3730cf</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.1.0-RC3</a>
+        </li>
+        <li class="version">
+          <a href="../../1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.16</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Case Study: Mill vs <code>sbt</code></h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page goes into the weeds comparing the Mill and SBT build tools.
+For a higher-level comparison of Mill vs other tools, and why Mill is interesting,
+see the page <a href="why-mill.html" class="xref page">Why Use Mill?</a>.</p>
+</div>
+<div class="paragraph">
+<p>Compared to <code>sbt</code>,</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Mill makes customizing the build yourself much easier</strong>: most of what build tools
+do work with files and call subprocesses, and Mill makes doing that yourself easy.
+This means you can always make your Mill build do exactly what you want, and are not
+beholden to third-party plugins that may not meet your exact needs or interact well
+with each other.</p>
+</li>
+<li>
+<p><strong>Mill is much more performant</strong>: <code>sbt</code> has enough overhead that even a dozen
+subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
+Custom tasks in <code>sbt</code> re-execute every time, whereas in Mill they are cached automatically.
+Mill&#8217;s watch-for-changes-and-re-run implementation has much lower latency than <code>sbt</code>'s.
+The list of ways Mill improves upon <code>sbt</code>'s performance is long, and at the command line you
+can really feel it</p>
+</li>
+<li>
+<p><strong>Mill builds are much easier to understand</strong>: Your Mill build is made of bog-standard
+<code>object</code>s and <code>def</code>s, rather than <code>sbt</code>'s
+<a href="https://eed3si9n.com/4th-dimension-with-sbt-013/">four-dimensional task matrix</a>.
+Your IDE&#8217;s "<strong>jump-to-definition</strong>" in Mill actually brings you to the implementation of a task, rather
+than an <code>sbt</code> <code>taskKey</code> declaration.
+Customizing things is as simple as writing or overriding <code>def</code>s.
+The net effect is that despite both tools' build files being written in Scala,
+Mill&#8217;s build files are much easier to understand and maintain.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This page compares using Mill to <code>sbt</code>, using the <a href="https://github.com/gatling/gatling">Gatling Load Testing Framework</a> codebase as the example.
+Gatling is a medium-sized codebase, 40,000 lines of Scala split over 21 subprojects.
+By porting it to Mill, this case study should give you an idea of how Mill compares to <code>sbt</code> in more realistic, real-world projects.</p>
+</div>
+<div class="paragraph">
+<p>In general, in the ideal case Mill and <code>sbt</code> have similar performance: caching, parallelism, incremental
+compilation, and so on.
+Mill&#8217;s main advantage over <code>sbt</code> is its simplicity:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You do not need to keep a live <code>sbt</code> session to maximize performance, exit <code>sbt</code> to run Bash commands,
+or juggle multiple terminal windows to run <code>sbt</code> in one and Bash in another. Instead, you can just
+run Mill like any command line tool, and Mill caches and parallelizes to maximize performance automatically</p>
+</li>
+<li>
+<p>Mill&#8217;s IDE support is better than <code>sbt</code>'s due to how Mill is designed: peek-at-documentation,
+jump-to-definition, find-overrides, etc. is much more useful since your IDE understands Mill
+much better than it understands <code>sbt</code>.</p>
+</li>
+<li>
+<p>Mill comes with a lot of useful debugging tools builtin, without needing to juggle external plugins:
+visualizing subproject dependencies, performance profiles, third-party dependency trees. This helps
+you understand what your Mill build is doing.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To do this comparison, we have written a Mill <code>build.mill</code> file for the Gatling project. This can be used
+with Mill to build and test the various submodules of the Gatling project without needing to
+change any other files in the repository:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/gatling/build.mill">Gatling build.mill file</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_completeness"><a class="anchor" href="#_completeness"></a>Completeness</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Mill build for Gatling is not 100% complete, but it covers most of the major parts of Gatling:
+compiling Scala, running tests.
+It does not currently cover linting via <a href="https://github.com/diffplug/spotless">Spotless</a>, as that is not built-in to Mill, but it could be added as necessary.</p>
+</div>
+<div class="paragraph">
+<p>The goal of this exercise is not to be 100% feature complete enough to replace the <code>sbt</code> build
+today. It is instead meant to provide a realistic comparison of how using Mill in a realistic,
+real-world project compares to using <code>sbt</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_performance"><a class="anchor" href="#_performance"></a>Performance</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Benchmark</th>
+<th class="tableblock halign-left valign-top">Cold <code>sbt</code></th>
+<th class="tableblock halign-left valign-top">Hot <code>sbt</code> (rounded)</th>
+<th class="tableblock halign-left valign-top">Mill</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_parallel_clean_compile_all">Parallel Clean Compile All</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">34.28s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≈ 14s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.4s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_clean_compile_single_module">Clean Compile Single-Module</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.1s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≈ 1s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.96s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.2s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≈ 0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.48s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_no_op_compile_single_module">No-Op Compile Single-Module</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.2s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">≈ 0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.40s</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><code>sbt</code> can be used in two modes, either "cold" run directly from the command line, or "hot"
+where an <code>sbt</code> session is kept open and commands are run within in. I provide the timings for
+both scenarios above, along with the time taken for Mill commands. Mill does not have this
+distinction, and can only be run directly from the command line. The Hot <code>sbt</code> mode only
+reports timings to the nearest second, so that is the number used in this comparison.</p>
+</div>
+<div class="paragraph">
+<p>The Mill build benchmarks for Gatling is generally much snappier than the cold <code>sbt</code> benchmark,
+and comparable to that Hot <code>sbt</code> benchmark. Mill is marginally faster in the
+<code>Parallel Clean Compile All</code> benchmark (10s vs 14s), but more importantly does not have the same
+<em>Cold vs Hot</em> distinction that <code>sbt</code> has: as Mill is always run "cold" from the command line and
+keeps the process around to provide "hot" performance automatically.</p>
+</div>
+<div class="paragraph">
+<p>For the benchmarks above, each provided number is the median wall time of three consecutive runs
+on my M1 Macbook Pro. While ad-hoc, these benchmarks are enough to give you a flavor of how
+Mill&#8217;s performance compares to <code>sbt</code>. For a fair comparison, we disabled <code>gatling-build-plugin</code>
+in the sbt setup, which bundles the various scalafmt/scalafix/etc. linters as part of <code>compile</code>,
+since Mill doesn&#8217;t bundle them and instead expects them to be invoked separately.</p>
+</div>
+<div class="sect2">
+<h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ sbt clean; time sbt test:compile
+34.28s
+32.84s
+34.55s
+
+$ sbt
+
+sbt&gt; clean; test:compile
+15s
+13s
+14s
+
+$ ./mill clean; time ./mill -j 10 __.compile
+10.7s
+9.4s
+10.4s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark measures the time taken to parallel compile all the Java and Scala code in
+the Gatling code base. We configure Mill to do the same using the same number of threads
+(10 on my laptop) as <code>sbt</code> uses. As <code>sbt</code> runs in parallel by default, we do not have a
+comparison for sequential execution times.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_clean_compile_single_module"><a class="anchor" href="#_clean_compile_single_module"></a>Clean Compile Single-Module</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sbt clean; time sbt gatling-commons/compile
+10.1
+10.7
+10.1
+
+sbt&gt; clean; gatling-common/compile
+1s
+1s
+1s
+
+$ ./mill clean; time ./mill gatling-common.compile
+0.96s
+0.95s
+0.96s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark indicates the use case of clean-compiling a single module. In this case,
+the <code>gatling-commons</code> module&#8217;s application code in `commons/, <em>excluding</em> the test code in
+and all the downstream submodules.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo "" &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
+$ time sbt gatling-commons/compile
+6.6s
+6.2s
+6.0s
+
+sbt&gt; gatling-commons/compile
+0s
+0s
+0s
+
+$ echo "" &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
+$ time ./mill gatling-commons.compile
+0.49s
+0.48s
+0.47s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark measures the common case of making a tiny change to a single file and
+re-compiling just that module. This is the common workflow that most software developers
+do over and over day-in and day-out. We simulate this by appending a new line to the
+file <code>gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala</code>.</p>
+</div>
+<div class="paragraph">
+<p>Both Mill and <code>sbt</code> are able to take advantage of the small code change and re-compile
+only the single files needing re-compilation, demonstrating substantial speedups over
+the <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> benchmark above. Both Hot <code>sbt</code> and "Mill" finish in
+a fraction of a second, while Cold <code>sbt</code> has substantial overhead.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_no_op_compile_single_module"><a class="anchor" href="#_no_op_compile_single_module"></a>No-Op Compile Single-Module</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time sbt gatling-commons/compile
+4.2s
+4.2s
+4.2s
+
+sbt&gt; gatling-commons/compile
+0s
+0s
+0s
+
+$ time ./mill gatling-commons.compile
+0.39s
+0.41s
+0.40s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This benchmark is meant to measure the pure overhead of running the build tool: given a single
+module that did <em>not</em> change, the build tool should need to do <em>nothing</em> in response, and so
+any time taken is pure overhead.</p>
+</div>
+<div class="paragraph">
+<p>Again, we see both Hot <code>sbt</code> and "Mill" finish in a fraction of a second, with the Mill numbers
+showing a ~0.4s overhead to run Mill even when there is no work to do, and the Cold <code>sbt</code> has
+in comparison substantial &gt;4s overhead.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One area that Mill does significantly better than <code>sbt</code> is in the IDE support.
+For example, although IDEs like IntelliJ are nominally able to parse and analyze your <code>sbt</code> files, the assistance they can provide is often not very useful.
+For example, consider the inspection and jump-to-definition experience of looking into an <code>sbt</code> Task:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijGatlingSbtTask1.png" alt="IntellijGatlingSbtTask1">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijGatlingSbtTask2.png" alt="IntellijGatlingSbtTask2">
+</div>
+</div>
+<div class="paragraph">
+<p>Or an <code>sbt</code> plugin:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijGatlingSbtPlugin1.png" alt="IntellijGatlingSbtPlugin1">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijGatlingSbtPlugin2.png" alt="IntellijGatlingSbtPlugin2">
+</div>
+</div>
+<div class="paragraph">
+<p>In general, although your IDE can make sure the name of the task exists, and the type is correct, it
+is unable to pull up any further information about the task: its documentation, its implementation,
+usages, any upstream overridden implementations, etc..
+Some of this is the limitations of the IDE, but some of it is fundamental: because <code>sbt</code> makes the developer define the <code>val myTask</code> separate from the assignment of <code>myTask := something</code>, jumping to the definition of <code>myTask</code> tells you nothing at all: what it does, where it is assigned, etc.</p>
+</div>
+<div class="paragraph">
+<p>In comparison, for Mill, IDEs like Intellij are able to provide much more intelligence. e.g. when
+inspecting a task, it is able to pull up the documentation comment:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijGatlingMillTask1.png" alt="IntellijGatlingMillTask1">
+</div>
+</div>
+<div class="paragraph">
+<p>It is able to pull up any overridden implementations of task, directly in the editor:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijGatlingMillTask2.png" alt="IntellijGatlingMillTask2">
+</div>
+</div>
+<div class="paragraph">
+<p>And you can easily navigate to the overridden implementations to see where they are defined and
+what you are overriding:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijGatlingMillTask3.png" alt="IntellijGatlingMillTask3">
+</div>
+</div>
+<div class="paragraph">
+<p>Mill&#8217;s equivalent of <code>sbt</code> plugins are just Scala traits, and again you can easily pull up their
+documentation in-line in the editor or jump to their full implementation:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijGatlingMillPlugin1.png" alt="IntellijGatlingMillPlugin1">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/IntellijGatlingMillPlugin2.png" alt="IntellijGatlingMillPlugin2">
+</div>
+</div>
+<div class="paragraph">
+<p>In general, navigating around your build in Mill is much more straightforward than
+navigating around your build in <code>sbt</code>.
+All your normal IDE functionality works perfectly:
+jump-to-definition, find-usages, peek-at-documentation, and so on.
+Although the Mill and <code>sbt</code> builds end up doing the same basic things - compiling Scala, running tests,
+zipping up jars - Mill helps de-mystify things considerably so you are never blocked
+wondering what your build tool is doing.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_debugging_tooling"><a class="anchor" href="#_debugging_tooling"></a>Debugging Tooling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Another area that Mill does better than <code>sbt</code> is providing builtin tools for you to understand
+what your build is doing.
+For example, the Gatling project build discussed has 21 submodules
+and associated test suites, but how do these different modules depend on each other?
+With Mill, you can run <code>./mill visualize __.compile</code>, and it will show you how the
+<code>compile</code> task of each module depends on the others:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/GatlingCompileGraph.svg" alt="GatlingCompileGraph">
+</div>
+</div>
+<div class="paragraph">
+<p>Apart from the static dependency graph, another thing of interest may be the performance
+profile and timeline: where the time is spent when you actually compile everything.
+With Mill, when you run a compilation using <code>./mill -j 10 __.compile</code>, you automatically get a
+<code>out/mill-chrome-profile.json</code> file that you can load into your <code>chrome://tracing</code> page and
+visualize where your build is spending time and where the performance bottlenecks are:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/comparisons/GatlingCompileProfile.png" alt="GatlingCompileProfile">
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to inspect the tree of third-party dependencies used by any module, the
+built in <code>mvnDepsTree</code> command lets you do that easily:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">$ ./mill gatling-app.mvnDepsTree
+[137/137] gatling-app.mvnDepsTree
+├─ org.scala-lang:scala-library:2.13.14
+├─ io.gatling:gatling-shared-model_2.13:0.0.6
+│  ├─ io.gatling:gatling-shared-util_2.13:0.0.8
+│  │  ├─ org.scala-lang:scala-library:2.13.14
+│  │  └─ org.scala-lang.modules:scala-collection-compat_2.13:2.11.0
+│  │     └─ org.scala-lang:scala-library:2.13.14
+│  ├─ io.suzaku:boopickle_2.13:1.3.3
+│  │  └─ org.scala-lang:scala-library:2.13.14
+│  └─ org.scala-lang:scala-library:2.13.14
+├─ io.gatling:gatling-shared-cli:0.0.3
+│  └─ com.github.spotbugs:spotbugs-annotations:4.8.4 -&gt; 4.8.6
+│     └─ com.google.code.findbugs:jsr305:3.0.2
+├─ org.simpleflatmapper:lightning-csv:8.2.3
+│  └─ org.simpleflatmapper:sfm-util:8.2.3
+├─ com.github.ben-manes.caffeine:caffeine:3.1.8
+│  ├─ com.google.errorprone:error_prone_annotations:2.21.1
+│  └─ org.checkerframework:checker-qual:3.37.0
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>None of these tools are rocket science, but Mill provides all of them out of the
+box in a convenient package for you to use. Whether you want a visual graph layout,
+a parallel performance profile, or a third-party dependency tree of your project,
+Mill makes it easy and convenient without needing to fiddle with custom configuration
+or third party plugins. This helps make it easy for you to explore, understand, and
+take ownership of the build tool.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Both the Mill and <code>sbt</code> builds we discussed in this case study do the same thing: they
+compile Java and Scala code and run tests.
+If set up and used properly, <code>sbt</code> builds are performant and do what needs to be done.</p>
+</div>
+<div class="paragraph">
+<p>Where Mill has an advantage over <code>sbt</code> is in its simplicity and understandability.
+You do not need to worry about using it "the wrong way" and ending up with workflows running
+slower than necessary.
+You can explore your build using your IDE like you would any other
+project, tracing task dependencies using the same jump-to-definition you use to trace
+method calls in your application code.
+Mill provides builtin tools to help you navigate, visualize, and understand your build, turning a normally opaque "build config" into something that&#8217;s transparent and easily understandable.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="gradle.html">Case Study: Mill vs Gradle</a></span>
+  <span class="next"><a href="../cli/installation-ide.html">Installation &amp; IDE Setup</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>
