@@ -40,9 +40,9 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
         '\\',
         '/'
       ).contains("[error] mispelledextends/package.mill.yaml:1:1"))
-      assert(res2.err.contains("objec lols:"))
-      assert(res2.err.contains("^"))
-      assert(res2.err.contains("generatedScriptSources Invalid key: objec lols"))
+      assert(res3.err.contains("objec lols:"))
+      assert(res3.err.contains("^"))
+      assert(res3.err.contains("generatedScriptSources Invalid key: objec lols"))
     }
   }
 }
