@@ -62,8 +62,7 @@ object `package` extends MillStableScalaModule {
 
   object api extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
 
-    def moduleDeps = Seq(build.libs.rpc)
-    def compileModuleDeps = Seq(build.core.api.java11, build.libs.util.java11)
+    def moduleDeps = Seq(build.core.api.java11, build.libs.rpc, build.libs.util.java11)
     def buildInfoPackageName = "mill.javalib.api"
     def buildInfoObjectName = "Versions"
 
@@ -125,8 +124,7 @@ object `package` extends MillStableScalaModule {
   }
 
   object worker extends MillPublishScalaModule with BuildInfo with MillJava11ScalaModule {
-    def moduleDeps =
-      Seq(api, build.libs.javalib.testrunner, build.core.api.java11, build.libs.util.java11)
+    def moduleDeps = Seq(api, build.libs.javalib.testrunner)
     def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
     def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"
@@ -147,7 +145,6 @@ object `package` extends MillStableScalaModule {
 
   object `spring-boot-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(api)
-    def compileModuleDeps = Seq(build.core.api.java11)
     def compileMvnDeps = Seq(
       // we just bind against the API, will be loaded at Mill runtime by the module
       Deps.springBootTools
