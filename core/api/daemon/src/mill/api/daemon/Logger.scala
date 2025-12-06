@@ -60,7 +60,6 @@ trait Logger extends Logger.Actions with Logger.Upstream {
    */
   private[mill] def withRedirectOutToErr(): Logger = this
 
-
   @deprecated
   def withOutStream(outStream: PrintStream): Logger = this
 
@@ -83,13 +82,11 @@ object Logger {
      */
     private[mill] def logKey: Seq[String] = Nil
 
-
     /**
      * Global APIs that let the logger access the command line configuration and
      * manipulate the global prompt, e.g. enabling or disabling it
      */
     private[mill] def prompt: Logger.Prompt
-
 
     /**
      * A version of [[streams]] without the logging prefix appended to every line.
