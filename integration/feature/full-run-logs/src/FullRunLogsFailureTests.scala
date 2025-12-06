@@ -33,6 +33,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X) class Bar",
           "(B)<digits>](X)          (R)^(Z)",
           "(B)<digits>](X) reached end of file while parsing",
+          "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
           ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile javac returned non-zero exit code"
@@ -56,6 +57,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] ?",
           "build.mill-<digits>] ^",
           "build.mill-<digits>] Illegal start of toplevel definition",
+          "build.mill-<digits>] ",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] [error] compile task failed",
           ".../..., 1 failed] <dashes> jar <dashes>",
@@ -146,10 +148,12 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] ?",
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
+          "<digits>] ",
           "<digits>] [error] broken/src/Foo.java:1:0",
           "<digits>] ?",
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
+          "<digits>] ",
           ".../..., 2 failed] <dashes> {brokenN,brokenN}.compile <dashes>",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code"
@@ -163,7 +167,8 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "[error] broken/src/Foo.java:1:0",
           "?",
           "",
-          "class, interface, enum, or record expected"
+          "class, interface, enum, or record expected",
+          ""
         )
       )
       assertGoldenLiteral(
@@ -173,7 +178,8 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "[error] broken/src/Foo.java:1:0",
           "?",
           "",
-          "class, interface, enum, or record expected"
+          "class, interface, enum, or record expected",
+          ""
         )
       )
     }

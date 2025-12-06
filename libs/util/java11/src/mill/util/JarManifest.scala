@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.api.BuildInfo
+import mill.constants.BuildInfo
 import mill.api.internal.Mirrors
 import mill.api.internal.Mirrors.autoMirror
 import mill.util.JarManifest

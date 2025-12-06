@@ -1,11 +1,12 @@
 package mill.api
 
-import mill.api.{Logger, experimental}
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
-import mill.api.Result
+import mill.api.daemon.Result
+import mill.api.daemon.Logger
+import mill.api.daemon.experimental
 
 /**
  * Represents the data and utilities that are contextually available inside the

@@ -111,7 +111,14 @@ object CodeGen {
                     HeaderData.headerDataReader(scriptPath)
                   )
                 )
-              case _ => sys.error("Invalid key: " + locatedKeyString.value)
+              case _ => throw new Result.Exception(
+                  "",
+                  Some(Result.Failure(
+                    "Invalid key: " + locatedKeyString.value,
+                    scriptPath.toNIO,
+                    locatedKeyString.index
+                  ))
+                )
             }
         }
 

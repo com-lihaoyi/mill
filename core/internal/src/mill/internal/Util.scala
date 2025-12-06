@@ -349,18 +349,18 @@ object Util {
             Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(key, Nil))
 
           def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
-            f.res match {
+            f.failure match {
               // If there is no associated `Result.Failure`,
               // synthesize one based on the `key` and the `f.msg`
-              case null => Result.Failure(error = s"$key ${f.msg}", tickerPrefix = keyPrefix)
-              case res =>
+              case None => Result.Failure(error = s"$key ${f.msg}", tickerPrefix = keyPrefix)
+              case Some(failure) =>
                 // If there is an associated `Result.Failure` with no prefix, set the prefix to the
                 // current `keyPrefix` and prefix `error` with `key`
-                if (res.tickerPrefix == "")
-                  res.copy(error = s"$key ${res.error}", tickerPrefix = keyPrefix)
+                if (failure.tickerPrefix == "")
+                  failure.copy(error = s"$key ${failure.error}", tickerPrefix = keyPrefix)
                 // If there is an associated `Result.Failure` with its own prefix, preserve it
                 // and chain together a new `Result.Failure` entry representing the current key
-                else Result.Failure(error = s"$key", tickerPrefix = keyPrefix, next = Some(res))
+                else Result.Failure(error = s"$key", tickerPrefix = keyPrefix, next = Some(failure))
             }
           }
 

@@ -1,7 +1,5 @@
 package mill.api.daemon
 
-import mill.api.daemon.Result.Failure
-
 import java.lang.reflect.InvocationTargetException
 import scala.language.implicitConversions
 
@@ -70,7 +68,7 @@ object ExecResult {
 
     override def asFailing: Option[ExecResult.Failing[T]] = Some(this)
     def throwException: Nothing = this match {
-      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg)
+      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg, f.failure)
       case f: ExecResult.Exception => throw f.throwable
     }
   }
@@ -83,10 +81,10 @@ object ExecResult {
    */
   final case class Failure[T](
       msg: String,
-      @com.lihaoyi.unroll res: Result.Failure = null
+      @com.lihaoyi.unroll failure: Option[Result.Failure] = None
   ) extends Failing[T] {
-    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg, res)
-    def flatMap[V](f: T => ExecResult[V]): Failure[V] = Failure(msg, res)
+    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg, failure)
+    def flatMap[V](f: T => ExecResult[V]): Failure[V] = Failure(msg, failure)
     override def toString: String = s"Failure($msg)"
   }
 
