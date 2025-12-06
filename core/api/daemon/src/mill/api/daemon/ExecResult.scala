@@ -1,7 +1,5 @@
 package mill.api.daemon
 
-import mill.api.daemon.Result.Failure
-
 import java.lang.reflect.InvocationTargetException
 import scala.language.implicitConversions
 
