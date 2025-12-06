@@ -47,19 +47,28 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
         )
       }
       Result.Failure.join(failures)
-    } else instantiate(
-      scriptFile,
-      extendsConfigStrings.map(_.value).getOrElse {
+    } else {
+      val scriptCls = extendsConfigStrings.map(cls => Result.Success(cls.value)).getOrElse {
         scriptFile.ext match {
-          case "java" => "mill.script.JavaModule"
-          case "kt" => "mill.script.KotlinModule"
-          case "scala" => "mill.script.ScalaModule"
+          case "java" => Result.Success("mill.script.JavaModule")
+          case "kt" => Result.Success("mill.script.KotlinModule")
+          case "scala" => Result.Success("mill.script.ScalaModule")
+          case s =>
+            Result.Success(
+              s"Script $scriptFile has no `extends` clause configured and is of an unknown extension `${scriptFile.ext}`"
+            )
         }
-      },
-      extendsConfigStrings.map(_.index),
-      scriptText,
-      ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
-    )
+      }
+      scriptCls.flatMap(
+        instantiate(
+          scriptFile,
+          _,
+          extendsConfigStrings.map(_.index),
+          scriptText,
+          ScriptModule.Config(scriptFile, moduleDeps, compileModuleDeps, runModuleDeps, headerData)
+        )
+      )
+    }
   }
 
   def resolveModuleDep(eval: Evaluator, s: String): Option[mill.Module] = {
