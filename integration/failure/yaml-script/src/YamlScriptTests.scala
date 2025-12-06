@@ -92,6 +92,20 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         ))
         assert(res.err.linesIterator.toList.length < 20)
       }
+      locally {
+        val res = tester.eval("not-script-valid-file")
+        assert(res.err.contains(
+          "Script not-script-valid-file has no `extends` clause configured and is of an unknown extension ``"
+        ))
+        assert(res.err.linesIterator.toList.length < 20)
+      }
+      locally {
+        val res = tester.eval("not-script-not-valid-file.ext")
+        assert(res.err.contains(
+          "Cannot resolve not-script-not-valid-file.ext. Try `mill resolve _` to see what's available."
+        ))
+        assert(res.err.linesIterator.toList.length < 20)
+      }
     }
   }
 }

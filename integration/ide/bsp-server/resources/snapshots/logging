@@ -10,6 +10,7 @@ bsp-init-build.mill-61] [warn] build.mill:107:18
 bsp-init-build.mill-61]   def theThing = thing
 bsp-init-build.mill-61]                  ^^^^^
 bsp-init-build.mill-61] method thing in object diag is deprecated since 0.0.1: deprecated
+bsp-init-build.mill-61] 
 bsp-init-build.mill-61] [warn] one warning found
 bsp-init-build.mill-61] done compiling
 bsp-init-114] compiling * Scala source to * ...
@@ -47,6 +48,7 @@ bsp-init] BSP disabled for target file:///workspace/skipped via BspModuleApi#ena
 5-compile-57]   nope
 5-compile-57]   ^^^^
 5-compile-57] not found: value nope
+5-compile-57] 
 5-compile-57] [error] one error found
 5-compile-57] [error] errored.compilation-error.semanticDbDataDetailed task failed
 5-compile] Done
