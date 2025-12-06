@@ -225,7 +225,7 @@ trait NativeImageModule extends WithJvmWorkerModule {
    * For more information and implementation details go to [[https://github.com/graalvm/native-build-tools/blob/master/common/graalvm-reachability-metadata/src/main/java/org/graalvm/reachability/internal/FileSystemRepository.java]]
    */
   def nativeGraalVmMetadataQuery: T[MetadataQuery] = this match {
-    case m: JavaModule => Task {
+    case _: JavaModule => Task {
         val metadataPath = nativeGraalVMReachabilityMetadata().path
         MetadataQuery(
           rootPath = metadataPath,
@@ -250,10 +250,15 @@ trait NativeImageModule extends WithJvmWorkerModule {
    */
   def nativeGraalVmQueryDeps: T[Set[String]] = this match {
     case m: JavaModule => Task {
-        val metadataPath = nativeGraalVMReachabilityMetadata().path
+
+        def isValidGAVSection(value: String): Boolean = value.nonEmpty && !value.contains(':')
 
         def isValidGAV(d: coursier.core.Dependency): Boolean =
-          d.module.organization.value.nonEmpty && d.module.name.value.nonEmpty && d.versionConstraint.asString.nonEmpty
+          Seq(
+            d.module.organization.value,
+            d.module.name.value,
+            d.versionConstraint.asString
+          ).forall(isValidGAVSection)
 
         def artifactQueryGav(d: coursier.core.Dependency): String =
           s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
