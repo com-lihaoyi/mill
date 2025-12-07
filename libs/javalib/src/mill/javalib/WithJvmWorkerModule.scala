@@ -1,7 +1,6 @@
 package mill.javalib
 
-import mainargs.Flag
-import mill.api.{ModuleRef, PathRef, Task}
+import mill.api.ModuleRef
 
 /**
  * Common trait for modules that use either a custom or a globally shared [[JvmWorkerModule]].
@@ -9,7 +8,8 @@ import mill.api.{ModuleRef, PathRef, Task}
 trait WithJvmWorkerModule extends JavaHomeModule {
   def jvmWorker: ModuleRef[JvmWorkerModule] = ModuleRef(JvmWorkerModule)
 
-//  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
-//    (super.prepareOffline(all)() ++ jvmWorker().prepareOffline(all)()).distinct
-//  }
+  // TODO: add once we can break bin-compat
+  //  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
+  //    (super.prepareOffline(all)() ++ jvmWorker().prepareOffline(all)()).distinct
+  //  }
 }
