@@ -1,6 +1,5 @@
 package mill.javalib
 
-import mainargs.Flag
 import mill.T
 import mill.api.{PathRef, Task}
 
