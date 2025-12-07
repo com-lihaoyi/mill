@@ -164,6 +164,7 @@ node31 -> node26;
 node0 -> node32;
 node32 -> node3;
 node32 -> node15;
+node32 -> node27;
 node33 -> node0;
 node34 -> node33;
 node35 -> node33;
@@ -4980,12 +4981,12 @@ node54 -> node43;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="prepareOffline-e9a" data-f-keywords="override" data-f-inherited="JavaModule">
+        <div class="documentableElement" id="prepareOffline-e9a" data-f-keywords="override" data-f-inherited="NativeImageModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$Base.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="JavaModule$$Base.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
            </div>
           </div>
          </div>
@@ -4994,15 +4995,20 @@ node54 -> node43;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+             </div>
              <h2 class="h200">Value parameters</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
                all
               </dt>
               <dd class="body-medium">
-               <p>If <code>true</code> fetches also source dependencies</p>
+               <p>If <code>true</code>, it also fetches resources not always needed.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>
@@ -5012,20 +5018,20 @@ node54 -> node43;
               </dt>
               <dd class="body-medium">
                <div>
-                <a href="../javalib/JavaModule.html#prepareOffline-e9a">JavaModule</a> -&gt; <a href="../javalib/AssemblyModule.html">AssemblyModule</a> -&gt; <a href="../javalib/OfflineSupportModule.html">OfflineSupportModule</a>
+                <a href="../javalib/NativeImageModule.html#prepareOffline-e9a">NativeImageModule</a> -&gt; <a href="../javalib/OfflineSupportModule.html">OfflineSupportModule</a>
                </div>
               </dd>
               <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="../javalib/JavaModule.html#prepareOffline-e9a">JavaModule</a>
+               <a href="../javalib/NativeImageModule.html#prepareOffline-e9a">NativeImageModule</a>
               </dd>
               <dt class="body-small">
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/NativeImageModule.scala" target="_blank">NativeImageModule.scala</a>
               </dd>
              </dl>
             </div>

@@ -7,7 +7,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="NativeImageModule.html" t="n" class="documentableName ">NativeImageModule</a><span t="k"> extends </span><a href="WithJvmWorkerModule.html" t="t">WithJvmWorkerModule</a></span><span class="signature-long"></span>
+  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="NativeImageModule.html" t="n" class="documentableName ">NativeImageModule</a><span t="k"> extends </span><a href="WithJvmWorkerModule.html" t="t">WithJvmWorkerModule</a><span t="k">, </span></span><span class="signature-long"><a href="OfflineSupportModule.html" t="t">OfflineSupportModule</a></span>
  </div>
 </div>
 <div class="cover">
@@ -54,30 +54,31 @@ node9 [id=node9, label="<span style=\"color: #FFFFFF;\">trait <a href=\"Coursier
 node10 [id=node10, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api/Module.html\" t=\"n\">Module</a></span>", class="trait vertex"];
 node11 [id=node11, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api/ModuleCtx$$Wrapper.html\" t=\"n\">Wrapper</a></span>", class="trait vertex"];
 node12 [id=node12, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api/daemon/internal/ModuleApi.html\" t=\"n\">ModuleApi</a></span>", class="trait vertex"];
-node13 [id=node13, label="<span style=\"color: #FFFFFF;\">trait <a href=\"spring/boot/SpringBootModule.html\" t=\"n\">SpringBootModule</a>.<span t=\"k\">this</span>.<a href=\"spring/boot/SpringBootModule$NativeSpringBootBuildModule.html\" t=\"t\">NativeSpringBootBuildModule</a></span>", class="trait vertex"];
-node14 [id=node14, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../script/JavaModule$$Base.html\" t=\"n\">Base</a></span>", class="trait vertex"];
-node15 [id=node15, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/JavaModule.html\" t=\"n\">JavaModule</a></span>", class="class vertex"];
-node16 [id=node16, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/JavaModule$$Junit4.html\" t=\"n\">Junit4</a></span>", class="class vertex"];
-node17 [id=node17, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/JavaModule$$Junit5.html\" t=\"n\">Junit5</a></span>", class="class vertex"];
-node18 [id=node18, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/JavaModule$$TestNg.html\" t=\"n\">TestNg</a></span>", class="class vertex"];
-node19 [id=node19, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../script/KotlinModule$$Base.html\" t=\"n\">Base</a></span>", class="trait vertex"];
-node20 [id=node20, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/KotlinModule.html\" t=\"n\">KotlinModule</a></span>", class="class vertex"];
-node21 [id=node21, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/KotlinModule$$Junit4.html\" t=\"n\">Junit4</a></span>", class="class vertex"];
-node22 [id=node22, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/KotlinModule$$Junit5.html\" t=\"n\">Junit5</a></span>", class="class vertex"];
-node23 [id=node23, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/KotlinModule$$TestNg.html\" t=\"n\">TestNg</a></span>", class="class vertex"];
-node24 [id=node24, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../script/ScalaModule$$Base.html\" t=\"n\">Base</a></span>", class="trait vertex"];
-node25 [id=node25, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Raw.html\" t=\"n\">Raw</a></span>", class="class vertex"];
-node26 [id=node26, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule.html\" t=\"n\">ScalaModule</a></span>", class="class vertex"];
-node27 [id=node27, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Junit4.html\" t=\"n\">Junit4</a></span>", class="class vertex"];
-node28 [id=node28, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Junit5.html\" t=\"n\">Junit5</a></span>", class="class vertex"];
-node29 [id=node29, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Munit.html\" t=\"n\">Munit</a></span>", class="class vertex"];
-node30 [id=node30, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$ScalaCheck.html\" t=\"n\">ScalaCheck</a></span>", class="class vertex"];
-node31 [id=node31, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$ScalaTest.html\" t=\"n\">ScalaTest</a></span>", class="class vertex"];
-node32 [id=node32, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Specs2.html\" t=\"n\">Specs2</a></span>", class="class vertex"];
-node33 [id=node33, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$TestNg.html\" t=\"n\">TestNg</a></span>", class="class vertex"];
-node34 [id=node34, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Utest.html\" t=\"n\">Utest</a></span>", class="class vertex"];
-node35 [id=node35, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Weaver.html\" t=\"n\">Weaver</a></span>", class="class vertex"];
-node36 [id=node36, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$ZioTest.html\" t=\"n\">ZioTest</a></span>", class="class vertex"];
+node13 [id=node13, label="<span style=\"color: #FFFFFF;\">trait <a href=\"OfflineSupportModule.html\" t=\"n\">OfflineSupportModule</a></span>", class="trait vertex"];
+node14 [id=node14, label="<span style=\"color: #FFFFFF;\">trait <a href=\"spring/boot/SpringBootModule.html\" t=\"n\">SpringBootModule</a>.<span t=\"k\">this</span>.<a href=\"spring/boot/SpringBootModule$NativeSpringBootBuildModule.html\" t=\"t\">NativeSpringBootBuildModule</a></span>", class="trait vertex"];
+node15 [id=node15, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../script/JavaModule$$Base.html\" t=\"n\">Base</a></span>", class="trait vertex"];
+node16 [id=node16, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/JavaModule.html\" t=\"n\">JavaModule</a></span>", class="class vertex"];
+node17 [id=node17, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/JavaModule$$Junit4.html\" t=\"n\">Junit4</a></span>", class="class vertex"];
+node18 [id=node18, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/JavaModule$$Junit5.html\" t=\"n\">Junit5</a></span>", class="class vertex"];
+node19 [id=node19, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/JavaModule$$TestNg.html\" t=\"n\">TestNg</a></span>", class="class vertex"];
+node20 [id=node20, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../script/KotlinModule$$Base.html\" t=\"n\">Base</a></span>", class="trait vertex"];
+node21 [id=node21, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/KotlinModule.html\" t=\"n\">KotlinModule</a></span>", class="class vertex"];
+node22 [id=node22, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/KotlinModule$$Junit4.html\" t=\"n\">Junit4</a></span>", class="class vertex"];
+node23 [id=node23, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/KotlinModule$$Junit5.html\" t=\"n\">Junit5</a></span>", class="class vertex"];
+node24 [id=node24, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/KotlinModule$$TestNg.html\" t=\"n\">TestNg</a></span>", class="class vertex"];
+node25 [id=node25, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../script/ScalaModule$$Base.html\" t=\"n\">Base</a></span>", class="trait vertex"];
+node26 [id=node26, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Raw.html\" t=\"n\">Raw</a></span>", class="class vertex"];
+node27 [id=node27, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule.html\" t=\"n\">ScalaModule</a></span>", class="class vertex"];
+node28 [id=node28, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Junit4.html\" t=\"n\">Junit4</a></span>", class="class vertex"];
+node29 [id=node29, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Junit5.html\" t=\"n\">Junit5</a></span>", class="class vertex"];
+node30 [id=node30, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Munit.html\" t=\"n\">Munit</a></span>", class="class vertex"];
+node31 [id=node31, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$ScalaCheck.html\" t=\"n\">ScalaCheck</a></span>", class="class vertex"];
+node32 [id=node32, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$ScalaTest.html\" t=\"n\">ScalaTest</a></span>", class="class vertex"];
+node33 [id=node33, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Specs2.html\" t=\"n\">Specs2</a></span>", class="class vertex"];
+node34 [id=node34, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$TestNg.html\" t=\"n\">TestNg</a></span>", class="class vertex"];
+node35 [id=node35, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Utest.html\" t=\"n\">Utest</a></span>", class="class vertex"];
+node36 [id=node36, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$Weaver.html\" t=\"n\">Weaver</a></span>", class="class vertex"];
+node37 [id=node37, label="<span style=\"color: #FFFFFF;\">class <a href=\"../script/ScalaModule$$ZioTest.html\" t=\"n\">ZioTest</a></span>", class="class vertex"];
 
 
  node0 -> node1;
@@ -101,30 +102,33 @@ node10 -> node11;
 node11 -> node2;
 node10 -> node12;
 node12 -> node2;
-node13 -> node0;
+node0 -> node13;
+node13 -> node1;
+node13 -> node10;
 node14 -> node0;
-node15 -> node14;
+node15 -> node0;
 node16 -> node15;
-node17 -> node15;
-node18 -> node15;
-node19 -> node14;
-node20 -> node19;
+node17 -> node16;
+node18 -> node16;
+node19 -> node16;
+node20 -> node15;
 node21 -> node20;
-node22 -> node20;
-node23 -> node20;
-node24 -> node14;
-node25 -> node24;
+node22 -> node21;
+node23 -> node21;
+node24 -> node21;
+node25 -> node15;
 node26 -> node25;
-node27 -> node25;
-node28 -> node25;
-node29 -> node25;
-node30 -> node25;
-node31 -> node25;
-node32 -> node25;
-node33 -> node25;
-node34 -> node25;
-node35 -> node25;
-node36 -> node25;
+node27 -> node26;
+node28 -> node26;
+node29 -> node26;
+node30 -> node26;
+node31 -> node26;
+node32 -> node26;
+node33 -> node26;
+node34 -> node26;
+node35 -> node26;
+node36 -> node26;
+node37 -> node26;
 
 }
 </script>
@@ -135,6 +139,9 @@ node36 -> node25;
    </dt>
    <dd class="body-medium">
     <div class="mono-small-block supertypes">
+     <div>
+      trait <a href="OfflineSupportModule.html" t="n">OfflineSupportModule</a>
+     </div>
      <div>
       trait <a href="WithJvmWorkerModule.html" t="n">WithJvmWorkerModule</a>
      </div>
@@ -950,6 +957,58 @@ node36 -> node25;
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/NativeImageModule.scala" target="_blank">NativeImageModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="prepareOffline-e9a" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="NativeImageModule.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               all
+              </dt>
+              <dd class="body-medium">
+               <p>If <code>true</code>, it also fetches resources not always needed.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="OfflineSupportModule.html">OfflineSupportModule</a>
+               </div>
+              </dd>
               <dt class="body-small">
                Source
               </dt>

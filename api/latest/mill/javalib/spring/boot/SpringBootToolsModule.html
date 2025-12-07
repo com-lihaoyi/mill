@@ -10,7 +10,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="SpringBootToolsModule.html" t="n" class="documentableName ">SpringBootToolsModule</a><span t="k"> extends </span><a href="../../CoursierModule.html" t="t">CoursierModule</a></span><span class="signature-long"></span>
+  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="SpringBootToolsModule.html" t="n" class="documentableName ">SpringBootToolsModule</a><span t="k"> extends </span><a href="../../CoursierModule.html" t="t">CoursierModule</a><span t="k">, </span></span><span class="signature-long"><a href="../../OfflineSupportModule.html" t="t">OfflineSupportModule</a></span>
  </div>
 </div>
 <div class="cover">
@@ -49,7 +49,8 @@ node7 [id=node7, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../Co
 node8 [id=node8, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../../api/Module.html\" t=\"n\">Module</a></span>", class="trait vertex"];
 node9 [id=node9, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../../api/ModuleCtx$$Wrapper.html\" t=\"n\">Wrapper</a></span>", class="trait vertex"];
 node10 [id=node10, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../../api/daemon/internal/ModuleApi.html\" t=\"n\">ModuleApi</a></span>", class="trait vertex"];
-node11 [id=node11, label="<span style=\"color: #FFFFFF;\">object <a href=\"SpringBootToolsModule$.html\" t=\"n\">SpringBootToolsModule</a></span>", class="object vertex"];
+node11 [id=node11, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../OfflineSupportModule.html\" t=\"n\">OfflineSupportModule</a></span>", class="trait vertex"];
+node12 [id=node12, label="<span style=\"color: #FFFFFF;\">object <a href=\"SpringBootToolsModule$.html\" t=\"n\">SpringBootToolsModule</a></span>", class="object vertex"];
 
 
  node0 -> node1;
@@ -69,7 +70,10 @@ node8 -> node9;
 node9 -> node2;
 node8 -> node10;
 node10 -> node2;
-node11 -> node0;
+node0 -> node11;
+node11 -> node1;
+node11 -> node8;
+node12 -> node0;
 
 }
 </script>
@@ -80,6 +84,9 @@ node11 -> node0;
    </dt>
    <dd class="body-medium">
     <div class="mono-small-block supertypes">
+     <div>
+      trait <a href="../../OfflineSupportModule.html" t="n">OfflineSupportModule</a>
+     </div>
      <div>
       trait <a href="../../CoursierModule.html" t="n">CoursierModule</a>
      </div>
@@ -218,6 +225,58 @@ node11 -> node0;
         <div class="documentableList-expander">
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Concrete methods</h4>
+        </div>
+        <div class="documentableElement" id="prepareOffline-e9a" data-f-keywords="override">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SpringBootToolsModule.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../../../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../../../mill.html#PathRef-0" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               all
+              </dt>
+              <dd class="body-medium">
+               <p>If <code>true</code>, it also fetches resources not always needed.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="../../OfflineSupportModule.html">OfflineSupportModule</a>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/spring/boot/SpringBootToolsModule.scala" target="_blank">SpringBootToolsModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
         </div>
         <div class="documentableElement" id="springBootToolsClassLoader-0">
          <div class="documentableElement-expander">

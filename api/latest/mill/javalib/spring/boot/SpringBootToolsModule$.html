@@ -53,6 +53,7 @@ node11 [id=node11, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../
 node12 [id=node12, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../../api/daemon/internal/BaseModuleApi.html\" t=\"n\">BaseModuleApi</a></span>", class="trait vertex"];
 node13 [id=node13, label="<span style=\"color: #FFFFFF;\">trait <a href=\"SpringBootToolsModule.html\" t=\"n\">SpringBootToolsModule</a></span>", class="trait vertex"];
 node14 [id=node14, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../CoursierModule.html\" t=\"n\">CoursierModule</a></span>", class="trait vertex"];
+node15 [id=node15, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../../OfflineSupportModule.html\" t=\"n\">OfflineSupportModule</a></span>", class="trait vertex"];
 
 
  node0 -> node1;
@@ -80,6 +81,9 @@ node13 -> node3;
 node13 -> node14;
 node14 -> node3;
 node14 -> node9;
+node13 -> node15;
+node15 -> node3;
+node15 -> node9;
 
 }
 </script>
@@ -92,6 +96,9 @@ node14 -> node9;
     <div class="mono-small-block supertypes">
      <div>
       trait <a href="SpringBootToolsModule.html" t="n">SpringBootToolsModule</a>
+     </div>
+     <div>
+      trait <a href="../../OfflineSupportModule.html" t="n">OfflineSupportModule</a>
      </div>
      <div>
       trait <a href="../../CoursierModule.html" t="n">CoursierModule</a>
@@ -742,6 +749,64 @@ node14 -> node9;
               </dt>
               <dd class="body-medium">
                <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/src/mill/api/ExternalModule.scala" target="_blank">ExternalModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="prepareOffline-e9a" data-f-keywords="override" data-f-inherited="SpringBootToolsModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SpringBootToolsModule$.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../../../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../../../mill.html#PathRef-0" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               all
+              </dt>
+              <dd class="body-medium">
+               <p>If <code>true</code>, it also fetches resources not always needed.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="SpringBootToolsModule.html#prepareOffline-e9a">SpringBootToolsModule</a> -&gt; <a href="../../OfflineSupportModule.html">OfflineSupportModule</a>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="SpringBootToolsModule.html#prepareOffline-e9a">SpringBootToolsModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/spring/boot/SpringBootToolsModule.scala" target="_blank">SpringBootToolsModule.scala</a>
               </dd>
              </dl>
             </div>
