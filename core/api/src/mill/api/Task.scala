@@ -580,6 +580,10 @@ object Task {
             case None => report.error(err)
           }
       }
+      // Also check that the task is inside a Module
+      if (!Cacher.assertInsideModule) {
+        Cacher.reportModuleOwnerError
+      }
     }
     def sourceImpl(using
         Quotes

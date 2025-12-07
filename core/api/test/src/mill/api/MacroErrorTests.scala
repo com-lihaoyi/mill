@@ -169,19 +169,6 @@ object MacroErrorTests extends TestSuite {
         """)
         assert(err.msg == expectedMsg)
       }
-//      test("neg5") {
-//        val borkedCachedDiamond1 = utest.assertCompileError("""
-//          object borkedCachedDiamond1 {
-//            def up = Task { TestUtil.test() }
-//            def left = Task { TestUtil.test(up) }
-//            def right = Task { TestUtil.test(up) }
-//            def down = Task { TestUtil.test(left, right) }
-//          }
-//        """)
-//        assert(borkedCachedDiamond1.msg.contains(
-//          "Task{} members must be defs defined in a Module class/trait/object body"
-//        ))
-//      }
     }
 
     test("badCrossKeys") {
@@ -233,6 +220,42 @@ object MacroErrorTests extends TestSuite {
       assert(error.msg.contains(
         "Could not summon ToSegments[sun.misc.Unsafe]"
       ))
+    }
+    test("taskWithinNormalObject") {
+      test("task") {
+        val error = utest.assertCompileError(
+          """
+          object foo extends TestRootModule {
+            object bar {
+              def w = Task{1}
+            }
+
+            lazy val millDiscover = Discover[this.type]
+          }
+          """
+          )
+
+          assert(error.msg.contains(
+            "Task{} members must be defs defined in a Module class/trait/object body"
+          ))
+      }
+      test("command") {
+        val error = utest.assertCompileError(
+          """
+          object foo extends TestRootModule {
+            object bar {
+              def w() = Task.Command{1}
+            }
+
+            lazy val millDiscover = Discover[this.type]
+          }
+          """
+          )
+
+          assert(error.msg.contains(
+            "Task{} members must be defs defined in a Module class/trait/object body"
+          ))
+      }
     }
 
     test("taskWithinATask") {

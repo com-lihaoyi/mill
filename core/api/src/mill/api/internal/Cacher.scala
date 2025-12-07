@@ -56,6 +56,39 @@ private[mill] object Cacher {
     loop(Symbol.spliceOwner)
   }
 
+  private[mill] val moduleOwnerErrorMessage =
+    "Task{} members must be defs defined in a Module class/trait/object body"
+
+  /**
+   * Checks if the macro owner is a method defined inside a Module (i.e., a class extending Cacher).
+   * Returns true if valid, false otherwise.
+   */
+  private[mill] def assertInsideModule(using Quotes): Boolean = withMacroOwner { owner =>
+    import quotes.reflect.*
+
+    val CacherSym = TypeRepr.of[Cacher].typeSymbol
+
+    val ownerIsCacherClass =
+      owner.owner.isClassDef &&
+        owner.owner.typeRef.baseClasses.contains(CacherSym)
+
+    ownerIsCacherClass && owner.flags.is(Flags.Method)
+  }
+
+  /**
+   * Reports an error if the macro is not inside a Module, using either a compile-time error
+   * or a runtime exception depending on configuration.
+   */
+  private[mill] def reportModuleOwnerError(using Quotes): Unit = {
+    import quotes.reflect.*
+    if (
+      sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
+      sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
+    ) {
+      report.errorAndAbort(moduleOwnerErrorMessage, Position.ofMacroExpansion)
+    }
+  }
+
   def impl0[T: Type](using Quotes)(t: Expr[T]): Expr[T] = withMacroOwner { owner =>
     import quotes.reflect.*
 
@@ -65,7 +98,6 @@ private[mill] object Cacher {
       owner.owner.isClassDef &&
         owner.owner.typeRef.baseClasses.contains(CacherSym)
 
-    val errorMessage = "Task{} members must be defs defined in a Module class/trait/object body"
     if (ownerIsCacherClass && owner.flags.is(Flags.Method)) {
       val enclosingCtx = Expr.summon[sourcecode.Enclosing].getOrElse(
         report.errorAndAbort("Cannot find enclosing context", Position.ofMacroExpansion)
@@ -77,8 +109,8 @@ private[mill] object Cacher {
       sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
       sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
     ) {
-      report.errorAndAbort(errorMessage, Position.ofMacroExpansion)
+      report.errorAndAbort(moduleOwnerErrorMessage, Position.ofMacroExpansion)
       // Use a runtime exception to prevent false error highlighting in IntelliJ
-    } else '{ throw new Exception(${ Expr(errorMessage) }) }
+    } else '{ throw new Exception(${ Expr(moduleOwnerErrorMessage) }) }
   }
 }
