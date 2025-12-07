@@ -130,7 +130,10 @@ trait SpringBootModule extends JavaModule {
   }
 
   override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
-    (super.prepareOffline(all)() ++ springBootToolsModule().prepareOffline(all)()).distinct
+    (
+      super.prepareOffline(all)() ++
+        springBootToolsModule().prepareOffline(all)()
+    ).distinct
   }
 
   /**
