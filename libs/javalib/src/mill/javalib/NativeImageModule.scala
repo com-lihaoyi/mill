@@ -23,7 +23,7 @@ import mill.javalib.graalvm.MetadataQuery
  * }}}
  */
 @mill.api.experimental
-trait NativeImageModule extends WithJvmWorkerModule {
+trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   def runClasspath: T[Seq[PathRef]]
 
   def finalMainClass: T[String]

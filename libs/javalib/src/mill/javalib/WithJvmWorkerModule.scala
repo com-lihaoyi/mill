@@ -9,7 +9,7 @@ import mill.api.{ModuleRef, PathRef, Task}
 trait WithJvmWorkerModule extends JavaHomeModule {
   def jvmWorker: ModuleRef[JvmWorkerModule] = ModuleRef(JvmWorkerModule)
 
-  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
-    (super.prepareOffline(all)() ++ jvmWorker().prepareOffline(all)()).distinct
-  }
+//  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
+//    (super.prepareOffline(all)() ++ jvmWorker().prepareOffline(all)()).distinct
+//  }
 }

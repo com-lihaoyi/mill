@@ -7,7 +7,7 @@ import mill.api.{PathRef, Task}
 /**
  * Common trait for modules that use either a custom or a globally shared [[JvmWorkerModule]].
  */
-trait JavaHomeModule extends CoursierModule, OfflineSupportModule {
+trait JavaHomeModule extends CoursierModule { // OfflineSupportModule {
 
   def jvmId: T[String] = ""
 
@@ -37,7 +37,7 @@ trait JavaHomeModule extends CoursierModule, OfflineSupportModule {
     }
   }
 
-  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
-    (super.prepareOffline(all)() ++ javaHome().toSeq).distinct
-  }
+//  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
+//    (super.prepareOffline(all)() ++ javaHome().toSeq).distinct
+//  }
 }
