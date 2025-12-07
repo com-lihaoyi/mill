@@ -42,7 +42,7 @@ trait TestModule
    * Method-level code hash signatures for the module under test.
    * Used by [[testQuick]] for fine-grained change detection.
    */
-  def methodCodeHashSignatures: T[Map[String, Int]]
+  def methodCodeHashSignatures: T[Map[String, Int]] = Task { Map.empty[String, Int] }
 
   /**
    * The test framework to use to discover and run run tests.
