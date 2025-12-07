@@ -289,7 +289,9 @@ trait NativeImageModule extends WithJvmWorkerModule {
   }
 
   override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
-    (super.prepareOffline(all)() ++ nativeImageClasspath() ++ nativeGraalVMReachabilityMetadataClasspath()).distinct
+    (super.prepareOffline(
+      all
+    )() ++ nativeImageClasspath() ++ nativeGraalVMReachabilityMetadataClasspath()).distinct
   }
 
 }

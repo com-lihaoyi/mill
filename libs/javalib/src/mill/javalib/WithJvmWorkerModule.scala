@@ -11,5 +11,5 @@ trait WithJvmWorkerModule extends JavaHomeModule {
 
   override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
     (super.prepareOffline(all)() ++ jvmWorker().prepareOffline(all)()).distinct
-  } 
+  }
 }
