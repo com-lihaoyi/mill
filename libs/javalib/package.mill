@@ -151,6 +151,30 @@ object `package` extends MillStableScalaModule {
     )
   }
 
+  object `graalvm-reachability-worker` extends MillPublishScalaModule, BuildInfo {
+    def moduleDeps = Seq(api)
+    def mvnDeps = Seq(
+      Deps.graalVMReachabilityMetadataBuildTool,
+      Deps.openJson
+    )
+
+    def compileMvnDeps = Seq(
+      Deps.requests
+    )
+
+    def buildInfoPackageName = "mill.javalib.graalvm"
+
+    def buildInfoObjectName = "Versions"
+
+    def buildInfoMembers = Seq(
+      BuildInfo.Value(
+        "graalVmReachabilityMetadata",
+        Deps.graalVmReachabilityMetadataVersion,
+        "Version of graalvm-reachability-metadata."
+      )
+    )
+  }
+
   object `spotless-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.javalib)
     def mvnDeps = Seq(Deps.spotlessLibExtra, Deps.jgit)
