@@ -59,36 +59,6 @@ private[mill] object Cacher {
   private[mill] val moduleOwnerErrorMessage =
     "Task{} members must be defs defined in a Module class/trait/object body"
 
-  /**
-   * Checks if the macro owner is a method defined inside a Module (i.e., a class extending Cacher).
-   * Returns true if valid, false otherwise.
-   */
-  private[mill] def assertInsideModule(using Quotes): Boolean = withMacroOwner { owner =>
-    import quotes.reflect.*
-
-    val CacherSym = TypeRepr.of[Cacher].typeSymbol
-
-    val ownerIsCacherClass =
-      owner.owner.isClassDef &&
-        owner.owner.typeRef.baseClasses.contains(CacherSym)
-
-    ownerIsCacherClass && owner.flags.is(Flags.Method)
-  }
-
-  /**
-   * Reports an error if the macro is not inside a Module, using either a compile-time error
-   * or a runtime exception depending on configuration.
-   */
-  private[mill] def reportModuleOwnerError(using Quotes): Unit = {
-    import quotes.reflect.*
-    if (
-      sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
-      sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
-    ) {
-      report.errorAndAbort(moduleOwnerErrorMessage, Position.ofMacroExpansion)
-    }
-  }
-
   def impl0[T: Type](using Quotes)(t: Expr[T]): Expr[T] = withMacroOwner { owner =>
     import quotes.reflect.*
 

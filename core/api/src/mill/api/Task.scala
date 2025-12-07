@@ -581,10 +581,31 @@ object Task {
           }
       }
       // Also check that the task is inside a Module
-      if (!Cacher.assertInsideModule) {
-        Cacher.reportModuleOwnerError
+      if (!assertInsideModule) reportModuleOwnerError
+    }
+
+    private def reportModuleOwnerError(using Quotes): Unit = {
+      import quotes.reflect.*
+      if (
+        sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
+          sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
+      ) {
+        report.errorAndAbort(Cacher.moduleOwnerErrorMessage, Position.ofMacroExpansion)
       }
     }
+
+    private def assertInsideModule(using Quotes): Boolean = Cacher.withMacroOwner { owner =>
+      import quotes.reflect.*
+
+      val CacherSym = TypeRepr.of[Cacher].typeSymbol
+
+      val ownerIsCacherClass =
+        owner.owner.isClassDef &&
+          owner.owner.typeRef.baseClasses.contains(CacherSym)
+
+      ownerIsCacherClass && owner.flags.is(Flags.Method)
+    }
+
     def sourceImpl(using
         Quotes
     )(value: Expr[Result[PathRef]])(
