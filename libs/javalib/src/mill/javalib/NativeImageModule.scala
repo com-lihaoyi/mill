@@ -3,6 +3,7 @@ package mill.javalib
 import mill.*
 import mill.constants.{DaemonFiles, Util}
 import coursier.core.VariantSelector.ConfigurationBased
+import mainargs.Flag
 
 import scala.util.Properties
 import mill.api.BuildCtx
@@ -285,6 +286,10 @@ trait NativeImageModule extends WithJvmWorkerModule {
       Task {
         Set.empty[String]
       }
+  }
+
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
+    (super.prepareOffline(all)() ++ nativeImageClasspath() ++ nativeGraalVMReachabilityMetadataClasspath()).distinct
   }
 
 }

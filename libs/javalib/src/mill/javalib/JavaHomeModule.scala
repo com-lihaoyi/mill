@@ -1,12 +1,13 @@
 package mill.javalib
 
+import mainargs.Flag
 import mill.T
 import mill.api.{PathRef, Task}
 
 /**
  * Common trait for modules that use either a custom or a globally shared [[JvmWorkerModule]].
  */
-trait JavaHomeModule extends CoursierModule {
+trait JavaHomeModule extends CoursierModule, OfflineSupportModule {
 
   def jvmId: T[String] = ""
 
@@ -34,5 +35,9 @@ trait JavaHomeModule extends CoursierModule {
       // Java home is externally managed, better revalidate it at least once
       PathRef(path, quick = true).withRevalidateOnce
     }
+  }
+
+  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    (super.prepareOffline(all)() ++ javaHome().toSeq).distinct
   }
 }
