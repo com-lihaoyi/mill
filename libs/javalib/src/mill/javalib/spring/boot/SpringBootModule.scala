@@ -1,5 +1,6 @@
 package mill.javalib.spring.boot
 
+import mainargs.Flag
 import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
@@ -126,6 +127,13 @@ trait SpringBootModule extends JavaModule {
     PathRef(
       aotDir / "resources/META-INF/native-image" / groupId / springBootArtifactId() / "native-image.properties"
     )
+  }
+
+  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++
+        springBootToolsModule().prepareOffline(all)()
+    ).distinct
   }
 
   /**

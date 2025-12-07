@@ -3,6 +3,7 @@ package mill.javalib
 import mill.*
 import mill.constants.{DaemonFiles, Util}
 import coursier.core.VariantSelector.ConfigurationBased
+import mainargs.Flag
 
 import scala.util.Properties
 import mill.api.BuildCtx
@@ -22,7 +23,7 @@ import mill.javalib.graalvm.MetadataQuery
  * }}}
  */
 @mill.api.experimental
-trait NativeImageModule extends WithJvmWorkerModule {
+trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   def runClasspath: T[Seq[PathRef]]
 
   def finalMainClass: T[String]
@@ -285,6 +286,16 @@ trait NativeImageModule extends WithJvmWorkerModule {
       Task {
         Set.empty[String]
       }
+  }
+
+  override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++
+        nativeImageClasspath() ++
+        nativeGraalVMReachabilityMetadataClasspath() ++
+        // should be in WithJvmWorkerModule, but isn't due to bin-compat
+        jvmWorker().prepareOffline(all)()
+    ).distinct
   }
 
 }
