@@ -580,30 +580,29 @@ object Task {
             case None => report.error(err)
           }
       }
-      // Also check that the task is inside a Module
-      if (!assertInsideModule) reportModuleOwnerError
+
+      assertInsideModule()
     }
 
-    private def reportModuleOwnerError(using Quotes): Unit = {
+    private def assertInsideModule()(using Quotes): Unit = Cacher.withMacroOwner { owner =>
       import quotes.reflect.*
+      import mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS
       if (
-        sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
-          sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
+        sys.env.contains(MILL_ENABLE_STATIC_CHECKS) ||
+        sys.props.contains(MILL_ENABLE_STATIC_CHECKS)
       ) {
-        report.errorAndAbort(Cacher.moduleOwnerErrorMessage, Position.ofMacroExpansion)
+        val CacherSym = TypeRepr.of[Cacher].typeSymbol
+
+        val ownerIsCacherClass =
+          owner.owner.isClassDef && owner.owner.typeRef.baseClasses.contains(CacherSym)
+
+        if (!(ownerIsCacherClass && owner.flags.is(Flags.Method))) {
+          report.errorAndAbort(
+            "Task{} members must be defs defined in a Module class/trait/object body",
+            Position.ofMacroExpansion
+          )
+        }
       }
-    }
-
-    private def assertInsideModule(using Quotes): Boolean = Cacher.withMacroOwner { owner =>
-      import quotes.reflect.*
-
-      val CacherSym = TypeRepr.of[Cacher].typeSymbol
-
-      val ownerIsCacherClass =
-        owner.owner.isClassDef &&
-          owner.owner.typeRef.baseClasses.contains(CacherSym)
-
-      ownerIsCacherClass && owner.flags.is(Flags.Method)
     }
 
     def sourceImpl(using

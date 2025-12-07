@@ -233,11 +233,11 @@ object MacroErrorTests extends TestSuite {
             lazy val millDiscover = Discover[this.type]
           }
           """
-          )
+        )
 
-          assert(error.msg.contains(
-            "Task{} members must be defs defined in a Module class/trait/object body"
-          ))
+        assert(error.msg.contains(
+          "Task{} members must be defs defined in a Module class/trait/object body"
+        ))
       }
       test("command") {
         val error = utest.assertCompileError(
@@ -250,11 +250,11 @@ object MacroErrorTests extends TestSuite {
             lazy val millDiscover = Discover[this.type]
           }
           """
-          )
+        )
 
-          assert(error.msg.contains(
-            "Task{} members must be defs defined in a Module class/trait/object body"
-          ))
+        assert(error.msg.contains(
+          "Task{} members must be defs defined in a Module class/trait/object body"
+        ))
       }
     }
 
