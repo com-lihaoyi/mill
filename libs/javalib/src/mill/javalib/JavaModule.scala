@@ -81,6 +81,10 @@ trait JavaModule
     // Run some consistence checks
     hierarchyChecks()
 
+    // Resolve diamond inheritance: JavaModule and TestModule both define this
+    override def methodCodeHashSignatures: T[Map[String, Int]] =
+      super[TestModule].methodCodeHashSignatures
+
     override def resources = super[JavaModule].resources
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
@@ -1619,6 +1623,10 @@ object JavaModule {
     private val outer: JavaModule = moduleDeps.head
     // Run some consistence checks
     hierarchyChecks()
+
+    // Resolve diamond inheritance: JavaModule and TestModule both define this
+    override def methodCodeHashSignatures: T[Map[String, Int]] =
+      super[TestModule].methodCodeHashSignatures
 
     override def resources = super[JavaModule].resources
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
