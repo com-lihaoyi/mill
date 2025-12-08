@@ -1,4 +1,4 @@
-= Comparing Mill vs Maven
+= Comparing Mill vs Maven: Declarative Builds
 
 The xref:comparisons/maven.adoc[Maven] build tool is famous for pioneering the idea of
 _"Declarative Builds"_: that you should only need to specify what you your project needs,

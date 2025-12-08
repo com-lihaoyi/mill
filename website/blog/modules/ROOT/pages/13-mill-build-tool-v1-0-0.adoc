@@ -11,7 +11,7 @@ _{author}, {revdate}_
 improve upon existing build tools in areas like
 xref:mill::comparisons/performance.adoc[],
 xref:mill::comparisons/gradle.adoc#_extending_mill[extensibility],
-and xref:mill::comparisons/gradle.adoc#_ide_support[IDE support].
+and xref:mill::comparisons/gradle.adoc#_gradle_ide_support[IDE support].
 The new release of Mill 1.0.0 is a major breaking version of the Mill project focused on setting
 a solid technical foundation that can provide stability for the coming years of development. While the
 https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100[Changelog] contains a thorough
@@ -281,7 +281,7 @@ xref:mill::android/java.adoc[Android Kotlin Projects] for more details.
 
 === IDE Support
 
-Mill has always had a xref:mill::comparisons/gradle.adoc#_ide_support[best-in-class IDE experience]
+Mill has always had a xref:mill::comparisons/gradle.adoc#_gradle_ide_support[best-in-class IDE experience]
 in IntelliJ and VSCode that surpasses the experience you get with Maven, Gradle, or SBT.
 For example, in Mill builds your IDE is able to autocomplete, pull up docs, or otherwise
 navigate around your build graph as easily as you can any application codebase in Java, Scala,
