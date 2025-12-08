@@ -1,6 +1,6 @@
 //| mill-jvm-version: 17
 
-// Spring boot projects can also be built using Mill's programmatic `build.mill` syntax,
+// Spring boot projects can also be built using Mill's programmable `build.mill` syntax,
 // as shown below:
 
 package build

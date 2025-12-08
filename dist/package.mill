@@ -270,7 +270,7 @@ object `package` extends MillJavaModule with DistModule {
   }
 
   def examplePathRefs: Task[Seq[PathRef]] =
-    Task.traverse(build.example.exampleModules)(_.testRepoSourceRoot)
+    Task.traverse(build.example.exampleModules)(_.testRepoRoot)
 
   def exampleRendered: Task[Seq[PathRef]] =
     Task.traverse(build.example.exampleModules)(_.rendered)

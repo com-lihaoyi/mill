@@ -1,10 +1,10 @@
-// Config-based modules can depend on programmatic modules, and vice versa. This
+// Config-based modules can depend on programmable modules, and vice versa. This
 // allows you to use simple config-based `build.mill.yaml` files for modules without any special
-// requirements, use programmatic `build.mill` files for modules with custom tasks or other
+// requirements, use programmable `build.mill` files for modules with custom tasks or other
 // more advanced customizations, and have them inter-operate with each other seamlessly.
 
 // The example below shows a config-based module in `foo/package.mill.yaml` depending upon
-// a programmatic module `bar` and a programmatic cross-module `qux[1]`.
+// a programmable module `bar` and a programmable cross-module `qux[1]`.
 
 //// SNIPPET:BUILD
 package build
@@ -31,6 +31,6 @@ trait QuxModule extends ScalaModule, Cross.Module[Int] {
 
 //// SNIPPET:END
 
-// The dependenies on programmatic modules like `bar` and cross-modules like `qux[1]` use
+// The dependenies on programmable modules like `bar` and cross-modules like `qux[1]` use
 // Mill's xref:cli/query-syntax.adoc[Task Query Syntax]. Note that `"qux[1]"` needs to be
 // quoted to avoid being mistaken for the YAML `[]` array syntax.
