@@ -15,7 +15,7 @@ still applies.
 
 include::partial$example/javalib/springboot/1-hello-spring-boot.adoc[]
 
-include::partial$example/javalib/springboot/2-hello-spring-boot-programmatic.adoc[]
+include::partial$example/javalib/springboot/2-hello-spring-boot-programmable.adoc[]
 
 
 == Spring Boot TodoMvc App

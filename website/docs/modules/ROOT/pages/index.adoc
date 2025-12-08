@@ -8,21 +8,18 @@ https://github.com/com-lihaoyi/mill[image:https://img.shields.io/github/stars/co
 Mill is a build tool that tries to improve upon the tools traditionally used
 in the JVM ecosystem:
 
-* Mill builds the same Java project xref:comparisons/why-mill.adoc#_performance[3-6x
- faster than Maven or Gradle] due to aggressive caching & parallelism
+* **xref:comparisons/maven.adoc[Simpler than Maven]**, with `build.mill.yaml` files
+  often 1/10th the lines of an equivalent `pom.xml`
 
-* Mill's rich featureset supports everything from xref:javalib/intro.adoc#_single_file_scripts[single-files] to
-xref:large/large.adoc[large projects] with
-xref:comparisons/why-mill.adoc#_rich_builtins[less need for plugins]
+* **xref:comparisons/gradle.adoc[Easier than Gradle]**, with
+  object-oriented builds that any Java developer can intuitively understand
 
-* Mill builds are xref:comparisons/why-mill.adoc#_ide_support[easily explorable in your IDE],
-letting you work on them without constantly googling for help
+* **xref:comparisons/performance.adoc[Fastest builds on the JVM]**, 3-6x
+ faster than Maven or Gradle due to aggressive caching & parallelism
 
 Although the Java compiler is very fast and the Java language is easy to learn,
-JVM build tools have a reputation for being sluggish and confusing. Mill tries to
-offer a better alternative, its xref:comparisons/why-mill.adoc#_object_oriented_builds[object-oriented builds]
-reducing the learning curve and letting your build system take
-full advantage of the Java platform's performance, usability, and IDE support.
+JVM build tools have a reputation for being sluggish, complicated, and confusing. Mill tries to
+offer a better alternative that gives the Java platform the developer experience it deserves.
 
 If you prefer a video introduction to Mill, see:
 
@@ -30,7 +27,7 @@ If you prefer a video introduction to Mill, see:
 Berlin Expert Days 8 Oct 2025
 * https://www.youtube.com/watch?v=tNsz_dGCsVs[Video: Simpler Build Tools with Functional and Object Oriented Programming], Scala Workshop 13 Oct 2025
 
-For more discussion on the motivation behind the project, see xref:comparisons/why-mill.adoc[Why Use Mill?]
+
 
 === Getting Started
 
@@ -111,11 +108,10 @@ strengths of each tool and improve on their weaknesses. For comparisons with exi
 build tools, check out these pages:
 
 
-[cols="1a,1a,1a"]
+[cols="1a,1a"]
 |===
 | xref:comparisons/maven.adoc[image:index/maven.png[maven,24] Mill vs Maven]
 | xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
-| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs sbt]
 |===
 
 === Tool & Framework Support
