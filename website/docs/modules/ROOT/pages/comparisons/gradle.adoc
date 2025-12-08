@@ -2,32 +2,28 @@
 
 Gradle is a popular open source build tool in the Java and JVM ecosystem,
 second only to Maven. Gradle's core API is built around programmable configuration
-files written in Groovy or Kotlin. Mill also provides programmable configuration
-in its `build.mill` syntax, but thanks to its xref:#_object_oriented_builds[object-oriented builds]
-Mill is able to provide a much more familiar programming experience with much better
-IDE support than Gradle has been able to do.
+files written in Groovy or Kotlin. Mill defaults to a declarative
+xref:javalib/intro.adoc#_config_based_modules[config-based module syntax], but when you do need
+to extend it Mill's xref:javalib/intro.adoc#_programmable_modules[programmable module syntax]
+allows you to directly write code to configure your build.
+
+This page will walk through the interesting highlights of Mill's programmable build architecture,
+and how it uses the idea of xref:#_object_oriented_builds[object-oriented builds] to provide a
+more familiar programming experience with better IDE support than Gradle or other
+build tools have been able to do.
 
 == Extending Mill
 
-Mill defaults to a declarative xref:javalib/intro.adoc#_config_based_modules[config-based module syntax],
-but when you do need to extend it Mill's
-xref:javalib/intro.adoc#_programmable_modules[programmable module syntax] allows you to directly
-write code to configure your build, and make it do exactly what you want.
+What makes Mill's programmable build definitions interesting is that you do not need to learn
+a whole new set of special build-tool-specific concepts, APIs, and libraries in order to do so:
 
-Most build tools need plugins to do anything: if you want to _Foo_ you need a
-_Foo plugin_, if you want to Bar you need a _Bar plugin_, for any possible _Foo_ or _Bar_. These could
-be simple tasks - zipping up files, pre-rendering web templates, preparing static assets for
-deployment - but even a task that would be trivial to implement in a few lines of code requires
-you to Google for third-party plugins, dig through their Github to see which one is best
-maintained, and hope for the best when you include it in your build. And while you could
-write plugins yourself, doing so is usually non-trivial.
+* While most build tools require users to write plugins against a custom plugin API, Mill allows
+you to customize your build using object-oriented methods, classes, and overrides
 
-Mill is different. Although Mill does have
-xref:extending/thirdparty-plugins.adoc[plugins supporting common integrations],
-for most simple things you can directly write code to achieve what you want using the bundled
-filesystem, subprocess, and dependency-management libraries. And even if you need third-party
-libraries from Maven Central to do `xyz`, you can directly import the "`xyz`" library and use it
-directly, without having to find a "xyz build plugin" wrapper.
+* While most build tools limit you to only using plugins purpose-built for the tool, Mill allows
+you to use any Java library as part of your build to do what you want
+
+We'll discuss these two ideas more in the examples below.
 
 === Simple Custom Tasks
 
@@ -51,7 +47,8 @@ object foo extends JavaModule {
 Compiling 1 Java source...
 ----
 
-If you want to add a custom task, this is as simple as defining a method e.g.
+If you want to add a custom task, this is as simple as defining a method. Mill's
+programmable `build.mill` files use Scala syntax, so a method is defined using `def` e.g.
 `def lineCount = Task { ... }`. The body of `Task` performs the action we want, and
 can depend on other tasks such as `allSourceFiles()` below:
 
@@ -131,21 +128,30 @@ the application code to use e.g. to print it out at runtime:
 Line Count: 18
 ----
 
-Next, we'll look at a more realistic example,
-which includes usage of third-party libraries in the build.
+Nobody actually wants to count the lines of code in their program and write it in a resource file,
+but this example demonstrates how easy it is to extend your Mill module with custom tasks in their
+own little custom build pipeline: you just define method ``def``s calling other methods, `override`
+methods and call `super` as necessary. These are concepts that any Java developer has been using
+daily for decades, and Mill lets you re-use those concepts to configure and customize your build
+tool without having to learn a whole new set of build-tool-specific APIs.
+
+Next, we'll look at a more involved example, which includes usage of third-party libraries
+in the build.
 
 === Using Third-Party JVM Libraries in Tasks
 
-Many build tasks require third-party libraries. One example is pre-rendering HTML pages
-in the build so they can be served at runtime: if a page never changes, rendering it on every request is
-wasteful, and even rendering it once on startup and then caching it
-can impact your application startup time. Thus, you may want to move some HTML rendering to
-build-time, but with traditional build tools such a move is sufficiently inconvenient and
-complicated that people rarely do it. Other use cases may include custom linters, custom
-deployment artifacts, custom debugging metadata, and so on.
+Many build tasks require third-party libraries:
 
-With Mill, using third-party libraries in your build tasks is very easy. Mill does not
-ship with a bundled HTML templating engine, but you can use the
+- Running custom linters
+- Building custom package formats with an open-source packager
+- Running security scans at build time
+
+As a representative example, let's imagine we take our `def lineCount` extension above,
+but instead of writing `line-count.txt` as a text file, I want to render it as HTML template.
+This example is artificial but will let us explore how using third-party libraries in Mill
+is done.
+
+Mill does not ship with a bundled HTML templating engine, but you can use the
 xref:extending/import-mvn-plugins.adoc[//| mvnDeps] syntax to include one such as
 https://www.thymeleaf.org/[Thymeleaf], which would immediately make the
 Thymeleaf classes available for you to import and use in your build as below:
@@ -264,16 +270,34 @@ tasks.named("processResources") {
 While the Gradle config is a bit more verbose than Mill's, that is not where the problem
 lies. The problem lies in the fact that the Gradle "config as code" doesn't _actually_
 look like the code you are writing day-to-day: although it is written in Kotlin,
-things like `task.named`, `dependsOn`, `inputs.files` and `outputs.file`, `doLast`
-(or should we use `doFirst`?) are not "normal" Kotlin. The stringly-typed `"generateLineCount"`,
-`"generated-resources"`, `"processResources"`, values add to the potential for error.
+the APIs you need to use are not "normal" Kotlin:
+
+- `task.named`
+- `dependsOn`
+- `inputs.files`
+- `outputs.file`
+- `doLast` (or should we use `doFirst`?)
+
+Furthermore, the stringly-typed values add to the potential for error:
+
+- `"generateLineCount"`
+- `"generated-resources"`
+- `"processResources"`
+- `"src/main/java"`
+- `"src/main"`
+
 The end result is that although you may know Kotlin as a compiled language with great
 IDE support, you will likely be unfamiliar with Gradle's flavor of Kotlin, and your
 IDE will likely not be as useful as you would like.
 
 In fact, there is even a bug in the above Gradle config that will cause the build to
 be non-deterministically slower sometimes, but not other times.
-Can you spot it?
+Can you spot it? (Click the footnote to see the answer footnote:[The bug is `inputs.files` is depending on `src/main`, when it only really needs
+`src/main/java`. That means that changes to `src/main/resources` or `src/main/templates`
+will cause the task redundantly re-compute, making your build slower than necessary. If the bug was the other way -
+rather than depending on too large a folder instead depending on too small a folder -
+it would instead cause flakiness where `generateLineCount` would sometimes not run when it needs to.])
+
 
 The difficulty of catching these issues e.g. during code review
 illustrates how difficult it is to write "correct" Gradle config: if even the simplest
@@ -281,11 +305,6 @@ hello-world customization results in impossible-to-find bugs slowing things down
 bugs will there be in any more-complex real-world customization or plugin? It's no wonder
 then than real-world builds using Gradle or other tools often end up being inexplicably
 slow and flaky!
-(Click the footnote to see the answer footnote:[The bug is `inputs.files` is depending on `src/main`, when it only really needs
-`src/main/java`. That means that changes to `src/main/resources` or `src/main/templates`
-will cause the task redundantly re-compute, making your build slower than necessary. If the bug was the other way -
-rather than depending on too large a folder instead depending on too small a folder -
-it would instead cause flakiness where `generateLineCount` would sometimes not run when it needs to.])
 
 In contrast, Mill's `extends`, method ``def``s and method calls, and `overrides`
 behave exactly as you would expect any object-oriented program to work, so you already
@@ -348,33 +367,41 @@ things wrong.
 
 Although this example is using Gradle's un-typed Groovy syntax, the experience
 using Gradle's typed Kotlin syntax is largely the same. The problem isn't unique
-to Gradle, and isn't unique to IntelliJ: any IDE would have similar problems working
-with this code. The problem is the build tool configuration itself, or rather the
-style of code that most build tools require they be configured with.
+to Gradle, isn't unique to Groovy or Kotlin, and isn't unique to IntelliJ. The
+problem is the style of code that most build tools require they be configured with.
 
 === Global Mutable Variables
 
 The fundamental problem with build tools like Gradle is that the entire configuration system
-is based around _global mutable variables_. The Groovy or Kotlin code you write does not
-actually _perform the build_, but instead is just setting up some
-global mutable data structure that is used to configure the _real_ build engine that
-runs _later_. Thus when you explore the Gradle build in an IDE, the IDE can only explore the
-configuration logic (the `getCompilerArgs` method above) and is unable to explore
-the actual build logic (how `getCompilerArgs` _actually gets used in Gradle_). And
-just because the global mutable variable is wrapped in a getter and setter
-does not make it any less global or any less mutable!
+is based around _global mutable variables_. We can see a hint of that in the IDE screenshot
+above, where jumping to `compilerArgs` brings us to a _getter_ and _setter_:
 
-The problem with IDEs not being able to understand code written with global mutable
-variables is not new. If you wrote your application code primarily using global mutable
-variables, your IDE would not be able to help you much there either! So nobody does that,
-and instead applications are primarily built using classes and methods, but some how
-no build tool follows the same style so they all have problems with IDEs not being able
-to work with their global mutable variables effectively.
+```java
+public List<String> getCompilerArgs() {
+    return this.compilerArgs;
+}
+
+public void setCompilerArgs(List<String> compilerArgs) {
+    this.compilerArgs = compilerArgs;
+}
+```
+
+The Groovy or Kotlin code you write does not actually _perform the build_, but instead is
+just setting up some global mutable data structure that is used to configure the _real_
+build engine that runs _later_. IDEs are generally not good at understanding logic around
+global mutable variables, and just because the global mutable variable is wrapped in a
+getter and setter does not make it any less global or any less mutable!
+
+This issue with global mutable variables is at the core of why IDEs have trouble with
+build tools. It doesn't matter what IDE you are using, and it doesn't matter what language
+the build tool is using: Java, Kotlin, Groovy, Scala, Python, or something else. If the
+build tool is architected around everything being a global mutable variable, then inevitably
+the user is going to have a poor IDE experience trying to navigate it.
 
 === The Mill IDE Experience
 
 
-In comparison, not only are Mill's `.mill` files statically typed, they are
+The big difference with Mill is that rather than building on global mutable variables, Mill is
 built on top of _classes_ and _methods_ like any other JVM codebase. While IDEs struggle
 with global variables, they are very good at navigating classes and methods!
 For example IntelliJ is able to take your `def javacOptions` override and
@@ -421,12 +448,13 @@ providing it in any other build tool.
 
 All build tools are complex, because the requirements of building any size-able real-world
 project are complex. One big source of build tool complexity is that users need some way to
-define templated, customizable graph-computations when setting up their build pipelines.
+define templated graph-computations when setting up their build pipelines.
 
-- *Computations* as you need to specify what each build step does
 - *Graph* as the data structure necessary to order and parallelize steps in your build
-- *Templated* as different modules in a build are often very similar, with similar pipelines
-- *Customizable* as there are always some module, or group of modules, special in some way
+- *Computations* as `.class` files and `.jar` files don't make themselves, and someone
+  in Java or Groovy or Kotlin or Bash needs to specify how each step's outputs are made
+- *Templated* as different modules in a build are often very similar, with similar pipelines,
+  but will also have their differences
 
 For example, even a simplified three-module Java build pipeline may look like this:
 
@@ -482,36 +510,22 @@ digraph G {
 }
 ....
 
-Apart from the various tasks doing different things, we also see multiple modules
-with similar task layouts (`foo`, `bar` and `qux`), but with subtle customizations in
-each module to wire them up
-(e.g. `foo.classPath` having one upstream task but `bar.classPath` and `qux.classPath`
-each having two). And this is one of the simplest possible builds: you can imagine that
-with compiler and runtime flags, code-generation, dependency-downloading, different language
-toolchains, these graphs can get complicated quickly. And any build tool will need some way
-for the user to define these graphs and maintain them over time.
 
 Most build tools provide ad-hoc config formats (Maven's XML) or programmable builder
-APIs (e.g. Gradle's Groovy/Kotlin) to satisfy this need, but these ad-hoc formats
-inevitably end up being unfamiliar and confusing to users (e.g. the Gradle code
-xref:#_mill_vs_gradle_configuration_as_code[discussed above]). Many
-tools try to hide complexity behind plugins, but that doesn't actually solve it: plugin
-authors are human too, and can also make mistakes and cause bugs when publishing their plugins.
-It doesn't matter whether the bugs are in your own build customization or in the plugins
-you use if the end result is your build system becomes slow and flaky!
+APIs (e.g. Gradle's Groovy/Kotlin) to satisfy this need.
+But fundamentally, defining an API for templated graph-computations is
+non-trivial, so it is not surprising the APIs and to do so can get complicated.
 
-
-Fundamentally, defining an API for templated, customizable graph-computations is
-non-trivial, so it is not surprising the APIs and to do so can get complicated. But Mill
-has one big insight in how it can be done better:
+Although the need to define templated graph computations is universal, Mill has one
+unique insight in how it can be done better:
 
 === Object-Oriented Build Pipelines
 
-Mill has the same requirement of defining templated, customizable graph-computations, but
+Mill has the same requirement of defining templated graph-computations, but
 rather than inventing a bespoke programming, configuration and plugin model to do so, Mill
 builds upon what everyone already knows: _Object-Oriented Programming_. It turns out that the
 object-oriented programming every Java developer learned in school provides all the key
-building blocks necessary to define templated, customizable graph-computations:
+building blocks necessary to define templated graph-computations:
 
 - *Methods* provide a way of defining discrete build steps that perform
 some necessary action in your build
