@@ -33,6 +33,7 @@ has changed, and that the change is small enough
 to not require other files to re-compile. In contrast, Maven re-compiles all files in both
 modules, even though only one file was touched and the change was trivial.
 
+For more details on these benchmarks, see xref:#_mill_vs_maven_in_depth[]
 
 == Mill vs Gradle
 
@@ -62,6 +63,8 @@ Rather, what we are seeing is Mill simply having less build-tool overhead than M
 so the performance of the underlying JVM and Java compiler (which is actually pretty fast!) can
 really shine through.
 
+
+For more details on these benchmarks, see xref:#_mill_vs_gradle_in_depth[]
 
 == Not Just Compile Times
 
@@ -99,6 +102,15 @@ with Mill to build and test the various submodules of the Netty project without 
 change any other files in the repository:
 
 - https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/netty/build.mill[Netty build.mill file]
+
+To reproduce these benchmarks locally, you can download and unzip
+
+- https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/{mill-version}/mill-dist-{mill-version}-example-thirdparty-netty.zip
+
+And run the commands listed in the below sections yourself. Note that as Mill runs a JVM
+background daemon, it may require a few runs for the JVM to warm up to peak performance,
+and do be aware that benchmarked performance is expected to differ on different operating
+systems and hardware
 
 The Mill build for Netty is not 100% complete, but it covers most of the major parts of Netty:
 compiling Java, compiling and linking C code via JNI, custom codegen using Groovy scripts,
@@ -418,6 +430,14 @@ change any other files in the repository:
 
 - https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/mockito/build.mill[Mockito build.mill file]
 
+To reproduce these benchmarks locally, you can download and unzip
+
+- https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/{mill-version}/mill-dist-{mill-version}-example-thirdparty-mockito.zip
+
+And run the commands listed in the below sections yourself. Note that as Mill runs a JVM
+background daemon, it may require a few runs for the JVM to warm up to peak performance,
+and do be aware that benchmarked performance is expected to differ on different operating
+systems and hardware
 
 The Mill build for Mockito is not 100% complete, but it covers most of the major parts of Mockito:
 compiling Java, running JUnit tests. For now, the Android, Kotlin, and OSGI tests are skipped,
