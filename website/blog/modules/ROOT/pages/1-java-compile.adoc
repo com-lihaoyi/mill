@@ -362,7 +362,7 @@ compiling Java_ is pure overhead. Checking for cache invalidation in _shouldn't_
 as long as actually compiling your code. I mean it obviously does _today_, but it _shouldn't_!
 
 The Mill build tool goes to great lengths to try and minimize overhead, and already gets
-xref:mill:ROOT:comparisons/why-mill.adoc#_performance[~4x faster builds] than Maven or Gradle on
+xref:mill:ROOT:comparisons/performance.adoc[~4x faster builds] than Maven or Gradle on
 real-world projects like Mockito or Netty. But there still is a long way to go give Java
 developers the fast, snappy experience that the underlying Java platform can provide. If
 Java build and compile times are things you find important, you should try out Mill on

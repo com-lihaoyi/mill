@@ -38,6 +38,6 @@ include::partial$example/kotlinlib/config/7-web-example.adoc[]
 
 include::partial$example/kotlinlib/config/8-custom-trait.adoc[]
 
-== Programmatic `moduleDeps`
+== Programmable `moduleDeps`
 
-include::partial$example/kotlinlib/config/9-programmatic-module-deps.adoc[]
+include::partial$example/kotlinlib/config/9-programmable-module-deps.adoc[]

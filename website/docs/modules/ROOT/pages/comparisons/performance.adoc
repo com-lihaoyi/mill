@@ -1,0 +1,91 @@
+= Mill Build Performance
+
+Build tool performance has been a big focus in developing Mill: Java build tools have
+a reputation for being sluggish, even though the JVM has outstanding performance second
+only to languages like C/C++/Rust.
+
+== Maven
+
+Overall across our benchmarks, Mill is 4-6x faster than Maven for clean compiles,
+both parallel and sequential, and for many modules or for a single module:
+
+|===
+| Benchmark | Maven | Mill | Speedup
+| Sequential Clean Compile All | 98.80s | 23.41s | 4.2x
+| Parallel Clean Compile All | 48.92s | 9.29s | 5.3x
+| Clean Compile Single Module | 4.89s | 0.88s | 5.6x
+| Incremental Compile Single Module | 6.82s | 0.18s | 37.9x
+| No-Op Compile Single Module | 5.25s | 0.12s  | 43.8x
+|===
+
+First, let's look at *Parallel Clean Compile All*.
+This benchmark involves running `clean` to delete all generated files and re-compiling
+everything in parallel. Mill sees a significant ~5x speedup over Maven for this benchmark.
+You can click on the link above to see a more detailed discussion of how this benchmark was
+run.
+
+The second benchmark worth noting is *Incremental Compile Single Module*.
+This benchmark involves adding a single newline to the end of a single already-compiled file in `common`,
+and re-compiling `common` and `common.test`.
+Mill sees a huge speedup for this benchmark, because Mill's incremental compiler
+(https://github.com/sbt/zinc[Zinc]) is able to detect that only one file in one module
+has changed, and that the change is small enough
+to not require other files to re-compile. In contrast, Maven re-compiles all files in both
+modules, even though only one file was touched and the change was trivial.
+
+
+== Gradle
+
+The comparison with Gradle is less stark, but still significant. Mill is 3-4x faster than Gradle
+across the various workflows:
+
+
+|===
+| Benchmark | Gradle | Mill | Speedup
+| Sequential Clean Compile All | 17.6s | 5.86s | 3.0x
+| Parallel Clean Compile All | 12.3s | 3.75s | 3.3x
+| Clean Compile Single Module | 4.41s | 1.30s | 3.4x
+| Incremental Compile Single Module | 1.37s | 0.20s | 6.9x
+| No-Op Compile Single Module | 0.94s | 0.11s | 8.5x
+|===
+
+Mill's various "clean compile" workflows 3-4x faster than Gradle's, while it's incremental
+and no-op compile workflows are 7-9x faster. Both Gradle and Mill appear to do a good job
+limiting the compilation to only the changed file, but Mill has less fixed overhead than
+Gradle does, finishing in about ~0.2s rather than ~1.5 seconds.
+
+In general, these benchmarks don't show Mill doing anything that Maven or Gradle do not:
+these are equivalent builds for the same projects (https://github.com/netty/netty[Netty] and
+https://github.com/mockito/mockito[Mockito] respectively), compiling the same number of files
+using the same Java compiler, in the same module structure and passing the same suite of tests.
+Rather, what we are seeing is Mill simply having less build-tool overhead than Maven or Gradle,
+so the performance of the underlying JVM and Java compiler (which is actually pretty fast!) can
+really shine through.
+
+
+== Not Just Compile Times
+
+Compilation times are only one part of the time taken during development. Mill
+also provides features that help speed up other parts of your development cycle:
+
+1. xref:large/selective-execution.adoc[Selective Test Execution] allows you to skip unrelated tests when
+validating pull requests, speeding up PR validation considerably
+
+2. xref:javalib/testing.adoc#_test_parallelism[Test Parallelism] automatically distributes tests
+across multiple threads, utilizing all available cores while maintaining long-lived
+JVM processes to maximize performance
+
+3. xref:blog::9-mill-faster-assembly-jars.adoc[Incremental Assembly Jar Creation] speeds
+up creation of assembly jars, greatly speeding up workflows that use them
+(e.g. Spark Submit)
+
+4. xref:depth/parallelism.adoc#_mill_chrome_profiles[Build Performance Profiles] are
+automatically generated for every command, giving visibility
+into where the build tool is spending time so you can understand and optimize it.
+
+image::ROOT:comparisons/NettyCompileProfile.png[]
+
+None of these features are rocket science, and they are all things that you can
+in theory set up with other build tools. However, Mill provides these features
+built-in without needing to first hunt down plugins or third-party integrations,
+and makes all of them easy to set up and use.

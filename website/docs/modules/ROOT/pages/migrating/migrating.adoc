@@ -37,7 +37,8 @@ build system expertise; you may need twice the implementation time for a complet
 production-ready migration, with additional time for change-management work.
 
 Build system migrations are not cheap, but the productivity benefits of a
-faster and easier to use build system are significant (see xref:comparisons/why-mill.adoc[]),
+faster and easier to use build system are significant (see xref:comparisons/maven.adoc[],
+xref:comparisons/gradle.adoc[], xref:comparisons/performance.adoc[]),
 especially multiplied over an entire team of engineers who may be working on
 the codebase for multiple years. Generally the more actively a project is developed, and the
 longer you expect development to continue, the more worthwhile it is to migrate from
@@ -330,5 +331,5 @@ However, while _tedious_, such migrations are usually not _difficult_. Most
 build systems use a relatively small set of third-party tools with small amounts of
 custom logic, and Mill has built-in integrations with many common JVM tools and
 makes custom logic easy to implement. In the end the decision to migrate comes down to
-the benefits of Mill (see xref:comparisons/why-mill.adoc[]) outweighing the cost of migration,
+the benefits of Mill outweighing the cost of migration,
 which becomes more true as the lifespan and pace of development on a project grows.
