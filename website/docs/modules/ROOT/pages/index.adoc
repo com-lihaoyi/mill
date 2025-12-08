@@ -11,8 +11,8 @@ in the JVM ecosystem:
 * **xref:comparisons/maven.adoc[Simpler than Maven]**, with declarative `build.mill.yaml` files
   often 1/10th the lines of a `pom.xml`
 
-* **xref:comparisons/gradle.adoc[Easier than Gradle]**, with
-  programmable builds that any Java developer can intuitively understand
+* **xref:comparisons/gradle.adoc[Easier than Gradle]**, with 
+  object-oriented programmable builds Java developers can intuitively understand
 
 * **xref:comparisons/performance.adoc[Fastest builds on the JVM]**, 3-6x
  faster than Maven or Gradle due to aggressive caching & parallelism
