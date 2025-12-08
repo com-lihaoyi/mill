@@ -1,14 +1,15 @@
 = Comparing Mill vs Maven
 
-xref:comparisons/maven.adoc[Maven] build tool is famous for pioneering the idea of
-_"Declarative Builds"_: you should only need to specify what you want your project
-to use, and the build tool should be able to get everything working on your behalf.
-However, although that is an excellent ideal to strive towards, in practice
-there remains a lot of room for improvement.
+The xref:comparisons/maven.adoc[Maven] build tool is famous for pioneering the idea of
+_"Declarative Builds"_: that you should only need to specify what you your project needs,
+and the build tool should be able to get everything downloaded and cached and working on
+your behalf. However, although that is an excellent ideal to strive towards, in practice
+there are many ways where using Maven can be annoyingly tedious.
 
-his page discusses some of the key ways that Mill both learns from Maven, and also
-how Mill tries to improve upon some of its rough edges to provide a user experience
-that lets the idea of _"Declarative Builds"_ really shine through.
+This page discusses some of the key ways that the Mill build tool learns from Maven, and
+also how Mill tries to improve upon some of its rough edges. This lets Mill provide a user
+experience that improves upon when Maven can provide to developers, letting the simplicity
+of _"Declarative Builds"_ really shine through.
 
 == Where Maven's Declarative Builds Fall Short
 
@@ -51,7 +52,7 @@ public class HtmlScraper {
 ```
 
 This program is a single-file Java application that uses the https://jsoup.org/[Jsoup]
-third-party library to scrape links from a wikipedia page, and then uses that in turn to
+third-party library to scrape links from a Wikipedia page, and then uses that in turn to
 do a breadth-first search on the graph of Wikipedia articles and links. This is
 representative of the many small programs that get written in practice:
 
@@ -60,10 +61,11 @@ representative of the many small programs that get written in practice:
 - Someone trying to reproduce and minimize a bug in a library so that it can be reported
 
 This is a simple program that any programmer should be able to write without difficulty.
-In theory, there should be no reason that developers do not write small automation scripts
-and utilities in Java rather than Python or Bash, especially where the Java ecosystem
-has high-quality libraries you can use (such as Jsoup above). But in practice, setting
-up your single-file Java program to actually be _run_ proves quite a hurdle.
+In theory, there should be no reason that developers not to write small automation scripts
+and utilities in Java rather than Python or Bash: it's an easy widely-used language with
+an excellent runtime and a rich ecosystem has high-quality libraries (such as Jsoup above).
+But in practice, setting up your single-file Java program to actually be _run_ proves
+quite a hurdle. This article will discuss why.
 
 === Installing Java
 
@@ -85,14 +87,17 @@ Consider this discussion on https://news.ycombinator.com/item?id=46037261[Instal
 >
 > I would say as well as using SDKMan, you should use Jenv shell plugin to easily manage your JDK versions across projects
 
-Even among experienced developers, it is clear there is no clear consensus on how Java should be
+Even among experienced developers, it is clear there is no consensus on how Java should be
 installed: it varies between JDK distributions, between operating systems, and between different
 users' personal preference. Although a new Java developer might not need to understand the breadth
 and depth of Java installation methods to get something working, there's a non-trivial number of
 decisions that need to be made and a non-trivial number of ways things can go wrong.
 
 Maybe you got things working on your Mac-OSX laptop, but can you ensure the project works when
-run on your colleague's Windows-11 desktop machine, or your Linux backend servers?
+run on your colleague's Windows-11 desktop machine, or your Linux backend servers? And can you
+keep things working as versions need to be upgraded, or you have multiple projects requiring
+differing versions of Java? Just "installing Java" turns out to be quite a tricky thing to
+get right!
 
 === Setting up your pom.xml
 
@@ -187,7 +192,8 @@ syntax to make our specific package manage install it can be a challenge
 
 2. To solve the right-maven-version problem, many projects these days use
 https://maven.apache.org/tools/wrapper/maven-wrapper-plugin/usage.html[./mvnw bootstrap scripts]
-as a best practice. Should you be using that instead?
+as a best practice. Should you be using that instead? And if you do, you'd still find people
+using `mvn` rather than `./mvnw` out of muscle memory and getting confusing errors
 
 Similar to the challenges of xref:#_installing_java[], it can be non-trivial to ensure you are
 using the same version of `mvn` on your Mac laptop, or your colleague's Windows desktop, and
@@ -255,7 +261,7 @@ and library ecosystem are perfectly adequate.
 
 This is not for any fault of Java _the language_: while Java is a bit more verbose
 than Python or Bash, it is fine for writing this particular `HtmlScraper.java` program.
-It may even be preferable for it to be in Java when the time comes to add parallelism
+Java may even be preferable when the time comes to add parallelism
 and concurrency and other features that may be harder to implement in Python or Bash.
 The problem here is really that Java _build tools_ make it hard to run the code you have
 already written!
@@ -283,22 +289,25 @@ has several advantages that may not be obvious at a glance:
 Mill does not rely on a pre-installed Java runtime by default, and instead uses its own
 default version or the version explicitly configured in your `build.mill.yaml` file via:
 
-`build.mill.yaml`
-```
-mill-jvm-version: 24
+```yaml
+jvmId: 24
 ```
 
-You can easily try out different Java versions by changing the `mill-jvm-version` config key,
-and any Mill project can set `mill-jvm-version` to specify what Java version to use and ensure
-it is used regardless of where the project is being built. With Mill, the Java version you
+You can easily try out different Java versions by changing the `jvmId` config key,
+and any Mill project can set `jvmId` to specify what Java version to use and ensure
+it is used regardless of where the project is being built. You can also have different
+projects or even different modules within the same project using different ``jvmId``s,
+and Mill will download/cache/use them without you needing to worry about collisions.
+
+With Mill, the Java version you
 use is managed declaratively: just like how Maven lets you declaratively configure the libraries
-that a project needs, Mill lets you set the `mill-jvm-version` the project needs and then
-handles any downloading and caching of those JVMs automatically for you.
+that a project needs such as `org.jsoup:jsoup:1.17.2`, Mill lets you set the `jvmId` the
+project needs and then handles any downloading and caching of those JVMs automatically for you.
 
 Thus the `./mill` bootstrap script is able to fix both the challenges
 xref:#_installing_java[Installing Java] as well as xref:#_installing_maven[Installing Maven]:
-any Mill project you check out should be runnable using `./mill` without needing any
-global installation, and you can get started on Mill with just the bootstrap script
+any Mill project you check out should be buildable and runnable using `./mill` without needing
+any global installation, and you can get started on Mill with just the bootstrap script
 and nothing else.
 
 === Mill Build Configuration
@@ -314,19 +323,18 @@ mvnDeps:
 - org.jsoup:jsoup:1.7.2
 ```
 
-In this file, the `extends` clause tells us what class of modules this is (e.g.
-`mill.javalib.JavaModule`, `mill.kotlinlib.KotlinModule`, `mill.scalalib.ScalaModule`),
-and the other keys tell us configuration on that module we want to override
-(in this case `mvnDeps`).
+In this file,
 
-Mill's `build.mill.yaml` file allows a lot of configuration options:
-`mvnDeps`/`compileMvnDeps`/`runMvnDeps`, `repositiries`, `javacOptions`, linting and
-testing and packaging and publishing configuration, etc. discussed under
-xref:javalib/config.adoc[]. However, as Mill follows Mavens idea of
-_Convention over Configuration_, the  `build.mill.yaml` file only needs to contain
+- `extends` tells us what class of modules this is, e.g.
+`mill.javalib.JavaModule`, `mill.kotlinlib.KotlinModule`, `mill.scalalib.ScalaModule`,
+- The other keys such as `mvnDeps` tell us configuration on that module we want to override
+
+Mill follows Mavens principle of _Convention over Configuration_: although there are a lot
+of possible configuration options (`mvnDeps`, `moduleDeps`, `repositiries`,
+`javacOptions`, etc.) the  `build.mill.yaml` file only needs to contain
 the keys the user needs to customize. This greatly simplifies the common case where
-the user is mostly fine with the default configuration and avoids the complexity of
-xref:#_setting_up_your_pom_xml[].
+the user is mostly fine with the default configuration and avoids much of the
+complexity of xref:#_setting_up_your_pom_xml[].
 
 === Running Java Programs with Mill
 
@@ -355,8 +363,8 @@ This command-line syntax follows closely the syntax used in other runtimes:
 > bash foo.sh <arg2> <arg2>
 ```
 
-Although `mvn` using a different the command line syntax to run your Java code isn't a blocker,
-it is another small hurdle on top of the many other hurdles that a new user faces when trying
+``mvn``'s command line syntax to run your Java code isn't a blocker, but it is yet another
+small hurdle on top of the many other hurdles that a new user faces when trying
 to run their Java code. Mill tries to follow the common command-line conventions used by most
 other programming languages, so that anyone who picks up a Mill project coming from other
 languages or ecosystems will feel right at home.
@@ -430,10 +438,11 @@ single-file scripts are fully declarative:
 
 But unlike Maven, Mill is able to streamline the process of taking your `.java` file
 and running it, such that the underlying simplicity of its declarative configuration
-really shines through in the user experience. We have seen similar approaches taken in
-Python with https://docs.astral.sh/uv/guides/scripts/[uv run], and Mill brings that
-approach to Java and the JVM ecosystem letting you run single-file scripts written
-in Java, Scala, or Kotlin without the overhead of setting up a separate build file.
+really shines through in the user experience. Mill makes it super easy to configure
+and run small Java projects with its minimal `build.mill.yaml`, and even easier to
+run single-file scripts with it's `//|` build headers, while still supporting more
+advanced use cases such as multi-module projects with custom build pipelines for
+when your small project inevitably grows large
 
 == Conclusion: Mill vs Maven
 
@@ -443,14 +452,18 @@ or https://ant.apache.org/[Ant]. However, despite being declarative, Maven's rou
 make getting started with Java troublesome and error-prone:
 from installing a Java runtime (the "right" way), to installing Maven (the "right" way),
 to cargo-cult copy-pasting a `pom.xml` and associated commands to run your program from the
-command-line. None of these are blockers, but each of them is a hurdle enough to make
-someone re-consider whether they want to write their code in Java or whether they
-should instead switch to Python or some other language.
+command-line.
+
+None of these issues are blockers, but each of them is a hurdle enough to make
+someone re-consider whether they want to write their code in Java. Some may persevere
+and get things working, others will wrap all this messiness in their own collection of
+bash scripts and automation, and still others will end up deciding to write their
+small program in Python or Bash instead of Java.
 
 Mill tries to learn from all the best-practices of Maven, but polishes the rough edges
 to provide a much smoother experience working with declarative builds. From the
-zero-setup installation process and declarative `mill-jvm-version` management,
+zero-setup installation process and declarative `jvmId` management,
 to the concise `build.mill.yaml` format and familiar command-line syntax, to
 support for single-file programs. Mill lets the key ideas of declarative shine
-through to provide an experience that is every bit as smooth as running a Python
-or Bash script from the command line.
+through to provide an experience writing and running your Java programs that is every
+bit as smooth as running a Python or Bash script from the command line.
