@@ -4,7 +4,7 @@ Build tool performance has been a big focus in developing Mill: Java build tools
 a reputation for being sluggish, even though the JVM has outstanding performance second
 only to languages like C/C++/Rust.
 
-== Maven
+== Mill vs Maven
 
 Overall across our benchmarks, Mill is 4-6x faster than Maven for clean compiles,
 both parallel and sequential, and for many modules or for a single module:
@@ -34,7 +34,7 @@ to not require other files to re-compile. In contrast, Maven re-compiles all fil
 modules, even though only one file was touched and the change was trivial.
 
 
-== Gradle
+== Mill vs Gradle
 
 The comparison with Gradle is less stark, but still significant. Mill is 3-4x faster than Gradle
 across the various workflows:
@@ -89,3 +89,536 @@ None of these features are rocket science, and they are all things that you can
 in theory set up with other build tools. However, Mill provides these features
 built-in without needing to first hunt down plugins or third-party integrations,
 and makes all of them easy to set up and use.
+
+== Mill vs Maven In Depth
+
+
+This section goes into the weeds comparing the Mill and Maven build tool performance.
+To do this, we have written a Mill `build.mill` file for the Netty project. This can be used
+with Mill to build and test the various submodules of the Netty project without needing to
+change any other files in the repository:
+
+- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/netty/build.mill[Netty build.mill file]
+
+The Mill build for Netty is not 100% complete, but it covers most of the major parts of Netty:
+compiling Java, compiling and linking C code via JNI, custom codegen using Groovy scripts,
+running JUnit tests and some integration tests using H2Spec. All 47 Maven subprojects are
+modelled using Mill, with the entire Netty codebase being approximately 500,000 lines of code.
+
+[source,console]
+----
+$ git ls-files | grep \\.java | xargs wc -l
+...
+513805 total
+----
+
+The goal of this exercise is not to be 100% feature complete enough to replace the Maven build
+today. It is instead meant to provide a realistic comparison of how using Mill in a large,
+complex project compares to using Maven.
+
+Both Mill and Maven builds end up compiling the same set of files, although the number being
+reported by the command line is slightly higher for Mill (2915 files) than Maven (2822) due
+to minor differences in the reporting (e.g. Maven does not report `package-info.java` files
+as part of the compiled file count).
+
+The Mill build for Netty is much more performant than the default Maven build. This applies to
+most workflows.
+
+For the benchmarks below, each provided number is the wall time of three consecutive runs
+on my M1 Macbook Pro using Java 17 and Mill `0.12.9-native`. While ad-hoc, these benchmarks
+are enough to give you a flavor of how Mill's performance compares to Maven:
+
+[cols="1,1,1,1"]
+|===
+| Benchmark | Maven | Mill | Speedup
+
+
+| <<Sequential Clean Compile All>> | 98.80s | 23.41s | 4.2x
+| <<Parallel Clean Compile All>> | 48.92s | 9.29s | 5.3x
+| <<Clean Compile Single-Module>> | 4.89s | 0.88s | 5.6x
+| <<Incremental Compile Single-Module>> | 6.82s | 0.18s | 37.9x
+| <<No-Op Compile Single-Module>> | 5.25s | 0.12s  | 43.8x
+|===
+
+The column on the right shows the speedups of how much faster Mill is compared to the
+equivalent Maven workflow. In most cases,  Mill is 4-6x faster than Maven. Below, we
+will go into more detail of each benchmark: how they were run, what they mean, and how
+we can explain the difference in performing the same task with the two different build tools.
+
+[#_sequential_clean_compile_all]
+=== Sequential Clean Compile All
+
+[source,console]
+----
+$ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
+98.80s
+96.14s
+99.95s
+
+$ ./mill clean; time ./mill -j1 __.compile
+22.83s
+23.41s
+23.47s
+----
+
+This benchmark exercises the simple "build everything from scratch" workflow, with all remote
+artifacts already in the local cache. The actual files
+being compiled are the same in either case (as mentioned in the <<Completeness>> section).
+I have explicitly disabled the various linters and tests for the Maven build, to just focus
+on the compilation of Java source code making it an apples-to-apples comparison. As Mill
+runs tasks in parallel by default, I have disabled parallelism explicitly via `-j1`
+
+As a point of reference, Java typically compiles at 10,000-50,000 lines per second on a
+single thread, and the Netty codebase is ~500,000 lines of code, so we would expect compile
+to take 10-50 seconds without parallelism.
+The 20-30s taken by Mill seems about what you would expect for a codebase of this size,
+and the ~100s taken by Maven is far beyond what you would expect from simple Java compilation.
+
+==== Maven Compile vs Install
+
+In general, the reason we have to use `./mvnw install` rather than `./mvnw compile` is that
+Maven's main mechanism for managing inter-module dependencies is via the local artifact cache
+at `~/.m2/repository`. Although many workflows work with `compile`, some don't, and
+`./mvnw clean compile` on the Netty repository fails with:
+
+[listing]
+----
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-dependency-plugin:2.10:unpack-dependencies
+(unpack) on project netty-resolver-dns-native-macos: Artifact has not been packaged yet.
+When used on reactor artifact, unpack should be executed after packaging: see MDEP-98. -> [Help 1]
+[ERROR]
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR]
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
+[ERROR]
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <args> -rf :netty-resolver-dns-native-macos
+----
+
+In contrast, Mill builds do not rely on the local artifact cache, even though Mill is able
+to publish to it. That means Mill builds are able to work directly with classfiles on disk,
+simply referencing them and using them as-is without spending time packing and unpacking them
+into `.jar` files. But even if we _did_ want Mill to generate the ``.jar``s, the
+overhead of doing so is just a few seconds, far less than the minutes that
+Maven's overhead adds to the clean build:
+
+[source,console]
+----
+$ ./mill clean; time ./mill -j1 __.jar
+26.74s
+26.02s
+26.53s
+----
+
+From this benchmark, we can see that although both Mill and Maven are doing the same work,
+Mill takes about as long as it _should_ for this task of compiling 500,000 lines of Java source
+code, while Maven takes considerably longer. This difference is purely build tool overhead
+in Maven - in the `install` workflow, in the JVM process warmup, etc. - that Mill manages
+to avoid.
+
+
+[#_parallel_clean_compile_all]
+=== Parallel Clean Compile All
+
+[source,console]
+----
+$ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+48.92s
+48.41s
+49.50s
+
+$ ./mill clean; time ./mill __.compile
+10.95s
+8.51s
+9.29s
+----
+
+This example compares Maven v.s. Mill, when performing the clean build on 10 threads.
+Both build tools support parallelism (`-T 10` in Maven, by default in Mill), and both
+tools see a similar ~2x speedup for building the Netty project using 4 threads.Again,
+this tests a clean build using `./mvnw clean` or `./mill clean`.
+
+This comparison shows that much of Mill's speedup over Maven is unrelated to parallelism.
+Whether sequential or parallel, Mill has approximately the same 4-5x speedup over Maven
+when performing a clean build of the Netty repository.
+
+[#_clean_compile_single_module]
+=== Clean Compile Single-Module
+
+[source,console]
+----
+$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
+4.85s
+4.96s
+4.89s
+
+$ ./mill clean common; time ./mill common.compile
+0.88s
+0.97s
+0.73s
+----
+
+This exercise limits the comparison to compiling a single module, in this case `common/`,
+ignoring test sources.
+
+Again, we can see a significant speedup of Mill v.s. Maven remains even when compiling a
+single module: a clean compile of `common/` is about 6x faster with Mill than with Maven!
+Again, `common/` is about 30,000 lines of Java source code, so at 10,000-50,000 lines per
+second we would expect it to compile in about 1-4s. That puts Mill's compile times right
+at what you would expect, whereas Maven's has a significant overhead.
+
+[#_incremental_compile_single_module]
+=== Incremental Compile Single-Module
+
+[source,console]
+----
+$ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
+$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
+Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
+
+6.89s
+6.34s
+6.82s
+
+
+$ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
+$ time ./mill common.test.compile
+compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+
+0.18s
+0.18s
+0.21s
+----
+
+This benchmark explores editing a single file and re-compiling `common/`.
+
+Maven by default takes about as long to re-compile ``common/``s `main/` and `test/` sources
+after a single-line edit as it does from scratch, about 20 seconds. However, Mill
+takes just about 0.5s to compile and be done! Looking at the logs, we can see it is
+because Mill only compiles the single file we changed, and not the others.
+
+For this incremental compilation, Mill uses the
+https://github.com/sbt/zinc[Zinc Incremental Compiler]. Zinc is able to analyze the dependencies
+between files to figure out what needs to re-compile: for an internal change that doesn't
+affect downstream compilation (e.g. changing a string literal) Zinc only needs to compile
+the file that changed, taking barely half a second:
+
+[source,diff]
+----
+$ git diff
+diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
+@@ -83,7 +83,7 @@ public abstract class AbstractConstant<T extends AbstractConstant<T>> implements
+             return 1;
+         }
+
+-        throw new Error("failed to compare two different constants");
++        throw new Error("failed to compare two different CONSTANTS!!");
+     }
+
+ }
+----
+
+[source,console]
+----
+$ time ./mill common.test.compile
+[info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+0m 00.55s6
+----
+
+In contrast, a change to a class or function public signature (e.g. adding a method) may
+require downstream code to re-compile, and we can see that below:
+
+[source,diff]
+----
+$ git diff
+diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
+@@ -41,6 +41,10 @@ public abstract class AbstractConstant<T extends AbstractConstant<T>> implements
+         return name;
+     }
+
++    public final String name2() {
++        return name;
++    }
++
+     @Override
+     public final int id() {
+         return id;
+----
+
+[source,console]
+----
+$ time ./mill common.test.compile
+[25/48] common.compile
+[info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+[info] compiling 2 Java sources to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+[info] compiling 4 Java sources to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+[info] compiling 3 Java sources to /Users/lihaoyi/Github/netty/out/common/test/compile.super/mill/scalalib/JavaModule/compile.dest/classes ...
+[info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/test/compile.super/mill/scalalib/JavaModule/compile.dest/classes ...
+0m 00.81s2
+----
+
+Here, we can see that Zinc ended up re-compiling 7 files in `common/src/main/` and 3 files
+in `common/src/test/` as a result of adding a method to `AbstractConstant.java`.
+
+In general, Zinc is conservative, and does not always end up selecting the minimal set of
+files that need re-compiling: e.g. in the above example, the new method `name2` does not
+interfere with any existing method, and the ~9 downstream files did not actually need to
+be re-compiled! However, even conservatively re-compiling 9 files is much faster than
+Maven blindly re-compiling all 234 files, and as a result the iteration loop of
+editing-compiling-testing your Java projects in Mill can be much faster than doing
+the same thing in Maven
+
+[#_no_op_compile_single_module]
+=== No-Op Compile Single-Module
+
+[source,console]
+----
+$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+5.08s
+5.25s
+5.26s
+
+$ time ./mill common.test.compile
+0.14s
+0.12s
+0.12s
+----
+
+This last benchmark explores the boundaries of Maven and Mill: what happens if
+we ask to compile a single module _that has already been compiled_? In this case,
+there is literally _nothing to do_. For Maven, "doing nothing" takes ~17 seconds,
+whereas for Mill we can see it complete and return in less than 0.5 seconds
+
+Grepping the logs, we can confirm that both build tools skip re-compilation of the
+`common/` source code. In Maven, skipping compilation only saves us ~2 seconds,
+bringing down the 19s we saw in <<Clean Compile Single-Module>> to 17s here. This
+matches what we expect about Java compilation speed, with the 2s savings on
+40,000 lines of code telling us Java compiles at ~20,000 lines per second. However,
+we still see Maven taking *17 entire seconds* before it can decide to do nothing!
+
+In contrast, doing the same no-op compile using Mill, we see the timing from 2.2s
+in <<Clean Compile Single-Module>> to 0.5 seconds here. This is the same ~2s reduction
+we saw with Maven, but due to Mill's minimal overhead, in the end the command
+finishes in less than half a second.
+
+
+== Mill vs Gradle In Depth
+
+This section compares using Mill to Gradle using the https://github.com/mockito/mockito[Mockito Testing Library]
+codebase as the example. Mockito is a medium sized codebase, 100,000 lines of Java split over 22
+subprojects. By porting it to Mill, this case study should give you
+an idea of how Mill compares to Gradle in more realistic, real-world projects.
+
+To do this, we have written a Mill `build.mill` file for the Mockito project. This can be used
+with Mill to build and test the various submodules of the Mockito project without needing to
+change any other files in the repository:
+
+- https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/mockito/build.mill[Mockito build.mill file]
+
+
+The Mill build for Mockito is not 100% complete, but it covers most of the major parts of Mockito:
+compiling Java, running JUnit tests. For now, the Android, Kotlin, and OSGI tests are skipped,
+as support for xref:android/java.adoc[Building Android apps in Mill]
+and xref:kotlinlib/intro.adoc[Kotlin with Mill] is still experimental.
+
+The goal of this exercise is not to be 100% feature complete enough to replace the Gradle build
+today. It is instead meant to provide a realistic comparison of how using Mill in a realistic,
+real-world project compares to using Gradle.
+
+
+The Mill build for Mockito is generally snappier than the Gradle build. This applies to
+most workflows, but the difference matters most for workflows which are short-lived,
+where the difference in the fixed overhead of the build tool is most noticeable.
+
+For comparison purposes, I disabled the Gradle subprojects that we did not fully implement in Mill
+(`groovyTest`, `groovyInlineTest`, `kotlinTest`, `kotlinReleaseCoroutinesTest`, `android`,
+`osgi-test`, `java21-test`), and added the necessary flags to ensure caching/parallelism/etc. is
+configured similarly for both tools. This ensures the comparison is fair with both builds compiling the
+same code and running the same tests in the same way.
+
+For the benchmarks below, each provided number is the median wall time of three consecutive runs
+on my M1 Macbook Pro with Java 17 and Mill `0.12.9-native`. While ad-hoc, these benchmarks are
+enough to give you a flavor of how Mill's performance compares to Gradle:
+
+[cols="1,1,1,1"]
+|===
+| Benchmark | Gradle | Mill | Speedup
+
+| <<Sequential Clean Compile All>> | 17.6s | 5.86s | 3.0x
+| <<Parallel Clean Compile All>> | 12.3s | 3.75s | 3.3x
+| <<Clean Compile Single-Module>> | 4.41s | 1.30s | 3.4x
+| <<Incremental Compile Single-Module>> | 1.37s | 0.20s | 6.9x
+| <<No-Op Compile Single-Module>> | 0.94s | 0.11s | 8.5x
+|===
+
+The column on the right shows the speedups of how much faster Mill is compared to the
+equivalent Gradle workflow. In most cases,  Mill is 2-4x faster than Gradle. Below, we
+will go into more detail of each benchmark: how they were run, what they mean, and how
+we can explain the difference in performing the same task with the two different build tools.
+
+=== Sequential Clean Compile All
+
+[source,console]
+----
+$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
+17.6s
+18.2s
+17.4s
+
+$ ./mill clean; time ./mill -j 1 __.compile
+6.19s
+5.86s
+5.28s
+----
+
+This benchmark measures the time taken to sequentially compiled all the Java code in
+the Mockito code base. The goal of this benchmark is to try and measure the "clean compile
+everything" step, without the effects of parallelism that can be nondeterministic and vary
+wildly from machine to machine depending on the number of cores available.
+
+To limit our comparison to compiling Java code only, we avoid
+using `build` in favor of `classes` and `testClasses`: this skips running tests,
+lint, jar/docjar generation, and other steps that `build` performs to make it an apples-to-apples
+comparison. Furthermore, Gradle parallelizes the build by default and caches things globally
+under `~/.gradle/caches`, while Mill parallelizes by default but does not cache things globally.
+Again to make it a fair comparison, we use `--no-build-cache` in Gradle and set
+`org.gradle.parallel=false` in `gradle.properties`, and pass `-j 1` to limit Mill to a
+single thread.
+
+Here we see Mill being about ~3.3x faster than Gradle, to do the equivalent amount of work.
+As a point of reference, Java typically compiles at 10,000-50,000 lines per second on a
+single thread, and the Mockito codebase is ~100,000 lines of code, so we would expect compile
+to take 2-10 seconds without parallelism.
+The 5-6s taken by Mill seems about what you would expect for a codebase of this size,
+and the ~17s taken by Gradle is much more than what you would expect from simple Java compilation.
+
+It's actually not clear to me where the difference in execution time is coming from. Unlike
+the xref:comparisons/maven.adoc[Mill v.s. Maven comparison], Gradle's command line output
+doesn't show any obvious network requests or jar packing/unpacking/comparing going on. But
+Gradle's CLI output is also much less verbose than Maven's, so it's possible things are going
+on under the hood that I'm not aware of.
+
+=== Parallel Clean Compile All
+
+[source,console]
+----
+$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
+13.8s
+12.3s
+11.4s
+
+$ ./mill clean; time ./mill __.compile
+3.75s
+3.74s
+3.86s
+----
+
+This benchmark is identical to the <<Sequential Clean Compile All>> benchmark above, but enables
+parallelism: Gradle by default, Mill without `-j 1` to run on 10 cores (the number on my Macbook Pro).
+
+Neither Gradle nor Mill benefit hugely from parallelism: both show a moderate ~50% speedup,
+despite receiving 900% more CPUs. This likely indicates that the module dependency graph
+of the Mockito codebase is laid out in a way that does not allow huge amounts of compile-time
+parallelism.
+
+Again, we see Mill being about ~3.4x faster than Gradle, to do the equivalent amount of work.
+This indicates the the speedup Mill provides over Gradle is unrelated to the parallelism of
+each tool.
+
+=== Clean Compile Single-Module
+
+[source,console]
+----
+$ ./gradlew clean; time ./gradlew :classes --no-build-cache
+4.14s
+4.41s
+4.41s
+
+$ ./mill clean; time ./mill compile
+1.30s
+1.90s
+1.13s
+----
+
+This benchmark indicates the use case of clean-compiling a single module. In this case,
+the root module in `src/main/java/` containing the bulk of the Mockito library code,
+_excluding_ the test code in `src/test/java/` and all the downstream subprojects in
+`subprojects/`.
+
+This benchmark gives us Mill being about ~3.7x faster than Gradle. This is in line with
+the results above.
+
+=== Incremental Compile Single-Module
+
+[source,console]
+----
+$ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
+1.37s
+1.39s
+1.28s
+
+$ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./mill compile
+compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
+0.23s
+0.20s
+0.20s
+----
+
+This benchmark measures the common case of making a tiny change to a single file and
+re-compiling just that module. This is the common workflow that most software developers
+do over and over day-in and day-out. We simulate this by appending a new line to the
+file `src/main/java/org/mockito/BDDMockito.java`.
+
+Both Mill and Gradle are able to take advantage of the small code change and re-compile
+only the single files needing re-compilation, demonstrating substantial speedups over
+the <<Clean Compile Single-Module>> benchmark above. Mill remains faster than Gradle,
+showing a ~2.7x speedup for this task
+
+=== No-Op Compile Single-Module
+
+[source,console]
+----
+$ time ./gradlew :classes
+0.95s
+0.93s
+0.94s
+
+$ time ./mill compile
+0.13s
+0.11s
+0.10s
+----
+
+This benchmark is meant to measure the pure overhead of running the build tool: given a single
+module that did _not_ change, the build tool should need to do _nothing_ in response, and so
+any time taken is pure overhead.
+
+For both Mill and Gradle, we see small speedups relative to the <<Incremental Compile Single-Module>>
+benchmark above, which likely comes from not having to compile any Java source files at all. Mill
+remains faster than Gradle by about 2.0x.
+
+
+== Conclusion
+
+
+Both the Mill and Gradle builds we discussed in this case study do the same thing: they
+compile Java code and run tests. Sometimes they perform additional configuration, tweaking
+JVM arguments or doing ad-hoc classpath mangling.
+
+In general, building projects with Mill is significantly faster than Gradle, but the gap
+is not as big as when comparing xref:comparisons/maven.adoc[Mill v.s. Maven]. Mill builds
+do all the same things as gradle builds, and need to manage the same kind of complexity.
+But where Mill shines over Gradle is just the understandability of the build: while Gradle is
+https://news.ycombinator.com/item?id=25801986[famously confusing and opaque], Mill's great
+IDE support allows the user to explore and understand their build as easily as any
+application codebase, and its fool-proof approach to extensibility means non-experts can
+confidently modify or add to their build system without worrying about getting it wrong.
+
+Again, the Mill build used in this comparison is for demonstration purposes, and more
+work would be necessary to make the Mill build production ready: publishing configuration,
+code coverage integration, and so on. Furthermore, Mill is definitely not perfect,
+and it is a work in progress to improve the user experience and iron out bugs. However,
+hopefully this comparison demonstrates the potential value, and convinces you to give it a try!
