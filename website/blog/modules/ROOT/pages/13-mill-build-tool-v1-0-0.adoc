@@ -10,7 +10,7 @@ _{author}, {revdate}_
 {mill-doc-url}[Mill] is a build tool for Java, Scala, and Kotlin that aims to
 improve upon existing build tools in areas like
 xref:mill::comparisons/performance.adoc[],
-xref:mill::comparisons/gradle.adoc#_extensibility[extensibility],
+xref:mill::comparisons/gradle.adoc#_extending_mill[extensibility],
 and xref:mill::comparisons/gradle.adoc#_ide_support[IDE support].
 The new release of Mill 1.0.0 is a major breaking version of the Mill project focused on setting
 a solid technical foundation that can provide stability for the coming years of development. While the
@@ -346,7 +346,7 @@ While this may seem like an esoteric change, concretely it means two things:
 - You are now much free-er to use or upgrade third-party dependencies
   in your `build.mill` via `//| mvnDeps`: they will not conflict with Mill's internal
   dependencies, and are not pinned to the versions that Mill uses. This is important
-  because xref:mill::comparisons/gradle.adoc#_extensibility[extending Mill
+  because xref:mill::comparisons/gradle.adoc#_extending_mill[extending Mill
   with third-party libraries] is a core part of its unique value proposition.
 
 - Mill can evolve much more freely without worrying about breaking user code. All

@@ -174,8 +174,7 @@ $ ./mill clean; time ./mill -j1 __.compile
 ----
 
 This benchmark exercises the simple "build everything from scratch" workflow, with all remote
-artifacts already in the local cache. The actual files
-being compiled are the same in either case (as mentioned in the <<Completeness>> section).
+artifacts already in the local cache. The actual files being compiled are the same in either.
 I have explicitly disabled the various linters and tests for the Maven build, to just focus
 on the compilation of Java source code making it an apples-to-apples comparison. As Mill
 runs tasks in parallel by default, I have disabled parallelism explicitly via `-j1`
