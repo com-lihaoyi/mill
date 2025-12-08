@@ -147,7 +147,7 @@ All the normal Mill commands still apply: `./mill compile`, `./mill test`, `./mi
 
 We expect that config-based `build.mill.yaml` files will help simplify the use of Mill for
 small projects, where the user typically just needs to set some config keys and doesn't need
-custom tasks or custom build logic that programmatic module definitions allow. See the docs
+custom tasks or custom build logic that programmable module definitions allow. See the docs
 for https://mill-build.org/mill/main-branch/javalib/config.html[Config-Based Java Modules]
 for more information.
 
@@ -1335,7 +1335,7 @@ and https://github.com/com-lihaoyi/mill/pull/3903[Scala] example files,
 [Scala-Native example builds]https://github.com/com-lihaoyi/mill/pull/3657,
 https://github.com/com-lihaoyi/mill/pull/3897[Scala-JS WASM example build],
 https://github.com/com-lihaoyi/mill/pull/3918[Re-run Maven comparison using proper flags]
-added https://mill-build.org/mill/comparisons/why-mill.html[Why Use Mill?] and
+added `Why Use Mill?` and
 https://mill-build.org/mill/comparisons/unique.html[What Makes Mill Unique?] Sections
 
 _For details refer to
@@ -3273,7 +3273,7 @@ This is experimental and need to be enabled with `--jobs &lt;n&gt;` option.
 * Windows: Fixed windows launcher and more robust classpath handling
 * `ScalaNativeModule`: improved compiling and linking support
 * new contrib module `VersionFile`
-* `Dependency`: improved dependency update checker and expose results for programmatic use
+* `Dependency`: improved dependency update checker and expose results for programmable use
 * ǹew contrib module `Bintray`
 * ǹew contrib module `Artifactory`
 * fixed testCached support in various modules

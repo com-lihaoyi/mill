@@ -268,7 +268,7 @@ object `package` extends MockitoModule {
 //        s"-DtestRuntimeBundles=${testRuntimeBundles.runClasspath().map(_.path).distinct.filter(os.exists(_)).mkString(java.io.File.pathSeparator)}"
 //      )
 //    }
-    object `programmatic-test` extends MockitoModule {
+    object `programmable-test` extends MockitoModule {
       def testModuleDeps = Seq(build)
       def testMvnDeps = Seq(libraries.junit4, libraries.assertj)
     }

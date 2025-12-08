@@ -38,6 +38,6 @@ include::partial$example/scalalib/config/7-web-example.adoc[]
 
 include::partial$example/scalalib/config/8-custom-trait.adoc[]
 
-== Programmatic `moduleDeps`
+== Programmable `moduleDeps`
 
-include::partial$example/scalalib/config/9-programmatic-module-deps.adoc[]
+include::partial$example/scalalib/config/9-programmable-module-deps.adoc[]

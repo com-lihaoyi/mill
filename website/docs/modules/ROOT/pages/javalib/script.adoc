@@ -40,7 +40,7 @@ include::partial$example/javalib/script/8-relative-imports.adoc[]
 
 == Project `moduleDeps`
 
-include::partial$example/javalib/script/9-programmatic-module-deps.adoc[]
+include::partial$example/javalib/script/9-programmable-module-deps.adoc[]
 
 == Script Resources
 

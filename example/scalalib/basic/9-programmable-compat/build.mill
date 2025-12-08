@@ -1,6 +1,6 @@
 //// SNIPPET:ALL
 // This example is similar to the xref:#_sbt_compatible_modules[`sbt`-Compatible Modules]
-// above, but using Mill's programmatic `build.mill` files. These are more flexible than
+// above, but using Mill's programmable `build.mill` files. These are more flexible than
 // the config-driven `build.mill.yaml` files, and additionally allows use of `Cross` modules
 // such as `CrossSbtModule`:
 
