@@ -112,5 +112,8 @@ object Result {
     sequence[B, Seq](collection.iterator.map(_.flatMap(f)).toSeq).map(factory.fromSpecific)
   }
 
-  final class Exception(val error: String) extends java.lang.Exception(error)
+  final class Exception(
+      val error: String,
+      @com.lihaoyi.unroll val failure: Option[Failure] = None
+  ) extends java.lang.Exception(error)
 }

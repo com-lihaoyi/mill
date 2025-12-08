@@ -17,6 +17,6 @@ private[mill] class ProxyLogger(logger: Logger) extends Logger {
 
   def prompt = logger.prompt
 
-  private[mill] override def logKey: Seq[String] = logger.logKey
-  private[mill] override def unprefixedStreams: SystemStreams = logger.unprefixedStreams
+  override def logKey: Seq[String] = logger.logKey
+  override def unprefixedStreams: SystemStreams = logger.unprefixedStreams
 }

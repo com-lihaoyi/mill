@@ -10,7 +10,7 @@
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="scala-SDK-3.8.0-RC2" level="project"/>
+        <orderEntry type="library" name="scala-SDK-3.8.0-RC3" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="cache-util-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-1.19.0.jar" level="project"/>
@@ -54,6 +54,7 @@
         <orderEntry type="library" scope="RUNTIME" name="logback-core-1.5.18.jar" level="project"/>
         <orderEntry type="library" name="mainargs_3-0.7.7.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api-daemon_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-api-java11_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3-SNAPSHOT.jar" level="project"/>
@@ -85,9 +86,10 @@
         <orderEntry type="library" name="mill-libs-scalanativelib_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-script_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-libs-tabcomplete_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-util-java11_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-util_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" name="mill-moduledefs_3-0.12.3.jar" level="project"/>
+        <orderEntry type="library" name="mill-moduledefs_3-0.12.4.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="munit_3-0.7.29.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
@@ -98,17 +100,17 @@
         <orderEntry type="library" scope="RUNTIME" name="plexus-container-default-2.1.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-io-3.5.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-utils-4.0.2.jar" level="project"/>
-        <orderEntry type="library" name="pprint_3-0.9.5.jar" level="project"/>
+        <orderEntry type="library" name="pprint_3-0.9.6.jar" level="project"/>
         <orderEntry type="library" name="requests_3-0.9.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="scala-collection-compat_2.13-2.13.0.jar" level="project"/>
         <orderEntry type="library" name="scala-collection-compat_3-2.12.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala-library-2.13.12.jar" level="project"/>
-        <orderEntry type="library" name="scala-library-3.8.0-RC2.jar" level="project"/>
+        <orderEntry type="library" name="scala-library-3.8.0-RC3.jar" level="project"/>
         <orderEntry type="library" name="scala-reflect-2.13.15.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="scala-xml_2.13-2.4.0.jar" level="project"/>
         <orderEntry type="library" name="scala-xml_3-2.4.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
-        <orderEntry type="library" name="scala3-library_3-3.8.0-RC2.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_3-3.8.0-RC3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="slf4j-api-2.0.17.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-3.0.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.6.0.jar" level="project"/>
@@ -118,13 +120,13 @@
         <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.9.0.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="tika-core-3.2.2.jar" level="project"/>
-        <orderEntry type="library" name="ujson_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="ujson_3-4.4.2-RC2.jar" level="project"/>
         <orderEntry type="library" name="unroll-annotation_3-0.2.0.jar" level="project"/>
-        <orderEntry type="library" name="upack_3-4.4.1.jar" level="project"/>
-        <orderEntry type="library" name="upickle-core_3-4.4.1.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.4.1.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits_3-4.4.1.jar" level="project"/>
-        <orderEntry type="library" name="upickle_3-4.4.1.jar" level="project"/>
+        <orderEntry type="library" name="upack_3-4.4.2-RC2.jar" level="project"/>
+        <orderEntry type="library" name="upickle-core_3-4.4.2-RC2.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.4.2-RC2.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits_3-4.4.2-RC2.jar" level="project"/>
+        <orderEntry type="library" name="upickle_3-4.4.2-RC2.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-ansi-0.0.6.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="windows-jni-utils-0.3.3.jar" level="project"/>

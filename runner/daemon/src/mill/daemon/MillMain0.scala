@@ -16,7 +16,7 @@ import mill.internal.{
   MultiStream,
   PrefixLogger,
   PromptLogger,
-  SimpleLogger
+  BspLogger
 }
 import mill.server.{MillDaemonServer, Server}
 import mill.util.BuildInfo
@@ -587,7 +587,7 @@ object MillMain0 {
       colors: Colors,
       out: os.Path
   ): Logger & AutoCloseable = {
-    new PromptLogger(
+    val promptLogger = new PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
       infoColor = colors.info,
@@ -600,6 +600,9 @@ object MillMain0 {
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
     )
+    new PrefixLogger(promptLogger, Nil) with AutoCloseable {
+      override def close(): Unit = promptLogger.close()
+    }
   }
 
   def getBspLogger(
@@ -607,11 +610,7 @@ object MillMain0 {
       config: MillCliConfig
   ): Logger =
     new PrefixLogger(
-      new SimpleLogger(
-        streams,
-        Seq("bsp"),
-        debugEnabled = config.debugLog.value
-      ),
+      new BspLogger(streams, Seq("bsp"), debugEnabled = config.debugLog.value),
       Nil
     )
 

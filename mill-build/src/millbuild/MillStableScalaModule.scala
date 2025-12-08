@@ -6,4 +6,3 @@ import mill._, scalalib._
  * Those modules are also included in the generated API documentation.
  */
 trait MillStableScalaModule extends MillPublishScalaModule with MillStableJavaModule
-    with MillJava11ScalaModule

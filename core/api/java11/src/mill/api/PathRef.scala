@@ -1,6 +1,6 @@
 package mill.api
 
-import mill.api.DummyOutputStream
+import mill.api.daemon.DummyOutputStream
 import mill.api.daemon.internal.PathRefApi
 import upickle.ReadWriter as RW
 
