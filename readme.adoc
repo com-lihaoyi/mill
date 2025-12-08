@@ -32,7 +32,7 @@ in the JVM ecosystem:
 https://mill-build.org/mill/comparisons/why-mill.html#_rich_builtins[less fiddling with plugins],
 since everything needed for development is built in
 
-* Mill builds are https://mill-build.org/mill/comparisons/why-mill.html#_ide_support[easily explorable in your IDE],
+* Mill builds are https://mill-build.org/mill/comparisons/why-mill.html#_gradle_ide_support[easily explorable in your IDE],
 letting you work on them without constantly googling for help
 
 Although the Java compiler is very fast and the Java language is easy to learn,
