@@ -14,13 +14,20 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
     test("keepGoingFailure") - integrationTest { tester =>
       import tester.*
 
-      modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar")
+      // Scala and Java parsing errors
+      modifyFile(
+        workspacePath / "src/foo/Foo.scala",
+        _ + "class Bar { /*comment*/ def bar = { val x: String =  \"omg"
+      )
+      modifyFile(
+        workspacePath / "src/foo/Foo.java",
+        _ + "class Bar { /*comment*/ void bar(){ final String x = \"omg"
+      )
       val res = eval(
         ("--ticker", "true", "--color=true", "--keep-going", "jar"),
         propagateEnv = false
       )
       res.isSuccess ==> false
-
       assertGoldenLiteral(
         normalize(res.result.err.text()),
         // We passed in `--color=true` so we should expect colored output
@@ -28,11 +35,52 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<dashes> jar <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
-          "(B)<digits>] compile(X) compiling 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)10(Z)",
-          "(B)<digits>](X) class Bar",
-          "(B)<digits>](X)          (R)^(Z)",
-          "(B)<digits>](X) reached end of file while parsing",
+          "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)54(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) String x = \"omg",
+          "(B)<digits>](X)                                                      (R)^(Z)",
+          "(B)<digits>](X) unclosed string literal",
+          "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)58(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) String x = \"omg",
+          "(B)<digits>](X)                                                          (R)^(Z)",
+          "(B)<digits>](X) '}' expected but eof found.",
+          "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)2(Z):(R)54(Z)",
+          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): (M)String(Z) =  \"omg",
+          "(B)<digits>](X)                                                      (R)^(Z)",
+          "(B)<digits>](X) unclosed string literal",
+          "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] three errors found",
+          "(B)<digits>](X) [(R)error(X)] compile task failed",
+          ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
+          "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
+        )
+      )
+
+      // Java name resolution error
+      modifyFile(workspacePath / "src/foo/Foo.scala", _ + "\"}}")
+      modifyFile(
+        workspacePath / "src/foo/Foo.java",
+        _.replace("final String x", "final Strin x") + "\";}}"
+      )
+      val res2 = eval(
+        ("--ticker", "true", "--color=true", "--keep-going", "jar"),
+        propagateEnv = false
+      )
+      res2.isSuccess ==> false
+      assertGoldenLiteral(
+        normalize(res2.result.err.text()),
+        // We passed in `--color=true` so we should expect colored output
+        List(
+          "<dashes> jar <dashes>",
+          "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)43(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) Strin x = (G)\"omg\"(X);}}",
+          "(B)<digits>](X)                                           (R)^^^^^(Z)",
+          "(B)<digits>](X) cannot find symbol",
+          "(B)<digits>](X)   symbol:   class Strin",
+          "(B)<digits>](X)   location: class foo.Bar",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
           ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
@@ -40,6 +88,30 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         )
       )
 
+      // Scala name resolution error
+      modifyFile(workspacePath / "src/foo/Foo.scala", _.replace("x: String", "x: Strig"))
+      val res3 = eval(
+        ("--ticker", "true", "--color=true", "--keep-going", "jar"),
+        propagateEnv = false
+      )
+      res3.isSuccess ==> false
+      assertGoldenLiteral(
+        normalize(res3.result.err.text()),
+        // We passed in `--color=true` so we should expect colored output
+        List(
+          "<dashes> jar <dashes>",
+          "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)2(Z):(R)44(Z)",
+          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): (M)Strig(Z) =  (G)\"omg\"(Z)}}",
+          "(B)<digits>](X)                                            (R)^^^^^(Z)",
+          "(B)<digits>](X) Not found: type Strig - did you mean String?",
+          "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] one error found",
+          "(B)<digits>](X) [(R)error(X)] compile task failed",
+          ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
+          "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
+        )
+      )
     }
     test("keepGoingMetaFailure") - integrationTest { tester =>
       import tester.*
@@ -53,7 +125,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         List(
           "<dashes> jar <dashes>",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] build.mill:76:1",
+          "build.mill-<digits>] [error] build.mill:77:1",
           "build.mill-<digits>] ?",
           "build.mill-<digits>] ^",
           "build.mill-<digits>] Illegal start of toplevel definition",
@@ -107,14 +179,14 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           ".../..., (R)1 failed(X)] <dashes> exception <dashes>",
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
-          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)5(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)7(X))",
+          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
+          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
           "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
           "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
           "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))",
           "(R)java.lang.RuntimeException(X): bang",
-          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)5(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)7(X))",
+          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
+          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
           "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
           "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
           "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))"
