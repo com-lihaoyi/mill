@@ -37,7 +37,7 @@ class RefCountedClassLoaderCache(
 
   /** Convenience method that uses implicit sourcecode.Enclosing */
   def get(combinedCompilerJars: Seq[PathRef])(using e: sourcecode.Enclosing): URLClassLoader =
-    get(combinedCompilerJars, e)
+    getOrCreate(combinedCompilerJars, e)
 
   /** Binary compatibility shim - returns (URLClassLoader, Int) tuple instead of Entry */
   def releaseClassLoader(combinedCompilerJars: Seq[PathRef]): Option[(URLClassLoader, Int)] =

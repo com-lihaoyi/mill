@@ -57,7 +57,7 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
    * Get a value for the given key, creating one if necessary.
    * The caller must call [[release]] when done with the value.
    */
-  def get(key: Key, initData: => InitData): Value = synchronized {
+  def getOrCreate(key: Key, initData: => InitData): Value = synchronized {
     val internalKey = keyToInternalKey(key)
 
     if (shareValues) {
@@ -132,7 +132,7 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
    * Get a value, use it in the provided block, then release it.
    */
   def withValue[R](key: Key, initData: => InitData)(block: Value => R): R = {
-    val value = get(key, initData)
+    val value = getOrCreate(key, initData)
     try block(value)
     finally release(key)
   }

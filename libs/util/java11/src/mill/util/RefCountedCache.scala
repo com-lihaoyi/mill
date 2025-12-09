@@ -19,6 +19,9 @@ class RefCountedCache[Key, InternalKey, InitData, Value](
   def teardown(key: Key, internalKey: InternalKey, value: Value): Unit = closeValue(value)
   def maxCacheSize: Int = 0 // Values are closed immediately when refCount reaches 0
   def shareValues: Boolean = true // Multiple consumers can share the same value
+
+  /** Binary compatibility forwarder */
+  def get(key: Key, initData: => InitData): Value = getOrCreate(key, initData)
 }
 
 object RefCountedCache {
