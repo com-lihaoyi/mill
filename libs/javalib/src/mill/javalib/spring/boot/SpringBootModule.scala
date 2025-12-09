@@ -188,7 +188,7 @@ trait SpringBootModule extends JavaModule {
     override def nativeImageOptions: Task.Simple[Opts] = Task {
       val configurationsPath = outer.springBootProcessAOT().path / "resources/META-INF"
       super.nativeImageOptions() ++ Opts(
-        Opt("--configurations-path", configurationsPath)
+        OptGroup("--configurations-path", configurationsPath)
       )
     }
   }
