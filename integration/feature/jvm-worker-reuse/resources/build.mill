@@ -1,0 +1,15 @@
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule {
+  def jvmId = "18"
+}
+object bar extends JavaModule {
+  def jvmId = "18"
+}
+object qux extends JavaModule {
+  def jvmId = "19"
+}
+object baz extends JavaModule {
+  def jvmId = "19"
+}

@@ -142,7 +142,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.7"
-  val millModuledefsVersion = "0.12.4"
+  val millModuledefsVersion = "0.12.5-RC1"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -168,7 +168,7 @@ object Deps {
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
     else mvn"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scoverage2Version = "2.3.0"
+  val scoverage2Version = "2.5.0"
   val scalacScoverage2Plugin = mvn"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = mvn"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = mvn"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -194,9 +194,10 @@ object Deps {
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
   val gson = mvn"com.google.code.gson:gson:2.13.2"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
+  val javaparser = mvn"com.github.javaparser:javaparser-core:3.27.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.0"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.21"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -340,9 +341,9 @@ object Deps {
 
   }
   val keytoolDeps = Seq(
-    mvn"org.bouncycastle:bcpkix-jdk18on:1.81",
-    mvn"org.bouncycastle:bcprov-jdk18on:1.81",
-    mvn"org.bouncycastle:bcutil-jdk18on:1.81"
+    mvn"org.bouncycastle:bcpkix-jdk18on:1.83",
+    mvn"org.bouncycastle:bcprov-jdk18on:1.83",
+    mvn"org.bouncycastle:bcutil-jdk18on:1.83"
   )
 
 }

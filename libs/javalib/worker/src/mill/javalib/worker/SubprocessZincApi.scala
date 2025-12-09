@@ -9,7 +9,7 @@ import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.RefCountedCache
+import mill.util.CachedFactoryWithInitData
 
 import java.io.*
 import scala.util.Using
@@ -23,8 +23,7 @@ class SubprocessZincApi(
     runtimeOptions: Seq[String],
     ctx: ZincWorker.LocalConfig,
     log: Logger,
-    subprocessCache: RefCountedCache[
-      SubprocessZincApi.Key,
+    subprocessCache: CachedFactoryWithInitData[
       SubprocessZincApi.Key,
       SubprocessZincApi.Initialize,
       SubprocessZincApi.Value
@@ -77,50 +76,51 @@ class SubprocessZincApi(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   ): op.Response = {
-    val SubprocessZincApi.Value(port, _, _, _) =
-      subprocessCache.get(cacheKey, SubprocessZincApi.Initialize(compilerBridge.workspace, log))
-    try {
-      Using.Manager { use =>
-        val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
-        val debugName =
-          s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
-        ServerLauncher.runWithConnection(
-          socket,
-          /* closeConnectionAfterCommand */ true,
-          /* sendInitData */ _ => {},
-          (in, out) => {
-            val serverToClient = use(BufferedReader(InputStreamReader(in)))
-            val clientToServer = use(PrintStream(out))
-            val wireTransport =
-              MillRpcWireTransport(
-                debugName,
-                serverToClient,
-                clientToServer,
-                writeSynchronizer = clientToServer
-              )
+    subprocessCache.withValue(
+      cacheKey,
+      SubprocessZincApi.Initialize(compilerBridge.workspace, log)
+    ) {
+      case SubprocessZincApi.Value(port, _, _, _) =>
 
-            val init =
-              ZincWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
+        Using.Manager { use =>
+          val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
+          val debugName =
+            s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}"
+          ServerLauncher.runWithConnection(
+            socket,
+            /* closeConnectionAfterCommand */ true,
+            /* sendInitData */ _ => {},
+            (in, out) => {
+              val serverToClient = use(BufferedReader(InputStreamReader(in)))
+              val clientToServer = use(PrintStream(out))
+              val wireTransport =
+                MillRpcWireTransport(
+                  debugName,
+                  serverToClient,
+                  clientToServer,
+                  writeSynchronizer = clientToServer
+                )
 
-            val client = MillRpcClient.create[
-              ZincWorkerRpcServer.Initialize,
-              ZincWorkerRpcServer.Request,
-              ZincWorkerRpcServer.ServerToClient
-            ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
+              val init =
+                ZincWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
 
-            client.apply(ZincWorkerRpcServer.Request(
-              op,
-              reporter match {
-                case None => ReporterMode.NoReporter
-                case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
-              },
-              ctx
-            )).asInstanceOf[op.Response]
-          }
-        )
-      }.get
-    } finally {
-      subprocessCache.release(cacheKey)
+              val client = MillRpcClient.create[
+                ZincWorkerRpcServer.Initialize,
+                ZincWorkerRpcServer.Request,
+                ZincWorkerRpcServer.ServerToClient
+              ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
+
+              client.apply(ZincWorkerRpcServer.Request(
+                op,
+                reporter match {
+                  case None => ReporterMode.NoReporter
+                  case Some(r) => ReporterMode.Reporter(reportCachedProblems, r.maxErrors)
+                },
+                ctx
+              )).asInstanceOf[op.Response]
+            }
+          )
+        }.get
     }
   }
 }
