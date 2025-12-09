@@ -14,14 +14,20 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
     test("keepGoingFailure") - integrationTest { tester =>
       import tester.*
 
-      modifyFile(workspacePath / "src/foo/Foo.scala", _ + "class Bar { /*comment*/ final val \"lols\" \"omg")
-      modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar { /*comment*/ final String \"lols\" \"omg")
+      // Scala and Java parsing errors
+      modifyFile(
+        workspacePath / "src/foo/Foo.scala",
+        _ + "class Bar { /*comment*/ def bar = { val x: String =  \"omg"
+      )
+      modifyFile(
+        workspacePath / "src/foo/Foo.java",
+        _ + "class Bar { /*comment*/ void bar(){ final String x = \"omg"
+      )
       val res = eval(
         ("--ticker", "true", "--color=true", "--keep-going", "jar"),
         propagateEnv = false
       )
       res.isSuccess ==> false
-
       assertGoldenLiteral(
         normalize(res.result.err.text()),
         // We passed in `--color=true` so we should expect colored output
@@ -30,34 +36,85 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] compile(X)",
-          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/worker-2/sandbox/run-1/out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)38(Z)",
-          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X) \"omg",
-          "(B)<digits>](X)                                      (R)^^^^^^(Z)",
-          "(B)<digits>](X) identifier expected but string literal found.",
-          "(B)<digits>](X) ",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)45(Z)",
-          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X) \"omg",
-          "(B)<digits>](X)                                             (R)^(Z)",
+          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/sandbox/run-1/out/compile.dest/classes ...",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)54(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) String x = \"omg",
+          "(B)<digits>](X)                                                      (R)^(Z)",
           "(B)<digits>](X) unclosed string literal",
           "(B)<digits>](X) ",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)49(Z)",
-          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X) \"omg",
-          "(B)<digits>](X)                                                 (R)^^^^^^(Z)",
-          "(B)<digits>](X) ';' expected but eof found.",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)58(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) String x = \"omg",
+          "(B)<digits>](X)                                                          (R)^(Z)",
+          "(B)<digits>](X) '}' expected but eof found.",
           "(B)<digits>](X) ",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)1(Z):(R)42(Z)",
-          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)final(Z) (Y)val(Z) (G)\"lols\"(Z) \"omg",
-          "(B)<digits>](X)                                          (R)^(Z)",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)1(Z):(R)54(Z)",
+          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): (M)String(Z) =  \"omg",
+          "(B)<digits>](X)                                                      (R)^(Z)",
           "(B)<digits>](X) unclosed string literal",
           "(B)<digits>](X) ",
-          "(B)<digits>](X) [(R)error(X)] four errors found",
+          "(B)<digits>](X) [(R)error(X)] three errors found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
           ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
         )
       )
 
+      // Java name resolution error
+      modifyFile(workspacePath / "src/foo/Foo.scala", _ + "\"}}")
+      modifyFile(
+        workspacePath / "src/foo/Foo.java",
+        _.replace("final String x", "final Strin x") + "\";}}"
+      )
+      val res2 = eval(
+        ("--ticker", "true", "--color=true", "--keep-going", "jar"),
+        propagateEnv = false
+      )
+      res2.isSuccess ==> false
+      assertGoldenLiteral(
+        normalize(res2.result.err.text()),
+        // We passed in `--color=true` so we should expect colored output
+        List(
+          "<dashes> jar <dashes>",
+          "(B)<digits>] compile(X)",
+          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/sandbox/run-1/out/compile.dest/classes ...",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)43(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) Strin x = (G)\"omg\"(X);}}",
+          "(B)<digits>](X)                                           (R)^^^^^(Z)",
+          "(B)<digits>](X) cannot find symbol",
+          "(B)<digits>](X)   symbol:   class Strin",
+          "(B)<digits>](X)   location: class foo.Bar",
+          "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] compile task failed",
+          ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
+          "(R)<digits>] (X)[(R)error(X)] compile javac returned non-zero exit code"
+        )
+      )
+
+      // Scala name resolution error
+      modifyFile(workspacePath / "src/foo/Foo.scala", _.replace("x: String", "x: Strig"))
+      val res3 = eval(
+        ("--ticker", "true", "--color=true", "--keep-going", "jar"),
+        propagateEnv = false
+      )
+      res3.isSuccess ==> false
+      assertGoldenLiteral(
+        normalize(res3.result.err.text()),
+        // We passed in `--color=true` so we should expect colored output
+        List(
+          "<dashes> jar <dashes>",
+          "(B)<digits>] compile(X)",
+          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/sandbox/run-1/out/compile.dest/classes ...",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)1(Z):(R)44(Z)",
+          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): (M)Strig(Z) =  (G)\"omg\"(Z)}}",
+          "(B)<digits>](X)                                            (R)^^^^^(Z)",
+          "(B)<digits>](X) Not found: type Strig - did you mean String?",
+          "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] one error found",
+          "(B)<digits>](X) [(R)error(X)] compile task failed",
+          ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
+          "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
+        )
+      )
     }
     test("keepGoingMetaFailure") - integrationTest { tester =>
       import tester.*
@@ -172,7 +229,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
           "<digits>] ",
-          ".../..., 2 failed] <dashes> {brokenN,brokenN}.compile <dashes>",
+          ".../..., 1 failed] <dashes> {brokenN,brokenN}.compile <dashes>",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code"
         )

@@ -61,34 +61,36 @@ object HighlightJava {
     fansi.Str(sourceCode).overlayAll(overlays.toSeq)
   }
 
-  def getColorOpt(tokenKind: Int,
-                  literalColor: fansi.Attrs,
-                  keywordColor: fansi.Attrs,
-                  commentColor: fansi.Attrs): Option[fansi.Attrs] = tokenKind match {
+  def getColorOpt(
+      tokenKind: Int,
+      literalColor: fansi.Attrs,
+      keywordColor: fansi.Attrs,
+      commentColor: fansi.Attrs
+  ): Option[fansi.Attrs] = tokenKind match {
     // Literals
     case INTEGER_LITERAL | LONG_LITERAL | FLOATING_POINT_LITERAL |
-         CHARACTER_LITERAL | STRING_LITERAL | TEXT_BLOCK_LITERAL |
-         TRUE | FALSE | NULL =>
+        CHARACTER_LITERAL | STRING_LITERAL | TEXT_BLOCK_LITERAL |
+        TRUE | FALSE | NULL =>
       Some(literalColor)
 
     // Keywords - use backticks for _DEFAULT since underscore has special meaning in Scala 3
     case ABSTRACT | ASSERT | BOOLEAN | BREAK | BYTE | CASE |
-         CATCH | CHAR | CLASS | CONST | CONTINUE | `_DEFAULT` |
-         DO | DOUBLE | ELSE | ENUM | EXTENDS | FINAL | FINALLY |
-         FLOAT | FOR | GOTO | IF | IMPLEMENTS | IMPORT | INSTANCEOF |
-         INT | INTERFACE | LONG | NATIVE | NEW | PACKAGE | PRIVATE |
-         PROTECTED | PUBLIC | RETURN | SHORT | STATIC | STRICTFP |
-         SUPER | SWITCH | SYNCHRONIZED | THIS | THROW | THROWS |
-         TRANSIENT | TRY | VOID | VOLATILE | WHILE |
-         // Java 9+ module keywords
-         MODULE | OPEN | REQUIRES | EXPORTS | OPENS | USES | PROVIDES |
-         TO | WITH | TRANSITIVE |
-         // Java 14+ keywords
-         RECORD | YIELD |
-         // Java 17+ keywords
-         SEALED | NON_SEALED | PERMITS |
-         // Java 21+ keywords
-         WHEN =>
+        CATCH | CHAR | CLASS | CONST | CONTINUE | `_DEFAULT` |
+        DO | DOUBLE | ELSE | ENUM | EXTENDS | FINAL | FINALLY |
+        FLOAT | FOR | GOTO | IF | IMPLEMENTS | IMPORT | INSTANCEOF |
+        INT | INTERFACE | LONG | NATIVE | NEW | PACKAGE | PRIVATE |
+        PROTECTED | PUBLIC | RETURN | SHORT | STATIC | STRICTFP |
+        SUPER | SWITCH | SYNCHRONIZED | THIS | THROW | THROWS |
+        TRANSIENT | TRY | VOID | VOLATILE | WHILE |
+        // Java 9+ module keywords
+        MODULE | OPEN | REQUIRES | EXPORTS | OPENS | USES | PROVIDES |
+        TO | WITH | TRANSITIVE |
+        // Java 14+ keywords
+        RECORD | YIELD |
+        // Java 17+ keywords
+        SEALED | NON_SEALED | PERMITS |
+        // Java 21+ keywords
+        WHEN =>
       Some(keywordColor)
 
     // Comments
