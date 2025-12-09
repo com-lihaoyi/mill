@@ -6,7 +6,8 @@ import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
-import mill.constants.{DaemonFiles, OutFiles, OutFolderMode}
+import mill.constants.{DaemonFiles, OutFolderMode}
+import mill.constants.OutFiles.OutFiles
 import mill.api.BuildCtx
 import mill.internal.{
   Colors,
@@ -15,7 +16,7 @@ import mill.internal.{
   MultiStream,
   PrefixLogger,
   PromptLogger,
-  SimpleLogger
+  BspLogger
 }
 import mill.server.{MillDaemonServer, Server}
 import mill.util.BuildInfo
@@ -123,8 +124,8 @@ object MillMain0 {
         withStreams(bspMode, streams0) { streams =>
           parserResult match {
             // Cannot parse args
-            case Result.Failure(msg) =>
-              streams.err.println(msg)
+            case f: Result.Failure =>
+              streams.err.println(f.error)
               (false, RunnerState.empty)
 
             case Result.Success(config) if config.help.value =>
@@ -166,7 +167,10 @@ object MillMain0 {
 
             case Result.Success(config) =>
               val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
-              val colored = config.color.getOrElse(mainInteractive && !noColorViaEnv)
+              val forceColorViaEnv = env.get("FORCE_COLOR").exists(_.nonEmpty)
+              val colored = config.color.getOrElse(
+                (mainInteractive || forceColorViaEnv) && !noColorViaEnv
+              )
               val colors =
                 if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
 
@@ -583,7 +587,7 @@ object MillMain0 {
       colors: Colors,
       out: os.Path
   ): Logger & AutoCloseable = {
-    new PromptLogger(
+    val promptLogger = new PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
       infoColor = colors.info,
@@ -596,6 +600,9 @@ object MillMain0 {
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
     )
+    new PrefixLogger(promptLogger, Nil) with AutoCloseable {
+      override def close(): Unit = promptLogger.close()
+    }
   }
 
   def getBspLogger(
@@ -603,11 +610,7 @@ object MillMain0 {
       config: MillCliConfig
   ): Logger =
     new PrefixLogger(
-      new SimpleLogger(
-        streams,
-        Seq("bsp"),
-        debugEnabled = config.debugLog.value
-      ),
+      new BspLogger(streams, Seq("bsp"), debugEnabled = config.debugLog.value),
       Nil
     )
 

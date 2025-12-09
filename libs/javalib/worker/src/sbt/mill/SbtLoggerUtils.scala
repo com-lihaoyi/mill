@@ -19,11 +19,11 @@ object SbtLoggerUtils {
   // per line, and skips it for INFO logging where it is usually unhelpful
   class ConciseLevelConsoleAppender(
       name: String,
-      consoleOut: ConsoleOut,
+      log: String => Unit,
       ansiCodesSupported0: Boolean
   ) extends ConsoleAppender(
         name,
-        ConsoleAppender.Properties.from(consoleOut, ansiCodesSupported0, false),
+        ConsoleAppender.Properties.from(ConsoleOut.NullConsoleOut, ansiCodesSupported0, false),
         suppressedMessage = _ => None
       ) {
     override def appendLog(level: Level.Value, message0: => String): Unit = {
@@ -33,25 +33,28 @@ object SbtLoggerUtils {
         else {
           // Hackily scrape the `compiling` messages logged by SBT to rewrite them in a
           // less verbose format by converting absolute paths to relative to workspaceRoot
-          def maybeTruncate(n: String, lang: String, sources: String, path0: String): String = {
+          def maybeTruncate(path0: String): String = {
             val path = os.Path(path0, workspaceRoot)
 
             if (!path.startsWith(workspaceRoot)) path.toString
-            else {
-              val truncated = path.subRelativeTo(workspaceRoot).toString
-              s"compiling $n $lang $sources to $truncated ..."
-            }
+            else path.subRelativeTo(workspaceRoot).toString
           }
           val sourcesWords = Set("source", "sources")
           message0 match {
             case s"compiling $n Scala $sources to $path ..."
                 if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
 
-              maybeTruncate(n, "Scala", sources, path)
+              s"compiling $n Scala $sources to ${maybeTruncate(path)} ..."
 
             case s"compiling $n Java $sources to $path ..."
                 if n.forall(_.isDigit) && sourcesWords.contains(sources) =>
-              maybeTruncate(n, "Java", sources, path)
+              s"compiling $n Java $sources to ${maybeTruncate(path)} ..."
+
+            case s"compiling $n Scala $sources1 and $m Java $sources2 to $path ..."
+                if n.forall(_.isDigit) && sourcesWords.contains(sources1) &&
+                  m.forall(_.isDigit) && sourcesWords.contains(sources2) =>
+
+              s"compiling $n Scala $sources1 and $m Java $sources2 to ${maybeTruncate(path)} ..."
 
             case _ => message0
           }
@@ -66,7 +69,7 @@ object SbtLoggerUtils {
         case _ => ""
       }
 
-      consoleOut.println(severityPrefix + message)
+      log(severityPrefix + message)
     }
   }
 }

@@ -68,7 +68,7 @@ object ExecResult {
 
     override def asFailing: Option[ExecResult.Failing[T]] = Some(this)
     def throwException: Nothing = this match {
-      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg)
+      case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg, f.failure)
       case f: ExecResult.Exception => throw f.throwable
     }
   }
@@ -79,9 +79,12 @@ object ExecResult {
    * @param msg The error message.
    * @tparam T The result type of the computed task.
    */
-  final case class Failure[T](msg: String) extends Failing[T] {
-    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg)
-    def flatMap[V](f: T => ExecResult[V]): Failure[V] = { Failure(msg) }
+  final case class Failure[T](
+      msg: String,
+      @com.lihaoyi.unroll failure: Option[Result.Failure] = None
+  ) extends Failing[T] {
+    def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg, failure)
+    def flatMap[V](f: T => ExecResult[V]): Failure[V] = Failure(msg, failure)
     override def toString: String = s"Failure($msg)"
   }
 
@@ -94,24 +97,6 @@ object ExecResult {
       extends java.lang.Exception(throwable) with Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => ExecResult[V]): Exception = this
-
-    override def toString: String = {
-      var current = List(throwable)
-      while (current.head.getCause != null) {
-        current = current.head.getCause :: current
-      }
-      current.reverse
-        .flatMap { ex =>
-          val elements = ex.getStackTrace.dropRight(outerStack.value.length)
-          val formatted =
-            // for some reason .map without the explicit ArrayOps conversion doesn't work,
-            // and results in `ExecResult[String]` instead of `Array[String]`
-            new scala.collection.ArrayOps(elements).map("    " + _)
-          Seq(ex.toString) ++ formatted
-
-        }
-        .mkString("\n")
-    }
   }
 
   final class OuterStack(val value: Seq[StackTraceElement]) {
@@ -129,12 +114,27 @@ object ExecResult {
     try Result.Success(t)
     catch {
       case e: InvocationTargetException =>
-        Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
+        exceptionToFailure(e.getCause, new java.lang.Exception())
       case e: java.lang.Exception =>
-        Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
+        exceptionToFailure(e, new java.lang.Exception())
     }
   }
 
+  private[mill] def exceptionToFailure(ex: Throwable, base: Throwable): Result.Failure = {
+    exceptionToFailure(ex, new ExecResult.OuterStack(base.getStackTrace))
+  }
+  private[mill] def exceptionToFailure(ex: Throwable, outerStack: OuterStack): Result.Failure = {
+    var current = List(ex)
+    while (current.head.getCause != null) current = current.head.getCause :: current
+
+    val exceptionInfos = current.reverse.map { e =>
+      val elements = e.getStackTrace.dropRight(outerStack.value.length)
+      Result.Failure.ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
+    }
+    Result.Failure("", exception = exceptionInfos)
+  }
+
+  @deprecated("use `exceptionToFailure` instead")
   def makeResultException(e: Throwable, base: java.lang.Exception): Left[String, Nothing] = {
     val outerStack = new ExecResult.OuterStack(base.getStackTrace)
     Left(ExecResult.Exception(e, outerStack).toString)

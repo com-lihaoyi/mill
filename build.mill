@@ -1,4 +1,4 @@
-//| mill-version: 1.1.0-RC2-34-12421d
+//| mill-version: 1.1.0-RC3-19-3730cf
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C", "-DMILL_ENABLE_STATIC_CHECKS=true"]
 
@@ -196,8 +196,6 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
   Deps.acyclic,
-  Deps.scalacScoverage2Plugin,
-  mvn"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}",
   mvn"io.get-coursier.jvm.indices:index-darwin-arm64:${Deps.coursierJvmIndexVersion}"
 ) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.updateable
 

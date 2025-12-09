@@ -71,14 +71,26 @@ trait TestModule
   }
 
   /**
+   * Default arguments to be passed to `testForked`, `testOnly`, and `testCached`
+   *
+   * If you set this but would like to run `testForked` or `testOnly` without these default values,
+   * pass `--addDefault=false` as first argument to them.
+   */
+  def testArgsDefault: T[Seq[String]] = Task(Nil)
+
+  /**
    * Discovers and runs the module's tests in a subprocess, reporting the
    * results to the console.
    * @see [[testCached]]
    */
-  def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+  def testForked(
+      args: String*
+  ): Task.Command[(msg: String, results: Seq[TestResult])] = {
+    val argsTask = Task.Anon { testArgsDefault() ++ args }
     Task.Command {
-      testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+      testTask(argsTask, Task.Anon { Seq.empty[String] })()
     }
+  }
 
   def getTestEnvironmentVars(args: String*): Task.Command[(
       mainClass: String,
@@ -94,7 +106,7 @@ trait TestModule
   /**
    * Args to be used by [[testCached]].
    */
-  def testCachedArgs: T[Seq[String]] = Task { Seq[String]() }
+  def testCachedArgs: T[Seq[String]] = testArgsDefault
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -143,8 +155,9 @@ trait TestModule
         (s, t.tail)
     }
 
+    val argsTask = Task.Anon { testArgsDefault() ++ testArgs }
     Task.Command {
-      testTask(Task.Anon { testArgs }, Task.Anon { selector })()
+      testTask(argsTask, Task.Anon { selector })()
     }
   }
 

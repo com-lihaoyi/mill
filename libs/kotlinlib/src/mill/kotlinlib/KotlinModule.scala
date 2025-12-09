@@ -381,7 +381,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
               // also run Java compiler and use it's returned result
               compileJava
             }
-          case Result.Failure(reason) => Result.Failure(reason)
+          case f: Result.Failure => f
         }
       } else {
         // it's Java only

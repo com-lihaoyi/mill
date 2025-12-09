@@ -59,26 +59,11 @@ private[mill] object Cacher {
   def impl0[T: Type](using Quotes)(t: Expr[T]): Expr[T] = withMacroOwner { owner =>
     import quotes.reflect.*
 
-    val CacherSym = TypeRepr.of[Cacher].typeSymbol
+    val enclosingCtx = Expr.summon[sourcecode.Enclosing].getOrElse(
+      report.errorAndAbort("Cannot find enclosing context", Position.ofMacroExpansion)
+    )
 
-    val ownerIsCacherClass =
-      owner.owner.isClassDef &&
-        owner.owner.typeRef.baseClasses.contains(CacherSym)
-
-    val errorMessage = "Task{} members must be defs defined in a Module class/trait/object body"
-    if (ownerIsCacherClass && owner.flags.is(Flags.Method)) {
-      val enclosingCtx = Expr.summon[sourcecode.Enclosing].getOrElse(
-        report.errorAndAbort("Cannot find enclosing context", Position.ofMacroExpansion)
-      )
-
-      val thisSel = This(owner.owner).asExprOf[Cacher]
-      '{ $thisSel.cachedTask[T](${ t })(using $enclosingCtx) }
-    } else if (
-      sys.env.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS) ||
-      sys.props.contains(mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS)
-    ) {
-      report.errorAndAbort(errorMessage, Position.ofMacroExpansion)
-      // Use a runtime exception to prevent false error highlighting in IntelliJ
-    } else '{ throw new Exception(${ Expr(errorMessage) }) }
+    val thisSel = This(owner.owner).asExprOf[Cacher]
+    '{ $thisSel.cachedTask[T](${ t })(using $enclosingCtx) }
   }
 }

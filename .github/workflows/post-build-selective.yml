@@ -1,4 +1,8 @@
 name: post-build-selective
+
+env:
+  FORCE_COLOR: '1'
+
 on:
   workflow_call:
     inputs:

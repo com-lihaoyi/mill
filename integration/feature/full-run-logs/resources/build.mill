@@ -1,8 +1,27 @@
 package build
-import mill._, javalib._
+import mill._, scalalib._
 
-object `package` extends JavaModule {
+object `package` extends ScalaModule {
+  def scalaVersion = "3.8.0-RC3"
+  def exceptionHelper() = throw new Exception("boom", new RuntimeException("bang"))
+  def exception() = Task.Command {
+    exceptionHelper()
+    ()
+  }
+  def logging() = Task.Command {
+    println("MY PRINTLN")
+    Task.log.info("MY INFO LOGS")
+    Task.log.warn("MY WARN LOGS")
+    Task.log.error("MY ERROR LOGS")
+    ()
+  }
 
+  object broken1 extends JavaModule {
+    def moduleDir = build.moduleDir / "broken"
+  }
+  object broken2 extends JavaModule {
+    def moduleDir = build.moduleDir / "broken"
+  }
   object exclusives extends Module {
 
     def printingA() = Task.Command(exclusive = true) {

@@ -1,7 +1,6 @@
 package mill.api
 
 import mill.api.*
-import mill.api.daemon.*
 import mill.api.daemon.internal.*
 import mill.api.internal.*
 
@@ -19,7 +18,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def env = delegate.env
   override def effectiveThreadCount = delegate.effectiveThreadCount
   override def offline: Boolean = delegate.offline
-  override def staticBuildOverrides: Map[String, ujson.Value] = delegate.staticBuildOverrides
+  override def staticBuildOverrides = delegate.staticBuildOverrides
   def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
   def resolveSegments(

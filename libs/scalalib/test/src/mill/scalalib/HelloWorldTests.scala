@@ -230,7 +230,7 @@ object HelloWorldTests extends TestSuite {
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
         os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
-        val Left(ExecResult.Failure("Compilation failed")) =
+        val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(HelloWorld.core.compile): @unchecked
 
         val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
@@ -254,7 +254,7 @@ object HelloWorldTests extends TestSuite {
         sourceRoot = resourcePath
       ).scoped { eval =>
         // compilation fails because of "-Xfatal-warnings" flag
-        val Left(ExecResult.Failure("Compilation failed")) =
+        val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(HelloWorldFatalWarnings.core.compile): @unchecked
       }
     }

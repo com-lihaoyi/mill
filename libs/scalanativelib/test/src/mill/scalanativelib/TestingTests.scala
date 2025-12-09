@@ -15,7 +15,7 @@ object TestingTests extends TestSuite {
     def runTests(testTask: Task.Named[(msg: String, results: Seq[TestResult])])
         : Unit =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Left(ExecResult.Failure(_)) = eval(testTask): @unchecked
+        val Left(_: ExecResult.Failure[_]) = eval(testTask): @unchecked
 
 //        val (doneMsg, testResults) = res
 //        testResults

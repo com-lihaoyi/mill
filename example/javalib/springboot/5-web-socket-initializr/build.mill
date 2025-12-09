@@ -1,0 +1,22 @@
+/** See Also: build.mill.yaml */
+
+// This example demonstrates how to configure mill for a Websocket server using Spring Ractive Web via
+// the initializr project,
+// using https://start.spring.io/[https://start.spring.io/] by choosing:
+//
+//* Project: Maven or Gradle
+//* Language: Java
+//* Dependencies: Spring Reactive Web
+//
+// The structure of this project follows the MavenModule structure (i.e. the same structure
+// as generated from the initialzr tool).
+//
+// For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
+
+/** Usage
+
+> ./mill test
+...Test com.example.websocketdemo.WebsocketdemoApplicationTests#getMessage() finished...
+...Test com.example.websocketdemo.WebsocketdemoApplicationTests finished...
+
+*/

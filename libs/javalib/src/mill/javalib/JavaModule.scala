@@ -1484,6 +1484,7 @@ trait JavaModule
         super.prepareOffline(all)() ++
           resolvedMvnDeps() ++
           classgraphWorkerModule().prepareOffline(all)() ++
+          // should be in WithJvmWorkerModule, but isn't due to bin-compat
           jvmWorker().prepareOffline(all)() ++
           resolvedRunMvnDeps() ++
           Task.sequence(tasks)().flatten

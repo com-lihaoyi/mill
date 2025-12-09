@@ -8,13 +8,16 @@ package build
 
 import mill.*, scalalib.*, publish.*
 import mill.api.opt.*
-import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
 object myplugin extends ScalaModule, PublishModule {
-  def scalaVersion = "3.8.0-RC1"
+  def millVersion = "1.0.6"
+
+  def scalaVersion = "3.7.4"
+
+  def jvmId = "11"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
-  def platformSuffix = s"_mill$millBinPlatform"
+  def platformSuffix = s"_mill1"
 
   // Depend on `mill-libs` so we can compile against Mill APIs
   def mvnDeps = Seq(mvn"com.lihaoyi::mill-libs:$millVersion")

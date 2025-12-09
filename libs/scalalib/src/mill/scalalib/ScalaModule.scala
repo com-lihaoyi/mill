@@ -31,6 +31,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
     override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
+    override def scalaCompilerBridge: T[Option[PathRef]] = outer.scalaCompilerBridge()
     override def scalacOptions: T[Opts] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Opts] =
       Task { super.mandatoryScalacOptions() }
@@ -236,6 +237,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   /**
+   * Manually supplied compiler bridge
+   *
+   * The file this points at can be either a JAR containing class files, or a directory
+   * with source files.
+   *
+   * If `None`, Mill fetches and compiles if needed a compiler bridge on its own.
+   * If set to `Some(...)`, Mill uses the passed bridge and doesn't attempt to fetch one.
+   */
+  def scalaCompilerBridge: T[Option[PathRef]] = Task(None)
+
+  /**
    * Classpath of the scaladoc (or dottydoc) tool.
    */
   def scalaDocClasspath: T[Seq[PathRef]] = Task {
@@ -301,6 +313,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         scalacOptions = allScalacOptions().toStringSeq,
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
+        compilerBridgeOpt = scalaCompilerBridge(),
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
         workDir = Task.dest
@@ -343,6 +356,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaOrganization(),
             scalaDocClasspath(),
             scalacPluginClasspath(),
+            scalaCompilerBridge(),
             options ++ compileCp ++ scalaDocOptions().toStringSeq ++ files.map(_.toString()),
             workDir = Task.dest
           ),
@@ -417,29 +431,31 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * Opens up a Scala console with your module and all dependencies present,
    * for you to test and operate your code interactively.
    */
-  def console(): Command[Unit] = Task.Command(exclusive = true) {
-    if (!mill.constants.Util.hasConsole()) {
-      Task.fail("console needs to be run with the -i/--interactive flag")
-    } else {
-      val useJavaCp = "-usejavacp"
+  def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
+    Task.Command(exclusive = true) {
+      if (!mill.constants.Util.hasConsole()) {
+        Task.fail("console needs to be run with the -i/--interactive flag")
+      } else {
+        val useJavaCp = "-usejavacp"
 
-      Jvm.callProcess(
-        mainClass =
-          if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
-            "dotty.tools.repl.Main"
-          else
-            "scala.tools.nsc.MainGenericRunner",
-        classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
-        jvmArgs = forkArgs().toStringSeq,
-        env = allForkEnv().view.mapValues(_.toString()).toMap,
-        mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
-        cwd = forkWorkingDir(),
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
-      ()
+        Jvm.callProcess(
+          mainClass =
+            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
+              "dotty.tools.repl.Main"
+            else
+              "scala.tools.nsc.MainGenericRunner",
+          classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
+          jvmArgs = forkArgs().toStringSeq,
+          env = allForkEnv().view.mapValues(_.toString()).toMap,
+          mainArgs =
+            Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
+          cwd = forkWorkingDir(),
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
+        ()
+      }
     }
-  }
 
   /**
    * The classpath used to run the Scala console with [[console]].
@@ -654,6 +670,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           scalacOptions = scalacOptions,
           compilerClasspath = scalaCompilerClasspath(),
           scalacPluginClasspath = semanticDbPluginClasspath(),
+          compilerBridgeOpt = scalaCompilerBridge(),
           incrementalCompilation = zincIncrementalCompilation(),
           auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
           workDir = Task.dest
@@ -693,6 +710,7 @@ object ScalaModule {
     override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginMvnDeps: T[Seq[Dep]] = outer.scalacPluginMvnDeps()
     override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
+    override def scalaCompilerBridge: T[Option[PathRef]] = outer.scalaCompilerBridge()
     override def scalacOptions: T[Opts] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Opts] =
       Task { super.mandatoryScalacOptions() }

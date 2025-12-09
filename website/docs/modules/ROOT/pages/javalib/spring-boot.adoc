@@ -2,29 +2,38 @@
 :page-aliases: Spring_Boot_Java.adoc
 :language-small: java
 
-// This page contains examples of providing Mill as a build tool for Spring Boot applications, adapting the official Spring Boot documentation in increasing complexity.
+This page contains examples of providing Mill as a build tool for Spring-Boot projects,
+adapting the official Spring Boot documentation in increasing complexity.
+
+In general, Spring-Boot projects are just Java projects, and work out of the box with Mill
+once configured with the proper dependencies. These examples below show some build setups
+common in spring boot projects - application code, test suites, integration tests, etc. -
+but the rest of the documentation for xref:javalib/intro.adoc[Building Java with Mill] all
+still applies.
 
 == Spring Boot Hello World App
 
 include::partial$example/javalib/springboot/1-hello-spring-boot.adoc[]
 
+include::partial$example/javalib/springboot/2-hello-spring-boot-programmable.adoc[]
+
 
 == Spring Boot TodoMvc App
 
 
-include::partial$example/javalib/springboot/2-todo-spring-boot.adoc[]
+include::partial$example/javalib/springboot/3-todo-spring-boot.adoc[]
 
 == Spring Boot Web with Initializr
 
-include::partial$example/javalib/springboot/3-web-initializr.adoc[]
+include::partial$example/javalib/springboot/4-web-initializr.adoc[]
 
 == Spring Reactive Web, Websocket example with Initializr
 
-include::partial$example/javalib/springboot/4-web-socket-initializr.adoc[]
+include::partial$example/javalib/springboot/5-web-socket-initializr.adoc[]
 
 == Spring Boot with AOT processing and Native Image Support
 
-include::partial$example/javalib/springboot/5-native.adoc[]
+include::partial$example/javalib/springboot/6-native.adoc[]
 
 // Include this header in the entry page for the language-specific Spring Framework / Spring Boot page
 

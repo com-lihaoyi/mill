@@ -1,4 +1,4 @@
-// Programmatic Mill builds make it very easy to customize your build graph, overriding portions
+// Programmable Mill builds make it very easy to customize your build graph, overriding portions
 // of it with custom logic. In this example, we override the JVM `resources` of
 // our `{language}Module` - normally the `resources/` folder - to also contain a
 // single generated text file containing the line count of all the source files

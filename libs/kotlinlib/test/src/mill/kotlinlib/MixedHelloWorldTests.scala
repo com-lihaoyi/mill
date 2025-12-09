@@ -66,7 +66,7 @@ object MixedHelloWorldTests extends TestSuite {
       testEval().scoped { eval =>
         MixedHelloWorldKotlin.main.crossModules.foreach(m => {
 
-          val Left(ExecResult.Failure(_)) = eval.apply(m.test.testForked()): @unchecked
+          val Left(_: ExecResult.Failure[_]) = eval.apply(m.test.testForked()): @unchecked
 
           //        assert(
           //          v1._2(0).fullyQualifiedName == "hello.tests.HelloTest.testFailure",

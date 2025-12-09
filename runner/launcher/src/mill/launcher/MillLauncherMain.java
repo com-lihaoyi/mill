@@ -1,5 +1,7 @@
 package mill.launcher;
 
+import static mill.constants.OutFiles.OutFiles;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +16,6 @@ import mill.client.*;
 import mill.client.lock.Locks;
 import mill.constants.BuildInfo;
 import mill.constants.EnvVars;
-import mill.constants.OutFiles;
 import mill.constants.OutFolderMode;
 import mill.internal.MillCliConfig;
 

@@ -1,6 +1,6 @@
 package mill.launcher;
 
-import static mill.constants.OutFiles.*;
+import static mill.constants.OutFiles.OutFiles;
 
 import io.github.alexarchambault.nativeterm.NativeTerminal;
 import io.github.alexarchambault.nativeterm.TerminalSize;
@@ -23,8 +23,10 @@ public class MillProcessLauncher {
       String[] args, OutFolderMode outMode, String[] runnerClasspath, String mainClass)
       throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
-    final Path processDir =
-        Paths.get(".").resolve(outFor(outMode)).resolve(millNoDaemon).resolve(sig);
+    final Path processDir = Paths.get(".")
+        .resolve(OutFiles.outFor(outMode))
+        .resolve(OutFiles.millNoDaemon)
+        .resolve(sig);
 
     MillProcessLauncher.prepareMillRunFolder(processDir);
 
@@ -162,21 +164,21 @@ public class MillProcessLauncher {
   }
 
   static List<String> millJvmOpts(OutFolderMode outMode) throws Exception {
-    return loadMillConfig(outMode, "mill-jvm-opts");
+    return loadMillConfig(outMode, ConfigConstants.millJvmOpts);
   }
 
   static List<String> millOpts(OutFolderMode outMode) throws Exception {
-    return loadMillConfig(outMode, "mill-opts");
+    return loadMillConfig(outMode, ConfigConstants.millOpts);
   }
 
   static String millJvmVersion(OutFolderMode outMode) throws Exception {
-    List<String> res = loadMillConfig(outMode, "mill-jvm-version");
+    List<String> res = loadMillConfig(outMode, ConfigConstants.millJvmVersion);
     if (res.isEmpty()) return null;
     else return res.get(0);
   }
 
   static String millJvmIndexVersion(OutFolderMode outMode) throws Exception {
-    List<String> res = loadMillConfig(outMode, "mill-jvm-index-version");
+    List<String> res = loadMillConfig(outMode, ConfigConstants.millJvmIndexVersion);
     if (res.isEmpty()) return null;
     else return res.get(0);
   }
@@ -277,7 +279,8 @@ public class MillProcessLauncher {
       Supplier<String[]> block,
       Function<String[], Boolean> validate) {
     try {
-      Path cacheFile = Paths.get(".").resolve(outFor(outMode)).resolve("mill-launcher/" + name);
+      Path cacheFile =
+          Paths.get(".").resolve(OutFiles.outFor(outMode)).resolve("mill-launcher/" + name);
       String[] value = null;
       if (Files.exists(cacheFile)) {
         String[] savedInfo = Files.readString(cacheFile).split("\n");
