@@ -22,6 +22,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       )
       res.isSuccess ==> false
 
+
       assertGoldenLiteral(
         normalize(res.result.err.text()),
         // We passed in `--color=true` so we should expect colored output
