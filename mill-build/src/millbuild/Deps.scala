@@ -14,7 +14,7 @@ object Deps {
   val workerScalaVersion212 = "2.12.20"
   val sbtScalaVersion212 = workerScalaVersion212
 
-  val testScala213Version = "2.13.18"
+  val testScala213Version = "2.13.16"
   // Scala Native 4.2 will not get releases for new Scala version
   val testScala213VersionForScalaNative42 = "2.13.16"
   val testScala212Version = "2.12.6"
