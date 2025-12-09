@@ -58,7 +58,9 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         )
       )
 
-      // Java name resolution error
+      // Java name resolution error. Note that we should now be able to syntax-highlight
+      // the names in class and variable definitions CYAN, and references to types in GREEN,
+      // since there is no longer a parse error and we have access to an AST
       modifyFile(workspacePath / "src/foo/Foo.scala", _ + "\"}}")
       modifyFile(
         workspacePath / "src/foo/Foo.java",
@@ -76,7 +78,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<dashes> jar <dashes>",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)43(Z)",
-          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) Strin x = (G)\"omg\"(X);}}",
+          "(B)<digits>](X) (Y)class(X) (C)Bar(X) { (B)/*comment*/(X) (Y)void(X) (C)bar(X)(){ (Y)final(X) (G)Strin(X) (C)x(X) = (G)\"omg\"(X);}}",
           "(B)<digits>](X)                                           (R)^^^^^(Z)",
           "(B)<digits>](X) cannot find symbol",
           "(B)<digits>](X)   symbol:   class Strin",
