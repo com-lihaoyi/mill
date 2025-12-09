@@ -31,7 +31,7 @@ object foo extends ScalaModule {
 /** Usage
 
 > ./mill show foo.scalaDocGenerated
-"ref:...out/foo/scalaDocGenerated.dest/javadoc"
+"ref:...$MILL_OUT/foo/scalaDocGenerated.dest/javadoc"
 
 > cat out/foo/scalaDocGenerated.dest/javadoc/foo/Foo.html
 ...
