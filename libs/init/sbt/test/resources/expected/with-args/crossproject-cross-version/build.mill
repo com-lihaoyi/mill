@@ -90,7 +90,7 @@ object `package` extends Module {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
-      def scalaNativeVersion = "0.5.4"
+      def scalaNativeVersion = "0.5.7"
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
@@ -202,7 +202,7 @@ object `package` extends Module {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
-      def scalaNativeVersion = "0.5.4"
+      def scalaNativeVersion = "0.5.7"
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
@@ -344,7 +344,7 @@ object `package` extends Module {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
-      def scalaNativeVersion = "0.5.4"
+      def scalaNativeVersion = "0.5.7"
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {

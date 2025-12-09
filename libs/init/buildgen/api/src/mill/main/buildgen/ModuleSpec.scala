@@ -3,16 +3,19 @@ package mill.main.buildgen
 import mill.main.buildgen.ModuleSpec._
 import upickle.default.{ReadWriter, macroRW, readwriter}
 
+import scala.language.implicitConversions
+
 case class ModuleSpec(
     name: String,
     imports: Seq[String] = Nil,
     supertypes: Seq[String] = Nil,
     mixins: Seq[String] = Nil,
     crossKeys: Seq[String] = Nil,
-    useParentModuleDir: Boolean = false,
+    useOuterModuleDir: Boolean = false,
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
     forkWorkingDir: Value[os.RelPath] = Value(),
+    mandatoryMvnDeps: Values[MvnDep] = Values(),
     mvnDeps: Values[MvnDep] = Values(),
     compileMvnDeps: Values[MvnDep] = Values(),
     runMvnDeps: Values[MvnDep] = Values(),
@@ -33,7 +36,6 @@ case class ModuleSpec(
     publishVersion: Value[String] = Value(),
     versionScheme: Value[String] = Value(),
     publishProperties: Values[(String, String)] = Values(),
-    errorProneVersion: Value[String] = Value(),
     errorProneDeps: Values[MvnDep] = Values(),
     errorProneOptions: Values[String] = Values(),
     errorProneJavacEnableOptions: Values[Opt] = Values(),
@@ -49,27 +51,36 @@ case class ModuleSpec(
     test: Option[ModuleSpec] = None,
     children: Seq[ModuleSpec] = Nil
 ) {
+
   def tree: Seq[ModuleSpec] = this +: children.flatMap(_.tree)
 
   def withErrorProneModule(errorProneMvnDeps: Seq[MvnDep]): ModuleSpec = {
     javacOptions.base.find(_.group.head.startsWith("-Xplugin:ErrorProne")).fold(this) { epOption =>
       val epOptions = epOption.group.head.split("\\s").toSeq.tail
-      val epMvnDep = errorProneMvnDeps.find(dep =>
-        dep.name == "error_prone_core" && dep.organization == "com.google.errorprone"
-      )
       val (epJavacOptions, javacOptions0) = javacOptions.base
-        // Skip options added by ErrorProneModule.
         .diff(Seq(epOption, Opt("-XDcompilePolicy=simple")))
         .partition(_.group.head.startsWith("-XD"))
       this.copy(
         imports = "import mill.javalib.errorprone.ErrorProneModule" +: imports,
         supertypes = supertypes :+ "ErrorProneModule",
-        errorProneVersion = epMvnDep.collect { case dep if dep.version.nonEmpty => dep.version },
-        errorProneDeps = errorProneMvnDeps.diff(epMvnDep.toSeq),
+        errorProneDeps = errorProneMvnDeps,
         errorProneOptions = epOptions,
         errorProneJavacEnableOptions = epJavacOptions,
         javacOptions = javacOptions0
       )
+    }
+  }
+
+  def withJupiterInterface(junitVersion: String): ModuleSpec = {
+    val Version = "(\\d+)\\.(\\d+).*".r
+    junitVersion match {
+      case Version("5", minor) if minor.toInt < 8 =>
+        copy(mandatoryMvnDeps =
+          mandatoryMvnDeps.copy(base =
+            mandatoryMvnDeps.base :+ MvnDep("com.github.sbt.junit", "jupiter-interface", "0.11.4")
+          )
+        )
+      case _ => this
     }
   }
 }
@@ -102,7 +113,9 @@ object ModuleSpec {
       cross: CrossVersion = CrossVersion.Constant("", platformed = false),
       ref: Option[String] = None
   ) {
-    override def toString(): String = {
+    def is(organization: String, name: String): Boolean =
+      this.name == name && this.organization == organization
+    override def toString: String = {
       val binarySeparator = cross match {
         case _: CrossVersion.Full => ":::"
         case _: CrossVersion.Binary => "::"
@@ -112,6 +125,7 @@ object ModuleSpec {
         case v: CrossVersion.Constant => v.value
         case _ => ""
       }
+      val platformSeparator = if (version.isEmpty) "" else if (cross.platformed) "::" else ":"
       val classifierAttr = classifier.fold("") {
         case "" => ""
         case attr => s";classifier=$attr"
@@ -120,19 +134,17 @@ object ModuleSpec {
         case "" | "jar" => ""
         case attr => s";type=$attr"
       }
-      val excludeAttrs = excludes.map { case (org, name) => s";exclude=$org:$name" }.mkString
-      val suffix = s"$version$classifierAttr$typeAttr$excludeAttrs"
-      val platformSeparator = if (suffix.isEmpty) "" else if (cross.platformed) "::" else ":"
-      s"""mvn"$organization$binarySeparator$name$nameSuffix$platformSeparator$suffix""""
+      val excludeAttr = excludes.map { case (org, name) => s";exclude=$org:$name" }.mkString
+      s"""mvn"$organization$binarySeparator$name$nameSuffix$platformSeparator$version$classifierAttr$typeAttr$excludeAttr""""
     }
   }
   object MvnDep {
     implicit val rw: ReadWriter[MvnDep] = macroRW
   }
   case class ModuleDep(
-      moduleDir: os.SubPath,
+      segments: Seq[String],
       crossSuffix: Option[String] = None,
-      nestedModule: Option[String] = None
+      childSegment: Option[String] = None
   )
   object ModuleDep {
     implicit val rw: ReadWriter[ModuleDep] = macroRW
@@ -208,9 +220,10 @@ object ModuleSpec {
     implicit def from[A](base: Option[A]): Value[A] = apply(base = base)
   }
   case class Values[+A](
-      extend: Boolean = false, // extend super values with append
       base: Seq[A] = Nil,
-      cross: Seq[(String, Seq[A])] = Nil
+      cross: Seq[(String, Seq[A])] = Nil,
+      appendSuper: Boolean = false,
+      appendRefs: Seq[ModuleDep] = Nil // append reference for corresponding module member
   )
   object Values {
     implicit def rw[A: ReadWriter]: ReadWriter[Values[A]] = macroRW

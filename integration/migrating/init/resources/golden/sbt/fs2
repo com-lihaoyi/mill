@@ -217,57 +217,524 @@ Module dependencies of unidocs.3_3_5:
   "unidocs.3_3_5.repositories": []
 }
 {
-  "benchmark.2_12_20.jvmId": "zulu:11",
-  "benchmark.2_13_16.jvmId": "zulu:11",
-  "benchmark.3_3_5.jvmId": "zulu:11",
-  "core.js.2_12_20.jvmId": "",
-  "core.js.2_13_16.jvmId": "",
-  "core.js.3_3_5.jvmId": "",
-  "core.jvm.2_12_20.jvmId": "",
-  "core.jvm.2_13_16.jvmId": "",
-  "core.jvm.3_3_5.jvmId": "",
-  "core.native.2_12_20.jvmId": "",
-  "core.native.2_13_16.jvmId": "",
-  "core.native.3_3_5.jvmId": "",
-  "integration.2_12_20.jvmId": "zulu:11",
-  "integration.2_13_16.jvmId": "zulu:11",
-  "integration.3_3_5.jvmId": "zulu:11",
-  "io.js.2_12_20.jvmId": "",
-  "io.js.2_13_16.jvmId": "",
-  "io.js.3_3_5.jvmId": "",
-  "io.jvm.2_12_20.jvmId": "",
-  "io.jvm.2_13_16.jvmId": "",
-  "io.jvm.3_3_5.jvmId": "",
-  "io.native.2_12_20.jvmId": "",
-  "io.native.2_13_16.jvmId": "",
-  "io.native.3_3_5.jvmId": "",
-  "mdoc.2_12_20.jvmId": "",
-  "mdoc.2_13_16.jvmId": "",
-  "mdoc.3_3_5.jvmId": "",
-  "protocols.js.2_12_20.jvmId": "zulu:11",
-  "protocols.js.2_13_16.jvmId": "zulu:11",
-  "protocols.js.3_3_5.jvmId": "zulu:11",
-  "protocols.jvm.2_12_20.jvmId": "zulu:11",
-  "protocols.jvm.2_13_16.jvmId": "zulu:11",
-  "protocols.jvm.3_3_5.jvmId": "zulu:11",
-  "protocols.native.2_12_20.jvmId": "zulu:11",
-  "protocols.native.2_13_16.jvmId": "zulu:11",
-  "protocols.native.3_3_5.jvmId": "zulu:11",
-  "reactive-streams.2_12_20.jvmId": "zulu:11",
-  "reactive-streams.2_13_16.jvmId": "zulu:11",
-  "reactive-streams.3_3_5.jvmId": "zulu:11",
-  "scodec.js.2_12_20.jvmId": "zulu:11",
-  "scodec.js.2_13_16.jvmId": "zulu:11",
-  "scodec.js.3_3_5.jvmId": "zulu:11",
-  "scodec.jvm.2_12_20.jvmId": "zulu:11",
-  "scodec.jvm.2_13_16.jvmId": "zulu:11",
-  "scodec.jvm.3_3_5.jvmId": "zulu:11",
-  "scodec.native.2_12_20.jvmId": "zulu:11",
-  "scodec.native.2_13_16.jvmId": "zulu:11",
-  "scodec.native.3_3_5.jvmId": "zulu:11",
-  "unidocs.2_12_20.jvmId": "",
-  "unidocs.2_13_16.jvmId": "",
-  "unidocs.3_3_5.jvmId": ""
+  "benchmark.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "benchmark.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "benchmark.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "core.js.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2"
+  ],
+  "core.js.2_12_20.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2"
+  ],
+  "core.js.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2"
+  ],
+  "core.js.2_13_16.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2"
+  ],
+  "core.js.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library::3.3.5",
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.18.2",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional": false,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    }
+  ],
+  "core.js.3_3_5.test.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library::3.3.5",
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.18.2",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional": false,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    }
+  ],
+  "core.jvm.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "core.jvm.2_12_20.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "core.jvm.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "core.jvm.2_13_16.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "core.jvm.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "core.jvm.3_3_5.test.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "core.native.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "core.native.2_12_20.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "core.native.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "core.native.2_13_16.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "core.native.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scala3lib::0.4.17"
+  ],
+  "core.native.3_3_5.test.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scala3lib::0.4.17"
+  ],
+  "integration.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "integration.2_12_20.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "integration.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "integration.2_13_16.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "integration.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "integration.3_3_5.test.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "io.js.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2"
+  ],
+  "io.js.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2"
+  ],
+  "io.js.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library::3.3.5",
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.18.2",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional": false,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    }
+  ],
+  "io.jvm.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "io.jvm.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "io.jvm.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "io.native.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "io.native.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "io.native.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scala3lib::0.4.17"
+  ],
+  "mdoc.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "mdoc.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "mdoc.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "protocols.js.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2"
+  ],
+  "protocols.js.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2"
+  ],
+  "protocols.js.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library::3.3.5",
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.18.2",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional": false,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    }
+  ],
+  "protocols.jvm.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "protocols.jvm.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "protocols.jvm.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "protocols.native.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "protocols.native.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "protocols.native.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scala3lib::0.4.17"
+  ],
+  "reactive-streams.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "reactive-streams.2_12_20.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "reactive-streams.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "reactive-streams.2_13_16.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "reactive-streams.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "reactive-streams.3_3_5.test.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "scodec.js.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.12.20+1.18.2"
+  ],
+  "scodec.js.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-js::scalajs-library:1.18.2",
+    "org.scala-js::scalajs-scalalib:2.13.16+1.18.2"
+  ],
+  "scodec.js.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library::3.3.5",
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.18.2",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional": false,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    }
+  ],
+  "scodec.jvm.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "scodec.jvm.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "scodec.jvm.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ],
+  "scodec.native.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "scodec.native.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scalalib::0.4.17"
+  ],
+  "scodec.native.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5",
+    "org.scala-native::nativelib::0.4.17",
+    "org.scala-native::javalib::0.4.17",
+    "org.scala-native::auxlib::0.4.17",
+    "org.scala-native::scala3lib::0.4.17"
+  ],
+  "unidocs.2_12_20.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.12.20"
+  ],
+  "unidocs.2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16"
+  ],
+  "unidocs.3_3_5.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library:3.3.5"
+  ]
 }
 {
   "benchmark.2_12_20.mvnDeps": [
@@ -286,6 +753,7 @@ Module dependencies of unidocs.3_3_5:
     "org.openjdk.jmh:jmh-generator-reflection:1.37"
   ],
   "core.js.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -299,6 +767,7 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.js.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -312,6 +781,7 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.js.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -325,6 +795,7 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.jvm.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -340,6 +811,7 @@ Module dependencies of unidocs.3_3_5:
     "org.scalatestplus::testng-7-5:3.2.14.0"
   ],
   "core.jvm.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -355,6 +827,7 @@ Module dependencies of unidocs.3_3_5:
     "org.scalatestplus::testng-7-5:3.2.14.0"
   ],
   "core.jvm.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -370,46 +843,49 @@ Module dependencies of unidocs.3_3_5:
     "org.scalatestplus::testng-7-5:3.2.14.0"
   ],
   "core.native.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
   "core.native.2_12_20.test.mvnDeps": [
-    "org.scala-native::test-interface::0.4.17",
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
     "org.typelevel::discipline-munit::2.0.0-M3",
     "org.typelevel::munit-cats-effect::2.0.0",
-    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2",
+    "org.scala-native::test-interface::0.4.17"
   ],
   "core.native.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
   "core.native.2_13_16.test.mvnDeps": [
-    "org.scala-native::test-interface::0.4.17",
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
     "org.typelevel::discipline-munit::2.0.0-M3",
     "org.typelevel::munit-cats-effect::2.0.0",
-    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2",
+    "org.scala-native::test-interface::0.4.17"
   ],
   "core.native.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
   "core.native.3_3_5.test.mvnDeps": [
-    "org.scala-native::test-interface::0.4.17",
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
     "org.typelevel::discipline-munit::2.0.0-M3",
     "org.typelevel::munit-cats-effect::2.0.0",
-    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2",
+    "org.scala-native::test-interface::0.4.17"
   ],
   "integration.2_12_20.mvnDeps": [],
   "integration.2_12_20.test.mvnDeps": [
@@ -424,30 +900,39 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::munit-cats-effect::2.0.0"
   ],
   "io.js.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.js.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.js.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.jvm.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.jvm.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.jvm.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.native.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.native.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.native.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "mdoc.2_12_20.mvnDeps": [
@@ -459,15 +944,33 @@ Module dependencies of unidocs.3_3_5:
   "mdoc.3_3_5.mvnDeps": [
     "org.scalameta::mdoc:2.6.2"
   ],
-  "protocols.js.2_12_20.mvnDeps": [],
-  "protocols.js.2_13_16.mvnDeps": [],
-  "protocols.js.3_3_5.mvnDeps": [],
-  "protocols.jvm.2_12_20.mvnDeps": [],
-  "protocols.jvm.2_13_16.mvnDeps": [],
-  "protocols.jvm.3_3_5.mvnDeps": [],
-  "protocols.native.2_12_20.mvnDeps": [],
-  "protocols.native.2_13_16.mvnDeps": [],
-  "protocols.native.3_3_5.mvnDeps": [],
+  "protocols.js.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "protocols.js.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "protocols.js.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1"
+  ],
+  "protocols.jvm.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "protocols.jvm.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "protocols.jvm.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1"
+  ],
+  "protocols.native.2_12_20.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "protocols.native.2_13_16.mvnDeps": [
+    "org.scodec::scodec-core::1.11.10"
+  ],
+  "protocols.native.3_3_5.mvnDeps": [
+    "org.scodec::scodec-core::2.2.1"
+  ],
   "reactive-streams.2_12_20.mvnDeps": [
     "org.reactivestreams:reactive-streams:1.0.4"
   ],
@@ -4659,7 +5162,6 @@ Module dependencies of unidocs.3_3_5:
 }
 
 
-
 {
   "benchmark.2_12_20.scalaVersion": "2.12.20",
   "benchmark.2_13_16.scalaVersion": "2.13.16",
@@ -5918,25 +6420,25 @@ Module dependencies of unidocs.3_3_5:
   ],
   "benchmark.3_3_5.scalacPluginMvnDeps": [],
   "core.js.2_12_20.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
-    "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
-  ],
-  "core.js.2_12_20.test.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3",
     "org.scala-js:::scalajs-compiler:1.18.2"
   ],
-  "core.js.2_13_16.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
-    "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
-  ],
-  "core.js.2_13_16.test.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
+  "core.js.2_12_20.test.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "core.js.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "core.js.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2",
     "org.scala-js:::scalajs-compiler:1.18.2"
   ],
   "core.js.3_3_5.scalacPluginMvnDeps": [],
@@ -5960,25 +6462,25 @@ Module dependencies of unidocs.3_3_5:
   "core.jvm.3_3_5.scalacPluginMvnDeps": [],
   "core.jvm.3_3_5.test.scalacPluginMvnDeps": [],
   "core.native.2_12_20.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
-    "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
-  ],
-  "core.native.2_12_20.test.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3",
     "org.scala-native:::nscplugin:0.4.17"
   ],
-  "core.native.2_13_16.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
-    "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
-  ],
-  "core.native.2_13_16.test.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
+  "core.native.2_12_20.test.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "core.native.2_13_16.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
+  ],
+  "core.native.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17",
     "org.scala-native:::nscplugin:0.4.17"
   ],
   "core.native.3_3_5.scalacPluginMvnDeps": [
@@ -6007,14 +6509,14 @@ Module dependencies of unidocs.3_3_5:
   "integration.3_3_5.scalacPluginMvnDeps": [],
   "integration.3_3_5.test.scalacPluginMvnDeps": [],
   "io.js.2_12_20.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
   ],
   "io.js.2_13_16.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
   ],
   "io.js.3_3_5.scalacPluginMvnDeps": [],
   "io.jvm.2_12_20.scalacPluginMvnDeps": [
@@ -6027,14 +6529,14 @@ Module dependencies of unidocs.3_3_5:
   ],
   "io.jvm.3_3_5.scalacPluginMvnDeps": [],
   "io.native.2_12_20.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
   ],
   "io.native.2_13_16.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
   ],
   "io.native.3_3_5.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17"
@@ -6049,14 +6551,14 @@ Module dependencies of unidocs.3_3_5:
   ],
   "mdoc.3_3_5.scalacPluginMvnDeps": [],
   "protocols.js.2_12_20.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
   ],
   "protocols.js.2_13_16.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
   ],
   "protocols.js.3_3_5.scalacPluginMvnDeps": [],
   "protocols.jvm.2_12_20.scalacPluginMvnDeps": [
@@ -6069,14 +6571,14 @@ Module dependencies of unidocs.3_3_5:
   ],
   "protocols.jvm.3_3_5.scalacPluginMvnDeps": [],
   "protocols.native.2_12_20.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
   ],
   "protocols.native.2_13_16.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
   ],
   "protocols.native.3_3_5.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17"
@@ -6100,14 +6602,14 @@ Module dependencies of unidocs.3_3_5:
   "reactive-streams.3_3_5.scalacPluginMvnDeps": [],
   "reactive-streams.3_3_5.test.scalacPluginMvnDeps": [],
   "scodec.js.2_12_20.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
   ],
   "scodec.js.2_13_16.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
   ],
   "scodec.js.3_3_5.scalacPluginMvnDeps": [],
   "scodec.jvm.2_12_20.scalacPluginMvnDeps": [
@@ -6120,14 +6622,14 @@ Module dependencies of unidocs.3_3_5:
   ],
   "scodec.jvm.3_3_5.scalacPluginMvnDeps": [],
   "scodec.native.2_12_20.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
   ],
   "scodec.native.2_13_16.scalacPluginMvnDeps": [
-    "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-native:::nscplugin:0.4.17"
   ],
   "scodec.native.3_3_5.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17"

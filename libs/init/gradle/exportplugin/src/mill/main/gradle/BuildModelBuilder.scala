@@ -10,18 +10,15 @@ import org.gradle.api.artifacts.repositories.UrlArtifactRepository
 import org.gradle.api.attributes.Category
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.JavaPlatformPlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.*
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.tooling.provider.model.ToolingModelBuilder
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
-import java.io.File
-import javax.inject.Inject
 import scala.jdk.CollectionConverters.*
 import scala.reflect.TypeTest
 import scala.util.Try
@@ -45,7 +42,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     val moduleDir = os.Path(getProjectDir)
     var mainModule = ModuleSpec(
       name = moduleDir.last,
-      repositories = getRepositories.iterator.asScala.collect(toRepositoryUrlString).distinct.toSeq
+      repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
         .diff(Seq(
           getRepositories.mavenCentral,
           getRepositories.mavenLocal,
@@ -53,163 +50,159 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         ).collect(toRepositoryUrlString))
     )
 
-    def configurations(names: String*) = {
-      val itr = getConfigurations.iterator.asScala
-      if (names.isEmpty) itr else itr.filter(config => names.contains(config.getName))
-    }
-    def constraints =
-      configurations().flatMap(_.getDependencyConstraints.iterator.asScala)
-    def dependencies(configs: String*) =
-      configurations(configs*).flatMap(_.getDependencies.iterator.asScala)
-    def task[T](name: String)(using T: TypeTest[Task, T]) = getTasks.findByName(name) match {
-      case T(t) => Some(t)
-      case _ => None
-    }
-    val mavenPublication = Option(getExtensions.findByType(classOf[PublishingExtension]))
-      .flatMap(ext => ext.getPublications.withType(classOf[MavenPublication]).asScala.headOption)
-
     if (getPluginManager.hasPlugin("java-platform")) {
-      val (constrainedModules, constrainedDeps) =
-        constraints.toSeq.partition(toModuleDep.isDefinedAt)
-      val (modulesDeps, bomModuleDeps) = constrainedModules.partitionMap(dep =>
-        Either.cond(isBom(dep), toModuleDep(dep), toModuleDep(dep))
-      )
-      val (bomModuleDeps1, bomDeps) =
-        dependencies().filter(isBom).toSeq.partitionMap(dep => toModuleDep.lift(dep).toLeft(dep))
+      val configs = getConfigurations.asScala.toSeq
+      val deps = configs.flatMap(_.getDependencies.asScala)
+      val constraints = configs.flatMap(_.getDependencyConstraints.asScala)
       mainModule = mainModule.copy(
         imports = "import mill.javalib.*" +: mainModule.imports,
         supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
-        bomMvnDeps = bomDeps.collect(toMvnDep),
-        depManagement = constrainedDeps.collect(toMvnDep),
-        moduleDeps = modulesDeps,
-        bomModuleDeps = bomModuleDeps ++ bomModuleDeps1
+        bomMvnDeps = deps.filter(isBom).collect(toMvnDep),
+        depManagement = constraints.collect(toMvnDep),
+        moduleDeps = constraints.collect(toModuleDep),
+        bomModuleDeps = deps.filter(isBom).collect(toModuleDep)
       )
     } else if (getPluginManager.hasPlugin("java")) {
-      def mvnDeps(configs: String*) =
-        dependencies(configs*).filterNot(isBom).collect(toMvnDep).toSeq
-      def moduleDeps(configs: String*) =
-        dependencies(configs*).filterNot(isBom).collect(toModuleDep).toSeq
-      val (bomModuleDeps, bomDeps) =
-        dependencies().filter(isBom).toSeq.partitionMap(dep => toModuleDep.lift(dep).toLeft(dep))
-      val javaPluginExt = getExtensions.findByType(classOf[JavaPluginExtension])
-      val sourceSets = ctx.sourceSets(javaPluginExt)
-      val (sourcesFolders, sources, resources) =
-        sourceSets.find(_.getName == "main").fold((Nil, Nil, Nil))(ss =>
-          val (sourcesFolders, sources) =
-            ss.getJava.getSrcDirs.iterator.asScala
-              .map(os.Path(_).relativeTo(moduleDir)).toSeq.partition(_.ups == 0)
-          val resources = ss.getResources.getSrcDirs.iterator.asScala
-            .map(os.Path(_).relativeTo(moduleDir)).toSeq
-          (
-            if (sourcesFolders == Seq(os.rel / "src/main/java")) Nil
-            else sourcesFolders.map(_.asSubPath),
-            sources,
-            if (resources == Seq(os.rel / "src/main/resources")) Nil else resources
-          )
-        )
+      val configs = getConfigurations.asScala.toSeq
+      def deps(configNames: String*) = configs
+        .filter(config => configNames.contains(config.getName))
+        .flatMap(_.getDependencies.asScala)
+      def mvnDeps(configNames: String*) = deps(configNames*).filterNot(isBom).collect(toMvnDep)
+      def moduleDeps(configNames: String*) =
+        deps(configNames*).filterNot(isBom).collect(toModuleDep)
+      val mainConfigs = configs.filter(config =>
+        config.getName != "errorprone" && !config.getName.startsWith("test")
+      )
+      val mainDeps = mainConfigs.flatMap(_.getDependencies.asScala)
+      val mainConstraints = mainConfigs.flatMap(_.getDependencyConstraints.asScala)
+      def task[T](name: String)(using T: TypeTest[Task, T]) = getTasks.findByName(name) match {
+        case T(t) => Some(t)
+        case _ => None
+      }
+      val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
+      def sources(sets: Seq[SourceSet]) = {
+        val toRelModule: PartialFunction[os.Path, os.RelPath] = {
+          case path if !path.startsWith(buildDir) => path.relativeTo(moduleDir)
+        }
+        val sourcesFolders = Seq.newBuilder[os.SubPath]
+        val sources = Seq.newBuilder[os.RelPath]
+        val resources = Seq.newBuilder[os.RelPath]
+        for (set <- sets) do {
+          val (_sourcesFolders, _sources) = set.getJava.getSrcDirs.asScala.map(os.Path(_)).collect(
+            toRelModule
+          ).partition(_.ups == 0)
+          sourcesFolders ++= _sourcesFolders.map(_.asSubPath)
+          sources ++= _sources
+          val res = set.getResources
+          val _resources = if (res.getIncludes.isEmpty && res.getExcludes.isEmpty)
+            res.getSrcDirs.asScala.toSeq.map(os.Path(_)).collect(toRelModule)
+          else res.getFiles.asScala.toSeq.map(os.Path(_)).collect(toRelModule)
+          resources ++= _resources
+        }
+        (sourcesFolders.result(), sources.result(), resources.result())
+      }
+      val (testSourceSets, mainSourceSets) =
+        Option(getExtensions.findByType(classOf[JavaPluginExtension]))
+          .flatMap(ctx.sourceSetContainer).toSeq.flatMap(_.asScala.toSeq)
+          .partition(isTest)
+      val (mainSourcesFolders, mainSources, mainResources) = sources(mainSourceSets)
+      val errorProneDeps = mvnDeps("errorprone")
       mainModule = mainModule.copy(
         imports = "import mill.javalib.*" +: mainModule.imports,
         supertypes = "MavenModule" +: mainModule.supertypes,
         mvnDeps = mvnDeps("implementation", "api"),
         compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
         runMvnDeps = mvnDeps("runtimeOnly"),
-        bomMvnDeps = bomDeps.collect(toMvnDep),
-        depManagement = constraints.collect(toMvnDep).toSeq,
+        bomMvnDeps = mainDeps.filter(isBom).collect(toMvnDep),
+        depManagement = mainConstraints.collect(toMvnDep),
         javacOptions = task[JavaCompile]("compileJava").fold(Nil)(javacOptions),
-        sourcesFolders = sourcesFolders,
-        sources = Values(extend = true, sources),
-        resources = resources,
         moduleDeps = moduleDeps("implementation", "api"),
         compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
         runModuleDeps = moduleDeps("runtimeOnly"),
-        bomModuleDeps = bomModuleDeps,
-        artifactName = mavenPublication.map(_.getArtifactId)
-      ).withErrorProneModule(mvnDeps("errorprone"))
+        bomModuleDeps = mainDeps.filter(isBom).collect(toModuleDep),
+        sourcesFolders = if (mainSourcesFolders == Seq(os.sub / "src/main/java")) Nil
+        else mainSourcesFolders,
+        sources = Values(mainSources, appendSuper = true),
+        resources = if (mainResources == Seq(os.rel / "src/main/resources")) Nil else mainResources
+      ).withErrorProneModule(errorProneDeps)
 
       for {
-        testSourceSet <- sourceSets.find(_.getName == "test")
-        if testSourceSet.getJava.getSrcDirs.asScala.exists(_.exists)
+        testRunConfig <- configs.find(_.getName == "testRuntimeClasspath")
+        testRunDeps = testRunConfig.getAllDependencies.asScala.toSeq
+        testMixin <- ModuleSpec.testModuleMixin(testRunDeps.collect(toMvnDep))
+        if os.exists(moduleDir / "src/test")
       } do {
-        val testMvnDeps = mvnDeps("testImplementation")
-        ModuleSpec.testModuleMixin(testMvnDeps).foreach { mixin =>
-          val (sourcesFolders, sources) = testSourceSet.getJava.getSrcDirs.iterator.asScala
-            .map(os.Path(_).relativeTo(moduleDir)).toSeq.partition(_.ups == 0)
-          val resources = testSourceSet.getResources.getSrcDirs.iterator.asScala
-            .map(os.Path(_).relativeTo(moduleDir)).toSeq
-          var testModule = ModuleSpec(
-            name = "test",
-            supertypes = Seq("MavenTests"),
-            mixins = Seq(mixin),
-            forkArgs = task[Test]("test").fold(Nil)(task =>
-              task.getSystemProperties().asScala.map {
-                case (k, v) => Opt(s"-D$k=$v")
-              }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
-            ),
-            forkWorkingDir = Some(os.rel),
-            mvnDeps = testMvnDeps,
-            compileMvnDeps = mvnDeps("testCompileOnly"),
-            runMvnDeps = mvnDeps("testRuntimeOnly"),
-            javacOptions = task[JavaCompile]("compileTestJava").fold(Nil)(javacOptions),
-            sourcesFolders = if (sourcesFolders == Seq(os.rel / "src/test/java")) Nil
-            else sourcesFolders.map(_.asSubPath),
-            sources = Values(extend = true, sources),
-            resources = if (resources == Seq(os.rel / "src/test/resources")) Nil else resources,
-            moduleDeps = Values(
-              extend = true,
-              moduleDeps("testImplementation")
-                .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace))))
-            ),
-            compileModuleDeps = moduleDeps("testCompileOnly"),
-            runModuleDeps = moduleDeps("testRuntimeOnly"),
-            testParallelism = Some(false),
-            testSandboxWorkingDir = Some(false)
-          ).withErrorProneModule(mainModule.errorProneDeps.base)
-
-          mixin match {
-            // Gradle can resolve junit-platform-launcher version using junit-bom transitive
-            // dependency. Since Coursier cannot do the same, make the dependency explicit.
-            case "TestModule.Junit5"
-                if !mainModule.depManagement.base.exists(dep =>
-                  dep.name == "junit-platform-launcher" && dep.organization == "org.junit.platform"
-                ) =>
-              val jplOpt = testModule.runMvnDeps.base.find(dep =>
-                dep.name == "junit-platform-launcher" && dep.organization == "org.junit.platform"
+        val testConfigs = configs.filter(config => config.getName.startsWith("test"))
+        val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
+        val (testSourcesFolders, testSources, testResources) = sources(testSourceSets)
+        var testModule = ModuleSpec(
+          name = "test",
+          supertypes = Seq("MavenTests"),
+          mixins = Seq(testMixin),
+          forkArgs = task[Test]("test").fold(Nil) { task =>
+            task.getSystemProperties.asScala.map {
+              case (k, v) => Opt(s"-D$k=$v")
+            }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
+          },
+          forkWorkingDir = Some(os.rel),
+          mvnDeps = mvnDeps("testImplementation"),
+          compileMvnDeps = mvnDeps("testCompileOnly"),
+          runMvnDeps = mvnDeps("testRuntimeOnly"),
+          bomMvnDeps = testRunDeps.filter(isBom).collect(toMvnDep),
+          depManagement = testConstraints.collect(toMvnDep),
+          javacOptions = task[JavaCompile]("compileTestJava").fold(Nil)(javacOptions),
+          moduleDeps = Values(
+            moduleDeps("testImplementation")
+              .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace).segments))),
+            appendSuper = true
+          ),
+          compileModuleDeps = moduleDeps("testCompileOnly"),
+          runModuleDeps = moduleDeps("testRuntimeOnly"),
+          bomModuleDeps = testRunDeps.filter(isBom).collect(toModuleDep),
+          sourcesFolders = if (testSourcesFolders == Seq(os.sub / "src/test/java")) Nil
+          else testSourcesFolders,
+          sources = Values(testSources, appendSuper = true),
+          resources =
+            if (testResources == Seq(os.rel / "src/test/resources")) Nil else testResources,
+          testParallelism = Some(false),
+          testSandboxWorkingDir = Some(false)
+        ).withErrorProneModule(errorProneDeps)
+        if (testMixin == "TestModule.Junit5") {
+          testModule.mvnDeps.base.collectFirst {
+            case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
+              val junitVersion = dep.version
+              testModule = testModule.withJupiterInterface(junitVersion)
+              val launcherDep = testModule.runMvnDeps.base.find(
+                _.is("org.junit.platform", "junit-platform-launcher")
               )
-              if (jplOpt.forall(_.version.isEmpty)) {
-                // Some legacy Gradle versions auto-include junit-platform-launcher.
-                if (jplOpt.isEmpty) {
-                  val jpl = MvnDep("org.junit.platform", "junit-platform-launcher", "")
-                  testModule = testModule.copy(runMvnDeps = jpl +: testModule.runMvnDeps.base)
-                }
-                if (
-                  !mainModule.bomMvnDeps.base.exists(dep =>
-                    dep.name == "junit-bom" && dep.organization == "org.junit"
+              if (launcherDep.forall(_.version.isEmpty)) {
+                if (launcherDep.isEmpty) {
+                  testModule = testModule.copy(runMvnDeps =
+                    testModule.runMvnDeps.base :+
+                      MvnDep("org.junit.platform", "junit-platform-launcher", "")
                   )
-                ) {
-                  testModule.mvnDeps.base.collectFirst {
-                    case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
-                      dep.version
-                  }.foreach { junitVersion =>
-                    val junitBom = MvnDep("org.junit", "junit-bom", junitVersion)
-                    testModule = testModule.copy(bomMvnDeps =
-                      testModule.bomMvnDeps.copy(base = junitBom +: testModule.bomMvnDeps.base)
-                    )
-                  }
                 }
+                testModule = testModule.copy(bomMvnDeps =
+                  testModule.bomMvnDeps.base.appended(
+                    MvnDep("org.junit", "junit-bom", junitVersion)
+                  ).distinct
+                )
               }
-            case _ =>
           }
-
-          mainModule = mainModule.copy(test = Some(testModule))
         }
+        mainModule = mainModule.copy(test = Some(testModule))
       }
     }
 
-    mavenPublication.foreach { pub =>
-      val pom = Option(pub.getPom)
+    for {
+      pubExt <- Option(getExtensions.findByType(classOf[PublishingExtension]))
+      pub <- pubExt.getPublications.withType(classOf[MavenPublication]).asScala.headOption
+      pom = Option(pub.getPom)
+    } do {
       mainModule = mainModule.copy(
         imports = "import mill.javalib.*" +: "import mill.javalib.publish.*" +: mainModule.imports,
         supertypes = mainModule.supertypes :+ "PublishModule",
+        artifactName = Option(pub.getArtifactId),
         pomPackagingType = pom.flatMap(toPomPackagingType),
         pomSettings = pom.map(toPomSettings(_, pub.getGroupId)),
         publishVersion = Option(getVersion).map(_.toString)
@@ -257,7 +250,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         }),
         excludes = getExcludeRules.asScala.map(rule => rule.getGroup -> rule.getModule).toSeq
       )
-    case dep: DependencyConstraint =>
+    case dep: DependencyConstraint if !dep.isInstanceOf[DefaultProjectDependencyConstraint] =>
       import dep.*
       MvnDep(
         organization = getGroup,
@@ -268,7 +261,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
   private val toModuleDep: PartialFunction[Dependency | DependencyConstraint, ModuleDep] = {
     case dep: ProjectDependency =>
-      ModuleDep(os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace))
+      ModuleDep(os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace).segments)
     case dep: DefaultProjectDependencyConstraint =>
       toModuleDep(dep.getProjectDependency)
   }
@@ -281,6 +274,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       Option(task.getOptions.getEncoding).map(Opt("-encoding", _)) ++
       Opt.groups(task.getOptions.getAllCompilerArgs.asScala.toSeq)
   }
+
+  private val TestSourceSetName = s"(?i)test".r.unanchored
+  private def isTest(set: SourceSet) = TestSourceSetName.matches(set.getName)
 
   private def toPomPackagingType(pom: MavenPom): Option[String] =
     Try(pom.getPackaging).filter(_ != "jar").toOption

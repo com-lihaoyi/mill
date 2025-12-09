@@ -1,2 +1,2 @@
-rootProject.name = 'gradle-7-2'
+rootProject.name = 'gradle-7-0'
 include('app', 'list', 'utilities')

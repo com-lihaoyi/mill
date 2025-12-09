@@ -31,4 +31,6 @@ object `package` extends ProjectBaseModule, PublishModule {
 
   def publishVersion = "unspecified"
 
+  object test extends Tests {}
+
 }

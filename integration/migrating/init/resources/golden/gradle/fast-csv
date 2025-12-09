@@ -9,8 +9,11 @@ Module dependencies of lib.test:
   "lib.test.repositories": []
 }
 {
-  "example.jvmId": "zulu:24",
-  "lib.jvmId": "zulu:17"
+  "example.mandatoryMvnDeps": [],
+  "lib.mandatoryMvnDeps": [],
+  "lib.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ]
 }
 {
   "example.mvnDeps": [
@@ -18,8 +21,8 @@ Module dependencies of lib.test:
   ],
   "lib.mvnDeps": [],
   "lib.test.mvnDeps": [
-    "org.assertj:assertj-core:3.27.3",
-    "org.junit.jupiter:junit-jupiter:5.13.1"
+    "org.junit.jupiter:junit-jupiter:6.0.0",
+    "org.assertj:assertj-core:3.27.3"
   ]
 }
 {
@@ -37,14 +40,16 @@ Module dependencies of lib.test:
 {
   "example.bomMvnDeps": [],
   "lib.bomMvnDeps": [],
-  "lib.test.bomMvnDeps": []
+  "lib.test.bomMvnDeps": [
+    "org.junit:junit-bom:6.0.0"
+  ]
 }
 {
   "example.javacOptions": [
     "-source",
-    "24",
+    "25",
     "-target",
-    "24"
+    "25"
   ],
   "lib.javacOptions": [
     "--release",
@@ -53,14 +58,10 @@ Module dependencies of lib.test:
     "-Werror"
   ],
   "lib.test.javacOptions": [
-    "--release",
-    "17",
-    "-Xlint:all",
-    "-Werror",
     "-source",
-    "24",
+    "25",
     "-target",
-    "24",
+    "25",
     "-parameters"
   ]
 }
@@ -86,13 +87,9 @@ null
     }
   ]
 }
-"4.0.0"
+"4.1.0"
 null
 {}
-{
-  "lib.errorProneVersion": "2.38.0",
-  "lib.test.errorProneVersion": "2.38.0"
-}
 {
   "lib.errorProneDeps": [
     "com.google.errorprone:error_prone_core:2.38.0",

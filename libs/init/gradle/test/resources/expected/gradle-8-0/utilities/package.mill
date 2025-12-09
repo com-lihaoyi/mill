@@ -8,7 +8,7 @@ object `package` extends ProjectBaseModule, ErrorProneModule {
 
   def moduleDeps = Seq(build.list)
 
-  def errorProneVersion = "2.28.0"
+  def errorProneDeps = Seq(Deps.error_prone_core)
 
   def errorProneJavacEnableOptions =
     Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")

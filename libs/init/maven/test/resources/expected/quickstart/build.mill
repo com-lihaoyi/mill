@@ -3,21 +3,18 @@
 package build
 import mill.*
 import mill.javalib.*
+import mill.javalib.errorprone.ErrorProneModule
 import mill.javalib.publish.*
 import millbuild.Deps
-object `package` extends MavenModule, PublishModule {
+object `package` extends MavenModule, ErrorProneModule, PublishModule {
 
   def bomMvnDeps = Seq(Deps.junitBom)
 
-  def javacOptions = Seq(
-    "-source",
-    "8",
-    "-target",
-    "8",
-    "-XDcompilePolicy=simple",
-    "-XDshould-stop=ifError=FLOW",
-    "-Xplugin:ErrorProne"
-  )
+  def javacOptions = Seq("-source", "8", "-target", "8")
+
+  def errorProneDeps = Seq(Deps.error_prone_core)
+
+  def errorProneJavacEnableOptions = Seq("-XDshould-stop=ifError=FLOW")
 
   def artifactName = "maven-3-9-11"
 
@@ -35,6 +32,10 @@ object `package` extends MavenModule, PublishModule {
   object test extends MavenTests, TestModule.Junit5 {
 
     def mvnDeps = Seq(Deps.junitJupiterApi, Deps.junitJupiterParams)
+
+    def runMvnDeps = Seq(mvn"org.junit.platform:junit-platform-launcher")
+
+    def bomMvnDeps = super.bomMvnDeps() ++ Seq(Deps.junitBom)
 
     def forkWorkingDir = moduleDir
 

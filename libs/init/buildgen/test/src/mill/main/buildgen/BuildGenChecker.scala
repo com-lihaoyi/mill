@@ -16,21 +16,14 @@ class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfig
   def check(
       sourceRel: os.SubPath,
       expectedRel: os.SubPath,
-      mainArgs: Seq[String] = Nil,
-      envJvmId: String = "zulu:17",
+      initArgs: Seq[String] = Nil,
       updateSnapshots: Boolean = false // pass true to update test data on disk
-  )(using
-      tp: TestPath
-  ): Boolean = {
-    // prep
+  )(using tp: TestPath): Boolean = {
     val testRoot = os.pwd / tp.value
     os.copy.over(sourceRoot / sourceRel, testRoot, createFolders = true, replaceExisting = true)
 
-    val javaHome = Jvm.resolveJavaHome(envJvmId).get
-    val javaExe = Jvm.javaExe(Some(javaHome))
-    val mainEnv = Map("JAVA_HOME" -> javaHome.toString)
-    os.proc(javaExe, "-jar", mainAssembly, mainArgs)
-      .call(cwd = testRoot, env = mainEnv, stdout = os.Inherit)
+    os.proc(Jvm.javaExe(None), "-jar", mainAssembly, initArgs)
+      .call(cwd = testRoot, stdout = os.Inherit)
 
     val buildFiles = Util.buildFiles(testRoot)
     object module extends TestRootModule with ScalafmtModule {

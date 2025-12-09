@@ -30,14 +30,14 @@ object MavenBuildGenTests extends TestSuite {
         assert(checker.check(
           sourceRel = os.sub / "maven-samples",
           expectedRel = os.sub / "expected/with-args/maven-samples",
-          mainArgs = args
+          initArgs = args
         ))
       }
       test("quickstart") {
         assert(checker.check(
           sourceRel = os.sub / "quickstart",
           expectedRel = os.sub / "expected/with-args/quickstart",
-          mainArgs = args
+          initArgs = args
         ))
       }
     }

@@ -51,121 +51,22 @@ compiling, and passing all tests in Mill:
 
 include::partial$example/migrating/javalib/3-maven-complete-large.adoc[]
 
+== Usage
 
-== Capabilities
-
-The conversion
-
-* handles deeply nested modules
-* captures publish settings
-* configures dependencies for configurations:
-** no configuration
-** Compile
-** Test
-** Runtime
-** Provided
-** Optional
-* configures testing frameworks:
-** Java:
-*** JUnit 4
-*** JUnit 5
-*** TestNG
-** Scala:
-*** ScalaTest
-*** Specs2
-*** µTest
-*** MUnit
-*** Weaver
-*** ZIOTest
-*** ScalaCheck
-
-* configures multiple, compile and test, resource directories
-
-=== Command line arguments
-
-The conversion and its output (the generated Mill build files) can be customized using
-
-* `--base-module` (`-b`): name of generated base module trait defining shared settings
-+
+xref:cli/installation-ide.adoc[Install] `mill` in your project directory and run:
 [source,sh]
 ----
-./mill init --base-module MyModule
+./mill init
 ----
 
-* `--jvm-id` (`-j`): disttribution and version of xref:fundamentals/configuring-jvm-versions.adoc[custom JVM] to configure in `--base-module`
-+
+This will generate Mill build files `build.mill` and `package.mill` for the root module and all nested modules, respectively. Additionally, meta-build files containing shared configurations are added in the `mill-build` directory.
+
+The generated output can be configured using command line options. To list available options, run:
 [source,sh]
 ----
-./mill init --base-module MyModule --jvm-id 17
-./mill init --base-module MyModule --jvm-id temurin:17
-./mill init --base-module MyModule --jvm-id temurin:17.0.1
+./mill init --help
 ----
-
-* `--test-module` (`-t`): name of generated nested test module (defaults to `test`)
-+
-[source,sh]
-----
-./mill init --test-module test
-----
-
-* `--deps-object` (`-d`): name of generated companion object defining dependency constants
-+
-[source,sh]
-----
-./mill init --deps-object Deps
-----
-
-* `--merge` (`-m`): merge build files generated for a multi-module build
-+
-[source,sh]
-----
-./mill init --merge
-----
-
-* `--publish-properties` (`-p`): capture Maven publish properties
-+
-[source,sh]
-----
-./mill init --publish-properties
-----
-
-* `--cache-repository`: use cache for Maven repository system
-+
-[source,sh]
-----
-./mill init --cache-repository
-----
-
-* `--process-plugins`: process Maven plugin executions and configurations
-+
-[source,sh]
-----
-./mill init --process-plugins
-----
-
-TIP: You can run `mill init` multiple times. It is recommended to run it first without any options.
-
-=== Verified projects
-
-The conversion has been tested with the following projects:
-
-* https://github.com/fusesource/jansi/archive/refs/tags/jansi-2.4.1.zip[jansi]
-[source,sh]
-----
-./mill init --base-module JansiModule --deps-object Deps --cache-repository --process-plugins
-----
-
-* https://github.com/davidmoten/geo/archive/refs/tags/0.8.1.zip[geo] (multi-module build)
-[source,sh]
-----
-./mill init --base-module GeoModule --deps-object Deps --merge --cache-repository --process-plugins
-----
-
-Post `init`, the following tasks were executed successfully:
-
-* `compile`
-* `test`
-* `publishLocal`
+TIP: The `init` command can be run multiple times with any combination of options.
 
 [#limitations]
 == Limitations
@@ -175,10 +76,6 @@ The conversion does not support
 * build extensions
 * build profiles
 * non-Java sources
-
-Maven plugin support is limited to
-
-* https://maven.apache.org/plugins/maven-compiler-plugin/[maven-compiler-plugin]
 
 [TIP]
 ====

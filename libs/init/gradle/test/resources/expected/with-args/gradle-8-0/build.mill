@@ -16,6 +16,24 @@ object `package` extends Module {
 
     def javacOptions = Seq("-source", "17", "-target", "17")
 
+    object test extends MavenTests, TestModule.Junit5 {
+
+      def mvnDeps = Seq(mvn"org.junit.jupiter:junit-jupiter:5.9.1")
+
+      def runMvnDeps = Seq(mvn"org.junit.platform:junit-platform-launcher")
+
+      def bomMvnDeps = Seq(mvn"org.junit:junit-bom:5.9.1")
+
+      def javacOptions = Seq("-source", "17", "-target", "17")
+
+      def forkWorkingDir = moduleDir
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
+
+    }
+
   }
 
   object list extends MavenModule, ErrorProneModule {
@@ -24,10 +42,36 @@ object `package` extends Module {
 
     def javacOptions = Seq("-source", "17", "-target", "17")
 
-    def errorProneVersion = "2.28.0"
+    def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 
     def errorProneJavacEnableOptions =
       Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+
+    object test extends MavenTests, ErrorProneModule, TestModule.Junit5 {
+
+      def mvnDeps = Seq(mvn"org.junit.jupiter:junit-jupiter:5.9.1")
+
+      def runMvnDeps = Seq(mvn"org.junit.platform:junit-platform-launcher")
+
+      def bomMvnDeps = Seq(mvn"org.junit:junit-bom:5.9.1")
+
+      def javacOptions = Seq("-source", "17", "-target", "17")
+
+      def forkWorkingDir = moduleDir
+
+      def errorProneDeps =
+        Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
+
+      def errorProneOptions = Seq("-XepCompilingTestOnlyCode")
+
+      def errorProneJavacEnableOptions =
+        Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+
+      def testParallelism = false
+
+      def testSandboxWorkingDir = false
+
+    }
 
   }
 
@@ -39,7 +83,7 @@ object `package` extends Module {
 
     def javacOptions = Seq("-source", "17", "-target", "17")
 
-    def errorProneVersion = "2.28.0"
+    def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 
     def errorProneJavacEnableOptions =
       Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")

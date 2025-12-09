@@ -3,4 +3,6 @@ import mill.javalib.*
 object Deps {
 
   val commonsText = mvn"org.apache.commons:commons-text:1.13.0"
+  val junitBom = mvn"org.junit:junit-bom:5.12.1"
+  val junitJupiter = mvn"org.junit.jupiter:junit-jupiter:5.12.1"
 }

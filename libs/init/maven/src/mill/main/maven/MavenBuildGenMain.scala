@@ -20,133 +20,144 @@ object MavenBuildGenMain {
       noMeta: mainargs.Flag
   ): Unit = {
     println("converting Maven build")
-
     val modelBuildingResults = Modeler().buildAll()
-    val moduleDepLookup: PartialFunction[Dependency, ModuleDep] =
-      modelBuildingResults.map { result =>
-        val model = result.getEffectiveModel
-        val key = (model.getGroupId, model.getArtifactId, model.getVersion)
-        val moduleDep = ModuleDep(os.Path(model.getProjectDirectory).subRelativeTo(os.pwd))
-        key -> moduleDep
-      }.toMap.compose {
-        case dep: Dependency => (dep.getGroupId, dep.getArtifactId, dep.getVersion)
-      }
+    val moduleDepLookup: PartialFunction[Dependency, ModuleDep] = modelBuildingResults.map { mbr =>
+      val model = mbr.getEffectiveModel
+      val key = (model.getGroupId, model.getArtifactId, model.getVersion)
+      val dep = ModuleDep(os.Path(model.getProjectDirectory).subRelativeTo(os.pwd).segments)
+      (key, dep)
+    }.toMap.compose {
+      case dep: Dependency => (dep.getGroupId, dep.getArtifactId, dep.getVersion)
+    }
 
-    val packages = modelBuildingResults.map { result =>
+    var packages = modelBuildingResults.map { result =>
       val model = result.getEffectiveModel
       val moduleDir = os.Path(model.getProjectDirectory)
       val plugins = Plugins(model)
-
       var mainModule = ModuleSpec(
         name = moduleDir.last,
-        repositories = model.getRepositories.iterator.asScala.collect {
+        repositories = model.getRepositories.asScala.collect {
           case repo if repo.getId != "central" => repo.getUrl
         }.toSeq
       )
-      model.getPackaging match {
-        case "pom" if model.getModules.isEmpty && !os.exists(moduleDir / "src") =>
-          val (bomMvnDeps, depManagement, moduleDeps, bomModuleDeps) =
-            Option(model.getDependencyManagement).fold((Nil, Nil, Nil, Nil)) { dm =>
-              val (boms, deps) = dm.getDependencies.iterator.asScala.toSeq.partition(isBom)
-              val (bomMvnDeps, bomModuleDeps) =
-                boms.partitionMap(dep => moduleDepLookup.lift(dep).toRight(toMvnDep(dep)))
-              val (depManagement, moduleDeps) =
-                deps.partitionMap(dep => moduleDepLookup.lift(dep).toRight(toMvnDep(dep)))
-              (bomMvnDeps, depManagement, moduleDeps, bomModuleDeps)
-            }
-          mainModule = mainModule.copy(
-            imports = "import mill.javalib.*" +: mainModule.imports,
-            supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
-            bomMvnDeps = bomMvnDeps,
-            depManagement = depManagement,
-            moduleDeps = moduleDeps,
-            bomModuleDeps = bomModuleDeps
-          )
-        case _ =>
-          val (modules, deps) =
-            model.getDependencies.iterator.asScala.toSeq.partition(moduleDepLookup.isDefinedAt)
-          def mvnDeps(scope: String) = deps.collect {
-            case dep if dep.getScope == scope => toMvnDep(dep)
-          }
-          def moduleDeps(scope: String) = modules.collect {
-            case dep if dep.getScope == scope => moduleDepLookup(dep)
-          }
-          val (bomMvnDeps, bomModuleDeps) =
-            Option(model.getDependencyManagement).fold((Nil, Nil)) { dm =>
-              val boms = dm.getDependencies.iterator.asScala.filter(isBom).toSeq
+
+      if (
+        model.getPackaging == "pom" &&
+        !os.exists(moduleDir / "src") &&
+        Option(model.getDependencyManagement).exists(!_.getDependencies.isEmpty)
+      ) {
+        val (boms, deps) =
+          model.getDependencyManagement.getDependencies.asScala.toSeq.partition(isBom)
+        val (bomMvnDeps, bomModuleDeps) =
+          boms.partitionMap(dep => moduleDepLookup.lift(dep).toRight(toMvnDep(dep)))
+        val (depManagement, moduleDeps) =
+          deps.partitionMap(dep => moduleDepLookup.lift(dep).toRight(toMvnDep(dep)))
+        mainModule = mainModule.copy(
+          imports = "import mill.javalib.*" +: mainModule.imports,
+          supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
+          bomMvnDeps = bomMvnDeps,
+          depManagement = depManagement,
+          moduleDeps = moduleDeps,
+          bomModuleDeps = bomModuleDeps
+        )
+      } else {
+        val (modules, deps) =
+          model.getDependencies.asScala.toSeq.partition(moduleDepLookup.isDefinedAt)
+        def mvnDeps(scope: String) = deps.collect {
+          case dep if dep.getScope == scope => toMvnDep(dep)
+        }
+        def moduleDeps(scope: String) = modules.collect {
+          case dep if dep.getScope == scope => moduleDepLookup(dep)
+        }
+        val (bomMvnDeps, depManagement, bomModuleDeps) =
+          Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
+            val (boms, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
+            val (bomMvnDeps, bomModuleDeps) =
               boms.partitionMap(dep => moduleDepLookup.lift(dep).toRight(toMvnDep(dep)))
-            }
-
-          mainModule = mainModule.copy(
-            imports = "import mill.javalib.*" +: mainModule.imports,
-            supertypes = "MavenModule" +: mainModule.supertypes,
-            mvnDeps = mvnDeps("compile"),
-            compileMvnDeps = mvnDeps("provided"),
-            runMvnDeps = mvnDeps("runtime"),
-            bomMvnDeps = bomMvnDeps,
-            moduleDeps = moduleDeps("compile"),
-            compileModuleDeps = moduleDeps("provided"),
-            runModuleDeps = moduleDeps("runtime"),
-            bomModuleDeps = bomModuleDeps,
-            javacOptions = plugins.javacOptions,
-            artifactName = Option(model.getArtifactId)
-          )
-
-          val errorProneDeps = plugins.errorProneMvnDeps
-          if (errorProneDeps.nonEmpty) {
-            mainModule = mainModule.withErrorProneModule(errorProneDeps)
+            val depManagement = deps.map(toMvnDep)
+            (bomMvnDeps, depManagement, bomModuleDeps)
           }
-
-          if (os.exists(moduleDir / "src/test")) {
-            val testMvnDeps = mvnDeps("test")
-            ModuleSpec.testModuleMixin(testMvnDeps).foreach { mixin =>
-              val testModuleDeps = modules.collect {
-                case dep if dep.getScope == "test" =>
-                  moduleDepLookup(dep).copy(nestedModule =
-                    Option.when(dep.getType == "test-jar")("test")
+        val (
+          mainSourcesFolders,
+          mainSources,
+          mainResources,
+          testSourcesFolders,
+          testSources,
+          testResources
+        ) = plugins.sources
+        mainModule = mainModule.copy(
+          imports = "import mill.javalib.*" +: mainModule.imports,
+          supertypes = "MavenModule" +: mainModule.supertypes,
+          mvnDeps = mvnDeps("compile"),
+          compileMvnDeps = mvnDeps("provided"),
+          runMvnDeps = mvnDeps("runtime"),
+          bomMvnDeps = bomMvnDeps,
+          depManagement = depManagement,
+          javacOptions = plugins.javacOptions,
+          moduleDeps = moduleDeps("compile"),
+          compileModuleDeps = moduleDeps("provided"),
+          runModuleDeps = moduleDeps("runtime"),
+          bomModuleDeps = bomModuleDeps,
+          sourcesFolders = mainSourcesFolders,
+          sources = mainSources,
+          resources = mainResources,
+          artifactName = Option(model.getArtifactId)
+        ).withErrorProneModule(plugins.errorProneMvnDeps)
+        if (os.exists(moduleDir / "src/test")) {
+          val testMvnDeps = mvnDeps("test")
+          ModuleSpec.testModuleMixin(testMvnDeps).foreach { mixin =>
+            val testModuleDeps = modules.collect {
+              case dep if dep.getScope == "test" =>
+                moduleDepLookup(dep).copy(childSegment =
+                  Option.when(dep.getType == "test-jar")("test")
+                )
+            }
+            var testModule = ModuleSpec(
+              name = "test",
+              supertypes = Seq("MavenTests"),
+              mixins = Seq(mixin),
+              forkArgs = plugins.testForkArgs,
+              forkWorkingDir = Some(os.rel),
+              mvnDeps = testMvnDeps,
+              compileMvnDeps = mainModule.compileMvnDeps.base,
+              runMvnDeps = mainModule.compileMvnDeps.base ++ mainModule.runMvnDeps.base,
+              moduleDeps = Values(testModuleDeps, appendSuper = true),
+              compileModuleDeps = mainModule.compileModuleDeps.base,
+              runModuleDeps = mainModule.compileModuleDeps.base ++ mainModule.runModuleDeps.base,
+              sourcesFolders = testSourcesFolders,
+              sources = testSources,
+              resources = testResources,
+              testParallelism = Some(false),
+              testSandboxWorkingDir = Some(false)
+            )
+            if (mixin == "TestModule.Junit5") {
+              testModule.mvnDeps.base.collectFirst {
+                case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
+                  val junitVersion = dep.version
+                  testModule = testModule.withJupiterInterface(junitVersion)
+                  val launcherDep = testModule.mvnDeps.base.find(
+                    _.is("org.junit.platform", "junit-platform-launcher")
                   )
-              }
-              var testModule = ModuleSpec(
-                name = "test",
-                supertypes = Seq("MavenTests"),
-                mixins = Seq(mixin),
-                forkArgs = plugins.testForkArgs,
-                forkWorkingDir = Some(os.rel),
-                mvnDeps = testMvnDeps,
-                compileMvnDeps = mainModule.compileMvnDeps,
-                runMvnDeps = mainModule.compileMvnDeps.base ++ mainModule.runMvnDeps.base,
-                moduleDeps = Values(extend = true, testModuleDeps),
-                compileModuleDeps = mainModule.compileModuleDeps,
-                runModuleDeps = mainModule.compileModuleDeps.base ++ mainModule.runModuleDeps.base,
-                testParallelism = Some(false),
-                testSandboxWorkingDir = Some(false)
-              )
-              mixin match {
-                // Maven can resolve junit-platform-launcher version using junit-bom transitive
-                // dependency. Since Coursier cannot do the same, make the dependency explicit.
-                case "TestModule.Junit5"
-                    if testModule.runMvnDeps.base.exists(dep =>
-                      dep.name == "junit-platform-launcher" && dep.organization == "org.junit.platform" && dep.version.isEmpty
-                    ) && !mainModule.depManagement.base.exists(dep =>
-                      dep.name == "junit-platform-launcher" && dep.organization == "org.junit.platform"
-                    ) && !mainModule.bomMvnDeps.base.exists(dep =>
-                      dep.name == "junit-bom" && dep.organization == "org.junit"
-                    ) =>
-                  testModule.mvnDeps.base.collectFirst {
-                    case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
-                      dep.version
-                  }.foreach { junitVersion =>
-                    val junitBom = MvnDep("org.junit", "junit-bom", junitVersion)
-                    testModule = testModule.copy(bomMvnDeps = Values(extend = true, Seq(junitBom)))
+                  if (launcherDep.forall(_.version.isEmpty)) {
+                    if (launcherDep.isEmpty) {
+                      testModule = testModule.copy(runMvnDeps =
+                        testModule.runMvnDeps.copy(testModule.runMvnDeps.base :+
+                          MvnDep("org.junit.platform", "junit-platform-launcher", ""))
+                      )
+                    }
+                    testModule = testModule.copy(bomMvnDeps =
+                      Values(
+                        Seq(MvnDep("org.junit", "junit-bom", junitVersion)),
+                        appendSuper = true
+                      )
+                    )
                   }
-                case _ =>
               }
-
-              mainModule = mainModule.copy(test = Some(testModule))
             }
+            mainModule = mainModule.copy(test = Some(testModule))
           }
+        }
       }
-
       if (!plugins.skipDeploy) {
         mainModule = mainModule.copy(
           imports =
@@ -161,16 +172,16 @@ object MavenBuildGenMain {
             if (publishProperties.value) model.getProperties.asScala.toSeq else Nil
         )
       }
-
       PackageSpec(moduleDir.subRelativeTo(os.pwd), mainModule)
     }
+    packages = adjustModuleDeps(packages)
 
-    val (depRefs, packages0) =
+    val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
     val (baseModule, packages1) =
       Option.when(!noMeta.value)(BuildGen.withBaseModule(packages0, "MavenTests", "MavenModule"))
         .flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
-    BuildGen.writeBuildFiles(packages1, merge.value, depRefs, baseModule)
+    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule)
   }
 
   private def isBom(dep: Dependency) = dep.getScope == "import" && dep.getType == "pom"
@@ -216,7 +227,7 @@ object MavenBuildGenMain {
     License(
       name = Option(getName).getOrElse(""),
       url = Option(getUrl).getOrElse(""),
-      distribution = getDistribution
+      distribution = Option(getDistribution).getOrElse("")
     )
   }
 
@@ -241,5 +252,28 @@ object MavenBuildGenMain {
       organization = Option(getOrganization),
       organizationUrl = Option(getOrganizationUrl)
     )
+  }
+
+  private def adjustModuleDeps(packages: Seq[PackageSpec]) = {
+    val moduleLookup =
+      packages.map(pkg => (pkg.dir.segments, pkg.module)).toMap[Seq[String], ModuleSpec]
+    def adjust(module: ModuleSpec) = {
+      var module0 = module
+      if (module.supertypes.contains("PublishModule")) {
+        val (bomModuleDeps, bomModuleDepRefs) = module0.bomModuleDeps.base.partition { dep =>
+          val module = moduleLookup(dep.segments)
+          module.supertypes.contains("BomModule") && module.supertypes.contains("PublishModule")
+        }
+        if (bomModuleDepRefs.nonEmpty) {
+          module0 = module0.copy(
+            bomMvnDeps = module0.bomMvnDeps.copy(appendRefs = bomModuleDepRefs),
+            depManagement = module0.depManagement.copy(appendRefs = bomModuleDepRefs),
+            bomModuleDeps = bomModuleDeps
+          )
+        }
+      }
+      module0
+    }
+    packages.map(pkg => pkg.copy(module = adjust(pkg.module)))
   }
 }

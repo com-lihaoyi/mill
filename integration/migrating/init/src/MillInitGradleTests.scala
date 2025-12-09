@@ -6,10 +6,10 @@ object MillInitGradleTests extends MillInitImportTestSuite {
   def tests = Tests {
     test("FastCSV") - checkImport(
       gitUrl = "https://github.com/osiegmar/FastCSV.git",
-      gitBranch = "v4.0.0",
-      initArgs = Seq("--gradle-jvm-id", "24"),
+      gitBranch = "v4.1.0",
       configsGoldenFile = "golden/gradle/fast-csv",
-      failingTasks = Seq("lib.compile")
+      failingTasks = Seq("lib.compile"),
+      systemJvmId = "25"
     )
 
     test("ehcache3") - checkImport(

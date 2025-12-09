@@ -43,14 +43,14 @@ object SbtBuildGenTests extends TestSuite {
         assert(checker.check(
           sourceRel = os.sub / "sbt-multi-project-example",
           expectedRel = os.sub / "expected/with-args/sbt-multi-project-example",
-          mainArgs = args
+          initArgs = args
         ))
       }
       test("crossproject-cross-version") {
         assert(checker.check(
           sourceRel = os.sub / "crossproject-cross-version",
           expectedRel = os.sub / "expected/with-args/crossproject-cross-version",
-          mainArgs = args
+          initArgs = args
         ))
       }
     }

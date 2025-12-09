@@ -6,6 +6,15 @@ import millbuild.Deps
 import millbuild.ProjectBaseModule
 object `package` extends ProjectBaseModule {
 
+  def depManagement = Seq(
+    Deps.servletApi,
+    Deps.jspApi,
+    Deps.junitDep,
+    Deps.hamcrestCore,
+    Deps.hamcrestLibrary,
+    Deps.mockitoCore
+  )
+
   def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
   def artifactName = "server"

@@ -52,7 +52,7 @@ object `package` extends Module {
   object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
   trait NativeModule extends ProjectBaseModule, ScalaNativeModule {
 
-    def scalaNativeVersion = "0.5.4"
+    def scalaNativeVersion = "0.5.7"
 
     def artifactName = "full"
 

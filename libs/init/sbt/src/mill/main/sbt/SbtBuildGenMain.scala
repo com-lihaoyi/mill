@@ -1,11 +1,11 @@
 package mill.main.sbt
 
-import mill.constants.Util.isWindows
 import mill.main.buildgen.*
 import mill.main.buildgen.ModuleSpec.*
 import mill.main.sbt.BuildInfo.*
 import pprint.Util.literalize
 
+import scala.util.Properties.isWin
 import scala.util.Using
 
 object SbtBuildGenMain {
@@ -25,7 +25,7 @@ object SbtBuildGenMain {
 
     val sbtCmd = customSbt.getOrElse {
       def systemSbtExists(cmd: String) = os.call((cmd, "--help"), check = false).exitCode == 1
-      if (isWindows) {
+      if (isWin) {
         val cmd = "sbt.bat"
         if (systemSbtExists(cmd)) cmd else sys.error(s"No system wide $cmd found")
       } else {
@@ -78,22 +78,18 @@ object SbtBuildGenMain {
     var exportedBuild = os.list.stream(exportDir)
       .map(path => upickle.default.read[SbtModuleSpec](path.toNIO)).toSeq
     exportedBuild = normalizeSbtBuild(exportedBuild)
-
     val packages = exportedBuild.groupMap(_.sharedBaseDir)(_.module).map {
-      case (Left(moduleDir), Seq(module)) =>
-        PackageSpec(moduleDir, module)
-      case (Left(moduleDir), crossVersionSpecs) =>
-        val module = toCrossModule(crossVersionSpecs)
-        PackageSpec(moduleDir, module)
-      case (Right(moduleDir), specs) =>
-        val children = specs.groupBy(_.name).map {
+      case (Left(dir), Seq(module)) => PackageSpec(dir, module)
+      case (Left(dir), crossVersionSpecs) => PackageSpec(dir, toCrossModule(crossVersionSpecs))
+      case (Right(dir), modules) =>
+        val children = modules.groupBy(_.name).map {
           case (_, Seq(module)) => module
           case (_, crossVersionSpecs) => toCrossModule(crossVersionSpecs)
         }.toSeq
-        PackageSpec.root(moduleDir, children)
+        PackageSpec.root(dir, children)
     }.toSeq
 
-    val (depRefs, packages0) =
+    val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
     val (baseModule, packages1) = Option.when(!noMeta.value)(
       BuildGen.withBaseModule(packages0, "CrossSbtPlatformTests", "CrossSbtPlatformModule")
@@ -114,16 +110,17 @@ object SbtBuildGenMain {
         .flatMap(_.split("\\s"))
       else Nil
     }
-    BuildGen.writeBuildFiles(packages1, merge.value, depRefs, baseModule, millJvmOpts)
+    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmOpts)
   }
 
-  private def normalizeSbtBuild(specs: Seq[SbtModuleSpec]) = {
-    val platformedDeps = specs.iterator.flatMap(spec => spec.module +: spec.module.test.toSeq)
+  private def normalizeSbtBuild(sbtModules: Seq[SbtModuleSpec]) = {
+    val platformedDeps = sbtModules.iterator.flatMap(spec => spec.module +: spec.module.test.toSeq)
       .flatMap { module =>
         import module.*
         Seq(mvnDeps, compileMvnDeps, runMvnDeps, scalacPluginMvnDeps)
       }
-      .flatMap(values => values.base ++ values.cross.flatMap(_._2)).filter(_.cross.platformed).toSet
+      .flatMap(values => values.base ++ values.cross.flatMap(_._2))
+      .filter(_.cross.platformed).toSet
     def updateDep(dep: MvnDep) = {
       val dep0 = if (dep.cross.platformed) dep
       else dep.copy(cross = dep.cross match {
@@ -152,7 +149,7 @@ object SbtBuildGenMain {
       else updateModule0(module).copy(test = module.test.map(updateModule0))
     }
 
-    specs.map(spec => spec.copy(module = updateModule(spec.module)))
+    sbtModules.map(spec => spec.copy(module = updateModule(spec.module)))
   }
 
   private def toCrossModule(crossVersionSpecs: Seq[ModuleSpec]) = {
@@ -161,9 +158,9 @@ object SbtBuildGenMain {
       a.cross ++ b.cross
     )
     def combineValues[A](a: Values[A], b: Values[A]) = Values(
-      a.extend && b.extend,
       a.base.intersect(b.base),
-      a.cross ++ b.cross
+      a.cross ++ b.cross,
+      appendSuper = a.appendSuper && b.appendSuper
     )
     def combineModule0(a: ModuleSpec, b: ModuleSpec) = ModuleSpec(
       name = a.name,
