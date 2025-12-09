@@ -51,11 +51,11 @@ object SbtLoggerUtils {
               s"compiling $n Java $sources to ${maybeTruncate(path)} ..."
 
             case s"compiling $n Scala $sources1 and $m Java $sources2 to $path ..."
-              if n.forall(_.isDigit) && sourcesWords.contains(sources1) &&
-                m.forall(_.isDigit) && sourcesWords.contains(sources2)=>
+                if n.forall(_.isDigit) && sourcesWords.contains(sources1) &&
+                  m.forall(_.isDigit) && sourcesWords.contains(sources2) =>
 
               s"compiling $n Scala $sources1 and $m Java $sources2 to ${maybeTruncate(path)} ..."
-              
+
             case _ => message0
           }
         }
