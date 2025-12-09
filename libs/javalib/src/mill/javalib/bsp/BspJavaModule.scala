@@ -3,7 +3,7 @@ package mill.javalib.bsp
 import java.nio.file.Path
 import mill.api.daemon.internal.bsp.BspJavaModuleApi
 import mill.Task
-import mill.api.daemon.internal.{EvaluatorApi, OptsApi, TaskApi, internal}
+import mill.api.daemon.internal.{EvaluatorApi, OptsApi, internal}
 import mill.api.ModuleCtx
 import mill.api.opt.*
 import mill.javalib.{JavaModule, SemanticDbJavaModule}

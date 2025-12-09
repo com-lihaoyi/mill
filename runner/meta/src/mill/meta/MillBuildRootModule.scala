@@ -1,7 +1,7 @@
 package mill.meta
 
 import java.nio.file.Path
-import mill.api.{BuildCtx, Discover, PathRef, Result, Task}
+import mill.api.{BuildCtx, Result}
 import mill.*
 import mill.api.opt.*
 import mill.api.daemon.internal.internal

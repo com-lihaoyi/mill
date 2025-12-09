@@ -1,7 +1,6 @@
 package mill.javalib
 
 import mill.*
-import mill.api.BuildCtx
 import mill.api.opt.*
 import mill.constants.{DaemonFiles, Util}
 import coursier.core.VariantSelector.ConfigurationBased
