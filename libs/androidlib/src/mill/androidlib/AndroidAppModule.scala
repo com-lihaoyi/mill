@@ -1039,8 +1039,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
       ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
     }
 
-    override def androidTransitiveCompiledResources: T[Seq[PathRef]] = Seq.empty[PathRef]
-
     override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
     override def androidEmulatorArchitecture: String = outer.androidEmulatorArchitecture
 
