@@ -88,7 +88,7 @@
         <orderEntry type="library" name="mill-libs-util-java11_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-util_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" name="mill-moduledefs_3-0.12.4.jar" level="project"/>
+        <orderEntry type="library" name="mill-moduledefs_3-0.12.5-RC1.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-codesig_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-meta_3-SNAPSHOT.jar" level="project"/>
