@@ -14,14 +14,13 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
     test("keepGoingFailure") - integrationTest { tester =>
       import tester.*
 
-      modifyFile(workspacePath / "src/foo/Foo.scala", _ + "class Bar { /*comment*/ final val \"lols\"")
-      modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar { /*comment*/ final String \"lols\";")
+      modifyFile(workspacePath / "src/foo/Foo.scala", _ + "class Bar { /*comment*/ final val \"lols\" \"omg")
+      modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar { /*comment*/ final String \"lols\" \"omg")
       val res = eval(
         ("--ticker", "true", "--color=true", "--keep-going", "jar"),
         propagateEnv = false
       )
       res.isSuccess ==> false
-
 
       assertGoldenLiteral(
         normalize(res.result.err.text()),
@@ -31,23 +30,28 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] compile(X)",
-          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/worker-1/sandbox/run-1/out/compile.dest/classes ...",
+          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/worker-2/sandbox/run-1/out/compile.dest/classes ...",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)38(Z)",
-          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X);",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X) \"omg",
           "(B)<digits>](X)                                      (R)^^^^^^(Z)",
           "(B)<digits>](X) identifier expected but string literal found.",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)45(Z)",
-          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X);",
-          "(B)<digits>](X)                                             (R)^^^^^^(Z)",
-          "(B)<digits>](X) '}' expected but eof found.",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X) \"omg",
+          "(B)<digits>](X)                                             (R)^(Z)",
+          "(B)<digits>](X) unclosed string literal",
           "(B)<digits>](X) ",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)1(Z):(R)41(Z)",
-          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)final(Z) (Y)val(Z) (G)\"lols\"(Z)",
-          "(B)<digits>](X)                                         (R)^(Z)",
-          "(B)<digits>](X) '=' expected, but eof found",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)49(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X) \"omg",
+          "(B)<digits>](X)                                                 (R)^^^^^^(Z)",
+          "(B)<digits>](X) ';' expected but eof found.",
           "(B)<digits>](X) ",
-          "(B)<digits>](X) [(R)error(X)] three errors found",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)1(Z):(R)42(Z)",
+          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)final(Z) (Y)val(Z) (G)\"lols\"(Z) \"omg",
+          "(B)<digits>](X)                                          (R)^(Z)",
+          "(B)<digits>](X) unclosed string literal",
+          "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] four errors found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
           ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
