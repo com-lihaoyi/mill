@@ -15,12 +15,7 @@ import scala.util.chaining.scalaUtilChainingOps
 
 class JvmCompileBtApiImpl() extends Compiler {
 
-  def compile(
-      args: Seq[String],
-      sources: Seq[os.Path]
-  )(using
-      ctx: TaskCtx
-  ): (Int, String) = {
+  def compile(args: Seq[String], sources: Seq[os.Path])(using ctx: TaskCtx): (Int, String) = {
 
     val incrementalCachePath = ctx.dest / "inc-state"
     os.makeDir.all(incrementalCachePath)
@@ -77,10 +72,7 @@ class JvmCompileBtApiImpl() extends Compiler {
       case CompilationResult.COMPILER_INTERNAL_ERROR => ExitCode.INTERNAL_ERROR
     }
 
-    // Required to perform cache clean-ups and resource freeing.
-    // The API docs say to call this "when all the modules of the project are compiled",
-    // but since Mill compiles modules independently, we treat each module as its own project.
-    // See: https://github.com/JetBrains/kotlin/blob/v2.1.20/compiler/build-tools/kotlin-build-tools-api/src/main/kotlin/org/jetbrains/kotlin/buildtools/api/CompilationService.kt#L39
+    // Do we really need to call this (after each compilation)?
     service.finishProjectCompilation(projectId)
 
     (exitCode.getCode(), exitCode.name())
