@@ -42,6 +42,9 @@ trait MicronautModule extends KspModule { outer =>
     mvn"io.micronaut:micronaut-inject-kotlin"
   )
 
+  // FIXME this should not be needed to resolve ksps
+  override def checkGradleModules: T[Boolean] = false
+
   override def kspProcessorOptions: T[Map[String, String]] = Task {
     super.kspProcessorOptions() ++ Map(
       "micronaut.processing.module" -> moduleSegments.render,
