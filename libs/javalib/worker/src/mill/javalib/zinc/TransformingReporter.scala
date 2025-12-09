@@ -124,7 +124,7 @@ private object TransformingReporter {
               lineContent0,
               literalColor = fansi.Color.Green,
               keywordColor = fansi.Color.Yellow,
-              commentColor = fansi.Color.DarkGray
+              commentColor = fansi.Color.Blue
             ).render
           } else lineContent0
 

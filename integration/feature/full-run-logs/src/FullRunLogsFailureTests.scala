@@ -14,7 +14,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
     test("keepGoingFailure") - integrationTest { tester =>
       import tester.*
 
-      modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar")
+      modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar { /*comment*/ final String \"lols\";")
       val res = eval(
         ("--ticker", "true", "--color=true", "--keep-going", "jar"),
         propagateEnv = false
@@ -29,9 +29,14 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] compile(X) compiling 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)10(Z)",
-          "(B)<digits>](X) class Bar",
-          "(B)<digits>](X)          (R)^(Z)",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)37(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { /*comment*/ (Y)final(X) String (G)\"lols\"(X);",
+          "(B)<digits>](X)                                     (R)^(Z)",
+          "(B)<digits>](X) <identifier> expected",
+          "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)45(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { /*comment*/ (Y)final(X) String (G)\"lols\"(X);",
+          "(B)<digits>](X)                                             (R)^(Z)",
           "(B)<digits>](X) reached end of file while parsing",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
