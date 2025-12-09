@@ -3,10 +3,10 @@ package mill.daemon
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.api.daemon.internal.bsp.BspServerHandle
 import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
-import mill.api.{BuildCtx, Logger, MappedRoots, MillException, Result, SystemStreams}
+import mill.api.{Logger, MappedRoots, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
-import mill.constants.{DaemonFiles, OutFolderMode}
+import mill.constants.DaemonFiles
 import mill.constants.OutFiles.OutFiles
 import mill.api.BuildCtx
 import mill.internal.{

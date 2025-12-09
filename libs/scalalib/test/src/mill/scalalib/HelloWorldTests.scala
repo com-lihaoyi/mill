@@ -243,8 +243,8 @@ object HelloWorldTests extends TestSuite {
         else {
           os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
-        val Left(ExecResult.Failure(msg = "Compilation failed")) =
-          eval.apply(HelloWorld.core.compile): @unchecked
+          val Left(ExecResult.Failure(msg = "Compilation failed")) =
+            eval.apply(HelloWorld.core.compile): @unchecked
 
           val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
 

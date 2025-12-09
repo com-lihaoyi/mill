@@ -4,11 +4,9 @@ import mill.Task
 import mill.api.{
   BuildCtx,
   DummyInputStream,
-  Evaluator,
   ExecResult,
   MappedRoots,
   Result,
-  SelectMode,
   SystemStreams,
   Val
 }

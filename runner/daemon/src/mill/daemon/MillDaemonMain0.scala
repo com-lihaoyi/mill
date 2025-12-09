@@ -3,7 +3,6 @@ package mill.daemon
 import mill.api.{MappedRoots, SystemStreams}
 import mill.client.lock.Locks
 import mill.constants.OutFolderMode
-import mill.constants.OutFiles.OutFiles
 import mill.server.Server
 
 import scala.concurrent.duration.*
@@ -52,13 +51,13 @@ object MillDaemonMain0 {
         val acceptTimeout =
           Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
 
-      val exitCode = new MillDaemonMain0(
-        daemonDir = args.daemonDir,
-        acceptTimeout = acceptTimeout,
-        Locks.files(args.daemonDir.toString),
-        outMode = args.outMode,
-        outDir = args.outDir
-      ).run().getOrElse(0)
+        val exitCode = new MillDaemonMain0(
+          daemonDir = args.daemonDir,
+          acceptTimeout = acceptTimeout,
+          Locks.files(args.daemonDir.toString),
+          outMode = args.outMode,
+          outDir = args.outDir
+        ).run().getOrElse(0)
 
         System.exit(exitCode)
       }
