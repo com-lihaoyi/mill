@@ -70,30 +70,23 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
       }
     }
 
-    // Check the unused cache
     val fromUnused = unusedCache.zipWithIndex.collectFirst {
       case ((k, ik, v), idx) if ik == internalKey => (k, v, idx)
     }
 
     val value = fromUnused match {
       case Some((originalKey, cachedValue, idx)) =>
-        // Remove from unused cache
         unusedCache = unusedCache.patch(idx, Nil, 1)
 
-        // Check if still valid
-        if (cacheEntryStillValid(originalKey, internalKey, initData, cachedValue)) {
-          cachedValue
-        } else {
+        if (cacheEntryStillValid(originalKey, internalKey, initData, cachedValue)) cachedValue
+        else {
           teardown(originalKey, internalKey, cachedValue)
           setup(key, internalKey, initData)
         }
 
-      case None =>
-        // Create new value
-        setup(key, internalKey, initData)
+      case None => setup(key, internalKey, initData)
     }
 
-    // Track the active value
     activeValues = CachedFactoryBase.Entry(key, internalKey, value, 1) :: activeValues
     value
   }
@@ -126,21 +119,12 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
   }
 
   private def moveToUnusedOrTeardown(key: Key, internalKey: InternalKey, value: Value): Unit = {
-    if (maxCacheSize == 0) {
-      // No caching of unused values - teardown immediately
-      teardown(key, internalKey, value)
-    } else {
-      // Add to front of unused cache (LRU)
-      unusedCache = (key, internalKey, value) :: unusedCache
+    unusedCache = (key, internalKey, value) :: unusedCache
 
-      // Evict if over capacity
-      if (unusedCache.length > maxCacheSize) {
-        val (keep, evict) = unusedCache.splitAt(maxCacheSize)
-        unusedCache = keep
-        for ((k, ik, v) <- evict) {
-          teardown(k, ik, v)
-        }
-      }
+    if (unusedCache.length > maxCacheSize) {
+      val (keep, evict) = unusedCache.splitAt(maxCacheSize)
+      unusedCache = keep
+      for ((k, ik, v) <- evict) teardown(k, ik, v)
     }
   }
 
@@ -154,16 +138,10 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
   }
 
   override def close(): Unit = synchronized {
-    // Close all active entries
-    for (entry <- activeValues) {
-      teardown(entry.key, entry.internalKey, entry.value)
-    }
+    for (entry <- activeValues) teardown(entry.key, entry.internalKey, entry.value)
     activeValues = Nil
 
-    // Close all unused entries
-    for ((key, internalKey, value) <- unusedCache) {
-      teardown(key, internalKey, value)
-    }
+    for ((key, internalKey, value) <- unusedCache) teardown(key, internalKey, value)
     unusedCache = Nil
   }
 }
