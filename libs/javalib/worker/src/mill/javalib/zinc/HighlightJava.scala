@@ -1,11 +1,7 @@
 package mill.javalib.zinc
 
 import com.github.javaparser.GeneratedJavaParserConstants.*
-import com.github.javaparser.{JavaParser, JavaToken, ParseStart, Providers}
-
-import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
-import scala.jdk.OptionConverters.RichOptional
+import com.github.javaparser.{GeneratedJavaParserTokenManager, Providers, SimpleCharStream}
 
 object HighlightJava {
 
@@ -15,42 +11,44 @@ object HighlightJava {
       keywordColor: fansi.Attrs,
       commentColor: fansi.Attrs
   ): fansi.Str = {
-    val parser = new JavaParser()
+    // Use the token manager directly for pure lexical tokenization
+    // This works even on incomplete/invalid Java code snippets
+    val charStream = new SimpleCharStream(Providers.provider(sourceCode))
+    val tokenManager = new GeneratedJavaParserTokenManager(charStream)
 
-    // Try to parse as a compilation unit first to get tokens
-    val parsed = parser.parse(ParseStart.COMPILATION_UNIT, Providers.provider(sourceCode))
+    val overlays = collection.mutable.Buffer.empty[(fansi.Attrs, Int, Int)]
 
-    // Calculate line lengths for converting positions to offsets
-    val lines = sourceCode.linesIterator.toArray
-    val lineLengths = lines.map(_.length)
+    try {
+      var token = tokenManager.getNextToken()
+      while (token.kind != EOF) {
+        for (color <- getColorOpt(token.kind, literalColor, keywordColor, commentColor)) {
+          // JavaParser token positions are 1-based, convert to 0-based offsets
+          // For single-line input, we can use column positions directly
+          val startOffset = token.beginColumn - 1
+          val endOffset = token.endColumn // endColumn is inclusive, so no -1 needed for exclusive end
 
-    def positionToOffset(p: com.github.javaparser.Position): Int = {
-      // Sum up lengths of all previous lines plus newline characters, then add column offset
-      lineLengths.iterator.take(p.line - 1).sum + (p.line - 1) + (p.column - 1)
+          // Clamp to valid indices
+          val clampedStart = math.max(0, math.min(startOffset, sourceCode.length))
+          val clampedEnd = math.max(0, math.min(endOffset, sourceCode.length))
+          if (clampedStart < clampedEnd) {
+            overlays.append((color, clampedStart, clampedEnd))
+          }
+        }
+        token = tokenManager.getNextToken()
+      }
+    } catch {
+      // If tokenization fails partway through (e.g., unclosed string),
+      // just use whatever tokens we've collected so far
+      case _: Exception => ()
     }
-
-    val output0 = fansi.Str(sourceCode)
-    val overlays = for{
-      result <- parsed.getResult.asScala.toSeq
-      tokenRange <- result.getTokenRange.asScala.toSeq
-      token <- tokenRange.asScala
-      color <- getColorOpt(token, literalColor, keywordColor, commentColor).toSeq
-      range <- token.getRange.asScala
-
-      // Clamp to valid indices
-      clampedStart = math.max(0, math.min(positionToOffset(range.begin), sourceCode.length))
-      // JavaParser range end is inclusive, so we add 1 for the exclusive end
-      clampedEnd = math.max(0, math.min(positionToOffset(range.end) + 1, sourceCode.length))
-      if clampedStart < clampedEnd
-    } yield (color, clampedStart, clampedEnd)
 
     fansi.Str(sourceCode).overlayAll(overlays.toSeq)
   }
 
-  def getColorOpt(token: JavaToken,
+  def getColorOpt(tokenKind: Int,
                   literalColor: fansi.Attrs,
                   keywordColor: fansi.Attrs,
-                  commentColor: fansi.Attrs): Option[fansi.Attrs] = token.getKind match {
+                  commentColor: fansi.Attrs): Option[fansi.Attrs] = tokenKind match {
     // Literals
     case INTEGER_LITERAL | LONG_LITERAL | FLOATING_POINT_LITERAL |
          CHARACTER_LITERAL | STRING_LITERAL | TEXT_BLOCK_LITERAL |
