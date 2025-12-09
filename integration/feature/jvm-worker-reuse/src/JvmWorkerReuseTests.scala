@@ -8,10 +8,12 @@ object JvmWorkerReuseTests extends UtestIntegrationTestSuite {
 
     test("envVars") - integrationTest { tester =>
       def getProcessIds() = os
-        .walk(tester.workspacePath / "out/mill.javalib.JvmWorkerModule/internalWorker.dest/zinc-worker")
+        .walk(
+          tester.workspacePath / "out/mill.javalib.JvmWorkerModule/internalWorker.dest/zinc-worker"
+        )
         .filter(_.last == "server.log")
         .flatMap(os.read.lines(_))
-        .collect {  case s"pid:$num $rest" => num }
+        .collect { case s"pid:$num $_" => num }
         .distinct
 
       tester.eval("foo.compile", check = true)
