@@ -41,7 +41,7 @@
         <orderEntry type="library" scope="RUNTIME" name="jcl-over-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jgrapht-core-1.4.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jheaps-0.11.jar" level="project"/>
-        <orderEntry type="library" name="jline-3.28.0.jar" level="project"/>
+        <orderEntry type="library" name="jline-3.30.6.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jline-native-3.29.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jna-5.17.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jsoniter-scala-core_2.13-2.13.5.jar" level="project"/>
