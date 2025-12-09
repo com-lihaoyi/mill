@@ -64,7 +64,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       modifyFile(workspacePath / "src/foo/Foo.scala", _ + "\"}}")
       modifyFile(
         workspacePath / "src/foo/Foo.java",
-        _.replace("final String x", "final Strin x") + "\";}}"
+        _.replace("final String x", "final java.lang.Strin x") + "\";}}"
       )
       val res2 = eval(
         ("--ticker", "true", "--color=true", "--keep-going", "jar"),
@@ -77,12 +77,12 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         List(
           "<dashes> jar <dashes>",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)43(Z)",
-          "(B)<digits>](X) (Y)class(X) (C)Bar(X) { (B)/*comment*/(X) (Y)void(X) (C)bar(X)(){ (Y)final(X) (G)Strin(X) (C)x(X) = (G)\"omg\"(X);}}",
-          "(B)<digits>](X)                                           (R)^^^^^(Z)",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)52(Z)",
+          "(B)<digits>](X) (Y)class(X) (C)Bar(X) { (B)/*comment*/(X) (Y)void(X) (C)bar(X)(){ (Y)final(X) (G)java(X).(G)lang(X).(G)Strin(X) (C)x(X) = (G)\"omg\"(X);}}",
+          "(B)<digits>](X)                                                    (R)^^^^^^(Z)",
           "(B)<digits>](X) cannot find symbol",
           "(B)<digits>](X)   symbol:   class Strin",
-          "(B)<digits>](X)   location: class foo.Bar",
+          "(B)<digits>](X)   location: package java.lang",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
           ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
