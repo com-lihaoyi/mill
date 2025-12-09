@@ -5,7 +5,6 @@ import com.github.javaparser.{GeneratedJavaParserTokenManager, Providers, Simple
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
 import com.github.javaparser.ast.body.*
 import com.github.javaparser.ast.expr.*
-import com.github.javaparser.ast.`type`.*
 
 object HighlightJava {
 
@@ -14,7 +13,6 @@ object HighlightJava {
       literalColor: fansi.Attrs,
       keywordColor: fansi.Attrs,
       commentColor: fansi.Attrs,
-      typeColor: fansi.Attrs,
       definitionColor: fansi.Attrs
   ): fansi.Str = {
     // Use the token manager directly for pure lexical tokenization
