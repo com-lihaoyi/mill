@@ -24,7 +24,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
         List(
           "compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "done compiling",
-          "compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/worker-1/sandbox/run-1/out/compile.dest/classes ...",
+          "compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "done compiling"
         )
       )
@@ -48,8 +48,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "<dashes> run --text hello <dashes>",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
-          "<digits>] compile",
-          "<digits>] compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/worker-1/sandbox/run-2/out/compile.dest/classes ...",
+          "<digits>] compile compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
           "<digits>] run",
           "74/<digits>] <dashes> run --text hello <dashes>"

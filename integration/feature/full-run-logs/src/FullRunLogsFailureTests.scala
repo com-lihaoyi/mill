@@ -35,8 +35,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<dashes> jar <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
-          "(B)<digits>] compile(X)",
-          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/sandbox/run-1/out/compile.dest/classes ...",
+          "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)54(Z)",
           "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) String x = \"omg",
           "(B)<digits>](X)                                                      (R)^(Z)",
@@ -47,7 +46,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X)                                                          (R)^(Z)",
           "(B)<digits>](X) '}' expected but eof found.",
           "(B)<digits>](X) ",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)1(Z):(R)54(Z)",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)2(Z):(R)54(Z)",
           "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): (M)String(Z) =  \"omg",
           "(B)<digits>](X)                                                      (R)^(Z)",
           "(B)<digits>](X) unclosed string literal",
@@ -75,8 +74,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         // We passed in `--color=true` so we should expect colored output
         List(
           "<dashes> jar <dashes>",
-          "(B)<digits>] compile(X)",
-          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/sandbox/run-1/out/compile.dest/classes ...",
+          "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)43(Z)",
           "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) Strin x = (G)\"omg\"(X);}}",
           "(B)<digits>](X)                                           (R)^^^^^(Z)",
@@ -102,9 +100,8 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         // We passed in `--color=true` so we should expect colored output
         List(
           "<dashes> jar <dashes>",
-          "(B)<digits>] compile(X)",
-          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/sandbox/run-1/out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)1(Z):(R)44(Z)",
+          "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)2(Z):(R)44(Z)",
           "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): (M)Strig(Z) =  (G)\"omg\"(Z)}}",
           "(B)<digits>](X)                                            (R)^^^^^(Z)",
           "(B)<digits>](X) Not found: type Strig - did you mean String?",
@@ -229,7 +226,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
           "<digits>] ",
-          ".../..., 1 failed] <dashes> {brokenN,brokenN}.compile <dashes>",
+          ".../..., 2 failed] <dashes> {brokenN,brokenN}.compile <dashes>",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code"
         )
