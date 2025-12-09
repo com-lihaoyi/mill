@@ -91,7 +91,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       )
 
       // Scala name resolution error
-      modifyFile(workspacePath / "src/foo/Foo.scala", _.replace("x: String", "x: Strig"))
+      modifyFile(workspacePath / "src/foo/Foo.scala", _.replace("x: String", "x: java.lang.Strig"))
       val res3 = eval(
         ("--ticker", "true", "--color=true", "--keep-going", "jar"),
         propagateEnv = false
@@ -103,10 +103,10 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         List(
           "<dashes> jar <dashes>",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)2(Z):(R)44(Z)",
-          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): (M)Strig(Z) =  (G)\"omg\"(Z)}}",
-          "(B)<digits>](X)                                            (R)^^^^^(Z)",
-          "(B)<digits>](X) Not found: type Strig - did you mean String?",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)2(Z):(R)54(Z)",
+          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): java.lang.(Y)Strig(Z) =  (G)\"omg\"(Z)}}",
+          "(B)<digits>](X)                                                      (R)^^^^^(Z)",
+          "(B)<digits>](X) type Strig is not a member of java.lang - did you mean lang.String?",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] one error found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
