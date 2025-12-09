@@ -403,6 +403,17 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   }
 
   /**
+   * Module name options for the Kotlin compiler.
+   * For JVM, this is `-module-name`. For JS, this is overridden to be empty
+   * (JS uses `-Xir-module-name` set separately in the compile task).
+   */
+  protected def kotlinModuleNameOption: T[Seq[String]] = Task {
+    // Use artifactName if available, otherwise fall back to "main" for root modules
+    val moduleName = Option(artifactName()).filter(_.nonEmpty).getOrElse("main")
+    Seq("-module-name", moduleName)
+  }
+
+  /**
    * Mandatory command-line options to pass to the Kotlin compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
@@ -412,7 +423,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val plugins = kotlincPluginJars().map(_.path)
 
     Seq("-no-stdlib") ++
-      Seq("-module-name", artifactName()) ++
+      kotlinModuleNameOption() ++
       when(!languageVersion.isBlank)("-language-version", languageVersion) ++
       when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
       plugins.map(p => s"-Xplugin=$p")
