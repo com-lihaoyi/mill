@@ -18,22 +18,40 @@ object HighlightJava {
 
     val overlays = collection.mutable.Buffer.empty[(fansi.Attrs, Int, Int)]
 
+    def addTokenOverlay(token: com.github.javaparser.Token): Unit = {
+      for (color <- getColorOpt(token.kind, literalColor, keywordColor, commentColor)) {
+        // JavaParser token positions are 1-based, convert to 0-based offsets
+        // For single-line input, we can use column positions directly
+        val startOffset = token.beginColumn - 1
+        val endOffset = token.endColumn // endColumn is inclusive, so no -1 needed for exclusive end
+
+        // Clamp to valid indices
+        val clampedStart = math.max(0, math.min(startOffset, sourceCode.length))
+        val clampedEnd = math.max(0, math.min(endOffset, sourceCode.length))
+        if (clampedStart < clampedEnd) overlays.append((color, clampedStart, clampedEnd))
+      }
+    }
+
+    // Process special tokens (comments, whitespace) attached to a token
+    def processSpecialTokens(token: com.github.javaparser.Token): Unit = {
+      var special = token.specialToken
+      while (special != null) {
+        addTokenOverlay(special)
+        special = special.specialToken
+      }
+    }
+
     try {
       var token = tokenManager.getNextToken()
       while (token.kind != EOF) {
-        for (color <- getColorOpt(token.kind, literalColor, keywordColor, commentColor)) {
-          // JavaParser token positions are 1-based, convert to 0-based offsets
-          // For single-line input, we can use column positions directly
-          val startOffset = token.beginColumn - 1
-          val endOffset = token.endColumn // endColumn is inclusive, so no -1 needed for exclusive end
-
-          // Clamp to valid indices
-          val clampedStart = math.max(0, math.min(startOffset, sourceCode.length))
-          val clampedEnd = math.max(0, math.min(endOffset, sourceCode.length))
-          if (clampedStart < clampedEnd) overlays.append((color, clampedStart, clampedEnd))
-        }
+        // First process any special tokens (comments) attached to this token
+        processSpecialTokens(token)
+        // Then process the token itself
+        addTokenOverlay(token)
         token = tokenManager.getNextToken()
       }
+      // Don't forget special tokens attached to EOF
+      processSpecialTokens(token)
     } catch {
       // If tokenization fails partway through (e.g., unclosed string),
       // just use whatever tokens we've collected so far

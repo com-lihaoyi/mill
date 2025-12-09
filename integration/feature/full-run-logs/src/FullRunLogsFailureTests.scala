@@ -14,6 +14,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
     test("keepGoingFailure") - integrationTest { tester =>
       import tester.*
 
+      modifyFile(workspacePath / "src/foo/Foo.scala", _ + "class Bar { /*comment*/ final val \"lols\"")
       modifyFile(workspacePath / "src/foo/Foo.java", _ + "class Bar { /*comment*/ final String \"lols\";")
       val res = eval(
         ("--ticker", "true", "--color=true", "--keep-going", "jar"),
@@ -28,20 +29,27 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<dashes> jar <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
-          "(B)<digits>] compile(X) compiling 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)37(Z)",
-          "(B)<digits>](X) (Y)class(X) Bar { /*comment*/ (Y)final(X) String (G)\"lols\"(X);",
-          "(B)<digits>](X)                                     (R)^(Z)",
-          "(B)<digits>](X) <identifier> expected",
+          "(B)<digits>] compile(X)",
+          "(B)<digits>](X) compiling 1 Scala source and 1 Java source to /Users/lihaoyi/Github/mill/out/integration/feature/full-run-logs/packaged/daemon/testForked.dest/worker-1/sandbox/run-1/out/compile.dest/classes ...",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)38(Z)",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X);",
+          "(B)<digits>](X)                                      (R)^^^^^^(Z)",
+          "(B)<digits>](X) identifier expected but string literal found.",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)45(Z)",
-          "(B)<digits>](X) (Y)class(X) Bar { /*comment*/ (Y)final(X) String (G)\"lols\"(X);",
-          "(B)<digits>](X)                                             (R)^(Z)",
-          "(B)<digits>](X) reached end of file while parsing",
+          "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)final(X) String (G)\"lols\"(X);",
+          "(B)<digits>](X)                                             (R)^^^^^^(Z)",
+          "(B)<digits>](X) '}' expected but eof found.",
           "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)1(Z):(R)41(Z)",
+          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)final(Z) (Y)val(Z) (G)\"lols\"(Z)",
+          "(B)<digits>](X)                                         (R)^(Z)",
+          "(B)<digits>](X) '=' expected, but eof found",
+          "(B)<digits>](X) ",
+          "(B)<digits>](X) [(R)error(X)] three errors found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
           ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
-          "(R)<digits>] (X)[(R)error(X)] compile javac returned non-zero exit code"
+          "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
         )
       )
 
@@ -58,7 +66,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         List(
           "<dashes> jar <dashes>",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
-          "build.mill-<digits>] [error] build.mill:76:1",
+          "build.mill-<digits>] [error] build.mill:77:1",
           "build.mill-<digits>] ?",
           "build.mill-<digits>] ^",
           "build.mill-<digits>] Illegal start of toplevel definition",
@@ -112,14 +120,14 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           ".../..., (R)1 failed(X)] <dashes> exception <dashes>",
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
-          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)5(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)7(X))",
+          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
+          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
           "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
           "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
           "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))",
           "(R)java.lang.RuntimeException(X): bang",
-          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)5(X))",
-          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)7(X))",
+          "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
+          "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
           "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
           "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
           "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))"

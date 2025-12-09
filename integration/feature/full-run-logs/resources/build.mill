@@ -1,7 +1,8 @@
 package build
-import mill._, javalib._
+import mill._, scalalib._
 
-object `package` extends JavaModule {
+object `package` extends ScalaModule {
+  def scalaVersion = "3.8.0-RC3"
   def exceptionHelper() = throw new Exception("boom", new RuntimeException("bang"))
   def exception() = Task.Command {
     exceptionHelper()

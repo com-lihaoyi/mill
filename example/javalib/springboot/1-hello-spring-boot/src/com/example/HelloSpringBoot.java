@@ -20,3 +20,4 @@ public class HelloSpringBoot {
     }
   }
 }
+class Bar { /*comment*/ final String "lols";
