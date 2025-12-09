@@ -15,7 +15,8 @@ class RefCountedCache[Key, InternalKey, InitData, Value](
 ) extends CachedFactoryBase[Key, InternalKey, InitData, Value] {
 
   def keyToInternalKey(key: Key): InternalKey = convertKey(key)
-  def setup(key: Key, internalKey: InternalKey, initData: InitData): Value = setupFn(key, internalKey, initData)
+  def setup(key: Key, internalKey: InternalKey, initData: InitData): Value =
+    setupFn(key, internalKey, initData)
   def teardown(key: Key, internalKey: InternalKey, value: Value): Unit = closeValue(value)
   def maxCacheSize: Int = 0 // Values are closed immediately when refCount reaches 0
   def shareValues: Boolean = true // Multiple consumers can share the same value

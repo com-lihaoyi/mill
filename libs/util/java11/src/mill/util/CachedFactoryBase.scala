@@ -45,7 +45,12 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
    * Returns true if the cache entry associated with the given key is still valid.
    * If false, the entry will be removed from the cache and [[setup]] will be invoked.
    */
-  def cacheEntryStillValid(key: Key, internalKey: InternalKey, initData: => InitData, value: Value): Boolean = true
+  def cacheEntryStillValid(
+      key: Key,
+      internalKey: InternalKey,
+      initData: => InitData,
+      value: Value
+  ): Boolean = true
 
   // Active values with reference counts. Head of list is most recently added.
   private var activeValues: List[CachedFactoryBase.Entry[Key, InternalKey, Value]] = List.empty
@@ -147,5 +152,10 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
 }
 
 object CachedFactoryBase {
-  case class Entry[Key, InternalKey, +Value](key: Key, internalKey: InternalKey, value: Value, refCount: Int)
+  case class Entry[Key, InternalKey, +Value](
+      key: Key,
+      internalKey: InternalKey,
+      value: Value,
+      refCount: Int
+  )
 }

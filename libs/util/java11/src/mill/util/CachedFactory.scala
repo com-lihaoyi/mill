@@ -34,7 +34,12 @@ abstract class CachedFactoryWithInitData[K, InitData, V]
   final def setup(key: K, internalKey: K, initData: InitData): V = setup(key, initData)
   final def teardown(key: K, internalKey: K, value: V): Unit = teardown(key, value)
   final def shareValues: Boolean = false // Each consumer gets exclusive access
-  final override def cacheEntryStillValid(key: K, internalKey: K, initData: => InitData, value: V): Boolean =
+  final override def cacheEntryStillValid(
+      key: K,
+      internalKey: K,
+      initData: => InitData,
+      value: V
+  ): Boolean =
     cacheEntryStillValid(key, initData, value)
 }
 
