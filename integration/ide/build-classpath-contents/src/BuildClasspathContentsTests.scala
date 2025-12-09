@@ -14,13 +14,18 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         .filter(_.startsWith("mill-"))
         .sorted
       val millLocalClasspath = deserialized
-        .map(_.path)
-        .filter(_.startsWith(BuildCtx.workspaceRoot))
-        .map(_.subRelativeTo(BuildCtx.workspaceRoot))
-        .filter(!_.startsWith("out/integration"))
-        .filter(!_.startsWith("out/dist/localRepo.dest"))
-        .map(_.toString)
+        .flatMap { p =>
+          lazy val sub = p.path.subRelativeTo(BuildCtx.workspaceRoot)
+          Option.when(
+            p.path.startsWith(BuildCtx.workspaceRoot) &&
+              !sub.startsWith("out/integration") &&
+              !sub.startsWith("out/dist/localRepo.dest")
+          ) {
+            sub.toString()
+          }
+        }
         .sorted
+
       if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") == "true") {
         assertGoldenLiteral(
           millPublishedJars,

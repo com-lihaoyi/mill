@@ -1,7 +1,13 @@
 package mill.kotlinlib.worker.impl
 
 import mill.api.TaskCtx
-import org.jetbrains.kotlin.buildtools.api.{CompilationResult, CompilationService, ProjectId}
+import org.jetbrains.kotlin.buildtools.api.{
+  CompilationResult,
+  CompilationService,
+  ProjectId,
+  SourcesChanges
+}
+import org.jetbrains.kotlin.buildtools.api.jvm.ClasspathSnapshotBasedIncrementalCompilationApproachParameters
 import org.jetbrains.kotlin.cli.common.ExitCode
 
 import java.util.UUID
@@ -9,16 +15,10 @@ import scala.util.chaining.scalaUtilChainingOps
 
 class JvmCompileBtApiImpl() extends Compiler {
 
-  def compile(
-      args: Seq[String],
-      sources: Seq[os.Path]
-  )(using
-      ctx: TaskCtx
-  ): (Int, String) = {
+  def compile(args: Seq[String], sources: Seq[os.Path])(using ctx: TaskCtx): (Int, String) = {
 
-//    System.setProperty("kotlin.build-tools-api.log.level", "debug")
-
-    val incrementalCompilerStatePath = ctx.dest / "inc-state"
+    val incrementalCachePath = ctx.dest / "inc-state"
+    os.makeDir.all(incrementalCachePath)
 
     val service = CompilationService.loadImplementation(getClass().getClassLoader())
 
@@ -29,21 +29,40 @@ class JvmCompileBtApiImpl() extends Compiler {
         conf.makeClasspathSnapshotBasedIncrementalCompilationConfiguration()
       incrementalConfig.setRootProjectDir(ctx.workspace.toIO)
       incrementalConfig.usePreciseJavaTracking(true)
-      incrementalConfig.setBuildDir(incrementalCompilerStatePath.toIO)
+      incrementalConfig.setBuildDir(incrementalCachePath.toIO)
+
+      // Create approach parameters for classpath snapshot-based incremental compilation.
+      // Pass empty list for newClasspathSnapshotFiles to let the API compute snapshots from classpath JARs.
+      // See: https://github.com/JetBrains/kotlin/blob/v2.1.20/libraries/tools/kotlin-maven-plugin/src/main/java/org/jetbrains/kotlin/maven/K2JVMCompileMojo.java#L356
+      val approachParams = new ClasspathSnapshotBasedIncrementalCompilationApproachParameters(
+        java.util.Collections.emptyList(),
+        (incrementalCachePath / "shrunk-classpath-snapshot.bin").toIO
+      )
+
+      conf.useIncrementalCompilation(
+        incrementalCachePath.toIO,
+        SourcesChanges.ToBeCalculated.INSTANCE,
+        approachParams,
+        incrementalConfig
+      )
     }
 
-    val projectId = new ProjectId.ProjectUUID(UUID.randomUUID())
+    // Use a deterministic project ID based on the task destination path
+    // This ensures the Build Tools API can track incremental state across compilations
+    val projectId = new ProjectId.ProjectUUID(
+      UUID.nameUUIDFromBytes(ctx.dest.toString.getBytes)
+    )
 
-    val allArgsWithSources = args ++ sources.map(_.toString)
+    // Pass sources to the Build Tools API for proper incremental compilation tracking
+    // The API uses this list to detect changes between compilations
+    val sourceFiles = sources.map(_.toIO).toArray
 
     val compilationResult = service.compileJvm(
       projectId,
       strategyConfig,
       compilationConfig,
-//      KotlinInterop.toKotlinList(sources.map(_.toIO).toArray),
-//      KotlinInterop.toKotlinList(args.toArray)
-      KotlinInterop.toKotlinList(Array[java.io.File]()),
-      KotlinInterop.toKotlinList(allArgsWithSources.toArray)
+      KotlinInterop.toKotlinList(sourceFiles),
+      KotlinInterop.toKotlinList(args.toArray)
     )
 
     val exitCode = compilationResult match {
