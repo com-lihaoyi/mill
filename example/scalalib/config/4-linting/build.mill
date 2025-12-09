@@ -49,7 +49,8 @@ object Foo {
 /** Usage
 
 > ./mill __.fix # mill-scalafix not compatible with new Opts class
-error: fix java.lang.ClassCastException: class mill.api.opt.Opts cannot be cast to class scala.collection.immutable.Seq ...
+error: fix
+error: java.lang.ClassCastException: class mill.api.opt.Opts cannot be cast to class scala.collection.immutable.Seq ...
 
 */
 ////
