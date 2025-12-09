@@ -1,7 +1,12 @@
 package mill.javalib.zinc
 
 import com.github.javaparser.GeneratedJavaParserConstants.*
-import com.github.javaparser.{GeneratedJavaParserTokenManager, Providers, SimpleCharStream, StaticJavaParser}
+import com.github.javaparser.{
+  GeneratedJavaParserTokenManager,
+  Providers,
+  SimpleCharStream,
+  StaticJavaParser
+}
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
 import com.github.javaparser.ast.body.*
 import com.github.javaparser.ast.expr.*
