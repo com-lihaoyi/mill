@@ -2,23 +2,23 @@
     <component name="ScalaCompilerConfiguration">
         <profile name="mill 1" modules="">
             <parameters>
-                <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.0-RC1/0.12.2/scalac-mill-moduledefs-plugin_3.8.0-RC1-0.12.2.jar"/>
-                <parameter value="-Xplugin:.../dist/localRepo.dest/com/lihaoyi/mill-runner-autooverride-plugin_3.8.0-RC1/SNAPSHOT/mill-runner-autooverride-plugin_3.8.0-RC1-SNAPSHOT.jar"/>
+                <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.0-RC3/0.12.5-RC1/scalac-mill-moduledefs-plugin_3.8.0-RC3-0.12.5-RC1.jar"/>
+                <parameter value="-Xplugin:.../dist/localRepo.dest/com/lihaoyi/mill-runner-autooverride-plugin_3.8.0-RC3/SNAPSHOT/mill-runner-autooverride-plugin_3.8.0-RC3-SNAPSHOT.jar"/>
                 <parameter value="-deprecation"/>
                 <parameter value="-Wconf:msg=will be encoded on the classpath:silent"/>
             </parameters>
             <plugins>
-                <plugin path=".../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.0-RC1/0.12.2/scalac-mill-moduledefs-plugin_3.8.0-RC1-0.12.2.jar"/>
-                <plugin path=".../out/dist/localRepo.dest/com/lihaoyi/mill-runner-autooverride-plugin_3.8.0-RC1/SNAPSHOT/mill-runner-autooverride-plugin_3.8.0-RC1-SNAPSHOT.jar"/>
-                <plugin path=".../org/scala-lang/scala3-compiler_3/3.8.0-RC1/scala3-compiler_3-3.8.0-RC1.jar"/>
-                <plugin path=".../org/scala-lang/scala3-library_3/3.8.0-RC1/scala3-library_3-3.8.0-RC1.jar"/>
-                <plugin path=".../com/lihaoyi/mill-moduledefs_3/0.12.2/mill-moduledefs_3-0.12.2.jar"/>
+                <plugin path=".../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.0-RC3/0.12.5-RC1/scalac-mill-moduledefs-plugin_3.8.0-RC3-0.12.5-RC1.jar"/>
+                <plugin path=".../out/dist/localRepo.dest/com/lihaoyi/mill-runner-autooverride-plugin_3.8.0-RC3/SNAPSHOT/mill-runner-autooverride-plugin_3.8.0-RC3-SNAPSHOT.jar"/>
+                <plugin path=".../org/scala-lang/scala3-compiler_3/3.8.0-RC3/scala3-compiler_3-3.8.0-RC3.jar"/>
+                <plugin path=".../org/scala-lang/scala3-library_3/3.8.0-RC3/scala3-library_3-3.8.0-RC3.jar"/>
+                <plugin path=".../com/lihaoyi/mill-moduledefs_3/0.12.5-RC1/mill-moduledefs_3-0.12.5-RC1.jar"/>
                 <plugin path=".../com/lihaoyi/unroll-annotation_3/0.2.0/unroll-annotation_3-0.2.0.jar"/>
-                <plugin path=".../org/scala-lang/scala3-interfaces/3.8.0-RC1/scala3-interfaces-3.8.0-RC1.jar"/>
-                <plugin path=".../org/scala-lang/tasty-core_3/3.8.0-RC1/tasty-core_3-3.8.0-RC1.jar"/>
-                <plugin path=".../org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar"/>
+                <plugin path=".../org/scala-lang/scala3-interfaces/3.8.0-RC3/scala3-interfaces-3.8.0-RC3.jar"/>
+                <plugin path=".../org/scala-lang/tasty-core_3/3.8.0-RC3/tasty-core_3-3.8.0-RC3.jar"/>
+                <plugin path=".../org/scala-lang/modules/scala-asm/9.9.0-scala-1/scala-asm-9.9.0-scala-1.jar"/>
                 <plugin path=".../org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar"/>
-                <plugin path=".../org/scala-lang/scala-library/3.8.0-RC1/scala-library-3.8.0-RC1.jar"/>
+                <plugin path=".../org/scala-lang/scala-library/3.8.0-RC3/scala-library-3.8.0-RC3.jar"/>
                 <plugin path=".../org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar"/>
             </plugins>
         </profile>

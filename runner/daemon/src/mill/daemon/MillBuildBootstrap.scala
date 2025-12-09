@@ -9,7 +9,7 @@ import mill.api.daemon.internal.{
 }
 import mill.api.{BuildCtx, Logger, MappedRoots, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
-import mill.constants.OutFiles.{millBuild, millRunnerState}
+import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.constants.PathVars
@@ -19,7 +19,6 @@ import mill.meta.CliImports
 import mill.meta.FileImportGraph.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
-import mill.internal.Util.parseYaml
 
 import java.io.File
 import java.net.URLClassLoader
@@ -155,11 +154,11 @@ class MillBuildBootstrap(
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
-                case Result.Failure(msg) =>
+                case f: Result.Failure =>
                   RunnerState(
                     None,
                     Nil,
-                    Some(msg),
+                    Some(mill.internal.Util.formatError(f, logger.prompt.errorColor)),
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
@@ -217,35 +216,22 @@ class MillBuildBootstrap(
           rootModuleRes.flatMap { buildFileApi =>
             def tryReadParent(fileName: String) = {
               val p = currentRoot / ".." / fileName
-              Option.when(os.exists(p)) { mill.constants.Util.readBuildHeader(p.toNIO, fileName) }
+              Option.when(os.exists(p)) {
+                p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName)
+              }
             }
 
-            val jsonRes: Result[ujson.Value] =
-              tryReadParent("build.mill.yaml").map(s =>
-                parseYaml("build.mill.yaml", s).map(parsed =>
-                  // For YAML files, extract the mill-build key if it exists, otherwise use empty map
-                  parsed.obj.get("mill-build") match {
-                    case Some(millBuildValue: ujson.Obj) => millBuildValue
-                    case _ => ujson.Obj()
-                  }
-                )
-              ).orElse {
-                tryReadParent("build.mill").map { s =>
-                  parseYaml("build.mill", s)
-                }
-              }.getOrElse(Result.Success(ujson.Obj()))
-
-            jsonRes
-              .flatMap(json => upickle.read[Map[String, ujson.Value]](json))
-              .map((buildFileApi, _))
-
+            (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
           } match {
-            case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
+            case f: Result.Failure =>
+              nestedState.add(errorOpt =
+                Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+              )
             case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
-              val staticBuildOverrides =
-                staticBuildOverrides0 ++
-                  nestedState.frames.lastOption.fold(Map())(_.staticBuildOverrides)
+              val staticBuildOverrideFiles =
+                staticBuildOverrides0.toSeq ++
+                  nestedState.frames.lastOption.fold(Map())(_.buildOverrideFiles)
 
               Using.resource(makeEvaluator(
                 projectRoot = topLevelProjectRoot,
@@ -283,7 +269,7 @@ class MillBuildBootstrap(
                 depth = depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
-                staticBuildOverrides = staticBuildOverrides
+                staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
               )) { evaluator =>
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
@@ -331,7 +317,7 @@ class MillBuildBootstrap(
       selectiveExecution = false,
       reporter = reporter(evaluator)
     ) match {
-      case (Result.Failure(error), evalWatches, moduleWatches) =>
+      case (f: Result.Failure, evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           evalWatches,
@@ -344,14 +330,17 @@ class MillBuildBootstrap(
           Map()
         )
 
-        nestedState.add(frame = evalState, errorOpt = Some(error))
+        nestedState.add(
+          frame = evalState,
+          errorOpt = Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+        )
 
       case (
             Result.Success(Seq(Tuple4(
               runClasspath: Seq[PathRefApi],
               compileClasses: PathRefApi,
               codeSignatures: Map[String, Int],
-              buildOverrides0: Map[String, String]
+              buildOverrideFiles: Map[java.nio.file.Path, String]
             ))),
             evalWatches,
             moduleWatches
@@ -401,7 +390,7 @@ class MillBuildBootstrap(
           runClasspath,
           Some(compileClasses),
           Option(evaluator),
-          buildOverrides0.map { case (k, v) => (k, ujson.read(v)) }
+          buildOverrideFiles
         )
 
         nestedState.add(frame = evalState)
@@ -430,6 +419,7 @@ class MillBuildBootstrap(
       selectiveExecution,
       reporter = reporter(evaluator)
     )
+
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
       evalWatched,
@@ -442,7 +432,13 @@ class MillBuildBootstrap(
       Map()
     )
 
-    nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
+    nestedState.add(
+      frame = evalState,
+      errorOpt = evaled match {
+        case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+        case _ => None
+      }
+    )
   }
 
 }
@@ -470,7 +466,7 @@ object MillBuildBootstrap {
       depth: Int,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
-      staticBuildOverrides: Map[String, ujson.Value]
+      staticBuildOverrideFiles: Map[java.nio.file.Path, String]
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -509,7 +505,7 @@ object MillBuildBootstrap {
           streams0,
           () => evaluator,
           offline,
-          staticBuildOverrides.map { case (k, v) => (k, v.toString) },
+          staticBuildOverrideFiles,
           enableTicker
         )
       ).asInstanceOf[EvaluatorApi]
@@ -602,12 +598,12 @@ object MillBuildBootstrap {
     )
 
     evalTaskResult match {
-      case Result.Failure(msg) =>
-        (Result.Failure(msg), evalWatchedValues.toSeq, moduleWatchedValues)
+      case f: Result.Failure =>
+        (f, evalWatchedValues.toSeq, moduleWatchedValues)
       case Result.Success(res: EvaluatorApi.Result[Any]) =>
         res.values match {
-          case Result.Failure(msg) =>
-            (Result.Failure(msg), res.watchable ++ evalWatchedValues, moduleWatchedValues)
+          case f: Result.Failure =>
+            (f, res.watchable ++ evalWatchedValues, moduleWatchedValues)
           case Result.Success(results) =>
             (Result.Success(results), res.watchable ++ evalWatchedValues, moduleWatchedValues)
         }

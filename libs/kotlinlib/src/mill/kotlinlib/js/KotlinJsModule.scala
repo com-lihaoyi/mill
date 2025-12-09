@@ -418,7 +418,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     workerResult match {
       case Result.Success(_) => CompilationResult(analysisFile, PathRef(artifactLocation))
-      case Result.Failure(reason) => Result.Failure(reason)
+      case f: Result.Failure => f
     }
   }
 

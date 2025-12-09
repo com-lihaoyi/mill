@@ -1,0 +1,87 @@
+package build
+
+import mill.*
+import mill.kotlinlib.*
+import mill.javalib.spring.boot.SpringBootModule
+import mill.javalib.TestModule.{Junit4, Junit5}
+import mill.javalib.publish.*
+
+object `package` extends SpringBootModule, KotlinModule { outer =>
+
+  override def springBootPlatformVersion = "4.0.0"
+
+  override def kotlinVersion = "2.2.21"
+  override def artifactName: T[String] = "spring-boot-native-demo"
+
+  override def kotlincOptions: T[Seq[String]] = super.kotlincOptions() ++ Seq(
+    "-jvm-target",
+    "17",
+    "-Xjsr305=strict",
+    "-Xannotation-default-target=param-property"
+  )
+
+  override def mvnDeps = Seq(
+    mvn"org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion()}",
+    mvn"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}",
+    mvn"org.springframework.boot:spring-boot-starter-web"
+  )
+
+  object prod extends SpringBootOptimisedBuildModule, KotlinModule {
+    override def kotlinVersion = outer.kotlinVersion()
+    override def kotlincOptions = super.kotlincOptions() ++ outer.kotlincOptions()
+  }
+
+  object native extends KotlinModule, NativeSpringBootBuildModule {
+    override def kotlinVersion = outer.kotlinVersion()
+    override def kotlincOptions = super.kotlincOptions() ++ outer.kotlincOptions()
+    def jvmId = "graalvm-community:25.0.1"
+  }
+
+  object test extends SpringBootTestsModule, KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"org.springframework.boot:spring-boot-starter-test"
+    )
+  }
+}
+
+// This example demonstrates how to configure Mill with SpringBoot sources and GraalVM Native Support,//
+
+/** Usage
+
+> ./mill show test
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.example.demokotlin.DemoKotlinApplicationTests",
+      "selector": "contextLoads()",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+> ./mill show native.nativeImage
+...out/native/nativeImage.dest/native-executable...
+
+> ./mill native.nativeRunBackground
+
+> curl http://localhost:9099/hello
+...Hello, World!...
+
+> curl http://localhost:9099/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean native.nativeRunBackground
+
+> ./mill prod.runBackground
+
+> curl http://localhost:9099/hello
+...Hello, World!...
+
+> curl http://localhost:9099/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean prod.runBackground
+
+*/

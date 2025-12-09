@@ -25,7 +25,9 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           .filter(!_.startsWith("out/dist/localRepo.dest"))
           .map(_.toString)
           .sorted
-        if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") == "true") {
+        if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") != "true") {
+          sys.error("This test must be run in `packaged` mode, not `local`")
+        } else {
           assertGoldenLiteral(
             millPublishedJars,
             List(
@@ -56,13 +58,11 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
               "mill-libs-util-java11_3-SNAPSHOT.jar",
               "mill-libs-util_3-SNAPSHOT.jar",
               "mill-libs_3-SNAPSHOT.jar",
-              "mill-moduledefs_3-0.12.2.jar",
+              "mill-moduledefs_3-0.12.5-RC1.jar",
               "mill-runner-autooverride-api_3-SNAPSHOT.jar"
             )
           )
           assert(millLocalClasspath == Nil)
-        } else {
-          sys.error("This test must be run in `packaged` mode, not `local`")
         }
       }
     }

@@ -29,10 +29,14 @@ class PromptLogger(
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true,
     val chromeProfileLogger: JsonArrayLogger.ChromeProfile
-) extends Logger with AutoCloseable {
+) extends Logger.Upstream with AutoCloseable {
   prompt.beginChromeProfileEntry("mill " + titleText)
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger.*
+
+  override def logKey: Seq[String] = Nil
+  override def redirectOutToErr: Boolean = false
+  override def unprefixedStreams: SystemStreams = streams
 
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 
@@ -103,7 +107,10 @@ class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
-
+    val logLockObject = new Object()
+    def logLock[T](block: => T): T = logLockObject.synchronized {
+      block
+    }
     def beginChromeProfileEntry(text: String): Unit = {
       logBeginChromeProfileEntry(text, System.nanoTime())
     }
@@ -205,7 +212,7 @@ class PromptLogger(
 
         // Synchronize this whole block on the stream manager output pipe to avoid
         // interleaving with other writes to the streams.
-        streamManager.pipe.output.synchronized {
+        logStream.synchronized {
           for ((keySuffix, message) <- res) {
             val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
             val prefix = Logger.formatPrefix0(key)
@@ -246,7 +253,7 @@ class PromptLogger(
             } else lines.foreach(printPrefixed(infoColor(prefix), _))
           }
         }
-      } else streamManager.pipe.output.synchronized { logMsg.writeTo(logStream) }
+      } else logStream.synchronized { logMsg.writeTo(logStream) }
 
       streamManager.awaitPumperEmpty()
     }

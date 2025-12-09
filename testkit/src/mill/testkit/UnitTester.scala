@@ -13,8 +13,10 @@ import mill.api.{
   Val
 }
 import mill.api.ExecResult.OuterStack
-import mill.constants.OutFiles.millChromeProfile
-import mill.constants.OutFiles.millProfile
+import mill.constants.OutFiles.OutFiles.millChromeProfile
+import mill.constants.OutFiles.OutFiles.millProfile
+import mill.api.Evaluator
+import mill.api.SelectMode
 import mill.internal.JsonArrayLogger
 
 import java.io.InputStream
@@ -125,7 +127,7 @@ class UnitTester(
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
   val execution = new mill.exec.Execution(
-    baseLogger = logger,
+    baseLogger = new mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
@@ -144,7 +146,7 @@ class UnitTester(
     getEvaluator = () => evaluator,
     offline = offline,
     enableTicker = false,
-    buildOverrides0 = Map()
+    staticBuildOverrideFiles = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
@@ -157,7 +159,7 @@ class UnitTester(
     Evaluator.withCurrentEvaluator(evaluator) {
       evaluator.resolveTasks(args, SelectMode.Separated)
     } match {
-      case Result.Failure(err) => Left(ExecResult.Failure(err))
+      case f: Result.Failure => Left(ExecResult.Failure(f.error))
       case Result.Success(resolved) => apply(resolved)
     }
   }

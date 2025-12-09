@@ -31,7 +31,7 @@ Line Count: 17
 //
 // Note that single-file scripts can only inherit from a single concrete module `class`,
 // unlike normal xref:javalib/intro.adoc#_config_based_modules[config-based] or
-// xref:javalib/intro.adoc#_programmatic_modules[programmatic modules] that can inherit
+// xref:javalib/intro.adoc#_programmable_modules[programmable modules] that can inherit
 // from one-or-more abstract module `trait`s. This difference arises from the way scripts
 // are instantiated dynamically when resolved, rather than being compiled ahead-of-time like
 // other modules are.

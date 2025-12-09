@@ -6,7 +6,7 @@ import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
-import mill.api.ModuleCtx.HeaderData
+import mill.api.internal.HeaderData
 import mill.api.daemon.Segment
 
 import scala.util.control.Breaks.*
@@ -98,29 +98,29 @@ object CodeGen {
               |""".stripMargin
 
         def processDataRest[T](data: HeaderData)(
-            onProperty: (String, ujson.Value) => T,
+            onProperty: (String, upickle.core.BufferedValue) => T,
             onNestedObject: (String, HeaderData) => T
         ): Seq[T] = {
-          for ((kString, v) <- data.rest.toSeq)
-            yield kString.split(" +") match {
+          for ((locatedKeyString, v) <- data.rest.toSeq)
+            yield locatedKeyString.value.split(" +") match {
               case Array(k) => onProperty(k, v)
-              case Array("object", k) => onNestedObject(k, upickle.read[HeaderData](v))
-              case _ => sys.error("Invalid key: " + kString)
+              case Array("object", k) => onNestedObject(
+                  k,
+                  upickle.core.BufferedValue.transform(
+                    v,
+                    HeaderData.headerDataReader(scriptPath)
+                  )
+                )
+              case _ => throw new Result.Exception(
+                  "",
+                  Some(Result.Failure(
+                    "Invalid key: " + locatedKeyString.value,
+                    scriptPath.toNIO,
+                    locatedKeyString.index
+                  ))
+                )
             }
         }
-
-        def writeBuildOverrides(data: HeaderData, path: Seq[String]): Unit = {
-          val resourcePath = resourceDest / path / "build-overrides.json"
-          val out = collection.mutable.Map.empty[String, ujson.Value]
-
-          processDataRest(data)(
-            onProperty = (k, v) => out(k) = v,
-            onNestedObject = (k, nestedData) => writeBuildOverrides(nestedData, path :+ k)
-          )
-          os.write.over(resourcePath, upickle.write(out), createFolders = true)
-        }
-
-        writeBuildOverrides(parsedHeaderData, segments)
 
         val miscInfoWithResource = {
           val header = if (pkg.isBlank()) "" else s"package $pkg"
@@ -142,7 +142,7 @@ object CodeGen {
         )
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
-          val extendsConfig = data.`extends`
+          val extendsConfig = data.`extends`.value.map(_.value)
           val definitions = processDataRest(data)(
             onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
             onNestedObject = (k, nestedData) =>
@@ -151,8 +151,8 @@ object CodeGen {
 
           def parseRender(moduleDep: String) = {
             mill.resolve.ParseArgs.extractSegments(moduleDep) match {
-              case Result.Failure(err) =>
-                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + err)
+              case f: Result.Failure =>
+                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + f.error)
               case Result.Success((rootModulePrefix, taskSegments)) =>
                 val renderedSegments = taskSegments.value
                   .map {
@@ -169,19 +169,19 @@ object CodeGen {
           }
 
           val moduleDepsSnippet =
-            if (data.moduleDeps.isEmpty) ""
+            if (data.moduleDeps.value.isEmpty) ""
             else
-              s"override def moduleDeps = Seq(${data.moduleDeps.map(parseRender).mkString(", ")})"
+              s"override def moduleDeps = Seq(${data.moduleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
 
           val compileModuleDepsSnippet =
-            if (data.compileModuleDeps.isEmpty) ""
+            if (data.compileModuleDeps.value.isEmpty) ""
             else
-              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.map(parseRender).mkString(", ")})"
+              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
 
           val runModuleDepsSnippet =
-            if (data.runModuleDeps.isEmpty) ""
+            if (data.runModuleDeps.value.isEmpty) ""
             else
-              s"override def runModuleDeps = Seq(${data.runModuleDeps.map(parseRender).mkString(", ")})"
+              s"override def runModuleDeps = Seq(${data.runModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)

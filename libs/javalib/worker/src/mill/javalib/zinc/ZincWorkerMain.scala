@@ -18,6 +18,9 @@ object ZincWorkerMain {
       case Array(daemonDir, jobsStr) =>
         val server = ZincWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt)
         server.run()
+        // Make sure we explicitly exit, so that even if there are some leaked threads
+        // hanging around the process properly terminates rather than hanging
+        sys.exit(0)
 
       case other =>
         Console.err.println(

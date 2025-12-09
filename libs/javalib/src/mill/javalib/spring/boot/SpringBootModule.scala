@@ -1,11 +1,9 @@
 package mill.javalib.spring.boot
 
+import mainargs.Flag
 import mill.{T, Task}
 import mill.api.{ModuleRef, PathRef}
 import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
-
-import java.util.Properties
-import scala.util.Using
 
 /**
  * A module that can be used to configure Spring Boot projects and provides functionality
@@ -131,6 +129,13 @@ trait SpringBootModule extends JavaModule {
     )
   }
 
+  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++
+        springBootToolsModule().prepareOffline(all)()
+    ).distinct
+  }
+
   /**
    * This submodule gets the generated AOT sources, resources and compiled classes
    * and builds an optimised version of the Spring Boot Application.
@@ -174,21 +179,17 @@ trait SpringBootModule extends JavaModule {
    * parent module as a native GraalVM application, provided the [[outer.springBootProcessAOT]] works.
    */
   trait NativeSpringBootBuildModule extends SpringBootOptimisedBuildModule, NativeImageModule {
+
+    /**
+     * Uses the configuration path from both [[outer.springBootProcessAOT]] and
+     * [[nativeMvnDepsMetadata]]
+     */
     override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
-
-      val nativeImageArgs: Seq[String] =
-        val nativeImageProps = outer.springBootAOTNativeProperties().path
-        if (os.exists(nativeImageProps) && os.isFile(nativeImageProps)) {
-          val properties = new Properties()
-          Using.resource[
-            java.io.InputStream,
-            Unit
-          ](os.read.inputStream(nativeImageProps))(properties.load)
-          properties.getProperty("Args").split(" ")
-        } else
-          Seq.empty
-
-      nativeImageArgs
+      val configurationsPath = outer.springBootProcessAOT().path / "resources/META-INF"
+      super.nativeImageOptions() ++ Seq(
+        "--configurations-path",
+        configurationsPath.toString
+      )
     }
   }
 

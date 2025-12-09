@@ -62,10 +62,10 @@
 *** xref:javascriptlib/linting.adoc[]
 *** xref:javascriptlib/publishing.adoc[]
 *** xref:javascriptlib/build-examples.adoc[]
-* xref:comparisons/why-mill.adoc[]
+* Why Mill?
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
-** xref:comparisons/sbt.adoc[]
+** xref:comparisons/performance.adoc[]
 * The Mill CLI
 ** xref:cli/installation-ide.adoc[]
 ** xref:cli/flags.adoc[]
@@ -105,6 +105,7 @@
 *** xref:contrib/proguard.adoc[]
 *** xref:contrib/scalapblib.adoc[]
 *** xref:contrib/scoverage.adoc[]
+*** xref:contrib/sbom.adoc[]
 *** xref:contrib/sonatypecentral.adoc[]
 *** xref:contrib/testng.adoc[]
 *** xref:contrib/twirllib.adoc[]

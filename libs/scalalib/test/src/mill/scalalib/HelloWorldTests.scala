@@ -243,8 +243,8 @@ object HelloWorldTests extends TestSuite {
         else {
           os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
-          val Left(ExecResult.Failure("Compilation failed")) =
-            eval.apply(HelloWorld.core.compile): @unchecked
+        val Left(ExecResult.Failure(msg = "Compilation failed")) =
+          eval.apply(HelloWorld.core.compile): @unchecked
 
           val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
 
@@ -271,7 +271,7 @@ object HelloWorldTests extends TestSuite {
           "Skipping on Java 21+ due to too old Scala version"
         else {
           // compilation fails because of "-Xfatal-warnings" flag
-          val Left(ExecResult.Failure("Compilation failed")) =
+          val Left(ExecResult.Failure(msg = "Compilation failed")) =
             eval.apply(HelloWorldFatalWarnings.core.compile): @unchecked
         }
       }

@@ -85,7 +85,7 @@ had reached around 5-10% market share in the Scala community
 (https://www.jetbrains.com/lp/devecosystem-2023/scala/[Jetbrains Survey],
 https://scalasurvey2023.virtuslab.com/[VirtusLabs Survey]).
 It recently grew first-class Java support, demonstrating
-xref:mill::comparisons/why-mill.adoc[3-6x speedups] over existing Java build tools
+xref:mill::comparisons/performance.adoc[] over existing Java build tools
 like Maven or Gradle. Mill also has gained experimental support for Java-adjacent platforms
 like xref:mill::kotlinlib/intro.adoc[Kotlin] and
 xref:mill::android/java.adoc[Android], and has demonstrated the ability to branch out into supporting

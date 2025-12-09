@@ -69,7 +69,7 @@ object RunnerState {
       runClasspath: Seq[PathRefApi],
       compileOutput: Option[PathRefApi],
       evaluator: Option[EvaluatorApi],
-      staticBuildOverrides: Map[String, ujson.Value]
+      buildOverrideFiles: Map[java.nio.file.Path, String]
   ) {
 
     def loggedData: Frame.Logged = {

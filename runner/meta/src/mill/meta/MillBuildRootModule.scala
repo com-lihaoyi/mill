@@ -6,7 +6,7 @@ import mill.*
 import mill.api.Result
 import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
-import mill.constants.OutFiles.*
+import mill.constants.OutFiles.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
@@ -42,6 +42,7 @@ trait MillBuildRootModule()(using
     "**/src-*/",
     "**/resources/",
     "**/out/",
+    "**/.bsp/mill-bsp-out/",
     "**/target/"
   )
 
@@ -80,7 +81,8 @@ trait MillBuildRootModule()(using
         rootModuleInfo.projectRoot / os.up,
         rootModuleInfo.output,
         MillScalaParser.current.value,
-        scriptSources().map(_.path)
+        scriptSources().map(_.path),
+        Task.log.prompt.colored
       )
     }
   }
@@ -159,22 +161,14 @@ trait MillBuildRootModule()(using
   }
 
   def millBuildRootModuleResult = Task {
-    val staticBuildOverrides: Map[String, String] = generatedScriptSources()
-      .resources
-      .map(_.path)
-      .filter(os.exists(_))
-      .flatMap { root =>
-        os.walk(root)
-          .filter(_.last == "build-overrides.json")
-          .flatMap { p =>
-            upickle.read[Map[String, ujson.Value]](os.read(p)).map { case (k, v) =>
-              (p.relativeTo(root).segments.dropRight(1).map(s => s"$s.").mkString + k, v.toString)
-            }
-          }
+    Tuple4(
+      runClasspath(),
+      compile().classes,
+      codeSignatures(),
+      parseBuildFiles().seenScripts.collect {
+        case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v)
       }
-      .toMap
-
-    Tuple4(runClasspath(), compile().classes, codeSignatures(), staticBuildOverrides)
+    )
   }
 
   def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
@@ -344,6 +338,7 @@ trait MillBuildRootModule()(using
         scalacOptions = allScalacOptions(),
         compilerClasspath = scalaCompilerClasspath(),
         scalacPluginClasspath = scalacPluginClasspath(),
+        compilerBridgeOpt = scalaCompilerBridge(),
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
         workDir = Task.dest

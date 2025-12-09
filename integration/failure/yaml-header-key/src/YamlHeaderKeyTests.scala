@@ -1,0 +1,37 @@
+package mill.integration
+
+import mill.testkit.UtestIntegrationTestSuite
+
+import utest._
+
+object YamlHeaderKeyTests extends UtestIntegrationTestSuite {
+  override def cleanupProcessIdFile =
+    false // process never launches due to yaml header syntax error
+  val tests: Tests = Tests {
+    test - integrationTest { tester =>
+      import tester._
+      val res = eval("version")
+
+      assert(res.isSuccess == false)
+      assert(res.err.contains("[error] build.mill:1:5"))
+      assert(res.err.contains("//| invalidKey: lols"))
+      assert(res.err.contains("    ^"))
+      assert(res.err.contains("key \"invalidKey\" does not override any task"))
+
+      assert(res.err.contains("[error] build.mill:2:5"))
+      assert(res.err.contains("//| mvnDep: lols"))
+      assert(res.err.contains("    ^"))
+      assert(
+        res.err.contains("key \"mvnDep\" does not override any task, did you mean \"mvnDeps\"?")
+      )
+
+      assert(res.err.contains("[error] build.mill:3:5"))
+      assert(res.err.contains("//| mill-jm-version: lols"))
+      assert(res.err.contains("    ^"))
+      assert(res.err.contains(
+        "key \"mill-jm-version\" does not override any task, did you mean \"mill-jvm-version\"?"
+      ))
+      assert(res.err.linesIterator.toList.length < 30)
+    }
+  }
+}

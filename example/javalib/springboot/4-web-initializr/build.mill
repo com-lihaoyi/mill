@@ -1,0 +1,33 @@
+/** See Also: build.mill.yaml */
+
+// This example demonstrates how to configure mill for a simple initializr project,
+// using https://start.spring.io/[https://start.spring.io/] by choosing:
+//
+//* Project: maven
+//* Language: Java
+//* Dependencies: Spring Web
+//
+// The structure of this project follows the MavenModule structure (i.e. the same structure
+// as generated from the initialzr tool).
+//
+// For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
+
+/** Usage
+
+> ./mill test
+...Test com.example.demo.DemoApplicationTests#contextLoads() finished...
+
+> ./mill runBackground
+
+> curl http://localhost:8096/hello
+...Hello, World!...
+
+> curl http://localhost:8096/hello?name=Mill
+...Hello, Mill!...
+
+> ./mill clean runBackground
+
+> ./mill show assembly
+...$MILL_OUT/assembly.dest/out.jar...
+
+*/

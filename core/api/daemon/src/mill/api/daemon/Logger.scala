@@ -9,7 +9,7 @@ import java.io.{ByteArrayOutputStream, ByteArrayInputStream, PrintStream}
  * but when `show` is used both are forwarded to stderr and stdout is only
  * used to display the final `show` output for easy piping.
  */
-trait Logger extends Logger.Actions {
+trait Logger extends Logger.Actions with Logger.Upstream {
 
   /**
    * This Logger's versions of stdin, stdout, and stderr. Typically enabled
@@ -18,18 +18,7 @@ trait Logger extends Logger.Actions {
    */
   def streams: SystemStreams
 
-  /**
-   * A version of [[streams]] without the logging prefix appended to every line.
-   * Used by the logging hierarchy to print things such that the logging prefixes
-   * can be more finely customized per logger.
-   */
   private[mill] def unprefixedStreams: SystemStreams = streams
-
-  /**
-   * Global APIs that let the logger access the command line configuration and
-   * manipulate the global prompt, e.g. enabling or disabling it
-   */
-  private[mill] def prompt: Logger.Prompt
 
   /**
    * Helper method to enable this logger as a line item in the global prompt
@@ -52,14 +41,6 @@ trait Logger extends Logger.Actions {
   }
 
   /**
-   * A short dash-separated prefix that is printed before every log line. Used to
-   * uniquely identify log lines belonging to this logger from log lines belonging
-   * to others, which is especially necessary in the presence of concurrency and
-   * where logs get interleaved. Typically a single ID number or sequence of numbers.
-   */
-  private[mill] def logKey: Seq[String] = Nil
-
-  /**
    * A longer one-liner message describing this logger that is the first time a log
    * line is generated. Useful for cross-referencing the short [[logKey]] with a more
    * meaningful module path and task name.
@@ -78,7 +59,6 @@ trait Logger extends Logger.Actions {
    * to stderr; typically used to redirect out to err in `mill show`
    */
   private[mill] def withRedirectOutToErr(): Logger = this
-  private[mill] def redirectOutToErr: Boolean = false
 
   @deprecated
   def withOutStream(outStream: PrintStream): Logger = this
@@ -92,6 +72,32 @@ trait Logger extends Logger.Actions {
 }
 
 object Logger {
+  trait Upstream {
+
+    /**
+     * A short dash-separated prefix that is printed before every log line. Used to
+     * uniquely identify log lines belonging to this logger from log lines belonging
+     * to others, which is especially necessary in the presence of concurrency and
+     * where logs get interleaved. Typically a single ID number or sequence of numbers.
+     */
+    private[mill] def logKey: Seq[String] = Nil
+
+    /**
+     * Global APIs that let the logger access the command line configuration and
+     * manipulate the global prompt, e.g. enabling or disabling it
+     */
+    private[mill] def prompt: Logger.Prompt
+
+    /**
+     * A version of [[streams]] without the logging prefix appended to every line.
+     * Used by the logging hierarchy to print things such that the logging prefixes
+     * can be more finely customized per logger.
+     */
+    private[mill] def unprefixedStreams: SystemStreams
+
+    private[mill] def redirectOutToErr: Boolean = false
+  }
+
   private[mill] def formatPrefix0(s: Seq[String], keySuffix: String = "") =
     if (s == Nil) "" else s"${s.mkString("-")}$keySuffix]"
 
@@ -162,6 +168,7 @@ object Logger {
    * to logger unchanged without any customization.
    */
   private[mill] trait Prompt {
+    def logLock[T](block: => T): T
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
     private[mill] def logPrefixedLine(
         key: Seq[String],
@@ -192,6 +199,7 @@ object Logger {
   }
   private[mill] object Prompt {
     class NoOp extends Prompt {
+      def logLock[T](block: => T): T = block
       private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ()
       private[mill] def logPrefixedLine(
           key: Seq[String],

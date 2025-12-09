@@ -43,14 +43,19 @@ include::partial$example/scalalib/script/8-relative-imports.adoc[]
 
 == Project `moduleDeps`
 
-include::partial$example/scalalib/script/9-programmatic-module-deps.adoc[]
+include::partial$example/scalalib/script/9-programmable-module-deps.adoc[]
 
 == Script Resources
 
 include::partial$example/scalalib/script/10-resources.adoc[]
 
+
+== Custom JVM Versions
+
+include::partial$example/scalalib/script/11-jvm-version.adoc[]
+
 == Bundled Libraries
 
-include::partial$example/scalalib/script/11-raw.adoc[]
+include::partial$example/scalalib/script/12-raw.adoc[]
 
 include::partial$Script_Footer.adoc[]
