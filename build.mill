@@ -196,8 +196,6 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
   Deps.acyclic,
-  Deps.scalacScoverage2Plugin,
-  mvn"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}",
   mvn"io.get-coursier.jvm.indices:index-darwin-arm64:${Deps.coursierJvmIndexVersion}"
 ) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.updateable
 
