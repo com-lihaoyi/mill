@@ -30,21 +30,20 @@ class JvmCompileBtApiImpl() extends Compiler {
     val strategyConfig = service.makeCompilerExecutionStrategyConfiguration()
 
     val compilationConfig = service.makeJvmCompilationConfiguration().tap { conf =>
-      // Create incremental compilation configuration
       val incrementalConfig =
         conf.makeClasspathSnapshotBasedIncrementalCompilationConfiguration()
       incrementalConfig.setRootProjectDir(ctx.workspace.toIO)
       incrementalConfig.usePreciseJavaTracking(true)
       incrementalConfig.setBuildDir(incrementalCachePath.toIO)
 
-      // Create approach parameters for classpath snapshot-based incremental compilation
+      // Create approach parameters for classpath snapshot-based incremental compilation.
+      // Pass empty list for newClasspathSnapshotFiles to let the API compute snapshots from classpath JARs.
+      // See: https://github.com/JetBrains/kotlin/blob/v2.1.20/libraries/tools/kotlin-maven-plugin/src/main/java/org/jetbrains/kotlin/maven/K2JVMCompileMojo.java#L356
       val approachParams = new ClasspathSnapshotBasedIncrementalCompilationApproachParameters(
-        java.util.Collections.emptyList(), // newClasspathSnapshotFiles - empty, let the API manage
+        java.util.Collections.emptyList(),
         (incrementalCachePath / "shrunk-classpath-snapshot.bin").toIO
       )
 
-      // Enable incremental compilation
-      // SourcesChanges.ToBeCalculated tells the API to detect changes automatically
       conf.useIncrementalCompilation(
         incrementalCachePath.toIO,
         SourcesChanges.ToBeCalculated.INSTANCE,
@@ -78,7 +77,10 @@ class JvmCompileBtApiImpl() extends Compiler {
       case CompilationResult.COMPILER_INTERNAL_ERROR => ExitCode.INTERNAL_ERROR
     }
 
-    // Do we really need to call this (after each compilation)?
+    // Required to perform cache clean-ups and resource freeing.
+    // The API docs say to call this "when all the modules of the project are compiled",
+    // but since Mill compiles modules independently, we treat each module as its own project.
+    // See: https://github.com/JetBrains/kotlin/blob/v2.1.20/compiler/build-tools/kotlin-build-tools-api/src/main/kotlin/org/jetbrains/kotlin/buildtools/api/CompilationService.kt#L39
     service.finishProjectCompilation(projectId)
 
     (exitCode.getCode(), exitCode.name())
