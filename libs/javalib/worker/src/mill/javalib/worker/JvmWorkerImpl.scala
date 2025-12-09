@@ -8,7 +8,7 @@ import mill.constants.DaemonFiles
 import mill.javalib.api.internal.*
 import mill.javalib.api.JvmWorkerArgs
 import mill.javalib.zinc.{ZincApi, ZincWorker}
-import mill.util.{Jvm, RefCountedCache}
+import mill.util.{CachedFactoryWithInitData, Jvm, RefCountedCache}
 import sbt.internal.util.ConsoleOut
 
 import java.nio.file.FileSystemException
@@ -55,7 +55,25 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
     close0() // make sure this is invoked last as it closes the classloader that we need for other `.close` calls
   }
 
-  private val subprocessCache: RefCountedCache[
+  private val subprocessCache = new CachedFactoryWithInitData[
+    SubprocessZincApi.Key,
+    SubprocessZincApi.Initialize,
+    SubprocessZincApi.Value
+  ] {
+    def setup(
+        key: SubprocessZincApi.Key,
+        initData: SubprocessZincApi.Initialize
+    ): SubprocessZincApi.Value = {
+      subprocessCache0.get(key, initData)
+    }
+
+    def maxCacheSize = args.jobs
+
+    def teardown(key: SubprocessZincApi.Key, value: SubprocessZincApi.Value): Unit = {
+      subprocessCache0.release(key)
+    }
+  }
+  private val subprocessCache0: RefCountedCache[
     SubprocessZincApi.Key,
     SubprocessZincApi.Key,
     SubprocessZincApi.Initialize,

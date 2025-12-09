@@ -51,8 +51,8 @@
         <orderEntry type="library" scope="RUNTIME" name="jsoniter-scala-core_2.13-2.13.5.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jsr305-3.0.2.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jul-to-slf4j-1.7.30.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="logback-classic-1.5.18.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="logback-core-1.5.18.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="logback-classic-1.5.21.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="logback-core-1.5.21.jar" level="project"/>
         <orderEntry type="library" name="mainargs_3-0.7.7.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api-daemon_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api-java11_3-SNAPSHOT.jar" level="project"/>
