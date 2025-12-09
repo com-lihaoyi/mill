@@ -15,8 +15,8 @@ public class HelloSpringBoot {
   @RestController
   class HelloController {
     @GetMapping("/")
-    public Strng hello() {
-      return "<h1>Hello, World!</h1>";
+    public String hello() {
+      return "<h1>Hello, World!</h1>;
     }
   }
 }

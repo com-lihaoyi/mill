@@ -111,10 +111,22 @@ private object TransformingReporter {
         // message at all to `rendered` for us to scrape the line content, and others
         // like `cannot find symbol` have incorrect line `.lineContent()`s, so for
         // all Java errors just scrape the line from the filesystem
-        val lineContent = if (scraped == "" || absPath.ext == "java"){
+        val isJavaFile = absPath.ext == "java"
+        val lineContent0 = if (scraped == "" || isJavaFile) {
           try os.read.lines(absPath).apply(line - 1)
           catch { case _: Exception => "" }
-        }else scraped
+        } else scraped
+
+        // Apply syntax highlighting to Java source code lines
+        val lineContent =
+          if (color && isJavaFile && lineContent0.nonEmpty) {
+            HighlightJava.highlightJavaCode(
+              lineContent0,
+              literalColor = fansi.Color.Green,
+              keywordColor = fansi.Color.Yellow,
+              commentColor = fansi.Color.DarkGray
+            ).render
+          } else lineContent0
 
         val pointerLength =
           if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
