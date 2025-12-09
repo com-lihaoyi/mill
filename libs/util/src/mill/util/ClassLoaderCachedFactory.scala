@@ -17,7 +17,7 @@ abstract class ClassLoaderCachedFactory[T](jobs: Int)(using e: sourcecode.Enclos
 
   def getValue(cl: ClassLoader): T
   override def setup(key: Seq[PathRef]) = {
-    val cl = classloaderCache.get(key, e)
+    val cl = classloaderCache.getOrCreate(key, e)
     val bridge = getValue(cl)
 
     bridge
