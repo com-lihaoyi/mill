@@ -9,8 +9,8 @@ import mill.javalib.api.internal.*
 import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
-import mill.rpc.{MillRpcChannel, MillRpcClient}
-import mill.util.CachedFactoryWithInitData
+import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
+import mill.util.CachedFactoryBase
 
 import java.io.*
 import scala.util.Using
@@ -24,7 +24,8 @@ class SubprocessZincApi(
     runtimeOptions: Seq[String],
     ctx: ZincWorker.LocalConfig,
     log: Logger,
-    subprocessCache: CachedFactoryWithInitData[
+    subprocessCache: CachedFactoryBase[
+      SubprocessZincApi.Key,
       SubprocessZincApi.Key,
       SubprocessZincApi.Initialize,
       SubprocessZincApi.Value
@@ -82,7 +83,6 @@ class SubprocessZincApi(
       SubprocessZincApi.Initialize(compilerBridge.workspace, log)
     ) {
       case SubprocessZincApi.Value(port, _, _, _) =>
-
         Using.Manager { use =>
           val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
           val debugName =
