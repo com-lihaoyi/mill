@@ -25,7 +25,7 @@ object HighlightJava {
     val overlays = collection.mutable.Buffer.empty[(fansi.Attrs, Int, Int)]
 
     // Collect semantic identifier info (definitions and types) from AST parsing
-    val (definitionPositions, typePositions) = collectSemanticInfo(sourceCode)
+    val definitionPositions = collectSemanticInfo(sourceCode)
 
     def addTokenOverlay(token: com.github.javaparser.Token): Unit = {
       // JavaParser token positions are 1-based, convert to 0-based offsets
@@ -42,7 +42,6 @@ object HighlightJava {
         val color: Option[fansi.Attrs] =
           if (token.kind == IDENTIFIER) {
             if (definitionPositions.contains((clampedStart, clampedEnd))) Some(definitionColor)
-            else if (typePositions.contains((clampedStart, clampedEnd))) Some(typeColor)
             else None
           } else getColorOpt(token.kind, literalColor, keywordColor, commentColor)
 
@@ -84,11 +83,8 @@ object HighlightJava {
    * This tries multiple parse strategies since we're dealing with code snippets, not full files.
    * @return a tuple of (definitionPositions, typePositions)
    */
-  private def collectSemanticInfo(
-      sourceCode: String
-  ): (Set[(Int, Int)], Set[(Int, Int)]) = {
+  private def collectSemanticInfo(sourceCode: String): Set[(Int, Int)] = {
     val definitionPositions = collection.mutable.Set.empty[(Int, Int)]
-    val typePositions = collection.mutable.Set.empty[(Int, Int)]
 
     // Visitor to collect definition names (method, class, variable, parameter names)
     // and type names from the AST
@@ -102,17 +98,6 @@ object HighlightJava {
           val start = range.begin.column - 1
           val endOffset = range.end.column
           definitionPositions.add((start, endOffset))
-        }
-      }
-
-      private def addType(name: SimpleName): Unit = {
-        for {
-          tokenRange <- scala.jdk.OptionConverters.RichOptional(name.getTokenRange).toScala
-          range <- scala.jdk.OptionConverters.RichOptional(tokenRange.getBegin.getRange).toScala
-        } {
-          val start = range.begin.column - 1
-          val endOffset = range.end.column
-          typePositions.add((start, endOffset))
         }
       }
 
@@ -171,14 +156,6 @@ object HighlightJava {
         addDefinition(n.getName)
         super.visit(n, arg)
       }
-
-      // Type references - ClassOrInterfaceType represents type usage
-      override def visit(n: ClassOrInterfaceType, arg: Void): Unit = {
-        addType(n.getName)
-        // Also visit scope for qualified types like java.util.List
-        n.getScope.ifPresent(scope => visit(scope, arg))
-        super.visit(n, arg)
-      }
     }
 
     val visitor = new SemanticVisitor()
@@ -202,7 +179,7 @@ object HighlightJava {
     tryParse(StaticJavaParser.parseBodyDeclaration(sourceCode)) ||
     tryParse(StaticJavaParser.parseExpression(sourceCode))
 
-    (definitionPositions.toSet, typePositions.toSet)
+    definitionPositions.toSet
   }
 
   def getColorOpt(

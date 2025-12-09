@@ -78,7 +78,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<dashes> jar <dashes>",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)52(Z)",
-          "(B)<digits>](X) (Y)class(X) (C)Bar(X) { (B)/*comment*/(X) (Y)void(X) (C)bar(X)(){ (Y)final(X) (G)java(X).(G)lang(X).(G)Strin(X) (C)x(X) = (G)\"omg\"(X);}}",
+          "(B)<digits>](X) (Y)class(X) (C)Bar(X) { (B)/*comment*/(X) (Y)void(X) (C)bar(X)(){ (Y)final(X) java.lang.Strin (C)x(X) = (G)\"omg\"(X);}}",
           "(B)<digits>](X)                                                    (R)^^^^^^(Z)",
           "(B)<digits>](X) cannot find symbol",
           "(B)<digits>](X)   symbol:   class Strin",
