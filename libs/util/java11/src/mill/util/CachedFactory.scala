@@ -7,7 +7,7 @@ package mill.util
  * The user provides the [[setup]] and [[teardown]] logic along with a [[maxCacheSize]],
  * and [[CachedFactory]] provides instances of [[V]] as requested using the [[withValue]]
  * method. These instances are automatically constructed on-demand from the give key,
- * cached with an LRU strategy, and destroyed when they are assertEventually evicted
+ * cached with an LRU strategy, and destroyed when they are eventually evicted
  *
  * Intended for relatively small caches approximately O(num-threads) in size that
  * will typically get used in a build system, not intended for caching large amounts of entries
@@ -16,62 +16,26 @@ package mill.util
  * @tparam InitData the transient initialization data that will be passed to [[setup]].
  * @tparam V the cached value
  */
-abstract class CachedFactoryWithInitData[K, InitData, V] extends AutoCloseable {
+abstract class CachedFactoryWithInitData[K, InitData, V]
+    extends CachedFactoryBase[K, K, InitData, V] {
 
   /**
    * Returns true if the cache entry associated with the given key is still valid, false otherwise.
    *
    * If false, the entry will be removed from the cache and [[setup]] will be invoked.
    */
-  // noinspection ScalaWeakerAccess
   def cacheEntryStillValid(key: K, initData: => InitData, value: V): Boolean = true
 
   def setup(key: K, initData: InitData): V
   def teardown(key: K, value: V): Unit
-  def maxCacheSize: Int
 
-  // A simple LRU cache data structure. Not optimized at
-  // all since this class is meant for small-scale usage
-  private var keyValues: List[(K, V)] = List.empty
-
-  def withValue[R](key: K, initData: => InitData)(block: V => R): R = {
-    val valueOpt: Option[V] = synchronized {
-      keyValues.iterator.zipWithIndex.collectFirst { case ((`key`, v), i) => (v, i) } match {
-        case None => None
-        case Some((v, index)) =>
-          // Remove the entry from the list, as it will be reinserted at the end of this function
-          keyValues = keyValues.patch(index, Nil, 1)
-          Some(v)
-      }
-    }
-
-    val value: V = valueOpt match {
-      case Some(v) =>
-        // Check if the cache entry is still valid
-        if (cacheEntryStillValid(key, initData, v)) v
-        else {
-          teardown(key, v)
-          setup(key, initData)
-        }
-
-      case None => setup(key, initData)
-    }
-
-    try block(value)
-    finally {
-      synchronized {
-        val (newKeyValues, extra) = ((key, value) :: keyValues).splitAt(maxCacheSize)
-        keyValues = newKeyValues
-        for ((k, v) <- extra) teardown(k, v)
-      }
-    }
-  }
-
-  def close(): Unit = synchronized {
-    for ((k, v) <- keyValues) teardown(k, v)
-    // Make sure calling `close` twice doesn't teardown the same k-v pairs multiple times
-    keyValues = List.empty
-  }
+  // CachedFactoryBase implementation
+  final def keyToInternalKey(key: K): K = key
+  final def setup(key: K, internalKey: K, initData: InitData): V = setup(key, initData)
+  final def teardown(key: K, internalKey: K, value: V): Unit = teardown(key, value)
+  final def shareValues: Boolean = false // Each consumer gets exclusive access
+  final override def cacheEntryStillValid(key: K, internalKey: K, initData: => InitData, value: V): Boolean =
+    cacheEntryStillValid(key, initData, value)
 }
 
 /** As [[CachedFactoryWithInitData]] but does not have an initialization data. */

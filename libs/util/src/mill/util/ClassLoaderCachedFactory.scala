@@ -17,14 +17,14 @@ abstract class ClassLoaderCachedFactory[T](jobs: Int)(using e: sourcecode.Enclos
 
   def getValue(cl: ClassLoader): T
   override def setup(key: Seq[PathRef]) = {
-    val cl = classloaderCache.get(key)
+    val cl = classloaderCache.get(key, e)
     val bridge = getValue(cl)
 
     bridge
   }
 
   override def teardown(key: Seq[PathRef], value: T): Unit = {
-    classloaderCache.release(key)
+    classloaderCache.release(key): Unit
   }
 
   override def close(): Unit = {

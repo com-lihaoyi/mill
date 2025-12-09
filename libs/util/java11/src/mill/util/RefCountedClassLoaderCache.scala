@@ -13,34 +13,29 @@ class RefCountedClassLoaderCache(
     sharedLoader: ClassLoader = null,
     sharedPrefixes: Seq[String] = Nil,
     parent: ClassLoader = null
-) extends AutoCloseable {
+) extends CachedFactoryBase[Seq[PathRef], Long, sourcecode.Enclosing, URLClassLoader] {
 
-  private val cache = RefCountedCache[Seq[PathRef], Long, sourcecode.Enclosing, URLClassLoader](
-    convertKey = _.hashCode,
-    setup = (combinedCompilerJars, _, enclosing) => {
-      mill.util.Jvm.createClassLoader(
-        combinedCompilerJars.map(_.path),
-        parent = parent,
-        sharedLoader = sharedLoader,
-        sharedPrefixes = sharedPrefixes
-      )(using enclosing)
-    },
-    closeValue = cl => {
-      extraRelease(cl)
-      cl.close()
-    }
-  )
+  def keyToInternalKey(key: Seq[PathRef]): Long = key.hashCode
+
+  def setup(key: Seq[PathRef], internalKey: Long, initData: sourcecode.Enclosing): URLClassLoader =
+    mill.util.Jvm.createClassLoader(
+      key.map(_.path),
+      parent = parent,
+      sharedLoader = sharedLoader,
+      sharedPrefixes = sharedPrefixes
+    )(using initData)
+
+  def teardown(key: Seq[PathRef], internalKey: Long, value: URLClassLoader): Unit = {
+    extraRelease(value)
+    value.close()
+  }
+
+  def maxCacheSize: Int = 0 // Values are closed immediately when refCount reaches 0
+  def shareValues: Boolean = true // Multiple consumers can share the same classloader
 
   def extraRelease(cl: ClassLoader): Unit = ()
 
-  def release(combinedCompilerJars: Seq[PathRef]): Option[(URLClassLoader, Int)] =
-    cache.release(combinedCompilerJars).map { case RefCountedCache.Entry(value, refCount) =>
-      (value, refCount)
-    }
-
+  /** Convenience method that uses implicit sourcecode.Enclosing */
   def get(combinedCompilerJars: Seq[PathRef])(using e: sourcecode.Enclosing): URLClassLoader =
-    cache.get(combinedCompilerJars, e)
-
-  override def close(): Unit =
-    cache.close()
+    get(combinedCompilerJars, e)
 }
