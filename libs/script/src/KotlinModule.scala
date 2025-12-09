@@ -26,8 +26,5 @@ object KotlinModule {
 
   trait Base extends JavaModule.Base, mill.kotlinlib.KotlinModule {
     def kotlinVersion = "2.2.21"
-
-    // Script modules don't use -module-name as it interferes with cross-module visibility
-    override protected def kotlinModuleNameOption: T[Seq[String]] = Task { Seq.empty }
   }
 }
