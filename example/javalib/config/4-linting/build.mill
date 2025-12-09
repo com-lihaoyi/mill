@@ -46,8 +46,8 @@ public class Foo {
 
 > ./mill compile
 [warn] src/foo/Foo.java:6:42
-new java.util.HashSet<Short>().remove(1)
-                                         ^
+    new java.util.HashSet<Short>().remove(1);
+                                         ^^^
 [CollectionIncompatibleType] Argument '1' should not be passed to this method; its type int is not compatible with its collection's type argument Short
     (see https://errorprone.info/bugpattern/CollectionIncompatibleType)
 
