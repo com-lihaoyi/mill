@@ -55,7 +55,8 @@ trait AndroidHiltSupport extends KspModule, AndroidKotlinModule {
 
   override def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
     kspDependencyResolver().classpath(
-      kotlinSymbolProcessors()
+      kotlinSymbolProcessors(),
+      boms = allBomDeps()
     )
   }
 

@@ -39,7 +39,7 @@ trait MicronautModule extends KspModule { outer =>
   )
 
   def kotlinSymbolProcessors = Seq(
-    mvn"io.micronaut:micronaut-inject-kotlin:4.9.9"
+    mvn"io.micronaut:micronaut-inject-kotlin"
   )
 
   override def kspProcessorOptions: T[Map[String, String]] = Task {
@@ -59,12 +59,14 @@ trait MicronautModule extends KspModule { outer =>
 
   trait MicronautTests extends MicronautModule, KspTests {
 
+    def bomMvnDeps: T[Seq[Dep]] = outer.bomMvnDeps()
+
     override def resources: T[Seq[PathRef]] = Task {
       super[KspTests].resources() ++ Seq(generatedSourcesWithKsp().resources)
     }
 
     def kotlinSymbolProcessors = Seq(
-      mvn"io.micronaut:micronaut-inject-kotlin-test:4.9.9"
+      mvn"io.micronaut:micronaut-inject-kotlin-test"
     )
 
     override def runClasspath: T[Seq[PathRef]] = Task {
