@@ -14,7 +14,7 @@ object foo extends ScalaModule {
 /** Usage
 
 > ./mill show foo.docJar
-"ref:...out/foo/docJar.dest/out.jar"
+"ref:...$MILL_OUT/foo/docJar.dest/out.jar"
 
 > unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
 ...
