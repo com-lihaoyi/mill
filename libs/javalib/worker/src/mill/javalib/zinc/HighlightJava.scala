@@ -30,9 +30,7 @@ object HighlightJava {
           // Clamp to valid indices
           val clampedStart = math.max(0, math.min(startOffset, sourceCode.length))
           val clampedEnd = math.max(0, math.min(endOffset, sourceCode.length))
-          if (clampedStart < clampedEnd) {
-            overlays.append((color, clampedStart, clampedEnd))
-          }
+          if (clampedStart < clampedEnd) overlays.append((color, clampedStart, clampedEnd))
         }
         token = tokenManager.getNextToken()
       }
