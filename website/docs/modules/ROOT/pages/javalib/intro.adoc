@@ -9,7 +9,7 @@
 
 include::partial$Intro_Header.adoc[]
 
-== Declarative Modules
+== Declarative Module Config
 
 include::partial$example/javalib/basic/3-simple.adoc[]
 
@@ -26,7 +26,7 @@ include::partial$example/javalib/basic/5-compat-modules.adoc[]
 
 include::partial$example/javalib/basic/1-script.adoc[]
 
-== Programmable Modules
+== Programmable Module Config
 
 include::partial$example/javalib/basic/6-programmable.adoc[]
 

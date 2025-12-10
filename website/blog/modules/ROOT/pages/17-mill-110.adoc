@@ -1,4 +1,4 @@
-= Mill 1.1.0: Declarative Project Configuration and Single-File Scripts
+= Mill 1.1.0: Declarative Project Configuration and Single-File Scripts on the JVM
 // tag::header[]
 :author: Li Haoyi
 :revdate: 24 Dec 2025
@@ -6,7 +6,7 @@
 _{author}, {revdate}_
 
 The newly-released Mill version 1.1.0 contains two major new features:
-xref:mill::javalib/intro.adoc#_declarative_modules[declarative `build.mill.yaml` configuration files],
+xref:mill::javalib/intro.adoc#_declarative_module_config[declarative `build.mill.yaml` configuration files],
 and the ability to run xref:mill::javalib/intro.adoc#_single_file_scripts[single-file
 Java, Scala, and Kotlin programs] with their build configuration in a build header
 comment. This allows your project's build to be configured via a compact YAML file:
@@ -44,7 +44,7 @@ develop on the JVM in general.
 == Declarative vs Programmable Builds
 
 Traditionally, Mill has always had a
-xref:mill::javalib/intro.adoc#_programmable_modules[programmable configuration syntax], similar
+xref:mill::javalib/intro.adoc#_programmable_module_config[programmable configuration syntax], similar
 to Gradle. This has made Mill a good fit for projects that require custom build logic
 and developers who are comfortable programming their build tool, but it comes at a cost:
 
@@ -177,13 +177,17 @@ config files. For example, xref:mill::javalib/intro.adoc#_custom_build_logic[Cus
 cannot be done in declarative `build.mill.yaml`, which only allow configuration of primitive
 types and basic collections. However, in return the configuration format is much simpler: no
 need to worry about `package` declarations, ``import``s, `object` and `def` statements, etc.
-These `build.mill.yaml` files contain only the configuration you need, and _nothing else_.
+These `build.mill.yaml` files contain only the configuration you need, and __nothing else__.
+
+Like Maven, Mill follows the principle of convention over configuration: the class we extend
+`mill.javalib.JavaModule` comes with a rich set of reasonable defaults, and we only need to
+configure the things we want to do differently.
 
 === Non-Trivial Declarative Builds
 
 While Mill's declarative build files are simpler than its programmable config files, they are
 by no means limited to toy projects. `build.mill.yaml` files support most of Mill's
-task overrides, e.g. here is a more verbose example from xref:mill::javalib/config.adoc[]:
+task overrides, e.g. here is a more verbose example from xref:mill::javalib/declarative.adoc[]:
 
 ```yaml
 extends: [mill.javalib.JavaModule]
@@ -210,7 +214,7 @@ forkEnv: { "MY_CUSTOM_ENV": "my-env-value" }
 Mill's declarative builds also support
 xref:mill::javalib/intro.adoc#_multi_module_projects[multi-module projects] for when your
 codebase grows beyond the complexity of a single module. The documentation for
-xref:mill::javalib/config.adoc[] goes into more detail of how to do various tasks within
+xref:mill::javalib/declarative.adoc[] goes into more detail of how to do various tasks within
 declarative `build.mill.yaml` configuration files.
 
 In general, we hope that Mill's new declarative `build.mill.yaml` syntax will be a
@@ -229,14 +233,14 @@ Although Mill's declarative builds are akin to Maven, and Mill's programmable bu
 Gradle, one thing unique about Mill is how well integrated the two approaches are:
 
 * Declarative `build.mill.yaml` files can also inter-operate with programmable `build.mill` files,
-  via xref:mill::javalib/config.adoc#_custom_module_traits[custom module traits] and
-  xref:mill::javalib/config.adoc#_programmable_moduledeps[depending on programmable modules],
+  via xref:mill::javalib/declarative.adoc#_custom_module_traits[custom module traits] and
+  xref:mill::javalib/declarative.adoc#_programmable_moduledeps[depending on programmable modules],
   so you can mix-and-match the two formats depending on which is more appropriate for each module.
 
-* Setting `mvnDeps`, `repositories`, `mainClass`, etc. means the same thing in both formats
-  even though the surface syntax is slightly different. The {mill-doc-url}/api/latest/mill.html[Mill API Reference],
-  traditionally used as documentation for Mill's programmable configuration format, applies
-  fully to declarative builds as well.
+* Setting `mvnDeps`, `repositories`, `mainClass`, `jvmId`, etc. means the same thing in both
+  formats even though the surface syntax is slightly different. The
+  {mill-doc-url}/api/latest/mill.html[Mill API Reference], traditionally used as documentation
+  for Mill's programmable configuration format, applies fully to declarative builds as well.
 
 * Under the programmable and declarative configuration styles, it's still the same Mill build
   tool. That means concepts like xref:mill::depth/parallelism.adoc[parallelism],
@@ -244,8 +248,8 @@ Gradle, one thing unique about Mill is how well integrated the two approaches ar
   work the same way regardless of which configuration style you are using.
 
 * Like the rest of Mill, its declarative configuration syntax applies equally to
-  all 3 major JVM languages: xref:mill::javalib/config.adoc[Java],
-  xref:mill::scalalib/config.adoc[Scala], and xref:mill::kotlinlib/config.adoc[Kotlin].
+  all 3 major JVM languages: xref:mill::javalib/declarative.adoc[Java],
+  xref:mill::scalalib/declarative.adoc[Scala], and xref:mill::kotlinlib/declarative.adoc[Kotlin].
 
 Unlike Maven and Gradle, Mill's declarative and programmable configuration styles are seamlessly
 integrated. That means you can transition between them easily without needing to do an
@@ -273,8 +277,156 @@ Java project:
 However, needing to set up a separate "build file" is still a point of friction, and Mill 1.1.0
 has one more trick to further reduce the overhead of building and running a small Java program.
 
-
-
 == Mill Single-File Scripts
 
+Mill 1.1.0 supports a new xref:mill::javalib/intro.adoc#_single_file_scripts[single-file script]
+format for Java, Scala, and Kotlin files. For example, this lets you take the `HtmlScraper.java`
+file above, add a `//|` build-header comment with the `mvnDeps` build configuration it needs, and
+run it directly without a separate build file:
+
+```java
+//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+import org.jsoup.Jsoup;
+import java.util.*;
+
+public class HtmlScraper {
+  static List<String> fetchLinks(String title) throws Exception {
+    var url = "https://en.wikipedia.org/wiki/" + title;
+    var doc = Jsoup.connect(url).header("User-Agent", "My Scraper").get();
+    var links = new ArrayList<String>();
+    for (var a : doc.select("main p a")) {
+      var href = a.attr("href");
+      if (href.startsWith("/wiki/")) links.add(href.substring(6));
+    }
+    return links;
+  }
+
+  public static void main(String[] args) throws Exception {
+    if (args.length < 2) throw new Exception("HtmlScraper.java <start> <depth>");
+    var seen = new HashSet<>(Set.of(args[0]));
+    var current = new HashSet<>(Set.of(args[0]));
+    for (int i = 0; i < Integer.parseInt(args[1]); i++) {
+      var next = new HashSet<String>();
+      for (String article : current) {
+        for (String link : fetchLinks(article)) {
+          if (seen.add(link)) next.add(link);
+        }
+      }
+      current = next;
+    }
+    for (String s : seen) System.out.println(s);
+  }
+}
+```
+
+Note that the `extends: [mill.javalib.JavaModule]` is optional; if not provided it is inferred
+from the file extension (here `.java`) but it can also be
+xref:mill::javalib/script.adoc#_custom_script_module_classes[configured explicitly] if needed
+
+This can be run via
+
+```console
+> ./mill HtmlScraper.java Java 1
+Ptolemy
+Bali
+Greater_Sunda_Islands
+Rama
+Sulaiman_al-Tajir
+Endemism
+Gajah_Mada
+Yingya_Shenglan
+Mahabharata
+Cirebon
+Ethnic_groups_in_Indonesia
+...
+```
+
+Although superficially this looks like running a Python or Bash script, under the hood it
+actually goes through the full build tool process - dependency resolution, compilation,
+and execution - with every step cached and parallelized where-ever possible.
+
+=== Multi-Language JVM Scripting
+
+Mill single-file scripts are inspired by the https://www.jbang.dev/[JBang] project for Java,
+https://ammonite.io/[Ammonite] and Scala-CLI[https://scala-cli.virtuslab.org/] for Scala,
+and https://blog.jetbrains.com/kotlin/2024/11/state-of-kotlin-scripting-2024/[Scripting for Kotlin].
+Like the rest of Mill, single-file scripts support the three major JVM languages, and you can
+run scripts written in xref:mill::javalib/script.adoc[Java], xref:mill::scalalib/script.adoc[Scala],
+or xref:mill::kotlinlib/script.adoc[Kotlin]. For example, here is a
+xref:mill::scalalib/script.adoc#_html_web_scraper[Scala version of the HtmlScraper] we discussed
+above, which is somewhat more concise due to the nature of the Scala language:
+
+```scala
+//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+import org.jsoup._
+import scala.collection.JavaConverters._
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" => rest }
+}
+
+@main
+def main(startArticle: String, depth: Int) = {
+  var seen = Set(startArticle)
+  var current = Set(startArticle)
+  for (i <- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+
+  pprint.log(seen, height = Int.MaxValue)
+}
+```
+```console
+> ./mill HtmlScraper.scala --start-article singapore --depth 1
+...
+  "Hokkien",
+  "Conscription_in_Singapore",
+  "Malaysia_Agreement",
+  "Government_of_Singapore",
+...
+```
+
+Like the xref:#_declarative_mill_builds[declarative mill builds] discussed above, single-file
+scripts support the full range of build-tool functionality:
+they can have test suites, be
+xref:mill::javalib/script.adoc#_packaging_assemblies_and_native_binaries[packaged into assemblies or native binaries],
+and can integrate easily into larger projects via
+xref:mill::javalib/script.adoc#_custom_script_module_classes[custom script module classes] or
+xref:mill::javalib/script.adoc#_project_moduledeps[project module deps]
+
+
 == Conclusion
+
+While developers may differ in what their preferred JVM language is, we think that all three
+major JVM languages are criminally under-utilized when it comes to writing scripts and small
+programs. Java, Scala, and Kotlin are all great languages, with high-quality standard libraries,
+rich ecosystems of third-party libraries, excellent tools (profilers, debuggers, IDEs), and
+a rock-solid JVM runtime. However, due to tooling complexity, JVM languages have never been
+the preferred choice for small programs the same way they are often used for large-scale
+enterprise system.
+
+With the new declarative and single-file configuration styles in Mill 1.1.0, we hope to be
+able to change that.
+
+Mill's `build.mill.yaml` configuration syntax offers a declarative syntax
+that takes the best ideas from Maven, while streamlining installation, syntax, and command-line
+usage. Mill's single-file scripts take that a step
+further allowing any `.java`, `.scala`, or `.kt` file to be annotated with the necessary
+configuration in its build header and run directly without needing to set up a separate "project"
+or "build file". And this is provided with the same polish as the rest of Mill: concise and
+colored command-line output, integration into IDEs like VSCode and IntelliJ, high-quality error
+reporting, and a rich doc-site full of documentation and examples.
+
+If you have made it this far, we hope that some of the problems and challenges we have discussed
+in this article resonate with your own personal experience. If you are interested in trying out
+Mill's new declarative configuration syntax or single-file scripts, please check out the
+documentation linked below:
+
+- xref:mill::javalib/intro.adoc#_declarative_module_config[Declarative Java Module Configuration]
+- xref:mill::javalib/intro.adoc#_single_file_scripts[Java Single-File Scripts]
