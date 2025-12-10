@@ -1,0 +1,22 @@
+= Groovy Packaging & Publishing
+:page-aliases: Publishing_Groovy_Projects.adoc
+
+
+
+This page will discuss common topics around packaging and publishing your Groovy projects for others to use
+
+
+== Building Executable Assemblies
+
+TODO
+
+== `jlink` and `jpackage`
+
+
+Mill has builtin support for the https://docs.oracle.com/en/java/javase/11/tools/jlink.html[JLink] and
+https://docs.oracle.com/en/java/javase/17/docs/specs/man/jpackage.html[JPackage] command line tools.
+For more details, see:
+
+* xref:javalib/publishing.adoc#_java_app_and_bundles_using_jlink[Java App and Bundles using JLink]
+* xref:javalib/publishing.adoc#_java_installers_using_jpackage[Java Installers using JPackage]
+

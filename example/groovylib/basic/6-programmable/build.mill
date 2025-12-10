@@ -1,0 +1,20 @@
+//// SNIPPET:BUILD
+
+package build
+import mill.*, groovylib.*
+
+object foo extends GroovyModule {
+  def groovyVersion = "5.0.0"
+
+  def mvnDeps = Seq(
+    mvn"com.github.ajalt.clikt:clikt:4.4.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
+  )
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
+    )
+  }
+}
+
