@@ -216,10 +216,6 @@ Gradle, one thing unique about Mill is how well integrated the two approaches ar
   `repositories`, `mainClass`, etc. means the same thing in both formats even though the
   surface syntax is slightly different
 
-
-
-
-
 == Mill Single-File Scripts
 
 == Conclusion
