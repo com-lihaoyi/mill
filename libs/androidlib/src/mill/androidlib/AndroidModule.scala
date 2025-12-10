@@ -128,7 +128,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidVersionCode: T[Int] = 1
 
   /**
-   * Specifies AAPT options for Android resource compilation.
+   * Specifies AAPT options for Android resource linking.
    */
   def androidAaptOptions: T[Seq[String]] = Task {
     val debugOptions = Seq(
@@ -136,19 +136,26 @@ trait AndroidModule extends JavaModule { outer =>
       "--debug-mode"
     )
 
-    // Add module dependencies' namespaces as extra packages
-    // TODO: cleanup once we properly pass resources from dependencies
-    val extraPackages = moduleDeps.collect {
-      case p: AndroidModule => Seq("--extra-packages", p.androidNamespace)
-    }.flatten
+    val extraPackages = androidAaptLinkExtraPackages().flatMap(ns => Seq("--extra-packages", ns))
 
     Seq(
       "--auto-add-overlay",
       "--no-version-vectors",
-      "--no-proguard-location-reference",
-      "--non-final-ids"
+      "--no-proguard-location-reference"
     ) ++ extraPackages
+      ++ Option.when(androidAaptNonFinalIds())(Seq("--non-final-ids")).toSeq.flatten
       ++ Option.when(androidIsDebug())(debugOptions).toSeq.flatten
+  }
+
+  def androidAaptLinkExtraPackages: T[Seq[String]] = Task {
+    // TODO: cleanup once we properly pass resources from dependencies
+    moduleDeps.collect {
+      case p: AndroidModule => p.androidNamespace
+    }
+  }
+
+  def androidAaptNonFinalIds: T[Boolean] = Task {
+    true
   }
 
   def androidProviderProguardConfigRules: T[Seq[String]] = Task {
