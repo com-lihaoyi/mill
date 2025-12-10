@@ -1,9 +1,9 @@
-// Config-based modules can depend on programmable modules, and vice versa. This
-// allows you to use simple config-based `build.mill.yaml` files for modules without any special
+// Declarative modules can depend on programmable modules, and vice versa. This
+// allows you to use simple declarative `build.mill.yaml` files for modules without any special
 // requirements, use programmable `build.mill` files for modules with custom tasks or other
 // more advanced customizations, and have them inter-operate with each other seamlessly.
 
-// The example below shows a config-based module in `foo/package.mill.yaml` depending upon
+// The example below shows a declarative module in `foo/package.mill.yaml` depending upon
 // a programmable module `bar` and a programmable cross-module `qux[1]`.
 
 //// SNIPPET:BUILD
