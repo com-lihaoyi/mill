@@ -1,0 +1,19 @@
+++++
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.css" />
+<script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.min.js"></script>
+<style>
+/* hack to make the stuff fit within the text body */
+.ap-terminal {
+  transform: scale(0.38);
+  transform-origin: top left;
+}
+</style>
+<div id="mill-maven-comparison"></div>
+<script>
+var player = AsciinemaPlayer.create(
+    '../_images/basic/MillMavenComparison.cast',
+    document.getElementById('mill-maven-comparison'),
+    {startAt: 15, markers: [15, 80], pauseOnMarkers: true}
+);
+</script>
+++++
