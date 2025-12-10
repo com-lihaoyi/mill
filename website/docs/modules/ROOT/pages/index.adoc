@@ -21,22 +21,6 @@ Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish, complicated, and confusing. Mill tries to
 offer a better alternative that gives the Java platform the developer experience it deserves.
 
-If you prefer a video introduction to Mill, see:
-
-* https://www.youtube.com/watch?v=-DTYm1qhQ6U[Video: Engineering a Better Java Build Tool Experience],
-Berlin Expert Days 8 Oct 2025
-* https://www.youtube.com/watch?v=tNsz_dGCsVs[Video: Simpler Build Tools with Functional and Object Oriented Programming], Scala Workshop 13 Oct 2025
-
-Mill is used to build many real-world projects, such as:
-
-* https://github.com/swaldman/c3p0/blob/0.11.x/build.mill[C3P0 JDBC Connection Pool]
-* https://github.com/coursier/coursier/blob/main/build.mill[Coursier dependency resolver]
-* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
-* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel/blob/main/build.mill[Chisel] chip design frameworks
-* Projects at https://youtu.be/FckU1aHNh8U?t=2451[Netflix],
-https://github.com/disneystreaming/smithy-translate/blob/main/build.sc[Disney-Streaming],
-and other organizations
-
 === Getting Started
 
 To get started using Mill for the first time, or migrating an existing JVM
@@ -148,6 +132,23 @@ training, adoption, or maintenance in your organization. Contact us at:
 Email use with details on what you need and we can make an arrangement.
 
 === Contributing and Community
+
+Mill is used to build many real-world projects, such as:
+
+* https://github.com/swaldman/c3p0/blob/0.11.x/build.mill[C3P0 JDBC Connection Pool]
+* https://github.com/coursier/coursier/blob/main/build.mill[Coursier dependency resolver]
+* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
+* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel/blob/main/build.mill[Chisel] chip design frameworks
+* Projects at https://youtu.be/FckU1aHNh8U?t=2451[Netflix],
+https://github.com/disneystreaming/smithy-translate/blob/main/build.sc[Disney-Streaming],
+and other organizations
+
+If you prefer a video introduction to Mill, see:
+
+* https://www.youtube.com/watch?v=-DTYm1qhQ6U[Video: Engineering a Better Java Build Tool Experience],
+Berlin Expert Days 8 Oct 2025
+* https://www.youtube.com/watch?v=tNsz_dGCsVs[Video: Simpler Build Tools with Functional and Object Oriented Programming], Scala Workshop 13 Oct 2025
+
 
 If you want to contribute to Mill, or are interested in the fundamental ideas behind
 Mill rather than the user-facing features discussed above, check out the page on
