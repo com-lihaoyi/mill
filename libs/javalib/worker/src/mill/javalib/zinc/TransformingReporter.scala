@@ -36,7 +36,8 @@ private object TransformingReporter {
     val pos = mapper(unMappedPos)
     val related = transformRelateds(related0, mapper)
     val actions = transformActions(actions0, mapper)
-    val rendered = dottyStyleMessage(color, problem0, pos = pos, unMappedPos = unMappedPos, workspaceRoot)
+    val rendered =
+      dottyStyleMessage(color, problem0, pos = pos, unMappedPos = unMappedPos, workspaceRoot)
     InterfaceUtil.problem(
       cat = problem0.category(),
       pos = pos,
