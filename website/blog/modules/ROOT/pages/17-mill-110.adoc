@@ -1,4 +1,4 @@
-= Declarative Project Configuration in Mill 1.1.0
+= Mill 1.1.0: Declarative Project Configuration and Single-File Scripts
 // tag::header[]
 :author: Li Haoyi
 :revdate: 24 Dec 2025
