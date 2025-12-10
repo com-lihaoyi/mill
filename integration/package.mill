@@ -136,7 +136,13 @@ object `package` extends mill.Module {
       def millIntegrationLauncher = build.dist.native.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
     }
-    trait IntegrationLauncherModule extends Module {
+    trait IntegrationLauncherModule extends DefaultTaskModule {
+      // Set `daemon` as the default way to run integration and example tests
+      override def defaultTask(): String = "testForked"
+      def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+        Task.Command {
+          daemon.testForked(args *)()
+        }
       def useSharedOut = false
       def millIntegrationLauncher: T[PathRef]
       def millIntegrationIsPackagedLauncher: Task[Boolean]
