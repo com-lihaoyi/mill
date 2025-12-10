@@ -4,8 +4,10 @@ Build tool performance has been a big focus in developing Mill: Java build tools
 a reputation for being sluggish, even though the JVM has outstanding performance second
 only to languages like C/C++/Rust, and xref:blog::1-java-compile.adoc[the Java compiler is extremely fast].
 Mill is able to trim a lot of the overhead that other build tools like Maven or Gradle
-impose, resulting in edit-compile-run workflows that are 3-6x faster than those of other
-Java build tools.
+impose, resulting in edit-compile-test workflows that are 3-6x faster than those of other
+Java build tools. Apart from the raw performance, Mill also has a lot of useful
+performance-related features that you can use to help speed up your local development
+and CI workflows to keep your development efforts productive.
 
 
 == Mill vs Maven
@@ -45,13 +47,28 @@ has changed, and that the change is small enough
 to not require other files to re-compile. In contrast, Maven re-compiles all files in both
 modules, even though only one file was touched and the change was trivial.
 
-For more details on these benchmarks, see xref:#_mill_vs_maven_in_depth[]
+Looking at these numbers, it is not surprising that the Java platform has a reputation for
+being slow and clunky. Even in the _No-Op Compile Single Module_ case, it takes ~5 seconds
+for Maven to realize there's nothing to do!
+
+However, with Mill it looks very different:
+
+* Even compiling the entire 500,000 line codebase takes only ~10 seconds
+* Compiling a single module like `netty-common` takes about 1 second
+* Incremental compiles after adding a `println` take a fraction of a second.
+
+If Java developers had this kind of fast turnaround working on their code, no doubt Java
+would have a very different reputation than it has today.
+
+For more details on these benchmarks, including steps to reproduce them,
+see xref:#_mill_vs_maven_in_depth[]
 
 == Mill vs Gradle
 
-The comparison with Gradle is less stark, but still significant. Mill is 3-4x faster than Gradle
-across the various workflows:
-
+We used the https://github.com/mockito/mockito[Mockito] codebase as the case study of Mill vs Gradle.
+Again, we ported it from Gradle to Mill and got all code compiling and all tests passing. Then we
+ran benchmarks of common workflows comparing the time taken for both Mill and Gradle to do the
+same work.
 
 |===
 | Benchmark | Gradle | Mill | Speedup
@@ -76,7 +93,8 @@ so the performance of the underlying JVM and Java compiler (which is actually pr
 really shine through.
 
 
-For more details on these benchmarks, see xref:#_mill_vs_gradle_in_depth[]
+For more details on these Gradle benchmarks, with steps to reproduce them,
+see xref:#_mill_vs_gradle_in_depth[]
 
 == Not Just Compile Times
 
@@ -635,21 +653,15 @@ remains faster than Gradle by about 2.0x.
 == Conclusion
 
 
-Both the Mill and Gradle builds we discussed in this case study do the same thing: they
+The Mill, Gradle, and Maven builds we discussed in this case study do the same thing: they
 compile Java code and run tests. Sometimes they perform additional configuration, tweaking
-JVM arguments or doing ad-hoc classpath mangling.
+JVM arguments or doing ad-hoc classpath mangling. While the Mill builds are not 100% feature
+complete - e.g. the Mill build for Netty doesn't support building on a half-dozen different
+operating systems like the Maven build does - they are complete enough to pass all tests and
+be a realistic comparison.
 
-In general, building projects with Mill is significantly faster than Gradle, but the gap
-is not as big as when comparing xref:comparisons/maven.adoc[Mill v.s. Maven]. Mill builds
-do all the same things as gradle builds, and need to manage the same kind of complexity.
-But where Mill shines over Gradle is just the understandability of the build: while Gradle is
-https://news.ycombinator.com/item?id=25801986[famously confusing and opaque], Mill's great
-IDE support allows the user to explore and understand their build as easily as any
-application codebase, and its fool-proof approach to extensibility means non-experts can
-confidently modify or add to their build system without worrying about getting it wrong.
-
-Again, the Mill build used in this comparison is for demonstration purposes, and more
-work would be necessary to make the Mill build production ready: publishing configuration,
-code coverage integration, and so on. Furthermore, Mill is definitely not perfect,
-and it is a work in progress to improve the user experience and iron out bugs. However,
-hopefully this comparison demonstrates the potential value, and convinces you to give it a try!
+But the bottom line is that, building projects with Mill is significantly faster than
+Maven or Gradle. Things like 3-6x faster compiles, selective test execution, incremental
+assembly jars, automatic build profiling all add up to make Mill a substantially snappier
+build tool than what you might be used to. If you've ever been frustrated by slowness in your
+JVM development process, you should try Mill to see if it can give you a very different experience!

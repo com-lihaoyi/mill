@@ -492,3 +492,6 @@ to the concise `build.mill.yaml` format and familiar command-line syntax, to
 support for single-file programs. Mill lets the key ideas of declarative shine
 through to provide an experience writing and running your Java programs that is every
 bit as smooth as running a Python or Bash script from the command line.
+
+If you have ever worked with a Maven build you found it clunky to configure and clunky to use,
+do give Mill a try!

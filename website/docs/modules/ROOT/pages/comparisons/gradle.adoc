@@ -683,4 +683,5 @@ application: with classes, methods, and first-class IDE support. With Mill, your
 system is no longer such an impenetrable black box, and instead becomes something that
 any JVM developer can safely customize to the needs and requirements of the project.
 
-
+If you have ever worked with a Gradle build you found it opaque and confusing, I encourage
+you to give Mill a try!
