@@ -35,8 +35,14 @@ both parallel and sequential, and for many modules or for a single module:
 First, let's look at *Parallel Clean Compile All*.
 This benchmark involves running `clean` to delete all generated files and re-compiling
 everything in parallel. Mill sees a significant ~5x speedup over Maven for this benchmark.
-You can click on the link above to see a more detailed discussion of how this benchmark was
-run.
+The same number of Java files are compiled, with the same classpath, in the same module
+layout, with the same Java compiler: the only difference is the reduction in build tool
+overhead giving the 5x speedup.
+
+To get a feel for this difference, play recording below to see Mill (Left) and
+Maven (Right) running side by side.
+
+include::partial$Asciinema_Comparison.adoc[]
 
 The second benchmark worth noting is *Incremental Compile Single Module*.
 This benchmark involves adding a single newline to the end of a single already-compiled file in `common`,
