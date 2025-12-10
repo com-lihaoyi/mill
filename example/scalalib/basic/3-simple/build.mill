@@ -18,6 +18,11 @@
 //
 //// SNIPPET:END
 //
+// Each module's keys (e.g. `mvnDeps`) and their expected types are listed in the module
+// class's API documentation, e.g.
+//
+// * {mill-doc-url}/api/latest/mill/{language-small}lib/{language}Module.html#mvnDeps-0[mill.{language-small}lib.{language}Module]
+//
 // === Basic Folder Layout
 //
 // The source code for this module lives in the `src/` folder.

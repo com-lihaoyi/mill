@@ -27,6 +27,16 @@ If you prefer a video introduction to Mill, see:
 Berlin Expert Days 8 Oct 2025
 * https://www.youtube.com/watch?v=tNsz_dGCsVs[Video: Simpler Build Tools with Functional and Object Oriented Programming], Scala Workshop 13 Oct 2025
 
+Mill is used to build many real-world projects, such as:
+
+* https://github.com/swaldman/c3p0/blob/0.11.x/build.mill[C3P0 JDBC Connection Pool]
+* https://github.com/coursier/coursier/blob/main/build.mill[Coursier dependency resolver]
+* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
+* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel/blob/main/build.mill[Chisel] chip design frameworks
+* Projects at https://youtu.be/FckU1aHNh8U?t=2451[Netflix],
+https://github.com/disneystreaming/smithy-translate/blob/main/build.sc[Disney-Streaming],
+and other organizations
+
 === Getting Started
 
 To get started using Mill for the first time, or migrating an existing JVM
@@ -48,9 +58,10 @@ Or see the language-specific introductory documentation linked below:
 
 === Mill Features
 
-* *Ergonomic*: Mill provides colored command-line output and syntax
-highlights the code in error messages, making it easier for the developer to quickly
-read, understand, and resolve issues.
+* *Ergonomic*: Mill provides
+xref:cli/installation-ide.adoc#_bashzsh_tab_completion[terminal tab-completion] to streamline
+usage and syntax highlighted command-line output and error messages so
+developers can easily read, understand, and resolve issues.
 
 image::basic/ErrorHighlighting.png[]
 
@@ -59,6 +70,12 @@ and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build
 to keep local development fast, https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
 to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
 to only run the subset of tests necessary to validate a code change.
+
+* *Scalability* Mill scales well from small projects to
+xref:large/large.adoc[large monorepos] with hundreds of modules and
+xref:large/multi-language-builds.adoc[multiple languages].
+Even projects with hundreds or thousands of sub-modules can be handled performantly
+and with minimal overhead.
 
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
 xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
@@ -85,18 +102,7 @@ use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party 
 or xref:extending/writing-plugins.adoc[write plugins yourself] and
 publish them to Maven Central for others to use.
 
-* *Scalability* Mill scales well from small projects to
-xref:large/large.adoc[large monorepos] with hundreds of modules and
-xref:large/multi-language-builds.adoc[multiple languages].
-Even projects with hundreds or thousands of sub-modules can be handled performantly
-and with minimal overhead.
 
-Mill is used to build many real-world projects, such as:
-
-* https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool]
-* https://github.com/coursier/coursier[Coursier dependency resolver]
-* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
-* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel[Chisel] chip design frameworks
 
 Mill can be used for applications built on top of common JVM frameworks like
 Spring Boot (both xref:javalib/spring-boot.adoc[in Java]
@@ -132,6 +138,15 @@ also has a rich ecosystem of third party plugins for less common use cases:
 
 - xref::extending/thirdparty-plugins.adoc[]
 
+=== Commercial Support
+
+Commercial support and services related to Mill are available if you need help with
+training, adoption, or maintenance in your organization. Contact us at:
+
+* info@mill-build.org
+
+Email use with details on what you need and we can make an arrangement.
+
 === Contributing and Community
 
 If you want to contribute to Mill, or are interested in the fundamental ideas behind
@@ -152,7 +167,3 @@ Mill maintains an open list of issue bounties below, with payouts ranging from
 hand at any bounties that may interest you
 
 * https://github.com/orgs/com-lihaoyi/discussions/6[Open Issue Bounties]
-
-Commercial support and services related to Mill are available if you need help with
-training, adoption, or maintenance in your organization. Email info@mill-build.org
-with details on what you need and we can make an arrangement.
