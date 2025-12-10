@@ -27,8 +27,6 @@ If you prefer a video introduction to Mill, see:
 Berlin Expert Days 8 Oct 2025
 * https://www.youtube.com/watch?v=tNsz_dGCsVs[Video: Simpler Build Tools with Functional and Object Oriented Programming], Scala Workshop 13 Oct 2025
 
-
-
 === Getting Started
 
 To get started using Mill for the first time, or migrating an existing JVM
@@ -49,6 +47,12 @@ Or see the language-specific introductory documentation linked below:
 |===
 
 === Mill Features
+
+* *Ergonomic*: Mill provides colored and formatted command-line output and syntax
+highlights the code in error messages, making it easier for the developer to quickly
+read, understand, and resolve issues.
+
+image::basic/ErrorHighlighting.png[]
 
 * *Performance*: Mill automatically xref:depth/caching.adoc[caches]
 and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
