@@ -248,6 +248,8 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 
 > ./mill app.androidApk
 
+> ./mill app.androidTest.androidTestApk
+
 > ./mill app.test
 
 > cat out/app/test/testForked.dest/test-report.xml
