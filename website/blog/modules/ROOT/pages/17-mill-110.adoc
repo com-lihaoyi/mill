@@ -1,4 +1,4 @@
-= Mill 1.1.0: Declarative Project Configuration and Single-File Scripts
+= Declarative Project Configuration in Mill 1.1.0
 // tag::header[]
 :author: Li Haoyi
 :revdate: 24 Dec 2025
@@ -60,7 +60,7 @@ Mill 1.1.0's new declarative configuration and single-file script support aims t
 Mill 1.1.0 streamlines usage of both the Mill build tool and the JVM in general, so developers
 can now use Java and JVM languages in small-scale scenarios that would have been unfeasible before.
 
-== The Challenge of Small Programs
+== The Challenge of Small Java Programs
 
 To understand the need for declarative build configs, consider a developer that has written
 a small program they want to run:
@@ -115,8 +115,8 @@ dependencies. But with traditional build tools like Maven, running such code can
 surprisingly difficult:
 
 1. Installing Java, which has https://news.ycombinator.com/item?id=46037261[a lot of intricacies]
-2. Writing out the `pom.xml`: can you write the POM for the above program without copy-pasting from StackOverflow/Google/ChatGPT?
-3. Installing Maven
+2. Installing Maven
+3. Writing out the `pom.xml`: can you write the POM for the above program without copy-pasting from StackOverflow/Google/ChatGPT?
 4. Running the program using Maven: can you remember the command-line invocation without looking it up?
 
 None of these are _blockers_, but for someone trying to write a small program that can build
@@ -127,6 +127,7 @@ While you could run the program using Mill, setting up the programmable `build.m
 can also be a bit involved:
 
 ```scala
+// build.mill
 package build
 import mill.*, javalib.*
 object `package` extends JavaModule {
@@ -138,11 +139,85 @@ Again, this isn't rocket science, but it's a lot more complex than it should be 
 who wants to write a small program like the `HtmlScraper.java` we see above.
 
 In theory Java and the JVM is a reasonable platform to write and run small programs: easy to
-learn, widely used, and a rich standard library ecosystem of third-party libraries. But in
-practice these frictions mean that people prefer to write their small programs in Bash, Python,
-or Node.js rather than writing them in Java.
+learn, widely used, and a rich standard library ecosystem of third-party libraries. The same
+applies to other JVM languages like Scala and Kotlin. But in practice these frictions mean that
+people prefer to write their small programs in Bash, Python, or Node.js rather than writing them
+in Java.
 
 == Declarative Mill Builds
+
+The first step towards solving this issue with small Maven projects and small JVM programs is
+Mill's declarative configuration format. That lets us turn the rather
+complicated programmable `build.mill` above into a declarative `build.mill.yaml` file:
+
+```yaml
+# build.mill.yaml
+extends: [mill.javalib.JavaModule]
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+```
+
+Mill's declarative `build.mill.yaml` format is less flexible than the programmable `build.mill`
+config files. For example, xref:mill::javalib/intro.adoc#_custom_build_logic[Custom Build Logic]
+cannot be done in declarative `build.mill.yaml`, which only allow configuration of primitive
+types and basic collections. However, in return the configuration format is much simpler: no
+need to worry about package declarations, imports, `object` and `def` statements, etc.
+
+While Mill's declarative build files are simpler than its programmable config files, they are
+by no means limited to toy projects. `build.mill.yaml` files support most of Mill's
+task overrides, e.g. here is a more verbose example from xref:mill::javalib/config.adoc[]:
+
+```yaml
+extends: [mill.javalib.JavaModule]
+mvnDeps:
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7
+
+# Add a custom maven repository URL
+repositories: ["https://oss.sonatype.org/content/repositories/releases"]
+
+# Set an explicit main class
+mainClass: "foo.Foo2"
+
+# Add an additional source folder and resource folder, in addition to the default one
+sources: ["./src", "./custom-src"]
+resources: ["./resources", "./custom-resources"]
+
+# Configure java compiler and runtime options and env vars
+javacOptions: ["-deprecation"]
+forkArgs: ["-Dmy.custom.property=my-prop-value"]
+forkEnv: { "MY_CUSTOM_ENV": "my-env-value" }
+```
+
+Mill's declarative builds also support
+xref:mill::javalib/intro.adoc#_multi_module_projects[] for when your codebase grows beyond the
+complexity of a single module.
+
+In general, we hope that Mill 1.1.0's new declarative `build.mill.yaml` syntax will be a
+viable alternative to Maven for Java developers who prefer declarative builds, and complement
+it's existing programmable `build.mill` syntax nicely:
+
+- For projects that just need basic key-value configuration, declarative `build.mill.yaml` config
+  is a great fit to keep things simple
+
+- For projects that need custom build logic, `build.mill` files can provide the required flexibility
+  at the cost of some complexity
+
+Although Mill's declarative builds are akin to Maven, and Mill's programmable builds are akin to
+Gradle, one thing unique about Mill is how well integrated the two approaches are:
+
+* Declarative `build.mill.yaml` files can also inter-operate with programmable `build.mill` files,
+  via xref:mill::javalib/config.adoc#_custom_module_traits[] and
+  xref:mill::javalib/config.adoc#_programmable_moduledeps_[], so you can mix-and-match the two
+  formats depending on which is more appropriate for each module.
+
+* All the config keys used in declarative `build.mill.yaml` files, such as those shown above,
+  are the same as those used in programmable `build.mill` files. Setting `mvnDeps`,
+  `repositories`, `mainClass`, etc. means the same thing in both formats even though the
+  surface syntax is slightly different
+
+
+
 
 
 == Mill Single-File Scripts
