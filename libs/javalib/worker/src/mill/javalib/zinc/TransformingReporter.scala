@@ -136,7 +136,15 @@ private object TransformingReporter {
 
         val pointerLength =
           if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
-            math.max(1, math.min(endCol - pointer0, lineContent.length - space.length))
+            math.max(
+              1,
+              math.min(
+                endCol - pointer0,
+                // Make sure to use the plaintext length of lineContent,
+                // since it may have color codes
+                fansi.Str(lineContent).length - space.length
+              )
+            )
           else 1
 
         mill.constants.Util.formatError(
