@@ -1,10 +1,10 @@
-This page documents the usage of config-based {language} modules defined by
+This page documents the usage of declarative {language} modules defined by
 `build.mill.yaml` and `package.mill.yaml` files. These are less flexible but easier
 to get started with than the full `build.mill` or `package.mill` build files,
 which makes them ideal for small projects which do not need additional flexibility.
 
 This page is not meant to be comprehensive reference, but rather is intended to give
-an introduction to Mill's config-based module syntax.
+an introduction to Mill's declarative module syntax.
 Each module's keys (e.g. `mvnDeps`) and their expected types are listed in the module
 class's API documentation, e.g.
 

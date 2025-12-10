@@ -9,7 +9,7 @@
 
 include::partial$Intro_Header.adoc[]
 
-== Config-Based Modules
+== Declarative Modules
 
 include::partial$example/kotlinlib/basic/3-simple.adoc[]
 
