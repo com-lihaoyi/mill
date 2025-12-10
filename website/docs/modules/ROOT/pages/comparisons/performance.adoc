@@ -2,9 +2,21 @@
 
 Build tool performance has been a big focus in developing Mill: Java build tools have
 a reputation for being sluggish, even though the JVM has outstanding performance second
-only to languages like C/C++/Rust.
+only to languages like C/C++/Rust, and xref:blog::1-java-compile.adoc[the Java compiler is extremely fast].
+Mill is able to trim a lot of the overhead that other build tools like Maven or Gradle
+impose, resulting in edit-compile-run workflows that are 3-6x faster than those of other
+Java build tools.
+
 
 == Mill vs Maven
+
+To compare Mill vs Maven, we took the https://github.com/netty/netty[Netty] project
+and ported its Maven build to Mill as a proof of concept, complete enough that we
+could get all tests passing on a M1 Macbook Pro. Netty is not a small project:
+~500,000 lines of code, ~50 submodules, and build customizations such
+as compiling C code, running Groovy code generators, and other things. After porting
+all of that from Maven to Mill, we then ran the same common workflows on both
+equivalent builds to compare the performance: compiling everything, compiling a single module, etc.
 
 Overall across our benchmarks, Mill is 4-6x faster than Maven for clean compiles,
 both parallel and sequential, and for many modules or for a single module:
