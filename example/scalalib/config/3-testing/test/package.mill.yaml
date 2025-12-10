@@ -1,2 +1,0 @@
-extends: [build.ScalaTests, mill.scalalib.TestModule.Utest]
-mvnDeps: [com.lihaoyi::utest:0.9.1]

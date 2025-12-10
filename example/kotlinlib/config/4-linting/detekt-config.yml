@@ -1,8 +1,0 @@
-build:
-  maxIssues: 0
-
-complexity:
-  active: true
-  NestedBlockDepth:
-    active: true
-    threshold: 4
