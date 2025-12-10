@@ -1,11 +1,13 @@
 package millbuild
 
+import mill.api.*
+import mill.api.opt.*
 import mill.javalib.*
 
 trait ProjectBaseModule extends MavenModule {
 
   def javacOptions = super.javacOptions() ++
-    Seq("-source", "21", "-target", "21")
+    Opts("-source", "21", "-target", "21")
 
   def jvmId = "zulu:21"
 

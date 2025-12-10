@@ -3,5 +3,7 @@
 package build
 
 import mill.*
+import mill.api.*
+import mill.api.opt.*
 
 object `package` extends Module {}

@@ -34,7 +34,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
         val res = f(ev)
         new JavacOptionsItem(
           id,
-          res.javacOptions.asJava,
+          res.javacOptions.toStringSeq.asJava,
           res.classpath.asJava,
           sanitizeUri(res.classesPath)
         )

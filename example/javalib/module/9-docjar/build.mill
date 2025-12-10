@@ -1,9 +1,11 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, javalib.*
+import mill.api.opt.*
 
 object foo extends JavaModule {
-  def javadocOptions = Seq("-quiet")
+  def javadocOptions = Opts("-quiet")
 }
 
 /** Usage

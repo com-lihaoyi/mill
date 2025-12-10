@@ -1,11 +1,13 @@
 //// SNIPPET:BUILD
 package build
+
 import mill.*, javalib.*
+import mill.api.opt.*
 
 object `package` extends JavaModule {
-  def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
-  def forkEnv = Map("MY_ENV_VAR" -> "WORLD")
-  def javacOptions = Seq("-deprecation")
+  def forkArgs = Opts("-Xmx4g", "-Dmy.jvm.property=hello")
+  def forkEnv = Map("MY_ENV_VAR" -> opt"WORLD")
+  def javacOptions = Opts("-deprecation")
 }
 
 // You can pass flags to the Java compiler via `javacOptions`.

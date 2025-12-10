@@ -1,5 +1,7 @@
 package build.nested.nested
 
+import mill.api.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.*
@@ -11,7 +13,7 @@ object `package` extends SbtMultiProjectExampleBaseModule {
 
   def artifactName = "nested"
 
-  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
+  def scalacOptions = super.scalacOptions() ++ Opts("-encoding", "utf8")
 
   def pomSettings = PomSettings(
     "This is an sbt sample project for testing Mill's init command.",

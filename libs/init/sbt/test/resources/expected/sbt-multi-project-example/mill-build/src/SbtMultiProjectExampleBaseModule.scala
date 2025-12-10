@@ -1,5 +1,7 @@
 package millbuild
 
+import mill.api.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import mill.scalalib.*
@@ -8,7 +10,7 @@ trait SbtMultiProjectExampleBaseModule extends PublishModule with SbtModule {
 
   def scalaVersion = "2.12.3"
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  def scalacOptions = super.scalacOptions() ++ Opts(
     "-unchecked",
     "-feature",
     "-language:existentials",

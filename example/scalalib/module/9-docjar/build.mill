@@ -3,12 +3,14 @@
 
 //// SNIPPET:BUILD
 package build
+
 import mill.*, scalalib.*
+import mill.api.opt.*
 
 object foo extends ScalaModule {
   def scalaVersion = "3.3.6"
 
-  def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
+  def scalaDocOptions = Opts("-siteroot", "mydocs", "-no-link-warnings")
 }
 
 /** Usage
