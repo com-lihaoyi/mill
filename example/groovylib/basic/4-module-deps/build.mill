@@ -1,14 +1,13 @@
 package build
 import mill.*, groovylib.*
 
-
 object foo extends GroovyModule {
 
   def groovyVersion = "5.0.1"
 
   def moduleDeps = Seq(build.bar)
   def mvnDeps = Seq(
-    mvn"org.apache.groovy:groovy-cli-commons", // BOM already loaded by module
+    mvn"org.apache.groovy:groovy-cli-commons" // BOM already loaded by module
   )
 }
 
