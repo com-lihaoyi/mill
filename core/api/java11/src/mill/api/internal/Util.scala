@@ -20,10 +20,10 @@ object Util {
    * @param fallback A fallback value if no matching line is found
    * @return The scraped line content or the fallback
    */
-  def scrapeColoredLineContent(renderedLines: Seq[String], fallback: => String): String = {
+  def scrapeColoredLineContent(renderedLines: Seq[String], unMappedPosLine: Int, fallback: => String): String = {
     renderedLines
       .collectFirst {
-        case s"$pre |$rest" if pre.nonEmpty && fansi.Str(pre).plainText.trim.forall(_.isDigit) =>
+        case s"$pre |$rest" if pre.nonEmpty && fansi.Str(pre).plainText.trim == unMappedPosLine.toString =>
           rest
       }
       .getOrElse(fallback)
