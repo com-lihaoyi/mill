@@ -13,7 +13,7 @@
 var player = AsciinemaPlayer.create(
     '../_images/basic/MillMavenComparison.cast',
     document.getElementById('mill-maven-comparison'),
-    {startAt: 15, markers: [15, 80], pauseOnMarkers: true}
+    {startAt: 18, markers: [18, 80], pauseOnMarkers: true}
 );
 </script>
 ++++
