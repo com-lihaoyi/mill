@@ -1,6 +1,7 @@
 package mill.groovylib.worker.api
 
-import mill.api.{Result, TaskCtx}
+import mill.api.TaskCtx
+import mill.api.daemon.Result
 import mill.javalib.api.CompilationResult
 
 /**

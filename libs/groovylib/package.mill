@@ -22,7 +22,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   )
 
   object api extends MillPublishScalaModule {
-    def moduleDeps = Seq(build.libs.javalib.testrunner)
+    def moduleDeps = Seq(build.core.api, build.libs.javalib.testrunner)
 
     override def compileMvnDeps: T[Seq[Dep]] = Seq(
       Deps.osLib
