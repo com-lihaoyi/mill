@@ -446,7 +446,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
               "scala.tools.nsc.MainGenericRunner",
           classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
           jvmArgs = forkArgs().toStringSeq,
-          env = allForkEnv().view.mapValues(_.toString()).toMap,
+          env = allForkEnv().toStringMap,
           mainArgs =
             Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
           cwd = forkWorkingDir(),
@@ -527,7 +527,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         mainClass = mainClass,
         classPath = ammoniteReplClasspath().map(_.path).toVector,
         jvmArgs = forkArgs().toStringSeq,
-        env = allForkEnv().view.mapValues(_.toString()).toMap,
+        env = allForkEnv().toStringMap,
         mainArgs = replOptions,
         cwd = forkWorkingDir(),
         stdin = os.Inherit,

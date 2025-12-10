@@ -104,8 +104,8 @@ trait KspModule extends KotlinModule { outer =>
   /**
    * Processor options to be passed to KSP.
    */
-  def kspProcessorOptions: T[Map[String, Opt]] = Task {
-    Map.empty[String, Opt]
+  def kspProcessorOptions: T[OptMap] = Task {
+    OptMap()
   }
 
   /**

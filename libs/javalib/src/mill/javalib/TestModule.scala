@@ -226,8 +226,8 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
-  override def allForkEnv: T[Map[String, Opt]] = Task {
-    super.allForkEnv() ++ Map(
+  override def allForkEnv: T[OptMap] = Task {
+    super.allForkEnv() ++ OptMap(
       EnvVars.MILL_TEST_RESOURCE_DIR -> Opt.mkPath(resources().map(_.path), sep = ";")
     )
   }
@@ -252,7 +252,7 @@ trait TestModule
         args(),
         testForkGrouping(),
         jvmWorker().testrunnerEntrypointClasspath(),
-        allForkEnv().view.mapValues(_.toString()).toMap,
+        allForkEnv().toStringMap,
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),

@@ -1277,7 +1277,7 @@ trait JavaModule
       val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
       os.call(
         cmd = cmd,
-        env = allForkEnv().view.mapValues(_.toString).toMap,
+        env = allForkEnv().toStringMap,
         cwd = forkWorkingDir(),
         stdin = os.Inherit,
         stdout = os.Inherit

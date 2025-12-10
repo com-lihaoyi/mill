@@ -14,6 +14,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentResult
 }
 import mill.api.daemon.internal.{JavaModuleApi, RunModuleApi, TestModuleApi}
+import mill.api.opt.*
 import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 
@@ -75,7 +76,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           testEnvVars.classpath.map(sanitizeUri).asJava,
           res.forkArgs.toStringSeq.asJava,
           res.forkWorkingDir.toString(),
-          res.forkEnv.view.mapValues(_.toString()).toMap.asJava
+          res.forkEnv.toStringMap.asJava
         )
         item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
           _,
@@ -111,7 +112,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           classpath.asJava,
           res.forkArgs.toStringSeq.asJava,
           res.forkWorkingDir.toString(),
-          res.forkEnv.view.mapValues(_.toString()).toMap.asJava
+          res.forkEnv.toStringMap.asJava
         )
 
         val classes = res.mainClass.toList ++ res.localMainClasses

@@ -149,7 +149,7 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
       : Task.Simple[(
           classes: Seq[String],
           forkArgs: Opts,
-          forkEnv: Map[String, Opt]
+          forkEnv: OptMap
       )] =
     Task {
       (jm.allLocalMainClasses(), jm.forkArgs(), jm.allForkEnv())

@@ -63,7 +63,7 @@ index d9d8e2e05f1..e8b4b6fa802 100644
            os.call(
              cmd = (launcher().path.toString, rest),
 -            env = forkEnv() ++ build.dist.localTestOverridesEnv(),
-+            env = (forkEnv() ++ build.dist.localTestOverridesEnv()).view.mapValues(_.toString).toMap,
++            env = (forkEnv() ++ build.dist.localTestOverridesEnv()).toStringMap,
              cwd = wd,
              stdin = os.Inherit,
              stdout = os.Inherit,
@@ -161,7 +161,7 @@ index cd35e6d0763..870b0b99f39 100644
              testForkGrouping(),
              jvmWorker().testrunnerEntrypointClasspath(),
 -            allForkEnv() ++ Option.when(useSharedOut) { "MILL_TEST_SHARED_OUTPUT_DIR" -> "1" },
-+            allForkEnv().view.mapValues(_.toString).toMap ++
++            allForkEnv().toStringMap ++
 +              Option.when(useSharedOut) { "MILL_TEST_SHARED_OUTPUT_DIR" -> "1" },
              testSandboxWorkingDir = !useSharedOut,
              if (useSharedOut) sharedOutFolder else forkWorkingDir(),

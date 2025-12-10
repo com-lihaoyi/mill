@@ -37,16 +37,16 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Any environment variables you want to pass to the forked JVM.
    */
-  def forkEnv: T[Map[String, Opt]] = Task { Map.empty[String, Opt] }
+  def forkEnv: T[OptMap] = Task { OptMap() }
 
   /**
    * Environment variables to pass to the forked JVM.
    *
    * Includes [[forkEnv]] and the variables defined by Mill itself.
    */
-  def allForkEnv: T[Map[String, Opt]] = Task {
-    forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> Opt(BuildCtx.workspaceRoot)
+  def allForkEnv: T[OptMap] = Task {
+    forkEnv() ++ OptMap(
+      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot
     )
   }
 
@@ -170,7 +170,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
       finalMainClassOpt(),
       runClasspath().map(_.path),
       forkArgs().toStringSeq,
-      allForkEnv().view.mapValues(_.toString()).toMap,
+      allForkEnv().toStringMap,
       runUseArgsFile(),
       javaHome().map(_.path),
       propagateEnv()

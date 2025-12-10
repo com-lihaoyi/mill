@@ -23,7 +23,7 @@ private[mill] trait BspRunModule(runModule: RunModule) extends mill.api.Module {
         runClasspath: Seq[Path],
         forkArgs: Opts,
         forkWorkingDir: Path,
-        forkEnv: Map[String, Opt],
+        forkEnv: OptMap,
         mainClass: Option[String],
         localMainClasses: Seq[String]
     )] =
@@ -42,7 +42,7 @@ private[mill] trait BspRunModule(runModule: RunModule) extends mill.api.Module {
         runClasspath: Seq[Path],
         forkArgs: Opts,
         forkWorkingDir: Path,
-        forkEnv: Map[String, Opt],
+        forkEnv: OptMap,
         mainClass: Option[String],
         testEnvVars: Option[(
             mainClass: String,

@@ -25,12 +25,12 @@ import mill.{T, Task}
 @mill.api.experimental
 trait AndroidHiltSupport extends KspModule, AndroidKotlinModule {
 
-  override def kspProcessorOptions: T[Map[String, Opt]] = Task {
-    super.kspProcessorOptions() ++ Map(
-      "dagger.fastInit" -> opt"enabled",
-      "dagger.hilt.android.internal.disableAndroidSuperclassValidation" -> opt"true",
-      "dagger.hilt.android.internal.projectType" -> opt"APP",
-      "dagger.hilt.internal.useAggregatingRootProcessor" -> opt"true"
+  override def kspProcessorOptions: T[OptMap] = Task {
+    super.kspProcessorOptions() ++ OptMap(
+      "dagger.fastInit" -> "enabled",
+      "dagger.hilt.android.internal.disableAndroidSuperclassValidation" -> "true",
+      "dagger.hilt.android.internal.projectType" -> "APP",
+      "dagger.hilt.internal.useAggregatingRootProcessor" -> "true"
     )
   }
 
