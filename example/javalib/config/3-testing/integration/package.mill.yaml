@@ -1,3 +1,0 @@
-extends: [build.JavaTests, mill.javalib.TestModule.Junit5]
-mvnDeps: [org.junit.jupiter:junit-jupiter:5.8.2]
-moduleDeps: [test]

@@ -1,0 +1,42 @@
+// This example shows off running a simple webserver in a module configured via `build.mill.yaml`
+
+/** See Also: build.mill.yaml */
+
+//// SNIPPET:WEBSERVER
+// This small webserver uses the https://github.com/com-lihaoyi/cask[Cask] framework
+// to run the web server
+
+/** See Also: src/WebServer.scala */
+
+//// SNIPPET:END
+
+/** Usage
+> ./mill runBackground
+
+> curl -d 'helloworld' localhost:8080/reverse-string
+dlrowolleh
+
+> ./mill clean runBackground # shut down webserver
+
+*/
+
+// === Testing Web Projects
+//
+// This example web project comes with a small test suite in the `test/` folder,
+// configured by `test/package.mill.yaml`. This test suite spins up the server and
+// makes a single HTTP reqeust against and checks it behaves as expected.
+
+/** See Also: test/package.mill.yaml */
+
+//// SNIPPET:TEST
+/** Usage
+
+> ./mill test
++ example.WebServerTests.reverseString ...
+
+*/
+
+//// SNIPPET:END
+//
+// For more detailed examples of web development with Mill, see
+// xref:{language-small}lib/web-examples.adoc[{language} Web Project Examples]

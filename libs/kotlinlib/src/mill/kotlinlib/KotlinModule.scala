@@ -8,8 +8,7 @@ package kotlinlib
 
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import mill.api.Result
-import mill.api.ModuleRef
+import mill.api.{BuildCtx, ModuleRef, Result}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
@@ -178,7 +177,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   /**
    * Compiles all the sources to JVM class files.
    */
-  override def compile: T[CompilationResult] = Task {
+  override def compile: T[CompilationResult] = Task(persistent = true) {
     kotlinCompileTask()()
   }
 
@@ -337,7 +336,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
       if (isMixed || isKotlin) {
         val extra = if (isJava) s"and reading ${javaSourceFiles.size} Java sources " else ""
         ctx.log.info(
-          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes} ..."
+          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
         )
 
         val compilerArgs: Seq[String] = Seq(
@@ -369,7 +368,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           }
 
         val analysisFile = dest / "kotlin.analysis.dummy"
-        os.write(target = analysisFile, data = "", createFolders = true)
+        os.write.over(target = analysisFile, data = "", createFolders = true)
 
         workerResult match {
           case Result.Success(_) =>
@@ -404,6 +403,17 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   }
 
   /**
+   * Module name options for the Kotlin compiler.
+   * For JVM, this is `-module-name`. For JS, this is overridden to be empty
+   * (JS uses `-Xir-module-name` set separately in the compile task).
+   */
+  protected def kotlinModuleNameOption: T[Seq[String]] = Task {
+    // Use artifactName if available, otherwise fall back to "main" for root modules
+    val moduleName = Option(artifactName()).filter(_.nonEmpty).getOrElse("main")
+    Seq("-module-name", moduleName)
+  }
+
+  /**
    * Mandatory command-line options to pass to the Kotlin compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
@@ -413,6 +423,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val plugins = kotlincPluginJars().map(_.path)
 
     Seq("-no-stdlib") ++
+      kotlinModuleNameOption() ++
       when(!languageVersion.isBlank)("-language-version", languageVersion) ++
       when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
       plugins.map(p => s"-Xplugin=$p")

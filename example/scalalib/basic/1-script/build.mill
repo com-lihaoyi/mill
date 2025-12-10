@@ -82,7 +82,7 @@ compiling 1 Scala source to...
 //// SNIPPET:END
 
 // {language} scripts support the same configuration keys as
-// xref:#_config_based_modules[] as part of their `//|` header comment, and support most
+// xref:#_declarative_modules[] as part of their `//|` header comment, and support most
 // the tasks via the `:run` `:assembly` etc. command-line syntax shown above. You can list
 // these tasks via `./mill resolve` as shown below:
 //// SNIPPET:RESOLVE
@@ -137,4 +137,4 @@ Foo.scala:assembly
 // a xref:{language-small}lib/script.adoc#_custom_script_module_classes[Custom Script Module Class].
 //
 // For scripts that grow larger than a single file, you should convert them
-// to xref:#_config_based_modules[].
+// to xref:#_declarative_modules[].

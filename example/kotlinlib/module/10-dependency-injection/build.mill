@@ -14,7 +14,8 @@ object dagger extends KspModule {
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-//  override def kotlincUseBtApi = false
+  // dagger doesn't play well with BtApi's incremental compilation
+  override def kotlincUseBtApi = false
 
   def mvnDeps = Seq(
     mvn"com.google.dagger:dagger:2.57"
@@ -57,7 +58,7 @@ NumberService_Factory.java
 RandomNumberGenerator_Factory.java
 
 > ./mill dagger.compile
-Compiling 6 Kotlin sources and reading 3 Java sources to .../out/dagger/compile.dest/classes ...
+Compiling 6 Kotlin sources and reading 3 Java sources to out/dagger/compile.dest/classes ...
 compiling 3 Java sources to out/dagger/compile.dest/classes ...
 
 > ./mill dagger.run

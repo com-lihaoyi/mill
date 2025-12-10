@@ -115,13 +115,13 @@ your local builds to be compatible, but existing plugins published for 1.x can c
 used unchanged. `1.1.0-RC1` is intended to give users a chance to try out the new Mill features,
 so any issues can be surfaced and resolved before being stabilized in Mill `1.1.0` final.
 
-The big feature of Mill `1.1.0` is support for config-based modules defined in `build.mill.yaml`
+The big feature of Mill `1.1.0` is support for declarative modules defined in `build.mill.yaml`
 files and single-file `.java`, `.scala`, or `.kt` scripts with a YAML build header. These
 are compatible with existing `.mill` module definitions, and are intended for simple projects
 or modules that do not need the flexibility of a full programming language to configure their
 build.
 
-==== Config-Based Module Definitions
+==== Declarative Module Definitions
 
 For example, you can define a simple `JavaModule` an it's test submodule via:
 
@@ -145,10 +145,10 @@ mvnDeps:
 This is equivalent to Mill's existing `object foo extends JavaModule{ def mvnDeps = ... }` syntax.
 All the normal Mill commands still apply: `./mill compile`, `./mill test`, `./mill assembly`, etc.
 
-We expect that config-based `build.mill.yaml` files will help simplify the use of Mill for
+We expect that declarative `build.mill.yaml` files will help simplify the use of Mill for
 small projects, where the user typically just needs to set some config keys and doesn't need
 custom tasks or custom build logic that programmable module definitions allow. See the docs
-for https://mill-build.org/mill/main-branch/javalib/config.html[Config-Based Java Modules]
+for https://mill-build.org/mill/main-branch/javalib/config.html[Declarative Java Modules]
 for more information.
 
 ==== Single-File Scripts

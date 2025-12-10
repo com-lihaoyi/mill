@@ -9,7 +9,7 @@ object Deps {
   val scalaVersion = "3.8.0-RC3"
 
   val scalaVersionJava11 = "3.7.4"
-  val scala2Version = "2.13.15"
+  val scala2Version = "2.13.18"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
   val sbtScalaVersion212 = workerScalaVersion212
@@ -128,7 +128,7 @@ object Deps {
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = mvn"org.jline:jline:3.28.0"
+  val jline = mvn"org.jline:jline:3.30.6"
   val jnaVersion = "5.16.0"
 
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
