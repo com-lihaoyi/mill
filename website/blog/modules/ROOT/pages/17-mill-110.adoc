@@ -1,0 +1,150 @@
+= Mill 1.1.0: Declarative Project Configuration and Single-File Scripts
+// tag::header[]
+:author: Li Haoyi
+:revdate: 24 Dec 2025
+
+_{author}, {revdate}_
+
+The newly-released Mill version 1.1.0 contains two major new features:
+declarative `build.mill.yaml` configuration files and the ability to run single-file
+Java, Scala, and Kotlin programs with their build configuration in a build header
+comment. This allows your project's build to be configured via a compact YAML file:
+
+```yaml
+# build.mill.yaml
+extends: [mill.javalib.JavaModule]
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+```
+
+Or even as a single-file with the build configuration in a `//|` header comment:
+
+```java
+//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+import org.jsoup.Jsoup;
+public class HtmlScraper {
+  ...
+}
+```
+```console
+> ./mill HtmlScraper.java Java 1
+```
+
+
+While the changelog has a more thorough listing of improvements and migration
+instructions, this blog post will dive into these two new features, and how they
+change the way someone can use Mill and develop on the JVM in general
+
+
+// end::header[]
+
+Traditionally, Mill has always had a programmable configuration syntax, similar to Gradle.
+This has made Mill a good fit for projects that require custom build logic and developers
+who are comfortable programming their build tool, but it comes at a cost:
+
+1. Programmable configuration is inherently more complicated than declarative configuration,
+   which can result in additional difficulty learning and maintaining the build setup
+
+2. Not every project requires custom build logic, and so the added complexity of a programmable
+   configuration syntax is pure downside without benefit.
+
+This has made Mill a build tool something more suitable for advanced use cases, as someone
+https://www.reddit.com/r/java/comments/1ea3zv4/comment/lekc0qf[wrote on Reddit]:
+
+> I'm relative new Mill and it is the most pleasant built tool for complex builds.
+> When your build starts to hurt because it does not fit into Maven well enough, the Mill
+> is a build tool worth evaluating.
+
+Mill 1.1.0's new declarative configuration and single-file script support aims to change that.
+Mill 1.1.0 streamlines usage of both the Mill build tool and the JVM in general, so developers
+can now use Java and JVM languages in small-scale scenarios that would have been unfeasible before.
+
+== The Challenge of Small Programs
+
+To understand the need for declarative build configs, consider a developer that has written
+a small program they want to run:
+
+
+```java
+// HtmlScraper.java
+import org.jsoup.Jsoup;
+import java.util.*;
+
+public class HtmlScraper {
+  static List<String> fetchLinks(String title) throws Exception {
+    var url = "https://en.wikipedia.org/wiki/" + title;
+    var doc = Jsoup.connect(url).header("User-Agent", "My Scraper").get();
+    var links = new ArrayList<String>();
+    for (var a : doc.select("main p a")) {
+      var href = a.attr("href");
+      if (href.startsWith("/wiki/")) links.add(href.substring(6));
+    }
+    return links;
+  }
+
+  public static void main(String[] args) throws Exception {
+    if (args.length < 2) throw new Exception("HtmlScraper.java <start> <depth>");
+    var seen = new HashSet<>(Set.of(args[0]));
+    var current = new HashSet<>(Set.of(args[0]));
+    for (int i = 0; i < Integer.parseInt(args[1]); i++) {
+      var next = new HashSet<String>();
+      for (String article : current) {
+        for (String link : fetchLinks(article)) {
+          if (seen.add(link)) next.add(link);
+        }
+      }
+      current = next;
+    }
+    for (String s : seen) System.out.println(s);
+  }
+}
+```
+
+This is a single-file program that uses the https://jsoup.org/[Jsoup] library to scrape
+the links off of a Wikipedia article's HTML page, which it then uses to perform a breadth-first
+traversal across the Wikipedia article graph. While a bit contrived, this code is representative
+of many of the small programs that may be written in practice:
+
+- A student project
+- A one-off prototype
+- A small command-line script
+
+In all these cases, the program would have a small amount of code and one or two third-party
+dependencies. But with traditional build tools like Maven, running such code can be
+surprisingly difficult:
+
+1. Installing Java, which has https://news.ycombinator.com/item?id=46037261[a lot of intricacies]
+2. Writing out the `pom.xml`: can you write the POM for the above program without copy-pasting from StackOverflow/Google/ChatGPT?
+3. Installing Maven
+4. Running the program using Maven: can you remember the command-line invocation without looking it up?
+
+None of these are _blockers_, but for someone trying to write a small program that can build
+and run reliably on their laptop, their colleagues' laptops, their CI machines and their
+production environment, all of these things can be surprisingly tricky.
+
+While you could run the program using Mill, setting up the programmable `build.mill` file
+can also be a bit involved:
+
+```scala
+package build
+import mill.*, javalib.*
+object `package` extends JavaModule {
+  def moduleDeps = Seq(mvn"org.jsoup:jsoup:1.7.2")
+}
+```
+
+Again, this isn't rocket science, but it's a lot more complex than it should be for someone
+who wants to write a small program like the `HtmlScraper.java` we see above.
+
+In theory Java and the JVM is a reasonable platform to write and run small programs: easy to
+learn, widely used, and a rich standard library ecosystem of third-party libraries. But in
+practice these frictions mean that people prefer to write their small programs in Bash, Python,
+or Node.js rather than writing them in Java.
+
+== Declarative Mill Builds
+
+
+== Mill Single-File Scripts
+
+== Conclusion
