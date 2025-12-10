@@ -6,7 +6,7 @@ import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
-import mill.api.ModuleCtx.HeaderData
+import mill.api.internal.HeaderData
 import mill.api.daemon.Segment
 
 import scala.util.control.Breaks.*
@@ -101,8 +101,8 @@ object CodeGen {
             onProperty: (String, upickle.core.BufferedValue) => T,
             onNestedObject: (String, HeaderData) => T
         ): Seq[T] = {
-          for ((kString, v) <- data.rest.toSeq)
-            yield kString.split(" +") match {
+          for ((locatedKeyString, v) <- data.rest.toSeq)
+            yield locatedKeyString.value.split(" +") match {
               case Array(k) => onProperty(k, v)
               case Array("object", k) => onNestedObject(
                   k,
@@ -111,7 +111,14 @@ object CodeGen {
                     HeaderData.headerDataReader(scriptPath)
                   )
                 )
-              case _ => sys.error("Invalid key: " + kString)
+              case _ => throw new Result.Exception(
+                  "",
+                  Some(Result.Failure(
+                    "Invalid key: " + locatedKeyString.value,
+                    scriptPath.toNIO,
+                    locatedKeyString.index
+                  ))
+                )
             }
         }
 
@@ -144,8 +151,8 @@ object CodeGen {
 
           def parseRender(moduleDep: String) = {
             mill.resolve.ParseArgs.extractSegments(moduleDep) match {
-              case Result.Failure(err) =>
-                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + err)
+              case f: Result.Failure =>
+                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + f.error)
               case Result.Success((rootModulePrefix, taskSegments)) =>
                 val renderedSegments = taskSegments.value
                   .map {

@@ -1,0 +1,40 @@
+//// SNIPPET:ALL
+// This example is similar to the xref:#_maven_compatible_modules[Maven-Compatible Modules]
+// above, but using Mill's programmable `build.mill` files. These are more flexible than
+// the config-driven `build.mill.yaml` files, and can contain
+// xref:javalib/intro.adoc#_custom_build_logic[Custom Build Logic] and other programmable
+// configuration
+
+package build
+import mill.*, kotlinlib.*
+
+object foo extends KotlinModule, KotlinMavenModule {
+
+  def kotlinVersion = "1.9.24"
+
+  object test extends KotlinMavenTests, TestModule.Junit5 {
+    def mvnDeps = Seq(mvn"io.kotest:kotest-runner-junit5:5.9.1")
+  }
+  object integration extends KotlinMavenTests, TestModule.Junit5 {
+    def mvnDeps = Seq(mvn"io.kotest:kotest-runner-junit5:5.9.1")
+  }
+}
+
+/** Usage
+
+> ./mill foo.compile
+Compiling 1 Kotlin source...
+
+> ./mill foo.test.compile
+Compiling 1 Kotlin source...
+
+> ./mill foo.test.testForked
+...foo.FooTests hello ...
+
+> ./mill foo.test
+...foo.FooTests hello ...
+
+> ./mill foo.integration
+...foo.FooIntegrationTests hello ...
+
+*/

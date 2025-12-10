@@ -6,7 +6,7 @@ import mill.*
 import mill.api.Result
 import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
-import mill.constants.OutFiles.*
+import mill.constants.OutFiles.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
@@ -42,6 +42,7 @@ trait MillBuildRootModule()(using
     "**/src-*/",
     "**/resources/",
     "**/out/",
+    "**/.bsp/mill-bsp-out/",
     "**/target/"
   )
 
@@ -80,7 +81,8 @@ trait MillBuildRootModule()(using
         rootModuleInfo.projectRoot / os.up,
         rootModuleInfo.output,
         MillScalaParser.current.value,
-        scriptSources().map(_.path)
+        scriptSources().map(_.path),
+        Task.log.prompt.colored
       )
     }
   }

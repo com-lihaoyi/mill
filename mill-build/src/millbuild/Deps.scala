@@ -6,10 +6,10 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.8.0-RC2"
+  val scalaVersion = "3.8.0-RC3"
 
   val scalaVersionJava11 = "3.7.4"
-  val scala2Version = "2.13.15"
+  val scala2Version = "2.13.18"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
   val sbtScalaVersion212 = workerScalaVersion212
@@ -87,7 +87,7 @@ object Deps {
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
-  val coursierVersion = "2.1.25-M20"
+  val coursierVersion = "2.1.25-M21"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -128,7 +128,7 @@ object Deps {
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = mvn"org.jline:jline:3.28.0"
+  val jline = mvn"org.jline:jline:3.30.6"
   val jnaVersion = "5.16.0"
 
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
@@ -140,15 +140,21 @@ object Deps {
   val osLibVersion = "0.11.5"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
-  val pprint = mvn"com.lihaoyi::pprint:0.9.5"
+  val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.7"
-  val millModuledefsVersion = "0.12.3"
+  val millModuledefsVersion = "0.12.5-RC1"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
   val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
+
+  val graalVmReachabilityMetadataVersion = "0.3.32"
+  val graalVMReachabilityMetadataBuildTool =
+    mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3"
+  val openJson = mvn"com.github.openjson:openjson:1.0.13"
+
   // can't use newer versions, as these need higher Java versions
   val testng_lowerBound = mvn"org.testng:testng:7.5.1"
   val testng = mvn"org.testng:testng:7.11.0"
@@ -162,7 +168,7 @@ object Deps {
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
     else mvn"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scoverage2Version = "2.3.0"
+  val scoverage2Version = "2.5.0"
   val scalacScoverage2Plugin = mvn"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = mvn"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = mvn"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -177,8 +183,8 @@ object Deps {
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
-  val upickle = mvn"com.lihaoyi::upickle:4.4.1"
-  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.4.1"
+  val upickle = mvn"com.lihaoyi::upickle:4.4.2-RC2"
+  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.4.2-RC2"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
@@ -188,9 +194,10 @@ object Deps {
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
   val gson = mvn"com.google.code.gson:gson:2.13.2"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
+  val javaparser = mvn"com.github.javaparser:javaparser-core:3.27.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.0"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.21"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -295,7 +302,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.9.2"
+    val utest = mvn"com.lihaoyi::utest:0.9.4"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 
@@ -334,9 +341,9 @@ object Deps {
 
   }
   val keytoolDeps = Seq(
-    mvn"org.bouncycastle:bcpkix-jdk18on:1.81",
-    mvn"org.bouncycastle:bcprov-jdk18on:1.81",
-    mvn"org.bouncycastle:bcutil-jdk18on:1.81"
+    mvn"org.bouncycastle:bcpkix-jdk18on:1.83",
+    mvn"org.bouncycastle:bcprov-jdk18on:1.83",
+    mvn"org.bouncycastle:bcutil-jdk18on:1.83"
   )
 
 }

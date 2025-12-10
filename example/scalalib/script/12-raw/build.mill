@@ -11,7 +11,7 @@
 // These libraries can make it more convenient to script simple command-line workflows
 // interacting with files, subprocesses, and HTTP endpoints.
 // These bundled libraries are only available in single-file scripts for convenience; in
-// config-based modules or programmatic modules, you would need to add them to `mvnDeps` explicitly.
+// declarative modules or programmable modules, you would need to add them to `mvnDeps` explicitly.
 // Furthermore, `@main` in Mill scala scripts is aliased to `@mainargs.main`.
 // And as we saw earlier, you can include any other libraries you wish using `//| mvnDeps`.
 //

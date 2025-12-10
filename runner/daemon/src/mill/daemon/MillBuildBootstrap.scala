@@ -9,7 +9,7 @@ import mill.api.daemon.internal.{
 }
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
-import mill.constants.OutFiles.{millBuild, millRunnerState}
+import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}
@@ -148,11 +148,11 @@ class MillBuildBootstrap(
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
-                case Result.Failure(msg) =>
+                case f: Result.Failure =>
                   RunnerState(
                     None,
                     Nil,
-                    Some(msg),
+                    Some(mill.internal.Util.formatError(f, logger.prompt.errorColor)),
                     Some(foundRootBuildFileName),
                     Seq(bootstrapEvalWatched)
                   )
@@ -217,7 +217,10 @@ class MillBuildBootstrap(
 
             (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
           } match {
-            case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
+            case f: Result.Failure =>
+              nestedState.add(errorOpt =
+                Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+              )
             case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
               val staticBuildOverrideFiles =
@@ -307,7 +310,7 @@ class MillBuildBootstrap(
       selectiveExecution = false,
       reporter = reporter(evaluator)
     ) match {
-      case (Result.Failure(error), evalWatches, moduleWatches) =>
+      case (f: Result.Failure, evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
           evalWatches,
@@ -320,7 +323,10 @@ class MillBuildBootstrap(
           Map()
         )
 
-        nestedState.add(frame = evalState, errorOpt = Some(error))
+        nestedState.add(
+          frame = evalState,
+          errorOpt = Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+        )
 
       case (
             Result.Success(Seq(Tuple4(
@@ -406,6 +412,7 @@ class MillBuildBootstrap(
       selectiveExecution,
       reporter = reporter(evaluator)
     )
+
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
       evalWatched,
@@ -418,7 +425,13 @@ class MillBuildBootstrap(
       Map()
     )
 
-    nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
+    nestedState.add(
+      frame = evalState,
+      errorOpt = evaled match {
+        case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+        case _ => None
+      }
+    )
   }
 
 }
@@ -578,12 +591,12 @@ object MillBuildBootstrap {
     )
 
     evalTaskResult match {
-      case Result.Failure(msg) =>
-        (Result.Failure(msg), evalWatchedValues.toSeq, moduleWatchedValues)
+      case f: Result.Failure =>
+        (f, evalWatchedValues.toSeq, moduleWatchedValues)
       case Result.Success(res: EvaluatorApi.Result[Any]) =>
         res.values match {
-          case Result.Failure(msg) =>
-            (Result.Failure(msg), res.watchable ++ evalWatchedValues, moduleWatchedValues)
+          case f: Result.Failure =>
+            (f, res.watchable ++ evalWatchedValues, moduleWatchedValues)
           case Result.Success(results) =>
             (Result.Success(results), res.watchable ++ evalWatchedValues, moduleWatchedValues)
         }

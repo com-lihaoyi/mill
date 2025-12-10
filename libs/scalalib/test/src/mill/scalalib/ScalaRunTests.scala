@@ -87,7 +87,7 @@ object ScalaRunTests extends TestSuite {
         HelloWorldTests.HelloWorld,
         resourcePath
       ).scoped { eval =>
-        val Left(ExecResult.Failure("Subprocess failed")) =
+        val Left(ExecResult.Failure(msg = "Subprocess failed")) =
           eval.apply(HelloWorldTests.HelloWorld.core.runMain("Invalid")): @unchecked
       }
       test("notRunWhenCompileFailed") - UnitTester(
@@ -99,7 +99,7 @@ object ScalaRunTests extends TestSuite {
           "val x: "
         )
 
-        val Left(ExecResult.Failure("Compilation failed")) =
+        val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(HelloWorldTests.HelloWorld.core.runMain("Main")): @unchecked
 
       }
@@ -123,7 +123,7 @@ object ScalaRunTests extends TestSuite {
         HelloWorldWithoutMain,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
-        val Left(ExecResult.Failure(_)) =
+        val Left(_: ExecResult.Failure[_]) =
           eval.apply(HelloWorldWithoutMain.core.run()): @unchecked
       }
 
@@ -186,7 +186,7 @@ object ScalaRunTests extends TestSuite {
         HelloWorldWithoutMain,
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-no-main"
       ).scoped { eval =>
-        val Left(ExecResult.Failure(_)) =
+        val Left(_: ExecResult.Failure[_]) =
           eval.apply(HelloWorldWithoutMain.core.runLocal()): @unchecked
       }
     }

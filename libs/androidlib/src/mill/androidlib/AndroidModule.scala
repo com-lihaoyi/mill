@@ -201,23 +201,12 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
-   * The transitive module dependencies of this module.
-   * This does not include direct dependencies, meaning
-   * these are only the dependencies of the dependencies.
-   */
-  def androidTransitiveModuleDeps: Seq[JavaModule] = {
-    val moduleDepsCheckedSet = moduleDepsChecked.toSet
-    val isDirectDependency = (m: JavaModule) => moduleDepsCheckedSet.contains(m)
-    transitiveModuleRunModuleDeps.filterNot(isDirectDependency)
-  }
-
-  /**
    * Gets all the transitive compiled Android resources (typically in res/ directory)
    * from the [[androidTransitiveModuleDeps]]
    * @return a sequence of PathRef to the compiled resources
    */
   def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleRunModuleDeps) {
+    Task.traverse(moduleDepsChecked) {
       case m: AndroidModule =>
         m.androidCompiledModuleResources
       case _ =>

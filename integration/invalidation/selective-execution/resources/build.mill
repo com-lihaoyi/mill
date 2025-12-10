@@ -28,3 +28,15 @@ object bar extends mill.api.DefaultTaskModule {
 
   def defaultTask(): String = "barCommand"
 }
+
+trait QuxModule extends Module {
+  def quxCommand() = Task.Command {
+    println("Computing quxCommand")
+  }
+}
+object qux extends QuxModule {
+
+  def quxCommand() = Task.Command {
+    super.quxCommand()()
+  }
+}

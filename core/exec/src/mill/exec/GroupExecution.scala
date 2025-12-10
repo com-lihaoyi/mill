@@ -45,7 +45,7 @@ trait GroupExecution {
   val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
-      val headerDataReader = ModuleCtx.HeaderData.headerDataReader(path)
+      val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
       def rec(
           segments: Seq[String],
           bufValue: upickle.core.BufferedValue
@@ -68,7 +68,9 @@ trait GroupExecution {
             headerDataReader
           )
             .rest
-            .map { case (k, v) => (segments ++ Seq(k)).mkString(".") -> Located(path, v.index, v) }
+            .map { case (k, v) =>
+              (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, v)
+            }
             .toSeq
 
         val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
@@ -79,12 +81,11 @@ trait GroupExecution {
       val parsed0 = BufferedValue.Obj(
         mill.internal.Util.parseYaml0(
           path0.toString,
-          rawText,
-          os.read(path),
+          rawText.replace("\r", ""),
           headerDataReader
         ).get
           .rest
-          .map { case (k, v) => (BufferedValue.Str(k, -1), v) }
+          .map { case (k, v) => (BufferedValue.Str(k.value, k.index), v) }
           .to(mutable.ArrayBuffer),
         true,
         -1
@@ -191,7 +192,7 @@ trait GroupExecution {
             lazy val strippedText = originalText.replace("\n//|", "\n")
             lazy val lookupLineSuffix = fastparse
               .IndexedParserInput(strippedText)
-              .prettyIndex(jsonData.value.index)
+              .prettyIndex(jsonData.index)
               .takeWhile(_ != ':') // split off column since it's not that useful
 
             val (execRes, serializedPaths) =
@@ -236,14 +237,12 @@ trait GroupExecution {
                       case abort: upickle.core.AbortException => abort.index
                       case _ => jsonData.value.index
                     }
+
+                    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
                     (
                       ExecResult.Failure(
-                        mill.internal.Util.formatError(
-                          jsonData.path.relativeTo(workspace).toString,
-                          originalText,
-                          errorIndex,
-                          s"Failed de-serializing config override: ${e.getCause.getMessage}"
-                        )
+                        s"Failed de-serializing config override: ${e.getCause.getMessage}",
+                        Some(Result.Failure(msg, path = jsonData.path.toNIO, index = errorIndex))
                       ),
                       Nil
                     )
@@ -447,10 +446,10 @@ trait GroupExecution {
             try {
               task.evaluate(args) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
-                case Result.Failure(err) => ExecResult.Failure(err)
+                case f: Result.Failure => ExecResult.Failure(f.error, Some(f))
               }
             } catch {
-              case ex: Result.Exception => ExecResult.Failure(ex.error)
+              case ex: Result.Exception => ExecResult.Failure(ex.error, ex.failure)
               case NonFatal(e) =>
                 ExecResult.Exception(
                   e,

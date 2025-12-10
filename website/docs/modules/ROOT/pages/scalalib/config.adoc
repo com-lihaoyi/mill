@@ -1,4 +1,4 @@
-= Config-Based Scala Modules
+= Declarative Scala Modules
 :language: Scala
 :language-small: scala
 
@@ -6,38 +6,38 @@ include::partial$Config_Header.adoc[]
 
 == Common Config Overrides
 
-include::partial$example/scalalib/config/1-common-config.adoc[]
+include::partial$example/scalalib/declarative/1-common-config.adoc[]
 
 == Library Dependencies
 
-include::partial$example/scalalib/config/2-dependencies.adoc[]
+include::partial$example/scalalib/declarative/2-dependencies.adoc[]
 
 == Unit & Integration Testing
 
-include::partial$example/scalalib/config/3-testing.adoc[]
+include::partial$example/scalalib/declarative/3-testing.adoc[]
 
 == Linting & Autoformatting
 
-include::partial$example/scalalib/config/4-linting.adoc[]
+include::partial$example/scalalib/declarative/4-linting.adoc[]
 
 == Packaging & Publishing
 
 === Graal Native Image
 
-include::partial$example/scalalib/config/5-native-image.adoc[]
+include::partial$example/scalalib/declarative/5-native-image.adoc[]
 
 === Publishing
 
-include::partial$example/scalalib/config/6-publishing.adoc[]
+include::partial$example/scalalib/declarative/6-publishing.adoc[]
 
 == Example Web Project
 
-include::partial$example/scalalib/config/7-web-example.adoc[]
+include::partial$example/scalalib/declarative/7-web-example.adoc[]
 
 == Custom Module Traits
 
-include::partial$example/scalalib/config/8-custom-trait.adoc[]
+include::partial$example/scalalib/declarative/8-custom-trait.adoc[]
 
-== Programmatic `moduleDeps`
+== Programmable `moduleDeps`
 
-include::partial$example/scalalib/config/9-programmatic-module-deps.adoc[]
+include::partial$example/scalalib/declarative/9-programmable-module-deps.adoc[]

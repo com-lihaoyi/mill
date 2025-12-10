@@ -2,7 +2,12 @@ package mill.internal
 
 import scala.reflect.NameTransformer.encode
 import mill.api.Result
-import mill.api.ModuleCtx.HeaderData
+import mill.api.Logger
+import mill.api.ExecResult
+import mill.api.Result.Failure.ExceptionInfo
+import mill.api.internal.HeaderData
+import mill.api.daemon.internal.ExecutionResultsApi
+import scala.collection.mutable
 
 object Util {
 
@@ -64,6 +69,15 @@ object Util {
     fastparse.IndexedParserInput(text).prettyIndex(index).takeWhile(_ != ':')
   }
 
+  def formatError(f: Result.Failure, highlight: String => String) = {
+    Result.Failure
+      .split(f)
+      .map(f0 =>
+        formatError0(f0.path, f0.index, f0.error, f0.exception, f0.tickerPrefix, highlight)
+      )
+      .mkString("\n")
+  }
+
   /**
    * Format an error message in dotty style with file location, code snippet, and pointer.
    *
@@ -73,19 +87,78 @@ object Util {
    * @param message The error message to display
    * @return A formatted error string with location, code snippet, pointer, and message
    */
-  def formatError(fileName: String, text: String, index: Int, message: String): String = {
-    val indexedParser = fastparse.IndexedParserInput(text)
-    val prettyIndex = indexedParser.prettyIndex(index)
-    val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
+  def formatError0(
+      path: java.nio.file.Path,
+      index: Int,
+      message: String,
+      exception: Seq[ExceptionInfo],
+      tickerPrefix: String,
+      highlight: String => String
+  ): String = {
+    val exceptionSuffix =
+      if (exception.nonEmpty) Some(formatException(exception, highlight)) else None
 
-    // Get the line content
-    val lines = text.linesIterator.toVector
-    val lineContent = if (lineNum > 0 && lineNum <= lines.length) lines(lineNum - 1) else ""
+    val positionedMessage =
+      if (path == null || !java.nio.file.Files.exists(path))
+        "[" + highlight("error") + "] " + message
+      else {
+        val text = java.nio.file.Files.readString(path)
+        val indexedParser = fastparse.IndexedParserInput(text.replace("//| ", "").replace("\r", ""))
+        val prettyIndex = indexedParser.prettyIndex(index)
+        val Array(lineNum, colNum0) = prettyIndex.split(':').map(_.toInt)
 
-    // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
-    val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
+        // Get the line content
+        val lines = text.linesIterator.toVector
+        val lineContent = if (lineNum > 0 && lineNum <= lines.length) lines(lineNum - 1) else ""
 
-    mill.constants.Util.formatError(fileName, lineNum, colNum, lineContent, message)
+        // Offset column by 4 if line starts with "//| " to account for stripped YAML prefix (including space)
+        val colNum = if (lineContent.startsWith("//| ")) colNum0 + 4 else colNum0
+
+        mill.constants.Util.formatError(
+          mill.api.BuildCtx.workspaceRoot.toNIO.relativize(path).toString,
+          lineNum,
+          colNum,
+          lineContent,
+          message,
+          s => highlight(s)
+        )
+      }
+
+    val prefix = highlight(tickerPrefix)
+
+    (Seq(prefix + positionedMessage) ++ exceptionSuffix).mkString("\n")
+  }
+
+  def formatException(exception: Seq[ExceptionInfo], highlight: String => String): String = {
+    val output = mutable.Buffer.empty[fansi.Str]
+    for (ExceptionInfo(clsName, msg, stack) <- exception) {
+      val exCls = highlight(clsName)
+      output.append(
+        msg match {
+          case null => fansi.Str(exCls)
+          case nonNull => fansi.Str.join(Seq(exCls, ": ", nonNull))
+        }
+      )
+
+      for (frame <- stack) {
+        val filenameFrag: fansi.Str = frame.getFileName match {
+          case null => "Unknown"
+          case fileName =>
+            fansi.Str(highlight(fileName), ":", highlight(frame.getLineNumber.toString))
+        }
+
+        output.append(
+          fansi.Str(
+            "  ",
+            highlight(frame.getClassName + "." + frame.getMethodName),
+            "(",
+            filenameFrag,
+            ")"
+          )
+        )
+      }
+    }
+    fansi.Str.join(output, "\n").render
   }
 
   def parseHeaderData(scriptFile: os.Path): Result[HeaderData] = {
@@ -94,20 +167,15 @@ object Util {
       if (!os.exists(scriptFile)) Result.Success("")
       else mill.api.ExecResult.catchWrapException {
         mill.constants.Util.readBuildHeader(scriptFile.toNIO, scriptFile.last, true)
+          .replace("\r", "")
       }
     }
 
     def relativePath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
-    val originalText =
-      if (java.nio.file.Files.exists(scriptFile.toNIO))
-        java.nio.file.Files.readString(scriptFile.toNIO)
-      else ""
-
     given upickle.Reader[HeaderData] = HeaderData.headerDataReader(scriptFile)
     headerDataOpt.flatMap(parseYaml0(
       relativePath.toString,
       _,
-      originalText,
       upickle.reader[HeaderData]
     ))
   }
@@ -115,7 +183,6 @@ object Util {
   def parseYaml0[T](
       fileName: String,
       headerData: String,
-      originalText: String,
       visitor0: upickle.core.Visitor[_, T]
   ): Result[T] = {
 
@@ -213,29 +280,34 @@ object Util {
       }
     catch {
       case e: upickle.core.TraceVisitor.TraceException =>
-        val msg = e.getCause match {
+        e.getCause match {
           case e: org.snakeyaml.engine.v2.exceptions.ParserException =>
             val mark = e.getProblemMark.or(() => e.getContextMark)
             if (mark.isPresent) {
               val m = mark.get()
               val problem = Option(e.getProblem).getOrElse("YAML syntax error")
-              formatError(fileName, originalText, m.getIndex, problem)
+              Result.Failure(
+                problem,
+                os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO,
+                m.getIndex
+              )
             } else {
-              s"Failed parsing build header in $fileName: " + e.getMessage
+              Result.Failure(
+                s"Failed parsing build header in $fileName: " + e.getMessage
+              )
             }
           case abort: upickle.core.AbortException =>
-            formatError(
-              fileName,
-              originalText,
-              abort.index,
-              s"Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}"
+            Result.Failure(
+              s"Failed de-serializing config key ${e.jsonPath}: ${e.getCause.getCause.getMessage}",
+              os.Path(fileName, mill.api.BuildCtx.workspaceRoot).toNIO,
+              abort.index
             )
 
           case _ =>
-            s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
+            Result.Failure(
+              s"$fileName Failed de-serializing config key ${e.jsonPath} ${e.getCause.getMessage}"
+            )
         }
-
-        Result.Failure(msg)
     }
   }
 
@@ -269,4 +341,38 @@ object Util {
     out.toSeq
   }
 
+  def formatFailing(evaluated: ExecutionResultsApi): Result.Failure = {
+    Result.Failure.join(
+      for ((key, fs) <- evaluated.transitiveFailingApi.toSeq)
+        yield {
+          val keyPrefix =
+            Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(key, Nil))
+
+          def convertFailure(f: ExecResult.Failure[_]): Result.Failure = {
+            f.failure match {
+              // If there is no associated `Result.Failure`,
+              // synthesize one based on the `key` and the `f.msg`
+              case None => Result.Failure(error = s"$key ${f.msg}", tickerPrefix = keyPrefix)
+              case Some(failure) =>
+                // If there is an associated `Result.Failure` with no prefix, set the prefix to the
+                // current `keyPrefix` and prefix `error` with `key`
+                if (failure.tickerPrefix == "")
+                  failure.copy(error = s"$key ${failure.error}", tickerPrefix = keyPrefix)
+                // If there is an associated `Result.Failure` with its own prefix, preserve it
+                // and chain together a new `Result.Failure` entry representing the current key
+                else Result.Failure(error = s"$key", tickerPrefix = keyPrefix, next = Some(failure))
+            }
+          }
+
+          fs match {
+            case f: ExecResult.Failure[_] => convertFailure(f)
+            case ex: ExecResult.Exception =>
+              mill.api.daemon.ExecResult.exceptionToFailure(ex.throwable, ex.outerStack).copy(
+                error = key.toString,
+                tickerPrefix = keyPrefix
+              )
+          }
+        }
+    )
+  }
 }

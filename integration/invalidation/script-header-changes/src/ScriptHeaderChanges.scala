@@ -17,9 +17,9 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
 
       val res2 = tester.eval("./Foo.java")
       assert(!res2.isSuccess)
-      assert(res2.err.contains("[error] Foo.java:1:14"))
+      assert(res2.err.contains("[error] Foo.java:1:5"))
       assert(res2.err.contains("//| invalid: key"))
-      assert(res2.err.contains("             ^"))
+      assert(res2.err.contains("    ^"))
       assert(res2.err.contains("key \"invalid\" does not override any task"))
 
       tester.modifyFile(

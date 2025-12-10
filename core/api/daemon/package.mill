@@ -11,7 +11,7 @@ import millbuild.*
  *
  * @see https://github.com/com-lihaoyi/mill/pull/4879
  */
-object `package` extends MillStableScalaModule with BuildInfo {
+object `package` extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
   def moduleDeps = Seq(build.core.constants)
 
   def buildInfoPackageName = "mill.api.daemon"

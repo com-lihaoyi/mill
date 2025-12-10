@@ -327,8 +327,8 @@ we explored above only deals with compiling a single small module. But a similar
 Clean Compile* benchmarks which compiles the entire Mockito and Netty projects on
 a single core shows similar numbers for the various build tools:
 
-* xref:mill:ROOT:comparisons/gradle.adoc#_sequential_clean_compile_all[Gradle compiling 100,000 lines of Java at ~5,600 lines/s]
-* xref:mill:ROOT:comparisons/maven.adoc#_sequential_clean_compile_all[Maven compiling 500,000 lines of Java at ~5,100 lines/s]
+* xref:mill:ROOT:comparisons/performance.adoc#_mill_vs_gradle[Gradle compiling 100,000 lines of Java at ~5,600 lines/s]
+* xref:mill:ROOT:comparisons/performance.adoc#_mill_vs_maven[Maven compiling 500,000 lines of Java at ~5,100 lines/s]
 * Mill compiling at ~25,000 lines/s on both the above whole-project benchmarks
 
 All of these are far below the 100,000 lines/s that we should expect from Java compilation,
@@ -362,7 +362,7 @@ compiling Java_ is pure overhead. Checking for cache invalidation in _shouldn't_
 as long as actually compiling your code. I mean it obviously does _today_, but it _shouldn't_!
 
 The Mill build tool goes to great lengths to try and minimize overhead, and already gets
-xref:mill:ROOT:comparisons/why-mill.adoc#_performance[~4x faster builds] than Maven or Gradle on
+xref:mill:ROOT:comparisons/performance.adoc[~4x faster builds] than Maven or Gradle on
 real-world projects like Mockito or Netty. But there still is a long way to go give Java
 developers the fast, snappy experience that the underlying Java platform can provide. If
 Java build and compile times are things you find important, you should try out Mill on

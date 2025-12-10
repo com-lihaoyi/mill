@@ -1,13 +1,13 @@
 Mill supports three main ways of defining {language} projects:
 
 
-* xref:#_config_based_modules[]: simple projects that require basic setting
+* xref:#_declarative_modules[]: simple projects that require basic setting
 of dependencies and versions
 
 * xref:#_single_file_scripts[]: small programs with both code and build configuration
   contained within a single file
 
-* xref:#_programmatic_modules[]: builds which require custom logic, e.g.
+* xref:#_programmable_modules[]: builds which require custom logic, e.g.
   code generation or resource processing
 
 This page walks through a series of Mill builds of increasing

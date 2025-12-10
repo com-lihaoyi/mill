@@ -9,9 +9,9 @@ _{author}, {revdate}_
 
 {mill-doc-url}[Mill] is a build tool for Java, Scala, and Kotlin that aims to
 improve upon existing build tools in areas like
-xref:mill::comparisons/why-mill.adoc#_performance[performance],
-xref:mill::comparisons/why-mill.adoc#_extensibility[extensibility],
-and xref:mill::comparisons/why-mill.adoc#_ide_support[IDE support].
+xref:mill::comparisons/performance.adoc[],
+xref:mill::comparisons/gradle.adoc#_extending_mill[extensibility],
+and xref:mill::comparisons/gradle.adoc#_gradle_ide_support[IDE support].
 The new release of Mill 1.0.0 is a major breaking version of the Mill project focused on setting
 a solid technical foundation that can provide stability for the coming years of development. While the
 https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100[Changelog] contains a thorough
@@ -281,7 +281,7 @@ xref:mill::android/java.adoc[Android Kotlin Projects] for more details.
 
 === IDE Support
 
-Mill has always had a xref:mill::comparisons/why-mill.adoc#_ide_support[best-in-class IDE experience]
+Mill has always had a xref:mill::comparisons/gradle.adoc#_gradle_ide_support[best-in-class IDE experience]
 in IntelliJ and VSCode that surpasses the experience you get with Maven, Gradle, or SBT.
 For example, in Mill builds your IDE is able to autocomplete, pull up docs, or otherwise
 navigate around your build graph as easily as you can any application codebase in Java, Scala,
@@ -346,7 +346,7 @@ While this may seem like an esoteric change, concretely it means two things:
 - You are now much free-er to use or upgrade third-party dependencies
   in your `build.mill` via `//| mvnDeps`: they will not conflict with Mill's internal
   dependencies, and are not pinned to the versions that Mill uses. This is important
-  because xref:mill::comparisons/why-mill.adoc#_extensibility[extending Mill
+  because xref:mill::comparisons/gradle.adoc#_extending_mill[extending Mill
   with third-party libraries] is a core part of its unique value proposition.
 
 - Mill can evolve much more freely without worrying about breaking user code. All
@@ -378,6 +378,4 @@ If you would like to try Mill 1.0.0 for the first time, check out the links belo
 
 - xref:mill::android/java.adoc[], for trying out the experimental Android support in Mill
 
-If you are curious about the motivation behind the Mill project, see:
 
-- xref:mill::comparisons/why-mill.adoc[]

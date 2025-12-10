@@ -50,8 +50,24 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       val cached = eval(("selective.resolve", "{foo,bar}._"), stderr = os.Pipe)
 
       assert(
-        cached.out.linesIterator.toList ==
+        cached.out.linesIterator.toList.sorted ==
           Seq("bar.barCommandRenamed", "foo.fooCommand", "foo.fooTaskRenamed")
+      )
+    }
+    test("overrideSuper") - integrationTest { tester =>
+      import tester._
+      eval(("selective.prepare", "qux.quxCommand"), check = true)
+
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace("Computing quxCommand", "Computing quxCommand!")
+      )
+
+      val cached = eval(("selective.run", "qux.quxCommand"), stderr = os.Pipe)
+
+      assert(
+        cached.out.linesIterator.toList ==
+          Seq("Computing quxCommand!")
       )
     }
   }

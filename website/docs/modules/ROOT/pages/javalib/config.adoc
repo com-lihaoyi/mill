@@ -1,4 +1,4 @@
-= Config-Based Java Modules
+= Declarative Java Modules
 :language: Java
 :language-small: java
 
@@ -6,38 +6,38 @@ include::partial$Config_Header.adoc[]
 
 == Common Config Overrides
 
-include::partial$example/javalib/config/1-common-config.adoc[]
+include::partial$example/javalib/declarative/1-common-config.adoc[]
 
 == Library Dependencies
 
-include::partial$example/javalib/config/2-dependencies.adoc[]
+include::partial$example/javalib/declarative/2-dependencies.adoc[]
 
 == Unit & Integration Testing
 
-include::partial$example/javalib/config/3-testing.adoc[]
+include::partial$example/javalib/declarative/3-testing.adoc[]
 
 == Linting & Autoformatting
 
-include::partial$example/javalib/config/4-linting.adoc[]
+include::partial$example/javalib/declarative/4-linting.adoc[]
 
 == Packaging & Publishing
 
 === Graal Native Image
 
-include::partial$example/javalib/config/5-native-image.adoc[]
+include::partial$example/javalib/declarative/5-native-image.adoc[]
 
 === Publishing
 
-include::partial$example/javalib/config/6-publishing.adoc[]
+include::partial$example/javalib/declarative/6-publishing.adoc[]
 
 == Example Web Project
 
-include::partial$example/javalib/config/7-web-example.adoc[]
+include::partial$example/javalib/declarative/7-web-example.adoc[]
 
 == Custom Module Traits
 
-include::partial$example/javalib/config/8-custom-trait.adoc[]
+include::partial$example/javalib/declarative/8-custom-trait.adoc[]
 
-== Programmatic `moduleDeps`
+== Programmable `moduleDeps`
 
-include::partial$example/javalib/config/9-programmatic-module-deps.adoc[]
+include::partial$example/javalib/declarative/9-programmable-module-deps.adoc[]

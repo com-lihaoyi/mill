@@ -14,18 +14,24 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         .filter(_.startsWith("mill-"))
         .sorted
       val millLocalClasspath = deserialized
-        .map(_.path)
-        .filter(_.startsWith(BuildCtx.workspaceRoot))
-        .map(_.subRelativeTo(BuildCtx.workspaceRoot))
-        .filter(!_.startsWith("out/integration"))
-        .filter(!_.startsWith("out/dist/localRepo.dest"))
-        .map(_.toString)
+        .flatMap { p =>
+          lazy val sub = p.path.subRelativeTo(BuildCtx.workspaceRoot)
+          Option.when(
+            p.path.startsWith(BuildCtx.workspaceRoot) &&
+              !sub.startsWith("out/integration") &&
+              !sub.startsWith("out/dist/localRepo.dest")
+          ) {
+            sub.toString()
+          }
+        }
         .sorted
+
       if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") == "true") {
         assertGoldenLiteral(
           millPublishedJars,
           List(
             "mill-core-api-daemon_3-SNAPSHOT.jar",
+            "mill-core-api-java11_3-SNAPSHOT.jar",
             "mill-core-api_3-SNAPSHOT.jar",
             "mill-core-constants-SNAPSHOT.jar",
             "mill-libs-androidlib-databinding_3-SNAPSHOT.jar",
@@ -48,9 +54,10 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-scalanativelib-api_3-SNAPSHOT.jar",
             "mill-libs-scalanativelib_3-SNAPSHOT.jar",
             "mill-libs-script_3-SNAPSHOT.jar",
+            "mill-libs-util-java11_3-SNAPSHOT.jar",
             "mill-libs-util_3-SNAPSHOT.jar",
             "mill-libs_3-SNAPSHOT.jar",
-            "mill-moduledefs_3-0.12.3.jar",
+            "mill-moduledefs_3-0.12.5-RC1.jar",
             "mill-runner-autooverride-api_3-SNAPSHOT.jar"
           )
         )

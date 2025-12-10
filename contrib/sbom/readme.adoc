@@ -1,4 +1,4 @@
-= SBOM file
+=  Software Bill of Materials (SBOM)
 :page-aliases: Plugin_SBOM.adoc
 
 This plugin creates Software Bill of Materials (SBOM)

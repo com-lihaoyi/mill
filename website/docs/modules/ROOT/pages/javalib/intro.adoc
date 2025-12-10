@@ -9,7 +9,7 @@
 
 include::partial$Intro_Header.adoc[]
 
-== Config-Based Modules
+== Declarative Modules
 
 include::partial$example/javalib/basic/3-simple.adoc[]
 
@@ -26,21 +26,21 @@ include::partial$example/javalib/basic/5-compat-modules.adoc[]
 
 include::partial$example/javalib/basic/1-script.adoc[]
 
-== Programmatic Modules
+== Programmable Modules
 
-include::partial$example/javalib/basic/6-programmatic.adoc[]
+include::partial$example/javalib/basic/6-programmable.adoc[]
 
 === Custom Build Logic
 
 include::partial$example/javalib/basic/7-custom-build-logic.adoc[]
 
-=== Programmatic Multi-Module Project
+=== Programmable Multi-Module Project
 
 include::partial$example/javalib/basic/8-multi-module.adoc[]
 
-=== Programmatic Compatibility Modules
+=== Programmable Compatibility Modules
 
-include::partial$example/javalib/basic/9-programmatic-compat.adoc[]
+include::partial$example/javalib/basic/9-programmable-compat.adoc[]
 
 == Realistic Java Example Project
 

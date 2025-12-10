@@ -580,7 +580,31 @@ object Task {
             case None => report.error(err)
           }
       }
+
+      assertInsideModule()
     }
+
+    private def assertInsideModule()(using Quotes): Unit = Cacher.withMacroOwner { owner =>
+      import quotes.reflect.*
+      import mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS
+      if (
+        sys.env.contains(MILL_ENABLE_STATIC_CHECKS) ||
+        sys.props.contains(MILL_ENABLE_STATIC_CHECKS)
+      ) {
+        val CacherSym = TypeRepr.of[Cacher].typeSymbol
+
+        val ownerIsCacherClass =
+          owner.owner.isClassDef && owner.owner.typeRef.baseClasses.contains(CacherSym)
+
+        if (!(ownerIsCacherClass && owner.flags.is(Flags.Method))) {
+          report.errorAndAbort(
+            "Task{} members must be defs defined in a Module class/trait/object body",
+            Position.ofMacroExpansion
+          )
+        }
+      }
+    }
+
     def sourceImpl(using
         Quotes
     )(value: Expr[Result[PathRef]])(

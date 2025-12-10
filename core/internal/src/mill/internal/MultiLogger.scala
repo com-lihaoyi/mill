@@ -41,6 +41,11 @@ class MultiLogger(
 
   def prompt: Logger.Prompt = new Logger.Prompt {
 
+    override def logLock[T](block: => T): T = logger1.prompt.logLock {
+      logger2.prompt.logLock {
+        block
+      }
+    }
     override def setPromptDetail(key: Seq[String], s: String): Unit = {
       logger1.prompt.setPromptDetail(key, s)
       logger2.prompt.setPromptDetail(key, s)

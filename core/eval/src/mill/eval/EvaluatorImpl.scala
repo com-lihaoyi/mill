@@ -1,8 +1,7 @@
 package mill.eval
 
-import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
-import mill.constants.OutFiles
-import mill.constants.OutFiles.*
+import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
+import mill.constants.OutFiles.OutFiles
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
@@ -117,17 +116,15 @@ final class EvaluatorImpl(
           scriptModuleResolver = scriptModuleInit(_, this)
         )
       }.flatMap { f =>
-        validateModuleOverrides(f.map(_.ctx.enclosingModule).distinct) match {
-          case Nil => Result.Success(f)
-          case errors => Result.Failure(errors.mkString("\n"))
-        }
+        Result.sequence(validateModuleOverrides(f.map(_.ctx.enclosingModule).distinct)).map(_ => f)
       }
     }
   }
 
-  def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]) = {
+  def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]): Seq[Result.Failure] = {
     val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
     val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
+
     allModules.flatMap { module =>
       val discover = module match {
         case x: ExternalModule => x.millDiscover
@@ -167,25 +164,19 @@ final class EvaluatorImpl(
       }
       import pprint.Util.literalize
 
-      Option.when(invalidBuildOverrides.nonEmpty) {
-        invalidBuildOverrides.map { case (k, v) =>
-          val originalText = java.nio.file.Files.readString(v.path.toNIO)
-          val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
-          val message = mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
-            case None =>
-              if (millKeys.contains(k))
-                s"key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
-              else doesNotOverridePrefix
-            case Some(similar) =>
-              s"$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
-          }
-          mill.internal.Util.formatError(
-            filePath.toString,
-            originalText,
-            v.value.index,
-            message
-          )
-        }.mkString("\n")
+      invalidBuildOverrides.map { case (k, v) =>
+        java.nio.file.Files.readString(v.path.toNIO)
+        val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
+        val message = mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
+          case None =>
+            if (millKeys.contains(k))
+              s"key ${literalize(k)} can only be used in your root `build.mill` or `build.mill.yaml` file"
+            else doesNotOverridePrefix
+          case Some(similar) =>
+            s"$doesNotOverridePrefix, did you mean ${literalize(similar)}?"
+        }
+
+        Result.Failure(message, v.path.toNIO, v.index)
       }
     }
   }
@@ -321,7 +312,6 @@ final class EvaluatorImpl(
       selective.saveMetadata(newMetadata.copy(forceRunTasks = failingTaskNames))
     }
 
-    val errorStr = ExecutionResultsApi.formatFailing(evaluated)
     evaluated.transitiveFailing.size match {
       case 0 =>
         Evaluator.Result(
@@ -330,10 +320,10 @@ final class EvaluatorImpl(
           selectedTasks,
           evaluated
         )
-      case n =>
+      case _ =>
         Evaluator.Result(
           watched,
-          mill.api.Result.Failure(s"$n tasks failed\n$errorStr"),
+          mill.internal.Util.formatFailing(evaluated),
           selectedTasks,
           evaluated
         )

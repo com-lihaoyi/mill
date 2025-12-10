@@ -22,6 +22,11 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // internal stuff
     ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),
     ProblemFilter.exclude[Problem]("mill.javalib.internal.*"),
+    ProblemFilter.exclude[Problem]("mill.api.daemon.internal.MillScalaParser.*"),
+    // experimental stuff
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.javalib.spring.boot.SpringBootToolsModule.*"
+    ),
     // Replaced static-forwarder (to the same method in companion objects) by non-static method
     // This is a real breakage, but probably one that won't hurt any Mill user
     ProblemFilter.exclude[StaticVirtualMemberProblem]("mill.javalib.AssemblyModule.prepareOffline"),
@@ -41,12 +46,14 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ),
     ProblemFilter.exclude[IncompatibleMethTypeProblem](
       "mill.javalib.SonatypeCentralPublisher.publishAllByMap"
+    ),
+    // private method
+    ProblemFilter.exclude[Problem](
+      "mill.api.daemon.internal.ExecutionResultsApi.formatFailing"
     )
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
-  def mimaExcludeAnnotations = Seq("mill.api.daemon.experimental")
-
-  override def mimaReportSignatureProblems = true
+  def mimaExcludeAnnotations = Seq("mill.api.daemon.experimental", "mill.api.experimental")
 }

@@ -84,8 +84,14 @@ public class Util {
    * Formats an error message in dotty style with file location, code snippet, and pointer.
    */
   public static String formatError(
-      String fileName, int lineNum, int colNum, String lineContent, String message) {
-    return formatError("[error] " + fileName, lineNum, colNum, lineContent, message, 1, s -> s);
+      String fileName,
+      int lineNum,
+      int colNum,
+      String lineContent,
+      String message,
+      Function<String, String> highlight) {
+    return "[" + highlight.apply("error") + "] "
+        + formatError(fileName, lineNum, colNum, lineContent, message, 1, highlight);
   }
 
   /**
@@ -102,20 +108,24 @@ public class Util {
       String message,
       int pointerLength,
       Function<String, String> highlight) {
+
     String pointer =
         colNum > 0 ? " ".repeat(colNum - 1) + highlight.apply("^".repeat(pointerLength)) : "";
+
     String header = (lineNum >= 0 && colNum >= 0)
-        ? highlight.apply(fileName) + ":" + highlight.apply(String.valueOf(lineNum)) + ":"
-            + highlight.apply(String.valueOf(colNum))
+        ? highlight.apply(fileName) + ":" + highlight.apply("" + lineNum) + ":"
+            + highlight.apply("" + colNum)
         : highlight.apply(fileName);
-    return header + "\n" + lineContent + "\n" + pointer + "\n" + message;
+
+    // Add an extra trailing newline to visually separate this block from following logs
+    return header + "\n" + lineContent + "\n" + pointer + "\n" + message + "\n";
   }
 
   private static String throwBuildHeaderError(
       String errorFileName, int lineNumber, String line, String msg) {
     // lineNumber is 0-indexed, convert to 1-indexed for display
     // Column is 1 since the error applies to the start of the line
-    throw new RuntimeException(formatError(errorFileName, lineNumber + 1, 1, line, msg));
+    throw new RuntimeException(formatError(errorFileName, lineNumber + 1, 1, line, msg, s -> s));
   }
 
   public static String readBuildHeader(Path buildFile, String errorFileName) {
