@@ -385,14 +385,16 @@ object CodeGen {
             val sep = {
               if (postParent.startsWith(",")) ", "
               else if (postParent.startsWith("with")) " with "
-              else " with " // no separator found, use `with` to be consistent with MillDiscoverWrapper
+              else
+                " with " // no separator found, use `with` to be consistent with MillDiscoverWrapper
             }
 
             newParent + sep + objectData.parent.text + " with MillDiscoverWrapper"
           }
         )
 
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "@scala.annotation.experimental object")
+        newScriptCode =
+          objectData.obj.applyTo(newScriptCode, "@scala.annotation.experimental object")
 
         s"""$generatedFileHeader
            |$pkgLine

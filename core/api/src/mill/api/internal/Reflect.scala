@@ -109,7 +109,8 @@ private[mill] object Reflect {
       .filter(summon[ClassTag[T]].runtimeClass.isAssignableFrom(_))
       .flatMap { c =>
         c.getName.stripPrefix(outerCls.getName) match {
-          case s"$name$$" if filter(scala.reflect.NameTransformer.decode(name).stripSuffix("_alias")) =>
+          case s"$name$$"
+              if filter(scala.reflect.NameTransformer.decode(name).stripSuffix("_alias")) =>
             c.getFields.find(f => f.getName == "MODULE$").map(name -> _)
           case _ => None
         }
@@ -118,7 +119,9 @@ private[mill] object Reflect {
       .distinct
 
     val third = outerCls.getFields
-      .filter(f => summon[ClassTag[T]].runtimeClass.isAssignableFrom(f.getType) && f.getName != "MODULE$")
+      .filter(f =>
+        summon[ClassTag[T]].runtimeClass.isAssignableFrom(f.getType) && f.getName != "MODULE$"
+      )
       .map(f => scala.reflect.NameTransformer.decode(f.getName) -> f.getType.getField("MODULE$"))
       .filter(t => filter(t._1))
 
