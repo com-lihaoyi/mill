@@ -50,7 +50,7 @@ private[mill] object Reflect {
       getMethods: (Class[?], Boolean, Class[?]) => Array[(java.lang.reflect.Method, String)]
   ): Array[java.lang.reflect.Method] = {
     val arr: Array[java.lang.reflect.Method] = getMethods(outer, noParams, inner)
-      .collect { case (m, n) if filter(n) => m }
+      .collect { case (m, n) if filter(n.stripSuffix("_alias")) => m }
 
     // There can be multiple methods of the same name on a class if a sub-class
     // overrides a super-class method and narrows the return type.
@@ -93,7 +93,7 @@ private[mill] object Reflect {
       noParams = true,
       getMethods
     )
-      .map(m => (m.getName, m))
+      .map(m => (m.getName.stripSuffix("_alias"), m))
 
     val companionClassOpt = outerCls.getName match {
       // This case only happens when the modules are nested within a top-level static `object`,
@@ -109,7 +109,7 @@ private[mill] object Reflect {
       .filter(summon[ClassTag[T]].runtimeClass.isAssignableFrom(_))
       .flatMap { c =>
         c.getName.stripPrefix(outerCls.getName) match {
-          case s"$name$$" if filter(scala.reflect.NameTransformer.decode(name)) =>
+          case s"$name$$" if filter(scala.reflect.NameTransformer.decode(name).stripSuffix("_alias")) =>
             c.getFields.find(f => f.getName == "MODULE$").map(name -> _)
           case _ => None
         }
@@ -117,10 +117,17 @@ private[mill] object Reflect {
       }
       .distinct
 
+    val third = outerCls.getFields
+      .filter(f => summon[ClassTag[T]].runtimeClass.isAssignableFrom(f.getType) && f.getName != "MODULE$")
+      .map(f => scala.reflect.NameTransformer.decode(f.getName) -> f.getType.getField("MODULE$"))
+      .filter(t => filter(t._1))
+
     // Sometimes `getClasses` returns stuff in odd orders, make sure to sort for determinism
     second.sortInPlaceBy(_._1)
 
-    first ++ second
+    val res: Array[(String, java.lang.reflect.Member)] = (first ++ second ++ third)
+
+    res.distinctBy(_._1)
   }
 
   def reflectNestedObjects02[T: ClassTag](
