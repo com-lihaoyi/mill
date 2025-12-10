@@ -48,7 +48,7 @@ Or see the language-specific introductory documentation linked below:
 
 === Mill Features
 
-* *Ergonomic*: Mill provides colored and formatted command-line output and syntax
+* *Ergonomic*: Mill provides colored command-line output and syntax
 highlights the code in error messages, making it easier for the developer to quickly
 read, understand, and resolve issues.
 
