@@ -106,9 +106,10 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    * Additional options for the `native-image` Tool.
    */
   def nativeImageOptions: T[Opts] = Task {
-    Opts(nativeMvnDepsMetadata().map(md =>
-      Opt("--configurations-path", md.path / "META-INF")
-    ))
+    nativeMvnDepsMetadata() match {
+      case Some(md) => Opts(OptGroup("--configurations-path", md.path / "META-INF"))
+      case _ => Opts()
+    }
   }
 
   /**
