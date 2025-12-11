@@ -8,9 +8,8 @@ _{author}, {revdate}_
 Java and other JVM languages are often used for large enterprise codebases, but the friction
 of configuring their build tools means they are less often used for small programs or
 scripts. The newly-released Mill build tool v1.1.0 contains two major features
-that try to improve upon this pain point:
-xref:#_declarative_mill_builds[declarative build.mill.yaml configuration files], and support for
-xref:#_mill_single_file_scripts[single-file Java, Scala, and Kotlin programs]
+that try to improve upon this pain point: declarative build.mill.yaml configuration files,
+and support for single-file Java, Scala, and Kotlin programs
 with their configuration in a build header comment. This allows your project's build to be
 configured via a compact `build.mill.yaml` file:
 
