@@ -217,6 +217,21 @@ object InspectTests extends UtestIntegrationTestSuite {
         |Inputs:
         |""".stripMargin
       )
+
+      val scriptOverrideRes = eval(("inspect", "configoverride/Script.scala:mvnDeps"))
+      assert(scriptOverrideRes.isSuccess)
+      val scriptOverrideInspect = out("inspect").json.str
+      assertGoldenLiteral(
+        scriptOverrideInspect
+          .replaceAll("JavaModule.scala:\\d+", "JavaModule.scala:..."),
+        """configoverride/Script.scala:mvnDeps(configoverride/Script.scala:1)
+        |    Any ivy dependencies you want to add to this Module, in the format
+        |    mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
+        |    for Java dependencies
+        |
+        |Inputs:
+        |""".stripMargin
+      )
     }
   }
 }
