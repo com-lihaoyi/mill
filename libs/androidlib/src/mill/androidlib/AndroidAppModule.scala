@@ -235,6 +235,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
   }
 
+  override def androidAaptNonFinalIds: T[Boolean] = Task {
+    false
+  }
+
   /**
    * Regex patterns of files to be excluded from packaging into the APK.
    */
