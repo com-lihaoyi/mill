@@ -384,13 +384,15 @@ object TestModule {
 
     override def bomMvnDeps: T[Seq[Dep]] = Task {
       // cannot call super.bomMvnDeps because it will break mima compat
-      Seq(jupiterVersion())
-        .filter(!_.isBlank() && useJupiterBom())
-        .flatMap(v =>
-          Seq(
-            mvn"org.junit:junit-bom:${v.trim()}"
+      super.bomMvnDeps() ++ {
+        Seq(jupiterVersion())
+          .filter(!_.isBlank() && useJupiterBom())
+          .flatMap(v =>
+            Seq(
+              mvn"org.junit:junit-bom:${v.trim()}"
+            )
           )
-        )
+      }
     }
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
