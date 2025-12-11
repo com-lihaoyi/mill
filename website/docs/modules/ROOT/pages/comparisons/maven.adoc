@@ -320,7 +320,7 @@ fiddling with setup commands.
 
 === Mill Build Configuration
 
-Mill's `build.mill.yaml` xref:javalib/intro.adoc#_declarative_modules[declarative configuration
+Mill's `build.mill.yaml` xref:javalib/intro.adoc#_declarative_module_config[declarative configuration
 files] are much simpler than the Maven ``pom.xml``s you may be used to writing. For example, for
 the `HtmlScraper.java` file shown above, the minimal configuration file looks like this:
 
