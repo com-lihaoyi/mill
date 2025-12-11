@@ -210,12 +210,12 @@ object InspectTests extends UtestIntegrationTestSuite {
         overrideInspect
           .replaceAll("JavaModule.scala:\\d+", "JavaModule.scala:..."),
         """configoverride.mvnDeps(configoverride/package.mill.yaml:3)
-        |    Any ivy dependencies you want to add to this Module, in the format
-        |    mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
-        |    for Java dependencies
-        |
-        |Inputs:
-        |""".stripMargin
+          |    Any ivy dependencies you want to add to this Module, in the format
+          |    mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
+          |    for Java dependencies
+          |
+          |Inputs:
+          |""".stripMargin
       )
 
       val scriptOverrideRes = eval(("inspect", "configoverride/Script.scala:mvnDeps"))
@@ -225,12 +225,12 @@ object InspectTests extends UtestIntegrationTestSuite {
         scriptOverrideInspect
           .replaceAll("JavaModule.scala:\\d+", "JavaModule.scala:..."),
         """configoverride/Script.scala:mvnDeps(configoverride/Script.scala:1)
-        |    Any ivy dependencies you want to add to this Module, in the format
-        |    mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
-        |    for Java dependencies
-        |
-        |Inputs:
-        |""".stripMargin
+          |    Any ivy dependencies you want to add to this Module, in the format
+          |    mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
+          |    for Java dependencies
+          |
+          |Inputs:
+          |""".stripMargin
       )
     }
   }

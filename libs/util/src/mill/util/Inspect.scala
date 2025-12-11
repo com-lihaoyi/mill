@@ -100,9 +100,9 @@ private[mill] object Inspect {
     def overrideFileName(task: Task.Named[?]): Option[String] = {
       buildOverrideFor(task).flatMap { located =>
         val lineNum = Try {
-            val rawText = os.read(located.path).replace("\r", "").replace("\n//|", "\n")
-            IndexedParserInput(rawText).prettyIndex(located.index).takeWhile(_ != ':')
-          }
+          val rawText = os.read(located.path).replace("\r", "").replace("\n//|", "\n")
+          IndexedParserInput(rawText).prettyIndex(located.index).takeWhile(_ != ':')
+        }
           .toOption
 
         lineNum.map(renderPath(located.path.toString, _))
