@@ -50,7 +50,10 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // private method
     ProblemFilter.exclude[Problem](
       "mill.api.daemon.internal.ExecutionResultsApi.formatFailing"
-    )
+    ),
+    // Real breakage, but hopefully, it's not used by external plugins
+    // See https://github.com/com-lihaoyi/mill/pull/5747#issuecomment-3641324806 and following discussion
+    ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.javalib.TestModule#Junit5.mill$javalib$TestModule$Junit5$$super$bomMvnDeps")
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
