@@ -1,0 +1,43 @@
+= Declarative Java Modules
+:language: Java
+:language-small: java
+
+include::partial$Config_Header.adoc[]
+
+== Common Config Overrides
+
+include::partial$example/javalib/declarative/1-common-config.adoc[]
+
+== Library Dependencies
+
+include::partial$example/javalib/declarative/2-dependencies.adoc[]
+
+== Unit & Integration Testing
+
+include::partial$example/javalib/declarative/3-testing.adoc[]
+
+== Linting & Autoformatting
+
+include::partial$example/javalib/declarative/4-linting.adoc[]
+
+== Packaging & Publishing
+
+=== Graal Native Image
+
+include::partial$example/javalib/declarative/5-native-image.adoc[]
+
+=== Publishing
+
+include::partial$example/javalib/declarative/6-publishing.adoc[]
+
+== Example Web Project
+
+include::partial$example/javalib/declarative/7-web-example.adoc[]
+
+== Custom Module Traits
+
+include::partial$example/javalib/declarative/8-custom-trait.adoc[]
+
+== Programmable `moduleDeps`
+
+include::partial$example/javalib/declarative/9-programmable-module-deps.adoc[]

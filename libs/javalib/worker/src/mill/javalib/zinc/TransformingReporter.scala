@@ -30,13 +30,14 @@ private object TransformingReporter {
       mapper: xsbti.Position => xsbti.Position,
       workspaceRoot: os.Path
   ): xsbti.Problem = {
-    val pos0 = problem0.position()
+    val unMappedPos = problem0.position()
     val related0 = problem0.diagnosticRelatedInformation()
     val actions0 = problem0.actions()
-    val pos = mapper(pos0)
+    val pos = mapper(unMappedPos)
     val related = transformRelateds(related0, mapper)
     val actions = transformActions(actions0, mapper)
-    val rendered = dottyStyleMessage(color, problem0, pos, workspaceRoot)
+    val rendered =
+      dottyStyleMessage(color, problem0, pos = pos, unMappedPos = unMappedPos, workspaceRoot)
     InterfaceUtil.problem(
       cat = problem0.category(),
       pos = pos,
@@ -61,6 +62,7 @@ private object TransformingReporter {
       color: Boolean,
       problem0: xsbti.Problem,
       pos: xsbti.Position,
+      unMappedPos: xsbti.Position,
       workspaceRoot: os.Path
   ): String = {
 
@@ -100,24 +102,49 @@ private object TransformingReporter {
           .flatMap(_.linesIterator)
           .toSeq
 
-        // Just grab the first line from the dotty error code snippet, because dotty defaults to
-        // rendering entire expressions which can be arbitrarily large and spammy in the terminal
-        val lineContent = mill.api.internal.Util.scrapeColoredLineContent(
+        // Scrape the relevant line from the dotty error code snippet, because dotty defaults to
+        // rendering entire expressions which can be arbitrarily large and spammy in the terminal.
+        val scraped = mill.api.internal.Util.scrapeColoredLineContent(
           renderedLines,
+          // Use the unmapped line to scrape the corresponding line from the error message,
+          // since the raw compiler error would not have gone through line mapping
+          intValue(unMappedPos.line(), -1),
           pos.lineContent()
-        ) match {
-          case "" =>
-            // Some errors like Java `unclosed string literal` errors don't provide any
-            // message at all to `rendered` for us to scrape the line content, so instead
-            // try to scrape it ourselves from the filesystem
-            try os.read.lines(absPath).apply(line - 1)
-            catch { case _: Exception => "" }
-          case s => s
-        }
+        )
+
+        // Some errors like Java `unclosed string literal` errors don't provide any
+        // message at all to `rendered` for us to scrape the line content, and others
+        // like `cannot find symbol` have incorrect line `.lineContent()`s, so for
+        // all Java errors just scrape the line from the filesystem
+        val isJavaFile = absPath.ext == "java"
+        val lineContent0 = if (scraped == "" || isJavaFile) {
+          try os.read.lines(absPath).apply(line - 1)
+          catch { case _: Exception => "" }
+        } else scraped
+
+        // Apply syntax highlighting to Java source code lines
+        val lineContent =
+          if (color && isJavaFile && lineContent0.nonEmpty) {
+            HighlightJava.highlightJavaCode(
+              lineContent0,
+              literalColor = fansi.Color.Green,
+              keywordColor = fansi.Color.Yellow,
+              commentColor = fansi.Color.Blue,
+              definitionColor = fansi.Color.Cyan
+            ).render
+          } else lineContent0
 
         val pointerLength =
           if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
-            math.max(1, math.min(endCol - pointer0, lineContent.length - space.length))
+            math.max(
+              1,
+              math.min(
+                endCol - pointer0,
+                // Make sure to use the plaintext length of lineContent,
+                // since it may have color codes
+                fansi.Str(lineContent).length - space.length
+              )
+            )
           else 1
 
         mill.constants.Util.formatError(

@@ -1,0 +1,55 @@
+// This example shows some of the common tasks you may want to override on a
+// `{language}Module`: specifying the `mainClass`, adding additional
+// sources/resources, and setting compilation/run
+// options.
+/** See Also: build.mill.yaml */
+/** Usage
+
+> ./mill run
+Foo2.value: <h1>hello2</h1>
+Foo.value: <h1>hello</h1>
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+my.custom.property: my-prop-value
+MY_CUSTOM_ENV: my-env-value
+
+> ./mill show assembly
+".../out/assembly.dest/out.jar"
+
+> ./out/assembly.dest/out.jar # mac/linux
+Foo2.value: <h1>hello2</h1>
+Foo.value: <h1>hello</h1>
+MyResource: My Resource Contents
+MyOtherResource: My Other Resource Contents
+my.custom.property: my-prop-value
+
+*/
+
+//// SNIPPET:FATAL_WARNINGS
+
+/** Usage
+
+> sed -i.bak 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
+
+> ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+error: object Foo2 { println(this + "hello")
+error:                       ^
+error: ...Implicit injection of + is deprecated. Convert to String to call +...
+
+*/
+
+//// SNIPPET:END
+//
+// Paths such as `./custom-src` or `./custom-resources` are relative to the
+// xref:fundamentals/modules.adoc#_moduledir[moduleDir] of the module being configured.
+// In the example above this is the root folder of your codebase, but in multi-module
+// projects this may be a subfolder containing the current `package.mill.yaml` file.
+//
+// Most ``Task``s that you can define programmatically in a `build.mill` file can be specified
+// in a `build.mill.yaml`, as long as they involve simple configuration (strings, lists, maps, etc.)
+// and do not need xref:{language-small}lib/intro.adoc#_custom_build_logic[Custom Build Logic].
+// For example, you can use the various configuration methods discussed in
+// xref:{language-small}lib/dependencies.adoc[]: `runMvnDeps`, `compileMvnDeps`,
+// `unmanagedClasspath`, etc.
+// For more flexibility, e.g. if you need to generate sources or resource files at build time,
+// you can instead use xref:{language-small}lib/intro.adoc#_programmable_module_config[Programmable Modules].

@@ -9,7 +9,7 @@
 
 include::partial$Intro_Header.adoc[]
 
-== Config-Based Modules
+== Declarative Module Config
 
 include::partial$example/scalalib/basic/3-simple.adoc[]
 
@@ -28,7 +28,7 @@ include::partial$example/scalalib/basic/5-compat-modules.adoc[]
 include::partial$example/scalalib/basic/1-script.adoc[]
 
 
-== Programmable Modules
+== Programmable Module Config
 
 include::partial$example/scalalib/basic/6-programmable.adoc[]
 

@@ -42,7 +42,7 @@
         <orderEntry type="library" scope="RUNTIME" name="jcl-over-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jgrapht-core-1.4.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jheaps-0.11.jar" level="project"/>
-        <orderEntry type="library" name="jline-3.28.0.jar" level="project"/>
+        <orderEntry type="library" name="jline-3.30.6.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jline-native-3.29.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jna-5.17.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jsoniter-scala-core_2.13-2.13.5.jar" level="project"/>
@@ -89,7 +89,7 @@
         <orderEntry type="library" name="mill-libs-util-java11_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-util_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" name="mill-moduledefs_3-0.12.4.jar" level="project"/>
+        <orderEntry type="library" name="mill-moduledefs_3-0.12.5-RC1.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="munit_3-0.7.29.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
@@ -106,7 +106,7 @@
         <orderEntry type="library" name="scala-collection-compat_3-2.12.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala-library-2.13.12.jar" level="project"/>
         <orderEntry type="library" name="scala-library-3.8.0-RC3.jar" level="project"/>
-        <orderEntry type="library" name="scala-reflect-2.13.15.jar" level="project"/>
+        <orderEntry type="library" name="scala-reflect-2.13.18.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="scala-xml_2.13-2.4.0.jar" level="project"/>
         <orderEntry type="library" name="scala-xml_3-2.4.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>

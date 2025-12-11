@@ -26,8 +26,8 @@ object `package` extends JavaModule, ErrorProneModule {
 
 > ./mill compile
 [warn] src/example/ShortSet.java:11:15
-s.remove(i - 1)
-              ^
+      s.remove(i - 1);
+              ^^^^^^^
 [CollectionIncompatibleType] Argument 'i - 1' should not be passed to this method; its type int is not compatible with its collection's type argument Short
     (see https://errorprone.info/bugpattern/CollectionIncompatibleType)
 */

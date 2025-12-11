@@ -3,7 +3,7 @@
 
 // This is a basic Mill build for a single `{language}Module`, with two
 // third-party dependencies and a test suite using the JUnit framework.
-// This uses Mill's config-based `.mill.yaml` files for defining the
+// This uses Mill's declarative `.mill.yaml` files for defining the
 // modules:
 //
 // - `build.mill.yaml` defines the configuration for the root module
@@ -17,6 +17,11 @@
 // for dependencies that are only used in the test suite.
 //
 //// SNIPPET:END
+//
+// Each module's keys (e.g. `mvnDeps`) and their expected types are listed in the module
+// class's API documentation, e.g.
+//
+// * {mill-doc-url}/api/latest/mill/{language-small}lib/{language}Module.html#mvnDeps-0[mill.{language-small}lib.{language}Module]
 //
 // === Basic Folder Layout
 //
@@ -171,9 +176,9 @@ compiling 1 Scala source to...
 // time. See the documentation for xref:fundamentals/tasks.adoc[Tasks] for
 // details on the different task types.
 //
-// This example uses Mill's config-based YAML syntax, which is a good fit for simple builds
+// This example uses Mill's declarative YAML syntax, which is a good fit for simple builds
 // where you are just setting some configuration keys. This is discussed more in the documentation
 // for:
 //
-// * xref:{language-small}lib/config.adoc[Config-based {language} Modules]
+// * xref:{language-small}lib/declarative.adoc[Declarative {language} Modules]
 //

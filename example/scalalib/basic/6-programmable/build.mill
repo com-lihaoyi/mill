@@ -52,9 +52,9 @@ object foo extends ScalaModule {
 // This example places the `{language}Module` in the `foo/` subfolder, but you can also use
 // define a xref:fundamentals/modules.adoc#_root_modules[Root Module] to place it at the
 // root of your repository similar to the `build.mill.yaml` examples discussed in
-// xref:#_config_based_modules[]
+// xref:#_declarative_module_config[]
 //
-// Usage of programmable Mill builds is similar to usage of simple config-based
+// Usage of programmable Mill builds is similar to usage of simple declarative
 // Mill builds:
 
 /** Usage
@@ -96,5 +96,5 @@ foo.run
 // not need to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven
 // XML, anyone can learn enough Scala for Mill without needing to become an expert in
 // the language. For simpler builds that do not need the flexibility that programmable builds
-// provide, YAML-based xref:{language-small}lib/config.adoc[Config-Based Module definitions]
+// provide, YAML-based xref:{language-small}lib/declarative.adoc[Declarative Module definitions]
 // are a great alternative.
