@@ -12,7 +12,7 @@ Hello bar
 
 /** Usage
 > ./mill Foo.groovy:run bar
- Hello bar
+Hello bar
 */
 
 //// SNIPPET:END
