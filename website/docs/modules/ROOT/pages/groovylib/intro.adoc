@@ -11,6 +11,11 @@ include::partial$Intro_Header.adoc[]
 NOTE: Mill Groovy support is currently still under active development.
 It is expected to continue evolving over time.
 
+== Declarative Module Config
+
+include::partial$example/groovylib/basic/11-declarative.adoc[]
+
+
 == Config-Based Modules
 
 include::partial$example/groovylib/basic/3-simple.adoc[]
@@ -27,7 +32,7 @@ include::partial$example/groovylib/basic/5-compat-modules.adoc[]
 
 include::partial$example/groovylib/basic/1-script.adoc[]
 
-== Programmable Modules
+== Programmable Module Config
 
 include::partial$example/javalib/basic/6-programmable.adoc[]
 

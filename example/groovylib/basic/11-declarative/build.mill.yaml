@@ -1,0 +1,6 @@
+extends: [mill.groovylib.GroovyModule]
+groovyVersion: 5.0.1
+mvnDeps:
+  - org.apache.groovy:groovy-cli-commons
+  - org.apache.groovy:groovy-xml
+mainClass: foo.Foo
