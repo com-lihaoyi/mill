@@ -3,7 +3,6 @@ package mill.daemon
 import mill.constants.{DaemonFiles, Util}
 import mill.constants.OutFiles.OutFiles
 import mill.daemon.MillMain0.{handleMillException, main0}
-import mill.api.BuildCtx
 import mill.server.Server
 
 import scala.jdk.CollectionConverters.*
@@ -29,9 +28,8 @@ object MillNoDaemonMain0 {
       .fold(err => throw IllegalArgumentException(err), identity)
 
     val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.outFor(args.outMode), BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
-      out / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
+      args.outDir / OutFiles.millNoDaemon / s"pid-$processId" / DaemonFiles.processId,
       processId,
       running = () => true,
       exit = msg => {
@@ -40,7 +38,7 @@ object MillNoDaemonMain0 {
       }
     )
 
-    val outLock = MillMain0.doubleLock(out)
+    val outLock = MillMain0.doubleLock(args.outDir)
 
     val (result, _) =
       try main0(
@@ -54,7 +52,8 @@ object MillNoDaemonMain0 {
           initialSystemProperties = sys.props.toMap,
           systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
           daemonDir = args.daemonDir,
-          outLock = outLock
+          outLock = outLock,
+          outDir = args.outDir
         )
       catch handleMillException(initialSystemStreams.err, ())
 

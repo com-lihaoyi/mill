@@ -26,6 +26,7 @@ abstract class MillDaemonServer[State](
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,
+    outDir: os.Path,
     testLogEvenWhenServerIdWrong: Boolean = false
 ) extends Server[DaemonServerData, Int](Server.Args(
       daemonDir = daemonDir,
@@ -36,7 +37,6 @@ abstract class MillDaemonServer[State](
     )) {
 
   def outLock: mill.client.lock.Lock
-  def outFolder: os.Path
 
   private var stateCache: State = initialStateCache
 
@@ -91,7 +91,7 @@ abstract class MillDaemonServer[State](
       MillDaemonServer.withOutLock(
         noBuildLock = false,
         noWaitForBuildLock = false,
-        out = outFolder,
+        out = outDir,
         millActiveCommandMessage = "checking server mill version and java version",
         streams = new mill.api.daemon.SystemStreams(
           new PrintStream(mill.api.daemon.DummyOutputStream),
