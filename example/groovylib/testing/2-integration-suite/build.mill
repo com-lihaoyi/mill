@@ -3,7 +3,7 @@ package build
 import mill.*, groovylib.*
 object qux extends GroovyModule {
 
-  def groovyVersion = "5.0.1"
+  def groovyVersion = "5.0.3"
 
   object test extends GroovyTests with TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(

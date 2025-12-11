@@ -4,16 +4,18 @@ package build
 import mill.*, groovylib.*
 
 object foo extends GroovyModule {
-  def groovyVersion = "5.0.0"
+  def groovyVersion = "5.0.3"
 
+  // Groovy dependency version have been loaded via BOM from the Module already
   def mvnDeps = Seq(
-    mvn"com.github.ajalt.clikt:clikt:4.4.0",
-    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
+    mvn"org.apache.groovy:groovy-cli-commons",
+    mvn"org.apache.groovy:groovy-xml",
+
   )
 
-  object test extends KotlinTests, TestModule.Junit5 {
+  object test extends GroovyTests, TestModule.Junit5 {
     def mvnDeps = Seq(
-      mvn"io.kotest:kotest-runner-junit5:5.9.1"
+      mvn"org.apache.groovy:groovy-test"
     )
   }
 }
