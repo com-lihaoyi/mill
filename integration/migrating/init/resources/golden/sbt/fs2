@@ -1,296 +1,296 @@
-Module dependencies of benchmark[2.12.20]:
-  io.jvm[2.12.20]
-Module dependencies of benchmark[2.13.16]:
-  io.jvm[2.13.16]
-Module dependencies of benchmark[3.3.5]:
-  io.jvm[3.3.5]
-Module dependencies of core.js[2.12.20]:
-Module dependencies of core.js[2.12.20].test:
-  core.js[2.12.20]
-Module dependencies of core.js[2.13.16]:
-Module dependencies of core.js[2.13.16].test:
-  core.js[2.13.16]
-Module dependencies of core.js[3.3.5]:
-Module dependencies of core.js[3.3.5].test:
-  core.js[3.3.5]
-Module dependencies of core.jvm[2.12.20]:
-Module dependencies of core.jvm[2.12.20].test:
-  core.jvm[2.12.20]
-Module dependencies of core.jvm[2.13.16]:
-Module dependencies of core.jvm[2.13.16].test:
-  core.jvm[2.13.16]
-Module dependencies of core.jvm[3.3.5]:
-Module dependencies of core.jvm[3.3.5].test:
-  core.jvm[3.3.5]
-Module dependencies of core.native[2.12.20]:
-Module dependencies of core.native[2.12.20].test:
-  core.native[2.12.20]
-Module dependencies of core.native[2.13.16]:
-Module dependencies of core.native[2.13.16].test:
-  core.native[2.13.16]
-Module dependencies of core.native[3.3.5]:
-Module dependencies of core.native[3.3.5].test:
-  core.native[3.3.5]
-Module dependencies of integration[2.12.20]:
-  core.jvm[2.12.20]
-Module dependencies of integration[2.12.20].test:
-  integration[2.12.20]
-Module dependencies of integration[2.13.16]:
-  core.jvm[2.13.16]
-Module dependencies of integration[2.13.16].test:
-  integration[2.13.16]
-Module dependencies of integration[3.3.5]:
-  core.jvm[3.3.5]
-Module dependencies of integration[3.3.5].test:
-  integration[3.3.5]
-Module dependencies of io.js[2.12.20]:
-  core.js[2.12.20]
-Module dependencies of io.js[2.13.16]:
-  core.js[2.13.16]
-Module dependencies of io.js[3.3.5]:
-  core.js[3.3.5]
-Module dependencies of io.jvm[2.12.20]:
-  core.jvm[2.12.20]
-Module dependencies of io.jvm[2.13.16]:
-  core.jvm[2.13.16]
-Module dependencies of io.jvm[3.3.5]:
-  core.jvm[3.3.5]
-Module dependencies of io.native[2.12.20]:
-  core.native[2.12.20]
-Module dependencies of io.native[2.13.16]:
-  core.native[2.13.16]
-Module dependencies of io.native[3.3.5]:
-  core.native[3.3.5]
-Module dependencies of mdoc[2.12.20]:
-  core.jvm[2.12.20]
-  io.jvm[2.12.20]
-  reactive-streams[2.12.20]
-  scodec.jvm[2.12.20]
-Module dependencies of mdoc[2.13.16]:
-  core.jvm[2.13.16]
-  io.jvm[2.13.16]
-  reactive-streams[2.13.16]
-  scodec.jvm[2.13.16]
-Module dependencies of mdoc[3.3.5]:
-  core.jvm[3.3.5]
-  io.jvm[3.3.5]
-  reactive-streams[3.3.5]
-  scodec.jvm[3.3.5]
-Module dependencies of protocols.js[2.12.20]:
-  core.js[2.12.20]
-  scodec.js[2.12.20]
-  io.js[2.12.20]
-Module dependencies of protocols.js[2.13.16]:
-  core.js[2.13.16]
-  scodec.js[2.13.16]
-  io.js[2.13.16]
-Module dependencies of protocols.js[3.3.5]:
-  core.js[3.3.5]
-  scodec.js[3.3.5]
-  io.js[3.3.5]
-Module dependencies of protocols.jvm[2.12.20]:
-  core.jvm[2.12.20]
-  scodec.jvm[2.12.20]
-  io.jvm[2.12.20]
-Module dependencies of protocols.jvm[2.13.16]:
-  core.jvm[2.13.16]
-  scodec.jvm[2.13.16]
-  io.jvm[2.13.16]
-Module dependencies of protocols.jvm[3.3.5]:
-  core.jvm[3.3.5]
-  scodec.jvm[3.3.5]
-  io.jvm[3.3.5]
-Module dependencies of protocols.native[2.12.20]:
-  core.native[2.12.20]
-  scodec.native[2.12.20]
-  io.native[2.12.20]
-Module dependencies of protocols.native[2.13.16]:
-  core.native[2.13.16]
-  scodec.native[2.13.16]
-  io.native[2.13.16]
-Module dependencies of protocols.native[3.3.5]:
-  core.native[3.3.5]
-  scodec.native[3.3.5]
-  io.native[3.3.5]
-Module dependencies of reactive-streams[2.12.20]:
-  core.jvm[2.12.20]
-Module dependencies of reactive-streams[2.12.20].test:
-  reactive-streams[2.12.20]
-  core.jvm[2.12.20].test
-Module dependencies of reactive-streams[2.13.16]:
-  core.jvm[2.13.16]
-Module dependencies of reactive-streams[2.13.16].test:
-  reactive-streams[2.13.16]
-  core.jvm[2.13.16].test
-Module dependencies of reactive-streams[3.3.5]:
-  core.jvm[3.3.5]
-Module dependencies of reactive-streams[3.3.5].test:
-  reactive-streams[3.3.5]
-  core.jvm[3.3.5].test
-Module dependencies of scodec.js[2.12.20]:
-  core.js[2.12.20]
-Module dependencies of scodec.js[2.13.16]:
-  core.js[2.13.16]
-Module dependencies of scodec.js[3.3.5]:
-  core.js[3.3.5]
-Module dependencies of scodec.jvm[2.12.20]:
-  core.jvm[2.12.20]
-Module dependencies of scodec.jvm[2.13.16]:
-  core.jvm[2.13.16]
-Module dependencies of scodec.jvm[3.3.5]:
-  core.jvm[3.3.5]
-Module dependencies of scodec.native[2.12.20]:
-  core.native[2.12.20]
-Module dependencies of scodec.native[2.13.16]:
-  core.native[2.13.16]
-Module dependencies of scodec.native[3.3.5]:
-  core.native[3.3.5]
-Module dependencies of unidocs[2.12.20]:
-Module dependencies of unidocs[2.13.16]:
-Module dependencies of unidocs[3.3.5]:
+Module dependencies of benchmark.2_12_20:
+  io.jvm.2_12_20
+Module dependencies of benchmark.2_13_16:
+  io.jvm.2_13_16
+Module dependencies of benchmark.3_3_5:
+  io.jvm.3_3_5
+Module dependencies of core.js.2_12_20:
+Module dependencies of core.js.2_12_20.test:
+  core.js.2_12_20
+Module dependencies of core.js.2_13_16:
+Module dependencies of core.js.2_13_16.test:
+  core.js.2_13_16
+Module dependencies of core.js.3_3_5:
+Module dependencies of core.js.3_3_5.test:
+  core.js.3_3_5
+Module dependencies of core.jvm.2_12_20:
+Module dependencies of core.jvm.2_12_20.test:
+  core.jvm.2_12_20
+Module dependencies of core.jvm.2_13_16:
+Module dependencies of core.jvm.2_13_16.test:
+  core.jvm.2_13_16
+Module dependencies of core.jvm.3_3_5:
+Module dependencies of core.jvm.3_3_5.test:
+  core.jvm.3_3_5
+Module dependencies of core.native.2_12_20:
+Module dependencies of core.native.2_12_20.test:
+  core.native.2_12_20
+Module dependencies of core.native.2_13_16:
+Module dependencies of core.native.2_13_16.test:
+  core.native.2_13_16
+Module dependencies of core.native.3_3_5:
+Module dependencies of core.native.3_3_5.test:
+  core.native.3_3_5
+Module dependencies of integration.2_12_20:
+  core.jvm.2_12_20
+Module dependencies of integration.2_12_20.test:
+  integration.2_12_20
+Module dependencies of integration.2_13_16:
+  core.jvm.2_13_16
+Module dependencies of integration.2_13_16.test:
+  integration.2_13_16
+Module dependencies of integration.3_3_5:
+  core.jvm.3_3_5
+Module dependencies of integration.3_3_5.test:
+  integration.3_3_5
+Module dependencies of io.js.2_12_20:
+  core.js.2_12_20
+Module dependencies of io.js.2_13_16:
+  core.js.2_13_16
+Module dependencies of io.js.3_3_5:
+  core.js.3_3_5
+Module dependencies of io.jvm.2_12_20:
+  core.jvm.2_12_20
+Module dependencies of io.jvm.2_13_16:
+  core.jvm.2_13_16
+Module dependencies of io.jvm.3_3_5:
+  core.jvm.3_3_5
+Module dependencies of io.native.2_12_20:
+  core.native.2_12_20
+Module dependencies of io.native.2_13_16:
+  core.native.2_13_16
+Module dependencies of io.native.3_3_5:
+  core.native.3_3_5
+Module dependencies of mdoc.2_12_20:
+  core.jvm.2_12_20
+  io.jvm.2_12_20
+  reactive-streams.2_12_20
+  scodec.jvm.2_12_20
+Module dependencies of mdoc.2_13_16:
+  core.jvm.2_13_16
+  io.jvm.2_13_16
+  reactive-streams.2_13_16
+  scodec.jvm.2_13_16
+Module dependencies of mdoc.3_3_5:
+  core.jvm.3_3_5
+  io.jvm.3_3_5
+  reactive-streams.3_3_5
+  scodec.jvm.3_3_5
+Module dependencies of protocols.js.2_12_20:
+  core.js.2_12_20
+  scodec.js.2_12_20
+  io.js.2_12_20
+Module dependencies of protocols.js.2_13_16:
+  core.js.2_13_16
+  scodec.js.2_13_16
+  io.js.2_13_16
+Module dependencies of protocols.js.3_3_5:
+  core.js.3_3_5
+  scodec.js.3_3_5
+  io.js.3_3_5
+Module dependencies of protocols.jvm.2_12_20:
+  core.jvm.2_12_20
+  scodec.jvm.2_12_20
+  io.jvm.2_12_20
+Module dependencies of protocols.jvm.2_13_16:
+  core.jvm.2_13_16
+  scodec.jvm.2_13_16
+  io.jvm.2_13_16
+Module dependencies of protocols.jvm.3_3_5:
+  core.jvm.3_3_5
+  scodec.jvm.3_3_5
+  io.jvm.3_3_5
+Module dependencies of protocols.native.2_12_20:
+  core.native.2_12_20
+  scodec.native.2_12_20
+  io.native.2_12_20
+Module dependencies of protocols.native.2_13_16:
+  core.native.2_13_16
+  scodec.native.2_13_16
+  io.native.2_13_16
+Module dependencies of protocols.native.3_3_5:
+  core.native.3_3_5
+  scodec.native.3_3_5
+  io.native.3_3_5
+Module dependencies of reactive-streams.2_12_20:
+  core.jvm.2_12_20
+Module dependencies of reactive-streams.2_12_20.test:
+  reactive-streams.2_12_20
+  core.jvm.2_12_20.test
+Module dependencies of reactive-streams.2_13_16:
+  core.jvm.2_13_16
+Module dependencies of reactive-streams.2_13_16.test:
+  reactive-streams.2_13_16
+  core.jvm.2_13_16.test
+Module dependencies of reactive-streams.3_3_5:
+  core.jvm.3_3_5
+Module dependencies of reactive-streams.3_3_5.test:
+  reactive-streams.3_3_5
+  core.jvm.3_3_5.test
+Module dependencies of scodec.js.2_12_20:
+  core.js.2_12_20
+Module dependencies of scodec.js.2_13_16:
+  core.js.2_13_16
+Module dependencies of scodec.js.3_3_5:
+  core.js.3_3_5
+Module dependencies of scodec.jvm.2_12_20:
+  core.jvm.2_12_20
+Module dependencies of scodec.jvm.2_13_16:
+  core.jvm.2_13_16
+Module dependencies of scodec.jvm.3_3_5:
+  core.jvm.3_3_5
+Module dependencies of scodec.native.2_12_20:
+  core.native.2_12_20
+Module dependencies of scodec.native.2_13_16:
+  core.native.2_13_16
+Module dependencies of scodec.native.3_3_5:
+  core.native.3_3_5
+Module dependencies of unidocs.2_12_20:
+Module dependencies of unidocs.2_13_16:
+Module dependencies of unidocs.3_3_5:
 {
-  "benchmark[2.12.20].repositories": [],
-  "benchmark[2.13.16].repositories": [],
-  "benchmark[3.3.5].repositories": [],
-  "core.js[2.12.20].repositories": [],
-  "core.js[2.12.20].test.repositories": [],
-  "core.js[2.13.16].repositories": [],
-  "core.js[2.13.16].test.repositories": [],
-  "core.js[3.3.5].repositories": [],
-  "core.js[3.3.5].test.repositories": [],
-  "core.jvm[2.12.20].repositories": [],
-  "core.jvm[2.12.20].test.repositories": [],
-  "core.jvm[2.13.16].repositories": [],
-  "core.jvm[2.13.16].test.repositories": [],
-  "core.jvm[3.3.5].repositories": [],
-  "core.jvm[3.3.5].test.repositories": [],
-  "core.native[2.12.20].repositories": [],
-  "core.native[2.12.20].test.repositories": [],
-  "core.native[2.13.16].repositories": [],
-  "core.native[2.13.16].test.repositories": [],
-  "core.native[3.3.5].repositories": [],
-  "core.native[3.3.5].test.repositories": [],
-  "integration[2.12.20].repositories": [],
-  "integration[2.12.20].test.repositories": [],
-  "integration[2.13.16].repositories": [],
-  "integration[2.13.16].test.repositories": [],
-  "integration[3.3.5].repositories": [],
-  "integration[3.3.5].test.repositories": [],
-  "io.js[2.12.20].repositories": [],
-  "io.js[2.13.16].repositories": [],
-  "io.js[3.3.5].repositories": [],
-  "io.jvm[2.12.20].repositories": [],
-  "io.jvm[2.13.16].repositories": [],
-  "io.jvm[3.3.5].repositories": [],
-  "io.native[2.12.20].repositories": [],
-  "io.native[2.13.16].repositories": [],
-  "io.native[3.3.5].repositories": [],
-  "mdoc[2.12.20].repositories": [],
-  "mdoc[2.13.16].repositories": [],
-  "mdoc[3.3.5].repositories": [],
-  "protocols.js[2.12.20].repositories": [],
-  "protocols.js[2.13.16].repositories": [],
-  "protocols.js[3.3.5].repositories": [],
-  "protocols.jvm[2.12.20].repositories": [],
-  "protocols.jvm[2.13.16].repositories": [],
-  "protocols.jvm[3.3.5].repositories": [],
-  "protocols.native[2.12.20].repositories": [],
-  "protocols.native[2.13.16].repositories": [],
-  "protocols.native[3.3.5].repositories": [],
-  "reactive-streams[2.12.20].repositories": [],
-  "reactive-streams[2.12.20].test.repositories": [],
-  "reactive-streams[2.13.16].repositories": [],
-  "reactive-streams[2.13.16].test.repositories": [],
-  "reactive-streams[3.3.5].repositories": [],
-  "reactive-streams[3.3.5].test.repositories": [],
-  "scodec.js[2.12.20].repositories": [],
-  "scodec.js[2.13.16].repositories": [],
-  "scodec.js[3.3.5].repositories": [],
-  "scodec.jvm[2.12.20].repositories": [],
-  "scodec.jvm[2.13.16].repositories": [],
-  "scodec.jvm[3.3.5].repositories": [],
-  "scodec.native[2.12.20].repositories": [],
-  "scodec.native[2.13.16].repositories": [],
-  "scodec.native[3.3.5].repositories": [],
-  "unidocs[2.12.20].repositories": [],
-  "unidocs[2.13.16].repositories": [],
-  "unidocs[3.3.5].repositories": []
+  "benchmark.2_12_20.repositories": [],
+  "benchmark.2_13_16.repositories": [],
+  "benchmark.3_3_5.repositories": [],
+  "core.js.2_12_20.repositories": [],
+  "core.js.2_12_20.test.repositories": [],
+  "core.js.2_13_16.repositories": [],
+  "core.js.2_13_16.test.repositories": [],
+  "core.js.3_3_5.repositories": [],
+  "core.js.3_3_5.test.repositories": [],
+  "core.jvm.2_12_20.repositories": [],
+  "core.jvm.2_12_20.test.repositories": [],
+  "core.jvm.2_13_16.repositories": [],
+  "core.jvm.2_13_16.test.repositories": [],
+  "core.jvm.3_3_5.repositories": [],
+  "core.jvm.3_3_5.test.repositories": [],
+  "core.native.2_12_20.repositories": [],
+  "core.native.2_12_20.test.repositories": [],
+  "core.native.2_13_16.repositories": [],
+  "core.native.2_13_16.test.repositories": [],
+  "core.native.3_3_5.repositories": [],
+  "core.native.3_3_5.test.repositories": [],
+  "integration.2_12_20.repositories": [],
+  "integration.2_12_20.test.repositories": [],
+  "integration.2_13_16.repositories": [],
+  "integration.2_13_16.test.repositories": [],
+  "integration.3_3_5.repositories": [],
+  "integration.3_3_5.test.repositories": [],
+  "io.js.2_12_20.repositories": [],
+  "io.js.2_13_16.repositories": [],
+  "io.js.3_3_5.repositories": [],
+  "io.jvm.2_12_20.repositories": [],
+  "io.jvm.2_13_16.repositories": [],
+  "io.jvm.3_3_5.repositories": [],
+  "io.native.2_12_20.repositories": [],
+  "io.native.2_13_16.repositories": [],
+  "io.native.3_3_5.repositories": [],
+  "mdoc.2_12_20.repositories": [],
+  "mdoc.2_13_16.repositories": [],
+  "mdoc.3_3_5.repositories": [],
+  "protocols.js.2_12_20.repositories": [],
+  "protocols.js.2_13_16.repositories": [],
+  "protocols.js.3_3_5.repositories": [],
+  "protocols.jvm.2_12_20.repositories": [],
+  "protocols.jvm.2_13_16.repositories": [],
+  "protocols.jvm.3_3_5.repositories": [],
+  "protocols.native.2_12_20.repositories": [],
+  "protocols.native.2_13_16.repositories": [],
+  "protocols.native.3_3_5.repositories": [],
+  "reactive-streams.2_12_20.repositories": [],
+  "reactive-streams.2_12_20.test.repositories": [],
+  "reactive-streams.2_13_16.repositories": [],
+  "reactive-streams.2_13_16.test.repositories": [],
+  "reactive-streams.3_3_5.repositories": [],
+  "reactive-streams.3_3_5.test.repositories": [],
+  "scodec.js.2_12_20.repositories": [],
+  "scodec.js.2_13_16.repositories": [],
+  "scodec.js.3_3_5.repositories": [],
+  "scodec.jvm.2_12_20.repositories": [],
+  "scodec.jvm.2_13_16.repositories": [],
+  "scodec.jvm.3_3_5.repositories": [],
+  "scodec.native.2_12_20.repositories": [],
+  "scodec.native.2_13_16.repositories": [],
+  "scodec.native.3_3_5.repositories": [],
+  "unidocs.2_12_20.repositories": [],
+  "unidocs.2_13_16.repositories": [],
+  "unidocs.3_3_5.repositories": []
 }
 {
-  "benchmark[2.12.20].jvmId": "zulu:11",
-  "benchmark[2.13.16].jvmId": "zulu:11",
-  "benchmark[3.3.5].jvmId": "zulu:11",
-  "core.js[2.12.20].jvmId": "",
-  "core.js[2.13.16].jvmId": "",
-  "core.js[3.3.5].jvmId": "",
-  "core.jvm[2.12.20].jvmId": "",
-  "core.jvm[2.13.16].jvmId": "",
-  "core.jvm[3.3.5].jvmId": "",
-  "core.native[2.12.20].jvmId": "",
-  "core.native[2.13.16].jvmId": "",
-  "core.native[3.3.5].jvmId": "",
-  "integration[2.12.20].jvmId": "zulu:11",
-  "integration[2.13.16].jvmId": "zulu:11",
-  "integration[3.3.5].jvmId": "zulu:11",
-  "io.js[2.12.20].jvmId": "",
-  "io.js[2.13.16].jvmId": "",
-  "io.js[3.3.5].jvmId": "",
-  "io.jvm[2.12.20].jvmId": "",
-  "io.jvm[2.13.16].jvmId": "",
-  "io.jvm[3.3.5].jvmId": "",
-  "io.native[2.12.20].jvmId": "",
-  "io.native[2.13.16].jvmId": "",
-  "io.native[3.3.5].jvmId": "",
-  "mdoc[2.12.20].jvmId": "",
-  "mdoc[2.13.16].jvmId": "",
-  "mdoc[3.3.5].jvmId": "",
-  "protocols.js[2.12.20].jvmId": "zulu:11",
-  "protocols.js[2.13.16].jvmId": "zulu:11",
-  "protocols.js[3.3.5].jvmId": "zulu:11",
-  "protocols.jvm[2.12.20].jvmId": "zulu:11",
-  "protocols.jvm[2.13.16].jvmId": "zulu:11",
-  "protocols.jvm[3.3.5].jvmId": "zulu:11",
-  "protocols.native[2.12.20].jvmId": "zulu:11",
-  "protocols.native[2.13.16].jvmId": "zulu:11",
-  "protocols.native[3.3.5].jvmId": "zulu:11",
-  "reactive-streams[2.12.20].jvmId": "zulu:11",
-  "reactive-streams[2.13.16].jvmId": "zulu:11",
-  "reactive-streams[3.3.5].jvmId": "zulu:11",
-  "scodec.js[2.12.20].jvmId": "zulu:11",
-  "scodec.js[2.13.16].jvmId": "zulu:11",
-  "scodec.js[3.3.5].jvmId": "zulu:11",
-  "scodec.jvm[2.12.20].jvmId": "zulu:11",
-  "scodec.jvm[2.13.16].jvmId": "zulu:11",
-  "scodec.jvm[3.3.5].jvmId": "zulu:11",
-  "scodec.native[2.12.20].jvmId": "zulu:11",
-  "scodec.native[2.13.16].jvmId": "zulu:11",
-  "scodec.native[3.3.5].jvmId": "zulu:11",
-  "unidocs[2.12.20].jvmId": "",
-  "unidocs[2.13.16].jvmId": "",
-  "unidocs[3.3.5].jvmId": ""
+  "benchmark.2_12_20.jvmId": "zulu:11",
+  "benchmark.2_13_16.jvmId": "zulu:11",
+  "benchmark.3_3_5.jvmId": "zulu:11",
+  "core.js.2_12_20.jvmId": "",
+  "core.js.2_13_16.jvmId": "",
+  "core.js.3_3_5.jvmId": "",
+  "core.jvm.2_12_20.jvmId": "",
+  "core.jvm.2_13_16.jvmId": "",
+  "core.jvm.3_3_5.jvmId": "",
+  "core.native.2_12_20.jvmId": "",
+  "core.native.2_13_16.jvmId": "",
+  "core.native.3_3_5.jvmId": "",
+  "integration.2_12_20.jvmId": "zulu:11",
+  "integration.2_13_16.jvmId": "zulu:11",
+  "integration.3_3_5.jvmId": "zulu:11",
+  "io.js.2_12_20.jvmId": "",
+  "io.js.2_13_16.jvmId": "",
+  "io.js.3_3_5.jvmId": "",
+  "io.jvm.2_12_20.jvmId": "",
+  "io.jvm.2_13_16.jvmId": "",
+  "io.jvm.3_3_5.jvmId": "",
+  "io.native.2_12_20.jvmId": "",
+  "io.native.2_13_16.jvmId": "",
+  "io.native.3_3_5.jvmId": "",
+  "mdoc.2_12_20.jvmId": "",
+  "mdoc.2_13_16.jvmId": "",
+  "mdoc.3_3_5.jvmId": "",
+  "protocols.js.2_12_20.jvmId": "zulu:11",
+  "protocols.js.2_13_16.jvmId": "zulu:11",
+  "protocols.js.3_3_5.jvmId": "zulu:11",
+  "protocols.jvm.2_12_20.jvmId": "zulu:11",
+  "protocols.jvm.2_13_16.jvmId": "zulu:11",
+  "protocols.jvm.3_3_5.jvmId": "zulu:11",
+  "protocols.native.2_12_20.jvmId": "zulu:11",
+  "protocols.native.2_13_16.jvmId": "zulu:11",
+  "protocols.native.3_3_5.jvmId": "zulu:11",
+  "reactive-streams.2_12_20.jvmId": "zulu:11",
+  "reactive-streams.2_13_16.jvmId": "zulu:11",
+  "reactive-streams.3_3_5.jvmId": "zulu:11",
+  "scodec.js.2_12_20.jvmId": "zulu:11",
+  "scodec.js.2_13_16.jvmId": "zulu:11",
+  "scodec.js.3_3_5.jvmId": "zulu:11",
+  "scodec.jvm.2_12_20.jvmId": "zulu:11",
+  "scodec.jvm.2_13_16.jvmId": "zulu:11",
+  "scodec.jvm.3_3_5.jvmId": "zulu:11",
+  "scodec.native.2_12_20.jvmId": "zulu:11",
+  "scodec.native.2_13_16.jvmId": "zulu:11",
+  "scodec.native.3_3_5.jvmId": "zulu:11",
+  "unidocs.2_12_20.jvmId": "",
+  "unidocs.2_13_16.jvmId": "",
+  "unidocs.3_3_5.jvmId": ""
 }
 {
-  "benchmark[2.12.20].mvnDeps": [
+  "benchmark.2_12_20.mvnDeps": [
     "org.openjdk.jmh:jmh-core:1.37",
     "org.openjdk.jmh:jmh-generator-bytecode:1.37",
     "org.openjdk.jmh:jmh-generator-reflection:1.37"
   ],
-  "benchmark[2.13.16].mvnDeps": [
+  "benchmark.2_13_16.mvnDeps": [
     "org.openjdk.jmh:jmh-core:1.37",
     "org.openjdk.jmh:jmh-generator-bytecode:1.37",
     "org.openjdk.jmh:jmh-generator-reflection:1.37"
   ],
-  "benchmark[3.3.5].mvnDeps": [
+  "benchmark.3_3_5.mvnDeps": [
     "org.openjdk.jmh:jmh-core:1.37",
     "org.openjdk.jmh:jmh-generator-bytecode:1.37",
     "org.openjdk.jmh:jmh-generator-reflection:1.37"
   ],
-  "core.js[2.12.20].mvnDeps": [
+  "core.js.2_12_20.mvnDeps": [
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
-  "core.js[2.12.20].test.mvnDeps": [
+  "core.js.2_12_20.test.mvnDeps": [
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
@@ -298,12 +298,12 @@ Module dependencies of unidocs[3.3.5]:
     "org.typelevel::munit-cats-effect::2.0.0",
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
-  "core.js[2.13.16].mvnDeps": [
+  "core.js.2_13_16.mvnDeps": [
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
-  "core.js[2.13.16].test.mvnDeps": [
+  "core.js.2_13_16.test.mvnDeps": [
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
@@ -311,12 +311,12 @@ Module dependencies of unidocs[3.3.5]:
     "org.typelevel::munit-cats-effect::2.0.0",
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
-  "core.js[3.3.5].mvnDeps": [
+  "core.js.3_3_5.mvnDeps": [
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
-  "core.js[3.3.5].test.mvnDeps": [
+  "core.js.3_3_5.test.mvnDeps": [
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
@@ -324,12 +324,12 @@ Module dependencies of unidocs[3.3.5]:
     "org.typelevel::munit-cats-effect::2.0.0",
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
-  "core.jvm[2.12.20].mvnDeps": [
+  "core.jvm.2_12_20.mvnDeps": [
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
-  "core.jvm[2.12.20].test.mvnDeps": [
+  "core.jvm.2_12_20.test.mvnDeps": [
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
@@ -339,12 +339,12 @@ Module dependencies of unidocs[3.3.5]:
     "org.reactivestreams:reactive-streams-tck-flow:1.0.4",
     "org.scalatestplus::testng-7-5:3.2.14.0"
   ],
-  "core.jvm[2.13.16].mvnDeps": [
+  "core.jvm.2_13_16.mvnDeps": [
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
-  "core.jvm[2.13.16].test.mvnDeps": [
+  "core.jvm.2_13_16.test.mvnDeps": [
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
@@ -354,12 +354,12 @@ Module dependencies of unidocs[3.3.5]:
     "org.reactivestreams:reactive-streams-tck-flow:1.0.4",
     "org.scalatestplus::testng-7-5:3.2.14.0"
   ],
-  "core.jvm[3.3.5].mvnDeps": [
+  "core.jvm.3_3_5.mvnDeps": [
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
-  "core.jvm[3.3.5].test.mvnDeps": [
+  "core.jvm.3_3_5.test.mvnDeps": [
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
@@ -369,12 +369,12 @@ Module dependencies of unidocs[3.3.5]:
     "org.reactivestreams:reactive-streams-tck-flow:1.0.4",
     "org.scalatestplus::testng-7-5:3.2.14.0"
   ],
-  "core.native[2.12.20].mvnDeps": [
+  "core.native.2_12_20.mvnDeps": [
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
-  "core.native[2.12.20].test.mvnDeps": [
+  "core.native.2_12_20.test.mvnDeps": [
     "org.scala-native::test-interface::0.4.17",
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
@@ -383,12 +383,12 @@ Module dependencies of unidocs[3.3.5]:
     "org.typelevel::munit-cats-effect::2.0.0",
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
-  "core.native[2.13.16].mvnDeps": [
+  "core.native.2_13_16.mvnDeps": [
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
-  "core.native[2.13.16].test.mvnDeps": [
+  "core.native.2_13_16.test.mvnDeps": [
     "org.scala-native::test-interface::0.4.17",
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
@@ -397,12 +397,12 @@ Module dependencies of unidocs[3.3.5]:
     "org.typelevel::munit-cats-effect::2.0.0",
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
-  "core.native[3.3.5].mvnDeps": [
+  "core.native.3_3_5.mvnDeps": [
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
   ],
-  "core.native[3.3.5].test.mvnDeps": [
+  "core.native.3_3_5.test.mvnDeps": [
     "org.scala-native::test-interface::0.4.17",
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
@@ -411,928 +411,928 @@ Module dependencies of unidocs[3.3.5]:
     "org.typelevel::munit-cats-effect::2.0.0",
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
-  "integration[2.12.20].mvnDeps": [],
-  "integration[2.12.20].test.mvnDeps": [
+  "integration.2_12_20.mvnDeps": [],
+  "integration.2_12_20.test.mvnDeps": [
     "org.typelevel::munit-cats-effect::2.0.0"
   ],
-  "integration[2.13.16].mvnDeps": [],
-  "integration[2.13.16].test.mvnDeps": [
+  "integration.2_13_16.mvnDeps": [],
+  "integration.2_13_16.test.mvnDeps": [
     "org.typelevel::munit-cats-effect::2.0.0"
   ],
-  "integration[3.3.5].mvnDeps": [],
-  "integration[3.3.5].test.mvnDeps": [
+  "integration.3_3_5.mvnDeps": [],
+  "integration.3_3_5.test.mvnDeps": [
     "org.typelevel::munit-cats-effect::2.0.0"
   ],
-  "io.js[2.12.20].mvnDeps": [
+  "io.js.2_12_20.mvnDeps": [
     "com.comcast::ip4s-core::3.6.0"
   ],
-  "io.js[2.13.16].mvnDeps": [
+  "io.js.2_13_16.mvnDeps": [
     "com.comcast::ip4s-core::3.6.0"
   ],
-  "io.js[3.3.5].mvnDeps": [
+  "io.js.3_3_5.mvnDeps": [
     "com.comcast::ip4s-core::3.6.0"
   ],
-  "io.jvm[2.12.20].mvnDeps": [
+  "io.jvm.2_12_20.mvnDeps": [
     "com.comcast::ip4s-core::3.6.0"
   ],
-  "io.jvm[2.13.16].mvnDeps": [
+  "io.jvm.2_13_16.mvnDeps": [
     "com.comcast::ip4s-core::3.6.0"
   ],
-  "io.jvm[3.3.5].mvnDeps": [
+  "io.jvm.3_3_5.mvnDeps": [
     "com.comcast::ip4s-core::3.6.0"
   ],
-  "io.native[2.12.20].mvnDeps": [
+  "io.native.2_12_20.mvnDeps": [
     "com.comcast::ip4s-core::3.6.0"
   ],
-  "io.native[2.13.16].mvnDeps": [
+  "io.native.2_13_16.mvnDeps": [
     "com.comcast::ip4s-core::3.6.0"
   ],
-  "io.native[3.3.5].mvnDeps": [
+  "io.native.3_3_5.mvnDeps": [
     "com.comcast::ip4s-core::3.6.0"
   ],
-  "mdoc[2.12.20].mvnDeps": [
+  "mdoc.2_12_20.mvnDeps": [
     "org.scalameta::mdoc:2.6.2"
   ],
-  "mdoc[2.13.16].mvnDeps": [
+  "mdoc.2_13_16.mvnDeps": [
     "org.scalameta::mdoc:2.6.2"
   ],
-  "mdoc[3.3.5].mvnDeps": [
+  "mdoc.3_3_5.mvnDeps": [
     "org.scalameta::mdoc:2.6.2"
   ],
-  "protocols.js[2.12.20].mvnDeps": [],
-  "protocols.js[2.13.16].mvnDeps": [],
-  "protocols.js[3.3.5].mvnDeps": [],
-  "protocols.jvm[2.12.20].mvnDeps": [],
-  "protocols.jvm[2.13.16].mvnDeps": [],
-  "protocols.jvm[3.3.5].mvnDeps": [],
-  "protocols.native[2.12.20].mvnDeps": [],
-  "protocols.native[2.13.16].mvnDeps": [],
-  "protocols.native[3.3.5].mvnDeps": [],
-  "reactive-streams[2.12.20].mvnDeps": [
+  "protocols.js.2_12_20.mvnDeps": [],
+  "protocols.js.2_13_16.mvnDeps": [],
+  "protocols.js.3_3_5.mvnDeps": [],
+  "protocols.jvm.2_12_20.mvnDeps": [],
+  "protocols.jvm.2_13_16.mvnDeps": [],
+  "protocols.jvm.3_3_5.mvnDeps": [],
+  "protocols.native.2_12_20.mvnDeps": [],
+  "protocols.native.2_13_16.mvnDeps": [],
+  "protocols.native.3_3_5.mvnDeps": [],
+  "reactive-streams.2_12_20.mvnDeps": [
     "org.reactivestreams:reactive-streams:1.0.4"
   ],
-  "reactive-streams[2.12.20].test.mvnDeps": [
+  "reactive-streams.2_12_20.test.mvnDeps": [
     "org.reactivestreams:reactive-streams-tck:1.0.4",
     "org.scalatestplus::testng-7-5:3.2.17.0"
   ],
-  "reactive-streams[2.13.16].mvnDeps": [
+  "reactive-streams.2_13_16.mvnDeps": [
     "org.reactivestreams:reactive-streams:1.0.4"
   ],
-  "reactive-streams[2.13.16].test.mvnDeps": [
+  "reactive-streams.2_13_16.test.mvnDeps": [
     "org.reactivestreams:reactive-streams-tck:1.0.4",
     "org.scalatestplus::testng-7-5:3.2.17.0"
   ],
-  "reactive-streams[3.3.5].mvnDeps": [
+  "reactive-streams.3_3_5.mvnDeps": [
     "org.reactivestreams:reactive-streams:1.0.4"
   ],
-  "reactive-streams[3.3.5].test.mvnDeps": [
+  "reactive-streams.3_3_5.test.mvnDeps": [
     "org.reactivestreams:reactive-streams-tck:1.0.4",
     "org.scalatestplus::testng-7-5:3.2.17.0"
   ],
-  "scodec.js[2.12.20].mvnDeps": [
+  "scodec.js.2_12_20.mvnDeps": [
     "org.scodec::scodec-core::1.11.10"
   ],
-  "scodec.js[2.13.16].mvnDeps": [
+  "scodec.js.2_13_16.mvnDeps": [
     "org.scodec::scodec-core::1.11.10"
   ],
-  "scodec.js[3.3.5].mvnDeps": [
+  "scodec.js.3_3_5.mvnDeps": [
     "org.scodec::scodec-core::2.2.1"
   ],
-  "scodec.jvm[2.12.20].mvnDeps": [
+  "scodec.jvm.2_12_20.mvnDeps": [
     "org.scodec::scodec-core::1.11.10"
   ],
-  "scodec.jvm[2.13.16].mvnDeps": [
+  "scodec.jvm.2_13_16.mvnDeps": [
     "org.scodec::scodec-core::1.11.10"
   ],
-  "scodec.jvm[3.3.5].mvnDeps": [
+  "scodec.jvm.3_3_5.mvnDeps": [
     "org.scodec::scodec-core::2.2.1"
   ],
-  "scodec.native[2.12.20].mvnDeps": [
+  "scodec.native.2_12_20.mvnDeps": [
     "org.scodec::scodec-core::1.11.10"
   ],
-  "scodec.native[2.13.16].mvnDeps": [
+  "scodec.native.2_13_16.mvnDeps": [
     "org.scodec::scodec-core::1.11.10"
   ],
-  "scodec.native[3.3.5].mvnDeps": [
+  "scodec.native.3_3_5.mvnDeps": [
     "org.scodec::scodec-core::2.2.1"
   ],
-  "unidocs[2.12.20].mvnDeps": [],
-  "unidocs[2.13.16].mvnDeps": [],
-  "unidocs[3.3.5].mvnDeps": []
+  "unidocs.2_12_20.mvnDeps": [],
+  "unidocs.2_13_16.mvnDeps": [],
+  "unidocs.3_3_5.mvnDeps": []
 }
 {
-  "benchmark[2.12.20].compileMvnDeps": [
+  "benchmark.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "benchmark[2.13.16].compileMvnDeps": [
+  "benchmark.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "benchmark[3.3.5].compileMvnDeps": [
+  "benchmark.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js[2.12.20].compileMvnDeps": [
+  "core.js.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js[2.12.20].test.compileMvnDeps": [
+  "core.js.2_12_20.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js[2.13.16].compileMvnDeps": [
+  "core.js.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js[2.13.16].test.compileMvnDeps": [
+  "core.js.2_13_16.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js[3.3.5].compileMvnDeps": [
+  "core.js.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js[3.3.5].test.compileMvnDeps": [
+  "core.js.3_3_5.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm[2.12.20].compileMvnDeps": [
+  "core.jvm.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm[2.12.20].test.compileMvnDeps": [
+  "core.jvm.2_12_20.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm[2.13.16].compileMvnDeps": [
+  "core.jvm.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm[2.13.16].test.compileMvnDeps": [
+  "core.jvm.2_13_16.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm[3.3.5].compileMvnDeps": [
+  "core.jvm.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm[3.3.5].test.compileMvnDeps": [
+  "core.jvm.3_3_5.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native[2.12.20].compileMvnDeps": [
+  "core.native.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native[2.12.20].test.compileMvnDeps": [
+  "core.native.2_12_20.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native[2.13.16].compileMvnDeps": [
+  "core.native.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native[2.13.16].test.compileMvnDeps": [
+  "core.native.2_13_16.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native[3.3.5].compileMvnDeps": [
+  "core.native.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native[3.3.5].test.compileMvnDeps": [
+  "core.native.3_3_5.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration[2.12.20].compileMvnDeps": [
+  "integration.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration[2.12.20].test.compileMvnDeps": [
+  "integration.2_12_20.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration[2.13.16].compileMvnDeps": [
+  "integration.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration[2.13.16].test.compileMvnDeps": [
+  "integration.2_13_16.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration[3.3.5].compileMvnDeps": [
+  "integration.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration[3.3.5].test.compileMvnDeps": [
+  "integration.3_3_5.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.js[2.12.20].compileMvnDeps": [
+  "io.js.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.js[2.13.16].compileMvnDeps": [
+  "io.js.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.js[3.3.5].compileMvnDeps": [
+  "io.js.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.jvm[2.12.20].compileMvnDeps": [
+  "io.jvm.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4",
     "com.github.jnr:jnr-unixsocket:0.38.23"
   ],
-  "io.jvm[2.13.16].compileMvnDeps": [
+  "io.jvm.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4",
     "com.github.jnr:jnr-unixsocket:0.38.23"
   ],
-  "io.jvm[3.3.5].compileMvnDeps": [
+  "io.jvm.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4",
     "com.github.jnr:jnr-unixsocket:0.38.23"
   ],
-  "io.native[2.12.20].compileMvnDeps": [
+  "io.native.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.native[2.13.16].compileMvnDeps": [
+  "io.native.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.native[3.3.5].compileMvnDeps": [
+  "io.native.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "mdoc[2.12.20].compileMvnDeps": [
+  "mdoc.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "mdoc[2.13.16].compileMvnDeps": [
+  "mdoc.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "mdoc[3.3.5].compileMvnDeps": [
+  "mdoc.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.js[2.12.20].compileMvnDeps": [
+  "protocols.js.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.js[2.13.16].compileMvnDeps": [
+  "protocols.js.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.js[3.3.5].compileMvnDeps": [
+  "protocols.js.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.jvm[2.12.20].compileMvnDeps": [
+  "protocols.jvm.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.jvm[2.13.16].compileMvnDeps": [
+  "protocols.jvm.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.jvm[3.3.5].compileMvnDeps": [
+  "protocols.jvm.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.native[2.12.20].compileMvnDeps": [
+  "protocols.native.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.native[2.13.16].compileMvnDeps": [
+  "protocols.native.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.native[3.3.5].compileMvnDeps": [
+  "protocols.native.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams[2.12.20].compileMvnDeps": [
+  "reactive-streams.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams[2.12.20].test.compileMvnDeps": [
+  "reactive-streams.2_12_20.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams[2.13.16].compileMvnDeps": [
+  "reactive-streams.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams[2.13.16].test.compileMvnDeps": [
+  "reactive-streams.2_13_16.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams[3.3.5].compileMvnDeps": [
+  "reactive-streams.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams[3.3.5].test.compileMvnDeps": [
+  "reactive-streams.3_3_5.test.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.js[2.12.20].compileMvnDeps": [
+  "scodec.js.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.js[2.13.16].compileMvnDeps": [
+  "scodec.js.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.js[3.3.5].compileMvnDeps": [
+  "scodec.js.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.jvm[2.12.20].compileMvnDeps": [
+  "scodec.jvm.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.jvm[2.13.16].compileMvnDeps": [
+  "scodec.jvm.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.jvm[3.3.5].compileMvnDeps": [
+  "scodec.jvm.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.native[2.12.20].compileMvnDeps": [
+  "scodec.native.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.native[2.13.16].compileMvnDeps": [
+  "scodec.native.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.native[3.3.5].compileMvnDeps": [
+  "scodec.native.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "unidocs[2.12.20].compileMvnDeps": [
+  "unidocs.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "unidocs[2.13.16].compileMvnDeps": [
+  "unidocs.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "unidocs[3.3.5].compileMvnDeps": [
+  "unidocs.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ]
 }
 {
-  "benchmark[2.12.20].runMvnDeps": [],
-  "benchmark[2.13.16].runMvnDeps": [],
-  "benchmark[3.3.5].runMvnDeps": [],
-  "core.js[2.12.20].runMvnDeps": [],
-  "core.js[2.12.20].test.runMvnDeps": [
+  "benchmark.2_12_20.runMvnDeps": [],
+  "benchmark.2_13_16.runMvnDeps": [],
+  "benchmark.3_3_5.runMvnDeps": [],
+  "core.js.2_12_20.runMvnDeps": [],
+  "core.js.2_12_20.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js[2.13.16].runMvnDeps": [],
-  "core.js[2.13.16].test.runMvnDeps": [
+  "core.js.2_13_16.runMvnDeps": [],
+  "core.js.2_13_16.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js[3.3.5].runMvnDeps": [],
-  "core.js[3.3.5].test.runMvnDeps": [
+  "core.js.3_3_5.runMvnDeps": [],
+  "core.js.3_3_5.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm[2.12.20].runMvnDeps": [],
-  "core.jvm[2.12.20].test.runMvnDeps": [
+  "core.jvm.2_12_20.runMvnDeps": [],
+  "core.jvm.2_12_20.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm[2.13.16].runMvnDeps": [],
-  "core.jvm[2.13.16].test.runMvnDeps": [
+  "core.jvm.2_13_16.runMvnDeps": [],
+  "core.jvm.2_13_16.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm[3.3.5].runMvnDeps": [],
-  "core.jvm[3.3.5].test.runMvnDeps": [
+  "core.jvm.3_3_5.runMvnDeps": [],
+  "core.jvm.3_3_5.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native[2.12.20].runMvnDeps": [],
-  "core.native[2.12.20].test.runMvnDeps": [
+  "core.native.2_12_20.runMvnDeps": [],
+  "core.native.2_12_20.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native[2.13.16].runMvnDeps": [],
-  "core.native[2.13.16].test.runMvnDeps": [
+  "core.native.2_13_16.runMvnDeps": [],
+  "core.native.2_13_16.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native[3.3.5].runMvnDeps": [],
-  "core.native[3.3.5].test.runMvnDeps": [
+  "core.native.3_3_5.runMvnDeps": [],
+  "core.native.3_3_5.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration[2.12.20].runMvnDeps": [],
-  "integration[2.12.20].test.runMvnDeps": [
+  "integration.2_12_20.runMvnDeps": [],
+  "integration.2_12_20.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration[2.13.16].runMvnDeps": [],
-  "integration[2.13.16].test.runMvnDeps": [
+  "integration.2_13_16.runMvnDeps": [],
+  "integration.2_13_16.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration[3.3.5].runMvnDeps": [],
-  "integration[3.3.5].test.runMvnDeps": [
+  "integration.3_3_5.runMvnDeps": [],
+  "integration.3_3_5.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.js[2.12.20].runMvnDeps": [],
-  "io.js[2.13.16].runMvnDeps": [],
-  "io.js[3.3.5].runMvnDeps": [],
-  "io.jvm[2.12.20].runMvnDeps": [],
-  "io.jvm[2.13.16].runMvnDeps": [],
-  "io.jvm[3.3.5].runMvnDeps": [],
-  "io.native[2.12.20].runMvnDeps": [],
-  "io.native[2.13.16].runMvnDeps": [],
-  "io.native[3.3.5].runMvnDeps": [],
-  "mdoc[2.12.20].runMvnDeps": [],
-  "mdoc[2.13.16].runMvnDeps": [],
-  "mdoc[3.3.5].runMvnDeps": [],
-  "protocols.js[2.12.20].runMvnDeps": [],
-  "protocols.js[2.13.16].runMvnDeps": [],
-  "protocols.js[3.3.5].runMvnDeps": [],
-  "protocols.jvm[2.12.20].runMvnDeps": [],
-  "protocols.jvm[2.13.16].runMvnDeps": [],
-  "protocols.jvm[3.3.5].runMvnDeps": [],
-  "protocols.native[2.12.20].runMvnDeps": [],
-  "protocols.native[2.13.16].runMvnDeps": [],
-  "protocols.native[3.3.5].runMvnDeps": [],
-  "reactive-streams[2.12.20].runMvnDeps": [],
-  "reactive-streams[2.12.20].test.runMvnDeps": [
+  "io.js.2_12_20.runMvnDeps": [],
+  "io.js.2_13_16.runMvnDeps": [],
+  "io.js.3_3_5.runMvnDeps": [],
+  "io.jvm.2_12_20.runMvnDeps": [],
+  "io.jvm.2_13_16.runMvnDeps": [],
+  "io.jvm.3_3_5.runMvnDeps": [],
+  "io.native.2_12_20.runMvnDeps": [],
+  "io.native.2_13_16.runMvnDeps": [],
+  "io.native.3_3_5.runMvnDeps": [],
+  "mdoc.2_12_20.runMvnDeps": [],
+  "mdoc.2_13_16.runMvnDeps": [],
+  "mdoc.3_3_5.runMvnDeps": [],
+  "protocols.js.2_12_20.runMvnDeps": [],
+  "protocols.js.2_13_16.runMvnDeps": [],
+  "protocols.js.3_3_5.runMvnDeps": [],
+  "protocols.jvm.2_12_20.runMvnDeps": [],
+  "protocols.jvm.2_13_16.runMvnDeps": [],
+  "protocols.jvm.3_3_5.runMvnDeps": [],
+  "protocols.native.2_12_20.runMvnDeps": [],
+  "protocols.native.2_13_16.runMvnDeps": [],
+  "protocols.native.3_3_5.runMvnDeps": [],
+  "reactive-streams.2_12_20.runMvnDeps": [],
+  "reactive-streams.2_12_20.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams[2.13.16].runMvnDeps": [],
-  "reactive-streams[2.13.16].test.runMvnDeps": [
+  "reactive-streams.2_13_16.runMvnDeps": [],
+  "reactive-streams.2_13_16.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams[3.3.5].runMvnDeps": [],
-  "reactive-streams[3.3.5].test.runMvnDeps": [
+  "reactive-streams.3_3_5.runMvnDeps": [],
+  "reactive-streams.3_3_5.test.runMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.js[2.12.20].runMvnDeps": [],
-  "scodec.js[2.13.16].runMvnDeps": [],
-  "scodec.js[3.3.5].runMvnDeps": [],
-  "scodec.jvm[2.12.20].runMvnDeps": [],
-  "scodec.jvm[2.13.16].runMvnDeps": [],
-  "scodec.jvm[3.3.5].runMvnDeps": [],
-  "scodec.native[2.12.20].runMvnDeps": [],
-  "scodec.native[2.13.16].runMvnDeps": [],
-  "scodec.native[3.3.5].runMvnDeps": [],
-  "unidocs[2.12.20].runMvnDeps": [],
-  "unidocs[2.13.16].runMvnDeps": [],
-  "unidocs[3.3.5].runMvnDeps": []
+  "scodec.js.2_12_20.runMvnDeps": [],
+  "scodec.js.2_13_16.runMvnDeps": [],
+  "scodec.js.3_3_5.runMvnDeps": [],
+  "scodec.jvm.2_12_20.runMvnDeps": [],
+  "scodec.jvm.2_13_16.runMvnDeps": [],
+  "scodec.jvm.3_3_5.runMvnDeps": [],
+  "scodec.native.2_12_20.runMvnDeps": [],
+  "scodec.native.2_13_16.runMvnDeps": [],
+  "scodec.native.3_3_5.runMvnDeps": [],
+  "unidocs.2_12_20.runMvnDeps": [],
+  "unidocs.2_13_16.runMvnDeps": [],
+  "unidocs.3_3_5.runMvnDeps": []
 }
 {
-  "benchmark[2.12.20].bomMvnDeps": [],
-  "benchmark[2.13.16].bomMvnDeps": [],
-  "benchmark[3.3.5].bomMvnDeps": [],
-  "core.js[2.12.20].bomMvnDeps": [],
-  "core.js[2.12.20].test.bomMvnDeps": [],
-  "core.js[2.13.16].bomMvnDeps": [],
-  "core.js[2.13.16].test.bomMvnDeps": [],
-  "core.js[3.3.5].bomMvnDeps": [],
-  "core.js[3.3.5].test.bomMvnDeps": [],
-  "core.jvm[2.12.20].bomMvnDeps": [],
-  "core.jvm[2.12.20].test.bomMvnDeps": [],
-  "core.jvm[2.13.16].bomMvnDeps": [],
-  "core.jvm[2.13.16].test.bomMvnDeps": [],
-  "core.jvm[3.3.5].bomMvnDeps": [],
-  "core.jvm[3.3.5].test.bomMvnDeps": [],
-  "core.native[2.12.20].bomMvnDeps": [],
-  "core.native[2.12.20].test.bomMvnDeps": [],
-  "core.native[2.13.16].bomMvnDeps": [],
-  "core.native[2.13.16].test.bomMvnDeps": [],
-  "core.native[3.3.5].bomMvnDeps": [],
-  "core.native[3.3.5].test.bomMvnDeps": [],
-  "integration[2.12.20].bomMvnDeps": [],
-  "integration[2.12.20].test.bomMvnDeps": [],
-  "integration[2.13.16].bomMvnDeps": [],
-  "integration[2.13.16].test.bomMvnDeps": [],
-  "integration[3.3.5].bomMvnDeps": [],
-  "integration[3.3.5].test.bomMvnDeps": [],
-  "io.js[2.12.20].bomMvnDeps": [],
-  "io.js[2.13.16].bomMvnDeps": [],
-  "io.js[3.3.5].bomMvnDeps": [],
-  "io.jvm[2.12.20].bomMvnDeps": [],
-  "io.jvm[2.13.16].bomMvnDeps": [],
-  "io.jvm[3.3.5].bomMvnDeps": [],
-  "io.native[2.12.20].bomMvnDeps": [],
-  "io.native[2.13.16].bomMvnDeps": [],
-  "io.native[3.3.5].bomMvnDeps": [],
-  "mdoc[2.12.20].bomMvnDeps": [],
-  "mdoc[2.13.16].bomMvnDeps": [],
-  "mdoc[3.3.5].bomMvnDeps": [],
-  "protocols.js[2.12.20].bomMvnDeps": [],
-  "protocols.js[2.13.16].bomMvnDeps": [],
-  "protocols.js[3.3.5].bomMvnDeps": [],
-  "protocols.jvm[2.12.20].bomMvnDeps": [],
-  "protocols.jvm[2.13.16].bomMvnDeps": [],
-  "protocols.jvm[3.3.5].bomMvnDeps": [],
-  "protocols.native[2.12.20].bomMvnDeps": [],
-  "protocols.native[2.13.16].bomMvnDeps": [],
-  "protocols.native[3.3.5].bomMvnDeps": [],
-  "reactive-streams[2.12.20].bomMvnDeps": [],
-  "reactive-streams[2.12.20].test.bomMvnDeps": [],
-  "reactive-streams[2.13.16].bomMvnDeps": [],
-  "reactive-streams[2.13.16].test.bomMvnDeps": [],
-  "reactive-streams[3.3.5].bomMvnDeps": [],
-  "reactive-streams[3.3.5].test.bomMvnDeps": [],
-  "scodec.js[2.12.20].bomMvnDeps": [],
-  "scodec.js[2.13.16].bomMvnDeps": [],
-  "scodec.js[3.3.5].bomMvnDeps": [],
-  "scodec.jvm[2.12.20].bomMvnDeps": [],
-  "scodec.jvm[2.13.16].bomMvnDeps": [],
-  "scodec.jvm[3.3.5].bomMvnDeps": [],
-  "scodec.native[2.12.20].bomMvnDeps": [],
-  "scodec.native[2.13.16].bomMvnDeps": [],
-  "scodec.native[3.3.5].bomMvnDeps": [],
-  "unidocs[2.12.20].bomMvnDeps": [],
-  "unidocs[2.13.16].bomMvnDeps": [],
-  "unidocs[3.3.5].bomMvnDeps": []
+  "benchmark.2_12_20.bomMvnDeps": [],
+  "benchmark.2_13_16.bomMvnDeps": [],
+  "benchmark.3_3_5.bomMvnDeps": [],
+  "core.js.2_12_20.bomMvnDeps": [],
+  "core.js.2_12_20.test.bomMvnDeps": [],
+  "core.js.2_13_16.bomMvnDeps": [],
+  "core.js.2_13_16.test.bomMvnDeps": [],
+  "core.js.3_3_5.bomMvnDeps": [],
+  "core.js.3_3_5.test.bomMvnDeps": [],
+  "core.jvm.2_12_20.bomMvnDeps": [],
+  "core.jvm.2_12_20.test.bomMvnDeps": [],
+  "core.jvm.2_13_16.bomMvnDeps": [],
+  "core.jvm.2_13_16.test.bomMvnDeps": [],
+  "core.jvm.3_3_5.bomMvnDeps": [],
+  "core.jvm.3_3_5.test.bomMvnDeps": [],
+  "core.native.2_12_20.bomMvnDeps": [],
+  "core.native.2_12_20.test.bomMvnDeps": [],
+  "core.native.2_13_16.bomMvnDeps": [],
+  "core.native.2_13_16.test.bomMvnDeps": [],
+  "core.native.3_3_5.bomMvnDeps": [],
+  "core.native.3_3_5.test.bomMvnDeps": [],
+  "integration.2_12_20.bomMvnDeps": [],
+  "integration.2_12_20.test.bomMvnDeps": [],
+  "integration.2_13_16.bomMvnDeps": [],
+  "integration.2_13_16.test.bomMvnDeps": [],
+  "integration.3_3_5.bomMvnDeps": [],
+  "integration.3_3_5.test.bomMvnDeps": [],
+  "io.js.2_12_20.bomMvnDeps": [],
+  "io.js.2_13_16.bomMvnDeps": [],
+  "io.js.3_3_5.bomMvnDeps": [],
+  "io.jvm.2_12_20.bomMvnDeps": [],
+  "io.jvm.2_13_16.bomMvnDeps": [],
+  "io.jvm.3_3_5.bomMvnDeps": [],
+  "io.native.2_12_20.bomMvnDeps": [],
+  "io.native.2_13_16.bomMvnDeps": [],
+  "io.native.3_3_5.bomMvnDeps": [],
+  "mdoc.2_12_20.bomMvnDeps": [],
+  "mdoc.2_13_16.bomMvnDeps": [],
+  "mdoc.3_3_5.bomMvnDeps": [],
+  "protocols.js.2_12_20.bomMvnDeps": [],
+  "protocols.js.2_13_16.bomMvnDeps": [],
+  "protocols.js.3_3_5.bomMvnDeps": [],
+  "protocols.jvm.2_12_20.bomMvnDeps": [],
+  "protocols.jvm.2_13_16.bomMvnDeps": [],
+  "protocols.jvm.3_3_5.bomMvnDeps": [],
+  "protocols.native.2_12_20.bomMvnDeps": [],
+  "protocols.native.2_13_16.bomMvnDeps": [],
+  "protocols.native.3_3_5.bomMvnDeps": [],
+  "reactive-streams.2_12_20.bomMvnDeps": [],
+  "reactive-streams.2_12_20.test.bomMvnDeps": [],
+  "reactive-streams.2_13_16.bomMvnDeps": [],
+  "reactive-streams.2_13_16.test.bomMvnDeps": [],
+  "reactive-streams.3_3_5.bomMvnDeps": [],
+  "reactive-streams.3_3_5.test.bomMvnDeps": [],
+  "scodec.js.2_12_20.bomMvnDeps": [],
+  "scodec.js.2_13_16.bomMvnDeps": [],
+  "scodec.js.3_3_5.bomMvnDeps": [],
+  "scodec.jvm.2_12_20.bomMvnDeps": [],
+  "scodec.jvm.2_13_16.bomMvnDeps": [],
+  "scodec.jvm.3_3_5.bomMvnDeps": [],
+  "scodec.native.2_12_20.bomMvnDeps": [],
+  "scodec.native.2_13_16.bomMvnDeps": [],
+  "scodec.native.3_3_5.bomMvnDeps": [],
+  "unidocs.2_12_20.bomMvnDeps": [],
+  "unidocs.2_13_16.bomMvnDeps": [],
+  "unidocs.3_3_5.bomMvnDeps": []
 }
 {
-  "benchmark[2.12.20].javacOptions": [
+  "benchmark.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "benchmark[2.13.16].javacOptions": [
+  "benchmark.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "benchmark[3.3.5].javacOptions": [
+  "benchmark.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "core.js[2.12.20].javacOptions": [
+  "core.js.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.js[2.12.20].test.javacOptions": [
+  "core.js.2_12_20.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.js[2.13.16].javacOptions": [
+  "core.js.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.js[2.13.16].test.javacOptions": [
+  "core.js.2_13_16.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.js[3.3.5].javacOptions": [
+  "core.js.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.js[3.3.5].test.javacOptions": [
+  "core.js.3_3_5.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.jvm[2.12.20].javacOptions": [
+  "core.jvm.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.jvm[2.12.20].test.javacOptions": [
+  "core.jvm.2_12_20.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.jvm[2.13.16].javacOptions": [
+  "core.jvm.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.jvm[2.13.16].test.javacOptions": [
+  "core.jvm.2_13_16.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.jvm[3.3.5].javacOptions": [
+  "core.jvm.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.jvm[3.3.5].test.javacOptions": [
+  "core.jvm.3_3_5.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.native[2.12.20].javacOptions": [
+  "core.native.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.native[2.12.20].test.javacOptions": [
+  "core.native.2_12_20.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.native[2.13.16].javacOptions": [
+  "core.native.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.native[2.13.16].test.javacOptions": [
+  "core.native.2_13_16.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.native[3.3.5].javacOptions": [
+  "core.native.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "core.native[3.3.5].test.javacOptions": [
+  "core.native.3_3_5.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "integration[2.12.20].javacOptions": [
+  "integration.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "integration[2.12.20].test.javacOptions": [
+  "integration.2_12_20.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "integration[2.13.16].javacOptions": [
+  "integration.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "integration[2.13.16].test.javacOptions": [
+  "integration.2_13_16.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "integration[3.3.5].javacOptions": [
+  "integration.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "integration[3.3.5].test.javacOptions": [
+  "integration.3_3_5.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "io.js[2.12.20].javacOptions": [
+  "io.js.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "io.js[2.13.16].javacOptions": [
+  "io.js.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "io.js[3.3.5].javacOptions": [
+  "io.js.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "io.jvm[2.12.20].javacOptions": [
+  "io.jvm.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "io.jvm[2.13.16].javacOptions": [
+  "io.jvm.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "io.jvm[3.3.5].javacOptions": [
+  "io.jvm.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "io.native[2.12.20].javacOptions": [
+  "io.native.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "io.native[2.13.16].javacOptions": [
+  "io.native.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "io.native[3.3.5].javacOptions": [
+  "io.native.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "mdoc[2.12.20].javacOptions": [
+  "mdoc.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "mdoc[2.13.16].javacOptions": [
+  "mdoc.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "mdoc[3.3.5].javacOptions": [
+  "mdoc.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "protocols.js[2.12.20].javacOptions": [
+  "protocols.js.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "protocols.js[2.13.16].javacOptions": [
+  "protocols.js.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "protocols.js[3.3.5].javacOptions": [
+  "protocols.js.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "protocols.jvm[2.12.20].javacOptions": [
+  "protocols.jvm.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "protocols.jvm[2.13.16].javacOptions": [
+  "protocols.jvm.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "protocols.jvm[3.3.5].javacOptions": [
+  "protocols.jvm.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "protocols.native[2.12.20].javacOptions": [
+  "protocols.native.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "protocols.native[2.13.16].javacOptions": [
+  "protocols.native.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "protocols.native[3.3.5].javacOptions": [
+  "protocols.native.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "reactive-streams[2.12.20].javacOptions": [
+  "reactive-streams.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "reactive-streams[2.12.20].test.javacOptions": [
+  "reactive-streams.2_12_20.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "reactive-streams[2.13.16].javacOptions": [
+  "reactive-streams.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "reactive-streams[2.13.16].test.javacOptions": [
+  "reactive-streams.2_13_16.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "reactive-streams[3.3.5].javacOptions": [
+  "reactive-streams.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "reactive-streams[3.3.5].test.javacOptions": [
+  "reactive-streams.3_3_5.test.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "scodec.js[2.12.20].javacOptions": [
+  "scodec.js.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "scodec.js[2.13.16].javacOptions": [
+  "scodec.js.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "scodec.js[3.3.5].javacOptions": [
+  "scodec.js.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "scodec.jvm[2.12.20].javacOptions": [
+  "scodec.jvm.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "scodec.jvm[2.13.16].javacOptions": [
+  "scodec.jvm.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "scodec.jvm[3.3.5].javacOptions": [
+  "scodec.jvm.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "scodec.native[2.12.20].javacOptions": [
+  "scodec.native.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "scodec.native[2.13.16].javacOptions": [
+  "scodec.native.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "scodec.native[3.3.5].javacOptions": [
+  "scodec.native.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all",
     "--release",
     "8"
   ],
-  "unidocs[2.12.20].javacOptions": [
+  "unidocs.2_12_20.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "unidocs[2.13.16].javacOptions": [
+  "unidocs.2_13_16.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ],
-  "unidocs[3.3.5].javacOptions": [
+  "unidocs.3_3_5.javacOptions": [
     "-encoding",
     "utf8",
     "-Xlint:all"
   ]
 }
 {
-  "core.js[2.12.20].pomParentProject": null,
-  "core.js[2.13.16].pomParentProject": null,
-  "core.js[3.3.5].pomParentProject": null,
-  "core.jvm[2.12.20].pomParentProject": null,
-  "core.jvm[2.13.16].pomParentProject": null,
-  "core.jvm[3.3.5].pomParentProject": null,
-  "core.native[2.12.20].pomParentProject": null,
-  "core.native[2.13.16].pomParentProject": null,
-  "core.native[3.3.5].pomParentProject": null,
-  "io.js[2.12.20].pomParentProject": null,
-  "io.js[2.13.16].pomParentProject": null,
-  "io.js[3.3.5].pomParentProject": null,
-  "io.jvm[2.12.20].pomParentProject": null,
-  "io.jvm[2.13.16].pomParentProject": null,
-  "io.jvm[3.3.5].pomParentProject": null,
-  "io.native[2.12.20].pomParentProject": null,
-  "io.native[2.13.16].pomParentProject": null,
-  "io.native[3.3.5].pomParentProject": null,
-  "protocols.js[2.12.20].pomParentProject": null,
-  "protocols.js[2.13.16].pomParentProject": null,
-  "protocols.js[3.3.5].pomParentProject": null,
-  "protocols.jvm[2.12.20].pomParentProject": null,
-  "protocols.jvm[2.13.16].pomParentProject": null,
-  "protocols.jvm[3.3.5].pomParentProject": null,
-  "protocols.native[2.12.20].pomParentProject": null,
-  "protocols.native[2.13.16].pomParentProject": null,
-  "protocols.native[3.3.5].pomParentProject": null,
-  "reactive-streams[2.12.20].pomParentProject": null,
-  "reactive-streams[2.13.16].pomParentProject": null,
-  "reactive-streams[3.3.5].pomParentProject": null,
-  "scodec.js[2.12.20].pomParentProject": null,
-  "scodec.js[2.13.16].pomParentProject": null,
-  "scodec.js[3.3.5].pomParentProject": null,
-  "scodec.jvm[2.12.20].pomParentProject": null,
-  "scodec.jvm[2.13.16].pomParentProject": null,
-  "scodec.jvm[3.3.5].pomParentProject": null,
-  "scodec.native[2.12.20].pomParentProject": null,
-  "scodec.native[2.13.16].pomParentProject": null,
-  "scodec.native[3.3.5].pomParentProject": null,
-  "unidocs[2.12.20].pomParentProject": null,
-  "unidocs[2.13.16].pomParentProject": null,
-  "unidocs[3.3.5].pomParentProject": null
+  "core.js.2_12_20.pomParentProject": null,
+  "core.js.2_13_16.pomParentProject": null,
+  "core.js.3_3_5.pomParentProject": null,
+  "core.jvm.2_12_20.pomParentProject": null,
+  "core.jvm.2_13_16.pomParentProject": null,
+  "core.jvm.3_3_5.pomParentProject": null,
+  "core.native.2_12_20.pomParentProject": null,
+  "core.native.2_13_16.pomParentProject": null,
+  "core.native.3_3_5.pomParentProject": null,
+  "io.js.2_12_20.pomParentProject": null,
+  "io.js.2_13_16.pomParentProject": null,
+  "io.js.3_3_5.pomParentProject": null,
+  "io.jvm.2_12_20.pomParentProject": null,
+  "io.jvm.2_13_16.pomParentProject": null,
+  "io.jvm.3_3_5.pomParentProject": null,
+  "io.native.2_12_20.pomParentProject": null,
+  "io.native.2_13_16.pomParentProject": null,
+  "io.native.3_3_5.pomParentProject": null,
+  "protocols.js.2_12_20.pomParentProject": null,
+  "protocols.js.2_13_16.pomParentProject": null,
+  "protocols.js.3_3_5.pomParentProject": null,
+  "protocols.jvm.2_12_20.pomParentProject": null,
+  "protocols.jvm.2_13_16.pomParentProject": null,
+  "protocols.jvm.3_3_5.pomParentProject": null,
+  "protocols.native.2_12_20.pomParentProject": null,
+  "protocols.native.2_13_16.pomParentProject": null,
+  "protocols.native.3_3_5.pomParentProject": null,
+  "reactive-streams.2_12_20.pomParentProject": null,
+  "reactive-streams.2_13_16.pomParentProject": null,
+  "reactive-streams.3_3_5.pomParentProject": null,
+  "scodec.js.2_12_20.pomParentProject": null,
+  "scodec.js.2_13_16.pomParentProject": null,
+  "scodec.js.3_3_5.pomParentProject": null,
+  "scodec.jvm.2_12_20.pomParentProject": null,
+  "scodec.jvm.2_13_16.pomParentProject": null,
+  "scodec.jvm.3_3_5.pomParentProject": null,
+  "scodec.native.2_12_20.pomParentProject": null,
+  "scodec.native.2_13_16.pomParentProject": null,
+  "scodec.native.3_3_5.pomParentProject": null,
+  "unidocs.2_12_20.pomParentProject": null,
+  "unidocs.2_13_16.pomParentProject": null,
+  "unidocs.3_3_5.pomParentProject": null
 }
 {
-  "core.js[2.12.20].pomSettings": {
+  "core.js.2_12_20.pomSettings": {
     "description": "fs2-core",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -1406,7 +1406,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "core.js[2.13.16].pomSettings": {
+  "core.js.2_13_16.pomSettings": {
     "description": "fs2-core",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -1480,7 +1480,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "core.js[3.3.5].pomSettings": {
+  "core.js.3_3_5.pomSettings": {
     "description": "fs2-core",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -1554,7 +1554,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "core.jvm[2.12.20].pomSettings": {
+  "core.jvm.2_12_20.pomSettings": {
     "description": "fs2-core",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -1628,7 +1628,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "core.jvm[2.13.16].pomSettings": {
+  "core.jvm.2_13_16.pomSettings": {
     "description": "fs2-core",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -1702,7 +1702,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "core.jvm[3.3.5].pomSettings": {
+  "core.jvm.3_3_5.pomSettings": {
     "description": "fs2-core",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -1776,7 +1776,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "core.native[2.12.20].pomSettings": {
+  "core.native.2_12_20.pomSettings": {
     "description": "fs2-core",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -1850,7 +1850,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "core.native[2.13.16].pomSettings": {
+  "core.native.2_13_16.pomSettings": {
     "description": "fs2-core",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -1924,7 +1924,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "core.native[3.3.5].pomSettings": {
+  "core.native.3_3_5.pomSettings": {
     "description": "fs2-core",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -1998,7 +1998,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "io.js[2.12.20].pomSettings": {
+  "io.js.2_12_20.pomSettings": {
     "description": "fs2-io",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2072,7 +2072,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "io.js[2.13.16].pomSettings": {
+  "io.js.2_13_16.pomSettings": {
     "description": "fs2-io",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2146,7 +2146,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "io.js[3.3.5].pomSettings": {
+  "io.js.3_3_5.pomSettings": {
     "description": "fs2-io",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2220,7 +2220,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "io.jvm[2.12.20].pomSettings": {
+  "io.jvm.2_12_20.pomSettings": {
     "description": "fs2-io",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2294,7 +2294,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "io.jvm[2.13.16].pomSettings": {
+  "io.jvm.2_13_16.pomSettings": {
     "description": "fs2-io",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2368,7 +2368,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "io.jvm[3.3.5].pomSettings": {
+  "io.jvm.3_3_5.pomSettings": {
     "description": "fs2-io",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2442,7 +2442,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "io.native[2.12.20].pomSettings": {
+  "io.native.2_12_20.pomSettings": {
     "description": "fs2-io",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2516,7 +2516,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "io.native[2.13.16].pomSettings": {
+  "io.native.2_13_16.pomSettings": {
     "description": "fs2-io",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2590,7 +2590,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "io.native[3.3.5].pomSettings": {
+  "io.native.3_3_5.pomSettings": {
     "description": "fs2-io",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2664,7 +2664,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "protocols.js[2.12.20].pomSettings": {
+  "protocols.js.2_12_20.pomSettings": {
     "description": "fs2-protocols",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2738,7 +2738,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "protocols.js[2.13.16].pomSettings": {
+  "protocols.js.2_13_16.pomSettings": {
     "description": "fs2-protocols",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2812,7 +2812,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "protocols.js[3.3.5].pomSettings": {
+  "protocols.js.3_3_5.pomSettings": {
     "description": "fs2-protocols",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2886,7 +2886,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "protocols.jvm[2.12.20].pomSettings": {
+  "protocols.jvm.2_12_20.pomSettings": {
     "description": "fs2-protocols",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -2960,7 +2960,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "protocols.jvm[2.13.16].pomSettings": {
+  "protocols.jvm.2_13_16.pomSettings": {
     "description": "fs2-protocols",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3034,7 +3034,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "protocols.jvm[3.3.5].pomSettings": {
+  "protocols.jvm.3_3_5.pomSettings": {
     "description": "fs2-protocols",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3108,7 +3108,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "protocols.native[2.12.20].pomSettings": {
+  "protocols.native.2_12_20.pomSettings": {
     "description": "fs2-protocols",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3182,7 +3182,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "protocols.native[2.13.16].pomSettings": {
+  "protocols.native.2_13_16.pomSettings": {
     "description": "fs2-protocols",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3256,7 +3256,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "protocols.native[3.3.5].pomSettings": {
+  "protocols.native.3_3_5.pomSettings": {
     "description": "fs2-protocols",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3330,7 +3330,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "reactive-streams[2.12.20].pomSettings": {
+  "reactive-streams.2_12_20.pomSettings": {
     "description": "fs2-reactive-streams",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3404,7 +3404,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "reactive-streams[2.13.16].pomSettings": {
+  "reactive-streams.2_13_16.pomSettings": {
     "description": "fs2-reactive-streams",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3478,7 +3478,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "reactive-streams[3.3.5].pomSettings": {
+  "reactive-streams.3_3_5.pomSettings": {
     "description": "fs2-reactive-streams",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3552,7 +3552,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "scodec.js[2.12.20].pomSettings": {
+  "scodec.js.2_12_20.pomSettings": {
     "description": "fs2-scodec",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3626,7 +3626,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "scodec.js[2.13.16].pomSettings": {
+  "scodec.js.2_13_16.pomSettings": {
     "description": "fs2-scodec",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3700,7 +3700,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "scodec.js[3.3.5].pomSettings": {
+  "scodec.js.3_3_5.pomSettings": {
     "description": "fs2-scodec",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3774,7 +3774,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "scodec.jvm[2.12.20].pomSettings": {
+  "scodec.jvm.2_12_20.pomSettings": {
     "description": "fs2-scodec",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3848,7 +3848,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "scodec.jvm[2.13.16].pomSettings": {
+  "scodec.jvm.2_13_16.pomSettings": {
     "description": "fs2-scodec",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3922,7 +3922,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "scodec.jvm[3.3.5].pomSettings": {
+  "scodec.jvm.3_3_5.pomSettings": {
     "description": "fs2-scodec",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -3996,7 +3996,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "scodec.native[2.12.20].pomSettings": {
+  "scodec.native.2_12_20.pomSettings": {
     "description": "fs2-scodec",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -4070,7 +4070,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "scodec.native[2.13.16].pomSettings": {
+  "scodec.native.2_13_16.pomSettings": {
     "description": "fs2-scodec",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -4144,7 +4144,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "scodec.native[3.3.5].pomSettings": {
+  "scodec.native.3_3_5.pomSettings": {
     "description": "fs2-scodec",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -4218,7 +4218,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "unidocs[2.12.20].pomSettings": {
+  "unidocs.2_12_20.pomSettings": {
     "description": "fs2-docs",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -4292,7 +4292,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "unidocs[2.13.16].pomSettings": {
+  "unidocs.2_13_16.pomSettings": {
     "description": "fs2-docs",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -4366,7 +4366,7 @@ Module dependencies of unidocs[3.3.5]:
       }
     ]
   },
-  "unidocs[3.3.5].pomSettings": {
+  "unidocs.3_3_5.pomSettings": {
     "description": "fs2-docs",
     "organization": "co.fs2",
     "url": "https://typelevel.org/fs2",
@@ -4442,218 +4442,218 @@ Module dependencies of unidocs[3.3.5]:
   }
 }
 {
-  "core.js[2.12.20].publishVersion": "3.12.0",
-  "core.js[2.13.16].publishVersion": "3.12.0",
-  "core.js[3.3.5].publishVersion": "3.12.0",
-  "core.jvm[2.12.20].publishVersion": "3.12.0",
-  "core.jvm[2.13.16].publishVersion": "3.12.0",
-  "core.jvm[3.3.5].publishVersion": "3.12.0",
-  "core.native[2.12.20].publishVersion": "3.12.0",
-  "core.native[2.13.16].publishVersion": "3.12.0",
-  "core.native[3.3.5].publishVersion": "3.12.0",
-  "io.js[2.12.20].publishVersion": "3.12.0",
-  "io.js[2.13.16].publishVersion": "3.12.0",
-  "io.js[3.3.5].publishVersion": "3.12.0",
-  "io.jvm[2.12.20].publishVersion": "3.12.0",
-  "io.jvm[2.13.16].publishVersion": "3.12.0",
-  "io.jvm[3.3.5].publishVersion": "3.12.0",
-  "io.native[2.12.20].publishVersion": "3.12.0",
-  "io.native[2.13.16].publishVersion": "3.12.0",
-  "io.native[3.3.5].publishVersion": "3.12.0",
-  "protocols.js[2.12.20].publishVersion": "3.12.0",
-  "protocols.js[2.13.16].publishVersion": "3.12.0",
-  "protocols.js[3.3.5].publishVersion": "3.12.0",
-  "protocols.jvm[2.12.20].publishVersion": "3.12.0",
-  "protocols.jvm[2.13.16].publishVersion": "3.12.0",
-  "protocols.jvm[3.3.5].publishVersion": "3.12.0",
-  "protocols.native[2.12.20].publishVersion": "3.12.0",
-  "protocols.native[2.13.16].publishVersion": "3.12.0",
-  "protocols.native[3.3.5].publishVersion": "3.12.0",
-  "reactive-streams[2.12.20].publishVersion": "3.12.0",
-  "reactive-streams[2.13.16].publishVersion": "3.12.0",
-  "reactive-streams[3.3.5].publishVersion": "3.12.0",
-  "scodec.js[2.12.20].publishVersion": "3.12.0",
-  "scodec.js[2.13.16].publishVersion": "3.12.0",
-  "scodec.js[3.3.5].publishVersion": "3.12.0",
-  "scodec.jvm[2.12.20].publishVersion": "3.12.0",
-  "scodec.jvm[2.13.16].publishVersion": "3.12.0",
-  "scodec.jvm[3.3.5].publishVersion": "3.12.0",
-  "scodec.native[2.12.20].publishVersion": "3.12.0",
-  "scodec.native[2.13.16].publishVersion": "3.12.0",
-  "scodec.native[3.3.5].publishVersion": "3.12.0",
-  "unidocs[2.12.20].publishVersion": "3.12.0",
-  "unidocs[2.13.16].publishVersion": "3.12.0",
-  "unidocs[3.3.5].publishVersion": "3.12.0"
+  "core.js.2_12_20.publishVersion": "3.12.0",
+  "core.js.2_13_16.publishVersion": "3.12.0",
+  "core.js.3_3_5.publishVersion": "3.12.0",
+  "core.jvm.2_12_20.publishVersion": "3.12.0",
+  "core.jvm.2_13_16.publishVersion": "3.12.0",
+  "core.jvm.3_3_5.publishVersion": "3.12.0",
+  "core.native.2_12_20.publishVersion": "3.12.0",
+  "core.native.2_13_16.publishVersion": "3.12.0",
+  "core.native.3_3_5.publishVersion": "3.12.0",
+  "io.js.2_12_20.publishVersion": "3.12.0",
+  "io.js.2_13_16.publishVersion": "3.12.0",
+  "io.js.3_3_5.publishVersion": "3.12.0",
+  "io.jvm.2_12_20.publishVersion": "3.12.0",
+  "io.jvm.2_13_16.publishVersion": "3.12.0",
+  "io.jvm.3_3_5.publishVersion": "3.12.0",
+  "io.native.2_12_20.publishVersion": "3.12.0",
+  "io.native.2_13_16.publishVersion": "3.12.0",
+  "io.native.3_3_5.publishVersion": "3.12.0",
+  "protocols.js.2_12_20.publishVersion": "3.12.0",
+  "protocols.js.2_13_16.publishVersion": "3.12.0",
+  "protocols.js.3_3_5.publishVersion": "3.12.0",
+  "protocols.jvm.2_12_20.publishVersion": "3.12.0",
+  "protocols.jvm.2_13_16.publishVersion": "3.12.0",
+  "protocols.jvm.3_3_5.publishVersion": "3.12.0",
+  "protocols.native.2_12_20.publishVersion": "3.12.0",
+  "protocols.native.2_13_16.publishVersion": "3.12.0",
+  "protocols.native.3_3_5.publishVersion": "3.12.0",
+  "reactive-streams.2_12_20.publishVersion": "3.12.0",
+  "reactive-streams.2_13_16.publishVersion": "3.12.0",
+  "reactive-streams.3_3_5.publishVersion": "3.12.0",
+  "scodec.js.2_12_20.publishVersion": "3.12.0",
+  "scodec.js.2_13_16.publishVersion": "3.12.0",
+  "scodec.js.3_3_5.publishVersion": "3.12.0",
+  "scodec.jvm.2_12_20.publishVersion": "3.12.0",
+  "scodec.jvm.2_13_16.publishVersion": "3.12.0",
+  "scodec.jvm.3_3_5.publishVersion": "3.12.0",
+  "scodec.native.2_12_20.publishVersion": "3.12.0",
+  "scodec.native.2_13_16.publishVersion": "3.12.0",
+  "scodec.native.3_3_5.publishVersion": "3.12.0",
+  "unidocs.2_12_20.publishVersion": "3.12.0",
+  "unidocs.2_13_16.publishVersion": "3.12.0",
+  "unidocs.3_3_5.publishVersion": "3.12.0"
 }
 {
-  "core.js[2.12.20].versionScheme": "EarlySemVer",
-  "core.js[2.13.16].versionScheme": "EarlySemVer",
-  "core.js[3.3.5].versionScheme": "EarlySemVer",
-  "core.jvm[2.12.20].versionScheme": "EarlySemVer",
-  "core.jvm[2.13.16].versionScheme": "EarlySemVer",
-  "core.jvm[3.3.5].versionScheme": "EarlySemVer",
-  "core.native[2.12.20].versionScheme": "EarlySemVer",
-  "core.native[2.13.16].versionScheme": "EarlySemVer",
-  "core.native[3.3.5].versionScheme": "EarlySemVer",
-  "io.js[2.12.20].versionScheme": "EarlySemVer",
-  "io.js[2.13.16].versionScheme": "EarlySemVer",
-  "io.js[3.3.5].versionScheme": "EarlySemVer",
-  "io.jvm[2.12.20].versionScheme": "EarlySemVer",
-  "io.jvm[2.13.16].versionScheme": "EarlySemVer",
-  "io.jvm[3.3.5].versionScheme": "EarlySemVer",
-  "io.native[2.12.20].versionScheme": "EarlySemVer",
-  "io.native[2.13.16].versionScheme": "EarlySemVer",
-  "io.native[3.3.5].versionScheme": "EarlySemVer",
-  "protocols.js[2.12.20].versionScheme": "EarlySemVer",
-  "protocols.js[2.13.16].versionScheme": "EarlySemVer",
-  "protocols.js[3.3.5].versionScheme": "EarlySemVer",
-  "protocols.jvm[2.12.20].versionScheme": "EarlySemVer",
-  "protocols.jvm[2.13.16].versionScheme": "EarlySemVer",
-  "protocols.jvm[3.3.5].versionScheme": "EarlySemVer",
-  "protocols.native[2.12.20].versionScheme": "EarlySemVer",
-  "protocols.native[2.13.16].versionScheme": "EarlySemVer",
-  "protocols.native[3.3.5].versionScheme": "EarlySemVer",
-  "reactive-streams[2.12.20].versionScheme": "EarlySemVer",
-  "reactive-streams[2.13.16].versionScheme": "EarlySemVer",
-  "reactive-streams[3.3.5].versionScheme": "EarlySemVer",
-  "scodec.js[2.12.20].versionScheme": "EarlySemVer",
-  "scodec.js[2.13.16].versionScheme": "EarlySemVer",
-  "scodec.js[3.3.5].versionScheme": "EarlySemVer",
-  "scodec.jvm[2.12.20].versionScheme": "EarlySemVer",
-  "scodec.jvm[2.13.16].versionScheme": "EarlySemVer",
-  "scodec.jvm[3.3.5].versionScheme": "EarlySemVer",
-  "scodec.native[2.12.20].versionScheme": "EarlySemVer",
-  "scodec.native[2.13.16].versionScheme": "EarlySemVer",
-  "scodec.native[3.3.5].versionScheme": "EarlySemVer",
-  "unidocs[2.12.20].versionScheme": "EarlySemVer",
-  "unidocs[2.13.16].versionScheme": "EarlySemVer",
-  "unidocs[3.3.5].versionScheme": "EarlySemVer"
+  "core.js.2_12_20.versionScheme": "EarlySemVer",
+  "core.js.2_13_16.versionScheme": "EarlySemVer",
+  "core.js.3_3_5.versionScheme": "EarlySemVer",
+  "core.jvm.2_12_20.versionScheme": "EarlySemVer",
+  "core.jvm.2_13_16.versionScheme": "EarlySemVer",
+  "core.jvm.3_3_5.versionScheme": "EarlySemVer",
+  "core.native.2_12_20.versionScheme": "EarlySemVer",
+  "core.native.2_13_16.versionScheme": "EarlySemVer",
+  "core.native.3_3_5.versionScheme": "EarlySemVer",
+  "io.js.2_12_20.versionScheme": "EarlySemVer",
+  "io.js.2_13_16.versionScheme": "EarlySemVer",
+  "io.js.3_3_5.versionScheme": "EarlySemVer",
+  "io.jvm.2_12_20.versionScheme": "EarlySemVer",
+  "io.jvm.2_13_16.versionScheme": "EarlySemVer",
+  "io.jvm.3_3_5.versionScheme": "EarlySemVer",
+  "io.native.2_12_20.versionScheme": "EarlySemVer",
+  "io.native.2_13_16.versionScheme": "EarlySemVer",
+  "io.native.3_3_5.versionScheme": "EarlySemVer",
+  "protocols.js.2_12_20.versionScheme": "EarlySemVer",
+  "protocols.js.2_13_16.versionScheme": "EarlySemVer",
+  "protocols.js.3_3_5.versionScheme": "EarlySemVer",
+  "protocols.jvm.2_12_20.versionScheme": "EarlySemVer",
+  "protocols.jvm.2_13_16.versionScheme": "EarlySemVer",
+  "protocols.jvm.3_3_5.versionScheme": "EarlySemVer",
+  "protocols.native.2_12_20.versionScheme": "EarlySemVer",
+  "protocols.native.2_13_16.versionScheme": "EarlySemVer",
+  "protocols.native.3_3_5.versionScheme": "EarlySemVer",
+  "reactive-streams.2_12_20.versionScheme": "EarlySemVer",
+  "reactive-streams.2_13_16.versionScheme": "EarlySemVer",
+  "reactive-streams.3_3_5.versionScheme": "EarlySemVer",
+  "scodec.js.2_12_20.versionScheme": "EarlySemVer",
+  "scodec.js.2_13_16.versionScheme": "EarlySemVer",
+  "scodec.js.3_3_5.versionScheme": "EarlySemVer",
+  "scodec.jvm.2_12_20.versionScheme": "EarlySemVer",
+  "scodec.jvm.2_13_16.versionScheme": "EarlySemVer",
+  "scodec.jvm.3_3_5.versionScheme": "EarlySemVer",
+  "scodec.native.2_12_20.versionScheme": "EarlySemVer",
+  "scodec.native.2_13_16.versionScheme": "EarlySemVer",
+  "scodec.native.3_3_5.versionScheme": "EarlySemVer",
+  "unidocs.2_12_20.versionScheme": "EarlySemVer",
+  "unidocs.2_13_16.versionScheme": "EarlySemVer",
+  "unidocs.3_3_5.versionScheme": "EarlySemVer"
 }
 {
-  "core.js[2.12.20].publishProperties": {
+  "core.js.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "core.js[2.13.16].publishProperties": {
+  "core.js.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "core.js[3.3.5].publishProperties": {
+  "core.js.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "core.jvm[2.12.20].publishProperties": {
+  "core.jvm.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "core.jvm[2.13.16].publishProperties": {
+  "core.jvm.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "core.jvm[3.3.5].publishProperties": {
+  "core.jvm.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "core.native[2.12.20].publishProperties": {
+  "core.native.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "core.native[2.13.16].publishProperties": {
+  "core.native.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "core.native[3.3.5].publishProperties": {
+  "core.native.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "io.js[2.12.20].publishProperties": {
+  "io.js.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "io.js[2.13.16].publishProperties": {
+  "io.js.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "io.js[3.3.5].publishProperties": {
+  "io.js.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "io.jvm[2.12.20].publishProperties": {
+  "io.jvm.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "io.jvm[2.13.16].publishProperties": {
+  "io.jvm.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "io.jvm[3.3.5].publishProperties": {
+  "io.jvm.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "io.native[2.12.20].publishProperties": {
+  "io.native.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "io.native[2.13.16].publishProperties": {
+  "io.native.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "io.native[3.3.5].publishProperties": {
+  "io.native.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "protocols.js[2.12.20].publishProperties": {
+  "protocols.js.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "protocols.js[2.13.16].publishProperties": {
+  "protocols.js.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "protocols.js[3.3.5].publishProperties": {
+  "protocols.js.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "protocols.jvm[2.12.20].publishProperties": {
+  "protocols.jvm.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "protocols.jvm[2.13.16].publishProperties": {
+  "protocols.jvm.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "protocols.jvm[3.3.5].publishProperties": {
+  "protocols.jvm.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "protocols.native[2.12.20].publishProperties": {
+  "protocols.native.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "protocols.native[2.13.16].publishProperties": {
+  "protocols.native.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "protocols.native[3.3.5].publishProperties": {
+  "protocols.native.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "reactive-streams[2.12.20].publishProperties": {
+  "reactive-streams.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "reactive-streams[2.13.16].publishProperties": {
+  "reactive-streams.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "reactive-streams[3.3.5].publishProperties": {
+  "reactive-streams.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "scodec.js[2.12.20].publishProperties": {
+  "scodec.js.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "scodec.js[2.13.16].publishProperties": {
+  "scodec.js.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "scodec.js[3.3.5].publishProperties": {
+  "scodec.js.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "scodec.jvm[2.12.20].publishProperties": {
+  "scodec.jvm.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "scodec.jvm[2.13.16].publishProperties": {
+  "scodec.jvm.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "scodec.jvm[3.3.5].publishProperties": {
+  "scodec.jvm.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "scodec.native[2.12.20].publishProperties": {
+  "scodec.native.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "scodec.native[2.13.16].publishProperties": {
+  "scodec.native.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "scodec.native[3.3.5].publishProperties": {
+  "scodec.native.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "unidocs[2.12.20].publishProperties": {
+  "unidocs.2_12_20.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "unidocs[2.13.16].publishProperties": {
+  "unidocs.2_13_16.publishProperties": {
     "info.versionScheme": "early-semver"
   },
-  "unidocs[3.3.5].publishProperties": {
+  "unidocs.3_3_5.publishProperties": {
     "info.versionScheme": "early-semver"
   }
 }
@@ -4661,75 +4661,75 @@ Module dependencies of unidocs[3.3.5]:
 
 
 {
-  "benchmark[2.12.20].scalaVersion": "2.12.20",
-  "benchmark[2.13.16].scalaVersion": "2.13.16",
-  "benchmark[3.3.5].scalaVersion": "3.3.5",
-  "core.js[2.12.20].scalaVersion": "2.12.20",
-  "core.js[2.12.20].test.scalaVersion": "2.12.20",
-  "core.js[2.13.16].scalaVersion": "2.13.16",
-  "core.js[2.13.16].test.scalaVersion": "2.13.16",
-  "core.js[3.3.5].scalaVersion": "3.3.5",
-  "core.js[3.3.5].test.scalaVersion": "3.3.5",
-  "core.jvm[2.12.20].scalaVersion": "2.12.20",
-  "core.jvm[2.12.20].test.scalaVersion": "2.12.20",
-  "core.jvm[2.13.16].scalaVersion": "2.13.16",
-  "core.jvm[2.13.16].test.scalaVersion": "2.13.16",
-  "core.jvm[3.3.5].scalaVersion": "3.3.5",
-  "core.jvm[3.3.5].test.scalaVersion": "3.3.5",
-  "core.native[2.12.20].scalaVersion": "2.12.20",
-  "core.native[2.12.20].test.scalaVersion": "2.12.20",
-  "core.native[2.13.16].scalaVersion": "2.13.16",
-  "core.native[2.13.16].test.scalaVersion": "2.13.16",
-  "core.native[3.3.5].scalaVersion": "3.3.5",
-  "core.native[3.3.5].test.scalaVersion": "3.3.5",
-  "integration[2.12.20].scalaVersion": "2.12.20",
-  "integration[2.12.20].test.scalaVersion": "2.12.20",
-  "integration[2.13.16].scalaVersion": "2.13.16",
-  "integration[2.13.16].test.scalaVersion": "2.13.16",
-  "integration[3.3.5].scalaVersion": "3.3.5",
-  "integration[3.3.5].test.scalaVersion": "3.3.5",
-  "io.js[2.12.20].scalaVersion": "2.12.20",
-  "io.js[2.13.16].scalaVersion": "2.13.16",
-  "io.js[3.3.5].scalaVersion": "3.3.5",
-  "io.jvm[2.12.20].scalaVersion": "2.12.20",
-  "io.jvm[2.13.16].scalaVersion": "2.13.16",
-  "io.jvm[3.3.5].scalaVersion": "3.3.5",
-  "io.native[2.12.20].scalaVersion": "2.12.20",
-  "io.native[2.13.16].scalaVersion": "2.13.16",
-  "io.native[3.3.5].scalaVersion": "3.3.5",
-  "mdoc[2.12.20].scalaVersion": "2.12.20",
-  "mdoc[2.13.16].scalaVersion": "2.13.16",
-  "mdoc[3.3.5].scalaVersion": "3.3.5",
-  "protocols.js[2.12.20].scalaVersion": "2.12.20",
-  "protocols.js[2.13.16].scalaVersion": "2.13.16",
-  "protocols.js[3.3.5].scalaVersion": "3.3.5",
-  "protocols.jvm[2.12.20].scalaVersion": "2.12.20",
-  "protocols.jvm[2.13.16].scalaVersion": "2.13.16",
-  "protocols.jvm[3.3.5].scalaVersion": "3.3.5",
-  "protocols.native[2.12.20].scalaVersion": "2.12.20",
-  "protocols.native[2.13.16].scalaVersion": "2.13.16",
-  "protocols.native[3.3.5].scalaVersion": "3.3.5",
-  "reactive-streams[2.12.20].scalaVersion": "2.12.20",
-  "reactive-streams[2.12.20].test.scalaVersion": "2.12.20",
-  "reactive-streams[2.13.16].scalaVersion": "2.13.16",
-  "reactive-streams[2.13.16].test.scalaVersion": "2.13.16",
-  "reactive-streams[3.3.5].scalaVersion": "3.3.5",
-  "reactive-streams[3.3.5].test.scalaVersion": "3.3.5",
-  "scodec.js[2.12.20].scalaVersion": "2.12.20",
-  "scodec.js[2.13.16].scalaVersion": "2.13.16",
-  "scodec.js[3.3.5].scalaVersion": "3.3.5",
-  "scodec.jvm[2.12.20].scalaVersion": "2.12.20",
-  "scodec.jvm[2.13.16].scalaVersion": "2.13.16",
-  "scodec.jvm[3.3.5].scalaVersion": "3.3.5",
-  "scodec.native[2.12.20].scalaVersion": "2.12.20",
-  "scodec.native[2.13.16].scalaVersion": "2.13.16",
-  "scodec.native[3.3.5].scalaVersion": "3.3.5",
-  "unidocs[2.12.20].scalaVersion": "2.12.20",
-  "unidocs[2.13.16].scalaVersion": "2.13.16",
-  "unidocs[3.3.5].scalaVersion": "3.3.5"
+  "benchmark.2_12_20.scalaVersion": "2.12.20",
+  "benchmark.2_13_16.scalaVersion": "2.13.16",
+  "benchmark.3_3_5.scalaVersion": "3.3.5",
+  "core.js.2_12_20.scalaVersion": "2.12.20",
+  "core.js.2_12_20.test.scalaVersion": "2.12.20",
+  "core.js.2_13_16.scalaVersion": "2.13.16",
+  "core.js.2_13_16.test.scalaVersion": "2.13.16",
+  "core.js.3_3_5.scalaVersion": "3.3.5",
+  "core.js.3_3_5.test.scalaVersion": "3.3.5",
+  "core.jvm.2_12_20.scalaVersion": "2.12.20",
+  "core.jvm.2_12_20.test.scalaVersion": "2.12.20",
+  "core.jvm.2_13_16.scalaVersion": "2.13.16",
+  "core.jvm.2_13_16.test.scalaVersion": "2.13.16",
+  "core.jvm.3_3_5.scalaVersion": "3.3.5",
+  "core.jvm.3_3_5.test.scalaVersion": "3.3.5",
+  "core.native.2_12_20.scalaVersion": "2.12.20",
+  "core.native.2_12_20.test.scalaVersion": "2.12.20",
+  "core.native.2_13_16.scalaVersion": "2.13.16",
+  "core.native.2_13_16.test.scalaVersion": "2.13.16",
+  "core.native.3_3_5.scalaVersion": "3.3.5",
+  "core.native.3_3_5.test.scalaVersion": "3.3.5",
+  "integration.2_12_20.scalaVersion": "2.12.20",
+  "integration.2_12_20.test.scalaVersion": "2.12.20",
+  "integration.2_13_16.scalaVersion": "2.13.16",
+  "integration.2_13_16.test.scalaVersion": "2.13.16",
+  "integration.3_3_5.scalaVersion": "3.3.5",
+  "integration.3_3_5.test.scalaVersion": "3.3.5",
+  "io.js.2_12_20.scalaVersion": "2.12.20",
+  "io.js.2_13_16.scalaVersion": "2.13.16",
+  "io.js.3_3_5.scalaVersion": "3.3.5",
+  "io.jvm.2_12_20.scalaVersion": "2.12.20",
+  "io.jvm.2_13_16.scalaVersion": "2.13.16",
+  "io.jvm.3_3_5.scalaVersion": "3.3.5",
+  "io.native.2_12_20.scalaVersion": "2.12.20",
+  "io.native.2_13_16.scalaVersion": "2.13.16",
+  "io.native.3_3_5.scalaVersion": "3.3.5",
+  "mdoc.2_12_20.scalaVersion": "2.12.20",
+  "mdoc.2_13_16.scalaVersion": "2.13.16",
+  "mdoc.3_3_5.scalaVersion": "3.3.5",
+  "protocols.js.2_12_20.scalaVersion": "2.12.20",
+  "protocols.js.2_13_16.scalaVersion": "2.13.16",
+  "protocols.js.3_3_5.scalaVersion": "3.3.5",
+  "protocols.jvm.2_12_20.scalaVersion": "2.12.20",
+  "protocols.jvm.2_13_16.scalaVersion": "2.13.16",
+  "protocols.jvm.3_3_5.scalaVersion": "3.3.5",
+  "protocols.native.2_12_20.scalaVersion": "2.12.20",
+  "protocols.native.2_13_16.scalaVersion": "2.13.16",
+  "protocols.native.3_3_5.scalaVersion": "3.3.5",
+  "reactive-streams.2_12_20.scalaVersion": "2.12.20",
+  "reactive-streams.2_12_20.test.scalaVersion": "2.12.20",
+  "reactive-streams.2_13_16.scalaVersion": "2.13.16",
+  "reactive-streams.2_13_16.test.scalaVersion": "2.13.16",
+  "reactive-streams.3_3_5.scalaVersion": "3.3.5",
+  "reactive-streams.3_3_5.test.scalaVersion": "3.3.5",
+  "scodec.js.2_12_20.scalaVersion": "2.12.20",
+  "scodec.js.2_13_16.scalaVersion": "2.13.16",
+  "scodec.js.3_3_5.scalaVersion": "3.3.5",
+  "scodec.jvm.2_12_20.scalaVersion": "2.12.20",
+  "scodec.jvm.2_13_16.scalaVersion": "2.13.16",
+  "scodec.jvm.3_3_5.scalaVersion": "3.3.5",
+  "scodec.native.2_12_20.scalaVersion": "2.12.20",
+  "scodec.native.2_13_16.scalaVersion": "2.13.16",
+  "scodec.native.3_3_5.scalaVersion": "3.3.5",
+  "unidocs.2_12_20.scalaVersion": "2.12.20",
+  "unidocs.2_13_16.scalaVersion": "2.13.16",
+  "unidocs.3_3_5.scalaVersion": "3.3.5"
 }
 {
-  "benchmark[2.12.20].scalacOptions": [
+  "benchmark.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4748,7 +4748,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "benchmark[2.13.16].scalacOptions": [
+  "benchmark.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4768,7 +4768,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "benchmark[3.3.5].scalacOptions": [
+  "benchmark.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4786,7 +4786,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "core.js[2.12.20].scalacOptions": [
+  "core.js.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4802,7 +4802,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.js[2.12.20].test.scalacOptions": [
+  "core.js.2_12_20.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4818,7 +4818,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.js[2.13.16].scalacOptions": [
+  "core.js.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4836,7 +4836,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.js[2.13.16].test.scalacOptions": [
+  "core.js.2_13_16.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4854,7 +4854,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.js[3.3.5].scalacOptions": [
+  "core.js.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4870,7 +4870,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "core.js[3.3.5].test.scalacOptions": [
+  "core.js.3_3_5.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4886,7 +4886,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "core.jvm[2.12.20].scalacOptions": [
+  "core.jvm.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4902,7 +4902,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.jvm[2.12.20].test.scalacOptions": [
+  "core.jvm.2_12_20.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4918,7 +4918,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.jvm[2.13.16].scalacOptions": [
+  "core.jvm.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4936,7 +4936,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.jvm[2.13.16].test.scalacOptions": [
+  "core.jvm.2_13_16.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4954,7 +4954,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.jvm[3.3.5].scalacOptions": [
+  "core.jvm.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4970,7 +4970,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "core.jvm[3.3.5].test.scalacOptions": [
+  "core.jvm.3_3_5.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -4986,7 +4986,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "core.native[2.12.20].scalacOptions": [
+  "core.native.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5002,7 +5002,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.native[2.12.20].test.scalacOptions": [
+  "core.native.2_12_20.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5018,7 +5018,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.native[2.13.16].scalacOptions": [
+  "core.native.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5036,7 +5036,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.native[2.13.16].test.scalacOptions": [
+  "core.native.2_13_16.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5054,7 +5054,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "core.native[3.3.5].scalacOptions": [
+  "core.native.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5070,7 +5070,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "core.native[3.3.5].test.scalacOptions": [
+  "core.native.3_3_5.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5086,7 +5086,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "integration[2.12.20].scalacOptions": [
+  "integration.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5105,7 +5105,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "integration[2.12.20].test.scalacOptions": [
+  "integration.2_12_20.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5124,7 +5124,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "integration[2.13.16].scalacOptions": [
+  "integration.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5144,7 +5144,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "integration[2.13.16].test.scalacOptions": [
+  "integration.2_13_16.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5164,7 +5164,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "integration[3.3.5].scalacOptions": [
+  "integration.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5182,7 +5182,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "integration[3.3.5].test.scalacOptions": [
+  "integration.3_3_5.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5200,7 +5200,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "io.js[2.12.20].scalacOptions": [
+  "io.js.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5216,7 +5216,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "io.js[2.13.16].scalacOptions": [
+  "io.js.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5234,7 +5234,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "io.js[3.3.5].scalacOptions": [
+  "io.js.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5250,7 +5250,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "io.jvm[2.12.20].scalacOptions": [
+  "io.jvm.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5266,7 +5266,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "io.jvm[2.13.16].scalacOptions": [
+  "io.jvm.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5284,7 +5284,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "io.jvm[3.3.5].scalacOptions": [
+  "io.jvm.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5300,7 +5300,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "io.native[2.12.20].scalacOptions": [
+  "io.native.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5316,7 +5316,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "io.native[2.13.16].scalacOptions": [
+  "io.native.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5334,7 +5334,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "io.native[3.3.5].scalacOptions": [
+  "io.native.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5350,7 +5350,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "mdoc[2.12.20].scalacOptions": [
+  "mdoc.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5366,7 +5366,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "mdoc[2.13.16].scalacOptions": [
+  "mdoc.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5384,7 +5384,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "mdoc[3.3.5].scalacOptions": [
+  "mdoc.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5400,7 +5400,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:implicitConversions",
     "-Ykind-projector"
   ],
-  "protocols.js[2.12.20].scalacOptions": [
+  "protocols.js.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5419,7 +5419,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "protocols.js[2.13.16].scalacOptions": [
+  "protocols.js.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5439,7 +5439,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "protocols.js[3.3.5].scalacOptions": [
+  "protocols.js.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5457,7 +5457,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "protocols.jvm[2.12.20].scalacOptions": [
+  "protocols.jvm.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5476,7 +5476,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "protocols.jvm[2.13.16].scalacOptions": [
+  "protocols.jvm.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5496,7 +5496,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "protocols.jvm[3.3.5].scalacOptions": [
+  "protocols.jvm.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5514,7 +5514,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "protocols.native[2.12.20].scalacOptions": [
+  "protocols.native.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5533,7 +5533,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "protocols.native[2.13.16].scalacOptions": [
+  "protocols.native.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5553,7 +5553,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "protocols.native[3.3.5].scalacOptions": [
+  "protocols.native.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5571,7 +5571,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "reactive-streams[2.12.20].scalacOptions": [
+  "reactive-streams.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5590,7 +5590,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "reactive-streams[2.12.20].test.scalacOptions": [
+  "reactive-streams.2_12_20.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5609,7 +5609,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "reactive-streams[2.13.16].scalacOptions": [
+  "reactive-streams.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5629,7 +5629,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "reactive-streams[2.13.16].test.scalacOptions": [
+  "reactive-streams.2_13_16.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5649,7 +5649,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "reactive-streams[3.3.5].scalacOptions": [
+  "reactive-streams.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5667,7 +5667,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "reactive-streams[3.3.5].test.scalacOptions": [
+  "reactive-streams.3_3_5.test.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5685,7 +5685,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "scodec.js[2.12.20].scalacOptions": [
+  "scodec.js.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5704,7 +5704,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "scodec.js[2.13.16].scalacOptions": [
+  "scodec.js.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5724,7 +5724,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "scodec.js[3.3.5].scalacOptions": [
+  "scodec.js.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5742,7 +5742,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "scodec.jvm[2.12.20].scalacOptions": [
+  "scodec.jvm.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5761,7 +5761,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "scodec.jvm[2.13.16].scalacOptions": [
+  "scodec.jvm.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5781,7 +5781,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "scodec.jvm[3.3.5].scalacOptions": [
+  "scodec.jvm.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5799,7 +5799,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "scodec.native[2.12.20].scalacOptions": [
+  "scodec.native.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5818,7 +5818,7 @@ Module dependencies of unidocs[3.3.5]:
     "8",
     "-target:jvm-1.8"
   ],
-  "scodec.native[2.13.16].scalacOptions": [
+  "scodec.native.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5838,7 +5838,7 @@ Module dependencies of unidocs[3.3.5]:
     "-release",
     "8"
   ],
-  "scodec.native[3.3.5].scalacOptions": [
+  "scodec.native.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5856,7 +5856,7 @@ Module dependencies of unidocs[3.3.5]:
     "-java-output-version",
     "8"
   ],
-  "unidocs[2.12.20].scalacOptions": [
+  "unidocs.2_12_20.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5872,7 +5872,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "unidocs[2.13.16].scalacOptions": [
+  "unidocs.2_13_16.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5890,7 +5890,7 @@ Module dependencies of unidocs[3.3.5]:
     "-language:_",
     "-Xsource:3"
   ],
-  "unidocs[3.3.5].scalacOptions": [
+  "unidocs.3_3_5.scalacOptions": [
     "-deprecation",
     "-encoding",
     "UTF-8",
@@ -5908,322 +5908,322 @@ Module dependencies of unidocs[3.3.5]:
   ]
 }
 {
-  "benchmark[2.12.20].scalacPluginMvnDeps": [
+  "benchmark.2_12_20.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "benchmark[2.13.16].scalacPluginMvnDeps": [
+  "benchmark.2_13_16.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "benchmark[3.3.5].scalacPluginMvnDeps": [],
-  "core.js[2.12.20].scalacPluginMvnDeps": [
+  "benchmark.3_3_5.scalacPluginMvnDeps": [],
+  "core.js.2_12_20.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "core.js[2.12.20].test.scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
-    "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3",
-    "org.scala-js:::scalajs-compiler:1.18.2"
-  ],
-  "core.js[2.13.16].scalacPluginMvnDeps": [
-    "org.scala-js:::scalajs-compiler:1.18.2",
-    "com.olegpy::better-monadic-for:0.3.1",
-    "org.typelevel:::kind-projector:0.13.3"
-  ],
-  "core.js[2.13.16].test.scalacPluginMvnDeps": [
+  "core.js.2_12_20.test.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3",
     "org.scala-js:::scalajs-compiler:1.18.2"
   ],
-  "core.js[3.3.5].scalacPluginMvnDeps": [],
-  "core.js[3.3.5].test.scalacPluginMvnDeps": [],
-  "core.jvm[2.12.20].scalacPluginMvnDeps": [
+  "core.js.2_13_16.scalacPluginMvnDeps": [
+    "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "core.jvm[2.12.20].test.scalacPluginMvnDeps": [
+  "core.js.2_13_16.test.scalacPluginMvnDeps": [
+    "org.scala-js:::scalajs-compiler:1.18.2",
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3",
+    "org.scala-js:::scalajs-compiler:1.18.2"
+  ],
+  "core.js.3_3_5.scalacPluginMvnDeps": [],
+  "core.js.3_3_5.test.scalacPluginMvnDeps": [],
+  "core.jvm.2_12_20.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "core.jvm[2.13.16].scalacPluginMvnDeps": [
+  "core.jvm.2_12_20.test.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "core.jvm[2.13.16].test.scalacPluginMvnDeps": [
+  "core.jvm.2_13_16.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "core.jvm[3.3.5].scalacPluginMvnDeps": [],
-  "core.jvm[3.3.5].test.scalacPluginMvnDeps": [],
-  "core.native[2.12.20].scalacPluginMvnDeps": [
+  "core.jvm.2_13_16.test.scalacPluginMvnDeps": [
+    "com.olegpy::better-monadic-for:0.3.1",
+    "org.typelevel:::kind-projector:0.13.3"
+  ],
+  "core.jvm.3_3_5.scalacPluginMvnDeps": [],
+  "core.jvm.3_3_5.test.scalacPluginMvnDeps": [],
+  "core.native.2_12_20.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "core.native[2.12.20].test.scalacPluginMvnDeps": [
+  "core.native.2_12_20.test.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3",
     "org.scala-native:::nscplugin:0.4.17"
   ],
-  "core.native[2.13.16].scalacPluginMvnDeps": [
+  "core.native.2_13_16.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "core.native[2.13.16].test.scalacPluginMvnDeps": [
+  "core.native.2_13_16.test.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3",
     "org.scala-native:::nscplugin:0.4.17"
   ],
-  "core.native[3.3.5].scalacPluginMvnDeps": [
+  "core.native.3_3_5.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17"
   ],
-  "core.native[3.3.5].test.scalacPluginMvnDeps": [
+  "core.native.3_3_5.test.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "org.scala-native:::nscplugin:0.4.17"
   ],
-  "integration[2.12.20].scalacPluginMvnDeps": [
+  "integration.2_12_20.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "integration[2.12.20].test.scalacPluginMvnDeps": [
+  "integration.2_12_20.test.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "integration[2.13.16].scalacPluginMvnDeps": [
+  "integration.2_13_16.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "integration[2.13.16].test.scalacPluginMvnDeps": [
+  "integration.2_13_16.test.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "integration[3.3.5].scalacPluginMvnDeps": [],
-  "integration[3.3.5].test.scalacPluginMvnDeps": [],
-  "io.js[2.12.20].scalacPluginMvnDeps": [
+  "integration.3_3_5.scalacPluginMvnDeps": [],
+  "integration.3_3_5.test.scalacPluginMvnDeps": [],
+  "io.js.2_12_20.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "io.js[2.13.16].scalacPluginMvnDeps": [
+  "io.js.2_13_16.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "io.js[3.3.5].scalacPluginMvnDeps": [],
-  "io.jvm[2.12.20].scalacPluginMvnDeps": [
+  "io.js.3_3_5.scalacPluginMvnDeps": [],
+  "io.jvm.2_12_20.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "io.jvm[2.13.16].scalacPluginMvnDeps": [
+  "io.jvm.2_13_16.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "io.jvm[3.3.5].scalacPluginMvnDeps": [],
-  "io.native[2.12.20].scalacPluginMvnDeps": [
+  "io.jvm.3_3_5.scalacPluginMvnDeps": [],
+  "io.native.2_12_20.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "io.native[2.13.16].scalacPluginMvnDeps": [
+  "io.native.2_13_16.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "io.native[3.3.5].scalacPluginMvnDeps": [
+  "io.native.3_3_5.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17"
   ],
-  "mdoc[2.12.20].scalacPluginMvnDeps": [
+  "mdoc.2_12_20.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "mdoc[2.13.16].scalacPluginMvnDeps": [
+  "mdoc.2_13_16.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "mdoc[3.3.5].scalacPluginMvnDeps": [],
-  "protocols.js[2.12.20].scalacPluginMvnDeps": [
+  "mdoc.3_3_5.scalacPluginMvnDeps": [],
+  "protocols.js.2_12_20.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "protocols.js[2.13.16].scalacPluginMvnDeps": [
+  "protocols.js.2_13_16.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "protocols.js[3.3.5].scalacPluginMvnDeps": [],
-  "protocols.jvm[2.12.20].scalacPluginMvnDeps": [
+  "protocols.js.3_3_5.scalacPluginMvnDeps": [],
+  "protocols.jvm.2_12_20.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "protocols.jvm[2.13.16].scalacPluginMvnDeps": [
+  "protocols.jvm.2_13_16.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "protocols.jvm[3.3.5].scalacPluginMvnDeps": [],
-  "protocols.native[2.12.20].scalacPluginMvnDeps": [
+  "protocols.jvm.3_3_5.scalacPluginMvnDeps": [],
+  "protocols.native.2_12_20.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "protocols.native[2.13.16].scalacPluginMvnDeps": [
+  "protocols.native.2_13_16.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "protocols.native[3.3.5].scalacPluginMvnDeps": [
+  "protocols.native.3_3_5.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17"
   ],
-  "reactive-streams[2.12.20].scalacPluginMvnDeps": [
+  "reactive-streams.2_12_20.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "reactive-streams[2.12.20].test.scalacPluginMvnDeps": [
+  "reactive-streams.2_12_20.test.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "reactive-streams[2.13.16].scalacPluginMvnDeps": [
+  "reactive-streams.2_13_16.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "reactive-streams[2.13.16].test.scalacPluginMvnDeps": [
+  "reactive-streams.2_13_16.test.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "reactive-streams[3.3.5].scalacPluginMvnDeps": [],
-  "reactive-streams[3.3.5].test.scalacPluginMvnDeps": [],
-  "scodec.js[2.12.20].scalacPluginMvnDeps": [
+  "reactive-streams.3_3_5.scalacPluginMvnDeps": [],
+  "reactive-streams.3_3_5.test.scalacPluginMvnDeps": [],
+  "scodec.js.2_12_20.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "scodec.js[2.13.16].scalacPluginMvnDeps": [
+  "scodec.js.2_13_16.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.18.2",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "scodec.js[3.3.5].scalacPluginMvnDeps": [],
-  "scodec.jvm[2.12.20].scalacPluginMvnDeps": [
+  "scodec.js.3_3_5.scalacPluginMvnDeps": [],
+  "scodec.jvm.2_12_20.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "scodec.jvm[2.13.16].scalacPluginMvnDeps": [
+  "scodec.jvm.2_13_16.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "scodec.jvm[3.3.5].scalacPluginMvnDeps": [],
-  "scodec.native[2.12.20].scalacPluginMvnDeps": [
+  "scodec.jvm.3_3_5.scalacPluginMvnDeps": [],
+  "scodec.native.2_12_20.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "scodec.native[2.13.16].scalacPluginMvnDeps": [
+  "scodec.native.2_13_16.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17",
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "scodec.native[3.3.5].scalacPluginMvnDeps": [
+  "scodec.native.3_3_5.scalacPluginMvnDeps": [
     "org.scala-native:::nscplugin:0.4.17"
   ],
-  "unidocs[2.12.20].scalacPluginMvnDeps": [
+  "unidocs.2_12_20.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "unidocs[2.13.16].scalacPluginMvnDeps": [
+  "unidocs.2_13_16.scalacPluginMvnDeps": [
     "com.olegpy::better-monadic-for:0.3.1",
     "org.typelevel:::kind-projector:0.13.3"
   ],
-  "unidocs[3.3.5].scalacPluginMvnDeps": []
+  "unidocs.3_3_5.scalacPluginMvnDeps": []
 }
 {
-  "core.js[2.12.20].scalaJSVersion": "1.18.2",
-  "core.js[2.12.20].test.scalaJSVersion": "1.18.2",
-  "core.js[2.13.16].scalaJSVersion": "1.18.2",
-  "core.js[2.13.16].test.scalaJSVersion": "1.18.2",
-  "core.js[3.3.5].scalaJSVersion": "1.18.2",
-  "core.js[3.3.5].test.scalaJSVersion": "1.18.2",
-  "io.js[2.12.20].scalaJSVersion": "1.18.2",
-  "io.js[2.13.16].scalaJSVersion": "1.18.2",
-  "io.js[3.3.5].scalaJSVersion": "1.18.2",
-  "protocols.js[2.12.20].scalaJSVersion": "1.18.2",
-  "protocols.js[2.13.16].scalaJSVersion": "1.18.2",
-  "protocols.js[3.3.5].scalaJSVersion": "1.18.2",
-  "scodec.js[2.12.20].scalaJSVersion": "1.18.2",
-  "scodec.js[2.13.16].scalaJSVersion": "1.18.2",
-  "scodec.js[3.3.5].scalaJSVersion": "1.18.2"
+  "core.js.2_12_20.scalaJSVersion": "1.18.2",
+  "core.js.2_12_20.test.scalaJSVersion": "1.18.2",
+  "core.js.2_13_16.scalaJSVersion": "1.18.2",
+  "core.js.2_13_16.test.scalaJSVersion": "1.18.2",
+  "core.js.3_3_5.scalaJSVersion": "1.18.2",
+  "core.js.3_3_5.test.scalaJSVersion": "1.18.2",
+  "io.js.2_12_20.scalaJSVersion": "1.18.2",
+  "io.js.2_13_16.scalaJSVersion": "1.18.2",
+  "io.js.3_3_5.scalaJSVersion": "1.18.2",
+  "protocols.js.2_12_20.scalaJSVersion": "1.18.2",
+  "protocols.js.2_13_16.scalaJSVersion": "1.18.2",
+  "protocols.js.3_3_5.scalaJSVersion": "1.18.2",
+  "scodec.js.2_12_20.scalaJSVersion": "1.18.2",
+  "scodec.js.2_13_16.scalaJSVersion": "1.18.2",
+  "scodec.js.3_3_5.scalaJSVersion": "1.18.2"
 }
 {
-  "core.js[2.12.20].moduleKind": "CommonJSModule",
-  "core.js[2.12.20].test.moduleKind": "CommonJSModule",
-  "core.js[2.13.16].moduleKind": "CommonJSModule",
-  "core.js[2.13.16].test.moduleKind": "CommonJSModule",
-  "core.js[3.3.5].moduleKind": "CommonJSModule",
-  "core.js[3.3.5].test.moduleKind": "CommonJSModule",
-  "io.js[2.12.20].moduleKind": "CommonJSModule",
-  "io.js[2.13.16].moduleKind": "CommonJSModule",
-  "io.js[3.3.5].moduleKind": "CommonJSModule",
-  "protocols.js[2.12.20].moduleKind": "CommonJSModule",
-  "protocols.js[2.13.16].moduleKind": "CommonJSModule",
-  "protocols.js[3.3.5].moduleKind": "CommonJSModule",
-  "scodec.js[2.12.20].moduleKind": "CommonJSModule",
-  "scodec.js[2.13.16].moduleKind": "CommonJSModule",
-  "scodec.js[3.3.5].moduleKind": "CommonJSModule"
+  "core.js.2_12_20.moduleKind": "CommonJSModule",
+  "core.js.2_12_20.test.moduleKind": "CommonJSModule",
+  "core.js.2_13_16.moduleKind": "CommonJSModule",
+  "core.js.2_13_16.test.moduleKind": "CommonJSModule",
+  "core.js.3_3_5.moduleKind": "CommonJSModule",
+  "core.js.3_3_5.test.moduleKind": "CommonJSModule",
+  "io.js.2_12_20.moduleKind": "CommonJSModule",
+  "io.js.2_13_16.moduleKind": "CommonJSModule",
+  "io.js.3_3_5.moduleKind": "CommonJSModule",
+  "protocols.js.2_12_20.moduleKind": "CommonJSModule",
+  "protocols.js.2_13_16.moduleKind": "CommonJSModule",
+  "protocols.js.3_3_5.moduleKind": "CommonJSModule",
+  "scodec.js.2_12_20.moduleKind": "CommonJSModule",
+  "scodec.js.2_13_16.moduleKind": "CommonJSModule",
+  "scodec.js.3_3_5.moduleKind": "CommonJSModule"
 }
 {
-  "core.native[2.12.20].scalaNativeVersion": "0.4.17",
-  "core.native[2.12.20].test.scalaNativeVersion": "0.4.17",
-  "core.native[2.13.16].scalaNativeVersion": "0.4.17",
-  "core.native[2.13.16].test.scalaNativeVersion": "0.4.17",
-  "core.native[3.3.5].scalaNativeVersion": "0.4.17",
-  "core.native[3.3.5].test.scalaNativeVersion": "0.4.17",
-  "io.native[2.12.20].scalaNativeVersion": "0.4.17",
-  "io.native[2.13.16].scalaNativeVersion": "0.4.17",
-  "io.native[3.3.5].scalaNativeVersion": "0.4.17",
-  "protocols.native[2.12.20].scalaNativeVersion": "0.4.17",
-  "protocols.native[2.13.16].scalaNativeVersion": "0.4.17",
-  "protocols.native[3.3.5].scalaNativeVersion": "0.4.17",
-  "scodec.native[2.12.20].scalaNativeVersion": "0.4.17",
-  "scodec.native[2.13.16].scalaNativeVersion": "0.4.17",
-  "scodec.native[3.3.5].scalaNativeVersion": "0.4.17"
+  "core.native.2_12_20.scalaNativeVersion": "0.4.17",
+  "core.native.2_12_20.test.scalaNativeVersion": "0.4.17",
+  "core.native.2_13_16.scalaNativeVersion": "0.4.17",
+  "core.native.2_13_16.test.scalaNativeVersion": "0.4.17",
+  "core.native.3_3_5.scalaNativeVersion": "0.4.17",
+  "core.native.3_3_5.test.scalaNativeVersion": "0.4.17",
+  "io.native.2_12_20.scalaNativeVersion": "0.4.17",
+  "io.native.2_13_16.scalaNativeVersion": "0.4.17",
+  "io.native.3_3_5.scalaNativeVersion": "0.4.17",
+  "protocols.native.2_12_20.scalaNativeVersion": "0.4.17",
+  "protocols.native.2_13_16.scalaNativeVersion": "0.4.17",
+  "protocols.native.3_3_5.scalaNativeVersion": "0.4.17",
+  "scodec.native.2_12_20.scalaNativeVersion": "0.4.17",
+  "scodec.native.2_13_16.scalaNativeVersion": "0.4.17",
+  "scodec.native.3_3_5.scalaNativeVersion": "0.4.17"
 }
 {
-  "core.js[2.12.20].test.testParallelism": false,
-  "core.js[2.13.16].test.testParallelism": false,
-  "core.js[3.3.5].test.testParallelism": false,
-  "core.jvm[2.12.20].test.testParallelism": false,
-  "core.jvm[2.13.16].test.testParallelism": false,
-  "core.jvm[3.3.5].test.testParallelism": false,
-  "core.native[2.12.20].test.testParallelism": false,
-  "core.native[2.13.16].test.testParallelism": false,
-  "core.native[3.3.5].test.testParallelism": false,
-  "integration[2.12.20].test.testParallelism": false,
-  "integration[2.13.16].test.testParallelism": false,
-  "integration[3.3.5].test.testParallelism": false,
-  "reactive-streams[2.12.20].test.testParallelism": false,
-  "reactive-streams[2.13.16].test.testParallelism": false,
-  "reactive-streams[3.3.5].test.testParallelism": false
+  "core.js.2_12_20.test.testParallelism": false,
+  "core.js.2_13_16.test.testParallelism": false,
+  "core.js.3_3_5.test.testParallelism": false,
+  "core.jvm.2_12_20.test.testParallelism": false,
+  "core.jvm.2_13_16.test.testParallelism": false,
+  "core.jvm.3_3_5.test.testParallelism": false,
+  "core.native.2_12_20.test.testParallelism": false,
+  "core.native.2_13_16.test.testParallelism": false,
+  "core.native.3_3_5.test.testParallelism": false,
+  "integration.2_12_20.test.testParallelism": false,
+  "integration.2_13_16.test.testParallelism": false,
+  "integration.3_3_5.test.testParallelism": false,
+  "reactive-streams.2_12_20.test.testParallelism": false,
+  "reactive-streams.2_13_16.test.testParallelism": false,
+  "reactive-streams.3_3_5.test.testParallelism": false
 }
 {
-  "core.js[2.12.20].test.testSandboxWorkingDir": false,
-  "core.js[2.13.16].test.testSandboxWorkingDir": false,
-  "core.js[3.3.5].test.testSandboxWorkingDir": false,
-  "core.jvm[2.12.20].test.testSandboxWorkingDir": false,
-  "core.jvm[2.13.16].test.testSandboxWorkingDir": false,
-  "core.jvm[3.3.5].test.testSandboxWorkingDir": false,
-  "core.native[2.12.20].test.testSandboxWorkingDir": false,
-  "core.native[2.13.16].test.testSandboxWorkingDir": false,
-  "core.native[3.3.5].test.testSandboxWorkingDir": false,
-  "integration[2.12.20].test.testSandboxWorkingDir": false,
-  "integration[2.13.16].test.testSandboxWorkingDir": false,
-  "integration[3.3.5].test.testSandboxWorkingDir": false,
-  "reactive-streams[2.12.20].test.testSandboxWorkingDir": false,
-  "reactive-streams[2.13.16].test.testSandboxWorkingDir": false,
-  "reactive-streams[3.3.5].test.testSandboxWorkingDir": false
+  "core.js.2_12_20.test.testSandboxWorkingDir": false,
+  "core.js.2_13_16.test.testSandboxWorkingDir": false,
+  "core.js.3_3_5.test.testSandboxWorkingDir": false,
+  "core.jvm.2_12_20.test.testSandboxWorkingDir": false,
+  "core.jvm.2_13_16.test.testSandboxWorkingDir": false,
+  "core.jvm.3_3_5.test.testSandboxWorkingDir": false,
+  "core.native.2_12_20.test.testSandboxWorkingDir": false,
+  "core.native.2_13_16.test.testSandboxWorkingDir": false,
+  "core.native.3_3_5.test.testSandboxWorkingDir": false,
+  "integration.2_12_20.test.testSandboxWorkingDir": false,
+  "integration.2_13_16.test.testSandboxWorkingDir": false,
+  "integration.3_3_5.test.testSandboxWorkingDir": false,
+  "reactive-streams.2_12_20.test.testSandboxWorkingDir": false,
+  "reactive-streams.2_13_16.test.testSandboxWorkingDir": false,
+  "reactive-streams.3_3_5.test.testSandboxWorkingDir": false
 }

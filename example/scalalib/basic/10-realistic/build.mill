@@ -88,23 +88,23 @@ object qux extends JavaModule, MyModule
 /** Usage
 
 > ./mill resolve __.run
-bar[2.13.16].run
-bar[2.13.16].test.run
-bar[3.3.6].run
-bar[3.3.6].test.run
-foo[2.13.16].run
-foo[2.13.16].test.run
-foo[3.3.6].run
-foo[3.3.6].test.run
+bar.2_13_16.run
+bar.2_13_16.test.run
+bar.3_3_6.run
+bar.3_3_6.test.run
+foo.2_13_16.run
+foo.2_13_16.test.run
+foo.3_3_6.run
+foo.3_3_6.test.run
 qux.run
 
-> ./mill foo[2.13.16].run
+> ./mill foo.2_13_16.run
 foo version 0.0.1
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Qux.value: 31337
 
-> ./mill bar[3.3.6].test
+> ./mill bar.3_3_6.test
 + bar.BarTests.test ... "<p>world Specific code for Scala 3.x</p>"
 
 > ./mill qux.run
@@ -125,7 +125,7 @@ Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,bar_3,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 
-> ./mill show foo[2.13.16].assembly # mac/linux
+> ./mill show foo.2_13_16.assembly # mac/linux
 ".../out/foo/2.13.16/assembly.dest/out.jar"
 
 > ./out/foo/2.13.16/assembly.dest/out.jar # mac/linux

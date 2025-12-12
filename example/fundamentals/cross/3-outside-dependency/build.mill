@@ -47,7 +47,7 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 
 /** Usage
 
-> ./mill show foo[2.10].suffix
+> ./mill show foo.2_10.suffix
 "_2.10"
 
 > ./mill show bar

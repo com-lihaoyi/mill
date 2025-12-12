@@ -241,4 +241,25 @@ object TestGraphs {
 
     }
   }
+
+  object versionedCross extends TestRootModule {
+    object cross extends mill.Cross[Cross]("2.12.20", "2.13.15", "3.5.0")
+    trait Cross extends Cross.Module[String] {
+      def suffix = Task { crossValue }
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object versionedDoubleCross extends TestRootModule {
+    val crossMatrix = for {
+      scalaVersion <- Seq("2.12.20", "2.13.15", "3.5.0")
+      platform <- Seq("jvm", "js", "native")
+    } yield (scalaVersion, platform)
+    object cross extends mill.Cross[Cross](crossMatrix)
+    trait Cross extends Cross.Module2[String, String] {
+      val (scalaVersion, platform) = (crossValue, crossValue2)
+      def suffix = Task { scalaVersion + "_" + platform }
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
 }
