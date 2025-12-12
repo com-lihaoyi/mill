@@ -34,5 +34,5 @@ include::partial$example/groovylib/basic/1-script.adoc[]
 
 == Programmable Module Config
 
-include::partial$example/javalib/basic/6-programmable.adoc[]
+include::partial$example/groovylib/basic/6-programmable.adoc[]
 
