@@ -12,10 +12,11 @@ import java.io.FileInputStream
 object HelloGroovyTests extends TestSuite {
 
   val groovy4Version = "4.0.28"
-  val groovy5Version = "5.0.1"
+  val groovy5Version = "5.0.3"
   val groovyVersions = Seq(groovy4Version, groovy5Version)
   val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.13.4")
   val spockGroovy4Version = "2.3-groovy-4.0"
+  val spockGroovy5Version = "2.4-groovy-5.0"
 
   object HelloGroovy extends TestRootModule {
 
@@ -38,19 +39,6 @@ object HelloGroovyTests extends TestSuite {
         override def jupiterVersion: T[String] = junit5Version
       }
 
-    }
-
-    /**
-     * Currently Spock does not support Groovy 5, so that's why it's currently
-     * pulled out of the cross compilation.
-     */
-    object spock extends GroovyModule {
-      override def groovyVersion: T[String] = groovy4Version
-
-      object tests extends GroovyTests with TestModule.Spock {
-        override def jupiterVersion: T[String] = junit5Version
-        override def spockVersion: T[String] = spockGroovy4Version
-      }
     }
 
     /**
@@ -111,6 +99,17 @@ object HelloGroovyTests extends TestSuite {
         override def groovyCompileEnablePreview: Task.Simple[Boolean] = true
         override def mainClass = Some("compileroptions.HelloCompilerOptions")
       }
+
+
+      object spock extends GroovyModule {
+        override def groovyVersion: T[String] = crossValue
+
+        object tests extends GroovyTests with TestModule.Spock {
+          override def jupiterVersion: T[String] = junit5Version
+
+          override def spockVersion: T[String] = if crossValue == groovy4Version then spockGroovy4Version else spockGroovy5Version
+        }
+      }
     }
     object main extends Cross[Test](groovyVersions)
   }
@@ -125,7 +124,6 @@ object HelloGroovyTests extends TestSuite {
   def tests: Tests = Tests {
 
     def main = HelloGroovy.main
-    def spock = HelloGroovy.spock
     def mixed = HelloGroovy.`groovy-tests`
     def deps = HelloGroovy.deps
 
@@ -263,15 +261,17 @@ object HelloGroovyTests extends TestSuite {
 
     test("compile & run Spock test") {
       testEval().scoped { eval =>
-        val Right(result1) = eval.apply(spock.tests.compile): @unchecked
-        assert(
-          os.walk(result1.value.classes.path).exists(_.last == "SpockTest.class")
-        )
+        main.crossModules.foreach(m => {
+          val Right(result1) = eval.apply(m.spock.tests.compile): @unchecked
+          assert(
+            os.walk(result1.value.classes.path).exists(_.last == "SpockTest.class")
+          )
 
-        val Right(discovered) = eval.apply(spock.tests.discoveredTestClasses): @unchecked
-        assert(discovered.value == Seq("hello.spock.SpockTest"))
+          val Right(discovered) = eval.apply(m.spock.tests.discoveredTestClasses): @unchecked
+          assert(discovered.value == Seq("hello.spock.SpockTest"))
 
-        val Right(_) = eval.apply(spock.tests.testForked()): @unchecked
+          val Right(_) = eval.apply(m.spock.tests.testForked()): @unchecked
+        })
       }
     }
 
