@@ -67,3 +67,9 @@ Bar.value: Hello World Scala library version 2.13.16...
 Bar.value: Hello World Scala library version 2.12.20...
 
 */
+
+// NOTE: The cross module `bar` has entries for `2.13.16` and `2.12.20`,
+// but at the command-line these modules have the dot ``.``s in their name replaced
+// with understore ``_``s and are thus invoked via `bar.2_13_16.run` `bar.2_12_20.run`.
+// This is done to avoid conflicting with the use of ``.``s to separate modules and
+// their children at the command line.

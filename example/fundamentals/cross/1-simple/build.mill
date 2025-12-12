@@ -73,6 +73,11 @@ trait FooModule extends Cross.Module[String] {
 
 */
 
+// When referencing cross modules from the command line, Mill replaces ``.``s, ``:``s, and ``/``s
+// in the module names with ``_``s to avoid ambiguity with other parts of the Mill task selector
+// syntax (``.``s to separate modules and tasks, ``:``s to reference tasks on single-file scripts,
+// and ``/``s to reference tasks on external modules)
+//
 // [NOTE]
 // --
 // Earlier versions of Mill used square-brackets as the syntax for referencing cross-modules.
