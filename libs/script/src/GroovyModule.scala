@@ -31,6 +31,6 @@ object GroovyModule {
   }
 
   trait Base extends JavaModule.Base, mill.groovylib.GroovyModule {
-    def groovyVersion = "5.0.2"
+    def groovyVersion = BuildInfo.groovyVersion
   }
 }

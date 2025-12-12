@@ -16,7 +16,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     BuildInfo.Value("osLibVersion", millbuild.Deps.osLib.version),
     BuildInfo.Value("upickleVersion", millbuild.Deps.upickle.version),
     BuildInfo.Value("requestsVersion", millbuild.Deps.requests.version),
-    BuildInfo.Value("mainargsVersion", millbuild.Deps.mainargs.version)
+    BuildInfo.Value("mainargsVersion", millbuild.Deps.mainargs.version),
+    BuildInfo.Value("groovyVersion", millbuild.Deps.groovyVersion)
   )
 
   object `asm-worker` extends MillPublishScalaModule {

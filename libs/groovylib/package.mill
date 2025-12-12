@@ -18,7 +18,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def buildInfoPackageName = "mill.groovylib"
   def buildInfoObjectName = "Versions"
   def buildInfoMembers = Seq(
-    BuildInfo.Value("groovyVersion", Deps.groovyVersion, "Version of Groovy")
+    BuildInfo.Value("groovyVersion", Deps.groovyVersion_lowerBound, "Version of Groovy")
   )
 
   object api extends MillPublishScalaModule {
@@ -37,7 +37,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     override def compileMvnDeps: T[Seq[Dep]] =
       super.mandatoryMvnDeps() ++ Seq(
         Deps.osLib,
-        Deps.groovyCompiler
+        Deps.groovyCompiler_lowerBound
       )
   }
 
