@@ -634,7 +634,7 @@ private object ResolveCore {
       case head :: tail =>
         val headVariants = labelToCrossSegments(head)
         val tailCombinations = generateCrossSegmentCombinations(tail)
-        for(h <- headVariants; t <- tailCombinations) yield h :: t
+        for (h <- headVariants; t <- tailCombinations) yield h :: t
     }
   }
 

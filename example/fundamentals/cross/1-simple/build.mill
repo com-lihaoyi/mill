@@ -73,6 +73,21 @@ trait FooModule extends Cross.Module[String] {
 
 */
 
+// [NOTE]
+// --
+// Earlier versions of Mill used square-brackets as the syntax for referencing cross-modules.
+// This is still supported for backwards compatibility, but is deprecated in favor of the
+// current dot-delimited syntax to avoid needing to quote the square brackets in Zsh and other
+// shells.
+//
+// [source,zsh]
+// ----
+// mill show foo\[2.10\].suffix
+// mill show 'foo[2.10].suffix'
+// mill show "foo[2.10].suffix"
+// ----
+// --
+
 // The Cross module's axes can take any type `T` with `Cross.ToSegments[T]`
 // defined. There are default implementations for strings, chars, numbers,
 // booleans, and lists; the example above demonstrates cross axes of type
