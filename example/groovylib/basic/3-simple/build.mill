@@ -35,27 +35,25 @@
 
 //// SNIPPET:USAGE
 /** Usage
- > ./mill inspect compile # Show documentation and inputs of a task
- compile(GroovyModule.scala:...)
- Compiles the current module to generate compiled classfiles/bytecode.
- Inputs:
- upstreamCompileOutput
- allJavaSourceFiles
- allGroovySourceFiles
- compileClasspath
- */
-/** Usage
- > ./mill compile # compile sources into classfiles
- ...
- Compiling 1 Groovy sources to...
- */
+> ./mill inspect compile # Show documentation and inputs of a task
+compile(GroovyModule.scala:...)
+    Compiles the current module to generate compiled classfiles/bytecode.
+    ...
+Inputs:
+    upstreamCompileOutput
+    allJavaSourceFiles
+    allGroovySourceFiles
+    compileClasspath
 
-/** Usage
- > ./mill test
- Test foo.FooTest#generate html created properly() finished, ...
- Test foo.FooTest#generated html is properly escaped() finished, ...
- Test foo.FooTest finished, ...
+> ./mill compile # compile sources into classfiles
+...
+Compiling 1 Groovy sources to...
 
- */
+> ./mill test
+Test foo.FooTest#generate html created properly() finished, ...
+Test foo.FooTest#generated html is properly escaped() finished, ...
+Test foo.FooTest finished, ...
+
+*/
 //// SNIPPET:END
 //// SNIPPET:REPL
