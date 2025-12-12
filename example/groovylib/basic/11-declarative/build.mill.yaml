@@ -4,4 +4,4 @@ mvnDeps:
   - org.apache.groovy:groovy-cli-commons
   - org.apache.groovy:groovy-xml
 mainClass: foo.Foo
-groovyCompileTargetBytecode: ['11']
+# groovyCompileTargetBytecode: '11'
