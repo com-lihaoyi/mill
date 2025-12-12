@@ -276,7 +276,7 @@ object Deps {
       errorProneCore,
       freemarker,
       jupiterInterface,
-      groovyVersion,
+      groovyCompiler,
       kotestJvm,
       kotlinxHtmlJvm,
       koverCli,
