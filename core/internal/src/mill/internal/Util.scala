@@ -209,17 +209,7 @@ object Util {
                 case scalar: ScalarNode =>
                   val value = scalar.getValue
                   val tag = scalar.getTag.getValue
-                  tag match {
-                    case "tag:yaml.org,2002:null" => v.visitNull(index)
-                    case "tag:yaml.org,2002:bool" =>
-                      if (value == "true") v.visitTrue(index)
-                      else v.visitFalse(index)
-                    case "tag:yaml.org,2002:int" =>
-                      v.visitFloat64StringParts(value, -1, -1, index)
-                    case "tag:yaml.org,2002:float" =>
-                      v.visitFloat64StringParts(value, -1, -1, index)
-                    case _ => v.visitString(value, index)
-                  }
+                  v.visitString(value, index)
 
                 case mapping: MappingNode =>
                   val objVisitor =
