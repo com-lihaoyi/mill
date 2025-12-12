@@ -196,7 +196,7 @@ and nothing else. Compared to the equivalent Maven `pom.xml`, `build.gradle`, or
 `build.mill` files, Mill's `build.mill.yaml` files are really lightweight. This makes them easy
 to write, easy to read, and easy to maintain compared to other build tools.
 
-NOTE: `build.mill.yaml` files are written in https://yaml.org/spec/1.2.2/[YAML 1.2], and parsed
+NOTE: `build.mill.yaml` files are written in https://yaml.org/spec/1.2.2/[YAML 1.2], parsed
 using the https://bitbucket.org/snakeyaml/snakeyaml-engine[SnakeYaml-Engine] library. This helps
 mitigate many of the https://ruudvanasseldonk.com/2023/01/11/the-yaml-document-from-hell[issues
 that YAML has traditionally faced], such as the famous
