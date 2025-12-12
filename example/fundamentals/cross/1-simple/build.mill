@@ -15,22 +15,22 @@ trait FooModule extends Cross.Module[String] {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   subgraph cluster_2 {
-//     label="foo[2.12]"
+//     label="foo.2_12"
 //     style=dashed
-//     "foo[2.12].suffix" -> "foo[2.12].bigSuffix"
-//     "foo[2.12].sources"
+//     "foo.2_12.suffix" -> "foo.2_12.bigSuffix"
+//     "foo.2_12.sources"
 //   }
 //   subgraph cluster_1 {
-//     label="foo[2.11]"
+//     label="foo.2_11"
 //     style=dashed
-//     "foo[2.11].suffix" -> "foo[2.11].bigSuffix"
-//     "foo[2.11].sources"
+//     "foo.2_11.suffix" -> "foo.2_11.bigSuffix"
+//     "foo.2_11.sources"
 //   }
 //   subgraph cluster_0 {
-//     label="foo[2.10]"
+//     label="foo.2_10"
 //     style=dashed
-//     "foo[2.10].suffix" -> "foo[2.10].bigSuffix"
-//     "foo[2.10].sources"
+//     "foo.2_10.suffix" -> "foo.2_10.bigSuffix"
+//     "foo.2_10.sources"
 //   }
 // }
 // ....
