@@ -56,6 +56,15 @@ final case class Segments private (value: Seq[Segment]) {
       case valueList => renderValue(valueList)
     }
   }
+
+  /**
+   * Renders segments using bracket syntax for cross modules (e.g., `foo[2.12.20]`).
+   * Used for tab completion when the user has started typing with bracket syntax.
+   */
+  def renderBracketSyntax: String = value.map {
+    case Segment.Label(s) => "." + s
+    case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
+  }.mkString.drop(1)
   override lazy val hashCode: Int = value.hashCode()
 }
 

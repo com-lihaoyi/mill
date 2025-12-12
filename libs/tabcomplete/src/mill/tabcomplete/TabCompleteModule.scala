@@ -273,7 +273,7 @@ private object TabCompleteModule extends ExternalModule {
    * syntax if the user has already started typing with brackets.
    */
   def renderSegments(segments: mill.api.daemon.Segments, useBracketSyntax: Boolean): String = {
-    if (useBracketSyntax) segments.render
+    if (useBracketSyntax) segments.renderBracketSyntax
     else segments.render
   }
 
