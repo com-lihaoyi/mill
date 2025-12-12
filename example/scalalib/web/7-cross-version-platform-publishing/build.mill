@@ -57,7 +57,7 @@ trait FooModule extends Cross.Module[String] {
 
 /** Usage
 
-> ./mill show foo[2.13.16].bar.jvm.sources
+> ./mill show foo.2_13_16.bar.jvm.sources
 [
   ".../foo/bar/src",
   ".../foo/bar/src-jvm",
@@ -69,7 +69,7 @@ trait FooModule extends Cross.Module[String] {
   ".../foo/bar/src-2-jvm"
 ]
 
-> ./mill show foo[3.3.6].qux.js.sources
+> ./mill show foo.3_3_6.qux.js.sources
 [
   ".../foo/qux/src",
   ".../foo/qux/src-js",
@@ -81,17 +81,17 @@ trait FooModule extends Cross.Module[String] {
   ".../foo/qux/src-3-js"
 ]
 
-> ./mill foo[2.13.16].qux.jvm.run
+> ./mill foo.2_13_16.qux.jvm.run
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Parsing JSON with ujson.read
 Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
-> ./mill foo[3.3.6].qux.js.run
+> ./mill foo.3_3_6.qux.js.run
 Bar.value: <p>world Specific code for Scala 3.x</p>
 Parsing JSON with js.JSON.parse
 Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
-> ./mill foo[3.3.6].__.js.test
+> ./mill foo.3_3_6.__.js.test
 + bar.BarTests.test ...  <p>world Specific code for Scala 3.x</p>
 + qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
 

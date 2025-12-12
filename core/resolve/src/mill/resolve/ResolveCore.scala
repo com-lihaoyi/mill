@@ -40,6 +40,23 @@ private object ResolveCore {
   case class Error(failure: Result.Failure) extends Failed
 
   /**
+   * Convert a label to potential cross segment values by replacing underscores with
+   * `.`, `/`, or `:` since those characters have special meaning in Mill selectors.
+   * Returns the original label and variants with substitutions applied.
+   */
+  def labelToCrossSegments(label: String): Seq[String] = {
+    if (!label.contains('_')) Seq(label)
+    else {
+      // Generate variants by replacing underscores with `.`, `/`, or `:`
+      // We prioritize `.` as it's the most common (e.g., version numbers)
+      val withDots = label.replace('_', '.')
+      val withSlashes = label.replace('_', '/')
+      val withColons = label.replace('_', ':')
+      Seq(label, withDots, withSlashes, withColons).distinct
+    }
+  }
+
+  /**
    * Cache for modules instantiated during task and resolution.
    *
    * Instantiating modules can be pretty expensive (~1ms per module!) due to all the reflection
@@ -216,7 +233,21 @@ private object ResolveCore {
 
             resOrErr match {
               case f: mill.api.Result.Failure => Error(f)
-              case mill.api.Result.Success(res) => recurse(res.distinct)
+              case mill.api.Result.Success(res) if res.nonEmpty => recurse(res.distinct)
+              case mill.api.Result.Success(_) =>
+                // Direct resolution found nothing; try label-as-cross if this is a Cross module
+                tryResolveLabelAsCross(
+                  rootModule,
+                  rootModulePrefix,
+                  m,
+                  singleLabel,
+                  tail,
+                  querySoFar,
+                  seenModules,
+                  cache
+                ).getOrElse(
+                  notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+                )
             }
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
@@ -498,6 +529,113 @@ private object ResolveCore {
       }
 
     modulesOrErr.map(_ ++ namedTasks ++ commands)
+  }
+
+  /**
+   * Try to resolve a label segment as a cross module value.
+   *
+   * For example, `foo.bar.qux` can resolve to `foo.bar[qux]` if `bar` is a Cross.Module,
+   * or `foo.bar.qux.baz` can resolve to `foo.bar[qux,baz]` if `bar` is a Cross.Module2.
+   *
+   * Also handles underscore-to-dot substitution: `foo.bar.qux_baz` can resolve to `foo.bar[qux.baz]`.
+   *
+   * Returns Some(Result) if a match was found, None otherwise.
+   */
+  def tryResolveLabelAsCross(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      m: Resolved.Module,
+      firstLabel: String,
+      tail: List[Segment],
+      querySoFar: Segments,
+      seenModules: Set[Class[?]],
+      cache: Cache
+  ): Option[Result] = {
+    if (!classOf[Cross[?]].isAssignableFrom(m.cls)) None
+    else instantiateModule(rootModule, rootModulePrefix, m.taskSegments, cache) match {
+      case f: mill.api.Result.Failure => Some(Error(f))
+      case mill.api.Result.Success(c: Cross[_]) =>
+        c.items.headOption.flatMap { item =>
+          val dimensions = item.crossSegments.length
+
+          // Collect label segments: firstLabel + up to (dimensions - 1) more from tail
+          val additionalLabels = tail.take(dimensions - 1).collect { case Segment.Label(l) => l }
+
+          val allLabels = firstLabel :: additionalLabels
+
+          // Try different combinations with underscore-to-dot conversion and find matching cross modules
+          val labelCombinations = generateCrossSegmentCombinations(allLabels)
+
+          val matchedModules = labelCombinations
+            .flatMap { segments => c.segmentsToModules.get(segments).toSeq }
+            .distinct
+
+          if (matchedModules.isEmpty) None
+          else { // We found matches! Now recurse with the remaining tail
+            val crossSegment = Segment.Cross(
+              c.segmentsToModules.keys
+                .find(segs => matchedModules.contains(c.segmentsToModules(segs)))
+                .getOrElse(allLabels)
+            )
+
+            val resolvedModules = matchedModules.map { crossMod =>
+              Resolved.Module(
+                rootModule,
+                rootModulePrefix,
+                crossMod.moduleSegments,
+                crossMod.getClass
+              )
+            }
+
+            val actualRemainingTail = tail.drop(dimensions - 1)
+
+            // Recurse with remaining query
+            val results = resolvedModules.map { resolved =>
+              resolve(
+                rootModule,
+                rootModulePrefix,
+                actualRemainingTail,
+                resolved,
+                querySoFar ++ Seq(crossSegment),
+                seenModules ++ Set(m.cls),
+                cache
+              )
+            }
+
+            // Combine results
+            val (failures, successes) = results.partitionMap {
+              case s: Success => Right(s.value)
+              case f: Failed => Left(f)
+            }
+
+            val (errors, notFounds) = failures.partitionMap {
+              case e: Error => Left(e.failure)
+              case n: NotFound => Right(n)
+            }
+
+            if (errors.nonEmpty) Some(Error(mill.api.Result.Failure.join(errors)))
+            else if (successes.flatten.nonEmpty) Some(Success(successes.flatten))
+            else if (notFounds.nonEmpty) Some(notFounds.head)
+            else None
+          }
+        }
+    }
+  }
+
+  /**
+   * Generate all combinations of cross segments by replacing underscores with dots.
+   * For example, ["2_12_20", "jvm"] generates combinations like:
+   * - ["2_12_20", "jvm"]
+   * - ["2.12.20", "jvm"]
+   */
+  def generateCrossSegmentCombinations(labels: List[String]): Seq[List[String]] = {
+    labels match {
+      case Nil => Seq(Nil)
+      case head :: tail =>
+        val headVariants = labelToCrossSegments(head)
+        val tailCombinations = generateCrossSegmentCombinations(tail)
+        for (h <- headVariants; t <- tailCombinations) yield h :: t
+    }
   }
 
   def notFoundResult(
