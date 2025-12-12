@@ -1,73 +1,73 @@
-Module dependencies of [2.13.16]:
-Module dependencies of [2.13.16].test:
-  [2.13.16]
-Module dependencies of [3.3.3]:
-Module dependencies of [3.3.3].test:
-  [3.3.3]
+Module dependencies of 2_13_16:
+Module dependencies of 2_13_16.test:
+  2_13_16
+Module dependencies of 3_3_3:
+Module dependencies of 3_3_3.test:
+  3_3_3
 {
-  "[2.13.16].repositories": [
+  "2_13_16.repositories": [
     "https://oss.sonatype.org/content/repositories/public",
     "https://s01.oss.sonatype.org/content/repositories/public"
   ],
-  "[2.13.16].test.repositories": [],
-  "[3.3.3].repositories": [
+  "2_13_16.test.repositories": [],
+  "3_3_3.repositories": [
     "https://oss.sonatype.org/content/repositories/public",
     "https://s01.oss.sonatype.org/content/repositories/public"
   ],
-  "[3.3.3].test.repositories": []
+  "3_3_3.test.repositories": []
 }
 {
-  "[2.13.16].jvmId": "",
-  "[3.3.3].jvmId": ""
+  "2_13_16.jvmId": "",
+  "3_3_3.jvmId": ""
 }
 {
-  "[2.13.16].mvnDeps": [
+  "2_13_16.mvnDeps": [
     "org.scala-js::scalajs-dom::2.8.0",
     "app.tulz::tuplez-full-light::0.4.0",
     "com.raquo::ew::0.2.0"
   ],
-  "[2.13.16].test.mvnDeps": [
+  "2_13_16.test.mvnDeps": [
     "org.scalatest::scalatest::3.2.14"
   ],
-  "[3.3.3].mvnDeps": [
+  "3_3_3.mvnDeps": [
     "org.scala-js::scalajs-dom::2.8.0",
     "app.tulz::tuplez-full-light::0.4.0",
     "com.raquo::ew::0.2.0"
   ],
-  "[3.3.3].test.mvnDeps": [
+  "3_3_3.test.mvnDeps": [
     "org.scalatest::scalatest::3.2.14"
   ]
 }
 {
-  "[2.13.16].compileMvnDeps": [],
-  "[2.13.16].test.compileMvnDeps": [],
-  "[3.3.3].compileMvnDeps": [],
-  "[3.3.3].test.compileMvnDeps": []
+  "2_13_16.compileMvnDeps": [],
+  "2_13_16.test.compileMvnDeps": [],
+  "3_3_3.compileMvnDeps": [],
+  "3_3_3.test.compileMvnDeps": []
 }
 {
-  "[2.13.16].runMvnDeps": [],
-  "[2.13.16].test.runMvnDeps": [],
-  "[3.3.3].runMvnDeps": [],
-  "[3.3.3].test.runMvnDeps": []
+  "2_13_16.runMvnDeps": [],
+  "2_13_16.test.runMvnDeps": [],
+  "3_3_3.runMvnDeps": [],
+  "3_3_3.test.runMvnDeps": []
 }
 {
-  "[2.13.16].bomMvnDeps": [],
-  "[2.13.16].test.bomMvnDeps": [],
-  "[3.3.3].bomMvnDeps": [],
-  "[3.3.3].test.bomMvnDeps": []
+  "2_13_16.bomMvnDeps": [],
+  "2_13_16.test.bomMvnDeps": [],
+  "3_3_3.bomMvnDeps": [],
+  "3_3_3.test.bomMvnDeps": []
 }
 {
-  "[2.13.16].javacOptions": [],
-  "[2.13.16].test.javacOptions": [],
-  "[3.3.3].javacOptions": [],
-  "[3.3.3].test.javacOptions": []
+  "2_13_16.javacOptions": [],
+  "2_13_16.test.javacOptions": [],
+  "3_3_3.javacOptions": [],
+  "3_3_3.test.javacOptions": []
 }
 {
-  "[2.13.16].pomParentProject": null,
-  "[3.3.3].pomParentProject": null
+  "2_13_16.pomParentProject": null,
+  "3_3_3.pomParentProject": null
 }
 {
-  "[2.13.16].pomSettings": {
+  "2_13_16.pomSettings": {
     "description": "Airstream",
     "organization": "com.raquo",
     "url": "https://github.com/raquo/Airstream",
@@ -90,7 +90,7 @@ Module dependencies of [3.3.3].test:
       }
     ]
   },
-  "[3.3.3].pomSettings": {
+  "3_3_3.pomSettings": {
     "description": "Airstream",
     "organization": "com.raquo",
     "url": "https://github.com/raquo/Airstream",
@@ -115,77 +115,77 @@ Module dependencies of [3.3.3].test:
   }
 }
 {
-  "[2.13.16].publishVersion": "17.2.1",
-  "[3.3.3].publishVersion": "17.2.1"
+  "2_13_16.publishVersion": "17.2.1",
+  "3_3_3.publishVersion": "17.2.1"
 }
 {
-  "[2.13.16].versionScheme": null,
-  "[3.3.3].versionScheme": null
+  "2_13_16.versionScheme": null,
+  "3_3_3.versionScheme": null
 }
 {
-  "[2.13.16].publishProperties": {},
-  "[3.3.3].publishProperties": {}
+  "2_13_16.publishProperties": {},
+  "3_3_3.publishProperties": {}
 }
 
 
 
 {
-  "[2.13.16].scalaVersion": "2.13.16",
-  "[2.13.16].test.scalaVersion": "2.13.16",
-  "[3.3.3].scalaVersion": "3.3.3",
-  "[3.3.3].test.scalaVersion": "3.3.3"
+  "2_13_16.scalaVersion": "2.13.16",
+  "2_13_16.test.scalaVersion": "2.13.16",
+  "3_3_3.scalaVersion": "3.3.3",
+  "3_3_3.test.scalaVersion": "3.3.3"
 }
 {
-  "[2.13.16].scalacOptions": [
+  "2_13_16.scalacOptions": [
     "-feature",
     "-language:higherKinds",
     "-language:implicitConversions"
   ],
-  "[2.13.16].test.scalacOptions": [
+  "2_13_16.test.scalacOptions": [
     "-feature",
     "-language:higherKinds",
     "-language:implicitConversions"
   ],
-  "[3.3.3].scalacOptions": [
+  "3_3_3.scalacOptions": [
     "-feature",
     "-language:higherKinds",
     "-language:implicitConversions"
   ],
-  "[3.3.3].test.scalacOptions": [
+  "3_3_3.test.scalacOptions": [
     "-feature",
     "-language:higherKinds",
     "-language:implicitConversions"
   ]
 }
 {
-  "[2.13.16].scalacPluginMvnDeps": [
+  "2_13_16.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.16.0"
   ],
-  "[2.13.16].test.scalacPluginMvnDeps": [
+  "2_13_16.test.scalacPluginMvnDeps": [
     "org.scala-js:::scalajs-compiler:1.16.0",
     "org.scala-js:::scalajs-compiler:1.16.0"
   ],
-  "[3.3.3].scalacPluginMvnDeps": [],
-  "[3.3.3].test.scalacPluginMvnDeps": []
+  "3_3_3.scalacPluginMvnDeps": [],
+  "3_3_3.test.scalacPluginMvnDeps": []
 }
 {
-  "[2.13.16].scalaJSVersion": "1.16.0",
-  "[2.13.16].test.scalaJSVersion": "1.16.0",
-  "[3.3.3].scalaJSVersion": "1.16.0",
-  "[3.3.3].test.scalaJSVersion": "1.16.0"
+  "2_13_16.scalaJSVersion": "1.16.0",
+  "2_13_16.test.scalaJSVersion": "1.16.0",
+  "3_3_3.scalaJSVersion": "1.16.0",
+  "3_3_3.test.scalaJSVersion": "1.16.0"
 }
 {
-  "[2.13.16].moduleKind": "CommonJSModule",
-  "[2.13.16].test.moduleKind": "CommonJSModule",
-  "[3.3.3].moduleKind": "CommonJSModule",
-  "[3.3.3].test.moduleKind": "CommonJSModule"
+  "2_13_16.moduleKind": "CommonJSModule",
+  "2_13_16.test.moduleKind": "CommonJSModule",
+  "3_3_3.moduleKind": "CommonJSModule",
+  "3_3_3.test.moduleKind": "CommonJSModule"
 }
 
 {
-  "[2.13.16].test.testParallelism": false,
-  "[3.3.3].test.testParallelism": false
+  "2_13_16.test.testParallelism": false,
+  "3_3_3.test.testParallelism": false
 }
 {
-  "[2.13.16].test.testSandboxWorkingDir": false,
-  "[3.3.3].test.testSandboxWorkingDir": false
+  "2_13_16.test.testSandboxWorkingDir": false,
+  "3_3_3.test.testSandboxWorkingDir": false
 }
