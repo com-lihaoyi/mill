@@ -44,7 +44,7 @@ private object ResolveCore {
    * `.`, `/`, or `:` since those characters have special meaning in Mill selectors.
    * Returns the original label and variants with substitutions applied.
    */
-  private def labelToCrossSegments(label: String): Seq[String] = {
+  def labelToCrossSegments(label: String): Seq[String] = {
     if (!label.contains('_')) Seq(label)
     else {
       // Generate variants by replacing underscores with `.`, `/`, or `:`
@@ -551,93 +551,73 @@ private object ResolveCore {
       seenModules: Set[Class[?]],
       cache: Cache
   ): Option[Result] = {
-    if (!classOf[Cross[?]].isAssignableFrom(m.cls)) return None
-
-    instantiateModule(rootModule, rootModulePrefix, m.taskSegments, cache) match {
+    if (!classOf[Cross[?]].isAssignableFrom(m.cls)) None
+    else instantiateModule(rootModule, rootModulePrefix, m.taskSegments, cache) match {
       case f: mill.api.Result.Failure => Some(Error(f))
-      case mill.api.Result.Success(mod) =>
-        mod match {
-          case c: Cross[_] =>
-            // Determine how many dimensions this cross has by looking at an item
-            val dimensions = c.items.headOption match {
-              case Some(item) => item.crossSegments.length
-              case None => return None // Empty cross, nothing to match
-            }
+      case mill.api.Result.Success(c: Cross[_]) =>
+        c.items.headOption.flatMap { item =>
+          val dimensions = item.crossSegments.length
 
-            // Collect label segments: firstLabel + up to (dimensions - 1) more from tail
-            val additionalLabels = {
-              val labelsTaken = tail.take(dimensions - 1).collect {
-                case Segment.Label(l) => l
-              }
-              labelsTaken
-            }
+          // Collect label segments: firstLabel + up to (dimensions - 1) more from tail
+          val additionalLabels = tail.take(dimensions - 1).collect { case Segment.Label(l) => l }
 
-            val allLabels = firstLabel :: additionalLabels.toList
+          val allLabels = firstLabel :: additionalLabels
 
-            // Try different combinations with underscore-to-dot conversion
-            val labelCombinations = generateCrossSegmentCombinations(allLabels)
+          // Try different combinations with underscore-to-dot conversion and find matching cross modules
+          val labelCombinations = generateCrossSegmentCombinations(allLabels)
 
-            // Find matching cross modules
-            val matchedModules = labelCombinations.flatMap { segments =>
-              c.segmentsToModules.get(segments).toSeq
-            }.distinct
+          val matchedModules = labelCombinations
+            .flatMap { segments => c.segmentsToModules.get(segments).toSeq }
+            .distinct
 
-            if (matchedModules.nonEmpty) {
-              // We found matches! Now recurse with the remaining tail
-              val crossSegment = Segment.Cross(
-                c.segmentsToModules.keys
-                  .find(segs => matchedModules.contains(c.segmentsToModules(segs)))
-                  .getOrElse(allLabels)
+          if (matchedModules.isEmpty) None
+          else { // We found matches! Now recurse with the remaining tail
+            val crossSegment = Segment.Cross(
+              c.segmentsToModules.keys
+                .find(segs => matchedModules.contains(c.segmentsToModules(segs)))
+                .getOrElse(allLabels)
+            )
+
+            val resolvedModules = matchedModules.map { crossMod =>
+              Resolved.Module(
+                rootModule,
+                rootModulePrefix,
+                crossMod.moduleSegments,
+                crossMod.getClass
               )
-
-              val resolvedModules = matchedModules.map { crossMod =>
-                Resolved.Module(
-                  rootModule,
-                  rootModulePrefix,
-                  crossMod.moduleSegments,
-                  crossMod.getClass
-                )
-              }
-
-              // Calculate how many segments we consumed
-              val segmentsConsumed = matchedModules.head.moduleSegments.value.last match {
-                case Segment.Cross(segs) => segs.length
-                case _ => 1
-              }
-              val actualRemainingTail = tail.drop(segmentsConsumed - 1)
-
-              // Recurse with remaining query
-              val results = resolvedModules.map { resolved =>
-                resolve(
-                  rootModule,
-                  rootModulePrefix,
-                  actualRemainingTail,
-                  resolved,
-                  querySoFar ++ Seq(crossSegment),
-                  seenModules ++ Set(m.cls),
-                  cache
-                )
-              }
-
-              // Combine results
-              val (failures, successes) = results.partitionMap {
-                case s: Success => Right(s.value)
-                case f: Failed => Left(f)
-              }
-
-              val (errors, notFounds) = failures.partitionMap {
-                case e: Error => Left(e.failure)
-                case n: NotFound => Right(n)
-              }
-
-              if (errors.nonEmpty) Some(Error(mill.api.Result.Failure.join(errors)))
-              else if (successes.flatten.nonEmpty) Some(Success(successes.flatten))
-              else if (notFounds.nonEmpty) Some(notFounds.head)
-              else None
-            } else {
-              None // No matches found
             }
-          case _ => None
+
+            val actualRemainingTail = tail.drop(dimensions - 1)
+
+            // Recurse with remaining query
+            val results = resolvedModules.map { resolved =>
+              resolve(
+                rootModule,
+                rootModulePrefix,
+                actualRemainingTail,
+                resolved,
+                querySoFar ++ Seq(crossSegment),
+                seenModules ++ Set(m.cls),
+                cache
+              )
+            }
+
+            // Combine results
+            val (failures, successes) = results.partitionMap {
+              case s: Success => Right(s.value)
+              case f: Failed => Left(f)
+            }
+
+            val (errors, notFounds) = failures.partitionMap {
+              case e: Error => Left(e.failure)
+              case n: NotFound => Right(n)
+            }
+
+            if (errors.nonEmpty) Some(Error(mill.api.Result.Failure.join(errors)))
+            else if (successes.flatten.nonEmpty) Some(Success(successes.flatten))
+            else if (notFounds.nonEmpty) Some(notFounds.head)
+            else None
+          }
         }
     }
   }
@@ -648,16 +628,13 @@ private object ResolveCore {
    * - ["2_12_20", "jvm"]
    * - ["2.12.20", "jvm"]
    */
-  private def generateCrossSegmentCombinations(labels: List[String]): Seq[List[String]] = {
+  def generateCrossSegmentCombinations(labels: List[String]): Seq[List[String]] = {
     labels match {
       case Nil => Seq(Nil)
       case head :: tail =>
         val headVariants = labelToCrossSegments(head)
         val tailCombinations = generateCrossSegmentCombinations(tail)
-        for {
-          h <- headVariants
-          t <- tailCombinations
-        } yield h :: t
+        for(h <- headVariants; t <- tailCombinations) yield h :: t
     }
   }
 
