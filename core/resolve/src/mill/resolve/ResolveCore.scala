@@ -40,6 +40,16 @@ private object ResolveCore {
   case class Error(failure: Result.Failure) extends Failed
 
   /**
+   * Convert a label to potential cross segment values by replacing underscores with dots.
+   * Returns the original label and, if it contains underscores, a version with dots.
+   */
+  private def labelToCrossSegments(label: String): Seq[String] = {
+    val withDots = label.replace('_', '.')
+    if (withDots != label) Seq(label, withDots)
+    else Seq(label)
+  }
+
+  /**
    * Cache for modules instantiated during task and resolution.
    *
    * Instantiating modules can be pretty expensive (~1ms per module!) due to all the reflection
@@ -216,7 +226,21 @@ private object ResolveCore {
 
             resOrErr match {
               case f: mill.api.Result.Failure => Error(f)
-              case mill.api.Result.Success(res) => recurse(res.distinct)
+              case mill.api.Result.Success(res) if res.nonEmpty => recurse(res.distinct)
+              case mill.api.Result.Success(_) =>
+                // Direct resolution found nothing; try label-as-cross if this is a Cross module
+                tryResolveLabelAsCross(
+                  rootModule,
+                  rootModulePrefix,
+                  m,
+                  singleLabel,
+                  tail,
+                  querySoFar,
+                  seenModules,
+                  cache
+                ).getOrElse(
+                  notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+                )
             }
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
@@ -498,6 +522,136 @@ private object ResolveCore {
       }
 
     modulesOrErr.map(_ ++ namedTasks ++ commands)
+  }
+
+  /**
+   * Try to resolve a label segment as a cross module value.
+   *
+   * For example, `foo.bar.qux` can resolve to `foo.bar[qux]` if `bar` is a Cross.Module,
+   * or `foo.bar.qux.baz` can resolve to `foo.bar[qux,baz]` if `bar` is a Cross.Module2.
+   *
+   * Also handles underscore-to-dot substitution: `foo.bar.qux_baz` can resolve to `foo.bar[qux.baz]`.
+   *
+   * Returns Some(Result) if a match was found, None otherwise.
+   */
+  def tryResolveLabelAsCross(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      m: Resolved.Module,
+      firstLabel: String,
+      tail: List[Segment],
+      querySoFar: Segments,
+      seenModules: Set[Class[?]],
+      cache: Cache
+  ): Option[Result] = {
+    if (!classOf[Cross[?]].isAssignableFrom(m.cls)) return None
+
+    instantiateModule(rootModule, rootModulePrefix, m.taskSegments, cache) match {
+      case f: mill.api.Result.Failure => Some(Error(f))
+      case mill.api.Result.Success(mod) =>
+        mod match {
+          case c: Cross[_] =>
+            // Determine how many dimensions this cross has by looking at an item
+            val dimensions = c.items.headOption match {
+              case Some(item) => item.crossSegments.length
+              case None => return None // Empty cross, nothing to match
+            }
+
+            // Collect label segments: firstLabel + up to (dimensions - 1) more from tail
+            val additionalLabels = {
+              val labelsTaken = tail.take(dimensions - 1).collect {
+                case Segment.Label(l) => l
+              }
+              labelsTaken
+            }
+
+            val allLabels = firstLabel :: additionalLabels.toList
+
+            // Try different combinations with underscore-to-dot conversion
+            val labelCombinations = generateCrossSegmentCombinations(allLabels)
+
+            // Find matching cross modules
+            val matchedModules = labelCombinations.flatMap { segments =>
+              c.segmentsToModules.get(segments).toSeq
+            }.distinct
+
+            if (matchedModules.nonEmpty) {
+              // We found matches! Now recurse with the remaining tail
+              val crossSegment = Segment.Cross(
+                c.segmentsToModules.keys
+                  .find(segs => matchedModules.contains(c.segmentsToModules(segs)))
+                  .getOrElse(allLabels)
+              )
+
+              val resolvedModules = matchedModules.map { crossMod =>
+                Resolved.Module(
+                  rootModule,
+                  rootModulePrefix,
+                  crossMod.moduleSegments,
+                  crossMod.getClass
+                )
+              }
+
+              // Calculate how many segments we consumed
+              val segmentsConsumed = matchedModules.head.moduleSegments.value.last match {
+                case Segment.Cross(segs) => segs.length
+                case _ => 1
+              }
+              val actualRemainingTail = tail.drop(segmentsConsumed - 1)
+
+              // Recurse with remaining query
+              val results = resolvedModules.map { resolved =>
+                resolve(
+                  rootModule,
+                  rootModulePrefix,
+                  actualRemainingTail,
+                  resolved,
+                  querySoFar ++ Seq(crossSegment),
+                  seenModules ++ Set(m.cls),
+                  cache
+                )
+              }
+
+              // Combine results
+              val (failures, successes) = results.partitionMap {
+                case s: Success => Right(s.value)
+                case f: Failed => Left(f)
+              }
+
+              val (errors, notFounds) = failures.partitionMap {
+                case e: Error => Left(e.failure)
+                case n: NotFound => Right(n)
+              }
+
+              if (errors.nonEmpty) Some(Error(mill.api.Result.Failure.join(errors)))
+              else if (successes.flatten.nonEmpty) Some(Success(successes.flatten))
+              else if (notFounds.nonEmpty) Some(notFounds.head)
+              else None
+            } else {
+              None // No matches found
+            }
+          case _ => None
+        }
+    }
+  }
+
+  /**
+   * Generate all combinations of cross segments by replacing underscores with dots.
+   * For example, ["2_12_20", "jvm"] generates combinations like:
+   * - ["2_12_20", "jvm"]
+   * - ["2.12.20", "jvm"]
+   */
+  private def generateCrossSegmentCombinations(labels: List[String]): Seq[List[String]] = {
+    labels match {
+      case Nil => Seq(Nil)
+      case head :: tail =>
+        val headVariants = labelToCrossSegments(head)
+        val tailCombinations = generateCrossSegmentCombinations(tail)
+        for {
+          h <- headVariants
+          t <- tailCombinations
+        } yield h :: t
+    }
   }
 
   def notFoundResult(

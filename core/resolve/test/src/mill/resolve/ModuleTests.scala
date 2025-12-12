@@ -618,5 +618,105 @@ object ModuleTests extends TestSuite {
         Result.Success(Set(_.concrete.tests.inner.foo, _.concrete.tests.inner.innerer.bar))
       )
     }
+
+    test("crossLabelSyntax") {
+      test("single") {
+        val check = new Checker(singleCross)
+        // foo.bar.qux resolves to foo.bar[qux]
+        test("pos1") - check(
+          "cross.210.suffix",
+          Result.Success(Set(_.cross("210").suffix)),
+          Set("cross[210].suffix")
+        )
+        test("pos2") - check(
+          "cross.211.suffix",
+          Result.Success(Set(_.cross("211").suffix)),
+          Set("cross[211].suffix")
+        )
+        test("pos3") - check(
+          "cross.212.suffix",
+          Result.Success(Set(_.cross("212").suffix)),
+          Set("cross[212].suffix")
+        )
+        test("neg") - check(
+          "cross.doesntExist.suffix",
+          Result.Failure(
+            "Cannot resolve cross.doesntExist.suffix. Try `mill resolve cross._`, `mill resolve __.suffix` to see what's available, or `mill __.suffix` to run all `suffix` tasks"
+          )
+        )
+      }
+      test("double") {
+        val check = new Checker(doubleCross)
+        // foo.bar.qux.baz resolves to foo.bar[qux,baz] for Cross.Module2
+        test("pos1") - check(
+          "cross.210.jvm.suffix",
+          Result.Success(Set(_.cross("210", "jvm").suffix)),
+          Set("cross[210,jvm].suffix")
+        )
+        test("pos2") - check(
+          "cross.211.js.suffix",
+          Result.Success(Set(_.cross("211", "js").suffix)),
+          Set("cross[211,js].suffix")
+        )
+        test("pos3") - check(
+          "cross.212.native.suffix",
+          Result.Success(Set(_.cross("212", "native").suffix)),
+          Set("cross[212,native].suffix")
+        )
+        test("neg") - check(
+          "cross.210.doesntExist.suffix",
+          Result.Failure(
+            "Cannot resolve cross.210.doesntExist.suffix. Try `mill resolve cross._`, `mill resolve __.suffix` to see what's available, or `mill __.suffix` to run all `suffix` tasks"
+          )
+        )
+      }
+      test("nested") {
+        val check = new Checker(nestedCrosses)
+        // Nested crosses: foo.bar.qux.cross2.baz resolves to foo.bar[qux].cross2[baz]
+        test("pos1") - check(
+          "cross.210.cross2.js.suffix",
+          Result.Success(Set(_.cross("210").cross2("js").suffix)),
+          Set("cross[210].cross2[js].suffix")
+        )
+        test("pos2") - check(
+          "cross.211.cross2.jvm.suffix",
+          Result.Success(Set(_.cross("211").cross2("jvm").suffix)),
+          Set("cross[211].cross2[jvm].suffix")
+        )
+      }
+      test("underscoreToDot") {
+        val check = new Checker(versionedCross)
+        // foo.bar.qux_baz resolves to foo.bar[qux.baz]
+        test("pos1") - check(
+          "cross.2_12_20.suffix",
+          Result.Success(Set(_.cross("2.12.20").suffix)),
+          Set("cross[2.12.20].suffix")
+        )
+        test("pos2") - check(
+          "cross.2_13_15.suffix",
+          Result.Success(Set(_.cross("2.13.15").suffix)),
+          Set("cross[2.13.15].suffix")
+        )
+        test("pos3") - check(
+          "cross.3_5_0.suffix",
+          Result.Success(Set(_.cross("3.5.0").suffix)),
+          Set("cross[3.5.0].suffix")
+        )
+      }
+      test("underscoreToDotDouble") {
+        val check = new Checker(versionedDoubleCross)
+        // foo.bar.qux_baz.platform resolves to foo.bar[qux.baz,platform]
+        test("pos1") - check(
+          "cross.2_12_20.jvm.suffix",
+          Result.Success(Set(_.cross("2.12.20", "jvm").suffix)),
+          Set("cross[2.12.20,jvm].suffix")
+        )
+        test("pos2") - check(
+          "cross.2_13_15.js.suffix",
+          Result.Success(Set(_.cross("2.13.15", "js").suffix)),
+          Set("cross[2.13.15,js].suffix")
+        )
+      }
+    }
   }
 }
