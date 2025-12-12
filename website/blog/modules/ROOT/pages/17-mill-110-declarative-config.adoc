@@ -202,7 +202,7 @@ mitigate many of the https://ruudvanasseldonk.com/2023/01/11/the-yaml-document-f
 that YAML has traditionally faced], such as the famous
 https://www.bram.us/2022/01/11/yaml-the-norway-problem/[Norway Problem], or the mangling of
 version numbers such as `1.20` to `1.2`. While YAML will always have edge cases, with careful
-handling we expect they will be relatively rare and not affect most users.
+handling we expect encountering them will be relatively rare and not affect most users.
 
 === Non-Trivial Declarative Builds
 
