@@ -59,7 +59,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
    *   def groovyCompileTargetBytecode = Some("17")
    * }}}
    */
-  def groovyCompileTargetBytecode: T[Option[String]] = None
+  def groovyCompileTargetBytecode: T[Option[String]] = Option.empty[String]
 
   /**
    * Specify if the Groovy compiler should enable preview features.

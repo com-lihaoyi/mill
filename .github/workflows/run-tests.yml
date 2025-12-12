@@ -157,7 +157,7 @@ jobs:
             millargs: "'example.androidlib.__.shared.daemon'"
             setup-android: true
 
-          - java-version: 21
+          - java-version: 17
             millargs: "'example.groovylib.__.shared.daemon'"
             setup-android: true
 
