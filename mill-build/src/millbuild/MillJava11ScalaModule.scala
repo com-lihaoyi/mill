@@ -5,8 +5,6 @@ import mill.*
 trait MillJava11ScalaModule extends MillScalaModule {
   def scalaVersion = Deps.scalaVersionJava11
 
-  override def javaRelease: String = "11"
-
   def jvmId = "11"
 
   override object test extends MillScalaTests {

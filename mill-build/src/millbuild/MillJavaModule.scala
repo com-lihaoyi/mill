@@ -108,8 +108,6 @@ trait MillJavaModule extends JavaModule {
 
   override def javacOptions = Task {
     super.javacOptions() ++ ciJavacOptions() ++ Seq(
-      "--release", "11",
-      "-encoding", "UTF-8",
       "-Xlint",
       "-Xlint:-serial", // we don't care about java serialization
       "-Xlint:-try" // TODO: a bunch of code needs reviewing with this lint)

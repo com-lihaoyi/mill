@@ -5,7 +5,6 @@ import mill.scalalib.*
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.BuildCtx
 import com.goyeau.mill.scalafix.ScalafixModule
-import coursier.Repository
 
 /**
  * Some custom scala settings and test convenience
@@ -32,12 +31,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     } else Nil
   }
 
-  protected def javaRelease: String = "17"
-
   def scalacOptions =
     super.scalacOptions() ++ Seq(
-      "--release",
-      javaRelease,
       "-deprecation",
       "-feature"
     ) ++ ciScalacOptions() ++ (
@@ -94,9 +89,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
       with ScalafixModule {
-    override def repositoriesTask: Task[Seq[Repository]] =Task.Anon {
-      (super[ScalaTests].repositoriesTask() ++ super[MillJavaModule].repositoriesTask()).distinct
-    }
     def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
