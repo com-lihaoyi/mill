@@ -30,19 +30,19 @@ foo[2.13.16].run
 bar[2.12.20].run
 bar[2.13.16].run
 
-> ./mill foo[2.12.20].run
+> ./mill foo.2_12_20.run
 Foo.value: Hello World Scala library version 2.12.20...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.12.x
 
-> ./mill foo[2.13.16].run
+> ./mill foo.2_13_16.run
 Foo.value: Hello World Scala library version 2.13.16...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.13.x
 
-> ./mill bar[2.13.16].run
+> ./mill bar.2_13_16.run
 Bar.value: bar-value
 
 */

@@ -174,6 +174,12 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
 
   val items: List[Item] = {
     val seen = mutable.Map[Seq[String], Seq[Any]]()
+    // Track normalized segments (underscores replaced with dots) for conflict detection
+    val seenNormalized = mutable.Map[Seq[String], (Seq[String], Seq[Any])]()
+
+    def normalizeSegments(segments: Seq[String]): Seq[String] =
+      segments.map(_.replace('_', '.'))
+
     for {
       factory <- factories.toList
       (crossSegments0, (crossValues0, (cls0, make))) <-
@@ -186,6 +192,19 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
             s"${ctx.fileName}: Cross module ${ctx.enclosing} contains colliding cross values: ${other} and ${crossValues0}"
           )
       }
+
+      // Check for underscore/dot conflicts (e.g., "foo_bar" vs "foo.bar")
+      val normalized = normalizeSegments(crossSegments0)
+      seenNormalized.get(normalized) match {
+        case Some((existingSegments, existingValues))
+            if existingSegments != crossSegments0 =>
+          throw new mill.api.MillException(
+            s"${ctx.fileName}: Cross module ${ctx.enclosing} contains cross values that would be ambiguous with underscore-to-dot conversion: " +
+              s"${existingValues.mkString("[", ",", "]")} and ${crossValues0.mkString("[", ",", "]")}"
+          )
+        case _ => // no conflict
+      }
+      seenNormalized.update(normalized, (crossSegments0, crossValues0))
       val module0 = new Lazy(() =>
         make(
           ctx

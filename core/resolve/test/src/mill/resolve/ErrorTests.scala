@@ -204,6 +204,28 @@ object ErrorTests extends TestSuite {
 
       lazy val millDiscover = Discover[this.type]
     }
+
+    object CrossModuleUnderscoreDotConflict extends TestRootModule {
+      // This should raise an error because "foo_bar" and "foo.bar" would be
+      // ambiguous with underscore-to-dot conversion
+      object myCross extends Cross[MyCross]("foo_bar", "foo.bar")
+      trait MyCross extends Cross.Module[String] {
+        def task = Task { crossValue }
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
+
+    object CrossModuleUnderscoreDotConflictDouble extends TestRootModule {
+      // This should raise an error for multi-dimensional cross modules too
+      val matrix = Seq(("2_12", "jvm"), ("2.12", "jvm"))
+      object myCross extends Cross[MyCross](matrix)
+      trait MyCross extends Cross.Module2[String, String] {
+        def task = Task { crossValue + "_" + crossValue2 }
+      }
+
+      lazy val millDiscover = Discover[this.type]
+    }
   }
 
   def isShortError(x: Result[?], s: String) = {
@@ -518,6 +540,24 @@ object ErrorTests extends TestSuite {
         "__._",
         Result.Success(Set(_.foo))
       )
+    }
+    test("crossModuleUnderscoreDotConflict") {
+      test("single") {
+        val check = new Checker(CrossModuleUnderscoreDotConflict)
+        test - check.checkSeq0(
+          Seq("myCross[foo_bar].task"),
+          isShortError(_, "ambiguous with underscore-to-dot conversion"),
+          isShortError(_, "ambiguous with underscore-to-dot conversion")
+        )
+      }
+      test("double") {
+        val check = new Checker(CrossModuleUnderscoreDotConflictDouble)
+        test - check.checkSeq0(
+          Seq("myCross[2_12,jvm].task"),
+          isShortError(_, "ambiguous with underscore-to-dot conversion"),
+          isShortError(_, "ambiguous with underscore-to-dot conversion")
+        )
+      }
     }
   }
 }

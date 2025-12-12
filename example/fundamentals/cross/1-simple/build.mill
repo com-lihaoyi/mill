@@ -49,41 +49,29 @@ trait FooModule extends Cross.Module[String] {
 
 /** Usage
 
-> ./mill show foo[2.10].suffix
+> ./mill show foo.2_10.suffix
 "_2.10"
 
-> ./mill show foo[2.10].bigSuffix
+> ./mill show foo.2_10.bigSuffix
 "[[[_2.10]]]"
 
-> ./mill show foo[2.10].sources
+> ./mill show foo.2_10.sources
 [
   ".../foo"
 ]
 
-> ./mill show foo[2.12].suffix
+> ./mill show foo.2_12.suffix
 "_2.12"
 
-> ./mill show foo[2.12].bigSuffix
+> ./mill show foo.2_12.bigSuffix
 "[[[_2.12]]]"
 
-> ./mill show foo[2.12].sources
+> ./mill show foo.2_12.sources
 [
   ".../foo"
 ]
 
 */
-
-// [NOTE]
-// --
-// Please be aware that some shells like `zsh` interpret square brackets differently, so quoting or masking might be needed.
-//
-// [source,zsh]
-// ----
-// mill show foo\[2.10\].suffix
-// mill show 'foo[2.10].suffix'
-// mill show "foo[2.10].suffix"
-// ----
-// --
 
 // The Cross module's axes can take any type `T` with `Cross.ToSegments[T]`
 // defined. There are default implementations for strings, chars, numbers,

@@ -79,16 +79,16 @@ fansi.native[2.13.16].test.compile
 fansi.native[3.3.6].compile
 fansi.native[3.3.6].test.compile
 
-> ./mill fansi.jvm[2.12.20].compile
+> ./mill fansi.jvm.2_12_20.compile
 compiling 1 Scala source...
 ...
 
-> ./mill fansi.js[2.13.16].test
+> ./mill fansi.js.2_13_16.test
 Starting process: node
 -------------------------------- Running Tests --------------------------------
 ...
 
-> ./mill fansi.native[3.3.6].publishLocal
+> ./mill fansi.native.3_3_6.publishLocal
 Publishing Artifact(com.lihaoyi,fansi_native0.5_3,1.3.3.7) to ivy repo...
 ...
 
