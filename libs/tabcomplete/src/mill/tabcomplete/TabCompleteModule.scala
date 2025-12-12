@@ -273,35 +273,8 @@ private object TabCompleteModule extends ExternalModule {
    * syntax if the user has already started typing with brackets.
    */
   def renderSegments(segments: mill.api.daemon.Segments, useBracketSyntax: Boolean): String = {
-    import mill.api.daemon.Segment
-    if (useBracketSyntax) {
-      segments.render
-    } else {
-      // Replace `.`, `/`, and `:` with `_` since they have special meaning in Mill selectors
-      def renderCross(cross: Segment.Cross): Seq[String] =
-        cross.value.map(_.replace('.', '_').replace('/', '_').replace(':', '_'))
-
-      def renderValue(valueList: List[Segment]): String = valueList match {
-        case Nil => ""
-        case head :: rest =>
-          val headSegments = head match
-            case Segment.Label(s) => Seq(s)
-            case c: Segment.Cross => renderCross(c)
-          val restSegments = rest.flatMap {
-            case Segment.Label(s) => Seq(s)
-            case c: Segment.Cross => renderCross(c)
-          }
-          (headSegments ++ restSegments).mkString(".")
-      }
-
-      segments.value.toList match {
-        // ScriptModule segments always ends with `:`
-        case Segment.Label(s"$first:") :: rest => s"$first:${renderValue(rest)}"
-        // ExternalModule segments always ends with '/'
-        case Segment.Label(s"$first/") :: rest => s"$first/${renderValue(rest)}"
-        case valueList => renderValue(valueList)
-      }
-    }
+    if (useBracketSyntax) segments.render
+    else segments.renderDotSyntax
   }
 
   /**

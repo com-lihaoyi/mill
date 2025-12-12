@@ -88,14 +88,14 @@ object qux extends JavaModule, MyModule
 /** Usage
 
 > ./mill resolve __.run
-bar[2.13.16].run
-bar[2.13.16].test.run
-bar[3.3.6].run
-bar[3.3.6].test.run
-foo[2.13.16].run
-foo[2.13.16].test.run
-foo[3.3.6].run
-foo[3.3.6].test.run
+bar.2_13_16.run
+bar.2_13_16.test.run
+bar.3_3_6.run
+bar.3_3_6.test.run
+foo.2_13_16.run
+foo.2_13_16.test.run
+foo.3_3_6.run
+foo.3_3_6.test.run
 qux.run
 
 > ./mill foo.2_13_16.run

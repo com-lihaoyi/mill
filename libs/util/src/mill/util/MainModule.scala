@@ -47,7 +47,7 @@ trait MainModule extends RootModule0, MainModuleApi {
       val resolved = evaluator.resolveSegments(tasks, SelectMode.Multi)
 
       resolved.map { resolvedSegmentsList =>
-        val resolvedStrings = resolvedSegmentsList.map(_.render)
+        val resolvedStrings = resolvedSegmentsList.map(_.renderDotSyntax)
         resolvedStrings.foreach(println)
         resolvedStrings
       }

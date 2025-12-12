@@ -53,6 +53,39 @@ final case class Segments private (value: Seq[Segment]) {
       case valueList => renderValue(valueList)
     }
   }
+
+  /**
+   * Renders segments using the dot-delimited syntax for cross modules.
+   * Cross values like `2.12.20` are rendered as `2_12_20` instead of `[2.12.20]`.
+   * Characters `.`, `/`, and `:` in cross values are replaced with `_` since they
+   * have special meaning in Mill selectors.
+   */
+  def renderDotSyntax: String = {
+    // Replace `.`, `/`, and `:` with `_` since they have special meaning in Mill selectors
+    def renderCross(cross: Segment.Cross): Seq[String] =
+      cross.value.map(_.replace('.', '_').replace('/', '_').replace(':', '_'))
+
+    def renderValue(valueList: List[Segment]): String = valueList match {
+      case Nil => ""
+      case head :: rest =>
+        val headSegments = head match
+          case Segment.Label(s) => Seq(s)
+          case c: Segment.Cross => renderCross(c)
+        val restSegments = rest.flatMap {
+          case Segment.Label(s) => Seq(s)
+          case c: Segment.Cross => renderCross(c)
+        }
+        (headSegments ++ restSegments).mkString(".")
+    }
+
+    value.toList match {
+      // ScriptModule segments always ends with `:`
+      case Segment.Label(s"$first:") :: rest => s"$first:${renderValue(rest)}"
+      // ExternalModule segments always ends with '/'
+      case Segment.Label(s"$first/") :: rest => s"$first/${renderValue(rest)}"
+      case valueList => renderValue(valueList)
+    }
+  }
   override lazy val hashCode: Int = value.hashCode()
 }
 
