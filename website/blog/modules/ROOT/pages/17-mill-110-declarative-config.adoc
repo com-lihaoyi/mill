@@ -106,7 +106,7 @@ surprisingly involved:
 4. Running the program using Maven (can you remember the command-line invocation without looking it up?)
 
 None of these are _blockers_: after all we've been building and running Java programs for decades,
-in my case since Java 4 in 20024. The necessary config is in the xref:#_footnotes[footnotes]. I
+in my case since Java 4 in 2004. The necessary config is in the xref:#_footnotes[footnotes]. I
 have no doubt most people would be able to get __something__ working on their machine. But for
 someone trying to write a small program that can build and run reliably on their laptop, their
 colleagues' laptops, their CI machines and their production environment, these things can end up
