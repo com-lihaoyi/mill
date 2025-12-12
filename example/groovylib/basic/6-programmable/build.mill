@@ -9,8 +9,7 @@ object foo extends GroovyModule {
   // Groovy dependency version have been loaded via BOM from the Module already
   def mvnDeps = Seq(
     mvn"org.apache.groovy:groovy-cli-commons",
-    mvn"org.apache.groovy:groovy-xml",
-
+    mvn"org.apache.groovy:groovy-xml"
   )
 
   object test extends GroovyTests, TestModule.Junit5 {

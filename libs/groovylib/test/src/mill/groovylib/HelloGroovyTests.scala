@@ -100,14 +100,14 @@ object HelloGroovyTests extends TestSuite {
         override def mainClass = Some("compileroptions.HelloCompilerOptions")
       }
 
-
       object spock extends GroovyModule {
         override def groovyVersion: T[String] = crossValue
 
         object tests extends GroovyTests with TestModule.Spock {
           override def jupiterVersion: T[String] = junit5Version
 
-          override def spockVersion: T[String] = if crossValue == groovy4Version then spockGroovy4Version else spockGroovy5Version
+          override def spockVersion: T[String] =
+            if crossValue == groovy4Version then spockGroovy4Version else spockGroovy5Version
         }
       }
     }
