@@ -32,7 +32,7 @@ def bar = Task { s"hello ${foo("2.10", "jvm").suffix()}" }
 //   subgraph cluster_3 {
 //     label="foo.2_10.js"
 //     style=dashed
-//     "foo[2.10,js].suffix"
+//     "foo.2_10.js.suffix"
 //   }
 //   subgraph cluster_4 {
 //     label="foo.2_11.js"
