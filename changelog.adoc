@@ -13,6 +13,29 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1-1-0-RC4]
+=== 1.1.0-RC4
+:version: 1.1.0-RC4
+:milestone-name: 1.1.0-RC4
+:milestone: 136
+:prev-version: 1.1.0-RC3
+_2025-12-12_
+
+_Changes since {prev-version}:_
+
+* Updated `build.mill` files to use to Scala 3.8.0 final
+* Cross module command-line syntax has been changed from `foo[js,2.12.20].bar` to
+  `foo.js.2_12_20.bar`, with dot-separated labels and any dots within cross values substituted
+  by `_`s {link-pr}/6376[#6376]
+* Integrate Kotlin incremental compilation {link-pr}/6360[#6360]
+* Syntax-highlight Java compilation errors {link-pr}/6354[#6354]
+* Improvements to `ZincWorkerMain` compile-worker stability when using custom `def jvmId`
+  {link-pr}/6348[#6348] {link-pr}/6349[#6349]
+* Improvements to GraalVM Native Image support {link-pr}/6315[#6315]
+* Ensure `must be defs defined in a Module class/trait/object body` error happens reliably
+  for commands {link-pr}/6336[#6336]
+* Lock around info, warn, error, debug logs to avoid interleaving {link-pr}/6321[#6321]
+
 [#1-1-0-RC3]
 === 1.1.0-RC3
 :version: 1.1.0-RC3
