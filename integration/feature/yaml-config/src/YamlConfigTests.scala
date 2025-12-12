@@ -7,11 +7,13 @@ import utest._
 object YamlConfigTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
+      val res = tester.eval(("run"))
+      val outLines = res.out.linesIterator.toSeq
+
       // Ensure that all these YAML scalar values that look like various types have their
       // raw text perserved when parsed as strings in `forkEnv`, rather than being round-tripped
       // through their respective type causing loss of the original string representation.
       val expected = Seq(
-        "NULL1" -> "null",
         "NULL2" -> "Null",
         "NULL3" -> "NULL",
         "NULL4" -> "~",
@@ -51,9 +53,16 @@ object YamlConfigTests extends UtestIntegrationTestSuite {
         "NUM12" -> "-.Nan",
         "NUM13" -> "-.NAN"
       )
-      val res = tester.eval(("run"))
-      val outLines = res.out.linesIterator.toSeq
+
       for ((k, v) <- expected) assert(outLines.contains(s"$k=$v"))
+
+      // `null` is the only scalar parsed via `visitNull`, since `null` is a valid string.
+      // This should cause it to be not included in the `forkEnv` passed to the subprocess,
+      // and not printed in the output
+      val expectedMissing = Seq(
+        "NULL1"
+      )
+      for (k <- expectedMissing) assert(!outLines.exists(_.startsWith(s"$k=")))
     }
   }
 }

@@ -213,7 +213,10 @@ object Util {
                   // e.g. booleans using `visitTrue`/`visitFalse which would result in the
                   // distinction between `true`/`True`/`TRUE` collapsing into just `true` even
                   // if the final parse wants the actual string value.
-                  v.visitString(scalar.getValue, index)
+                  scalar.getTag.getValue match {
+                    case "tag:yaml.org,2002:null" => v.visitNull(index)
+                    case _ => v.visitString(scalar.getValue, index)
+                  }
 
                 case mapping: MappingNode =>
                   val objVisitor =
