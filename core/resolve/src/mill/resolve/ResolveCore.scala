@@ -40,13 +40,20 @@ private object ResolveCore {
   case class Error(failure: Result.Failure) extends Failed
 
   /**
-   * Convert a label to potential cross segment values by replacing underscores with dots.
-   * Returns the original label and, if it contains underscores, a version with dots.
+   * Convert a label to potential cross segment values by replacing underscores with
+   * `.`, `/`, or `:` since those characters have special meaning in Mill selectors.
+   * Returns the original label and variants with substitutions applied.
    */
   private def labelToCrossSegments(label: String): Seq[String] = {
-    val withDots = label.replace('_', '.')
-    if (withDots != label) Seq(label, withDots)
-    else Seq(label)
+    if (!label.contains('_')) Seq(label)
+    else {
+      // Generate variants by replacing underscores with `.`, `/`, or `:`
+      // We prioritize `.` as it's the most common (e.g., version numbers)
+      val withDots = label.replace('_', '.')
+      val withSlashes = label.replace('_', '/')
+      val withColons = label.replace('_', ':')
+      Seq(label, withDots, withSlashes, withColons).distinct
+    }
   }
 
   /**

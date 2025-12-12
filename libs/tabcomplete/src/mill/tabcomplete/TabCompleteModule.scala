@@ -277,8 +277,9 @@ private object TabCompleteModule extends ExternalModule {
     if (useBracketSyntax) {
       segments.render
     } else {
+      // Replace `.`, `/`, and `:` with `_` since they have special meaning in Mill selectors
       def renderCross(cross: Segment.Cross): Seq[String] =
-        cross.value.map(_.replace('.', '_'))
+        cross.value.map(_.replace('.', '_').replace('/', '_').replace(':', '_'))
 
       def renderValue(valueList: List[Segment]): String = valueList match {
         case Nil => ""

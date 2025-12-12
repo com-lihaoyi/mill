@@ -546,16 +546,16 @@ object ErrorTests extends TestSuite {
         val check = new Checker(CrossModuleUnderscoreDotConflict)
         test - check.checkSeq0(
           Seq("myCross[foo_bar].task"),
-          isShortError(_, "ambiguous with underscore-to-dot conversion"),
-          isShortError(_, "ambiguous with underscore-to-dot conversion")
+          isShortError(_, "would be ambiguous"),
+          isShortError(_, "would be ambiguous")
         )
       }
       test("double") {
         val check = new Checker(CrossModuleUnderscoreDotConflictDouble)
         test - check.checkSeq0(
           Seq("myCross[2_12,jvm].task"),
-          isShortError(_, "ambiguous with underscore-to-dot conversion"),
-          isShortError(_, "ambiguous with underscore-to-dot conversion")
+          isShortError(_, "would be ambiguous"),
+          isShortError(_, "would be ambiguous")
         )
       }
     }
