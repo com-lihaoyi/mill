@@ -274,7 +274,7 @@ private object TabCompleteModule extends ExternalModule {
    */
   def renderSegments(segments: mill.api.daemon.Segments, useBracketSyntax: Boolean): String = {
     if (useBracketSyntax) segments.render
-    else segments.renderDotSyntax
+    else segments.render
   }
 
   /**

@@ -168,38 +168,38 @@ object ModuleTests extends TestSuite {
         test("pos1") - check(
           "cross[210].suffix",
           Result.Success(Set(_.cross("210").suffix)),
-          Set("cross[210].suffix")
+          Set("cross.210.suffix")
         )
         test("pos2") - check(
           "cross[211].suffix",
           Result.Success(Set(_.cross("211").suffix)),
-          Set("cross[211].suffix")
+          Set("cross.211.suffix")
         )
         test("posCurly") - check(
           "cross[{210,211}].suffix",
           Result.Success(Set(_.cross("210").suffix, _.cross("211").suffix)),
-          Set("cross[210].suffix", "cross[211].suffix")
+          Set("cross.210.suffix", "cross.211.suffix")
         )
         test("neg1") - check(
           "cross[210].doesntExist",
           Result.Failure(
-            "Cannot resolve cross[210].doesntExist. Try `mill resolve cross[210]._` to see what's available."
+            "Cannot resolve cross.210.doesntExist. Try `mill resolve cross.210._` to see what's available."
           )
         )
         test("neg2") - check(
           "cross[doesntExist].doesntExist",
           Result.Failure(
-            "Cannot resolve cross[doesntExist].doesntExist. Try `mill resolve cross._` to see what's available."
+            "Cannot resolve cross.doesntExist.doesntExist. Try `mill resolve cross._` to see what's available."
           )
         )
         test("neg3") - check(
           "cross[221].doesntExist",
-          Result.Failure("Cannot resolve cross[221].doesntExist. Did you mean cross[211]?")
+          Result.Failure("Cannot resolve cross.221.doesntExist. Did you mean cross.211?")
         )
         test("neg4") - check(
           "cross[doesntExist].suffix",
           Result.Failure(
-            "Cannot resolve cross[doesntExist].suffix. Try `mill resolve cross._`, `mill resolve __.suffix` to see what's available, or `mill __.suffix` to run all `suffix` tasks"
+            "Cannot resolve cross.doesntExist.suffix. Try `mill resolve cross._`, `mill resolve __.suffix` to see what's available, or `mill __.suffix` to run all `suffix` tasks"
           )
         )
         test("wildcard") - check(
@@ -209,7 +209,7 @@ object ModuleTests extends TestSuite {
             _.cross("211").suffix,
             _.cross("212").suffix
           )),
-          Set("cross[210].suffix", "cross[211].suffix", "cross[212].suffix")
+          Set("cross.210.suffix", "cross.211.suffix", "cross.212.suffix")
         )
         test("wildcard2") - check(
           "cross[__].suffix",
@@ -218,19 +218,19 @@ object ModuleTests extends TestSuite {
             _.cross("211").suffix,
             _.cross("212").suffix
           )),
-          Set("cross[210].suffix", "cross[211].suffix", "cross[212].suffix")
+          Set("cross.210.suffix", "cross.211.suffix", "cross.212.suffix")
         )
         test("head") - check(
           "cross[].suffix",
           Result.Success(Set(
             _.cross("210").suffix
           )),
-          Set("cross[210].suffix")
+          Set("cross.210.suffix")
         )
         test("headNeg") - check(
           "cross[].doesntExist",
           Result.Failure(
-            "Cannot resolve cross[].doesntExist. Try `mill resolve cross[]._` to see what's available."
+            "Cannot resolve cross.doesntExist. Try `mill resolve cross._` to see what's available."
           )
         )
       }
@@ -239,12 +239,12 @@ object ModuleTests extends TestSuite {
         test("pos1") - check(
           "cross[210,jvm].suffix",
           Result.Success(Set(_.cross("210", "jvm").suffix)),
-          Set("cross[210,jvm].suffix")
+          Set("cross.210.jvm.suffix")
         )
         test("pos2") - check(
           "cross[211,jvm].suffix",
           Result.Success(Set(_.cross("211", "jvm").suffix)),
-          Set("cross[211,jvm].suffix")
+          Set("cross.211.jvm.suffix")
         )
         test("wildcard") {
           test("labelNeg1") - check(
@@ -289,13 +289,13 @@ object ModuleTests extends TestSuite {
               _.cross("212", "native").suffix
             )),
             Set(
-              "cross[210,jvm].suffix",
-              "cross[210,js].suffix",
-              "cross[211,jvm].suffix",
-              "cross[211,js].suffix",
-              "cross[212,jvm].suffix",
-              "cross[212,js].suffix",
-              "cross[212,native].suffix"
+              "cross.210.jvm.suffix",
+              "cross.210.js.suffix",
+              "cross.211.jvm.suffix",
+              "cross.211.js.suffix",
+              "cross.212.jvm.suffix",
+              "cross.212.js.suffix",
+              "cross.212.native.suffix"
             )
           )
           test("first") - check(
@@ -306,9 +306,9 @@ object ModuleTests extends TestSuite {
               _.cross("212", "jvm").suffix
             )),
             Set(
-              "cross[210,jvm].suffix",
-              "cross[211,jvm].suffix",
-              "cross[212,jvm].suffix"
+              "cross.210.jvm.suffix",
+              "cross.211.jvm.suffix",
+              "cross.212.jvm.suffix"
             )
           )
           test("second") - check(
@@ -318,8 +318,8 @@ object ModuleTests extends TestSuite {
               _.cross("210", "js").suffix
             )),
             Set(
-              "cross[210,jvm].suffix",
-              "cross[210,js].suffix"
+              "cross.210.jvm.suffix",
+              "cross.210.js.suffix"
             )
           )
           test("both") - check(
@@ -334,13 +334,13 @@ object ModuleTests extends TestSuite {
               _.cross("212", "native").suffix
             )),
             Set(
-              "cross[210,jvm].suffix",
-              "cross[210,js].suffix",
-              "cross[211,jvm].suffix",
-              "cross[211,js].suffix",
-              "cross[212,jvm].suffix",
-              "cross[212,js].suffix",
-              "cross[212,native].suffix"
+              "cross.210.jvm.suffix",
+              "cross.210.js.suffix",
+              "cross.211.jvm.suffix",
+              "cross.211.js.suffix",
+              "cross.212.jvm.suffix",
+              "cross.212.js.suffix",
+              "cross.212.native.suffix"
             )
           )
           test("both2") - check(
@@ -355,14 +355,14 @@ object ModuleTests extends TestSuite {
               _.cross("212", "native").suffix
             )),
             Set(
-              "cross[210,jvm].suffix",
-              "cross[210,js].suffix",
-              "cross[211,jvm].suffix",
-              "cross[211,js].suffix",
-              "cross[212,jvm].suffix",
-              "cross[212,js].suffix",
-              "cross[212,js].suffix",
-              "cross[212,native].suffix"
+              "cross.210.jvm.suffix",
+              "cross.210.js.suffix",
+              "cross.211.jvm.suffix",
+              "cross.211.js.suffix",
+              "cross.212.jvm.suffix",
+              "cross.212.js.suffix",
+              "cross.212.js.suffix",
+              "cross.212.native.suffix"
             )
           )
           test("head") - check(
@@ -371,13 +371,13 @@ object ModuleTests extends TestSuite {
               _.cross("210", "jvm").suffix
             )),
             Set(
-              "cross[210,jvm].suffix"
+              "cross.210.jvm.suffix"
             )
           )
           test("headNeg") - check(
             "cross[].doesntExist",
             Result.Failure(
-              "Cannot resolve cross[].doesntExist. Try `mill resolve cross[]._` to see what's available."
+              "Cannot resolve cross.doesntExist. Try `mill resolve cross._` to see what's available."
             )
           )
         }
@@ -387,16 +387,16 @@ object ModuleTests extends TestSuite {
         test("pos1") - check(
           "cross[210].cross2[js].suffix",
           Result.Success(Set(_.cross("210").cross2("js").suffix)),
-          Set("cross[210].cross2[js].suffix")
+          Set("cross.210.cross2.js.suffix")
         )
         test("pos2") - check(
           "cross[211].cross2[jvm].suffix",
           Result.Success(Set(_.cross("211").cross2("jvm").suffix)),
-          Set("cross[211].cross2[jvm].suffix")
+          Set("cross.211.cross2.jvm.suffix")
         )
         test("pos2NoDefaultTask") - check(
           "cross[211].cross2[jvm]",
-          Result.Failure("Cannot find default task to evaluate for module cross[211].cross2[jvm]")
+          Result.Failure("Cannot find default task to evaluate for module cross.211.cross2.jvm")
         )
         test("wildcard") {
           test("first") - check(
@@ -407,9 +407,9 @@ object ModuleTests extends TestSuite {
               _.cross("212").cross2("jvm").suffix
             )),
             Set(
-              "cross[210].cross2[jvm].suffix",
-              "cross[211].cross2[jvm].suffix",
-              "cross[212].cross2[jvm].suffix"
+              "cross.210.cross2.jvm.suffix",
+              "cross.211.cross2.jvm.suffix",
+              "cross.212.cross2.jvm.suffix"
             )
           )
           test("second") - check(
@@ -420,9 +420,9 @@ object ModuleTests extends TestSuite {
               _.cross("210").cross2("native").suffix
             )),
             Set(
-              "cross[210].cross2[jvm].suffix",
-              "cross[210].cross2[js].suffix",
-              "cross[210].cross2[native].suffix"
+              "cross.210.cross2.jvm.suffix",
+              "cross.210.cross2.js.suffix",
+              "cross.210.cross2.native.suffix"
             )
           )
           test("both") - check(
@@ -439,15 +439,15 @@ object ModuleTests extends TestSuite {
               _.cross("212").cross2("native").suffix
             )),
             Set(
-              "cross[210].cross2[jvm].suffix",
-              "cross[210].cross2[js].suffix",
-              "cross[210].cross2[native].suffix",
-              "cross[211].cross2[jvm].suffix",
-              "cross[211].cross2[js].suffix",
-              "cross[211].cross2[native].suffix",
-              "cross[212].cross2[jvm].suffix",
-              "cross[212].cross2[js].suffix",
-              "cross[212].cross2[native].suffix"
+              "cross.210.cross2.jvm.suffix",
+              "cross.210.cross2.js.suffix",
+              "cross.210.cross2.native.suffix",
+              "cross.211.cross2.jvm.suffix",
+              "cross.211.cross2.js.suffix",
+              "cross.211.cross2.native.suffix",
+              "cross.212.cross2.jvm.suffix",
+              "cross.212.cross2.js.suffix",
+              "cross.212.cross2.native.suffix"
             )
           )
           // "212" is the defaultCrossSegments
@@ -457,7 +457,7 @@ object ModuleTests extends TestSuite {
               _.cross("212").cross2("jvm").suffix
             )),
             Set(
-              "cross[212].cross2[jvm].suffix"
+              "cross.212.cross2.jvm.suffix"
             )
           )
         }
@@ -468,32 +468,32 @@ object ModuleTests extends TestSuite {
         test("pos1") - check.checkSeq(
           Seq("cross1[210].cross2[js].suffixCmd"),
           Result.Success(Set(_.cross1("210").cross2("js").suffixCmd())),
-          Set("cross1[210].cross2[js].suffixCmd")
+          Set("cross1.210.cross2.js.suffixCmd")
         )
         test("pos1Default") - check.checkSeq(
           Seq("cross1[210].cross2[js]"),
           Result.Success(Set(_.cross1("210").cross2("js").suffixCmd())),
-          Set("cross1[210].cross2[js]")
+          Set("cross1.210.cross2.js")
         )
         test("pos1WithWildcard") - check.checkSeq(
           Seq("cross1[210].cross2[js]._"),
           Result.Success(Set(_.cross1("210").cross2("js").suffixCmd())),
-          Set("cross1[210].cross2[js].suffixCmd")
+          Set("cross1.210.cross2.js.suffixCmd")
         )
         test("pos1WithArgs") - check.checkSeq(
           Seq("cross1[210].cross2[js].suffixCmd", "suffix-arg"),
           Result.Success(Set(_.cross1("210").cross2("js").suffixCmd("suffix-arg"))),
-          Set("cross1[210].cross2[js].suffixCmd")
+          Set("cross1.210.cross2.js.suffixCmd")
         )
         test("pos2") - check.checkSeq(
           Seq("cross1[211].cross2[jvm].suffixCmd"),
           Result.Success(Set(_.cross1("211").cross2("jvm").suffixCmd())),
-          Set("cross1[211].cross2[jvm].suffixCmd")
+          Set("cross1.211.cross2.jvm.suffixCmd")
         )
         test("pos2Default") - check.checkSeq(
           Seq("cross1[211].cross2[jvm]"),
           Result.Success(Set(_.cross1("211").cross2("jvm").suffixCmd())),
-          Set("cross1[211].cross2[jvm]")
+          Set("cross1.211.cross2.jvm")
         )
       }
     }
@@ -626,17 +626,17 @@ object ModuleTests extends TestSuite {
         test("pos1") - check(
           "cross.210.suffix",
           Result.Success(Set(_.cross("210").suffix)),
-          Set("cross[210].suffix")
+          Set("cross.210.suffix")
         )
         test("pos2") - check(
           "cross.211.suffix",
           Result.Success(Set(_.cross("211").suffix)),
-          Set("cross[211].suffix")
+          Set("cross.211.suffix")
         )
         test("pos3") - check(
           "cross.212.suffix",
           Result.Success(Set(_.cross("212").suffix)),
-          Set("cross[212].suffix")
+          Set("cross.212.suffix")
         )
         test("neg") - check(
           "cross.doesntExist.suffix",
@@ -651,17 +651,17 @@ object ModuleTests extends TestSuite {
         test("pos1") - check(
           "cross.210.jvm.suffix",
           Result.Success(Set(_.cross("210", "jvm").suffix)),
-          Set("cross[210,jvm].suffix")
+          Set("cross.210.jvm.suffix")
         )
         test("pos2") - check(
           "cross.211.js.suffix",
           Result.Success(Set(_.cross("211", "js").suffix)),
-          Set("cross[211,js].suffix")
+          Set("cross.211.js.suffix")
         )
         test("pos3") - check(
           "cross.212.native.suffix",
           Result.Success(Set(_.cross("212", "native").suffix)),
-          Set("cross[212,native].suffix")
+          Set("cross.212.native.suffix")
         )
         test("neg") - check(
           "cross.210.doesntExist.suffix",
@@ -676,12 +676,12 @@ object ModuleTests extends TestSuite {
         test("pos1") - check(
           "cross.210.cross2.js.suffix",
           Result.Success(Set(_.cross("210").cross2("js").suffix)),
-          Set("cross[210].cross2[js].suffix")
+          Set("cross.210.cross2.js.suffix")
         )
         test("pos2") - check(
           "cross.211.cross2.jvm.suffix",
           Result.Success(Set(_.cross("211").cross2("jvm").suffix)),
-          Set("cross[211].cross2[jvm].suffix")
+          Set("cross.211.cross2.jvm.suffix")
         )
       }
       test("underscoreToDot") {
@@ -690,17 +690,17 @@ object ModuleTests extends TestSuite {
         test("pos1") - check(
           "cross.2_12_20.suffix",
           Result.Success(Set(_.cross("2.12.20").suffix)),
-          Set("cross[2.12.20].suffix")
+          Set("cross.2_12_20.suffix")
         )
         test("pos2") - check(
           "cross.2_13_15.suffix",
           Result.Success(Set(_.cross("2.13.15").suffix)),
-          Set("cross[2.13.15].suffix")
+          Set("cross.2_13_15.suffix")
         )
         test("pos3") - check(
           "cross.3_5_0.suffix",
           Result.Success(Set(_.cross("3.5.0").suffix)),
-          Set("cross[3.5.0].suffix")
+          Set("cross.3_5_0.suffix")
         )
       }
       test("underscoreToDotDouble") {
@@ -709,12 +709,12 @@ object ModuleTests extends TestSuite {
         test("pos1") - check(
           "cross.2_12_20.jvm.suffix",
           Result.Success(Set(_.cross("2.12.20", "jvm").suffix)),
-          Set("cross[2.12.20,jvm].suffix")
+          Set("cross.2_12_20.jvm.suffix")
         )
         test("pos2") - check(
           "cross.2_13_15.js.suffix",
           Result.Success(Set(_.cross("2.13.15", "js").suffix)),
-          Set("cross[2.13.15,js].suffix")
+          Set("cross.2_13_15.js.suffix")
         )
       }
     }

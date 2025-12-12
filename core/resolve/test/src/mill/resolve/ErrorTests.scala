@@ -362,7 +362,7 @@ object ErrorTests extends TestSuite {
           test - check.checkSeq(
             Seq("myCross[1].foo"),
             Result.Success(Set(_.myCross(1).foo)),
-            Set("myCross[1].foo")
+            Set("myCross.1.foo")
           )
           test - check.checkSeq0(
             Seq("myCross[3].foo"),
@@ -377,10 +377,10 @@ object ErrorTests extends TestSuite {
             Seq("myCross._.foo"),
             s => isShortError(s, "MyCross Boom 3") && isShortError(s, "MyCross Boom 4"),
             _ == Result.Success(List(
-              "myCross[1].foo",
-              "myCross[2].foo",
-              "myCross[3].foo",
-              "myCross[4].foo"
+              "myCross.1.foo",
+              "myCross.2.foo",
+              "myCross.3.foo",
+              "myCross.4.foo"
             ))
           )
           test - check.checkSeq0(
@@ -392,10 +392,10 @@ object ErrorTests extends TestSuite {
             Seq("__.foo"),
             s => isShortError(s, "MyCross Boom 3") && isShortError(s, "MyCross Boom 4"),
             _ == Result.Success(List(
-              "myCross[1].foo",
-              "myCross[2].foo",
-              "myCross[3].foo",
-              "myCross[4].foo"
+              "myCross.1.foo",
+              "myCross.2.foo",
+              "myCross.3.foo",
+              "myCross.4.foo"
             ))
           )
           test - check.checkSeq0(
@@ -404,14 +404,14 @@ object ErrorTests extends TestSuite {
             _ == Result.Success(List(
               "",
               "myCross",
-              "myCross[1]",
-              "myCross[2]",
-              "myCross[3]",
-              "myCross[4]",
-              "myCross[1].foo",
-              "myCross[2].foo",
-              "myCross[3].foo",
-              "myCross[4].foo"
+              "myCross.1",
+              "myCross.2",
+              "myCross.3",
+              "myCross.4",
+              "myCross.1.foo",
+              "myCross.2.foo",
+              "myCross.3.foo",
+              "myCross.4.foo"
             ))
           )
         }
@@ -513,7 +513,7 @@ object ErrorTests extends TestSuite {
       val check = new Checker(CrossedCyclicModuleRefInitError)
       test - check.checkSeq0(
         Seq("__"),
-        isShortError(_, "Cyclic module reference detected at cross[210].c2[210].c1,")
+        isShortError(_, "Cyclic module reference detected at cross.210.c2.210.c1,")
       )
     }
     test("nonCyclicModules") {
