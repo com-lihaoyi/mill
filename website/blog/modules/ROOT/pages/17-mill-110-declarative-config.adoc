@@ -197,9 +197,12 @@ and nothing else. Compared to the equivalent Maven `pom.xml`, `build.gradle`, or
 to write, easy to read, and easy to maintain compared to other build tools.
 
 NOTE: `build.mill.yaml` files are written in https://yaml.org/spec/1.2.2/[YAML 1.2], and parsed
-using the https://bitbucket.org/snakeyaml/snakeyaml-engine[SnakeYaml-Engine] library and
-de-serialized using https://github.com/com-lihaoyi/upickle[uPickle]. This helps mitigate a lot
-of the issues that YAML has traditionally faced, 
+using the https://bitbucket.org/snakeyaml/snakeyaml-engine[SnakeYaml-Engine] library. This helps
+mitigate many of the https://ruudvanasseldonk.com/2023/01/11/the-yaml-document-from-hell[issues
+that YAML has traditionally faced], such as the famous
+https://www.bram.us/2022/01/11/yaml-the-norway-problem/[Norway Problem], or the mangling of
+version numbers such as `1.20` to `1.2`. While YAML will always have edge cases, with careful
+handling we expect they will be relatively rare and not affect most users.
 
 === Non-Trivial Declarative Builds
 
