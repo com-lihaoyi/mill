@@ -7,6 +7,9 @@ import utest._
 object YamlConfigTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
+      // Ensure that all these YAML scalar values that look like various types have their
+      // raw text perserved when parsed as strings in `forkEnv`, rather than being round-tripped
+      // through their respective type causing loss of the original string representation.
       val expected = Seq(
         "NULL1" -> "null",
         "NULL2" -> "Null",
