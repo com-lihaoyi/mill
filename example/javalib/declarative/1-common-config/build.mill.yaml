@@ -4,16 +4,21 @@ mvnDeps:
 - org.slf4j:slf4j-nop:2.0.7
 
 # Add a custom maven repository URL
-repositories: ["https://oss.sonatype.org/content/repositories/releases"]
+repositories: [https://oss.sonatype.org/content/repositories/releases]
 
 # Set an explicit main class
-mainClass: "foo.Foo2"
+mainClass: foo.Foo2
+
+# Pin a specific JVM version, supports >=11
+jvmId: 11
+# Optionally specify the distribution. Supports temurin, zulu, corretto, graalvm-community, etc.
+# jvmId: temurin:11
 
 # Add an additional source folder and resource folder, in addition to the default one
-sources: ["./src", "./custom-src"]
-resources: ["./resources", "./custom-resources"]
+sources: [./src, ./custom-src]
+resources: [./resources, ./custom-resources]
 
 # Configure java compiler and runtime options and env vars
-javacOptions: ["-deprecation"]
-forkArgs: ["-Dmy.custom.property=my-prop-value"]
-forkEnv: { "MY_CUSTOM_ENV": "my-env-value" }
+javacOptions: [-deprecation]
+forkArgs: [-Dmy.custom.property=my-prop-value]
+forkEnv: { MY_CUSTOM_ENV: my-env-value }
