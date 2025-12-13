@@ -19,7 +19,7 @@ mvnDeps:
 
 Or even together with the program code in a single-file with a `//|` build header comment:
 
-.File `HtmlScraper.java`
+.`HtmlScraper.java`
 ```java
 //| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
