@@ -9,13 +9,13 @@ Mill is a build tool that tries to improve upon the tools traditionally used
 in the JVM ecosystem:
 
 * **xref:comparisons/maven.adoc[Simpler than Maven]**, with declarative `build.mill.yaml` files
-  often 1/10th the lines of a `pom.xml`
+often 1/10th the lines of a `pom.xml`
 
-* **xref:comparisons/gradle.adoc[Easier than Gradle]**, with 
-  object-oriented programmable builds Java developers can intuitively understand
+* **xref:comparisons/gradle.adoc[Easier than Gradle]**, with
+object-oriented programmable builds Java developers can intuitively understand
 
 * **xref:comparisons/performance.adoc[Fastest builds on the JVM]**, 3-6x
- faster than Maven or Gradle due to aggressive caching & parallelism
+faster than Maven or Gradle due to aggressive caching & parallelism
 
 Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish, complicated, and confusing. Mill tries to
@@ -42,10 +42,12 @@ Or see the language-specific introductory documentation linked below:
 
 === Mill Features
 
-* *Ergonomic*: Mill provides
+* *Ergonomics*: Mill's xref:javalib/intro.adoc#_declarative_module_config[declarative config files]
+are concise and easy to read, its xref:javalib/intro.adoc#_programmable_module_config[programmable config files]
+have xref:cli/installation-ide.adoc#_ide_support[full IDE support in IntelliJ and VSCode], and its
 xref:cli/installation-ide.adoc#_bashzsh_tab_completion[terminal tab-completion]
-and syntax highlighted command-line output and error messages so developers can easily
-navigate their Mill builds and resolve issues.
+and syntax highlighted command-line output and error messages mean developers can easily
+navigate their builds and resolve issues.
 
 image::basic/ErrorHighlighting.png[]
 
@@ -55,11 +57,10 @@ to keep local development fast, https://mill-build.org/blog/9-mill-faster-assemb
 to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
 to only run the subset of tests necessary to validate a code change.
 
-* *Scalability* Mill scales well from small projects to
-xref:large/large.adoc[large monorepos] with hundreds of modules and
-xref:large/multi-language-builds.adoc[multiple languages].
-Even projects with hundreds or thousands of sub-modules can be handled performantly
-and with minimal overhead.
+* *Scalability* Mill scales well from xref:javalib/intro.adoc#_single_file_scripts[single-file programs]
+to xref:large/large.adoc[large monorepos] with hundreds of modules and
+xref:large/multi-language-builds.adoc[multiple languages]. Mill makes building small programs
+convenient and large projects performant, so you never need to change toolchains as your project grows.
 
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
 xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
@@ -70,30 +71,21 @@ or xref:javalib/publishing.adoc#_java_installers_using_jpackage[installers],
 etc. This lets you focus on your actual project and spend less time
 fiddling with tooling and plugins.
 
-* *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
-is written in xref:depth/why-scala.adoc[concise type-checked JVM code],
-with an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
-catches configuration issues early, and helps both humans and IDEs
-(xref:cli/installation-ide.adoc#_intellij[IntelliJ] or
-xref:cli/installation-ide.adoc#_vscode[VSCode])
-understand your Mill build better than any other build system
-
-* *Flexibility*: Mill's tasks and modules allow anything from adding
-xref:fundamentals/tasks.adoc#primitive-tasks[simple build steps], up to
-entire xref:extending/example-python-support.adoc[language toolchains].
-You can xref:extending/import-mvn-plugins.adoc[import any JVM library] in your build,
-use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
-or xref:extending/writing-plugins.adoc[write plugins yourself] and
-publish them to Maven Central for others to use.
-
-
-
 Mill can be used for applications built on top of common JVM frameworks like
 Spring Boot (both xref:javalib/spring-boot.adoc[in Java]
 and xref:kotlinlib/web-examples.adoc#_spring_boot_todomvc_app[in Kotlin]),
 xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut],
 xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], or
 xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4S].
+It is used in the wild to build many real-world projects, such as:
+
+* https://github.com/swaldman/c3p0/blob/0.11.x/build.mill[C3P0 JDBC Connection Pool]
+* https://github.com/coursier/coursier/blob/main/build.mill[Coursier dependency resolver]
+* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
+* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel/blob/main/build.mill[Chisel] chip design frameworks
+* Projects at https://youtu.be/FckU1aHNh8U?t=2451[Netflix],
+https://github.com/disneystreaming/smithy-translate/blob/main/build.sc[Disney-Streaming],
+and other organizations
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
 https://gradle.org/[Gradle], https://bazel.build/[Bazel], and
@@ -133,15 +125,6 @@ Email use with details on what you need and we can make an arrangement.
 
 === Community
 
-Mill is used to build many real-world projects, such as:
-
-* https://github.com/swaldman/c3p0/blob/0.11.x/build.mill[C3P0 JDBC Connection Pool]
-* https://github.com/coursier/coursier/blob/main/build.mill[Coursier dependency resolver]
-* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
-* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel/blob/main/build.mill[Chisel] chip design frameworks
-* Projects at https://youtu.be/FckU1aHNh8U?t=2451[Netflix],
-https://github.com/disneystreaming/smithy-translate/blob/main/build.sc[Disney-Streaming],
-and other organizations
 
 To engage Mill with the community, you can use the channels below:
 
