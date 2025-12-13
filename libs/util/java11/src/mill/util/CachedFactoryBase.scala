@@ -125,9 +125,8 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
         key,
         internalKey,
         e =>
-          e.internalKey == internalKey && (e.value.asInstanceOf[AnyRef] eq value.asInstanceOf[
-            AnyRef
-          ])
+          e.internalKey == internalKey &&
+            (e.value.asInstanceOf[AnyRef] eq value.asInstanceOf[AnyRef])
       )
     }
 
