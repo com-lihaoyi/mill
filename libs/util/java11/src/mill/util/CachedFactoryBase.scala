@@ -107,7 +107,7 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
     assert(
       shareValues == true,
       "`release` should only be called when `shareValues = true`. If `shareValues = false`, " +
-      "please use `releaseKeyValue` instead."
+        "please use `releaseKeyValue` instead."
     )
     val internalKey = keyToInternalKey(key)
     releaseByInternalKey(key, internalKey, _.internalKey == internalKey)
@@ -124,7 +124,10 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
       releaseByInternalKey(
         key,
         internalKey,
-        e => e.internalKey == internalKey && (e.value.asInstanceOf[AnyRef] eq value.asInstanceOf[AnyRef])
+        e =>
+          e.internalKey == internalKey && (e.value.asInstanceOf[AnyRef] eq value.asInstanceOf[
+            AnyRef
+          ])
       )
     }
 
