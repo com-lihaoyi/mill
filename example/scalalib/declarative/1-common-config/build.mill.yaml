@@ -12,7 +12,7 @@ mainClass: foo.Foo2
 
 # Pin a specific JVM version, supports >=11
 jvmId: 11
-# Optionally specify the distribution. Supports temurin, zulu, corretto, graalvm-community, etc.
+# Optionally specify the distribution: temurin, zulu, corretto, graalvm-community, etc.
 # jvmId: temurin:11
 
 # Add an additional source folder and resource folder, in addition to the default one
