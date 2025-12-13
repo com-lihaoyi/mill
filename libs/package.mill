@@ -10,6 +10,7 @@ import millbuild.*
 object `package` extends MillStableScalaModule {
   def moduleDeps = Seq(
     build.libs.kotlinlib,
+    build.libs.groovylib,
     build.libs.androidlib,
     build.libs.scalajslib,
     build.libs.scalanativelib,

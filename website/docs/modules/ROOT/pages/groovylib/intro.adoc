@@ -1,0 +1,38 @@
+= Building Groovy with Mill
+:page-aliases: Groovy_Intro_to_Mill.adoc
+:language: Groovy
+:language-small: groovy
+:language-ext: groovy
+:compat-module: MavenModule
+:compat-test-module: MavenTests
+
+include::partial$Intro_Header.adoc[]
+
+NOTE: Mill Groovy support is currently still under active development.
+It is expected to continue evolving over time.
+
+== Declarative Module Config
+
+include::partial$example/groovylib/basic/11-declarative.adoc[]
+
+
+== Config-Based Modules
+
+include::partial$example/groovylib/basic/3-simple.adoc[]
+
+=== Multi-Module Projects
+
+include::partial$example/groovylib/basic/4-module-deps.adoc[]
+
+=== Maven Compatible Modules
+
+include::partial$example/groovylib/basic/5-compat-modules.adoc[]
+
+== Single-File Scripts
+
+include::partial$example/groovylib/basic/1-script.adoc[]
+
+== Programmable Module Config
+
+include::partial$example/groovylib/basic/6-programmable.adoc[]
+

@@ -62,6 +62,8 @@
 *** xref:javascriptlib/linting.adoc[]
 *** xref:javascriptlib/publishing.adoc[]
 *** xref:javascriptlib/build-examples.adoc[]
+** xref:groovylib/intro.adoc[]
+*** xref:groovylib/testing.adoc[]
 * Why Mill?
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
