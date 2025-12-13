@@ -97,20 +97,20 @@ of many of the small programs that may be written in practice:
 - A small command-line script
 
 In all these cases, the program would have a small amount of code and a few third-party
-dependencies. But with traditional build tools like Maven, running such code can be
-surprisingly involved:
+dependencies. But with traditional build tools like https://maven.apache.org/[Maven], running
+such code can be surprisingly involved:
 
 1. Installing Java, which has https://news.ycombinator.com/item?id=46037261[a surprising number of intricacies]
-2. Installing https://maven.apache.org/[Maven]
+2. Installing Maven
 3. Writing out the `pom.xml` (can you write the POM for the above program without copy-paste cargo-culting from StackOverflow/Google/ChatGPT?)
 4. Running the program using Maven (can you remember the command-line invocation without looking it up?)
 
 None of these are _blockers_: after all we've been building and running Java programs for decades,
-in my case since Java 4 in 2004. The necessary config is in the xref:#_footnotes[footnotes]. I
-have no doubt most people would be able to get __something__ working on their machine. But for
-someone trying to write a small program that can build and run reliably on their laptop, their
-colleagues' laptops, their CI machines and their production environment, these things can end up
-being surprisingly tricky.
+in my case since Java 4 in 2004 (pre-generics!). The necessary config is in the
+xref:#_footnotes[footnotes], and I have no doubt most people would be able to get __something__
+working on their machine. But for someone trying to write a small program that can build and run
+reliably on their laptop, their colleagues' laptops, their CI machines and their production
+environment, these things can end up being surprisingly tricky.
 
 You could also run the program using the Mill build tool instead of Maven. Mill's
 xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[Bootstrap Scripts] manage
@@ -224,6 +224,9 @@ repositories: [https://oss.sonatype.org/content/repositories/releases]
 # Set an explicit main class
 mainClass: foo.Foo2
 
+# Pin a custom JVM version
+jvmId: temurin:11
+
 # Add an additional source folder and resource folder, in addition to the default one
 sources: [./src, ./custom-src]
 resources: [./resources, ./custom-resources]
@@ -270,10 +273,9 @@ are inspired by Gradle, one thing unique about Mill is how well integrated the t
   so you can mix-and-match the two config styles depending on which is more appropriate for each module.
 
 * Setting `mvnDeps`, `repositories`, `mainClass`, `jvmId`, etc. means the same thing in both
-  styles even though the surface syntax is slightly different. Although the syntax is different,
-  both styles used the same config keys with the same meaning, and the same
-  {mill-doc-url}/api/latest/mill.html[Mill API Reference] provides documentation for both
-  declarative and programmable config styles.
+  styles. Although the syntax is different,
+  both declarative and programmable config styles used the same config keys with the same meaning, and the same
+  {mill-doc-url}/api/latest/mill.html[Mill API Reference] provides documentation for both.
 
 * Underneath the programmable and declarative configuration styles, it's still the same Mill
   build tool. That means concepts like xref:mill::depth/parallelism.adoc[parallelism],
