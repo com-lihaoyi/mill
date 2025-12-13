@@ -199,10 +199,11 @@ to write, easy to read, and easy to maintain compared to other build tools.
 NOTE: `build.mill.yaml` files are written in https://yaml.org/spec/1.2.2/[YAML 1.2], parsed
 using the https://bitbucket.org/snakeyaml/snakeyaml-engine[SnakeYaml-Engine] library. This helps
 mitigate many of the https://ruudvanasseldonk.com/2023/01/11/the-yaml-document-from-hell[issues
-that YAML has traditionally faced], resolving issues such as the famous
-https://www.bram.us/2022/01/11/yaml-the-norway-problem/[Norway Problem] or the mangling of
-version numbers such as `1.10` to `1.1`. While YAML will always have edge cases, we expect
-it will be relatively rare for users to hit YAML-related issues in their `build.mill.yaml` files.
+that YAML has traditionally faced], with YAML 1.2 resolving issues such as the famous
+https://www.bram.us/2022/01/11/yaml-the-norway-problem/[Norway Problem] and careful de-serializing
+avoiding the mangling of version numbers such as `1.10` to `1.1`. While YAML will always have
+edge cases, we expect it will be relatively rare for users to hit YAML-related issues in their
+`build.mill.yaml` files.
 
 === Non-Trivial Declarative Builds
 
