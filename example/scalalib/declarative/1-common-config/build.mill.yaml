@@ -10,7 +10,7 @@ repositories: [https://oss.sonatype.org/content/repositories/releases]
 # Set an explicit main class
 mainClass: foo.Foo2
 
-# Pin a custom JVM version, Mill supports 11 and later
+# Pin a custom JVM version, Mill supports 11 and above
 jvmId: zulu:11
 
 # Add an additional source folder and resource folder, in addition to the default one

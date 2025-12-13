@@ -224,7 +224,7 @@ repositories: [https://oss.sonatype.org/content/repositories/releases]
 # Set an explicit main class
 mainClass: foo.Foo2
 
-# Pin a custom JVM version, Mill supports 11 and later
+# Pin a custom JVM version, Mill supports 11 and above
 jvmId: temurin:11
 
 # Add an additional source folder and resource folder, in addition to the default one
@@ -244,20 +244,19 @@ Mill's declarative builds also support
 xref:mill::javalib/declarative.adoc#_unit_integration_testing[test suites],
 xref:mill::javalib/intro.adoc#_multi_module_projects[multi-module projects],
 xref:mill::javalib/declarative.adoc#_packaging_publishing[packaging and publishing],
-xref:mill::javalib/declarative.adoc#_j
 and other common build tool features. While declarative `build.mill.yaml` files are a lot
 more compact than their equivalent in Maven `pom.xml` or programmable `build.mill`, they
 are very much feature-complete enough to support most real-world use cases.
 
-In general, we hope that Mill's new declarative `build.mill.yaml` syntax will be a
-viable alternative to Maven for Java developers who prefer declarative builds, and complement
-it's existing programmable `build.mill` syntax nicely:
+We hope Mill's new declarative `build.mill.yaml` syntax can be a
+viable alternative to Maven for Java developers who prefer declarative builds, complementing
+Mill's existing programmable `build.mill` syntax:
 
 - For projects that just need basic key-value configuration, declarative `build.mill.yaml` config
   is a great fit to keep things simple
 
-- For projects that need custom build logic, `build.mill` files can provide the required
-  flexibility and keep your custom build logic easily manageable
+- For projects that need custom build logic, programmable `build.mill` files can provide the
+  necessary flexibility to get what you need done
 
 Mill makes it easy to use both styles in the same project, so each can be used in the part of
 the project where is most suitable, and users can easily transition between the two styles
@@ -285,7 +284,7 @@ are inspired by Gradle, one thing unique about Mill is how well integrated the t
   which configuration style you are using.
 
 Traditionally, you were locked into a declarative or programmable style when choosing between
-Maven or Gradle, making it a big irreversible decision and the root of many "holy wars". In
+Maven or Gradle. This made it a big, irreversible decision, and the root of many "holy wars". In
 contrast, with Mill you can easily transition between declarative and programmable configuration
 styles as appropriate, letting you pick whatever makes sense at the moment knowing that you can
 easily incorporate the other style later as necessary.
@@ -297,7 +296,7 @@ Java project:
 
 1. Mill's xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[Bootstrap Scripts]
    automatically xref:16-zero-setup.adoc[download and cache the right Mill and JVM versions],
-   so your program is guaranteed to build the same way regardless of whose' laptop, CI, or
+   so your program is guaranteed to build the same way regardless of whose laptop, CI, or
    production machine it may be running on.
 
 2. Mill's declarative `build.mill.yaml` files are boilerplate-free, which makes them much easier
@@ -327,7 +326,7 @@ has one more trick to further reduce the overhead of building and running a smal
 Mill 1.1.0 supports a new xref:mill::javalib/intro.adoc#_single_file_scripts[single-file script]
 format for Java, Scala, and Kotlin files. For example, this lets you take the `HtmlScraper.java`
 file above, add a `//|` build-header comment with the `mvnDeps` configuration it needs, and
-run it directly without needing a separate build file:
+xref:mill::javalib/script.adoc#_html_web_scraper[run it directly self-contained within a single file]:
 
 ```java
 //| mvnDeps:
@@ -376,14 +375,44 @@ Government_of_Singapore
 ...
 ```
 
-Although superficially this looks like running a Python or Bash script, under the hood it
-actually goes through the full build tool process - dependency resolution, compilation,
-and execution - with every step cached and parallelized where-ever possible.
 
-NOTE: the `extends: [mill.javalib.JavaModule]` clause is optional in single-file scripts;
-if not provided it is inferred from the file extension (here `.java`) but it can also be
-xref:mill::javalib/script.adoc#_custom_script_module_classes[configured explicitly] if needed
-e.g. to integrate your scripts with a larger Mill project.
+Another neat example is xref:mill::javalib/script.adoc#_web_server[running a Spring-Boot
+webserver, configured and implemented in a single file]:
+
+```java
+//| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]
+package example;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.*;
+
+@SpringBootApplication
+@RestController
+public class WebServer {
+  public static void main(String[] args) throws Exception {
+    SpringApplication.run(WebServer.class, args);
+    Thread.sleep(Integer.MAX_VALUE);
+  }
+
+  @PostMapping("/reverse-string")
+  public String reverseString(@RequestBody String body) {
+    return new StringBuilder(body).reverse().toString();
+  }
+}
+```
+
+```console
+> ./mill WebServer.java:runBackground
+
+> curl -d 'helloworld' localhost:8080/reverse-string
+dlrowolleh
+```
+
+Although superficially Mill single-file scripts look like running a Python or Bash script, under
+the hood it actually goes through the full build tool process - dependency resolution, compilation,
+and execution - with every step cached and parallelized where-ever possible. While single-file
+scripts are handy for cute demos like the one above, Mill fleshes them out enough that they are
+a viable way of writing code on the JVM.
 
 === Rich Scripting on the JVM
 
@@ -399,7 +428,7 @@ available to any other Java module, where other JVM script runners tend to only 
 
 2. Mill scripts can have xref:mill::javalib/intro.adoc#_testing_scripts[test suites]
 and xref:mill::javalib/script.adoc#_relative_and_absolute_script_moduledeps[depend on other scripts],
-which other JVM script runners usually don't support fully
+which other JVM script runners usually don't support
 
 3. Mill scripts can be xref:mill::javalib/script.adoc#_packaging_assemblies_and_native_binaries[packaged into assemblies or native binaries]
 for deployment
@@ -408,15 +437,15 @@ for deployment
 xref:mill::javalib/script.adoc#_project_moduledeps[project module deps], where other JVM script
 runners tend to run standalone
 
-5. Mill scripts have full support in IDEs like IntelliJ or VSCode, where other JVM script runners
-often only have partial IDE support
+5. Mill scripts have xref:mill::javalib/script.adoc#_script_ide_integration[full support in IDEs]
+like IntelliJ or VSCode, where other JVM script runners often only have partial IDE support
 
 image::ScriptIDESupport.png[]
 
 Using Java to write small scripts isn't a new idea, with the ability to run `java Foo.java`
-from the command line and tools like JBang. But Mill takes the idea several step further in
-polish and robustness, hopefully to a level where scripting on the JVM can be a truly viable
-workflow rather than just a tech demo.
+from the command line introduced in Java 11, and more feature-rich tools like JBang. But Mill
+takes the idea several step further in polish and robustness, hopefully to a level where
+scripting on the JVM can be a truly viable workflow rather than just a tech demo.
 
 === Multi-Language JVM Scripting
 
@@ -426,7 +455,8 @@ or xref:mill::kotlinlib/script.adoc[Kotlin]. For example, here is a
 xref:mill::kotlinlib/script.adoc#_html_web_scraper[Kotlin version of the HtmlScraper]
 
 ```kotlin
-//| mvnDeps: [org.jsoup:jsoup:1.7.2]
+//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
 import org.jsoup.Jsoup
 
 fun fetchLinks(title: String): List<String> {
@@ -528,8 +558,7 @@ Lastly, rather than having to juggle a zoo of different tools for different purp
 https://www.jenv.be/[JEnv], https://sdkman.io/[SdkMan], https://maven.apache.org/[Maven],
 https://gradle.org/[Gradle], https://www.jbang.dev/[JBang] - Mill provides everything you
 need in one xref:16-zero-setup.adoc[zero-setup bootstrap script]. This makes it trivial to
-for anyone using any JVM language, or even multiple JVM languages, to run your code in
-a consistent and reproducible manner.
+for anyone using any JVM language to run your code conveniently and consistently.
 
 If you have made it this far, we hope that some of the problems and challenges we have discussed
 in this article resonate with your own personal experience. If you are interested in trying out
@@ -539,7 +568,7 @@ documentation linked below:
 - xref:mill::javalib/intro.adoc#_declarative_module_config[Declarative Java Module Configuration]
 - xref:mill::javalib/intro.adoc#_single_file_scripts[Java Single-File Scripts]
 
-Or if you are updating from an earlier version of Mill, please see the changelog with a more
+For anyone upgrading from an earlier version of Mill, please see the changelog with a more
 thorough listing of improvements and migration instructions:
 
 - https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110[Mill 1.1.0 Changelog]
