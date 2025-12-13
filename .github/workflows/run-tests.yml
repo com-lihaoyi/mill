@@ -138,7 +138,7 @@ jobs:
             millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
 
           - java-version: 17
-            millargs: "libs.{scalalib,init,tabcomplete}.__.test"
+            millargs: "'libs.{scalalib,init,tabcomplete}.__.test'"
             install-sbt: true
 
           - java-version: 21
