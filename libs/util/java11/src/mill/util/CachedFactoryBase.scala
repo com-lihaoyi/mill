@@ -52,8 +52,9 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
       value: Value
   ): Boolean = true
 
+  type Entry = CachedFactoryBase.Entry[Key, InternalKey, Value]
   // Active values with reference counts. Head of list is most recently added.
-  private var activeValues: List[CachedFactoryBase.Entry[Key, InternalKey, Value]] = List.empty
+  private var activeValues: List[Entry] = List.empty
 
   // LRU cache of unused values (most recently used at the head)
   private var unusedCache: List[(Key, InternalKey, Value)] = List.empty
@@ -102,10 +103,32 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
    *
    * @return Some(entry) if there are still active references (only possible in shared mode), None otherwise
    */
-  def release(key: Key): Option[CachedFactoryBase.Entry[Key, InternalKey, Value]] = synchronized {
+  def release(key: Key): Option[Entry] = synchronized {
     val internalKey = keyToInternalKey(key)
+    releaseByInternalKey(key, internalKey, _.internalKey == internalKey)
+  }
 
-    val idx = activeValues.indexWhere(_.internalKey == internalKey)
+  /**
+   * Release a reference to a specific value, matching by value identity.
+   * This is used by [[withValue]] to ensure the correct entry is released
+   * when `shareValues = false` and multiple entries may have the same key.
+   */
+  def releaseValue(key: Key, value: Value): Option[Entry] =
+    synchronized {
+      val internalKey = keyToInternalKey(key)
+      releaseByInternalKey(
+        key,
+        internalKey,
+        e => e.internalKey == internalKey && (e.value.asInstanceOf[AnyRef] eq value.asInstanceOf[AnyRef])
+      )
+    }
+
+  private def releaseByInternalKey(
+      key: Key,
+      internalKey: InternalKey,
+      predicate: Entry => Boolean
+  ): Option[Entry] = {
+    val idx = activeValues.indexWhere(predicate)
     if (idx < 0) {
       throw new IllegalArgumentException(s"Unknown key: $key (internal key = $internalKey)")
     }
@@ -139,7 +162,7 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
   def withValue[R](key: Key, initData: => InitData)(block: Value => R): R = {
     val value = getOrCreate(key, initData)
     try block(value)
-    finally release(key)
+    finally releaseValue(key, value)
   }
 
   override def close(): Unit = synchronized {
