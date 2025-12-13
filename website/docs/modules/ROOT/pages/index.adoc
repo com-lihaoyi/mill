@@ -70,24 +70,6 @@ or xref:javalib/publishing.adoc#_java_installers_using_jpackage[installers],
 etc. This lets you focus on your actual project and spend less time
 fiddling with tooling and plugins.
 
-* *Maintainability*: Mill's config and xref:javalib/intro.adoc#_custom_build_logic[custom logic]
-is written in xref:depth/why-scala.adoc[concise type-checked JVM code],
-with an immutable xref:depth/design-principles.adoc[module tree and task graph]. This
-catches configuration issues early, and helps both humans and IDEs
-(xref:cli/installation-ide.adoc#_intellij[IntelliJ] or
-xref:cli/installation-ide.adoc#_vscode[VSCode])
-understand your Mill build better than any other build system
-
-* *Flexibility*: Mill's tasks and modules allow anything from adding
-xref:fundamentals/tasks.adoc#primitive-tasks[simple build steps], up to
-entire xref:extending/example-python-support.adoc[language toolchains].
-You can xref:extending/import-mvn-plugins.adoc[import any JVM library] in your build,
-use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
-or xref:extending/writing-plugins.adoc[write plugins yourself] and
-publish them to Maven Central for others to use.
-
-
-
 Mill can be used for applications built on top of common JVM frameworks like
 Spring Boot (both xref:javalib/spring-boot.adoc[in Java]
 and xref:kotlinlib/web-examples.adoc#_spring_boot_todomvc_app[in Kotlin]),

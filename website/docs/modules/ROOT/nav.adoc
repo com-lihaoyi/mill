@@ -87,6 +87,10 @@
 ** xref:fundamentals/cross-builds.adoc[]
 ** xref:fundamentals/bundled-libraries.adoc[]
 ** xref:fundamentals/configuring-jvm-versions.adoc[]
+* xref:large/large.adoc[]
+** xref:large/selective-execution.adoc[]
+** xref:large/multi-file-builds.adoc[]
+** xref:large/multi-language-builds.adoc[]
 // This section talks about Mill plugins. While it could theoretically fit in
 // either section above, it is probably an important enough topic it is worth
 // breaking out on its own
@@ -116,10 +120,6 @@
 ** xref:extending/meta-build.adoc[]
 ** xref:extending/example-typescript-support.adoc[]
 ** xref:extending/example-python-support.adoc[]
-* xref:large/large.adoc[]
-** xref:large/selective-execution.adoc[]
-** xref:large/multi-file-builds.adoc[]
-** xref:large/multi-language-builds.adoc[]
 // This section focuses on diving into deeper, more advanced topics for Mill.
 // These are things that most Mill developers would not encounter day to day,
 // but people developing Mill plugins or working on particularly large or
