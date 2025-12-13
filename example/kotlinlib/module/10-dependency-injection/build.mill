@@ -14,9 +14,6 @@ object dagger extends KspModule {
 
   def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 
-  // dagger doesn't play well with BtApi's incremental compilation
-  override def kotlincUseBtApi = false
-
   def mvnDeps = Seq(
     mvn"com.google.dagger:dagger:2.57"
   )
