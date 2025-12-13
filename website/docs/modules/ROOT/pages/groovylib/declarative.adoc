@@ -1,8 +1,0 @@
-= Config-Based Groovy Modules
-:language: Groovy
-:language-small: groovy
-
-include::partial$Config_Header.adoc[]
-
-TODO
-

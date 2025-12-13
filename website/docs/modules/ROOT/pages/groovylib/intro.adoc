@@ -6,8 +6,6 @@
 :compat-module: MavenModule
 :compat-test-module: MavenTests
 
-include::partial$Intro_Header.adoc[]
-
 NOTE: Mill Groovy support is currently still under active development.
 It is expected to continue evolving over time.
 
@@ -36,3 +34,19 @@ include::partial$example/groovylib/basic/1-script.adoc[]
 
 include::partial$example/groovylib/basic/6-programmable.adoc[]
 
+
+== Defining Unit Test Suites
+
+include::partial$example/groovylib/testing/1-test-suite.adoc[]
+
+== Defining Integration Test Suites
+
+include::partial$example/groovylib/testing/2-integration-suite.adoc[]
+
+== Using Spock
+
+include::partial$example/groovylib/testing/3-spock.adoc[]
+
+== Using Spock in Java projects with Maven layout
+
+include::partial$example/groovylib/testing/4-spock-for-java.adoc[]
