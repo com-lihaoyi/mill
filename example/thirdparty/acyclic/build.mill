@@ -54,11 +54,11 @@ trait AcyclicModule extends CrossScalaModule, PublishModule {
 
 /** Usage
 
-> ./mill acyclic[2.12.20].compile
+> ./mill acyclic.2_12_20.compile
 compiling 7 Scala sources...
 ...
 
-> ./mill acyclic[2.13.16].test.testLocal # acyclic tests need testLocal due to classloader assumptions
+> ./mill acyclic.2_13_16.test.testLocal # acyclic tests need testLocal due to classloader assumptions
 ...
 
 */

@@ -154,7 +154,7 @@ jobs:
             millargs: "example.javalib.__.shared.daemon"
 
           - java-version: 17
-            millargs: "'example.androidlib.__.shared.daemon'"
+            millargs: "example.androidlib.__.shared.daemon"
             setup-android: true
 
           - java-version: 17
@@ -162,11 +162,11 @@ jobs:
             setup-android: true
 
           - java-version: 17
-            millargs: "'example.thirdparty[android-compose-samples].packaged.daemon'"
+            millargs: "example.thirdparty.android-compose-samples.packaged.daemon"
             setup-android: true
 
           - java-version: 24
-            millargs: "'example.migrating.scalalib.__.shared.daemon'"
+            millargs: "example.migrating.scalalib.__.shared.daemon"
             install-sbt: true
 
           - java-version: 24
@@ -181,15 +181,15 @@ jobs:
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
           - java-version: 17
-            millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
+            millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 24
-            millargs: "'integration.invalidation.__.packaged.nodaemon'"
+            millargs: "integration.invalidation.__.packaged.nodaemon"
 
           - java-version: 17
-            millargs: "'integration.migrating.__.packaged.daemon'"
+            millargs: "integration.migrating.__.packaged.daemon"
             install-sbt: true
 
     uses: ./.github/workflows/post-build-selective.yml
@@ -208,11 +208,11 @@ jobs:
       matrix:
         include:
           - java-version: 24
-            millargs: "'integration.invalidation.__.packaged.daemon'"
+            millargs: "integration.invalidation.__.packaged.daemon"
 
           - java-version: 17
             # turn of parallelism since it sometimes causes issues with concurrent migrations
-            millargs: '"example.migrating.javalib.__.packaged.daemon"'
+            millargs: "example.migrating.javalib.__.packaged.daemon"
             extra: "--jobs=1"
           - java-version: 21
             millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
@@ -221,13 +221,13 @@ jobs:
             millargs: '"example.scalalib.{basic,publishing}.__.packaged.daemon"'
 
           - java-version: 17
-            millargs: '"dist.scripts.test"' # run this on both windows and mac to exercise bootstrap scripts
+            millargs: "dist.scripts.test" # run this on both windows and mac to exercise bootstrap scripts
 
           - java-version: 17
             millargs: "'integration.failure.__.packaged.nodaemon'"
 
           - java-version: 17
-            millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
+            millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:

@@ -65,7 +65,7 @@ object qux extends Module {
 
 /** Usage
 
-> ./mill show qux.js[3.3.6].sources
+> ./mill show qux.js.3_3_6.sources
 [
   ".../qux/src",
   ".../qux/src-js",
@@ -77,7 +77,7 @@ object qux extends Module {
   ".../qux/src-3-js"
 ]
 
-> ./mill show qux.js[3.3.6].test.sources
+> ./mill show qux.js.3_3_6.test.sources
 [
   ".../qux/test/src",
   ".../qux/test/src-js",
@@ -89,12 +89,12 @@ object qux extends Module {
   ".../qux/test/src-3-js"
 ]
 
-> ./mill qux.jvm[2.13.16].run
+> ./mill qux.jvm.2_13_16.run
 Bar.value: <p>world Specific code for Scala 2.x</p>
 Parsing JSON with ujson.read
 Qux.main: Set(<p>i</p>, <p>cow</p>, <p>me</p>)
 
-> ./mill __.js[3.3.6].test
+> ./mill __.js.3_3_6.test
 + bar.BarTests.test ...  <p>world Specific code for Scala 3.x</p>
 + qux.QuxTests.parseJsonGetKeys ...  Set(i, cow, me)
 

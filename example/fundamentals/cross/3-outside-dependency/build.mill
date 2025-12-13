@@ -19,24 +19,24 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   subgraph cluster_2 {
-//     label="foo[2.12]"
+//     label="foo.2_12"
 //     style=dashed
-//     "foo[2.12].suffix"
+//     "foo.2_12.suffix"
 //   }
 //   subgraph cluster_1 {
-//     label="foo[2.11]"
+//     label="foo.2_11"
 //     style=dashed
-//     "foo[2.11].suffix"
+//     "foo.2_11.suffix"
 //   }
 //   subgraph cluster_0 {
-//     label="foo[2.10]"
+//     label="foo.2_10"
 //     style=dashed
-//     "foo[2.10].suffix"
+//     "foo.2_10.suffix"
 //   }
-//   "foo[2.12].suffix" -> "qux" [constraint=false]
-//   "foo[2.11].suffix" -> "qux" [style=invis]
-//   "foo[2.10].suffix" -> "qux"
-//   "foo[2.10].suffix" -> "bar"
+//   "foo.2_12.suffix" -> "qux" [constraint=false]
+//   "foo.2_11.suffix" -> "qux" [style=invis]
+//   "foo.2_10.suffix" -> "qux"
+//   "foo.2_10.suffix" -> "bar"
 // }
 // ....
 
@@ -47,7 +47,7 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 
 /** Usage
 
-> ./mill show foo[2.10].suffix
+> ./mill show foo.2_10.suffix
 "_2.10"
 
 > ./mill show bar

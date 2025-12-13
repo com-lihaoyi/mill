@@ -17,17 +17,17 @@ trait FooModule extends Cross.Module[String] {
 
 /** Usage
 
-> ./mill show foo[2.10].sources
+> ./mill show foo.2_10.sources
 [
   ".../foo/2.10"
 ]
 
-> ./mill show foo[2.11].sources
+> ./mill show foo.2_11.sources
 [
   ".../foo/2.11"
 ]
 
-> ./mill show foo[2.12].sources
+> ./mill show foo.2_12.sources
 [
   ".../foo/2.12"
 ]
