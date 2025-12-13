@@ -41,8 +41,7 @@ compile(GroovyModule.scala:...)
     ...
 Inputs:
     upstreamCompileOutput
-    allJavaSourceFiles
-    allGroovySourceFiles
+    allSources
     compileClasspath
 
 > ./mill compile # compile sources into classfiles
