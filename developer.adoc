@@ -1,7 +1,7 @@
 
 == Developer Documentation
 
-The remainder of this readme is developer-documentation targeted at people who wish to work
+This page is developer-documentation targeted at people who wish to work
 on Mill's own codebase. The developer docs assume you have read through the user-facing
 documentation linked above. It's also worth spending a few minutes reading the following
 blog posts to get a sense of Mill's design & motivation:
@@ -59,7 +59,7 @@ and do not exercise the Mill script-file bootstrapping, transformation, and comp
 
 === Sub-Process Tests
 
-In general, you use `example.basic[3-simple]` or `integration.feature[inspect]` to run subproxess
+In general, you use `example.basic.3-simple.` or `integration.feature.inspect.` to run subproxess
 tests using the default configuration. You can reproduce these tests manually using
 `./mill dist.run <test-folder-path> <command>`.
 
@@ -90,7 +90,7 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 [source,console]
 ----
-> ./mill "example.javalib.basic[3-simple]"
+> ./mill "example.javalib.basic.3-simple"
 ----
 
 **Manual Test**
@@ -133,7 +133,7 @@ The first label specifies how the Mill code is packaged before testing
 
 
 1. `.packaged` runs using the compiled Mill code either packaged into an assembly or into jars.
-This is the default for commands like `example.basic[3-simple]`
+This is the default for commands like `example.basic.3-simple`
 
 3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
 This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
