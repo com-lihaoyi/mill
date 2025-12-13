@@ -57,7 +57,7 @@ Counting: 1
 // 2. Classloaders containing plugin code, to avoid classpath conflicts while
 //    avoiding the cost of launching subprocesses
 //
-// === Realistic Example: Compression Cache
+// ==== In-Memory Realistic Example: Compression Cache
 //
 // This example uses a Worker to provide simple two-level cache: in-memory caching
 // for compressed files, in addition to caching them on disk. This means that if the

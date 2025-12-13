@@ -51,7 +51,7 @@ Counting: 1
 // is eventually consistent. You can also use `mill clean` to manually purge
 // the disk contents to start fresh.
 //
-// === Realistic Example: File Compression Cache
+// ==== Realistic Example: File Compression Cache
 //
 // Below is a more realistic example of using `Task(persistent = true)` to compress
 // files in an input folder, cache the previously-compressed files in `Task.dest / "cache"`,
