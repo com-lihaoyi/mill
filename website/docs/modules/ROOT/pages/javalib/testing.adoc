@@ -30,6 +30,65 @@ include::partial$example/javalib/testing/5-test-grouping.adoc[]
 
 include::partial$example/javalib/testing/6-test-group-parallel.adoc[]
 
+== Selective Testing with testQuick
+
+Mill provides a `testQuick` task that intelligently runs only the tests affected by code
+changes since the last successful test run. This can significantly speed up your development
+workflow by avoiding re-running tests for code that hasn't changed.
+
+=== How It Works
+
+The `testQuick` task uses bytecode-level analysis (via Mill's codesig module) to detect which
+classes have changed. It then runs:
+
+1. Tests for classes that have changed since the last successful run
+2. Tests that failed in the previous run (to verify fixes)
+3. All tests if no previous state exists (first run)
+
+=== Usage
+
+[source,bash]
+----
+./mill foo.test.testQuick
+----
+
+The task maintains state between runs in a JSON file (`testQuick-state.json`) in its
+destination directory. This state includes:
+
+* Method-level code signatures for change detection
+* Results from the previous test run
+
+=== Example Workflow
+
+[source,bash]
+----
+# Initial run - all tests execute
+./mill foo.test.testQuick
+
+# Make a change to src/foo/Calculator.java
+# Only tests related to Calculator run
+./mill foo.test.testQuick
+
+# Fix a failing test
+# The previously-failed test runs again to verify the fix
+./mill foo.test.testQuick
+----
+
+=== Comparison with test
+
+|===
+| Task | Behavior
+
+| `test`
+| Always runs all tests in the module
+
+| `testQuick`
+| Runs only tests affected by changes since last successful run
+|===
+
+The `testQuick` task uses the same test framework and configuration as the regular `test`
+task - it just filters which test classes to run based on detected changes.
+
 == Github Actions Test Reports
 
 If you use Github Actions for CI, you can use https://github.com/mikepenz/action-junit-report in

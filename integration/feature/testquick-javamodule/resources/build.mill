@@ -1,0 +1,8 @@
+package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+  def javacOptions = Seq("-source", "11", "-target", "11")
+
+  object test extends JavaTests with TestModule.Junit4
+}
