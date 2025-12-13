@@ -5,11 +5,15 @@
 // flexibility: you are no longer limited to caching only serializable data
 // and paying the cost of serializing it to disk every evaluation.
 //
-// The simplest example of a worker is one that maintains a counter in memory,
-// incrementing it each time a task that uses the worker is evaluated:
+// A simple example of a worker is one that maintains a counter in memory,
+// incrementing it each time a task that uses the worker is evaluated. Note
+// that like normal cached tasks, the task using the worker only re-evaluates
+// when its inputs change:
 
 package build
 import mill.*, scalalib.*
+
+def input = Task.Source("input.txt")
 
 def counterWorker = Task.Worker {
   new java.util.concurrent.atomic.AtomicInteger(0)
@@ -17,30 +21,38 @@ def counterWorker = Task.Worker {
 
 def counterTask = Task {
   val count = counterWorker().incrementAndGet()
-  println(s"Counting: $count")
+  println(s"Counting: $count, input: ${os.read(input().path).trim}")
   count
 }
 
 /** Usage
 
 > ./mill counterTask
-Counting: 1
+Counting: 1, input: one
+
+> ./mill counterTask # no input change, no re-evaluation
+
+> echo two > input.txt
+
+> ./mill counterTask # input changed, counter increments
+Counting: 2, input: two
+
+> echo three > input.txt
 
 > ./mill counterTask
-Counting: 2
-
-> ./mill counterTask
-Counting: 3
+Counting: 3, input: three
 
 > ./mill clean counterWorker
 
-> ./mill counterTask
-Counting: 1
+> echo four > input.txt
+
+> ./mill counterTask # cleaning the worker resets the counter
+Counting: 1, input: four
 
 */
 
+// In the above example, the counter only increments when the input file changes.
 // Unlike persistent tasks which store state on disk, workers store state in memory.
-// This means the counter increments on each evaluation without any file I/O.
 // `./mill clean` resets the worker by discarding the in-memory object.
 //
 // Workers live as long as the Mill process. By default, consecutive `mill`

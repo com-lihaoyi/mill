@@ -6,43 +6,51 @@
 // (or parts of which files!) need to invalidate, rather than having all generated
 // files wiped out every time (which is the default behavior for normal Tasks).
 //
-// The simplest example of a persistent task is one that maintains a counter
-// on disk, incrementing it each time the task is evaluated:
+// A simple example of a persistent task is one that maintains a counter on disk,
+// incrementing it each time the task is evaluated. Note that like normal cached
+// tasks, persistent tasks only re-evaluate when their inputs change:
 
 package build
 import mill.*, scalalib.*
+
+def input = Task.Source("input.txt")
 
 def persistentCounter = Task(persistent = true) {
   val countFile = Task.dest / "count.txt"
   val count = if (os.exists(countFile)) os.read(countFile).trim.toInt + 1 else 1
   os.write.over(countFile, count.toString)
-  println(s"Counting: $count")
+  println(s"Counting: $count, input: ${os.read(input().path).trim}")
   count
 }
 
 /** Usage
 
 > ./mill persistentCounter
-Counting: 1
+Counting: 1, input: one
+
+> ./mill persistentCounter # no input change, no re-evaluation
+
+> echo two > input.txt
+
+> ./mill persistentCounter # input changed, counter increments
+Counting: 2, input: two
+
+> echo three > input.txt
 
 > ./mill persistentCounter
-Counting: 2
-
-> ./mill persistentCounter
-Counting: 3
+Counting: 3, input: three
 
 > ./mill clean persistentCounter
 
-> ./mill persistentCounter
-Counting: 1
+> ./mill persistentCounter # cleaning the task resets the counter
+Counting: 1, input: three
 
 */
 
-// Note that since the task inputs do not change, a normal cached `Task` would only
-// evaluate once and then be cached. But because `persistentCounter` is a persistent
-// task, we can update the count file on disk and that update will be preserved for
-// subsequent evaluations. `./mill clean` can be used to reset the counter by deleting
-// the `Task.dest` folder.
+// In the above example, the counter only increments when the input file changes.
+// The key difference from a normal task is that the counter file in `Task.dest`
+// persists between evaluations, allowing the task to maintain state across runs.
+// `./mill clean` can be used to reset the counter by deleting the `Task.dest` folder.
 //
 // Since persistent tasks have long-lived state on disk that lives beyond a
 // single evaluation, this raises the possibility of the disk contents getting
