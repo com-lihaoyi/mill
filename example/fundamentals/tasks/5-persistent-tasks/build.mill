@@ -6,13 +6,65 @@
 // (or parts of which files!) need to invalidate, rather than having all generated
 // files wiped out every time (which is the default behavior for normal Tasks).
 //
-//
-// Below is a semi-realistic example of using `Task(persistent = true)` to compress
-// files in an input folder, cache the previously-compressed files in `Task.dest / "cache"`,
-// and re-use previously-compressed files if a file in the
-// input folder did not change:
+// A simple example of a persistent task is one that maintains a counter on disk,
+// incrementing it each time the task is evaluated. Note that like normal cached
+// tasks, persistent tasks only re-evaluate when their inputs change:
+
 package build
 import mill.*, scalalib.*
+
+def input = Task.Source("input.txt")
+
+def persistentCounter = Task(persistent = true) {
+  val countFile = Task.dest / "count.txt"
+  val count = if (os.exists(countFile)) os.read(countFile).trim.toInt + 1 else 1
+  os.write.over(countFile, count.toString)
+  println(s"Counting: $count, input: ${os.read(input().path).trim}")
+  count
+}
+
+/** Usage
+
+> ./mill persistentCounter
+Counting: 1, input: one
+
+> ./mill persistentCounter # no input change, no re-evaluation
+
+> echo two > input.txt
+
+> ./mill persistentCounter # input changed, counter increments
+Counting: 2, input: two
+
+> echo three > input.txt
+
+> ./mill persistentCounter
+Counting: 3, input: three
+
+> ./mill clean persistentCounter
+
+> ./mill persistentCounter # cleaning the task resets the counter
+Counting: 1, input: three
+
+*/
+
+// In the above example, the counter only increments when the input file changes.
+// The key difference from a normal task is that the counter file in `Task.dest`
+// persists between evaluations, allowing the task to maintain state across runs.
+// `./mill clean` can be used to reset the counter by deleting the `Task.dest` folder.
+//
+// Since persistent tasks have long-lived state on disk that lives beyond a
+// single evaluation, this raises the possibility of the disk contents getting
+// into a bad state and causing all future evaluations to fail. It is left up
+// to the user of `Task(persistent = true)` to ensure their implementation
+// is eventually consistent. You can also use `mill clean` to manually purge
+// the disk contents to start fresh.
+//
+// ==== Realistic Example: File Compression Cache
+//
+// Below is a more realistic example of using `Task(persistent = true)` to compress
+// files in an input folder, cache the previously-compressed files in `Task.dest / "cache"`,
+// and re-use previously-compressed files if a file in the input folder did not change:
+
 import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
@@ -54,13 +106,6 @@ def compressBytes(input: Array[Byte]) = {
 // compressed contents for each file. That means that if the `data` folder
 // is modified, but some files remain unchanged, those files would not be
 // unnecessarily re-compressed when `compressedData` evaluates.
-//
-// Since persistent tasks have long-lived state on disk that lives beyond a
-// single evaluation, this raises the possibility of the disk contents getting
-// into a bad state and causing all future evaluations to fail. It is left up
-// to user of `Task(persistent = true)` to ensure their implementation
-// is eventually consistent. You can also use `mill clean` to manually purge
-// the disk contents to start fresh.
 
 /** Usage
 

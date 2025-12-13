@@ -1,0 +1,50 @@
+package build
+import mill.*, groovylib.*
+
+object foo extends GroovyModule {
+
+  def groovyVersion = "5.0.3"
+
+  def moduleDeps = Seq(build.bar)
+  def mvnDeps = Seq(
+    mvn"org.apache.groovy:groovy-cli-commons"
+  )
+}
+
+object bar extends GroovyModule {
+
+  def groovyVersion = "5.0.3"
+
+  def mvnDeps = Seq(
+    mvn"org.apache.groovy:groovy-xml"
+  )
+
+  object test extends GroovyTests with TestModule.Junit5 {}
+}
+//// SNIPPET:TREE
+// ----
+// build.mill
+// foo/
+//     src/
+//         foo/Foo.groovy
+// bar/
+//     src/
+//         bar/Bar.groovy
+//     test/
+//         src/
+//             bar/BarTests.groovy
+// out/
+//     foo/
+//         compile.json
+//         compile.dest/
+//         ...
+//     bar/
+//         compile.json
+//         compile.dest/
+//         ...
+//         test/
+//             compile.json
+//             compile.dest/
+//             ...
+// ----
+//

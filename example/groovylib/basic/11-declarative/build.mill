@@ -1,0 +1,49 @@
+// This is a basic Mill build for a single `GroovyModule`, with one
+// third-party dependency and a test suite using the JUnit framework.
+//
+// This example project uses two third-party dependencies
+// - Groovy-Cli-Commons for CLI argument parsing
+// - Groovy-Xml for HTML templating and escaping
+// and uses them to wrap a given input string in HTML templates with proper escaping.
+//
+
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
+
+/** Usage
+
+> ./mill resolve _ # List what tasks are available to run
+assembly
+...
+compile
+...
+run
+...
+test
+
+*/
+
+/** Usage
+> ./mill run --text hello
+<h1>hello</h1>
+*/
+
+/** Usage
+> ./mill test
+Running Test Class foo.FooTest
+Test foo.FooTest#generate html created properly() finished...
+Test foo.FooTest#generated html is properly escaped() finished...
+Test foo.FooTest finished...
+
+*/
+
+/** Usage
+> ./mill assembly # bundle classfiles and libraries into a jar for deployment
+
+> ./mill show assembly # show the output of the assembly task
+".../out/assembly.dest/out.jar"
+
+> java -jar ./out/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+*/

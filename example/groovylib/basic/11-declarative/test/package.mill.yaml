@@ -1,0 +1,4 @@
+extends: [build.GroovyTests, mill.javalib.TestModule.Junit5]
+jupiterVersion: 5.13.4
+mvnDeps:
+  - org.apache.groovy:groovy-test
