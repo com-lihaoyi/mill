@@ -187,8 +187,8 @@ object CachedFactoryTests extends TestSuite {
     }
 
     test("concurrentSameKey") {
-      // Verify that concurrent withValue calls with the same key each get their
-      // own resource and do not interfere with each other during release
+      // Verify that concurrent withValue calls with the same key each get
+      // their own resource and do not interfere with each other during release
       import java.util.concurrent.{CyclicBarrier, CopyOnWriteArrayList}
       import scala.jdk.CollectionConverters._
 
