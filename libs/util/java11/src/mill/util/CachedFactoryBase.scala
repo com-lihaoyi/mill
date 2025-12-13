@@ -104,6 +104,11 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
    * @return Some(entry) if there are still active references (only possible in shared mode), None otherwise
    */
   def release(key: Key): Option[Entry] = synchronized {
+    assert(
+      shareValues == true,
+      "`release` should only be called when `shareValues = true`. If `shareValues = false`, " +
+      "please use `releaseKeyValue` instead."
+    )
     val internalKey = keyToInternalKey(key)
     releaseByInternalKey(key, internalKey, _.internalKey == internalKey)
   }
@@ -113,7 +118,7 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
    * This is used by [[withValue]] to ensure the correct entry is released
    * when `shareValues = false` and multiple entries may have the same key.
    */
-  def releaseValue(key: Key, value: Value): Option[Entry] =
+  def releaseKeyValue(key: Key, value: Value): Option[Entry] =
     synchronized {
       val internalKey = keyToInternalKey(key)
       releaseByInternalKey(
@@ -162,7 +167,7 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
   def withValue[R](key: Key, initData: => InitData)(block: Value => R): R = {
     val value = getOrCreate(key, initData)
     try block(value)
-    finally releaseValue(key, value)
+    finally releaseKeyValue(key, value)
   }
 
   override def close(): Unit = synchronized {
