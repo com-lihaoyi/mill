@@ -1,4 +1,4 @@
-= Simpler JVM Project Setup with Declarative Config in Mill 1.1.0
+= Simpler Java Project Setup with Declarative Config in Mill 1.1.0
 // tag::header[]
 :author: Li Haoyi
 :revdate: 24 Dec 2025
