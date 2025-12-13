@@ -114,9 +114,8 @@ abstract class CachedFactoryBase[Key, InternalKey, InitData, Value] extends Auto
   }
 
   /**
-   * Release a reference to a specific value, matching by value identity.
-   * This is used by [[withValue]] to ensure the correct entry is released
-   * when `shareValues = false` and multiple entries may have the same key.
+   * Release a reference to a specific value, matching by value identity. This should
+   * be used when `shareValues = false` and multiple entries may have the same key.
    */
   def releaseKeyValue(key: Key, value: Value): Option[Entry] =
     synchronized {
