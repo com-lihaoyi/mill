@@ -25,25 +25,25 @@ def baz = Task { s"hello ${foo("a").bar.param()}" }
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   "root-module" [style=dashed]
 //   foo [style=dashed]
-//   "foo[a]" [style=dashed]
-//   "foo[b]" [style=dashed]
-//   "foo[a].bar" [style=dashed]
-//   "foo[a].qux" [style=dashed]
-//   "foo[b].bar" [style=dashed]
-//   "foo[b].qux" [style=dashed]
-//   "root-module" -> foo -> "foo[a]" [style=dashed]
-//   foo -> "foo[b]"  [style=dashed]
-//   "foo[a]" -> "foo[a].bar" [style=dashed]
-//   "foo[a]" -> "foo[a].qux" [style=dashed]
-//   "foo[b]" -> "foo[b].bar" [style=dashed]
-//   "foo[b]" -> "foo[b].qux" [style=dashed]
-//   "foo[a].bar" -> "foo[a].bar.name" [style=dashed]
-//   "foo[a].bar" -> "foo[a].bar.param" [style=dashed]
-//   "foo[a].qux" -> "..." [style=invis]
-//   "foo[b].bar" -> "..." [style=invis]
-//   "foo[b].qux" -> "..." [style=invis]
+//   "foo.a" [style=dashed]
+//   "foo.b" [style=dashed]
+//   "foo.a.bar" [style=dashed]
+//   "foo.a.qux" [style=dashed]
+//   "foo.b.bar" [style=dashed]
+//   "foo.b.qux" [style=dashed]
+//   "root-module" -> foo -> "foo.a" [style=dashed]
+//   foo -> "foo.b"  [style=dashed]
+//   "foo.a" -> "foo.a.bar" [style=dashed]
+//   "foo.a" -> "foo.a.qux" [style=dashed]
+//   "foo.b" -> "foo.b.bar" [style=dashed]
+//   "foo.b" -> "foo.b.qux" [style=dashed]
+//   "foo.a.bar" -> "foo.a.bar.name" [style=dashed]
+//   "foo.a.bar" -> "foo.a.bar.param" [style=dashed]
+//   "foo.a.qux" -> "..." [style=invis]
+//   "foo.b.bar" -> "..." [style=invis]
+//   "foo.b.qux" -> "..." [style=invis]
 //   "..." [color=white]
-//   "foo[a].bar.name" -> "foo[a].bar.param" [constraint=false]
+//   "foo.a.bar.name" -> "foo.a.bar.param" [constraint=false]
 // }
 // ....
 //
@@ -61,10 +61,10 @@ def baz = Task { s"hello ${foo("a").bar.param()}" }
 
 /** Usage
 
-> ./mill show foo[a].bar.param
+> ./mill show foo.a.bar.param
 "Bar Param Value: a"
 
-> ./mill show foo[b].qux.param
+> ./mill show foo.b.qux.param
 "Qux Param Value: b"
 
 > ./mill show baz
