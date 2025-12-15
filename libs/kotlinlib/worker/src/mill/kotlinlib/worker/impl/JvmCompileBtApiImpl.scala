@@ -62,7 +62,7 @@ class JvmCompileBtApiImpl() extends Compiler {
       strategyConfig,
       compilationConfig,
       KotlinInterop.toKotlinList(sourceFiles),
-      KotlinInterop.toKotlinList(args.toArray)
+      KotlinInterop.toKotlinList(sourceFiles.map(_.toString) ++ args.toArray)
     )
 
     val exitCode = compilationResult match {
