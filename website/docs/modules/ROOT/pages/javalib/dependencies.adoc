@@ -5,7 +5,7 @@
 This page goes into more detail about configuring third party dependencies
 for `JavaModule`.
 
-== Declarative Dependencies
+== Common Dependencies Configuration
 
 include::partial$example/javalib/dependencies/1-dependencies.adoc[]
 

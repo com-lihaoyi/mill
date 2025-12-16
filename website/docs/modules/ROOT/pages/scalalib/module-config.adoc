@@ -1,4 +1,4 @@
-= Programmable Scala Config
+= Scala Module Configuration
 :page-aliases: Configuring_Mill.adoc, Scala_Module_Config.adoc
 :language: Scala
 :language-small: scala
@@ -11,11 +11,11 @@ Many of the APIs covered here are listed in the Scaladoc:
 
 * {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
-== Declarative Configuration
+== Common Module Configuration
 
 include::partial$example/scalalib/module/1-common-config.adoc[]
 
-== Common Configuration Overrides
+== Programmable Configuration Overrides
 
 include::partial$example/scalalib/module/2-common-config.adoc[]
 

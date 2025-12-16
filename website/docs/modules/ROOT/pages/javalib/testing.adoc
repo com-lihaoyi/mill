@@ -5,7 +5,7 @@
 
 This page will discuss common topics around working with test suites using the Mill build tool
 
-== Declarative Testing
+== Common Testing Configuration
 
 include::partial$example/javalib/testing/1-testing.adoc[]
 

@@ -6,7 +6,7 @@
 This page will discuss common topics around enforcing the code quality of Kotlin
 codebases using the Mill build tool
 
-== Declarative Linting
+== Common Linting Configuration
 
 include::partial$example/kotlinlib/linting/1-linting.adoc[]
 

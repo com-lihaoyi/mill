@@ -1,4 +1,4 @@
-= Programmable Kotlin Config
+= Kotlin Module Configuration
 :page-aliases: Kotlin_Module_Config.adoc
 :language: Kotlin
 :language-small: kotlin
@@ -11,11 +11,11 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[mill.kotlinlib.KotlinModule]
 
-== Declarative Configuration
+== Common Module Configuration
 
 include::partial$example/kotlinlib/module/1-common-config.adoc[]
 
-== Common Configuration Overrides
+== Programmable Configuration Overrides
 
 include::partial$example/kotlinlib/module/2-common-config.adoc[]
 

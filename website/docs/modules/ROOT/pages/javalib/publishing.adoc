@@ -5,11 +5,11 @@
 
 This page will discuss common topics around packaging and publishing your Java projects for others to use.
 
-== Declarative Native Image
+== Common Native Image Configuration
 
 include::partial$example/javalib/publishing/1-native-image.adoc[]
 
-== Declarative Publishing
+== Common Publishing Configuration
 
 include::partial$example/javalib/publishing/2-publishing.adoc[]
 

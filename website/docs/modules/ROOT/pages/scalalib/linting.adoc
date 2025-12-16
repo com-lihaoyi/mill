@@ -6,7 +6,7 @@
 This page will discuss common topics around maintaining the code quality of Scala
 codebases using the Mill build tool
 
-== Declarative Linting
+== Common Linting Configuration
 
 include::partial$example/scalalib/linting/1-linting.adoc[]
 

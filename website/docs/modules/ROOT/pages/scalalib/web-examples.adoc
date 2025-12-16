@@ -8,7 +8,7 @@ It covers setting up a basic backend server, Todo-MVC app, topics like cache
 busting, as well as usage of Scala.js both as standalone modules as well as
 integrated with your backend Scala-JVM web server.
 
-== Declarative Web Example
+== Simple Web Example
 
 include::partial$example/scalalib/web/1-web-example.adoc[]
 

@@ -5,7 +5,7 @@
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server with a variety of server frameworks
 
-== Declarative Web Example
+== Simple Web Example
 
 include::partial$example/kotlinlib/web/1-web-example.adoc[]
 
