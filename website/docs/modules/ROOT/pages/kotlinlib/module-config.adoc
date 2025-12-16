@@ -11,7 +11,7 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[mill.kotlinlib.KotlinModule]
 
-== Common Module Configuration
+== Basic Module Configuration
 
 include::partial$example/kotlinlib/module/1-common-config.adoc[]
 
@@ -31,10 +31,6 @@ include::partial$example/kotlinlib/module/4-generated-sources.adoc[]
 
 
 
-== Compilation & Execution Flags
-
-include::partial$example/kotlinlib/module/5-compilation-execution-flags.adoc[]
-
 == Classpath and Filesystem Resources
 
 include::partial$example/kotlinlib/module/7-resources.adoc[]
@@ -51,20 +47,17 @@ include::partial$example/kotlinlib/module/9-docjar.adoc[]
 
 include::partial$example/kotlinlib/module/10-dependency-injection.adoc[]
 
-== Specifying the Main Class
-
-include::partial$example/kotlinlib/module/11-main-class.adoc[]
-
-
 
 == Native C Code with JNI
 
 include::partial$example/kotlinlib/module/15-jni.adoc[]
 
-== Custom Module Traits
+== Integration Declarative and Programmatic Config
 
-include::partial$example/kotlinlib/module/16-custom-trait.adoc[]
+=== Custom Module Traits
 
-== Programmable `moduleDeps`
+include::partial$example/kotlinlib/module/17-custom-trait.adoc[]
 
-include::partial$example/kotlinlib/module/17-programmable-module-deps.adoc[]
+=== Programmable `moduleDeps`
+
+include::partial$example/kotlinlib/module/18-programmable-module-deps.adoc[]

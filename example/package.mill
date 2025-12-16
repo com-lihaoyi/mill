@@ -33,7 +33,7 @@ object `package` extends Module {
     object linting extends Cross[ExampleCrossModuleJava](build.listCross)
     object publishing extends Cross[ExampleCrossModuleJava](build.listCross)
     object script extends Cross[ExampleCrossModuleJava](build.listCross)
-    object web extends Cross[ExampleCrossModule](build.listCross)
+    object web extends Cross[ExampleCrossModuleJava](build.listCross)
     object springboot extends Cross[ExampleCrossModule](build.listCross)
   }
   object kotlinlib extends Module {

@@ -96,5 +96,5 @@ foo.run
 // not need to have prior experience in Scala to read or write them. Like Gradle Groovy or Maven
 // XML, anyone can learn enough Scala for Mill without needing to become an expert in
 // the language. For simpler builds that do not need the flexibility that programmable builds
-// provide, YAML-based xref:{language-small}lib/module-config.adoc#_declarative_configuration[Declarative Module definitions]
+// provide, YAML-based xref:{language-small}lib/module-config.adoc#_basic_module_configuration[Declarative Module definitions]
 // are a great alternative.

@@ -5,11 +5,11 @@
 This page goes into more detail about configuring third party dependencies
 for `ScalaModule`.
 
-== Common Dependencies Configuration
+== Basic Dependencies Configuration
 
 include::partial$example/scalalib/dependencies/1-dependencies.adoc[]
 
-== Compile and Runtime Dependencies
+== Programmable Dependencies Configuration
 
 include::partial$example/scalalib/dependencies/2-run-compile-deps.adoc[]
 

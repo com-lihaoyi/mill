@@ -11,7 +11,7 @@ Many of the APIs covered here are listed in the Scaladoc:
 
 * {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
-== Common Module Configuration
+== Basic Module Configuration
 
 include::partial$example/scalalib/module/1-common-config.adoc[]
 
@@ -27,10 +27,6 @@ include::partial$example/scalalib/module/3-custom-tasks.adoc[]
 
 include::partial$example/scalalib/module/4-generated-sources.adoc[]
 
-== Compilation & Execution Flags
-
-include::partial$example/scalalib/module/5-compilation-execution-flags.adoc[]
-
 == Classpath and Filesystem Resources
 
 include::partial$example/scalalib/module/7-resources.adoc[]
@@ -42,11 +38,6 @@ include::partial$example/scalalib/module/8-scala-compiler-plugins.adoc[]
 == Scaladoc Config
 
 include::partial$example/scalalib/module/9-docjar.adoc[]
-
-== Specifying the Main Class
-
-include::partial$example/scalalib/module/11-main-class.adoc[]
-
 
 == Cross-Scala-Version Modules
 
@@ -125,10 +116,12 @@ object foo extends ScalaModule {
 
 include::partial$example/scalalib/module/16-scala-nightlies.adoc[]
 
-== Custom Module Traits
+== Integration Declarative and Programmatic Config
+
+=== Custom Module Traits
 
 include::partial$example/scalalib/module/17-custom-trait.adoc[]
 
-== Programmable `moduleDeps`
+=== Programmable `moduleDeps`
 
 include::partial$example/scalalib/module/18-programmable-module-deps.adoc[]

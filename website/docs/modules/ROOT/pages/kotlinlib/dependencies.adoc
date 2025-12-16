@@ -9,11 +9,11 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[mill.kotlinlib.KotlinModule]
 
-== Common Dependencies Configuration
+== Basic Dependencies Configuration
 
 include::partial$example/kotlinlib/dependencies/1-dependencies.adoc[]
 
-== Compile and Runtime Dependencies
+== Programmable Dependencies Configuration
 
 include::partial$example/kotlinlib/dependencies/2-run-compile-deps.adoc[]
 

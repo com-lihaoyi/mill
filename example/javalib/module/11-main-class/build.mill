@@ -1,7 +1,0 @@
-//// SNIPPET:BUILD
-package build
-import mill.*, javalib.*
-
-object `package` extends JavaModule {
-  def mainClass = Some("foo.Qux")
-}

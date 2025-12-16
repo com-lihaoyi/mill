@@ -21,8 +21,7 @@ hello WORLD
 //// SNIPPET:END
 
 // By default,
-// `run` runs the compiled code in a subprocess, and you can pass in JVM flags
-// via `forkArgs` or environment-variables via `forkEnv`.
+// `run` runs the compiled code in a subprocess, and you can
 //
 // You can also run your code via
 //

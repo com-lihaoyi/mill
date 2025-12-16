@@ -11,7 +11,7 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/javalib/JavaModule.html[mill.javalib.JavaModule]
 
-== Common Module Configuration
+== Basic Module Configuration
 
 include::partial$example/javalib/module/1-common-config.adoc[]
 
@@ -31,11 +31,6 @@ include::partial$example/javalib/module/3-custom-tasks.adoc[]
 include::partial$example/javalib/module/4-generated-sources.adoc[]
 
 
-== Compilation & Execution Flags
-
-include::partial$example/javalib/module/5-compilation-execution-flags.adoc[]
-
-
 == Classpath and Filesystem Resources
 
 include::partial$example/javalib/module/7-resources.adoc[]
@@ -48,19 +43,16 @@ include::partial$example/javalib/module/8-annotation-processors.adoc[]
 
 include::partial$example/javalib/module/9-docjar.adoc[]
 
-== Specifying the Main Class
-
-include::partial$example/javalib/module/11-main-class.adoc[]
-
-
 == Native C Code with JNI
 
 include::partial$example/javalib/module/15-jni.adoc[]
 
-== Custom Module Traits
+== Integration Declarative and Programmatic Config
 
-include::partial$example/javalib/module/12-custom-trait.adoc[]
+=== Custom Module Traits
 
-== Programmable `moduleDeps`
+include::partial$example/javalib/module/17-custom-trait.adoc[]
 
-include::partial$example/javalib/module/13-programmable-module-deps.adoc[]
+=== Programmable `moduleDeps`
+
+include::partial$example/javalib/module/18-programmable-module-deps.adoc[]

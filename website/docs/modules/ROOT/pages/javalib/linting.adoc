@@ -7,7 +7,7 @@
 This page will discuss common topics around enforcing the code quality of Java
 codebases using the Mill build tool
 
-== Common Linting Configuration
+== Basic Linting Configuration
 
 include::partial$example/javalib/linting/1-linting.adoc[]
 

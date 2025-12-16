@@ -40,6 +40,29 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...
 
 //// SNIPPET:END
 //
+// This example demonstrates:
+//
+// * Adding third-party dependencies via `mvnDeps`
+//
+// * Setting an explicit `mainClass`. Mill's `foo.run` by default will discover which main class to run from your
+// compilation output, but if there is more than one or the main class comes from
+// some library you can explicitly specify which one to use. `mainClass` also adds the
+// main class to your `foo.jar` and `foo.assembly` jars.
+//
+// * Pass in JVM execution flags via `forkArgs` or environment-variables via `forkEnv`.
+//
+//// SNIPPET:EXPLANATION
+//
+// * Pass compilation flags to the Scala compiler via `scalacOptions`.
+//
+// * Setting a `scalaVersion`.
+//
+//// SNIPPET:END
+//
+// * Adding custom `sources` and `resources` folders
+//
+// * Pinning a specific Java runtime/compile version via `jvmId`
+//
 // Paths such as `./custom-src` or `./custom-resources` are relative to the
 // xref:fundamentals/modules.adoc#_moduledir[moduleDir] of the module being configured.
 // In the example above this is the root folder of your codebase, but in multi-module

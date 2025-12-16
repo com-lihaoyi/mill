@@ -5,11 +5,11 @@
 
 This page will discuss common topics around packaging and publishing your Kotlin projects for others to use
 
-== Common Native Image Configuration
+== Basic Native Image Configuration
 
 include::partial$example/kotlinlib/publishing/1-native-image.adoc[]
 
-== Common Publishing Configuration
+== Basic Publishing Configuration
 
 include::partial$example/kotlinlib/publishing/2-publishing.adoc[]
 

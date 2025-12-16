@@ -10,7 +10,7 @@
 
 *Dependency Management*
 
-* xref:javalib/dependencies.adoc#_compile_and_runtime_dependencies[Compile & Runtime Dependencies]
+* xref:javalib/dependencies.adoc#_basic_dependencies_configuration[Compile & Runtime Dependencies]
 * xref:fundamentals/library-deps.adoc#_dependency_management[Dependency Version Management and BOMs]
 * xref:contrib/sbom.adoc[Software Bill of Materials (SBOMs)]
 * xref:javalib/dependencies.adoc#_unmanaged_jars[Unmanaged Dependencies]
@@ -18,7 +18,7 @@
 
 *Testing*
 
-* xref:javalib/testing.adoc#_defining_unit_test_suites[JUnit4, JUnit5, TestNG, ScalaTest, Specs2, Munit]
+* xref:javalib/testing.adoc#_basic_testing_configuration[JUnit4, JUnit5, TestNG, ScalaTest, Specs2, Munit]
 * xref:javalib/testing.adoc#_defining_integration_test_suites[Integration Testing]
 * xref:javalib/testing.adoc#_test_parallelism[Test Parallelism]
 

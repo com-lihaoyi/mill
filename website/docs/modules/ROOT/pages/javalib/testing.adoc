@@ -5,11 +5,11 @@
 
 This page will discuss common topics around working with test suites using the Mill build tool
 
-== Common Testing Configuration
+== Basic Testing Configuration
 
 include::partial$example/javalib/testing/1-testing.adoc[]
 
-== Defining Unit Test Suites
+== Programmable Testing Configuration
 
 include::partial$example/javalib/testing/2-test-suite.adoc[]
 

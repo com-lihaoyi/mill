@@ -8,43 +8,48 @@ It covers setting up a basic backend server, Todo-MVC app, topics like cache
 busting, as well as usage of Scala.js both as standalone modules as well as
 integrated with your backend Scala-JVM web server.
 
-== Simple Web Example
+== Web Server Projects
+
+=== Simple Web Example
 
 include::partial$example/scalalib/web/1-web-example.adoc[]
 
-== TodoMVC Web App
+
+=== TodoMVC Web App
 
 include::partial$example/scalalib/web/2-todo-webapp.adoc[]
 
-== Webapp Cache Busting
+=== Webapp Cache Busting
 
 include::partial$example/scalalib/web/3-webapp-cache-busting.adoc[]
 
-== TodoMVC http4s Web App
+=== TodoMVC http4s Web App
 
 include::partial$example/scalalib/web/4-todo-http4s.adoc[]
 
-== Scala.js Modules
+== Scala.js
+
+=== Scala.js Modules
 
 include::partial$example/scalalib/web/5-scalajs-module.adoc[]
 
-== Scala.js Webserver Integration
+=== Scala.js Webserver Integration
 
 include::partial$example/scalalib/web/6-webapp-scalajs.adoc[]
 
-== Scala.js/Scala-JVM Code Sharing
+=== Scala.js/Scala-JVM Code Sharing
 
 include::partial$example/scalalib/web/7-webapp-scalajs-shared.adoc[]
 
-== Publishing Cross-Platform Scala Modules
+=== Publishing Cross-Platform Scala Modules
 
 include::partial$example/scalalib/web/8-cross-version-platform-publishing.adoc[]
 
-== Publishing Cross-Platform Scala Modules Alternative
+=== Publishing Cross-Platform Scala Modules Alternative
 
 include::partial$example/scalalib/web/9-cross-platform-version-publishing.adoc[]
 
-== Scala.js WebAssembly Example
+=== Scala.js WebAssembly Example
 
 include::partial$example/scalalib/web/10-wasm.adoc[]
 
