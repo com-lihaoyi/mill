@@ -1,9 +1,8 @@
 // This example shows some of the common tasks you may want to override on a
-// `{language}Module`: specifying the `mainClass`, adding additional
-// sources/resources, generating resources, and setting compilation/run
-// options. We also define it as a xref:fundamentals/modules.adoc#_root_modules[RootModule],
-// so its sources will live in the top-level `src/` folder and its tasks can be
-// called directly via `compile` or `run` without needing a `foo.` module prefix.
+// `{language}Module`, but using Mill's programmable `build.mill` files rather
+// than the declarative `build.mill.yaml` files above. `build.mill` files
+// allow setting all the same keys as `build.mill.yaml` files, and additionally
+// can implement custom build logic such as `def generatedSources` below:
 
 //// SNIPPET:BUILD
 package build

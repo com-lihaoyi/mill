@@ -1,4 +1,4 @@
-= Programmable Java Config
+= Java Module Configuration
 :page-aliases: Java_Module_Config.adoc
 :language: Java
 :language-small: java
@@ -11,7 +11,11 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/javalib/JavaModule.html[mill.javalib.JavaModule]
 
-== Common Configuration Overrides
+== Common Module Configuration
+
+include::partial$example/javalib/module/1-common-config.adoc[]
+
+== Programmable Configuration Overrides
 
 include::partial$example/javalib/module/2-common-config.adoc[]
 
@@ -53,3 +57,10 @@ include::partial$example/javalib/module/11-main-class.adoc[]
 
 include::partial$example/javalib/module/15-jni.adoc[]
 
+== Custom Module Traits
+
+include::partial$example/javalib/module/12-custom-trait.adoc[]
+
+== Programmable `moduleDeps`
+
+include::partial$example/javalib/module/13-programmable-module-deps.adoc[]

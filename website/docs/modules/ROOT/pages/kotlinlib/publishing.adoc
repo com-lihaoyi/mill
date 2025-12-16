@@ -1,36 +1,43 @@
 = Kotlin Packaging & Publishing
 :page-aliases: Publishing_Kotlin_Projects.adoc
-
-
+:language: Kotlin
+:language-small: kotlin
 
 This page will discuss common topics around packaging and publishing your Kotlin projects for others to use
 
+== Common Native Image Configuration
+
+include::partial$example/kotlinlib/publishing/1-native-image.adoc[]
+
+== Common Publishing Configuration
+
+include::partial$example/kotlinlib/publishing/2-publishing.adoc[]
 
 == Building Executable Assemblies
 
-include::partial$example/kotlinlib/publishing/1-assembly-config.adoc[]
+include::partial$example/kotlinlib/publishing/3-assembly-config.adoc[]
 
 == Building `Repackage` Assemblies
 
-include::partial$example/kotlinlib/publishing/9-repackage-config.adoc[]
+include::partial$example/kotlinlib/publishing/11-repackage-config.adoc[]
 
 
 == Building Native Image Binaries with Graal VM
 
-include::partial$example/kotlinlib/publishing/7-native-image.adoc[]
+include::partial$example/kotlinlib/publishing/9-native-image.adoc[]
 
 For another example building a slightly less trivial project into a Graal native
 image, see below:
 
-include::partial$example/kotlinlib/publishing/8-native-image-libs.adoc[]
+include::partial$example/kotlinlib/publishing/10-native-image-libs.adoc[]
 
 == Publishing Locally
 
-include::partial$example/kotlinlib/publishing/2-publish-module.adoc[]
+include::partial$example/kotlinlib/publishing/4-publish-module.adoc[]
 
 == Publishing to Sonatype Maven Central
 
-include::partial$example/kotlinlib/publishing/3-publish-module-sonatype.adoc[]
+include::partial$example/kotlinlib/publishing/5-publish-module-sonatype.adoc[]
 
 include::partial$Publishing_Footer.adoc[]
 
