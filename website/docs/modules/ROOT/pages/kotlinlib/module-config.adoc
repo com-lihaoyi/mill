@@ -1,4 +1,4 @@
-= Kotlin Module Configuration
+= Programmable Kotlin Config
 :page-aliases: Kotlin_Module_Config.adoc
 :language: Kotlin
 :language-small: kotlin

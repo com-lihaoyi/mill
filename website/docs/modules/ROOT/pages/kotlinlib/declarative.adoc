@@ -1,4 +1,4 @@
-= Declarative Kotlin Modules
+= Declarative Kotlin Config
 :language: Kotlin
 :language-small: kotlin
 

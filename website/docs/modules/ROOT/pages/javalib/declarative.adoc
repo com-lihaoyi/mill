@@ -1,4 +1,4 @@
-= Declarative Java Modules
+= Declarative Java Config
 :language: Java
 :language-small: java
 

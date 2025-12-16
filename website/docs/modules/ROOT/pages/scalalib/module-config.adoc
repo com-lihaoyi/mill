@@ -1,4 +1,4 @@
-= Scala Module Configuration
+= Programmable Scala Config
 :page-aliases: Configuring_Mill.adoc, Scala_Module_Config.adoc
 :language: Scala
 :language-small: scala

@@ -1,4 +1,4 @@
-= Java Module Configuration
+= Programmable Java Config
 :page-aliases: Java_Module_Config.adoc
 :language: Java
 :language-small: java

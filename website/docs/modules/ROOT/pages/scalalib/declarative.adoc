@@ -1,4 +1,4 @@
-= Declarative Scala Modules
+= Declarative Scala Config
 :language: Scala
 :language-small: scala
 
