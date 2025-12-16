@@ -13,42 +13,42 @@ Many of the APIs covered here are listed in the API documentation:
 
 == Basic Module Configuration
 
-include::partial$example/kotlinlib/module/1-common-config.adoc[]
+include::partial$example/kotlinlib/module/1-basic-config.adoc[]
 
-== Programmable Configuration Overrides
+=== Kotlin Compiler Plugins
 
-include::partial$example/kotlinlib/module/2-common-config.adoc[]
+include::partial$example/kotlinlib/module/2-kotlin-compiler-plugins.adoc[]
 
+=== Doc-Jar Generation
 
-== Custom Tasks
+include::partial$example/kotlinlib/module/3-docjar.adoc[]
 
-include::partial$example/kotlinlib/module/3-custom-tasks.adoc[]
+== Programmable Module Configuration
 
-
-== Generated Sources
-
-include::partial$example/kotlinlib/module/4-generated-sources.adoc[]
+include::partial$example/kotlinlib/module/4-programmable-config.adoc[]
 
 
+=== Custom Tasks
 
-== Classpath and Filesystem Resources
+include::partial$example/kotlinlib/module/5-custom-tasks.adoc[]
+
+
+=== Generated Sources
+
+include::partial$example/kotlinlib/module/6-generated-sources.adoc[]
+
+
+
+=== Classpath and Filesystem Resources
 
 include::partial$example/kotlinlib/module/7-resources.adoc[]
 
-== Kotlin Compiler Plugins
-
-include::partial$example/kotlinlib/module/8-kotlin-compiler-plugins.adoc[]
-
-== Doc-Jar Generation
-
-include::partial$example/kotlinlib/module/9-docjar.adoc[]
-
-== Dependency Injection with Dagger and KSP
+=== Dependency Injection with Dagger and KSP
 
 include::partial$example/kotlinlib/module/10-dependency-injection.adoc[]
 
 
-== Native C Code with JNI
+=== Native C Code with JNI
 
 include::partial$example/kotlinlib/module/15-jni.adoc[]
 
