@@ -22,7 +22,10 @@ trait StreamSupport {
   /**
    * Pump the data from the `src` stream into the `dest` stream.
    */
-  @deprecated("StreamSupport.stream will be removed in Mill 1.0. Use `os.Internals.transfer` instead.", "Mill 0.12.17")
+  @deprecated(
+    "StreamSupport.stream will be removed in Mill 1.0. Use `os.Internals.transfer` instead.",
+    "Mill 0.12.17"
+  )
   def stream(src: InputStream, dest: OutputStream): Unit = {
     val buffer = new Array[Byte](4096)
     while ({
