@@ -1,10 +1,14 @@
 = Java Web Project Examples
 :page-aliases: Java_Web_Examples.adoc
-
-
+:language: Java
+:language-small: java
 
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server with a variety of server frameworks
+
+== Declarative Web Example
+
+include::partial$example/javalib/web/1-web-example.adoc[]
 
 == Spring Boot
 
@@ -12,14 +16,14 @@ See xref:javalib/spring-boot.adoc[Mill with Spring Boot]
 
 == Jetty Hello World App
 
-include::partial$example/javalib/web/1-hello-jetty.adoc[]
+include::partial$example/javalib/web/2-hello-jetty.adoc[]
 
 
 
 == Micronaut Hello World App
 
-include::partial$example/javalib/web/2-hello-micronaut.adoc[]
+include::partial$example/javalib/web/3-hello-micronaut.adoc[]
 
 == Micronaut TodoMvc App
 
-include::partial$example/javalib/web/3-todo-micronaut.adoc[]
+include::partial$example/javalib/web/4-todo-micronaut.adoc[]

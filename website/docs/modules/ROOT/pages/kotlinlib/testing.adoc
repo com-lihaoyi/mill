@@ -1,34 +1,38 @@
 = Testing Kotlin Projects
 :page-aliases: Testing_Kotlin_Projects.adoc
-
-
+:language: Kotlin
+:language-small: kotlin
 
 This page will discuss common topics around working with test suites using the Mill build tool
 
+== Declarative Testing
+
+include::partial$example/kotlinlib/testing/1-testing.adoc[]
+
 == Defining Unit Test Suites
 
-include::partial$example/kotlinlib/testing/1-test-suite.adoc[]
+include::partial$example/kotlinlib/testing/2-test-suite.adoc[]
 
 
 == Test Dependencies
 
-include::partial$example/kotlinlib/testing/2-test-deps.adoc[]
+include::partial$example/kotlinlib/testing/3-test-deps.adoc[]
 
 == Defining Integration Test Suites
 
-include::partial$example/kotlinlib/testing/3-integration-suite.adoc[]
+include::partial$example/kotlinlib/testing/4-integration-suite.adoc[]
 
 == Test Parallelism
 
-include::partial$example/kotlinlib/testing/4-test-parallel.adoc[]
+include::partial$example/kotlinlib/testing/5-test-parallel.adoc[]
 
 == Test Grouping
 
-include::partial$example/kotlinlib/testing/5-test-grouping.adoc[]
+include::partial$example/kotlinlib/testing/6-test-grouping.adoc[]
 
 == Test Grouping & Test Parallelism together
 
-include::partial$example/kotlinlib/testing/6-test-group-parallel.adoc[]
+include::partial$example/kotlinlib/testing/7-test-group-parallel.adoc[]
 
 == Github Actions Test Reports
 

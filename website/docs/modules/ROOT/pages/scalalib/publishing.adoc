@@ -1,36 +1,44 @@
 = Scala Packaging & Publishing
 :page-aliases: Publishing_Scala_Projects.adoc
-
-
+:language: Scala
+:language-small: scala
 
 This page will discuss common topics around packaging and publishing your Scala projects for others to use
 
+== Declarative Native Image
+
+include::partial$example/scalalib/publishing/1-native-image.adoc[]
+
+== Declarative Publishing
+
+include::partial$example/scalalib/publishing/2-publishing.adoc[]
+
 == Building Executable Assemblies
 
-include::partial$example/scalalib/publishing/1-assembly-config.adoc[]
+include::partial$example/scalalib/publishing/3-assembly-config.adoc[]
 
 == Building `Repackage` Assemblies
 
-include::partial$example/scalalib/publishing/9-repackage-config.adoc[]
+include::partial$example/scalalib/publishing/11-repackage-config.adoc[]
 
 
 == Building Native Image Binaries with Graal VM
 
-include::partial$example/scalalib/publishing/7-native-image.adoc[]
+include::partial$example/scalalib/publishing/9-native-image.adoc[]
 
 For another example building a slightly less trivial project into a Graal native
 image, see below:
 
-include::partial$example/scalalib/publishing/8-native-image-libs.adoc[]
+include::partial$example/scalalib/publishing/10-native-image-libs.adoc[]
 
 
 == Publishing Locally
 
-include::partial$example/scalalib/publishing/2-publish-module.adoc[]
+include::partial$example/scalalib/publishing/4-publish-module.adoc[]
 
 == Publlishing to Sonatype Maven Central
 
-include::partial$example/scalalib/publishing/3-publish-module-sonatype.adoc[]
+include::partial$example/scalalib/publishing/5-publish-module-sonatype.adoc[]
 
 include::partial$Publishing_Footer.adoc[]
 

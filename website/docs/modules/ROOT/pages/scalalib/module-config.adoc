@@ -11,7 +11,9 @@ Many of the APIs covered here are listed in the Scaladoc:
 
 * {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
+== Declarative Configuration
 
+include::partial$example/scalalib/module/1-common-config.adoc[]
 
 == Common Configuration Overrides
 
@@ -122,3 +124,11 @@ object foo extends ScalaModule {
 == Using a Scala nightly version
 
 include::partial$example/scalalib/module/16-scala-nightlies.adoc[]
+
+== Custom Module Traits
+
+include::partial$example/scalalib/module/17-custom-trait.adoc[]
+
+== Programmable `moduleDeps`
+
+include::partial$example/scalalib/module/18-programmable-module-deps.adoc[]

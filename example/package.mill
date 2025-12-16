@@ -32,7 +32,6 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModuleJava](build.listCross)
     object linting extends Cross[ExampleCrossModuleJava](build.listCross)
     object publishing extends Cross[ExampleCrossModuleJava](build.listCross)
-    object declarative extends Cross[ExampleCrossModuleJava](build.listCross)
     object script extends Cross[ExampleCrossModuleJava](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
     object springboot extends Cross[ExampleCrossModule](build.listCross)
@@ -44,7 +43,6 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object linting extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listCross)
-    object declarative extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object script extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object web extends Cross[ExampleCrossModuleKotlin](build.listCross)
   }
@@ -55,7 +53,6 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModule](build.listCross)
     object linting extends Cross[ExampleCrossModule](build.listCross)
     object publishing extends Cross[ExampleCrossModule](build.listCross)
-    object declarative extends Cross[ExampleCrossModule](build.listCross)
     object script extends Cross[ExampleCrossModule](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
     object native extends Cross[ExampleCrossModule](build.listCross)
@@ -153,7 +150,6 @@ object `package` extends Module {
       case "web" => Some(scalalib.web)
       case "publishing" => Some(scalalib.publishing)
       case "script" => Some(scalalib.script)
-      case "declarative" => Some(scalalib.declarative)
       case _ => None
     }
     val upstreamOpt = upstreamCross(this.moduleSegments.parts.dropRight(1).last)

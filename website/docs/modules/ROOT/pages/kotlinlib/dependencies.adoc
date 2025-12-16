@@ -1,6 +1,6 @@
 = Kotlin Library Dependencies
-
-
+:language: Kotlin
+:language-small: kotlin
 
 This page goes into more detail about the various configuration options
 for `KotlinModule`.
@@ -9,7 +9,9 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[mill.kotlinlib.KotlinModule]
 
+== Declarative Dependencies
 
+include::partial$example/kotlinlib/dependencies/1-dependencies.adoc[]
 
 == Compile and Runtime Dependencies
 

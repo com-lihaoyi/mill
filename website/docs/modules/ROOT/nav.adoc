@@ -4,7 +4,6 @@
 // on end user goals and how to achieve them.
 
 * xref:javalib/intro.adoc[]
-** xref:javalib/declarative.adoc[]
 ** xref:javalib/script.adoc[]
 ** xref:javalib/module-config.adoc[]
 ** xref:javalib/dependencies.adoc[]
@@ -15,7 +14,6 @@
 ** xref:javalib/web-examples.adoc[]
 ** xref:javalib/spring-boot.adoc[]
 * xref:scalalib/intro.adoc[]
-** xref:scalalib/declarative.adoc[]
 ** xref:scalalib/script.adoc[]
 ** xref:scalalib/module-config.adoc[]
 ** xref:scalalib/dependencies.adoc[]
@@ -27,7 +25,6 @@
 ** xref:scalalib/native-examples.adoc[]
 ** xref:scalalib/spark.adoc[]
 * xref:kotlinlib/intro.adoc[]
-** xref:kotlinlib/declarative.adoc[]
 ** xref:kotlinlib/script.adoc[]
 ** xref:kotlinlib/module-config.adoc[]
 ** xref:kotlinlib/dependencies.adoc[]
