@@ -725,6 +725,7 @@ object Jvm extends CoursierSupport {
    * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
    * @return - a `PathRef` for the created jar.
    */
+  @deprecated("Use other overload with parameter `jar` instead.", "Mill 0.12.17")
   def createJar(
       inputPaths: Agg[os.Path],
       manifest: mill.api.JarManifest = mill.api.JarManifest.MillDefault,
