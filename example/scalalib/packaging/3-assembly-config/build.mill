@@ -1,5 +1,11 @@
 // Mill's built in `.assembly` task makes it easy to generate an executable assembly
-// jar from any JVM module. You can also customize the assembly jar as shown below:
+// jar from any JVM module. These assembly jars contain the transitive classpath of the
+// module flattened into a single jar file, along with a Bash/Bat script prefix allowing
+// you to run the jar via `./out.jar` on Mac/Linux and `./out.bat` on Windows. JVM assemblies
+// are convenient mostly-self-contained executables, with the end user only needing to ensure
+// they have a JVM installed on the machine they wish to run them on.
+//
+// You can also customize the assembly jar as shown below:
 
 //// SNIPPET:BUILD
 package build
