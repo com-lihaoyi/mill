@@ -12,6 +12,19 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+[#0-12-17]
+=== 0.12.17 - 2025-12-17
+:version: 0.12.17
+:milestone-name: 0.12.17
+:milestone: 132
+:prev-version: 0.12.16
+
+_Changes since {prev-version}:_
+
+* Update zinc to 1.11.0 ({link-pr}/5934[#5934])
+* Added more forward-compatible API ({link-pr}/5914[#5914])
+* Deprecated more API that got remove in Mill 1.0 ({link-pr}/5914[#5914], {link-pr}/6363[#6363])
+
 
 [#0-12-16]
 === 0.12.16 - 2025-09-23
@@ -20,10 +33,10 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone: 128
 :prev-version: 0.12.15
 
+_Changes since {prev-version}:_
+
 * Added support for Scala 3.8 ({link-pr}/5797[#5797])
-
 * Added support for Java 25 and updated asm-tree to 9.8  ({link-pr}/5891[#5891])
-
 
 
 [#0-12-15]
@@ -32,6 +45,8 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone-name: 0.12.15
 :milestone: 116
 :prev-version: 0.12.14
+
+_Changes since {prev-version}:_
 
 * Fixes incorrect parsing of `PublishInfo` from string when artifact id or
   version contains regex-sensitive characters ({link-pr}/5599[#5599])
@@ -55,6 +70,8 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone: 116
 :prev-version: 0.12.13
 
+_Changes since {prev-version}:_
+
 * Convert `runBackground` process exit detection from file-locks to process-ID liveness checks
   ({link-pr}/5120[#5120]), which should hopefully fix some non-deterministic bugs where the new
   process starts before the prior process has fully exited, causing failure to bind to sockets
@@ -70,6 +87,8 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone-name: 0.12.13
 :milestone: 115
 :prev-version: 0.12.11
+
+_Changes since {prev-version}:_
 
 * Backport `mill.scalalib.SonatypeCentralPublishModule/` from `main` ({link-pr}/5107[#5107]). With
   the https://central.sonatype.org/news/20250326_ossrh_sunset/[Sunset of `oss.sonatype.org`],
@@ -130,6 +149,8 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone: 114
 :prev-version: 0.12.10
 
+_Changes since {prev-version}:_
+
 * fix: Use root qualifier in Discover macro ({link-pr}/5055[#5055])
 * Fix selective execution when multiple changes are made to one module under `--watch` ({link-pr}/5032[#5032])
 * Add ability to define `package` `ExternalModule`s that can be calle via just `pkg.path/` rather than `pkg.path.ObjectName/` ({link-pr}/4920[#4920])
@@ -144,6 +165,8 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone-name: 0.12.10
 :milestone: 113
 :prev-version: 0.12.9
+
+_Changes since {prev-version}:_
 
 * Find main classes with ClassGraph ({link-pr}/4832[#4832])
 * First-class support for Kotlin compiler plugins ({link-pr}/4782[#4782])
@@ -163,6 +186,8 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone-name: 0.12.9
 :milestone: 112
 :prev-version: 0.12.8
+
+_Changes since {prev-version}:_
 
 * Support `mill init` for migrating from an existing sbt project on a best-effort basis
 (https://mill-build.org/mill/main-branch/migrating/sbt.html[docs]), mirroring the existing Maven and Gradle migration support
@@ -189,12 +214,13 @@ https://mill-build.org/blog/11-jvm-test-parallelism.html[Strategies for Efficien
 :milestone: 111
 :prev-version: 0.12.7
 
+_Changes since {prev-version}:_
+
 * Speed up incremental `.assembly` jar creation for updates in upstream local modules {link-pr}/4566[#4566]
 * Add examples of building Apache Spark applications using Mill (https://mill-build.org/mill/main-branch/scalalib/spark.html[docs])
 * Add example of building a multi-language project combining Java/Typescript/Python modules with Mill (https://mill-build.org/mill/main-branch/large/multi-language-builds.html[docs])
 * Make `Task.Source` and `Task.Sources` take a literal sub-path string syntax by default {link-pr}/4487[#4487]
 * Fix `transitiveCoursierProjects` cause OOM on large build {link-pr}/4452[#4452]
-
 
 
 [#0-12-7]
@@ -203,6 +229,8 @@ https://mill-build.org/blog/11-jvm-test-parallelism.html[Strategies for Efficien
 :milestone-name: 0.12.7
 :milestone: 110
 :prev-version: 0.12.6
+
+_Changes since {prev-version}:_
 
 * Upgrade OS-Lib to fix usage of `os.zip` on folders {link-pr}/4444[#4444]
 * Add example of using Mill to build a Http4S Web Application {link-pr}/4446[#4446]
@@ -213,6 +241,8 @@ https://mill-build.org/blog/11-jvm-test-parallelism.html[Strategies for Efficien
 :milestone-name: 0.12.6
 :milestone: 109
 :prev-version: 0.12.5
+
+_Changes since {prev-version}:_
 
 * https://mill-build.org/mill/cli/installation-ide.html#_mill_native_executable[Mill now provides native executables] on windows-amd64, linux-{amd64,aarch64}, and
 macos-{amd64,aarch64}. These can be enabled by adding the `-native` suffix to your `.mill-version`
@@ -279,6 +309,7 @@ to Maven Central for improved security and reliability {link-pr}/4372[#4372]
 
 * Kotlin 2.1.0 is now supported {link-pr}/4406[#4406]
 
+_Changes since {prev-version}:_
 
 [#0-12-5]
 === 0.12.5 - 2025-01-01
@@ -327,6 +358,8 @@ and https://mill-build.org/blog/4-flaky-tests.html[How to Manage Flaky Tests],
 :milestone: 107
 :prev-version: 0.12.3
 
+_Changes since {prev-version}:_
+
 * Mill now supports https://mill-build.org/mill/large/selective-execution.html[Selective Execution],
 allowing you to run tests and other tasks only if they are downstream of a code change.
 This can be used to greatly speed up pull-request validation and other CI workflows
@@ -366,6 +399,8 @@ discussing topics around JVM build tooling
 :milestone: 106
 :prev-version: 0.12.2
 
+_Changes since {prev-version}:_
+
 * Set context classloader during Mill evaluation {link-pr}/3940[#3940]
 * Extended `mill init` to support importing an existing Maven project {link-pr}/3756[#3756]
 * Avoid running subsequent meta-level builds after reaching the desired meta-level in MillBuildBootstrap {link-pr}/3960[#3960]
@@ -381,8 +416,6 @@ discussing topics around JVM build tooling
 * Lots of improvements to documentation, including a new https://github.com/com-lihaoyi/mill/pull/3965[Kotlin Spring-Boot Example #3965],
 a new page https://github.com/com-lihaoyi/mill/pull/3990[How Fast Does Java Compile? #3990], and
 https://github.com/com-lihaoyi/mill/pull/3938[Stable Links To Older Doc-site Versions #3938]
-
-
 
 
 [#0-12-2]
