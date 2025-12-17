@@ -346,7 +346,7 @@ For the purposes of this article, we simplified and skimmed over a lot of things
 - https://github.com/oracle/graal/issues/9215[Graal native image not working on windows-aarch64],
   meaning such systems still need `java` pre-installed
 
-- xref:mill::javalib/dependencies.adoc#_repository_config[Using a different package repository]
+- xref:mill::javalib/dependencies.adoc#_repository_configuration[Using a different package repository]
   instead of the default Maven Central
 
 - xref:mill::fundamentals/bundled-libraries.adoc#_requests_scala[Downloading and
