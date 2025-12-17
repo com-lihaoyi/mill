@@ -1,0 +1,70 @@
+=  Software Bill of Materials (SBOM)
+:page-aliases: Plugin_SBOM.adoc
+
+This plugin creates Software Bill of Materials (SBOM)
+
+This module has some limitations at the moment:
+
+- Minimal SBOM, various properties of libraries are missing. e.g. the license.
+- Only JVM ecosystem libraries are reported.
+- Only the CycloneDX JSON format is supported
+
+To declare a module that generates an SBOM extend the `mill.contrib.sbom.CycloneDXModuleTests` trait when defining your module.
+
+Quickstart:
+
+.`build.mill`
+[source,scala]
+----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-sbom:$MILL_VERSION"]
+package build
+import mill.*
+import mill.javalib.*
+import mill.contrib.sbom.CycloneDXJavaModule
+
+object `sbom-demo` extends JavaModule with CycloneDXJavaModule {
+  // An example dependency
+  override def mvnDeps = Seq(mvn"ch.qos.logback:logback-classic:1.5.12")
+}
+----
+
+This provides the `sbomJsonFile` task that produces a CycloneDX JSON file:
+
+[source,bash]
+----
+$ mill show sbom-demo.sbomJsonFile # Creates the SBOM file in the JSON format
+----
+
+== Uploading to Dependency Track
+Uploading the SBOM to https://dependencytrack.org/[Dependency Track] is supported.
+Add the `DependencyTrackModule` and provide the necessary details:
+
+.`build.mill`
+[source,scala]
+----
+//| mvnDeps: ["com.lihaoyi::mill-contrib-sbom:$MILL_VERSION"]
+package build
+import mill.*
+import mill.javalib.*
+import mill.contrib.sbom.CycloneDXModule
+import mill.contrib.sbom.upload.DependencyTrack
+
+object `sbom-demo` extends JavaModule with CycloneDXJavaModule with DependencyTrackModule {
+    def depTrackUrl = "http://localhost:8081"
+    def depTrackProjectID = "7c1a9efd-8f05-4cdb-bb16-602cb5c1d6e0"
+    def depTrackApiKey = "odt_rTKFk9MCDtWpdun1VKUUfsOsdOumo96q"
+    // An example dependency
+    override def mvnDeps = Seq(ivy"ch.qos.logback:logback-classic:1.5.12")
+}
+----
+
+After that you upload the SBOM:
+
+[source,bash]
+----
+./mill sbom-demo.sbomUpload
+----
+
+
+
+

@@ -45,7 +45,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
   def kotlinJsSourceMapEmbedSources: T[SourceMapEmbedSourcesKind] = SourceMapEmbedSourcesKind.Never
 
   /** ES target to use. List of the supported ones depends on the Kotlin version. If not provided, default is used. */
-  def kotlinJsESTarget: T[Option[String]] = None
+  def kotlinJsESTarget: T[Option[String]] = Option.empty[String]
 
   /**
    * Add variable and function names that you declared in Kotlin code into the source map. See
@@ -57,7 +57,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
   def kotlinJsSplitPerModule: T[Boolean] = true
 
   /** Run target for the executable (if [[BinaryKind.Executable]] is set). */
-  def kotlinJsRunTarget: T[Option[RunTarget]] = None
+  def kotlinJsRunTarget: T[Option[RunTarget]] = Option.empty[RunTarget]
 
   // endregion
 
@@ -69,6 +69,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
   override def mandatoryMvnDeps: T[Seq[Dep]] =
     Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}")
+
+  // Kotlin/JS doesn't support -module-name (uses -Xir-module-name instead, set in compile task)
+  override protected def kotlinModuleNameOption: T[Seq[String]] = Task { Seq.empty }
 
   override def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) {
@@ -418,7 +421,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     workerResult match {
       case Result.Success(_) => CompilationResult(analysisFile, PathRef(artifactLocation))
-      case Result.Failure(reason) => Result.Failure(reason)
+      case f: Result.Failure => f
     }
   }
 

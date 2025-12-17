@@ -1,0 +1,184 @@
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
+
+// This is a basic Mill build for a single `{language}Module`, with two
+// third-party dependencies and a test suite using the JUnit framework.
+// This uses Mill's declarative `.mill.yaml` files for defining the
+// modules:
+//
+// - `build.mill.yaml` defines the configuration for the root module
+// - `test/package.mill.yaml` defines the submodule `test/` containing the test suites.
+//
+//// SNIPPET:DEPENDENCIES
+//
+// This example project uses `mvnDeps` to include two third-party dependencies - MainArgs for
+// CLI argument parsing, Scalatags for HTML generation - and uses them to wrap a given input
+// string in HTML templates with proper escaping. The `test/` submodule contains its own `mvnDeps`
+// for dependencies that are only used in the test suite.
+//
+//// SNIPPET:END
+//
+// Each module's keys (e.g. `mvnDeps`) and their expected types are listed in the module
+// class's API documentation, e.g.
+//
+// * {mill-doc-url}/api/latest/mill/{language-small}lib/{language}Module.html#mvnDeps-0[mill.{language-small}lib.{language}Module]
+//
+// === Basic Folder Layout
+//
+// The source code for this module lives in the `src/` folder.
+// Output for this module (compiled files, resolved dependency lists, ...)
+// lives in `out/`. A typical filesystem layout is shown below:
+//
+//// SNIPPET:TREE
+// ----
+// build.mill.yaml
+// src/
+//     Foo.scala
+// resources/
+//     ...
+// test/
+//     package.mill.yaml
+//     src/
+//         FooTests.scala
+// out/
+//     compile.json
+//     compile.dest/
+//     ...
+//     test/
+//         compile.json
+//         compile.dest/
+//         ...
+// ----
+//
+// NOTE: The default Mill source folder layout `src/` differs from that of ``sbt``'s
+// `src/main/scala`.
+// If you wish to use the `sbt` source folder layout, e.g. for migrating
+// an existing codebase, you should use
+// xref:#_sbt_compatible_modules[`sbt`-Compatible Modules]
+//
+//// SNIPPET:END
+//
+// === Typical Usage
+//
+// Typical usage of this example project from the command line is shown below:
+//
+/** Usage
+
+> ./mill resolve _ # List what tasks are available to run
+assembly
+...
+compile
+...
+run
+...
+*/
+//// SNIPPET:USAGE
+/** Usage
+> ./mill inspect compile # Show documentation and inputs of a task
+compile(ScalaModule.scala:...)
+    Compiles the current module to generate compiled classfiles/bytecode.
+Inputs:
+    upstreamCompileOutput
+    allSourceFiles
+    compileClasspath
+*/
+/** Usage
+> ./mill compile # compile sources into classfiles
+...
+compiling 1 Scala source to...
+*/
+
+/** Usage
+> ./mill test
+...
++ foo.FooTests...simple ...  "<h1>hello</h1>"
++ foo.FooTests...escaping ...  "<h1>&lt;hello&gt;</h1>"
+*/
+
+//// SNIPPET:END
+
+/** Usage
+> ./mill run --text hello
+<h1>hello</h1>
+*/
+
+/** Usage
+> ./mill assembly # bundle classfiles and libraries into a jar for deployment
+
+> ./mill show assembly # show the output of the assembly task
+".../out/assembly.dest/out.jar"
+
+> java -jar ./out/assembly.dest/out.jar --text hello
+<h1>hello</h1>
+
+> ./out/assembly.dest/out.jar --text hello # mac/linux
+<h1>hello</h1>
+
+> # Note that on windows you need to rename `out.jar` to `out.bat` to run it without `java -jar`
+> cp ./out/assembly.dest/out.jar out.bat # windows
+
+> ./out.bat --text hello # windows
+<h1>hello</h1>
+
+*/
+
+// The output of every Mill task is stored in the `out/` folder under a name
+// corresponding to the task that created it. e.g. The `assembly` task puts its
+// metadata output in `out/assembly.json`, and its output files in
+// `out/assembly.dest`. You can also use `show` to print out the
+// metadata output for a particular task, or `inspect` to print metadata about
+// the task itself (docs, source location, etc.)
+//
+// Additional Mill tasks you would likely need include:
+//
+// [source,console]
+// ----
+// > ./mill resolve __    # recursively list all tasks and modules that are available
+//
+// > ./mill runBackground # run the main method in the background
+//
+// > ./mill clean <task>  # delete the cached output of a task, terminate any runBackground
+//
+// > ./mill launcher      # prepares a out/launcher.dest/run you can run later
+//
+// > ./mill jar           # bundle the classfiles into a jar suitable for publishing
+//
+// > ./mill -w compile    # watch input files and re-compile whenever a file changes
+// ----
+//
+//// SNIPPET:REPL
+//
+// You can start a Scala REPL attached to your root module or the test submodule via
+//
+// [source,console]
+// ----
+// > ./mill -i console    # start a Scala console within your project
+// > ./mill -i test.console
+//
+// > ./mill -i repl       # start an Ammonite Scala REPL within your project
+// ----
+//
+// You can also start a standalone Scala REPL with the
+// xref:fundamentals/bundled-libraries.adoc[Bundled Libraries]
+// included via `./mill --repl`. This is useful if you just need a Scala REPL to experiment
+// with at the command line without being attached to a particular project or module.
+//
+// [source,console]
+// ----
+// > ./mill --repl
+// ----
+//
+//// SNIPPET:END
+//
+// The most common *tasks* that Mill can run are cached tasks, such as
+// `compile`, and un-cached *commands* such as `run`. Cached tasks do not
+// re-evaluate unless one of their inputs changes, whereas commands re-run every
+// time. See the documentation for xref:fundamentals/tasks.adoc[Tasks] for
+// details on the different task types.
+//
+// This example uses Mill's declarative YAML syntax, which is a good fit for simple builds
+// where you are just setting some configuration keys. This is discussed more in the documentation
+// for:
+//
+// * xref:{language-small}lib/module-config.adoc#_declarative_configuration[Declarative {language} Modules]
+//

@@ -1,0 +1,17 @@
+//// SNIPPET:LAST
+/** See Also: Bar.kt */
+/** Usage
+
+> ./mill Bar.kt:assembly
+
+> ./out/Bar.kt/assembly.dest/out.jar # mac/linux
+Hello World
+
+> ./mill Bar.kt:nativeImage
+
+> ./out/Bar.kt/nativeImage.dest/native-executable
+Hello World
+
+*/
+
+//// SNIPPET:END

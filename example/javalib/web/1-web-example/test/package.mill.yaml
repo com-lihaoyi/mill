@@ -1,0 +1,5 @@
+extends: [build.JavaTests, mill.javalib.TestModule.Junit5]
+mvnDeps:
+- com.squareup.okhttp3:okhttp:4.12.0
+- org.junit.jupiter:junit-jupiter-api:5.10.1
+- org.junit.jupiter:junit-jupiter-engine:5.10.1

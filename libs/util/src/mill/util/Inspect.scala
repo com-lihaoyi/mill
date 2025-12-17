@@ -1,11 +1,13 @@
 package mill.util
 
 import scala.annotation.tailrec
+import fastparse.IndexedParserInput
 import mill.api.{Evaluator, *}
 import scala.collection.mutable
 import pprint.{Renderer, Tree, Truncated}
 import mill.moduledefs.Scaladoc
 import scala.reflect.NameTransformer.decode
+import scala.util.Try
 
 private[mill] object Inspect {
   private lazy val inspectItemIndent = "    "
@@ -76,9 +78,9 @@ private[mill] object Inspect {
   }
   def inspect(evaluator: Evaluator, tasks: Seq[String]) = {
 
-    def renderFileName(ctx: mill.api.ModuleCtx) = {
+    def renderPath(path: String, lineNum: String) = {
       // handle both Windows or Unix separators
-      val fullFileName = ctx.fileName.replaceAll(raw"\\", "/")
+      val fullFileName = path.replaceAll(raw"\\", "/")
       val basePath = BuildCtx.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"
       val name =
         if (fullFileName.startsWith(basePath)) {
@@ -86,7 +88,25 @@ private[mill] object Inspect {
         } else {
           fullFileName.split('/').last
         }
-      s"${name}:${ctx.lineNum}"
+      s"${name}:${lineNum}"
+    }
+
+    def renderFileName(ctx: mill.api.ModuleCtx) = renderPath(ctx.fileName, ctx.lineNum.toString)
+
+    def buildOverrideFor(task: Task.Named[?]) = evaluator.staticBuildOverrides
+      .get(task.ctx.segments.render)
+      .orElse(task.ctx.enclosingModule.moduleDynamicBuildOverrides.get(task.ctx.segments.render))
+
+    def overrideFileName(task: Task.Named[?]): Option[String] = {
+      buildOverrideFor(task).flatMap { located =>
+        val lineNum = Try {
+          val rawText = os.read(located.path).replace("\r", "").replace("\n//|", "\n")
+          IndexedParserInput(rawText).prettyIndex(located.index).takeWhile(_ != ':')
+        }
+          .toOption
+
+        lineNum.map(renderPath(located.path.toString, _))
+      }
     }
 
     def pprintTask(t: Task.Named[?], evaluator: Evaluator): Tree.Lazy = {
@@ -105,6 +125,10 @@ private[mill] object Inspect {
       }
 
       val allDocs = scaladocForTask(t.ctx.segments, t.ctx.enclosingCls)
+
+      val defaultLocation = renderFileName(t.ctx)
+      val overriddenLocation = overrideFileName(t)
+      val renderedLocation = overriddenLocation.getOrElse(defaultLocation)
 
       pprint.Tree.Lazy { ctx =>
         val mainMethodSig =
@@ -146,7 +170,7 @@ private[mill] object Inspect {
         Iterator(
           ctx.applyPrefixColor(t.toString).toString,
           "(",
-          renderFileName(t.ctx),
+          renderedLocation,
           ")",
           allDocs.mkString("\n"),
           "\n"
@@ -254,9 +278,7 @@ private[mill] object Inspect {
           )
           val rendered = renderer.rec(tree, 0, 0).iter
           val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
-          val sb = new StringBuilder()
-          for { str <- truncated ++ Iterator("\n") } sb.append(str)
-          sb.toString()
+          (truncated ++ Iterator("\n")).mkString
         }
         val output = output0.mkString("\n")
         println(output)

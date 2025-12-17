@@ -6,10 +6,10 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  // When updating, run "Publish Bridges" Github Actions for the new version
-  // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "3.7.3"
-  val scala2Version = "2.13.15"
+  val scalaVersion = "3.8.0-RC3"
+
+  val scalaVersionJava11 = "3.7.4"
+  val scala2Version = "2.13.18"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
   val sbtScalaVersion212 = workerScalaVersion212
@@ -22,7 +22,7 @@ object Deps {
   val testScala33Version = "3.3.1"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.19.0"
+    val scalaJsVersion = "1.20.1"
     val scalajsEnvJsdomNodejs =
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
@@ -73,21 +73,21 @@ object Deps {
     override def scalaVersion: String = Deps.scala2Version
   }
   object Play_2_9 extends Play {
-    val playVersion = "2.9.6"
+    val playVersion = "2.9.9"
   }
   object Play_3_0 extends Play {
-    val playVersion = "3.0.6"
+    val playVersion = "3.0.9"
   }
   val play =
     Seq(Play_3_0, Play_2_9, Play_2_8, Play_2_7, Play_2_6).map(p => (p.playBinVersion, p)).toMap
 
-  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.18"
-  val ammoniteVersion = "3.0.2"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.8"
+  val acyclic = mvn"com.lihaoyi:::acyclic:0.3.20"
+  val ammoniteVersion = "3.0.4"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.9"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.181"
-  val coursierVersion = "2.1.25-M18"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
+  val coursierVersion = "2.1.25-M21"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -128,29 +128,36 @@ object Deps {
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = mvn"org.jline:jline:3.28.0"
+  val jline = mvn"org.jline:jline:3.30.6"
   val jnaVersion = "5.16.0"
 
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = mvn"net.java.dev.jna:jna-platform:${jnaVersion}"
 
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
-  val commonsIo = mvn"commons-io:commons-io:2.18.0"
+  val commonsIo = mvn"commons-io:commons-io:2.21.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
   val osLibVersion = "0.11.5"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
-  val pprint = mvn"com.lihaoyi::pprint:0.9.3"
-  val mainargs = mvn"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.10"
+  val pprint = mvn"com.lihaoyi::pprint:0.9.6"
+  val mainargs = mvn"com.lihaoyi::mainargs:0.7.7"
+  val millModuledefsVersion = "0.12.5-RC1"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
   val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
+
+  val graalVmReachabilityMetadataVersion = "0.3.32"
+  val graalVMReachabilityMetadataBuildTool =
+    mvn"org.graalvm.buildtools:graalvm-reachability-metadata:0.11.3"
+  val openJson = mvn"com.github.openjson:openjson:1.0.13"
+
   // can't use newer versions, as these need higher Java versions
-  val testng = mvn"org.testng:testng:7.5.1"
+  val testng_lowerBound = mvn"org.testng:testng:7.5.1"
+  val testng = mvn"org.testng:testng:7.11.0"
   val sbtTestInterface = mvn"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
@@ -161,7 +168,7 @@ object Deps {
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
     else mvn"org.scala-lang:scala-reflect:${scalaVersion}"
-  val scoverage2Version = "2.3.0"
+  val scoverage2Version = "2.5.0"
   val scalacScoverage2Plugin = mvn"org.scoverage:::scalac-scoverage-plugin:${scoverage2Version}"
   val scalacScoverage2Reporter = mvn"org.scoverage::scalac-scoverage-reporter:${scoverage2Version}"
   val scalacScoverage2Domain = mvn"org.scoverage::scalac-scoverage-domain:${scoverage2Version}"
@@ -171,31 +178,37 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.9"
-  val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.1"
+  val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.11.1"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
-  val upickle = mvn"com.lihaoyi::upickle:4.3.0"
-  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.3.0"
+  val upickle = mvn"com.lihaoyi::upickle:4.4.2-RC2"
+  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.4.2-RC2"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
   val zinc = mvn"org.scala-sbt::zinc:2.0.0-M8"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
-  val gson = mvn"com.google.code.gson:gson:2.10.1"
+  // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
+  val gson = mvn"com.google.code.gson:gson:2.13.2"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
+  val javaparser = mvn"com.github.javaparser:javaparser-core:3.27.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.0"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.18"
-  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.21"
+  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val kotlinBuildToolsApi = mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinVersion"
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+  val groovyVersion_lowerBound = "4.0.28"
+  val groovyCompiler_lowerBound = mvn"org.apache.groovy:groovy:$groovyVersion_lowerBound"
+  val groovyVersion = "5.0.3"
+  val groovyCompiler = mvn"org.apache.groovy:groovy:$groovyVersion"
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
@@ -214,7 +227,7 @@ object Deps {
       mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   }
 
-  val coursierJvmIndexVersion = "0.0.4-116-9b244a"
+  val coursierJvmIndexVersion = "0.0.4-125-77e06d"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"
@@ -224,7 +237,7 @@ object Deps {
   val hiltGradlePlugin = mvn"com.google.dagger:hilt-android-gradle-plugin:2.56"
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
-  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.10"
+  val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:3.0.1"
   val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.2.0"
   // JGit 6.x series, used by spotlessLibExtra, works on Java 11
   // subsequent releases require Java 17+
@@ -263,6 +276,7 @@ object Deps {
       errorProneCore,
       freemarker,
       jupiterInterface,
+      groovyCompiler,
       kotestJvm,
       kotlinxHtmlJvm,
       koverCli,
@@ -293,7 +307,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.9.1"
+    val utest = mvn"com.lihaoyi::utest:0.9.4"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 
@@ -315,7 +329,9 @@ object Deps {
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
-    val millCmdlineToolsVersion = "19.0"
+    // https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+    // https://developer.android.com/studio?hl=de#command-tools
+    val cmdlineToolsVersion = "19.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
     // Removed it from updaetable for now
@@ -330,9 +346,9 @@ object Deps {
 
   }
   val keytoolDeps = Seq(
-    mvn"org.bouncycastle:bcpkix-jdk18on:1.81",
-    mvn"org.bouncycastle:bcprov-jdk18on:1.81",
-    mvn"org.bouncycastle:bcutil-jdk18on:1.81"
+    mvn"org.bouncycastle:bcpkix-jdk18on:1.83",
+    mvn"org.bouncycastle:bcprov-jdk18on:1.83",
+    mvn"org.bouncycastle:bcutil-jdk18on:1.83"
   )
 
 }

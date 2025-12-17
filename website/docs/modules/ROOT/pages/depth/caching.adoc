@@ -43,7 +43,9 @@ xref:depth/evaluation-model.adoc[Mill's Evaluation Model]:
 
 * xref:fundamentals/tasks.adoc#_persistent_tasks[Persistent Tasks]s preserve the `Task.dest`
   folder on disk between runs, allowing for finer-grained caching than Mill's default task-by-task
-  caching and invalidation
+  caching and invalidation. For example, this is used to support
+  xref:#_fine_grained_incremental_compilation[fine-grained incremental compilation] in Java, Scala,
+  and Kotlin
 
 * xref:fundamentals/tasks.adoc#_workers[Worker]s are kept in-memory between runs where possible, and only
   invalidated if their input ``Task``s change as well.
@@ -71,7 +73,7 @@ this file groups together the un-cached files in a tree structure according to t
 task dependencies. It is useful to find the "root" uncached tasks, which are the cause
 of downstream tasks having their caches invalidated.
 
-* xref:fundamentals/out-dir.adoc#_codeSignatures_spanninginvalidationtree[codeSignatures spanningInvalidationTree]:
+* xref:fundamentals/out-dir.adoc#_codesignatures_spanninginvalidationtree[codeSignatures spanningInvalidationTree]:
 this file contains information about tasks whose caches were invalidated due to
 __code changes in the `build.mill` or `package.mill` files__, and again shows a tree
 of invalidated method signatures organized into a tree using their call graph dependenceis.
@@ -104,3 +106,22 @@ external mutable state needs to be wrapped in an `mill.api.BuildCtx.watchValue{.
 wrapper. This ensures that Mill knows where these external reads are, so that
 it can check if their value changed and if so re-instantiate `RootModule` with
 the new value.
+
+## Fine-Grained Incremental Compilation
+
+Incremental compilation for the various JVM languages is implemented via:
+
+- https://github.com/sbt/zinc[Zinc] for incrementally compiling Java and Scala
+- https://kotlinlang.org/docs/build-tools-api.html#enable-incremental-compilation-with-in-process-strategy[Koltin's Build Tool API]
+  for incrementally compiling Kotlin
+
+These are used within xref:fundamentals/tasks.adoc#_persistent_tasks[persistent tasks], to allow
+the incremental compilers to use the previous runs output cache and analysis files for each
+subsequent run.
+
+Like any other persistent task, incremental compilation relies on the correctness of their
+implementation to ensure that their final output converges to the desired state regardless
+of the sequence of inputs and changes that happened before. In practice, there are occasionally
+bugs in the incremental compilers that may cause the caches to get into a bad state. In such cases,
+running `./mill clean foo` on the module in question will wipe out these caches and let the
+compilation start afresh.

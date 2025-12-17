@@ -11,7 +11,6 @@ a zip file containing the full example ready to use. These examples come with a 
 script you can use to immediately begin working with the project, automatically downloading and
 caching a JVM and any additional dependencies as necessary.
 
-[#_bootstrap_scripts]
 == Bootstrap Scripts
 
 The Mill example projects in this documentation come with `./mill` and `./mill.bat`
@@ -70,6 +69,43 @@ xref:cli/builtin-commands.adoc#_init[mill init] to initialize the project
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running.
+
+== Global Installation
+
+You can also install the Mill bootstrap script globally on Mac and Linux via:
+
+```console
+> sudo sh -c '(curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+```
+
+This can be useful when using Mill to run script files (written in xref:javalib/script.adoc[Java],
+xref:scalalib/script.adoc[Scala], or xref:kotlinlib/script.adoc[Kotlin]) which may not belong
+to any particular project. However, for projects that use Mill, it is recommended you use the
+xref:#_bootstrap_scripts[per-project bootstrap scripts] discussed above to ensure that anyone
+with the project codebase on disk will be able to build the project without needing a separate
+installation
+
+=== JVM Version
+
+Mill uses Java `{default-mill-jvm-version}` by default, regardless of what is installed as your
+system `java`. You can set a Java version in the xref:cli/build-header.adoc[build.mill header] via
+a `mill-java-version` key if you wish to customize it:
+
+``` scala
+//| mill-jvm-version: temurin:24.0.1
+```
+
+The Mill JVM version is used for both evaluating the `build.mill` file as well as any
+``JavaModule``s, ``ScalaModule``s, or ``KotlinModule``s you define. You can also specify a
+xref:fundamentals/configuring-jvm-versions.adoc[per-module JVM version] if you need
+finer-grained control. Mill supports every JVM version from `11` onward.
+
+If you wish to use your system `java` installation, you can set `mill-jvm-version: system`.
+Note that this is not recommended as it means your codebase may use different JVM versions
+on different developer, CI, and production machines, potentially resulting in hard-to-debug
+crashes and errors.
+
+
 
 === Mill Native and JVM Executables
 
@@ -221,7 +257,7 @@ are using a less-common editor that does not have this support builtin.
 ==== BSP output directory
 
 When running Mill in BSP mode, default output directory is
-`out/mill-bsp-out` under the project workspace. This ensures BSP mode is not blocked by regular
+`.bsp/mill-bsp-out` under the project workspace. This ensures BSP mode is not blocked by regular
 Mill operations, however this also means that we need to compile the sources twice, which incurs
 extra CPU and memory usage. If you'd rather reuse regular `out/` directory, set
 the `MILL_NO_SEPARATE_BSP_OUTPUT_DIR` environment variable to `1` when running Mill in BSP mode.
@@ -348,10 +384,41 @@ A lot of other editors may work too, since {link-metals}[Metals], the Language S
 === Debugging IDE issues
 
 Mill's BSP IDE integration writes to log files under
-`out/mill-bsp/`, where you can find various information about what's
+`.bsp/mill-bsp-out/mill-bsp/`, where you can find various information about what's
 going on. It contains regular Mill output accompanied by additional BSP
 client-server communication details. This can be useful to look at if your
 IDE fails to import your Mill project
+
+
+== Setting up Mill in CI
+
+Due to Mill's usage of xref:#_bootstrap_scripts[Bootstrap Scripts], you typically do not
+need to setup anything in your CI system to make Mill work. Any Mill project should be
+buildable via `./mill` on your CI machines without needing to first install Java, Mill,
+or other dependencies, and the `./mill` bootstrap script will download these dependencies
+as necessary.
+
+One thing that you should set up manually is to enable a https://force-color.org/[FORCE_COLOR]
+environment variable in your CI system. For example, in Github Actions this can be configured
+in your workflow `.yml` file via:
+
+```yaml
+env:
+  FORCE_COLOR: '1'
+```
+
+`FORCE_COLOR` ensures Mill produces ANSI-colored output logs despite being called
+programmatically in on your CI machines. Most CI systems process and render ANSI
+colors nicely in the browser, and this can make your CI logs much easier to read
+than if they were black-and-white:
+
+**Without FORCE_COLOR**
+
+image::basic/ForceColor0.png[]
+
+**With FORCE_COLOR=1**
+
+image::basic/ForceColor1.png[]
 
 == Using Mill without access to Maven Central
 
@@ -360,7 +427,6 @@ The typical symptom will be error messages which look like this;
 
 [source]
 ----
-1 tasks failed
 mill.scalalib.JvmWorkerModule.classpath
 Resolution failed for 1 modules:
 --------------------------------------------
@@ -453,120 +519,8 @@ will download it for you to try it out in your project.
 
 == Other installation methods
 
-CAUTION: The installation methods listed below are maintained outside of Mill and may not have
-the same features as the xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap scripts]. You can try using them,
-but the officially supported way to use Mill is via the bootstrap script above, so the Mill
-maintainers may be unable to help you if you have issues with some alternate installation method.
-
-CAUTION: Some of the installations via package managers install a fixed version of Mill and
-do not support project-specific selection of the preferred Mill version. If you want to use
-the `MILL_VERSION` environment variable or need support for `.mill-version` or
-`.config/mill-version` files to control the actual used Mill version, please use
-a xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script] instead.
-
-=== OS X
-
-Installation via https://github.com/Homebrew/homebrew-core/blob/master/Formula/m/mill.rb[homebrew]:
-
-[source,console]
-----
-> brew install mill
-----
-
-
-=== Arch Linux
-
-Arch Linux has an https://archlinux.org/packages/extra/any/mill/[Extra package for mill]:
-
-[source,console]
-----
-> pacman -S mill
-----
-
-=== FreeBSD
-
-Installation via http://man.freebsd.org/pkg/8[pkg(8)]:
-
-[source,console]
-----
-> pkg install mill
-
-----
-
-=== Gentoo Linux
-
-[source,console]
-----
-> emerge dev-java/mill-bin
-----
-
-=== Windows
-
-To get started, download Mill from
-{mill-github-url}/releases/download/{version}/{version}-assembly[Github releases], and save it as `mill.bat`.
-
-If you're using https://scoop.sh[Scoop] you can install Mill via
-
-[source,console]
-----
-> scoop install mill
-----
-
-=== WSL / MSYS2 / Cycgin / Git-Bash
-
-Mill also works on "sh" environments on Windows (e.g.,
-https://www.msys2.org[MSYS2],
-https://www.cygwin.com[Cygwin],
-https://gitforwindows.org[Git-Bash],
-https://docs.microsoft.com/en-us/windows/wsl[WSL]); to get started, follow the instructions in the <<_manual>>
-section. Note that:
-
-* In some environments (such as WSL), Mill might have to be run without a server (using `-i`, `--interactive`, or `--no-server`.)
-
-* On Cygwin, run the following after downloading mill:
-
-[source,console]
-----
-> sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
-----
-
-=== Docker
-
-You can download and run
-a https://hub.docker.com/r/nightscape/scala-mill/["Docker image containing OpenJDK, Scala and Mill"] using
-
-[source,console]
-----
-> docker pull nightscape/scala-mill
-> docker run -it nightscape/scala-mill
-----
-
-[#_manual]
-=== Manual
-
-To get started, download Mill and install it into your HOME ".local/bin" via the following
-`curl`/`chmod` command:
-
-[source,console,subs="verbatim,attributes"]
-----
-> sh -c "curl -L {mill-github-url}/releases/download/{version}/{version} > ~/.local/bin/mill && chmod +x ~/.local/bin/mill"
-----
-
-=== Coursier (unsupported)
-
-Installing mill via `coursier` or `cs` is currently not officially supported.
-There are various issues, especially with interactive mode.
-
-=== Asdf (unsupported)
-
-You can install and manage Mill via the Multiple Runtime Version Manager - https://asdf-vm.com/[`asdf`].
-
-Support by `asdf` is currently possible by using the https://github.com/asdf-community/asdf-mill[`asdf-mill` plugin]:
-
-.Steps to install the `mill` plugin and Mill with `asdf`
-[source,console]
-----
-> asdf plugin add mill
-> asdf install mill latest
-> asdf global mill latest
-----
+No other installation methods of Mill are officially supported. Homebrew, Pacman, Scoop,
+Docker, Coursier, etc. are maintained by third parties and cannot be guaranteed to work.
+Please use the bootstrap script installation described on this page. If you have issues
+with installing Mill from other package managers, please open an issue on their respective
+codebase

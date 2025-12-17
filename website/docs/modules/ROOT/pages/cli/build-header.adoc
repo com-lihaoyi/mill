@@ -53,7 +53,7 @@ Mill's build headers can contain the following keys:
    project. If not provided, Mill will launch using the version of your `./mill` or
    `./mill.bat` bootstrap script.
 
-2. xref:#_mill_opts[]: flags to pass to Mill by default, useful for flags that you want
+2. xref:_mill_opts[]: flags to pass to Mill by default, useful for flags that you want
    everyone to use so they don't need to always remember to type them at the command line
 
 3. xref:_mill_jvm_version[]: specifies an explicit JVM version to use, useful to help
@@ -95,7 +95,7 @@ flags the Mill executable can take.
 NOTE: `.mill-opts` is for passing options to Mill itself, and `.mill-jvm-opts` is for passing
 JVM options to the JVM running Mill. If you want to pass JVM options to the project that Mill
 is building and running, see the section on
-xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags].
+xref:javalib/module-config.adoc#_declarative_configuration[Compilation and Execution Flags].
 
 
 == mill-jvm-version
@@ -118,12 +118,25 @@ include::partial$example/cli/header/3-jvm-version-yaml.adoc[]
 
 An explicit `mill-jvm-version` can help ensure your project uses a consistent JVM version and
 behaves identically regardless of what the developer may have installed on their laptop
-or dev environment. If `mill-jvm-version` is not provided, Mill uses the globally-installed
-`java` installation if there is one present on your `PATH`, and otherwise will download and
-cache a default version of Java for usage.
+or dev environment.
+
+* If `mill-jvm-version` is not provided, Mill uses the default version `{default-mill-jvm-version}`.
+
+* Note that Mill requires a minimum of Java 17 for the build tool itself to run. However, it
+  supports user-defined modules down to Java 11.
+
+
+If you wish to use your system `java` installation, you can set `mill-jvm-version: system`.
+Note that this is not recommended as it means your codebase may use different JVM versions
+on different developer, CI, and production machines, potentially resulting in hard-to-debug
+crashes and errors.
 
 For configuring different JVM versions for individual modules within your build, see
 xref:fundamentals/configuring-jvm-versions.adoc[Configuring JVM Versions].
+
+== mill-jvm-index-version
+
+include::partial$example/cli/header/4-jvm-index-version.adoc[]
 
 == mill-jvm-opts
 
@@ -164,6 +177,6 @@ include::partial$example/cli/header/2-tasks-yaml.adoc[]
 == Single-File Project Build Headers
 
 Build Header configuration is also used for
-xref:javalib/module-config.adoc#_configuring_single_file_scripts[Configuring Single-File Scripts],
+xref:javalib/intro.adoc#_single_file_scripts[Configuring Single-File Scripts],
 as a lightweight syntax for embedding configuration values within the single Java, Scala, or Kotlin
 file.

@@ -8,4 +8,8 @@ import mill.api.ModuleRef
 trait WithJvmWorkerModule extends JavaHomeModule {
   def jvmWorker: ModuleRef[JvmWorkerModule] = ModuleRef(JvmWorkerModule)
 
+  // TODO: add once we can break bin-compat
+  //  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
+  //    (super.prepareOffline(all)() ++ jvmWorker().prepareOffline(all)()).distinct
+  //  }
 }

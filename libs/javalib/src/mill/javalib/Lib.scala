@@ -79,7 +79,8 @@ object Lib {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       checkGradleModules: Boolean = false,
-      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default()
+      @unroll config: mill.util.CoursierConfig = mill.util.CoursierConfig.default(),
+      @unroll boms: IterableOnce[BomDependency] = Nil
   ): Result[Seq[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
@@ -94,7 +95,8 @@ object Lib {
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
       checkGradleModules = checkGradleModules,
-      config = config
+      config = config,
+      boms = boms
     )
 
     res.map(_.map(_.withRevalidateOnce))
@@ -110,6 +112,15 @@ object Lib {
         mvn"$scalaOrganization:scala-compiler:$scalaVersion",
         mvn"$scalaOrganization:scala-reflect:$scalaVersion"
       )
+
+  def scalaConsoleMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] = {
+    if (mill.util.Version.isAtLeast(scalaVersion, "3.8")(using mill.util.Version.MavenOrdering)) {
+      // Since Scala 3.8, the repl is no longer part of the compiler jar
+      Seq(mvn"$scalaOrganization::scala3-repl:$scalaVersion")
+    } else {
+      scalaCompilerMvnDeps(scalaOrganization, scalaVersion)
+    }
+  }
 
   def scalaDocMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))

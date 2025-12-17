@@ -1,48 +1,56 @@
 = Scala Web Project Examples
 :page-aliases: Web_Build_Examples.adoc, Scala_Web_Examples.adoc
-
-
-
+:language: Scala
+:language-small: scala
 
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server, Todo-MVC app, topics like cache
 busting, as well as usage of Scala.js both as standalone modules as well as
 integrated with your backend Scala-JVM web server.
 
-== TodoMVC Web App
+== Web Server Projects
 
-include::partial$example/scalalib/web/1-todo-webapp.adoc[]
+=== Simple Web Example
 
-== Webapp Cache Busting
+include::partial$example/scalalib/web/1-web-example.adoc[]
 
-include::partial$example/scalalib/web/2-webapp-cache-busting.adoc[]
 
-== TodoMVC http4s Web App
+=== TodoMVC Web App
 
-include::partial$example/scalalib/web/3-todo-http4s.adoc[]
+include::partial$example/scalalib/web/2-todo-webapp.adoc[]
 
-== Scala.js Modules
+=== Webapp Cache Busting
 
-include::partial$example/scalalib/web/4-scalajs-module.adoc[]
+include::partial$example/scalalib/web/3-webapp-cache-busting.adoc[]
 
-== Scala.js Webserver Integration
+=== TodoMVC http4s Web App
 
-include::partial$example/scalalib/web/5-webapp-scalajs.adoc[]
+include::partial$example/scalalib/web/4-todo-http4s.adoc[]
 
-== Scala.js/Scala-JVM Code Sharing
+== Scala.js
 
-include::partial$example/scalalib/web/6-webapp-scalajs-shared.adoc[]
+=== Scala.js Modules
 
-== Publishing Cross-Platform Scala Modules
+include::partial$example/scalalib/web/5-scalajs-module.adoc[]
 
-include::partial$example/scalalib/web/7-cross-version-platform-publishing.adoc[]
+=== Scala.js Webserver Integration
 
-== Publishing Cross-Platform Scala Modules Alternative
+include::partial$example/scalalib/web/6-webapp-scalajs.adoc[]
 
-include::partial$example/scalalib/web/8-cross-platform-version-publishing.adoc[]
+=== Scala.js/Scala-JVM Code Sharing
 
-== Scala.js WebAssembly Example
+include::partial$example/scalalib/web/7-webapp-scalajs-shared.adoc[]
 
-include::partial$example/scalalib/web/9-wasm.adoc[]
+=== Publishing Cross-Platform Scala Modules
+
+include::partial$example/scalalib/web/8-cross-version-platform-publishing.adoc[]
+
+=== Publishing Cross-Platform Scala Modules Alternative
+
+include::partial$example/scalalib/web/9-cross-platform-version-publishing.adoc[]
+
+=== Scala.js WebAssembly Example
+
+include::partial$example/scalalib/web/10-wasm.adoc[]
 
 

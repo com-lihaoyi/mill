@@ -45,7 +45,7 @@ object `package` extends mill.Module {
     def artifactSuffix: T[String] = ""
     def scalaLibraryMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
     def mvnDeps = Seq(Deps.sbtTestInterface)
-    def compileMvnDeps = Seq(Deps.testng)
+    def compileMvnDeps = Seq(Deps.testng_lowerBound)
     def runMvnDeps = Seq(Deps.testng)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.javalib)
     def docJar: T[PathRef] = super[JavaModule].docJar
@@ -231,5 +231,10 @@ object `package` extends mill.Module {
   object jmh extends ContribModule {
     def compileModuleDeps = Seq(build.libs.javalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+  }
+
+  object sbom extends ContribModule {
+    def compileModuleDeps = Seq(build.libs.scalalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 }

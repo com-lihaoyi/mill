@@ -1,0 +1,75 @@
+//// SNIPPET:ALL
+// This example is similar to the xref:#_sbt_compatible_modules[`sbt`-Compatible Modules]
+// above, but using Mill's programmable `build.mill` files. These are more flexible than
+// the config-driven `build.mill.yaml` files, and additionally allows use of `Cross` modules
+// such as `CrossSbtModule`:
+
+package build
+import mill.*, scalalib.*
+
+object foo extends SbtModule {
+  def scalaVersion = "3.7.1"
+  object test extends SbtTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
+    def testFramework = "utest.runner.Framework"
+  }
+  object integration extends SbtTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
+    def testFramework = "utest.runner.Framework"
+  }
+}
+
+object bar extends Cross[BarModule]("2.12.20", "2.13.16")
+trait BarModule extends CrossSbtModule {
+  object test extends CrossSbtTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
+    def testFramework = "utest.runner.Framework"
+  }
+}
+
+// `SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
+// that use the more verbose folder layout of `sbt`, Maven, and other tools:
+//
+// - `foo/src/main/scala`
+// - `foo/src/main/scala-2.12`
+// - `foo/src/main/scala-2.13`
+// - `foo/src/test/scala`
+// - `foo/src/integration/scala`
+//
+// Rather than Mill's
+//
+// - `foo/src`
+// - `foo/src-2.12`
+// - `foo/src-2.13`
+// - `foo/test/src`
+//
+/** Usage
+
+> ./mill foo.compile
+compiling 1 Scala source...
+
+> ./mill foo.test.compile
+compiling 1 Scala source...
+
+> ./mill foo.test.testForked
++ foo.FooTests...hello ...
+
+> ./mill foo.test
++ foo.FooTests.hello ...
+
+> ./mill foo.integration
++ foo.FooIntegrationTests.hello ...
+
+> ./mill bar.2_13_16.run
+Bar.value: Hello World Scala library version 2.13.16...
+
+> ./mill bar.2_12_20.run
+Bar.value: Hello World Scala library version 2.12.20...
+
+*/
+
+// NOTE: The cross module `bar` has entries for `2.13.16` and `2.12.20`,
+// but at the command-line these modules have the dot ``.``s in their name replaced
+// with understore ``_``s and are thus invoked via `bar.2_13_16.run` `bar.2_12_20.run`.
+// This is done to avoid conflicting with the use of ``.``s to separate modules and
+// their children at the command line.

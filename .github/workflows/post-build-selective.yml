@@ -1,4 +1,8 @@
 name: post-build-selective
+
+env:
+  FORCE_COLOR: '1'
+
 on:
   workflow_call:
     inputs:
@@ -15,6 +19,9 @@ on:
         type: string
       os:
         default: 'ubuntu-latest'
+        type: string
+      extra:
+        default: ''
         type: string
       timeout-minutes:
         default: 60
@@ -35,9 +42,9 @@ jobs:
     continue-on-error: false
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-      - uses: coursier/cache-action@v6
+      - uses: coursier/cache-action@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           path: .
           name: ${{ inputs.os }}-artifact
@@ -64,3 +71,4 @@ jobs:
         with:
           millargs: ${{ inputs.millargs }}
           shell: ${{ inputs.shell }}
+          extra: ${{ inputs.extra }}

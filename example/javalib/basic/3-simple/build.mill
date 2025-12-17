@@ -1,0 +1,80 @@
+//// SNIPPET:DEPENDENCIES
+//
+// This example project uses two third-party dependencies - https://argparse4j.github.io/[ArgParse4J] for CLI
+// argument parsing, https://www.thymeleaf.org/[Thymeleaf] for HTML rendering - and uses them to wrap a
+// given input string in HTML templates with proper escaping.
+// The `test/` submodule contains its own `mvnDeps`
+// for dependencies that are only used in the test suite.
+//
+//// SNIPPET:TREE
+// ----
+// build.mill.yaml
+// src/
+//     foo/Foo.java
+// resources/
+//     ...
+// test/
+//     package.mill.yaml
+//     src/
+//         foo/FooTest.java
+// out/
+//     compile.json
+//     compile.dest/
+//     ...
+//     test/
+//         compile.json
+//         compile.dest/
+//         ...
+// ----
+//
+// NOTE: The default Mill source folder layout `src/` and `test/src/` differs from that of
+// Maven/Gradle's `src/main/java/` and `src/test/java/`.
+// If you wish to use the Maven source folder layout, e.g. for compatibility with
+// an existing codebase, you should use
+// xref:#_maven_compatible_modules[Maven-Compatible Modules]
+//
+//// SNIPPET:USAGE
+/** Usage
+> ./mill inspect compile # Show documentation and inputs of a task
+compile(JavaModule.scala:...)
+    Compiles the current module to generate compiled classfiles/bytecode.
+Inputs:
+    upstreamCompileOutput
+    allSourceFiles
+    compileClasspath
+*/
+/** Usage
+> ./mill compile # compile sources into classfiles
+...
+compiling 1 Java source to...
+*/
+
+/** Usage
+> ./mill test
+...
+Test foo.FooTest.testSimple finished...
+Test foo.FooTest.testEscaping finished...
+*/
+//// SNIPPET:END
+//// SNIPPET:REPL
+//
+// You can start a JShell REPL attached to your root module or the `test` submodule via:
+//
+// [source,console]
+// ----
+// > ./mill -i jshell
+// > ./mill -i test.jshell
+// ----
+//
+// You can also start a standalone JShell console
+// via `./mill --jshell`. This is useful if you just need a JShell console to experiment
+// with at the command line without being attached to a particular project or module.
+//
+// [source,console]
+// ----
+// > ./mill --jshell
+// ----
+//
+//// SNIPPET:END
+//
+//

@@ -284,16 +284,16 @@ trait MainModule extends RootModule0, MainModuleApi {
             SelectMode.Separated
           )
       (evaluated: @unchecked) match {
-        case Result.Failure(failStr) => throw new Exception(failStr)
+        case f: Result.Failure => f
         case Result.Success(Evaluator.Result(
               _,
               Result.Success(Seq(_)),
               _,
               _
             )) =>
-          ()
-        case Result.Success(Evaluator.Result(_, Result.Failure(failStr), _, _)) =>
-          throw new Exception(failStr)
+          Result.Success(())
+        case Result.Success(Evaluator.Result(_, f: Result.Failure, _, _)) =>
+          f
       }
     }
 
@@ -336,7 +336,7 @@ object MainModule {
     // When using `show`, redirect all stdout of the evaluated tasks so the
     // printed JSON is the only thing printed to stdout.
     val redirectLogger = log
-      .withOutStream(evaluator.baseLogger.streams.err)
+      .withRedirectOutToErr()
       .asInstanceOf[Logger]
 
     evaluator.withBaseLogger(redirectLogger)
@@ -345,9 +345,9 @@ object MainModule {
         Separated,
         selectiveExecution = evaluator.selectiveExecution
       ).flatMap {
-        case Evaluator.Result(watched, Result.Failure(err), _, _) =>
+        case Evaluator.Result(watched, f: Result.Failure, _, _) =>
           watched.foreach(watch0)
-          Result.Failure(err)
+          f
 
         case Evaluator.Result(watched, Result.Success(_), selectedTasks, executionResults) =>
           val namesAndJson = for (t <- selectedTasks) yield {

@@ -185,5 +185,47 @@ object CachedFactoryTests extends TestSuite {
       assert(closedResourceIds == Set(1, 2))
       assert(resourceCount == 2)
     }
+
+    test("concurrentSameKey") {
+      // Verify that concurrent withValue calls with the same key each get
+      // their own resource and do not interfere with each other during release
+      import java.util.concurrent.{CyclicBarrier, CopyOnWriteArrayList}
+      import scala.jdk.CollectionConverters._
+
+      object cache extends Cache(maxCacheSize = 4)
+
+      val numThreads = 4
+      val barrier = new CyclicBarrier(numThreads)
+      val resourcesUsed = new CopyOnWriteArrayList[Int]()
+      val resourcesReleasedDuringUse = new CopyOnWriteArrayList[Int]()
+
+      val threads = (1 to numThreads).map { _ =>
+        new Thread(() => {
+          cache.withValue(()) { resource =>
+            resourcesUsed.add(resource.id)
+
+            barrier.await() // Wait for all threads to be inside withValue
+            // Check if our resource was closed while we're still using it
+            if (closedResourceIds.contains(resource.id)) {
+              resourcesReleasedDuringUse.add(resource.id)
+            }
+            // Wait again to ensure all threads checked before any exit
+            barrier.await()
+          }
+          ()
+        })
+      }
+
+      threads.foreach(_.start())
+      threads.foreach(_.join())
+
+      // Each thread should have gotten a unique resource (since shareValues=false)
+      assert(resourcesUsed.asScala.toSet.size == numThreads)
+
+      // No resource should have been released while still in use
+      assert(resourcesReleasedDuringUse.asScala.isEmpty)
+
+      cache.close()
+    }
   }
 }

@@ -1,33 +1,36 @@
 = Linting Kotlin Projects
 :page-aliases: Linting_Kotlin_Projects.adoc
-
-
+:language: Kotlin
+:language-small: kotlin
 
 This page will discuss common topics around enforcing the code quality of Kotlin
 codebases using the Mill build tool
 
+== Basic Linting Configuration
+
+include::partial$example/kotlinlib/linting/1-linting.adoc[]
 
 == Linting with Detekt
 
-include::partial$example/kotlinlib/linting/1-detekt.adoc[]
+include::partial$example/kotlinlib/linting/2-detekt.adoc[]
 
 == Linting with KtLint
 
-include::partial$example/kotlinlib/linting/2-ktlint.adoc[]
+include::partial$example/kotlinlib/linting/3-ktlint.adoc[]
 
 == Autoformatting with KtFmt
 
-include::partial$example/kotlinlib/linting/3-ktfmt.adoc[]
+include::partial$example/kotlinlib/linting/4-ktfmt.adoc[]
 
 == Auto-formatting with Spotless
 
-include::partial$example/kotlinlib/linting/5-spotless.adoc[]
+include::partial$example/kotlinlib/linting/6-spotless.adoc[]
 
 === Ratchet
 
-include::partial$example/javalib/linting/5-spotless-ratchet.adoc[]
+include::partial$example/javalib/linting/6-spotless-ratchet.adoc[]
 
 == Code Coverage with Kover
 
-include::partial$example/kotlinlib/linting/4-kover.adoc[]
+include::partial$example/kotlinlib/linting/5-kover.adoc[]
 

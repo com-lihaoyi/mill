@@ -1,7 +1,10 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
+import mill.testkit.Chunk
 import utest.*
+
+import scala.util.control.NonFatal
 
 /**
  * A variant of [[IntegrationTester]], [[ExampleTester]] works the same way
@@ -11,7 +14,7 @@ import utest.*
  * and see both the build configuration and the commands they themselves can
  * enter at the command line to exercise it.
  *
- * Implements a bash-like test DSL for educational purposes, parsed out from a
+ * Implements a bash-like test DSL for educational purposes, parsed out from an
  * `Example Usage` comment in the example's `build.mill` file. Someone should be
  * able to read the `Example Usage` comment and know roughly how to execute the
  * example themselves.
@@ -44,6 +47,13 @@ import utest.*
  * commands in the `bash` shell, and instead we implement a janky little
  * interpreter that reads the command lines and does things in-JVM in response
  * to each one.
+ *
+ * You can suffix command with a comment to restrict its applicability, e.g. `> echo "Windows" # windows`.
+ * The following comments are recognized (see [[incorrectPlatform]]):
+ * - 'mac/linux'        - Only run on Linux/Mac but not on Windows
+ * - 'windows'          - Only run on Windows but not on Linux/Mac
+ * - '--no-daemon'      - Only run in no-daemon test mode
+ * - 'not --no-daemon'  - Only run in daemon test mode
  */
 object ExampleTester {
   def run(
@@ -80,6 +90,14 @@ class ExampleTester(
     val cleanupProcessIdFile: Boolean = true
 ) extends IntegrationTesterBase {
 
+  def commandFilter(commandComment: String): Boolean = commandComment match {
+    case s"windows$_" => isWindows
+    case s"mac/linux$_" => !isWindows
+    case s"--no-daemon$_" => !daemonMode
+    case s"not --no-daemon$_" => daemonMode
+    case _ => true
+  }
+
   def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
 
@@ -89,13 +107,9 @@ class ExampleTester(
       case string => (string, None)
     }
 
-    val incorrectPlatform =
-      (comment.exists(_.startsWith("windows")) && !isWindows) ||
-        (comment.exists(_.startsWith("mac/linux")) && isWindows) ||
-        (comment.exists(_.startsWith("--no-daemon")) && daemonMode) ||
-        (comment.exists(_.startsWith("not --no-daemon")) && !daemonMode)
+    val commandAllowed = comment.forall(commandFilter)
 
-    if (!incorrectPlatform) {
+    if (commandAllowed) {
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
@@ -120,8 +134,8 @@ class ExampleTester(
     Console.err.println(debugCommandStr)
     Console.err.println(
       s"""--- Expected output ----------
-         |${expectedSnippets.mkString("\n")}
-         |------------------------------""".stripMargin
+${expectedSnippets.mkString("\n")}
+------------------------------"""
     )
 
     val windowsPathEnv =
@@ -130,26 +144,30 @@ class ExampleTester(
         "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
       )
 
-    val res = os.call(
-      (bashExecutable, "-c", commandStr),
-      stdout = os.Pipe,
-      stderr = os.Inherit,
-      cwd = workspacePath,
-      mergeErrIntoOut = true,
-      env = millTestSuiteEnv ++ windowsPathEnv,
-      check = false
-    )
+    try {
+      val res = os.call(
+        (bashExecutable, "-c", commandStr),
+        stdout = os.Pipe,
+        stderr = os.Inherit,
+        cwd = workspacePath,
+        mergeErrIntoOut = true,
+        env = millTestSuiteEnv ++ windowsPathEnv,
+        check = false
+      )
 
-    validateEval(
-      expectedSnippets,
-      IntegrationTester.EvalResult(
-        res.exitCode,
-        fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
-        fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
-      ),
-      check,
-      debugCommandStr
-    )
+      validateEval(
+        expectedSnippets,
+        IntegrationTester.EvalResult(res),
+        check,
+        debugCommandStr
+      )
+
+    } catch {
+      case NonFatal(e) =>
+        Console.err.println("Failure:")
+        Console.err.println(debugCommandStr + "\n")
+        throw e
+    }
 
     Console.err.println("Success:")
     Console.err.println(debugCommandStr + "\n")
@@ -162,8 +180,8 @@ class ExampleTester(
       command: String = ""
   ): Unit = {
     if (check) {
-      if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
-      else assert(evalResult.isSuccess)
+      if (expectedSnippets.exists(_.startsWith("error: "))) assert(evalResult.exitCode != 0)
+      else assert(evalResult.exitCode == 0)
     }
 
     val unwrappedExpected = expectedSnippets
@@ -174,7 +192,7 @@ class ExampleTester(
       .mkString("\n")
 
     def plainTextLines(s: String) =
-      s
+      fansi.Str(s, fansi.ErrorMode.Strip).plainText
         .replace("\\\\", "/") // Convert windows paths in JSON strings to Unix
         .linesIterator
         // Don't bother checking empty lines
@@ -186,16 +204,16 @@ class ExampleTester(
         )
         .toVector
 
-    val filteredOut = plainTextLines(evalResult.out).mkString("\n")
+    val filteredOut = plainTextLines(evalResult.result.out.text()).mkString("\n")
 
     for (expectedLine <- unwrappedExpected.linesIterator) {
       Predef.assert(
         filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
         (if (command == "") "" else s"==== command:\n$command\n") +
           s"""==== filteredOut:
-             |$filteredOut
-             |==== Missing expectedLine:
-             |$expectedLine""".stripMargin
+$filteredOut
+==== Missing expectedLine:
+$expectedLine"""
       )
     }
   }
@@ -215,7 +233,9 @@ class ExampleTester(
     val parsed = ExampleParser(workspaceSourcePath)
     val ignoreErrors = System.getenv("CI") != null &&
       os.exists(workspaceSourcePath / "ignoreErrorsOnCI")
-    val usageComment = parsed.collect { case ("example", txt) => txt }.mkString("\n\n")
+    val usageComment = parsed.collect { case Chunk.Usage(lines) =>
+      lines.mkString("\n")
+    }.mkString("\n\n")
     val commandBlocks = ("\n" + usageComment.trim).split("\n> ").filter(_.nonEmpty)
 
     try {

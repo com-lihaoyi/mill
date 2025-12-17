@@ -1,0 +1,110 @@
+// A Kotlin/JVM backend server wired up with a Kotlin/JS front-end, with a
+// `shared` module containing code that is used in both client and server.
+// Rather than the server sending HTML for the initial page load and HTML for
+// page updates, it sends HTML for the initial load and JSON for page updates
+// which is then rendered into HTML on the client.
+
+package build
+import mill.*, kotlinlib.*, kotlinlib.js.*
+
+trait AppKotlinModule extends KotlinModule {
+  def kotlinVersion = "1.9.25"
+}
+
+trait AppKotlinJsModule extends AppKotlinModule, KotlinJsModule
+
+object `package` extends AppKotlinModule {
+
+  def ktorVersion = "2.3.12"
+  def kotlinHtmlVersion = "0.11.0"
+  def kotlinxSerializationVersion = "1.6.3"
+
+  override def mainClass = Some("webapp.WebApp")
+
+  override def moduleDeps = Seq(shared.jvm)
+
+  override def mvnDeps = Seq(
+    mvn"io.ktor:ktor-server-core:$ktorVersion",
+    mvn"io.ktor:ktor-server-netty:$ktorVersion",
+    mvn"io.ktor:ktor-server-html-builder:$ktorVersion",
+    mvn"io.ktor:ktor-server-content-negotiation:$ktorVersion",
+    mvn"io.ktor:ktor-serialization-kotlinx-json:$ktorVersion",
+    mvn"ch.qos.logback:logback-classic:1.5.8"
+  )
+
+  override def resources = Task {
+    os.makeDir(Task.dest / "webapp")
+    val jsPath = client.linkBinary().classes.path
+    os.copy(jsPath / "client.js", Task.dest / "webapp/client.js")
+    os.copy(jsPath / "client.js.map", Task.dest / "webapp/client.js.map")
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    override def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"io.ktor:ktor-server-test-host:$ktorVersion"
+    )
+  }
+
+  object shared extends Module {
+
+    trait SharedModule extends AppKotlinModule, PlatformKotlinModule {
+      override def kotlincPluginMvnDeps = Seq(
+        mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
+      )
+    }
+
+    object jvm extends SharedModule {
+      override def mvnDeps = Seq(
+        mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion",
+        mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion"
+      )
+    }
+    object js extends SharedModule, AppKotlinJsModule {
+      override def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion",
+        mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion"
+      )
+    }
+  }
+
+  object client extends AppKotlinJsModule {
+    override def kotlinJsSplitPerModule = false
+    override def moduleDeps = Seq(shared.js)
+    override def mvnDeps = Seq(
+      mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion",
+      mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion"
+    )
+  }
+}
+
+// The JSON serialization logic and HTML generation logic in the `shared` module
+// is shared between client and server, and uses libraries like `kotlinx-serialization` and
+// `kotlinx-html` which work on both Kotlin/JVM and Kotlin/JS. This allows us to freely
+// move code between the client and server, without worrying about what
+// platform or language the code was originally implemented in.
+//
+// This is a minimal example of shared code compiled to Kotlin/JVM and Kotlin/JS,
+// running on both client and server, meant for illustrating the build
+// configuration. A full exploration of client-server code sharing techniques
+// is beyond the scope of this example.
+
+/** Usage
+
+> ./mill test
+...webapp.WebAppTests simpleRequest ...
+
+> ./mill runBackground
+
+> curl http://localhost:8093
+...What needs to be done...
+...
+
+> curl http://localhost:8093/static/client.js
+...kotlin.js...
+...
+
+> ./mill clean runBackground
+
+*/

@@ -2,17 +2,17 @@ package mill.javalib.zinc
 
 private trait TransformingReporter(
     color: Boolean,
-    optPositionMapper: (xsbti.Position => xsbti.Position) | Null
+    optPositionMapper: (xsbti.Position => xsbti.Position) | Null,
+    workspaceRoot: os.Path
 ) extends xsbti.Reporter {
 
   // Overriding this is necessary because for some reason the LoggedReporter doesn't transform positions
   // of Actions and DiagnosticRelatedInformation
   abstract override def log(problem0: xsbti.Problem): Unit = {
     val localMapper = optPositionMapper
-    val problem = {
-      if localMapper == null then problem0
-      else TransformingReporter.transformProblem(color, problem0, localMapper)
-    }
+    // Always transform to apply path relativization, even if there's no position mapper for build files
+    val mapper = if localMapper == null then (pos: xsbti.Position) => pos else localMapper
+    val problem = TransformingReporter.transformProblem(color, problem0, mapper, workspaceRoot)
     super.log(problem)
   }
 }
@@ -27,33 +27,27 @@ private object TransformingReporter {
   private def transformProblem(
       color: Boolean,
       problem0: xsbti.Problem,
-      mapper: xsbti.Position => xsbti.Position
+      mapper: xsbti.Position => xsbti.Position,
+      workspaceRoot: os.Path
   ): xsbti.Problem = {
-    val pos0 = problem0.position()
+    val unMappedPos = problem0.position()
     val related0 = problem0.diagnosticRelatedInformation()
     val actions0 = problem0.actions()
-    val pos = mapper(pos0)
+    val pos = mapper(unMappedPos)
     val related = transformRelateds(related0, mapper)
     val actions = transformActions(actions0, mapper)
-    val posIsNew = pos ne pos0
-    if posIsNew || (related ne related0) || (actions ne actions0) then
-      val rendered = {
-        // if we transformed the position, then we must re-render the message
-        if posIsNew then Some(dottyStyleMessage(color, problem0, pos))
-        else InterfaceUtil.jo2o(problem0.rendered())
-      }
-      InterfaceUtil.problem(
-        cat = problem0.category(),
-        pos = pos,
-        msg = problem0.message(),
-        sev = problem0.severity(),
-        rendered = rendered,
-        diagnosticCode = InterfaceUtil.jo2o(problem0.diagnosticCode()),
-        diagnosticRelatedInformation = anyToList(related),
-        actions = anyToList(actions)
-      )
-    else
-      problem0
+    val rendered =
+      dottyStyleMessage(color, problem0, pos = pos, unMappedPos = unMappedPos, workspaceRoot)
+    InterfaceUtil.problem(
+      cat = problem0.category(),
+      pos = pos,
+      msg = problem0.message(),
+      sev = problem0.severity(),
+      rendered = Some(rendered),
+      diagnosticCode = InterfaceUtil.jo2o(problem0.diagnosticCode()),
+      diagnosticRelatedInformation = anyToList(related),
+      actions = anyToList(actions)
+    )
   }
 
   private type JOrSList[T] = java.util.List[T] | List[T]
@@ -67,80 +61,102 @@ private object TransformingReporter {
   private def dottyStyleMessage(
       color: Boolean,
       problem0: xsbti.Problem,
-      pos: xsbti.Position
+      pos: xsbti.Position,
+      unMappedPos: xsbti.Position,
+      workspaceRoot: os.Path
   ): String = {
-    val base = problem0.message()
+
     val severity = problem0.severity()
 
-    def shade(msg: String) =
+    val shade: java.util.function.Function[String, String] =
       if color then
         severity match {
-          case xsbti.Severity.Error => Console.RED + msg + Console.RESET
-          case xsbti.Severity.Warn => Console.YELLOW + msg + Console.RESET
-          case xsbti.Severity.Info => Console.BLUE + msg + Console.RESET
+          case xsbti.Severity.Error => msg => Console.RED + msg + Console.RESET
+          case xsbti.Severity.Warn => msg => Console.YELLOW + msg + Console.RESET
+          case xsbti.Severity.Info => msg => Console.BLUE + msg + Console.RESET
         }
-      else msg
+      else msg => msg
 
-    val normCode = {
-      problem0.diagnosticCode().filter(_.code() != "-1").map({ inner =>
-        val prefix = s"[E${inner.code()}] "
-        inner.explanation().map(e =>
-          s"$prefix$e: "
-        ).orElse(prefix)
-      }).orElse("")
-    }
+    val message = problem0.message()
 
-    val optPath = InterfaceUtil.jo2o(pos.sourcePath()).map { path =>
-      val line0 = intValue(pos.line(), -1)
-      val pointer0 = intValue(pos.pointer(), -1)
-      if line0 >= 0 && pointer0 >= 0 then
-        s"$path:$line0:${pointer0 + 1}"
-      else
-        path
-    }
+    InterfaceUtil.jo2o(pos.sourcePath()) match {
+      case None => message
+      case Some(path) =>
+        val absPath = os.Path(path)
+        // Render paths within the current workspaceRoot as relative paths to cut down on verbosity
+        val displayPath =
+          if absPath.startsWith(workspaceRoot) then absPath.subRelativeTo(workspaceRoot).toString
+          else path
 
-    val normHeader = optPath.map(path =>
-      s"${shade(s"-- $normCode$path")}\n"
-    ).getOrElse("")
+        val line = intValue(pos.line(), -1)
+        val pointer0 = intValue(pos.pointer(), -1)
+        val colNum = pointer0 + 1
 
-    val optSnippet = {
-      val snip = pos.lineContent()
-      val space = pos.pointerSpace().orElse("")
-      val pointer = intValue(pos.pointer(), -99)
-      val endCol = intValue(pos.endColumn(), pointer + 1)
-      if snip.nonEmpty && space.nonEmpty && pointer >= 0 && endCol >= 0 then
-        val arrowCount = math.max(1, math.min(endCol - pointer, snip.length - space.length))
-        Some(
-          s"""$snip
-             |$space${"^" * arrowCount}""".stripMargin
+        val space = pos.pointerSpace().orElse("")
+        val endCol = intValue(pos.endColumn(), pointer0 + 1)
+
+        // Dotty only renders the colored code snippet as part of `.rendered`, but it's mixed
+        // in with the rest of the UI we don't really want. So we need to scrape it out ourselves
+        val renderedLines = InterfaceUtil.jo2o(problem0.rendered())
+          .iterator
+          .flatMap(_.linesIterator)
+          .toSeq
+
+        // Scrape the relevant line from the dotty error code snippet, because dotty defaults to
+        // rendering entire expressions which can be arbitrarily large and spammy in the terminal.
+        val scraped = mill.api.internal.Util.scrapeColoredLineContent(
+          renderedLines,
+          // Use the unmapped line to scrape the corresponding line from the error message,
+          // since the raw compiler error would not have gone through line mapping
+          intValue(unMappedPos.line(), -1),
+          pos.lineContent()
         )
-      else
-        None
-    }
 
-    val content = optSnippet.match {
-      case Some(snippet) =>
-        val initial = {
-          s"""$snippet
-             |$base
-             |""".stripMargin
-        }
-        val snippetLine = intValue(pos.line(), -1)
-        if snippetLine >= 0 then {
-          // add margin with line number
-          val lines = initial.linesWithSeparators.toVector
-          val pre = snippetLine.toString
-          val rest0 = " " * pre.length
-          val rest = pre +: Vector.fill(lines.size - 1)(rest0)
-          rest.lazyZip(lines).map((pre, line) => shade(s"$pre │") + line).mkString
-        } else {
-          initial
-        }
-      case None =>
-        base
-    }
+        // Some errors like Java `unclosed string literal` errors don't provide any
+        // message at all to `rendered` for us to scrape the line content, and others
+        // like `cannot find symbol` have incorrect line `.lineContent()`s, so for
+        // all Java errors just scrape the line from the filesystem
+        val isJavaFile = absPath.ext == "java"
+        val lineContent0 = if (scraped == "" || isJavaFile) {
+          try os.read.lines(absPath).apply(line - 1)
+          catch { case _: Exception => "" }
+        } else scraped
 
-    normHeader + content
+        // Apply syntax highlighting to Java source code lines
+        val lineContent =
+          if (color && isJavaFile && lineContent0.nonEmpty) {
+            HighlightJava.highlightJavaCode(
+              lineContent0,
+              literalColor = fansi.Color.Green,
+              keywordColor = fansi.Color.Yellow,
+              commentColor = fansi.Color.Blue,
+              definitionColor = fansi.Color.Cyan
+            ).render
+          } else lineContent0
+
+        val pointerLength =
+          if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
+            math.max(
+              1,
+              math.min(
+                endCol - pointer0,
+                // Make sure to use the plaintext length of lineContent,
+                // since it may have color codes
+                fansi.Str(lineContent).length - space.length
+              )
+            )
+          else 1
+
+        mill.constants.Util.formatError(
+          displayPath,
+          line,
+          colNum,
+          lineContent,
+          message,
+          pointerLength,
+          shade
+        )
+    }
   }
 
   /** Implements a transformation that returns the same list if the mapper has no effect */

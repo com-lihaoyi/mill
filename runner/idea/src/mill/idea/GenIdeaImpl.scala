@@ -7,11 +7,11 @@ import java.net.URL
 
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import mill.api.{TaskCtx as _, *}
+import mill.api.*
 import mill.api.daemon.internal.{
   EvaluatorApi,
-  ExecutionResultsApi,
   JavaModuleApi,
+  MillBuildRootModuleApi,
   ModuleApi,
   ScalaJSModuleApi,
   ScalaModuleApi,
@@ -21,7 +21,9 @@ import mill.api.daemon.internal.{
 }
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
 import mill.util.BuildInfo
+import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
+import scala.jdk.CollectionConverters._
 
 class GenIdeaImpl(
     private val evaluators: Seq[EvaluatorApi]
@@ -167,7 +169,7 @@ class GenIdeaImpl(
         evaluator.executeApi(tasks).executionResults match {
           case r if r.transitiveFailingApi.nonEmpty =>
             throw GenIdeaException(
-              s"Failure during resolving modules: ${ExecutionResultsApi.formatFailing(r)}"
+              s"Failure during resolving modules: ${mill.internal.Util.formatFailing(r)}"
             )
           case r => r.values.map(_.value).asInstanceOf[Seq[ResolvedModule]]
         }
@@ -331,13 +333,93 @@ class GenIdeaImpl(
           r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
       }
 
+    // Get bspScriptIgnore rules (same as BSP integration)
+    val bspScriptIgnore: Seq[String] = {
+      if (evaluators.length > 1) {
+        // look for this in the first meta-build frame, which would be the meta-build configured
+        // by a `//|` build header in the main `build.mill` file in the project root folder
+        val ev = evaluators(1)
+        val bspScriptIgnoreTasks: Seq[TaskApi[Seq[String]]] =
+          Seq(ev.rootModule).collect { case m: MillBuildRootModuleApi => m.bspScriptIgnoreAll }
+
+        ev.executeApi(bspScriptIgnoreTasks)
+          .values
+          .get
+          .flatMap { case sources: Seq[String] => sources }
+      } else {
+        Seq.empty
+      }
+    }
+
+    // Create IgnoreNode from bspScriptIgnore patterns
+    val ignoreRules = bspScriptIgnore
+      .filter(l => !l.startsWith("#"))
+      .map(pattern => (pattern, new FastIgnoreRule(pattern)))
+
+    val ignoreNode = new IgnoreNode(ignoreRules.map(_._2).asJava)
+
+    // Extract directory prefixes from negation patterns (patterns starting with !)
+    // These directories need to be walked even if they're ignored, because they contain
+    // negated (un-ignored) files
+    val negationPatternDirs: Set[String] = bspScriptIgnore
+      .filter(l => !l.startsWith("#") && l.startsWith("!"))
+      .flatMap { pattern =>
+        val withoutNegation = pattern.drop(1) // Remove the '!' prefix
+        // Extract all parent directory paths
+        val pathParts = withoutNegation.split('/').dropRight(1) // Remove filename
+        if (pathParts.nonEmpty) {
+          pathParts.indices.map { i =>
+            pathParts.take(i + 1).mkString("/")
+          }
+        } else Nil
+      }
+      .toSet
+
+    // Helper function to recursively check if a path should be ignored
+    def isPathIgnored(relativePath: String, isDirectory: Boolean): Boolean = {
+      val matchResult = ignoreNode.isIgnored(relativePath, isDirectory)
+      matchResult match {
+        case IgnoreNode.MatchResult.IGNORED =>
+          true
+        case IgnoreNode.MatchResult.NOT_IGNORED =>
+          false
+        case IgnoreNode.MatchResult.CHECK_PARENT =>
+          // No direct match, need to check if parent directory is ignored
+          val parentPath = relativePath.split('/').dropRight(1).mkString("/")
+          if (parentPath.isEmpty) false // root level, not ignored by default
+          else isPathIgnored(parentPath, true) // recursively check parent
+        case _ =>
+          // Handle any other potential match results
+          false
+      }
+    }
+
+    // Create filter function that checks both files and directories
+    val skipPath: (String, Boolean) => Boolean = { (relativePath, isDirectory) =>
+      // If this is a directory that contains negation patterns, don't skip it
+      if (isDirectory && negationPatternDirs.contains(relativePath)) {
+        false
+      } else {
+        isPathIgnored(relativePath, isDirectory)
+      }
+    }
+
+    // Discover script files
+    val outDir = evaluators.headOption.map(e => os.Path(e.outPathJava)).getOrElse(workDir / "out")
+    val scriptFiles = new mill.eval.ScriptModuleInit().discoverScriptFiles(
+      workDir,
+      outDir,
+      skipPath
+    )
+
     val fixedFiles: Seq[(os.SubPath, Elem)] = Seq(
       Tuple2(os.sub / "misc.xml", miscXmlTemplate(jdkInfo)),
       Tuple2(os.sub / "scala_settings.xml", scalaSettingsTemplate()),
       Tuple2(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
-          modules.map { case (segments = segments) => moduleName(segments) }.sorted
+          (modules.map { case (segments = segments) => moduleName(segments) } ++
+            scriptFiles.map(scriptModuleName)).sorted
         )
       ),
       Tuple2(
@@ -508,7 +590,17 @@ class GenIdeaImpl(
       }
     }
 
-    fixedFiles ++ ideaWholeConfigFiles ++ fileComponentContributions ++ libraries ++ moduleFiles
+    // Generate module files for script files
+    val scriptModuleFiles: Seq[(os.SubPath, Elem)] = scriptFiles.map { scriptPath =>
+      val moduleXml = scriptModuleXmlTemplate(scriptPath)
+      val moduleFile = Tuple2(
+        os.sub / "mill_modules" / s"${scriptModuleName(scriptPath)}.iml",
+        moduleXml
+      )
+      moduleFile
+    }
+
+    fixedFiles ++ ideaWholeConfigFiles ++ fileComponentContributions ++ libraries ++ moduleFiles ++ scriptModuleFiles
   }
 
   def relify(p: os.Path): String = {
@@ -794,6 +886,33 @@ class GenIdeaImpl(
     }
       </component>
     </project>
+  }
+
+  /**
+   * Generate module name for a script file.
+   */
+  def scriptModuleName(scriptPath: os.Path): String = {
+    s"script-${scriptPath.baseName}".toLowerCase()
+  }
+
+  /**
+   * Generate IntelliJ module XML for a script file.
+   * The source root is the path of the file itself.
+   */
+  def scriptModuleXmlTemplate(scriptPath: os.Path): Elem = {
+    val relUrl = "file://$MODULE_DIR$/" + relify(scriptPath)
+
+    <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
+      <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../../out/script/{scriptPath.baseName}/compile.dest"/>
+        <exclude-output />
+        <content url={relUrl}>
+          <sourceFolder url={relUrl} isTestSource="false"/>
+        </content>
+        <orderEntry type="inheritedJdk" />
+        <orderEntry type="sourceFolder" forTests="false" />
+      </component>
+    </module>
   }
 }
 

@@ -25,19 +25,23 @@ import java.nio.file.Files
 class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWorkerApi {
   implicit val scope: Scope = Scope.forever
 
-  def logger(level: NativeLogLevel): Logger =
+  def logger(level: NativeLogLevel): Logger = {
+    // Console.err needs to be stored at instantiation time so it saves the right threadlocal
+    // value and can be used by the Scala Native toolchain's threads without losing logs
+    val err = Console.err
     Logger(
       traceFn =
-        msg => if (level.value >= NativeLogLevel.Trace.value) System.err.println(s"[trace] $msg"),
+        msg => if (level.value >= NativeLogLevel.Trace.value) err.println(s"[trace] $msg"),
       debugFn =
-        msg => if (level.value >= NativeLogLevel.Debug.value) System.err.println(s"[debug] $msg"),
+        msg => if (level.value >= NativeLogLevel.Debug.value) err.println(s"[debug] $msg"),
       infoFn =
-        msg => if (level.value >= NativeLogLevel.Info.value) System.err.println(s"[info] $msg"),
+        msg => if (level.value >= NativeLogLevel.Info.value) err.println(s"[info] $msg"),
       warnFn =
-        msg => if (level.value >= NativeLogLevel.Warn.value) System.err.println(s"[warn] $msg"),
+        msg => if (level.value >= NativeLogLevel.Warn.value) err.println(s"[warn] $msg"),
       errorFn =
-        msg => if (level.value >= NativeLogLevel.Error.value) System.err.println(s"[error] $msg")
+        msg => if (level.value >= NativeLogLevel.Error.value) err.println(s"[error] $msg")
     )
+  }
 
   def discoverClang(): File = Discover.clang().toFile
   def discoverClangPP(): File = Discover.clangpp().toFile
@@ -65,7 +69,9 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
       nativeMultithreading: Option[Boolean],
       nativeServiceProviders: Map[String, Seq[String]],
       logLevel: NativeLogLevel,
-      buildTarget: BuildTarget
+      buildTarget: BuildTarget,
+      sourceLevelDebuggingConfig: SourceLevelDebuggingConfig,
+      baseName: String
   ): Either[String, Config] = {
     val nativeConfig =
       ScalaNativeNativeConfig.empty
@@ -89,7 +95,15 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.worker.api.ScalaNativeWo
         .withIncrementalCompilation(nativeIncrementalCompilation)
         .withMultithreading(nativeMultithreading)
         .withServiceProviders(nativeServiceProviders)
-        .withBaseName("out")
+        .withBaseName(baseName)
+        .withSourceLevelDebuggingConfig(
+          _.enabled(sourceLevelDebuggingConfig.enabled)
+            .generateFunctionSourcePositions(
+              sourceLevelDebuggingConfig.generateFunctionSourcePositions
+            )
+            .generateLocalVariables(sourceLevelDebuggingConfig.generateLocalVariables)
+            .withCustomSourceRoots(sourceLevelDebuggingConfig.customSourceRoots)
+        )
 
     val config = Config.empty
       .withClassPath(classpath.map(_.toPath))

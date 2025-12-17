@@ -23,4 +23,4 @@ rm -rf out
 
 
 # Run tests
-./mill-assembly.jar -i "example.scalalib.basic[1-simple].packaged.daemon.testForked"
+./mill-assembly.jar -i "example.scalalib.basic[3-simple].packaged.daemon.testForked"

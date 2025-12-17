@@ -17,7 +17,8 @@ import mill.api.Logger
 
 import java.util.concurrent.ConcurrentHashMap
 import mill.api.BuildCtx
-import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
+import mill.javalib.api.internal.ZincOp
+import mill.javalib.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import os.Path
 
 import scala.annotation.unused
@@ -46,7 +47,8 @@ final class TestModuleUtil(
     javaHome: Option[os.Path],
     testParallelism: Boolean,
     testLogLevel: TestReporter.LogLevel,
-    propagateEnv: Boolean = true
+    propagateEnv: Boolean = true,
+    jvmWorker: mill.javalib.api.internal.InternalJvmWorkerApi
 )(using ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
@@ -67,52 +69,34 @@ final class TestModuleUtil(
     val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
     /** This is filtered by the test framework. */
-    val filteredClassLists =
-      if (filteredClassLists0.size == 1 && !testParallelism) filteredClassLists0
-      else {
-        // If test grouping is enabled and multiple test groups are detected, we need to
-        // run test discovery via the test framework's own argument parsing and filtering
-        // logic once before we potentially fork off multiple test groups that will
-        // each do the same thing and then run tests. This duplication is necessary so we can
-        // skip test groups that we know will be empty, which is important because even an empty
-        // test group requires spawning a JVM which can take 1+ seconds to realize there are no
-        // tests to run and shut down
+    val filteredClassLists = {
+      // If test grouping is enabled and multiple test groups are detected, we need to
+      // run test discovery via the test framework's own argument parsing and filtering
+      // logic once before we potentially fork off multiple test groups that will
+      // each do the same thing and then run tests. This duplication is necessary so we can
+      // skip test groups that we know will be empty, which is important because even an empty
+      // test group requires spawning a JVM which can take 1+ seconds to realize there are no
+      // tests to run and shut down
+      val discoveredTests = jvmWorker.apply(
+        ZincOp.GetTestTasks(
+          (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
+          testClasspath.map(_.path),
+          testFramework,
+          selectors,
+          args
+        ),
+        javaHome = javaHome
+      ).toSet
 
-        val discoveredTests = if (javaHome.isDefined) {
-          Jvm.callProcess(
-            mainClass = "mill.javalib.testrunner.GetTestTasksMain",
-            classPath = scalalibClasspath.map(_.path).toVector,
-            mainArgs =
-              (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p =>
-                Seq("--runCp", p.path.toString)
-              ) ++
-                testClasspath.flatMap(p => Seq("--testCp", p.path.toString)) ++
-                Seq("--framework", testFramework) ++
-                selectors.flatMap(s => Seq("--selectors", s)) ++
-                args.flatMap(s => Seq("--args", s)),
-            javaHome = javaHome,
-            stdin = os.Inherit,
-            stdout = os.Pipe,
-            cwd = Task.dest
-          ).out.lines().toSet
-        } else {
-          GetTestTasksMain.main0(
-            (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
-            testClasspath.map(_.path),
-            testFramework,
-            selectors,
-            args
-          ).toSet
-        }
+      filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
+    }
 
-        filteredClassLists0.map(_.filter(discoveredTests)).filter(_.nonEmpty)
-      }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
     val result = runTestQueueScheduler(filteredClassLists)
 
     result match {
-      case Result.Failure(errMsg) => Result.Failure(errMsg)
+      case f: Result.Failure => f
       case Result.Success((doneMsg, results)) =>
         if (results.isEmpty && selectors.nonEmpty) throw doesNotMatchError
         try TestModuleUtil.handleResults(doneMsg, results, Task.ctx(), testReportXml)
@@ -173,7 +157,15 @@ final class TestModuleUtil(
         propagateEnv = false
       )
     }
-    while (proc.isAlive()) {
+
+    while (
+      // Since we're not using `proc.join()`, we need to separately poll for completion of
+      // the process as well as the pumper threads, since those threads may take some time
+      // to finish pumping even after the process exits
+      proc.isAlive() ||
+      proc.errorPumperThread.map(_.isAlive).getOrElse(false) ||
+      proc.outputPumperThread.map(_.isAlive).getOrElse(false)
+    ) {
       Thread.sleep(10)
       poll()
     }
@@ -558,15 +550,15 @@ private[mill] object TestModuleUtil {
       String,
       Option[Result[(String, Seq[TestResult])]]
   )]) = {
-    val failMap = mutable.Map.empty[String, String]
+    val failMap = mutable.Map.empty[String, Result.Failure]
     val successMap = mutable.Map.empty[String, (String, Seq[TestResult])]
     val subprocessResult = {
 
       outputs.foreach {
-        case (_, name, Some(Result.Failure(v))) =>
+        case (_, name, Some(f: Result.Failure)) =>
           failMap.updateWith(name) {
-            case Some(old) => Some(old + " " + v)
-            case None => Some(v)
+            case Some(old) => Some(Result.Failure.join(Seq(old, f)))
+            case None => Some(f)
           }
         case (_, name, Some(Result.Success((msg, results)))) =>
           successMap.updateWith(name) {
@@ -577,7 +569,7 @@ private[mill] object TestModuleUtil {
       }
 
       if (failMap.nonEmpty) {
-        Result.Failure(failMap.values.mkString("\n"))
+        Result.Failure.join(failMap.values.toSeq)
       } else {
         Result.Success((
           successMap.values.map(_._1).mkString("\n"),

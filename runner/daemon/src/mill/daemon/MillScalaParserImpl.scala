@@ -33,20 +33,22 @@ object MillScalaParserImpl extends MillScalaParser {
 
   def splitScript(
       rawCode: String,
-      fileName: String
+      fileName: String,
+      colored: Boolean
   ): Either[String, (String, Seq[String], Seq[String])] = {
     val source = SourceFile.virtual(fileName, rawCode)
     def mergeErrors(errors: List[String]): String =
-      s"$fileName failed to parse:" + System.lineSeparator + errors.mkString(System.lineSeparator)
-    splitScriptSource(source).left.map(mergeErrors)
+      System.lineSeparator + errors.mkString(System.lineSeparator)
+    splitScriptSource(source, colored).left.map(mergeErrors)
   }
 
   def splitScriptSource(
-      source: SourceFile
+      source: SourceFile,
+      colored: Boolean
   ): Either[List[String], (String, Seq[String], Seq[String])] = MillDriver.unitContext(source) {
     for
-      trees <- liftErrors(MillParsers.outlineCompilationUnit(source))
-      (pkgs, stmts) <- liftErrors(splitTrees(trees))
+      trees <- liftErrors(colored, MillParsers.outlineCompilationUnit(source))
+      (pkgs, stmts) <- liftErrors(colored, splitTrees(trees))
     yield {
       val prefix = trees match {
         case untpd.PackageDef(untpd.Ident(nme.EMPTY_PACKAGE), _) :: Nil =>
@@ -61,10 +63,10 @@ object MillScalaParserImpl extends MillScalaParser {
     }
   }
 
-  def liftErrors[T](op: Context ?=> T)(using Context): Either[List[String], T] = {
+  def liftErrors[T](colored: Boolean, op: Context ?=> T)(using Context): Either[List[String], T] = {
     val res = op
     if ctx.reporter.hasErrors then
-      Left(MillDriver.renderErrors())
+      Left(MillDriver.renderErrors(colored: Boolean))
     else
       Right(res)
   }
@@ -405,32 +407,47 @@ object MillScalaParserImpl extends MillScalaParser {
     (topLevelPkgs.result(), topLevelStats.result())
   }
 
-  private object MillRendering extends MessageRendering {
-
-    /**
-     * Dotty has an off-by-one error with the column in rendering messages, fix it here
-     * (there is regression testing for this in `ParseErrorTests.scala`)
-     */
-    override protected def posFileStr(pos: SourcePosition): String = {
-      val path = pos.source.file.path
-      if pos.exists then s"$path:${pos.line + 1}:${pos.column + 1}" else path
-    }
-
-    /** strip color from result */
-    override def messageAndPos(dia: Diagnostic)(using Context): String =
-      super.messageAndPos(dia).replaceAll("\u001B\\[[;\\d]*m", "")
-  }
-
   /** The MillDriver contains code for initializing a Context and reporting errors. */
   private object MillDriver extends Driver {
 
-    def renderErrors()(using Context): List[String] = {
+    private object MillRendering extends MessageRendering
+
+    def renderErrors(colored: Boolean)(using Context): List[String] = {
       val errs = ctx.reporter.removeBufferedMessages.collect {
         case err: Diagnostic.Error => err
       }
-      errs.map(d =>
-        MillRendering.messageAndPos(d)
-      )
+
+      val shade: java.util.function.Function[String, String] =
+        if (colored) msg => Console.RED + msg + Console.RESET
+        else msg => msg
+
+      errs.map { d =>
+        val pos = d.pos
+        if !pos.exists then d.msg.message
+        else {
+          // Scrape colored line content from Dotty's rendered output
+          val renderedLines = MillRendering.messageAndPos(d).linesIterator.toSeq
+          val lineContent = mill.api.internal.Util.scrapeColoredLineContent(
+            renderedLines,
+            pos.line,
+            pos.lineContent.stripLineEnd
+          )
+
+          val pointerLength =
+            if pos.span.exists then math.max(1, pos.endColumn - pos.column)
+            else 1
+
+          mill.constants.Util.formatError(
+            pos.source.file.path,
+            pos.line + 1,
+            pos.column + 1,
+            lineContent,
+            d.msg.message,
+            pointerLength,
+            shade
+          )
+        }
+      }
     }
 
     private final class MillStoredReporter extends StoreReporter(null) with UniqueMessagePositions

@@ -1,0 +1,56 @@
+package build
+import mill.*, javalib.*
+import java.io.File
+
+object foo extends JavaModule {
+  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
+
+  object test extends JavaTests, TestModule.Junit4
+}
+
+// This is an example of how to use Mill to build Java projects using Java annotations and
+// annotation processors. In this case, we use the annotations provided by
+// https://projectlombok.org[Project Lombok] to automatically generate getters and setters
+// from class private fields
+
+/** Usage
+
+> ./mill foo.test
+Test foo.HelloWorldTest.testSimple started
+Test foo.HelloWorldTest.testSimple finished...
+...
+
+*/
+
+// The Java compiler automatically discovers annotation processors based on the
+// classes available during compilation, e.g. in `compileMvnDeps` or `mvnDeps`,
+// which is what takes place in the example above.
+//
+// However, in future versions of Javac, annotation processing may be disabled without explicitly
+// naming at least one processor or explicitly enabling processing.
+//
+// You may also need annotation processors that are not on the compilation classpath, or you need finer control
+// over exactly which annotation processors are active.
+//
+// Mill provides an easy way to add these processors via the annotationProcessorsMvnDeps
+
+object bar extends JavaModule {
+  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
+
+  override def annotationProcessorsMvnDeps =
+    Seq(mvn"org.projectlombok:lombok:1.18.34")
+
+  object test extends JavaTests, TestModule.Junit4
+}
+
+/** Usage
+
+> ./mill bar.test
+Test bar.HelloWorldTest.testSimple started
+Test bar.HelloWorldTest.testSimple finished...
+...
+
+*/
+
+// Many Java frameworks and libraries such as xref:javalib/web-examples#_micronaut_hello_world_app[Micronaut]
+// or ErrorProne use annotation processors, and can be set up in this way.

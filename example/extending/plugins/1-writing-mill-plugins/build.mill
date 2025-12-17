@@ -5,13 +5,16 @@
 // == Project Configuration
 package build
 import mill.*, scalalib.*, publish.*
-import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
 object myplugin extends ScalaModule, PublishModule {
-  def scalaVersion = "3.7.1"
+  def millVersion = "1.0.6"
+
+  def scalaVersion = "3.7.4"
+
+  def jvmId = "11"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
-  def platformSuffix = s"_mill$millBinPlatform"
+  def platformSuffix = s"_mill1"
 
   // Depend on `mill-libs` so we can compile against Mill APIs
   def mvnDeps = Seq(mvn"com.lihaoyi::mill-libs:$millVersion")
@@ -43,6 +46,13 @@ object myplugin extends ScalaModule, PublishModule {
 // and to configure it for publishing to Maven Central via `PublishModule`.
 // It looks like any other Scala project, except for a few dependencies on `mill-libs`
 // and `mill-testkit` to bring in the appropriate libraries
+
+// NOTE: that Mill 1.x is _backwards compatible_ but not _forwards compatible_ with regard to plugins,
+// so a plugin published for a particular version of Mill will work on _newer_ versions of Mill,
+// but not _older_ versions. Thus when publishing plugins it is usually best to publish for as
+// old a 1.x version of Mill as you can, to ensure maximal compatibility with downstream projects.
+// In this example, we publish for Mill-1.0.6/Scala-3.7.4/JDK11, even though our plugins own build
+// may be on a version of Mill 1.1.0 or later.
 
 // == Plugin Implementation
 
@@ -108,7 +118,7 @@ compiling 1 Scala source...
 > sed -i.bak 's/0.0.1/0.0.2/g' build.mill
 
 > ./mill myplugin.publishLocal
-Publishing Artifact(com.lihaoyi,myplugin_millSNAPSHOT_3,0.0.2) to ivy repo...
+Publishing Artifact(com.lihaoyi,myplugin_mill1_3,0.0.2) to ivy repo...
 
 */
 // Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they

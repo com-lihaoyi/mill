@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public interface ScoverageReportWorkerApi2 {
+public interface ScoverageReportWorkerApi2 extends AutoCloseable {
 
   interface Logger {
     void error(String msg);
@@ -90,6 +90,13 @@ public interface ScoverageReportWorkerApi2 {
 
   void report(ReportType reportType, Path[] sources, Path[] dataDirs, Path sourceRoot, Ctx ctx);
 
+  void validateCoverageMinimums(
+      Path[] dataDirs,
+      Path sourceRoot,
+      Double statementCoverageMin,
+      Double branchCoverageMin,
+      Ctx ctx);
+
   static void makeAllDirs(Path path) throws IOException {
     // Replicate behavior of `os.makeDir.all(path)`
     if (Files.isDirectory(path) && Files.isSymbolicLink(path)) {
@@ -97,5 +104,10 @@ public interface ScoverageReportWorkerApi2 {
     } else {
       Files.createDirectories(path);
     }
+  }
+
+  @Override
+  default void close() throws Exception {
+    // no-op
   }
 }

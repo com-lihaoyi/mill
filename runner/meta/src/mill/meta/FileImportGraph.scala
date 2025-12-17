@@ -2,7 +2,7 @@ package mill.meta
 
 import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.*
-import mill.constants.OutFiles.*
+import mill.constants.OutFiles.OutFiles.*
 import mill.api.daemon.internal.MillScalaParser
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
@@ -30,7 +30,7 @@ object FileImportGraph {
   implicit val readWriter: upickle.ReadWriter[FileImportGraph] = upickle.macroRW
 
   /**
-   * We perform a depth-first traversal of the import graph of `.sc` files,
+   * We perform a depth-first traversal of the import graph of `.mill` files,
    * starting from `build.mill`, collecting the information necessary to
    * instantiate the [[MillRootModule]]
    */
@@ -39,7 +39,8 @@ object FileImportGraph {
       projectRoot: os.Path,
       output: os.Path,
       parser: MillScalaParser,
-      walked: Seq[os.Path]
+      walked: Seq[os.Path],
+      colored: Boolean
   ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[String]
@@ -56,7 +57,7 @@ object FileImportGraph {
             catch { case e: RuntimeException => Left(e.getMessage) }
 
         if (s.last.endsWith(".yaml")) seenScripts(s) = os.read(s)
-        else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName)) match {
+        else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName, colored)) match {
           case Right((prefix, pkgs, stmts)) =>
             val importSegments = pkgs.mkString(".")
 
@@ -91,9 +92,10 @@ object FileImportGraph {
 
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
-    processScript(projectRoot / foundRootBuildFileName, useDummy)
+    val foundRootBuildFile = projectRoot / foundRootBuildFileName
+    processScript(foundRootBuildFile, useDummy)
 
-    walked.foreach(processScript(_))
+    walked.filter(_ != foundRootBuildFile).foreach(processScript(_))
 
     new FileImportGraph(seenScripts.toMap, errors.toSeq)
   }

@@ -1,0 +1,24 @@
+// Single-file scripts can depend on programmable modules. This can be useful to integrate
+// your scripts into a large project, where your scripts may make of classes and methods
+// defined in your library or application code to perform domain-specific actions that may
+// not be available in the standard library or third-party libraries.
+
+//// SNIPPET:BUILD
+package build
+import mill.*, scalalib.*
+
+object bar extends ScalaModule {
+  def scalaVersion = "3.7.1"
+  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
+}
+
+/** See Also: Foo.scala */
+
+/** Usage
+
+> ./mill Foo.scala hello
+<h1>hello</h1>
+
+*/
+
+//// SNIPPET:END

@@ -49,7 +49,7 @@ object app extends AndroidAppModule {
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"androidx.test.ext:junit:1.2.1",
       mvn"androidx.test:runner:1.6.2",
       mvn"androidx.test.espresso:espresso-core:3.5.1",
@@ -59,7 +59,7 @@ object app extends AndroidAppModule {
 
 }
 
-////SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 
@@ -99,7 +99,7 @@ object app extends AndroidAppModule {
 /** Usage
 
 > ./mill show app.test
-...compiling 1 Java source...
+...compiling 2 Java sources to out/app/test/compile.dest/classes...
 
 > cat out/app/test/testForked.dest/out.json
 ["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]

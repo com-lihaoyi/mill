@@ -1,0 +1,25 @@
+// This example demonstrates how to publish a Mill project to to Maven Central. To
+// do so, your module must extend `mill.scalalib.PublishModule`, and configure the
+// publishing metadata shown below:
+
+/** See Also: build.mill.yaml */
+
+// You can publish this locally to your `~/.ivy2` filesystem artifact repository via:
+//// SNIPPET:LAST
+/** Usage
+> ./mill publishLocal
+Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...
+
+*/
+
+//// SNIPPET:END
+// Apart from publishing locally, you can also publish this project to
+// Sonatype Maven Central via:
+//
+// [source,console]
+// ----
+// > ./mill mill.javalib.SonatypeCentralPublishModule/
+// ----
+//
+// For more details on packaging and publishing in Mill, see
+// xref:{language-small}lib/publishing.adoc[{language} Packaging & Publishing]

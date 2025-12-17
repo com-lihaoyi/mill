@@ -1,0 +1,14 @@
+//// SNIPPET:USAGE
+/** See Also: Qux.kt */
+/** See Also: mill-build/src/LineCountKotlinModule.scala */
+
+/** Usage
+
+> ./mill Qux.kt
+...
+Line Count: 13
+
+> ./mill show Qux.kt:lineCount
+13
+*/
+//// SNIPPET:END

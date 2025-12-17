@@ -4,6 +4,7 @@ import mill.api.daemon.*
 import scala.collection.mutable
 
 trait EvaluatorApi extends AutoCloseable {
+  private[mill] def scriptModuleInit: Any = null
   def evaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
@@ -47,17 +48,6 @@ trait ExecutionResultsApi {
 
   def values: Seq[Val]
 }
-object ExecutionResultsApi {
-  private[mill] def formatFailing(evaluated: ExecutionResultsApi): String = {
-    (for ((k, fs) <- evaluated.transitiveFailingApi)
-      yield {
-        val fss = fs match {
-          case ExecResult.Failure(t) => t
-          case ex: ExecResult.Exception => ex.toString
-        }
-        val keyPrefix = Logger.formatPrefix(evaluated.transitivePrefixesApi.getOrElse(k, Nil))
-        s"$keyPrefix$k $fss"
-      }).mkString("\n")
-  }
+object ExecutionResultsApi { // stub for binary compatibility
 
 }

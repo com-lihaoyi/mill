@@ -9,6 +9,8 @@ object app extends Module {
   trait Common extends ScalaModule {
     def moduleDir = super.moduleDir / os.up
     def scalaVersion = "3.4.0"
+    // force this on for testing even though there's only one file
+    def zincIncrementalCompilation = true
   }
 
   object jvm extends Common

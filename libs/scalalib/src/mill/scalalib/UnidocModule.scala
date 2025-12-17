@@ -2,7 +2,7 @@ package mill.scalalib
 import mill.*
 import mill.api.BuildCtx
 import mill.javalib.api.JvmWorkerUtil
-import mill.javalib.api.internal.ZincScaladocJar
+import mill.javalib.api.internal.ZincOp
 
 /**
  * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] task that
@@ -12,10 +12,10 @@ import mill.javalib.api.internal.ZincScaladocJar
 trait UnidocModule extends ScalaModule {
 
   /** The URL of the source code of this module. */
-  def unidocSourceUrl: T[Option[String]] = None
+  def unidocSourceUrl: T[Option[String]] = Option.empty
 
   /** Passed as `-doc-version` to scaladoc. */
-  def unidocVersion: T[Option[String]] = None
+  def unidocVersion: T[Option[String]] = Option.empty
 
   def unidocCompileClasspath: T[Seq[PathRef]] = Task {
     Seq(
@@ -104,13 +104,16 @@ trait UnidocModule extends ScalaModule {
           |""".stripMargin
     )
 
-    jvmWorker().internalWorker().scaladocJar(
-      ZincScaladocJar(
+    val worker = jvmWorker().internalWorker()
+    worker.apply(
+      ZincOp.ScaladocJar(
         scalaVersion(),
         scalaOrganization(),
         scalaDocClasspath(),
         scalacPluginClasspath(),
-        options ++ unidocSourceFiles0.map(_.path.toString)
+        scalaCompilerBridge(),
+        options ++ unidocSourceFiles0.map(_.path.toString),
+        workDir = Task.dest
       ),
       javaHome().map(_.path)
     ) match {

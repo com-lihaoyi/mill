@@ -9,7 +9,8 @@ import scala.util.chaining.given
 import ch.epfl.scala.bsp4j as b
 import mill.api.BuildInfo
 import mill.bsp.Constants
-import mill.constants.{OutFiles, OutFolderMode}
+import mill.constants.OutFolderMode
+import mill.constants.OutFiles.OutFiles
 import mill.integration.BspServerTestUtil.*
 import mill.javalib.testrunner.TestRunnerUtils
 import mill.testkit.UtestIntegrationTestSuite
@@ -279,29 +280,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
           .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIds))
           .get()
 
-        val expectedScalaSemDbs = Map(
-          os.sub / "hello-scala" -> Seq(
-            os.sub / "hello-scala/src/Hello.scala.semanticdb"
-          ),
-          os.sub / "hello-scala/test" -> Seq(
-            os.sub / "hello-scala/test/src/HelloTest.scala.semanticdb"
-          ),
-          os.sub / "mill-build" -> Seq(
-            os.sub / "build.mill.semanticdb"
-          ),
-          os.sub / "mill-build/mill-build" -> Seq(
-            os.sub / "mill-build/build.mill.semanticdb"
-          ),
-          os.sub / "diag" -> Seq(
-            os.sub / "diag/src/DiagCheck.scala.semanticdb"
-          ),
-          os.sub / "errored/exception" -> Nil,
-          os.sub / "errored/compilation-error" -> Nil,
-          os.sub / "delayed" -> Nil,
-          os.sub / "diag/many" -> Nil,
-          os.sub / "sourcesNeedCompile" -> Nil
-        )
-
         {
           // check that semanticdbs are generated for Scala modules
           val semDbs = scalacOptionsResult
@@ -317,11 +295,24 @@ object BspServerTests extends UtestIntegrationTestSuite {
               shortId -> semDbs
             }
             .toMap
-          if (expectedScalaSemDbs != semDbs) {
-            pprint.err.log(expectedScalaSemDbs)
-            pprint.err.log(semDbs)
-          }
-          assert(expectedScalaSemDbs == semDbs)
+
+          assertGoldenLiteral(
+            semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
+            Map(
+              "diag/many" -> List(),
+              "mill-build" -> Seq("build.mill.semanticdb"),
+              "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
+              "scripts/folder1/script.scala" -> Seq(),
+              "errored/exception" -> List(),
+              "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
+              "diag" -> Seq("diag/src/DiagCheck.scala.semanticdb"),
+              "delayed" -> List(),
+              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb"),
+              "errored/compilation-error" -> List(),
+              "scripts/foldershared/script.scala" -> Seq(),
+              "sourcesNeedCompile" -> Seq()
+            )
+          )
         }
 
         {
@@ -342,23 +333,35 @@ object BspServerTests extends UtestIntegrationTestSuite {
               shortId -> semDbs
             }
             .toMap
-          val expectedJavaSemDbs = expectedScalaSemDbs ++ Seq(
-            os.sub / "app" -> Seq(
-              os.sub / "app/src/App.java.semanticdb"
-            ),
-            os.sub / "app/test" -> Nil,
-            os.sub / "hello-kotlin" -> Nil,
-            os.sub / "lib" -> Nil,
-            os.sub / "hello-java" -> Nil,
-            os.sub / "hello-java/test" -> Seq(
-              os.sub / "hello-java/test/src/HelloJavaTest.java.semanticdb"
+
+          assertGoldenLiteral(
+            semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
+            Map(
+              "scripts/folder2/FooTest.java" -> Seq("scripts/folder2/FooTest.java.semanticdb"),
+              "mill-build" -> Seq("build.mill.semanticdb"),
+              "hello-kotlin" -> Seq(),
+              "hello-java" -> Seq(),
+              "hello-java/test" -> Seq("hello-java/test/src/HelloJavaTest.java.semanticdb"),
+              "app" -> Seq("app/src/App.java.semanticdb"),
+              "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
+              "scripts/folder1/script.scala" -> Seq(),
+              "errored/exception" -> List(),
+              "scripts/ignored-folder-2/negated-not-ignored.java" -> Seq(),
+              "app/test" -> Seq(),
+              "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
+              "scripts/folder2/Foo.java" -> Seq("scripts/folder2/Foo.java.semanticdb"),
+              "diag/many" -> List(),
+              "diag" -> Seq("diag/src/DiagCheck.scala.semanticdb"),
+              "delayed" -> List(),
+              "lib" -> Seq(),
+              "scripts/foldershared/Foo.java" -> Seq("scripts/foldershared/Foo.java.semanticdb"),
+              "errored/compilation-error" -> List(),
+              "scripts/foldershared/script.scala" -> Seq(),
+              "sourcesNeedCompile" -> Seq(),
+              "scripts" -> Seq(),
+              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb")
             )
           )
-          if (expectedJavaSemDbs != semDbs) {
-            pprint.err.log(expectedJavaSemDbs)
-            pprint.err.log(semDbs)
-          }
-          assert(expectedJavaSemDbs == semDbs)
         }
       }
     }
@@ -420,12 +423,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
         delayedCompileFuture.get()
       }
 
+      val workspaceUri = tester.workspacePath.toURI.toASCIIString.stripSuffix("/") + "/"
       val logs = stderr.toString
         .linesWithSeparators
-        .filter(_.startsWith("["))
+        .filter { case s"$d] $_" if d.forall(_ != ' ') => true; case _ => false }
+        .map(_.replace(workspaceUri, "file:///workspace/"))
         .mkString
 
-      val expectedCancelledLine = "[7-compile] buildTargetCompile was cancelled"
+      val expectedCancelledLine = "7-compile] buildTargetCompile was cancelled"
 
       assert(logs.linesIterator.contains(expectedCancelledLine))
 
@@ -434,12 +439,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
         snapshotsPath / "logging",
         ignoreLine = {
           // ignore watcher logs
-          val watchGlob = TestRunnerUtils.matchesGlob("[bsp-watch] *")
+          val watchGlob = TestRunnerUtils.matchesGlob("bsp-watch] *")
           // ignoring compilation warnings that might go away in the future
-          val warnGlob = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
-          val waitingGlob = TestRunnerUtils.matchesGlob("[*] Another Mill process is running *")
+          val waitingGlob = TestRunnerUtils.matchesGlob("*] Another Mill process is running *")
           s =>
-            watchGlob(s) || warnGlob(s) || waitingGlob(s) ||
+            watchGlob(s) || waitingGlob(s) ||
+              // These can happen in different orders due to filesystem ordering, not stable to
+              // assert against
+              s.contains("Skipping script discovery") ||
               // Ignoring this one, that sometimes comes out of order.
               // If the request hasn't been cancelled, we'd see extra lines making the
               // test fail anyway.

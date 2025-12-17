@@ -12,14 +12,17 @@ import mill.javalib.*
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
 import upickle.*
-import scala.concurrent.duration.*
+import mainargs.Flag
 
+import scala.concurrent.duration.*
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
+
 import scala.util.Properties.isWin
+import scala.util.matching.Regex
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -118,6 +121,17 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
+  override def androidBuildConfigMembers: T[Seq[String]] = Task {
+    val buildType = if (androidIsDebug()) "debug" else "release"
+    Seq(
+      s"boolean DEBUG = ${androidIsDebug()}",
+      s"""String BUILD_TYPE = "$buildType"""",
+      s"""String APPLICATION_ID = "$androidApplicationId"""",
+      s"""int VERSION_CODE = ${androidVersionCode()}""",
+      s"""String VERSION_NAME = "${androidVersionName()}""""
+    )
+  }
+
   @internal
   override def bspCompileClasspath(
       needsToMergeResourcesIntoCompileDest: Boolean
@@ -134,12 +148,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
   )
 
   /**
-   * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
+   * Collect files from META-INF folder of [[androidPackagedDeps]] (not META-INF of aar in case of Android library).
+   * to include in the apk
    */
   def androidLibsClassesJarMetaInf: T[Seq[PathRef]] = Task {
     // ^ not the best name for the method, but this is to distinguish between META-INF of aar and META-INF
     // of classes.jar included in aar
-    compileClasspath()
+    androidPackagedDeps()
       .filter(ref =>
         ref.path.ext == "jar" &&
           ref != androidSdkModule().androidJarPath()
@@ -178,7 +193,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
         }
       })
       .map(PathRef(_))
-      .toSeq
   }
 
   /**
@@ -189,7 +203,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
     Task { Seq.empty[AndroidPackageableExtraFile] }
 
-  def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
+  def androidPackagedMetaInfFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
     def metaInfRoot(p: os.Path): os.Path = {
       var current = p
       while (!current.endsWith(os.rel / "META-INF")) {
@@ -221,6 +235,17 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
   }
 
+  override def androidAaptNonFinalIds: T[Boolean] = Task {
+    false
+  }
+
+  /**
+   * Regex patterns of files to be excluded from packaging into the APK.
+   */
+  def androidExcludePackageFiles: T[Seq[Regex]] = Task {
+    Seq.empty[Regex]
+  }
+
   /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
@@ -230,16 +255,20 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val unsignedApk = Task.dest / "app.unsigned.apk"
 
     os.copy(androidLinkedResources().path / "apk/res.apk", unsignedApk)
-    val dexFiles = os.walk(androidDex().path)
-      .filter(_.ext == "dex")
-      .map(os.zip.ZipSource.fromPath)
+
+    val androidDexPath = androidDex().path
+    os.zip(
+      unsignedApk,
+      Seq(androidDexPath),
+      excludePatterns = androidExcludePackageFiles()
+    )
 
     def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
       os.zip.ZipSource.fromPathTuple(
         (androidPackageableExtraFile.source.path, androidPackageableExtraFile.destination.asSubPath)
       )
 
-    val metaInf = androidPackageMetaInfoFiles().map(asZipSource)
+    val metaInf = androidPackagedMetaInfFiles().map(asZipSource)
 
     val nativeDeps = androidPackageableNativeDeps().map(asZipSource)
 
@@ -258,8 +287,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // Example of app-metadata.properties:
     // appMetadataVersion=1.1
     // androidGradlePluginVersion=8.7.2
-    os.zip(unsignedApk, dexFiles)
-    os.zip(unsignedApk, metaInf)
+
+    // Add META-INF if it does not already exist
+    if (!os.exists(androidDexPath / "META-INF"))
+      os.zip(unsignedApk, metaInf)
     os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
@@ -271,8 +302,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
     val debugManifest = Seq(androidDebugManifestLocation()).filter(pr => os.exists(pr.path))
-    val libManifests = androidUnpackArchives().flatMap(_.manifest)
-    debugManifest ++ libManifests
+    super.androidMergeableManifests() ++ debugManifest
   }
 
   override def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
@@ -571,10 +601,15 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   /**
    * Starts the android emulator and waits until it is booted
-   *
+   * @param excludeDefaultArgs Whether to exclude the default arguments for starting the emulator.
+   *                           If set, needs to come first before extraArgs.
+   * @param extraArgs Additional arguments to pass to the emulator
    * @return The log line that indicates the emulator is ready
    */
-  def startAndroidEmulator(): Command[String] = Task.Command(exclusive = true) {
+  def startAndroidEmulator(
+      excludeDefaultArgs: Flag,
+      extraArgs: String*
+  ): Command[String] = Task.Command(exclusive = true) {
     val ciSettings = Seq(
       "-no-snapshot-save",
       "-no-window",
@@ -588,12 +623,20 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val settings = if (sys.env.getOrElse("GITHUB_ACTIONS", "false") == "true")
       ciSettings
     else Seq.empty[String]
-    val command = Seq(
-      androidSdkModule().emulatorExe().path.toString(),
+
+    val defaultArgs = Seq(
       "-delay-adb",
       "-port",
-      androidEmulatorPort
-    ) ++ settings ++ Seq("-avd", androidVirtualDeviceIdentifier)
+      androidEmulatorPort,
+      "-no-metrics",
+      "-avd",
+      androidVirtualDeviceIdentifier
+    )
+
+    val command = Seq(
+      androidSdkModule().emulatorExe().path.toString()
+    ) ++
+      Option.when(!excludeDefaultArgs.value)(defaultArgs).toSeq.flatten ++ extraArgs ++ settings
 
     Task.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
 
@@ -846,7 +889,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   private def androidD8Dex
       : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
 
-    val outPath = Task.dest
+    val outPath = Task.dest / "dex-output"
+    os.makeDir.all(outPath)
 
     val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
 
@@ -893,9 +937,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
   trait AndroidAppInstrumentedTests extends AndroidTestModule, AndroidAppModule {
 
     override def androidIsDebug: T[Boolean] = Task { true }
-
-    override def moduleDeps: Seq[JavaModule] = Seq.empty
-    override def compileModuleDeps: Seq[JavaModule] = Seq(outer)
 
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
@@ -962,7 +1003,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     private def androidxTestManifests: Task[Seq[PathRef]] = Task {
-      androidUnpackArchives().flatMap {
+      androidUnpackRunArchives().flatMap {
         unpackedArchive =>
           unpackedArchive.manifest.map(_.path)
       }.filter {
@@ -1040,8 +1081,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val device = androidTestInstall().apply()
 
       val instrumentOutput = os.proc(
-        (
-          androidSdkModule().adbExe().path,
+        Seq(
+          androidSdkModule().adbExe().path.toString,
           "-s",
           device,
           "shell",
@@ -1070,7 +1111,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     def androidTransitiveTestClasspath: T[Seq[PathRef]] = Task {
       Task.traverse(transitiveRunModuleDeps) {
         m =>
-          Task.Anon(m.localRunClasspath())
+          m.localRunClasspath
       }().flatten
     }
 
@@ -1082,10 +1123,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
         .filter(os.isFile)
         .filter(_.ext == "class")
         .map(PathRef(_))
-    }
-
-    override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      androidResolvedRunMvnDeps()
     }
 
     /**

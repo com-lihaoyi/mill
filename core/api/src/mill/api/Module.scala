@@ -3,7 +3,7 @@ package mill.api
 import mill.api.daemon.internal.{ModuleApi, internal}
 import mill.api.internal.{OverrideMapping, Reflect}
 import mill.api.Task.Simple
-
+import upickle.core.BufferedValue
 import scala.reflect.ClassTag
 
 /**
@@ -16,7 +16,7 @@ import scala.reflect.ClassTag
  * the concrete instance.
  */
 trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
-  protected implicit def moduleNestedCtx: ModuleCtx.Nested = moduleCtx
+  protected[mill] implicit def moduleNestedCtx: ModuleCtx.Nested = moduleCtx
     .withMillSourcePath(moduleDir)
     .withSegments(moduleSegments)
     .withEnclosingModule(this)
@@ -44,6 +44,9 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
 
   private[mill] val moduleLinearized: Seq[Class[?]] =
     OverrideMapping.computeLinearization(this.getClass)
+
+  private[mill] def moduleDynamicBuildOverrides: Map[String, internal.Located[BufferedValue]] =
+    Map()
 }
 
 object Module {

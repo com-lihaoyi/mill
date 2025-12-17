@@ -1,0 +1,123 @@
+Module dependencies of example:
+  lib
+Module dependencies of lib:
+Module dependencies of lib.test:
+  lib
+{
+  "example.repositories": [],
+  "lib.repositories": [],
+  "lib.test.repositories": []
+}
+{
+  "example.jvmId": "zulu:24",
+  "lib.jvmId": "zulu:17"
+}
+{
+  "example.mvnDeps": [
+    "ch.randelshofer:fastdoubleparser:2.0.1"
+  ],
+  "lib.mvnDeps": [],
+  "lib.test.mvnDeps": [
+    "org.assertj:assertj-core:3.27.3",
+    "org.junit.jupiter:junit-jupiter:5.13.1"
+  ]
+}
+{
+  "example.compileMvnDeps": [],
+  "lib.compileMvnDeps": [],
+  "lib.test.compileMvnDeps": []
+}
+{
+  "example.runMvnDeps": [],
+  "lib.runMvnDeps": [],
+  "lib.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ]
+}
+{
+  "example.bomMvnDeps": [],
+  "lib.bomMvnDeps": [],
+  "lib.test.bomMvnDeps": []
+}
+{
+  "example.javacOptions": [
+    "-source",
+    "24",
+    "-target",
+    "24"
+  ],
+  "lib.javacOptions": [
+    "--release",
+    "17",
+    "-Xlint:all",
+    "-Werror"
+  ],
+  "lib.test.javacOptions": [
+    "--release",
+    "17",
+    "-Xlint:all",
+    "-Werror",
+    "-source",
+    "24",
+    "-target",
+    "24",
+    "-parameters"
+  ]
+}
+null
+{
+  "description": "Lightning-fast, dependency-free CSV library that conforms to RFC standards.",
+  "organization": "de.siegmar",
+  "url": "https://fastcsv.org",
+  "licenses": [
+    {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  ],
+  "versionControl": {
+    "browsableRepository": "https://github.com/osiegmar/FastCSV",
+    "connection": "scm:git:https://github.com/osiegmar/FastCSV.git"
+  },
+  "developers": [
+    {
+      "id": "osiegmar",
+      "name": "Oliver Siegmar"
+    }
+  ]
+}
+"4.0.0"
+null
+{}
+{
+  "lib.errorProneVersion": "2.38.0",
+  "lib.test.errorProneVersion": "2.38.0"
+}
+{
+  "lib.errorProneDeps": [
+    "com.google.errorprone:error_prone_core:2.38.0",
+    "com.uber.nullaway:nullaway:0.12.7"
+  ],
+  "lib.test.errorProneDeps": [
+    "com.google.errorprone:error_prone_core:2.38.0",
+    "com.uber.nullaway:nullaway:0.12.7"
+  ]
+}
+{
+  "lib.errorProneOptions": [
+    "-Xep:NullAway:ERROR",
+    "-XepOpt:NullAway:AnnotatedPackages=de.siegmar.fastcsv"
+  ],
+  "lib.test.errorProneOptions": [
+    "-XepCompilingTestOnlyCode",
+    "-Xep:NullAway:OFF"
+  ]
+}
+
+
+
+
+
+
+false
+false

@@ -45,7 +45,7 @@ trait PublishModule extends JavaModule { outer =>
    *
    * @see [[https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Project_Inheritance Project Inheritance]]
    */
-  def pomParentProject: T[Option[Artifact]] = None
+  def pomParentProject: T[Option[Artifact]] = Option.empty
 
   /**
    * Configuration for the `pom.xml` metadata file published with this module

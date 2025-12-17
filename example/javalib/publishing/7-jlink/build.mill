@@ -1,0 +1,56 @@
+// This example illustrates how to use Mill to generate a runtime image using the `jlink` tool.
+// Starting with JDK 9, `jlink` bundles Java app code with a stripped-down version of the JVM.
+
+package build
+import mill.*, javalib.*
+import mill.javalib.Assembly.*
+import mill.scalalib.JlinkModule
+
+object foo extends JavaModule, JlinkModule {
+  def jlinkModuleName: T[String] = Task { "foo" }
+  def jlinkModuleVersion: T[Option[String]] = Task { Option("1.0") }
+  def jlinkCompressLevel: T[String] = Task { "2" }
+}
+//
+// Most of the work is done by the `trait JlinkModule` in two steps:
+//
+// * It uses the `jmod` tool to create a `jlink.jmod` file for the main Java module.
+// The main Java module is typically the module containing the `mainClass`.
+//
+// If your build file doesn't explicitly specify a `mainClass`, `JlinkModule` will infer it from `JavaModule`, which is its parent trait.
+// You can explicitly specify a `mainClass` like so in your build file:
+//
+// [source,scala]
+// ----
+// def mainClass: T[Option[String]] = { Some("com.foo.app.Main") }
+// ----
+
+// * It then uses the `jlink` tool, to link the previously created `jlink.jmod` with a runtime image.
+
+// With respect to the `jlinkCompressLevel` option, on recent builds of OpenJDK and its descendants,
+// `jlink` will accept [`0`, `1`, `2`] but it will issue a deprecation warning.
+// Valid values on OpenJDK range between: ["zip-0" - "zip-9"].
+
+// NOTE: The version of `jlink` that ships with the Oracle JDK will only accept [`0`, `1`, `2`]
+// as valid values for compression, with `0` being "no compression"
+// and 2 being "ZIP compression".
+
+// To use a specific JDK, first set your `JAVA_HOME` environment variable prior to running the build.
+
+// ----
+// export JAVA_HOME=/Users/mac/.sdkman/candidates/java/17.0.9-oracle/
+// ----
+
+/** Usage
+
+
+> ./mill foo.jlinkAppImage
+
+> ./mill show foo.jlinkAppImage
+".../out/foo/jlinkAppImage.dest/jlink-runtime"
+
+> ./out/foo/jlinkAppImage.dest/jlink-runtime/bin/jlink
+... foo.Bar main
+INFO: Hello World!
+
+*/

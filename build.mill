@@ -1,6 +1,6 @@
-//| mill-version: 1.0.6
+//| mill-version: 1.1.0-RC3-56-9cb653
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
-//| mill-opts: ["--jobs=0.5C"]
+//| mill-opts: ["--jobs=0.5C", "-DMILL_ENABLE_STATIC_CHECKS=true"]
 
 package build
 
@@ -69,12 +69,15 @@ def millDownloadUrlCurrent = Task {
 def millBinPlatform: T[String] = Task {
   val tag = millLastTag()
   tag match {
-    case s"$_-M$_" | s"$_-RC$_" => tag
+    case s"$_.0.0-M$_" | s"$_.0.0-RC$_" => tag
     case tag => tag.split('.').head
   }
 }
 
-def millJvmVersion = Task.Source(BuildCtx.workspaceRoot / "default-mill-jvm-version")
+def defaultMillJvmVersion0 = Task.Source(BuildCtx.workspaceRoot / "default-mill-jvm-version")
+def defaultMillJvmVersion = Task {
+  os.read(defaultMillJvmVersion0().path).trim()
+}
 
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
@@ -193,8 +196,6 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.TestDeps.scalaTest,
   Deps.TestDeps.zioTest,
   Deps.acyclic,
-  Deps.scalacScoverage2Plugin,
-  mvn"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}",
   mvn"io.get-coursier.jvm.indices:index-darwin-arm64:${Deps.coursierJvmIndexVersion}"
 ) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.updateable
 

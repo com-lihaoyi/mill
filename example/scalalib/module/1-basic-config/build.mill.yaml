@@ -1,0 +1,25 @@
+extends: [mill.scalalib.ScalaModule]
+scalaVersion: 2.13.16
+mvnDeps:
+- com.lihaoyi::scalatags:0.13.1
+- com.lihaoyi::os-lib:0.11.4
+
+# Add a custom maven repository URL
+repositories: [https://oss.sonatype.org/content/repositories/releases]
+
+# Set an explicit main class
+mainClass: foo.Foo2
+
+# Pin a specific JVM version, supports >=11
+jvmId: 11
+# Optionally specify the distribution: temurin, zulu, corretto, graalvm-community, etc.
+# jvmId: temurin:11
+
+# Add an additional source folder and resource folder, in addition to the default one
+sources: [./src, ./custom-src]
+resources: [./resources, ./custom-resources]
+
+# Configure compiler and runtime options and env vars
+scalacOptions: [-deprecation, -Xfatal-warnings]
+forkArgs: [-Dmy.custom.property=my-prop-value]
+forkEnv: { MY_CUSTOM_ENV: my-env-value }

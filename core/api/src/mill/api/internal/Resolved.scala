@@ -3,8 +3,18 @@ package mill.api.internal
 import mill.api.daemon.Segments
 
 private[mill] sealed trait Resolved {
-  def segments: Segments
+  def rootModule: RootModule0
+
+  /**
+   * What segments selector was used to resolve this root module. Might not be
+   * `rootModule.moduleSegments` as it might be an alias that we want to preserve
+   */
+  def rootModulePrefix: String
+  def taskSegments: Segments
   def cls: Class[?]
+  def fullSegments: Segments =
+    (if (rootModulePrefix.isEmpty) Segments() else Segments.labels(rootModulePrefix)) ++
+      taskSegments
 }
 
 private[mill] object Resolved {
@@ -18,12 +28,27 @@ private[mill] object Resolved {
     override def compare(x: Resolved, y: Resolved): Int = {
       val keyX = orderingKey(x)
       val keyY = orderingKey(y)
-      if (keyX == keyY) Segments.ordering.compare(x.segments, y.segments)
+      if (keyX == keyY) Segments.ordering.compare(x.fullSegments, y.fullSegments)
       else Ordering.Int.compare(keyX, keyY)
     }
   }
 
-  case class Module(segments: Segments, cls: Class[?]) extends Resolved
-  case class Command(segments: Segments, cls: Class[?]) extends Resolved
-  case class NamedTask(segments: Segments, cls: Class[?]) extends Resolved
+  case class Module(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      taskSegments: Segments,
+      cls: Class[?]
+  ) extends Resolved
+  case class Command(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      taskSegments: Segments,
+      cls: Class[?]
+  ) extends Resolved
+  case class NamedTask(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      taskSegments: Segments,
+      cls: Class[?]
+  ) extends Resolved
 }

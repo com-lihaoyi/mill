@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
-import mill.constants.OutFiles.millProfile
+import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{JsonArrayLogger, PrefixLogger}
 
@@ -13,7 +13,7 @@ import scala.concurrent.*
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
-private[mill] case class Execution(
+case class Execution(
     baseLogger: Logger,
     profileLogger: JsonArrayLogger.Profile,
     workspace: os.Path,
@@ -31,6 +31,7 @@ private[mill] case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
+    staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean
 ) extends GroupExecution with AutoCloseable {
 
@@ -52,6 +53,7 @@ private[mill] case class Execution(
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
+      staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean
   ) = this(
     baseLogger,
@@ -71,6 +73,7 @@ private[mill] case class Execution(
     exclusiveSystemStreams,
     getEvaluator,
     offline,
+    staticBuildOverrideFiles,
     enableTicker
   )
 
@@ -139,7 +142,17 @@ private[mill] case class Execution(
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
       def formatHeaderPrefix(countMsg: String, keySuffix: String) =
-        s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
+        s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), logger.prompt.errorColor)}"
+
+      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
+      val downstreamEdges: Map[Task[?], Set[Task[?]]] =
+        tasksTransitive.flatMap(t => t.inputs.map(_ -> t)).groupMap(_._1)(_._2)
+
+      val allExclusiveCommands = tasksTransitive.filter(_.isExclusiveCommand)
+      val downstreamOfExclusive =
+        mill.internal.SpanningForest.breadthFirst[Task[?]](allExclusiveCommands)(t =>
+          downstreamEdges.getOrElse(t, Set())
+        )
 
       def evaluateTerminals(
           terminals: Seq[Task[?]],
@@ -160,9 +173,9 @@ private[mill] case class Execution(
           val group = plan.sortedGroups.lookupKey(terminal)
           val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
 
-          if (!terminal.isExclusiveCommand && exclusiveDeps.nonEmpty) {
+          if (terminal.asCommand.isEmpty && downstreamOfExclusive.contains(terminal)) {
             val failure = ExecResult.Failure(
-              s"Non-exclusive task ${terminal} cannot depend on exclusive task " +
+              s"Non-Command task ${terminal} cannot depend on exclusive command " +
                 exclusiveDeps.mkString(", ")
             )
             val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
@@ -170,7 +183,15 @@ private[mill] case class Execution(
               .toMap
 
             futures(terminal) = Future.successful(
-              Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false, Nil))
+              Some(GroupExecution.Results(
+                newResults = taskResults,
+                newEvaluated = group.toSeq,
+                cached = false,
+                inputsHash = -1,
+                previousInputsHash = -1,
+                valueHashChanged = false,
+                serializedPaths = Nil
+              ))
             )
           } else {
             futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -218,11 +239,11 @@ private[mill] case class Execution(
                       testReporter = testReporter,
                       logger = contextLogger,
                       deps = deps,
-                      classToTransitiveClasses,
-                      allTransitiveClassMethods,
-                      forkExecutionContext,
-                      exclusive,
-                      upstreamPathRefs
+                      classToTransitiveClasses = classToTransitiveClasses,
+                      allTransitiveClassMethods = allTransitiveClassMethods,
+                      executionContext = forkExecutionContext,
+                      exclusive = exclusive,
+                      upstreamPathRefs = upstreamPathRefs
                     )
 
                     // Count new failures - if there are upstream failures, tasks should be skipped, not failed
@@ -274,20 +295,14 @@ private[mill] case class Execution(
         terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       }
 
-      val tasks0 = indexToTerminal.filter {
-        case _: Task.Command[_] => false
-        case _ => true
-      }
-
-      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(tasks0)).toSet
-      val (tasks, leafExclusiveCommands) = indexToTerminal.partition {
-        case t: Task.Named[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
+      val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
+        case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
         case _ => !serialCommandExec
       }
 
       // Run all non-command tasks according to the threads
       // given but run the commands in linear order
-      val nonExclusiveResults = evaluateTerminals(tasks, exclusive = false)
+      val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
@@ -296,11 +311,11 @@ private[mill] case class Execution(
       val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
       ExecutionLogs.logInvalidationTree(
-        interGroupDeps,
-        indexToTerminal,
-        outPath,
-        uncached,
-        changedValueHash
+        interGroupDeps = interGroupDeps,
+        indexToTerminal = indexToTerminal,
+        outPath = outPath,
+        uncached = uncached,
+        changedValueHash = changedValueHash
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
@@ -336,14 +351,14 @@ private[mill] case class Execution(
   }
 }
 
-private[mill] object Execution {
+object Execution {
 
   /**
    * Format a failed count as a string to be used in status messages.
    * Returns ", N failed" if count > 0, otherwise an empty string.
    */
-  def formatFailedCount(count: Int): String = {
-    if (count > 0) s", $count failed" else ""
+  def formatFailedCount(count: Int, color: String => String): String = {
+    if (count > 0) s", " + color(s"$count failed") else ""
   }
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])

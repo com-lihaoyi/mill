@@ -4,33 +4,44 @@
 :language: Java
 :language-small: java
 :language-ext: java
+:compat-module: MavenModule
+:compat-test-module: MavenTests
 
 include::partial$Intro_Header.adoc[]
 
-== Simple Java Module
+== Declarative Configuration
 
-include::partial$example/javalib/basic/1-simple.adoc[]
+include::partial$example/javalib/basic/3-simple.adoc[]
 
-== Multiple Java Modules
+=== Multi-Module Projects
 
-include::partial$example/javalib/basic/2-module-deps.adoc[]
+include::partial$example/javalib/basic/4-module-deps.adoc[]
 
-== Programmatic Configuration
+=== Maven Compatible Modules
 
-include::partial$example/javalib/basic/3-programmatic.adoc[]
+include::partial$example/javalib/basic/5-compat-modules.adoc[]
 
-== Custom Build Logic
 
-include::partial$example/javalib/basic/4-custom-build-logic.adoc[]
+== Single-File Scripts
 
-== Multi-Module Project
+include::partial$example/javalib/basic/1-script.adoc[]
 
-include::partial$example/javalib/basic/5-multi-module.adoc[]
+== Programmable Configuration
 
-== Maven-Compatible Modules
+include::partial$example/javalib/basic/6-programmable.adoc[]
 
-include::partial$example/javalib/basic/6-compat-modules.adoc[]
+=== Custom Build Logic
+
+include::partial$example/javalib/basic/7-custom-build-logic.adoc[]
+
+=== Programmable Multi-Module Project
+
+include::partial$example/javalib/basic/8-multi-module.adoc[]
+
+=== Programmable Compatibility Modules
+
+include::partial$example/javalib/basic/9-programmable-compat.adoc[]
 
 == Realistic Java Example Project
 
-include::partial$example/javalib/basic/7-realistic.adoc[]
+include::partial$example/javalib/basic/10-realistic.adoc[]

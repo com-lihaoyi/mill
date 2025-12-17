@@ -1,0 +1,100 @@
+package build
+import mill.*, javalib.*
+
+object `package` extends MicronautModule {
+  def micronautVersion = "4.4.3"
+  def runMvnDeps = Seq(
+    mvn"ch.qos.logback:logback-classic:1.5.3",
+    mvn"com.h2database:h2:2.2.224"
+  )
+
+  def mvnDeps = Seq(
+    mvn"io.micronaut:micronaut-http-server-netty",
+    mvn"io.micronaut.serde:micronaut-serde-jackson",
+    mvn"io.micronaut.data:micronaut-data-jdbc",
+    mvn"io.micronaut.sql:micronaut-jdbc-hikari",
+    mvn"io.micronaut.validation:micronaut-validation",
+    mvn"io.micronaut.views:micronaut-views-htmx",
+    mvn"io.micronaut.views:micronaut-views-thymeleaf",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1",
+    mvn"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
+  )
+
+  object test extends MavenTests, TestModule.Junit5 {
+
+    override def bomMvnDeps = Seq(
+      mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
+    )
+
+    def mvnDeps = Seq(
+      mvn"com.h2database:h2:2.2.224",
+      mvn"io.micronaut:micronaut-http-client",
+      mvn"io.micronaut.test:micronaut-test-junit5"
+    )
+
+    // Micronaut test not compatible with running in parallel
+    def testParallelism = false
+  }
+}
+
+trait MicronautModule extends MavenModule {
+  def micronautVersion: String
+
+  override def bomMvnDeps = Seq(
+    mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
+  )
+
+  override def annotationProcessorsMvnDeps = Seq(
+    mvn"io.micronaut.data:micronaut-data-processor",
+    mvn"io.micronaut:micronaut-http-validation",
+    mvn"io.micronaut.serde:micronaut-serde-processor",
+    mvn"io.micronaut.validation:micronaut-validation-processor",
+    mvn"io.micronaut:micronaut-inject-java"
+  )
+
+  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
+    "-Amicronaut.processing.incremental=true",
+    "-Amicronaut.processing.group=example.micronaut",
+    "-Amicronaut.processing.module=todo",
+    "-Amicronaut.processing.annotations=example.micronaut.*"
+  )
+
+  def javacOptions = super.javacOptions() ++ Seq(
+    "-parameters"
+  )
+}
+
+// This example is a more complete example using Micronaut, adapted from
+// https://github.com/sdelamo/todomvc. On top of the `MicronautModule` and
+// annotation processing demonstrated by the previous example, this example
+// shows how a "full stack" web application using Micronaut looks like:
+//
+// * Thymeleaf for HTML templating
+// * Webjars for Javascript and CSS
+// * HTMX for interactivity
+// * Database interactions using JDBC and H2
+// * Controllers, Repositories, Entities, Forms
+// * A more detailed test suite
+//
+// Again, the example `MicronautModule` is by no means complete, but it demonstrates
+// how Mill can be integrated with Micronaut's annotation processors and configuration,
+// and can be extended to cover additional functionality in future
+
+/** Usage
+
+> ./mill test
+...example.micronaut.LearnJsonTest...
+...example.micronaut.TodoTest...
+...example.micronaut.TodoItemMapperTest...
+...example.micronaut.TodoItemControllerTest...
+...example.micronaut.HtmxWebJarsTest...
+
+> ./mill runBackground
+
+> curl http://localhost:8089
+ ...<h1>todos</h1>...
+
+> ./mill clean runBackground
+
+*/

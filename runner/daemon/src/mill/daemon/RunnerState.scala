@@ -29,11 +29,21 @@ import upickle.{ReadWriter, macroRW}
  */
 @internal
 case class RunnerState(
+    // Any bootstrap module that was instantiated directly and not bound to any frame
+    // or classloader. `None` if for some reason module instantiation failed
     bootstrapModuleOpt: Option[RootModule],
+    // Frames containing metadata for each --meta-level of the bootstrapping process:
+    // classloaders, worker caches, watches, etc.
     frames: Seq[RunnerState.Frame],
+    // Any error that has taken place, indicating that the bootstrap process has failed
     errorOpt: Option[String],
-    buildFile: Option[String] = None
-) {
+    // The name of the build file, used for error reporting
+    buildFile: Option[String] = None,
+    // Any watches that take place during bootstrap module instantiation. Necessary because
+    // if bootstrap instantiation fails, there are no `frames` to hold `evalWatches`, so we
+    // need to track them separately
+    bootstrapEvalWatched: Seq[Watchable] = Nil
+) extends Watching.Result {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
       errorOpt: Option[String] = None
@@ -42,7 +52,7 @@ case class RunnerState(
   }
 
   def watched: Seq[Watchable] =
-    frames.flatMap(f => f.evalWatched ++ f.moduleWatched)
+    frames.flatMap(f => f.evalWatched ++ f.moduleWatched ++ bootstrapEvalWatched)
 }
 
 object RunnerState {
@@ -58,7 +68,8 @@ object RunnerState {
       classLoaderOpt: Option[MillURLClassLoader],
       runClasspath: Seq[PathRefApi],
       compileOutput: Option[PathRefApi],
-      evaluator: Option[EvaluatorApi]
+      evaluator: Option[EvaluatorApi],
+      buildOverrideFiles: Map[java.nio.file.Path, String]
   ) {
 
     def loggedData: Frame.Logged = {
@@ -100,7 +111,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map())
   }
 
 }

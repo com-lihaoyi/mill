@@ -3,12 +3,11 @@ package mill.testkit
 import mill.Task
 import mill.api.{BuildCtx, DummyInputStream, ExecResult, Result, SystemStreams, Val}
 import mill.api.ExecResult.OuterStack
-import mill.constants.OutFiles.millChromeProfile
-import mill.constants.OutFiles.millProfile
+import mill.constants.OutFiles.OutFiles.millChromeProfile
+import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
 import mill.internal.JsonArrayLogger
-import mill.resolve.Resolve
 
 import java.io.InputStream
 import java.io.PrintStream
@@ -118,7 +117,7 @@ class UnitTester(
     else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
 
   val execution = new mill.exec.Execution(
-    baseLogger = logger,
+    baseLogger = new mill.internal.PrefixLogger(logger, Nil),
     profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
@@ -136,26 +135,21 @@ class UnitTester(
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
-    enableTicker = false
+    enableTicker = false,
+    staticBuildOverrideFiles = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
-    execution = execution,
-    scriptModuleResolver = (_, _, _, _) => Nil
+    execution = execution
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     Evaluator.withCurrentEvaluator(evaluator) {
-      Resolve.Tasks.resolve(
-        evaluator.rootModule,
-        args,
-        SelectMode.Separated,
-        scriptModuleResolver = (_, _, _) => Nil
-      )
+      evaluator.resolveTasks(args, SelectMode.Separated)
     } match {
-      case Result.Failure(err) => Left(ExecResult.Failure(err))
+      case f: Result.Failure => Left(ExecResult.Failure(f.error))
       case Result.Success(resolved) => apply(resolved)
     }
   }

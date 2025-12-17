@@ -8,12 +8,11 @@ package kotlinlib
 
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import mill.api.Result
-import mill.api.ModuleRef
+import mill.api.{BuildCtx, ModuleRef, Result}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.JvmWorkerApi as PublicJvmWorkerApi
-import mill.javalib.api.internal.JvmWorkerApi
+import mill.javalib.api.internal.InternalJvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.{Jvm, Version}
@@ -22,7 +21,7 @@ import mill.*
 import java.io.File
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 /**
  * Core configuration required to compile a single Kotlin module
@@ -178,7 +177,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   /**
    * Compiles all the sources to JVM class files.
    */
-  override def compile: T[CompilationResult] = Task {
+  override def compile: T[CompilationResult] = Task(persistent = true) {
     kotlinCompileTask()()
   }
 
@@ -329,14 +328,15 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           javaHome = javaHome().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
-          reportOldProblems = internalReportOldProblems()
+          reportOldProblems = internalReportOldProblems(),
+          workDir = dest
         )
       }
 
       if (isMixed || isKotlin) {
         val extra = if (isJava) s"and reading ${javaSourceFiles.size} Java sources " else ""
         ctx.log.info(
-          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes} ..."
+          s"Compiling ${kotlinSourceFiles.size} Kotlin sources ${extra}to ${classes.relativeTo(BuildCtx.workspaceRoot)} ..."
         )
 
         val compilerArgs: Seq[String] = Seq(
@@ -368,7 +368,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
           }
 
         val analysisFile = dest / "kotlin.analysis.dummy"
-        os.write(target = analysisFile, data = "", createFolders = true)
+        os.write.over(target = analysisFile, data = "", createFolders = true)
 
         workerResult match {
           case Result.Success(_) =>
@@ -380,7 +380,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
               // also run Java compiler and use it's returned result
               compileJava
             }
-          case Result.Failure(reason) => Result.Failure(reason)
+          case f: Result.Failure => f
         }
       } else {
         // it's Java only
@@ -403,6 +403,17 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   }
 
   /**
+   * Module name options for the Kotlin compiler.
+   * For JVM, this is `-module-name`. For JS, this is overridden to be empty
+   * (JS uses `-Xir-module-name` set separately in the compile task).
+   */
+  protected def kotlinModuleNameOption: T[Seq[String]] = Task {
+    // Use artifactName if available, otherwise fall back to "main" for root modules
+    val moduleName = Option(artifactName()).filter(_.nonEmpty).getOrElse("main")
+    Seq("-module-name", moduleName)
+  }
+
+  /**
    * Mandatory command-line options to pass to the Kotlin compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
@@ -412,6 +423,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
     val plugins = kotlincPluginJars().map(_.path)
 
     Seq("-no-stdlib") ++
+      kotlinModuleNameOption() ++
       when(!languageVersion.isBlank)("-language-version", languageVersion) ++
       when(!kotlinkotlinApiVersion.isBlank)("-api-version", kotlinkotlinApiVersion) ++
       plugins.map(p => s"-Xplugin=$p")
@@ -426,23 +438,25 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
   }
 
   private[kotlinlib] def internalCompileJavaFiles(
-      worker: JvmWorkerApi,
+      worker: InternalJvmWorkerApi,
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
       compileCp: Seq[os.Path],
       javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
-      reportOldProblems: Boolean
+      reportOldProblems: Boolean,
+      workDir: os.Path
   )(using ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
-    val jOpts = JavaCompilerOptions(javacOptions)
-    worker.compileJava(
-      ZincCompileJava(
+    val jOpts = JavaCompilerOptions.split(javacOptions)
+    worker.apply(
+      ZincOp.CompileJava(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = javaSourceFiles,
         compileClasspath = compileCp,
         javacOptions = jOpts.compiler,
-        incrementalCompilation = true
+        incrementalCompilation = true,
+        workDir = workDir
       ),
       javaHome = javaHome,
       javaRuntimeOptions = jOpts.runtime,
@@ -477,7 +491,7 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
    * A test sub-module linked to its parent module best suited for unit-tests.
    */
   trait KotlinTests extends JavaTests with KotlinModule {
-
+    // Keep in sync with KotlinModule.KotlinTests0, duplicated due to binary compatibility concerns
     override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
     override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
     override def kotlinExplicitApi: T[Boolean] = false
@@ -497,7 +511,24 @@ trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 }
 
 object KotlinModule {
-
+  // Keep in sync with KotlinModule#KotlinTests, duplicated due to binary compatibility concerns
+  trait KotlinTests0 extends JavaModule.JavaTests0 with KotlinModule {
+    private val outer: KotlinModule = moduleDeps.head.asInstanceOf[KotlinModule]
+    override def kotlinLanguageVersion: T[String] = outer.kotlinLanguageVersion()
+    override def kotlinApiVersion: T[String] = outer.kotlinApiVersion()
+    override def kotlinExplicitApi: T[Boolean] = false
+    override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] =
+      Task { outer.kotlincPluginMvnDeps() }
+    // TODO: make Xfriend-path an explicit setting
+    override def kotlincOptions: T[Seq[String]] = Task {
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
+        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+    }
+    override def kotlinUseEmbeddableCompiler: Task[Boolean] =
+      Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+    override def kotlincUseBtApi: Task.Simple[Boolean] = Task { outer.kotlincUseBtApi() }
+  }
   private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
     params.addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),

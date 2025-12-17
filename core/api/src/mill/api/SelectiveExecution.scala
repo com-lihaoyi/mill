@@ -27,6 +27,8 @@ private[mill] trait SelectiveExecution {
 
   def resolve0(tasks: Seq[String]): Result[Array[String]]
 
+  def resolveTasks0(tasks: Seq[String]): Result[Array[Task.Named[?]]]
+
   def resolveChanged(tasks: Seq[String]): Result[Seq[String]]
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value]
@@ -36,7 +38,13 @@ private[mill] trait SelectiveExecution {
   ): SelectiveExecution.Metadata.Computed
 }
 object SelectiveExecution {
-  case class Metadata(inputHashes: Map[String, Int], codeSignatures: Map[String, Int])
+
+  case class Metadata(
+      inputHashes: Map[String, Int],
+      codeSignatures: Map[String, Int],
+      @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map(),
+      @com.lihaoyi.unroll forceRunTasks: Set[String] = Set()
+  )
   object Metadata {
     case class Computed(
         metadata: Metadata,

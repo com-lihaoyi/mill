@@ -1,0 +1,31 @@
+//// SNIPPET:BUILD
+package build
+import mill.*, javalib.*
+
+trait MyModule extends JavaModule {
+  object test extends JavaTests, TestModule.Junit4
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar)
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0"
+  )
+}
+
+object bar extends MyModule {
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
+  )
+}
+
+//// SNIPPET:TEST
+/** Usage
+
+> ./mill bar.test
+Test bar.BarTests.simple finished...
+Test bar.BarTests.escaping finished...
+*/
+//// SNIPPET:END

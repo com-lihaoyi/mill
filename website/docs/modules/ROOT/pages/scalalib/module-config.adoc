@@ -11,51 +11,44 @@ Many of the APIs covered here are listed in the Scaladoc:
 
 * {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
+== Declarative Configuration
 
+include::partial$example/scalalib/module/1-basic-config.adoc[]
 
-== Common Configuration Overrides
+=== Scala Compiler Plugins
 
-include::partial$example/scalalib/module/2-common-config.adoc[]
+include::partial$example/scalalib/module/2-scala-compiler-plugins.adoc[]
 
-== Custom Tasks
+=== Scaladoc Config
 
-include::partial$example/scalalib/module/3-custom-tasks.adoc[]
+include::partial$example/scalalib/module/3-docjar.adoc[]
 
-== Generated Sources
+== Programmable Configuration
 
-include::partial$example/scalalib/module/4-generated-sources.adoc[]
+include::partial$example/scalalib/module/4-programmable-config.adoc[]
 
-== Compilation & Execution Flags
+=== Custom Tasks
 
-include::partial$example/scalalib/module/5-compilation-execution-flags.adoc[]
+include::partial$example/scalalib/module/5-custom-tasks.adoc[]
 
-== Classpath and Filesystem Resources
+=== Generated Sources
+
+include::partial$example/scalalib/module/6-generated-sources.adoc[]
+
+=== Classpath and Filesystem Resources
 
 include::partial$example/scalalib/module/7-resources.adoc[]
 
-== Scala Compiler Plugins
-
-include::partial$example/scalalib/module/8-scala-compiler-plugins.adoc[]
-
-== Scaladoc Config
-
-include::partial$example/scalalib/module/9-docjar.adoc[]
-
-== Specifying the Main Class
-
-include::partial$example/scalalib/module/11-main-class.adoc[]
-
-
-== Cross-Scala-Version Modules
+=== Cross-Scala-Version Modules
 
 include::partial$example/scalalib/module/14-cross-scala-version.adoc[]
 
-== Unidoc
+=== Unidoc
 
 include::partial$example/scalalib/module/15-unidoc.adoc[]
 
 
-== Using the Ammonite Repl / Scala console
+=== Using the Ammonite Repl / Scala console
 
 All ``ScalaModule``s have a `console` and a `repl` task, to start a Scala console or an Ammonite Repl.
 
@@ -100,7 +93,7 @@ As a consequence, Ammonite needs full Scala version specific releases.
 The older your used Mill version or the newer the Scala version you want to use, the higher is the risk that the default Ammonite version will not match.
 --
 
-== Disabling incremental compilation with Zinc
+=== Disabling incremental compilation with Zinc
 
 By default all ``ScalaModule``s use incremental compilation via https://github.com/sbt/zinc[Zinc] to
 only recompile sources that have changed since the last compile, or ones that have been invalidated
@@ -118,3 +111,17 @@ object foo extends ScalaModule {
   def zincIncrementalCompilation = false
 }
 ----
+
+=== Using a Scala nightly version
+
+include::partial$example/scalalib/module/16-scala-nightlies.adoc[]
+
+== Integration Declarative and Programmatic Config
+
+=== Custom Module Traits
+
+include::partial$example/scalalib/module/17-custom-trait.adoc[]
+
+=== Programmable `moduleDeps`
+
+include::partial$example/scalalib/module/18-programmable-module-deps.adoc[]

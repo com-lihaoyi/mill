@@ -92,6 +92,48 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/Foo.java"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/FooTest.java"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/Foo.java"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
+      },
+      "resources": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/sourcesNeedCompile"
       },
       "resources": []

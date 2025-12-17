@@ -1,0 +1,66 @@
+//// SNIPPET:BUILD
+package build
+
+import mill.*, javalib.*, publish.*
+import mill.javalib.repackage.RepackageModule
+
+trait MyModule extends JavaModule, PublishModule {
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
+
+  object test extends JavaTests, TestModule.Junit4
+}
+
+object foo extends MyModule, RepackageModule { // <1>
+  def moduleDeps = Seq(bar, qux)
+}
+
+object bar extends MyModule {
+  def moduleDeps = Seq(qux)
+}
+
+object qux extends MyModule
+
+// <1> Add the `mill.javalib.repackage.RepackageModule` to the executable module.
+
+/** Usage
+
+> ./mill foo.run
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+
+> ./mill __.test
+...Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...s
+...Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...s
+
+> ./mill show foo.repackagedJar
+".../out/foo/repackagedJar.dest/out.jar"
+
+> ./out/foo/repackagedJar.dest/out.jar
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+
+> unzip -l ./out/foo/repackagedJar.dest/out.jar "BOOT-INF/lib*"
+...BOOT-INF/lib/thymeleaf-3.1.1.RELEASE.jar
+...BOOT-INF/lib/ognl-3.3.4.jar
+...BOOT-INF/lib/attoparser-2.0.6.RELEASE.jar
+...BOOT-INF/lib/unbescape-1.1.6.RELEASE.jar
+...BOOT-INF/lib/slf4j-api-2.0.5.jar
+...BOOT-INF/lib/javassist-3.29.0-GA.jar
+...BOOT-INF/lib/qux-0.0.1.jar
+...BOOT-INF/lib/bar-0.0.1.jar
+
+*/
+////SNIPPED:END

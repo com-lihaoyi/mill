@@ -1,0 +1,23 @@
+//// SNIPPET:ALL
+
+/** See Also: Foo.kt */
+
+/** Usage
+> ./mill Foo.kt
+Hello World Resource File
+*/
+
+//// SNIPPET:END
+//// SNIPPET:ALL2
+
+/** Usage
+
+> ./mill show Foo.kt:assembly
+".../out/Foo.kt/assembly.dest/out.jar"
+
+> out/Foo.kt/assembly.dest/out.jar
+Hello World Resource File
+
+*/
+
+//// SNIPPET:END

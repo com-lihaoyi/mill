@@ -1,7 +1,6 @@
 package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
-
 import mill.api.*
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
@@ -12,6 +11,9 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+import upickle.core.BufferedValue
+
+import java.io.ByteArrayOutputStream
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -37,6 +39,69 @@ trait GroupExecution {
   def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
+  def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+
+  import mill.api.internal.Located
+  val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
+    .flatMap { case (path0, rawText) =>
+      val path = os.Path(path0)
+      val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
+      def rec(
+          segments: Seq[String],
+          bufValue: upickle.core.BufferedValue
+      ): Seq[(String, Located[BufferedValue])] = {
+        val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
+        val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
+          k.toString.split(" +") match {
+            case Array(k) => Left((k, i, v))
+            case Array("object", k) => Right(rec(segments ++ Seq(k), v))
+          }
+        }
+
+        val currentResults: Seq[(String, Located[BufferedValue])] =
+          BufferedValue.transform(
+            BufferedValue.Obj(
+              rawKvs.map { case (k, i, v) => (BufferedValue.Str(k, i), v) }.to(mutable.ArrayBuffer),
+              true,
+              -1
+            ),
+            headerDataReader
+          )
+            .rest
+            .map { case (k, v) =>
+              (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, v)
+            }
+            .toSeq
+
+        val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
+
+        currentResults ++ nestedResults
+      }
+
+      val parsed0 = BufferedValue.Obj(
+        mill.internal.Util.parseYaml0(
+          path0.toString,
+          rawText.replace("\r", ""),
+          headerDataReader
+        ).get
+          .rest
+          .map { case (k, v) => (BufferedValue.Str(k.value, k.index), v) }
+          .to(mutable.ArrayBuffer),
+        true,
+        -1
+      )
+      rec(
+        (path / "..").subRelativeTo(workspace).segments,
+        if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+          parsed0
+            .value0
+            .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
+            .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
+        } else parsed0
+      )
+    }
+    .toMap
+
   def offline: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
@@ -44,6 +109,34 @@ trait GroupExecution {
 
   val effectiveThreadCount: Int =
     ec.map(_.getMaximumPoolSize).getOrElse(1)
+
+  private val envVarsForInterpolation = Seq(
+    "PWD" -> workspace.toString,
+    "PWD_URI" -> workspace.toURI.toString,
+    "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
+    "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
+  )
+
+  /** Recursively examine all `ujson.Str` values and replace '${VAR}' patterns. */
+  private def interpolateEnvVarsInJson(json: upickle.core.BufferedValue): ujson.Value = {
+    import scala.jdk.CollectionConverters.*
+    val envWithPwd = (env ++ envVarsForInterpolation).asJava
+
+    // recursively convert java data structure to ujson.Value
+    def rec(json: ujson.Value): ujson.Value = json match {
+      case ujson.Str(s) => mill.constants.Util.interpolateEnvVars(s, envWithPwd)
+      case ujson.Arr(xs) => ujson.Arr(xs.map(rec))
+      case ujson.Obj(kvs) => ujson.Obj.from(kvs.map((k, v) => (k, rec(v))))
+      case v => v
+    }
+
+    rec(upickle.core.BufferedValue.transform(json, ujson.Value))
+  }
+
+  // the JVM running this code currently
+  val javaHomeHash = sys.props("java.home").hashCode
+
+  val invalidateAllHashes = classLoaderSigHash + javaHomeHash
 
   // those result which are inputs but not contained in this terminal group
   def executeGroupCached(
@@ -62,89 +155,128 @@ trait GroupExecution {
       upstreamPathRefs: Seq[PathRef]
   ): GroupExecution.Results = {
 
-    val externalInputsHash = MurmurHash3.orderedHash(
-      group.flatMap(_.inputs).filter(!group.contains(_))
-        .flatMap(results(_).asSuccess.map(_.value._2))
-    )
+    val inputsHash = {
+      val externalInputsHash = MurmurHash3.orderedHash(
+        group.flatMap(_.inputs).filter(!group.contains(_))
+          .flatMap(results(_).asSuccess.map(_.value._2))
+      )
+      val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
+      val scriptsHash = MurmurHash3.orderedHash(
+        group
+          .iterator
+          .collect { case namedTask: Task.Named[_] =>
+            CodeSigUtils.codeSigForTask(
+              namedTask = namedTask,
+              classToTransitiveClasses = classToTransitiveClasses,
+              allTransitiveClassMethods = allTransitiveClassMethods,
+              codeSignatures = codeSignatures,
+              constructorHashSignatures = constructorHashSignatures
+            )
+          }
+          .flatten
+      )
 
-    val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
-
-    val scriptsHash = MurmurHash3.orderedHash(
-      group
-        .iterator
-        .collect { case namedTask: Task.Named[_] =>
-          CodeSigUtils.codeSigForTask(
-            namedTask,
-            classToTransitiveClasses,
-            allTransitiveClassMethods,
-            codeSignatures,
-            constructorHashSignatures
-          )
-        }
-        .flatten
-    )
-
-    val javaHomeHash = sys.props("java.home").hashCode
-    val inputsHash =
-      externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash + javaHomeHash
+      externalInputsHash + sideHashes + scriptsHash + invalidateAllHashes
+    }
 
     terminal match {
-
       case labelled: Task.Named[_] =>
+        val out = if (!labelled.ctx.external) outPath else externalOutPath
+        val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
+        val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
+        staticBuildOverrides.get(labelled.ctx.segments.render)
+          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
 
-        // recursively convert java data structure to ujson.Value
-        val envWithPwd = env ++ Seq(
-          "PWD" -> workspace.toString,
-          "PWD_URI" -> workspace.toURI.toString,
-          "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
-          "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
-        )
+          case Some(jsonData) =>
+            lazy val originalText = os.read(jsonData.path)
+            lazy val strippedText = originalText.replace("\n//|", "\n")
+            lazy val lookupLineSuffix = fastparse
+              .IndexedParserInput(strippedText)
+              .prettyIndex(jsonData.index)
+              .takeWhile(_ != ':') // split off column since it's not that useful
 
-        labelled.ctx.segments.last.value match {
-          case single if labelled.ctx.enclosingModule.buildOverrides.contains(single) =>
-            val jsonData = labelled.ctx.enclosingModule.buildOverrides(single)
+            val (execRes, serializedPaths) =
+              if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
+                // If the build override conflicts with a task defined in the mill-build/build.mill,
+                // it is probably a user error so fail loudly. In other scenarios, it may be an
+                // intentional override, but in this one case we can be reasonably sure it's a mistake
 
-            import collection.JavaConverters._
-            def rec(x: ujson.Value): ujson.Value = x match {
-              case ujson.Str(s) => mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava)
-              case ujson.Arr(xs) => ujson.Arr(xs.map(rec))
-              case ujson.Obj(kvs) => ujson.Obj.from(kvs.map((k, v) => (k, rec(v))))
-              case v => v
-            }
-            val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-              upickle.read[Any](rec(jsonData))(
-                using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-              )
-            }
+                (
+                  ExecResult.Failure(
+                    s"Build header config in ${jsonData.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
+                      s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
+                  ),
+                  Nil
+                )
+              } else {
+                // apply build override
+                try {
+                  val (resultData, serializedPaths) = PathRef.withSerializedPaths {
+                    PathRef.currentOverrideModulePath.withValue(
+                      labelled.ctx.enclosingModule.moduleCtx.millSourcePath
+                    ) {
+                      upickle.read[Any](interpolateEnvVarsInJson(jsonData.value))(
+                        using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+                      )
+                    }
+                  }
+
+                  // Write build header override JSON to meta `.json` file to support `show`
+                  writeCacheJson(
+                    paths.meta,
+                    upickle.core.BufferedValue.transform(jsonData.value, ujson.Value),
+                    resultData.##,
+                    inputsHash + jsonData.value.##
+                  )
+
+                  (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
+                } catch {
+                  case e: upickle.core.TraceVisitor.TraceException =>
+                    // Try to get more specific index from AbortException if available
+                    val errorIndex = e.getCause match {
+                      case abort: upickle.core.AbortException => abort.index
+                      case _ => jsonData.value.index
+                    }
+
+                    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                    (
+                      ExecResult.Failure(
+                        s"Failed de-serializing config override: ${e.getCause.getMessage}",
+                        Some(Result.Failure(msg, path = jsonData.path.toNIO, index = errorIndex))
+                      ),
+                      Nil
+                    )
+                }
+              }
+
             GroupExecution.Results(
-              Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),
-              Nil,
+              newResults = Map(labelled -> execRes),
+              newEvaluated = Nil,
               cached = true,
-              inputsHash,
-              -1,
-              false,
-              serializedPaths
+              inputsHash = inputsHash,
+              previousInputsHash = -1,
+              valueHashChanged = false,
+              serializedPaths = serializedPaths
             )
-          case _ =>
-            val out = if (!labelled.ctx.external) outPath else externalOutPath
-            val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
+
+          case None => // no build overrides
             val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
             // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
             val (multiLogger, fileLoggerOpt) = resolveLogger(Some(paths).map(_.log), logger)
             val upToDateWorker = loadUpToDateWorker(
-              logger,
-              inputsHash,
-              labelled,
-              cached.isEmpty,
-              deps,
-              Some(paths),
-              upstreamPathRefs,
-              exclusive,
-              multiLogger,
-              countMsg,
-              new GroupExecution.DestCreator(Some(paths)),
-              terminal
+              logger = logger,
+              inputsHash = inputsHash,
+              labelled = labelled,
+              forceDiscard = cached.isEmpty,
+              deps = deps,
+              paths = Some(paths),
+              upstreamPathRefs = upstreamPathRefs,
+              exclusive = exclusive,
+              multiLogger = multiLogger,
+              counterMsg = countMsg,
+              destCreator = new GroupExecution.DestCreator(Some(paths)),
+              terminal = terminal
             )
 
             val cachedValueAndHash =
@@ -160,13 +292,13 @@ trait GroupExecution {
                   Map(labelled -> res)
 
                 GroupExecution.Results(
-                  newResults,
-                  Nil,
+                  newResults = newResults,
+                  newEvaluated = Nil,
                   cached = true,
-                  inputsHash,
-                  -1,
+                  inputsHash = inputsHash,
+                  previousInputsHash = -1,
                   valueHashChanged = false,
-                  serializedPaths
+                  serializedPaths = serializedPaths
                 )
 
               case _ =>
@@ -208,13 +340,13 @@ trait GroupExecution {
                 }
 
                 GroupExecution.Results(
-                  newResults,
-                  newEvaluated.toSeq,
+                  newResults = newResults,
+                  newEvaluated = newEvaluated.toSeq,
                   cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
-                  inputsHash,
-                  cached.map(_._1).getOrElse(-1),
-                  !cached.map(_._3).contains(valueHash),
-                  serializedPaths
+                  inputsHash = inputsHash,
+                  previousInputsHash = cached.map(_._1).getOrElse(-1),
+                  valueHashChanged = !cached.map(_._3).contains(valueHash),
+                  serializedPaths = serializedPaths
                 )
             }
         }
@@ -236,11 +368,11 @@ trait GroupExecution {
           terminal = terminal
         )
         GroupExecution.Results(
-          newResults,
-          newEvaluated.toSeq,
-          null,
-          inputsHash,
-          -1,
+          newResults = newResults,
+          newEvaluated = newEvaluated.toSeq,
+          cached = null,
+          inputsHash = inputsHash,
+          previousInputsHash = -1,
           valueHashChanged = false,
           serializedPaths = Nil
         )
@@ -296,28 +428,28 @@ trait GroupExecution {
           )
 
           GroupExecution.wrap(
-            workspace,
-            deps,
-            outPath,
-            paths,
-            upstreamPathRefs,
-            exclusive,
-            multiLogger,
-            logger,
-            exclusiveSystemStreams,
-            counterMsg,
-            destCreator,
-            getEvaluator().asInstanceOf[Evaluator],
-            terminal,
-            rootModule.getClass.getClassLoader
+            workspace = workspace,
+            deps = deps,
+            outPath = outPath,
+            paths = paths,
+            upstreamPathRefs = upstreamPathRefs,
+            exclusive = exclusive,
+            multiLogger = multiLogger,
+            logger = logger,
+            exclusiveSystemStreams = exclusiveSystemStreams,
+            counterMsg = counterMsg,
+            destCreator = destCreator,
+            evaluator = getEvaluator().asInstanceOf[Evaluator],
+            terminal = terminal,
+            classLoader = rootModule.getClass.getClassLoader
           ) {
             try {
               task.evaluate(args) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
-                case Result.Failure(err) => ExecResult.Failure(err)
+                case f: Result.Failure => ExecResult.Failure(f.error, Some(f))
               }
             } catch {
-              case ex: Result.Exception => ExecResult.Failure(ex.error)
+              case ex: Result.Exception => ExecResult.Failure(ex.error, ex.failure)
               case NonFatal(e) =>
                 ExecResult.Exception(
                   e,
@@ -387,18 +519,19 @@ trait GroupExecution {
 
     terminalResult match {
       case Some((json, serializedPaths)) =>
-        os.write.over(
-          metaPath,
-          upickle.stream(
-            mill.api.Cached(json, hashCode, inputsHash),
-            indent = 4
-          ),
-          createFolders = true
-        )
+        writeCacheJson(metaPath, json, hashCode, inputsHash)
         serializedPaths
       case _ =>
         Nil
     }
+  }
+
+  def writeCacheJson(metaPath: os.Path, json: ujson.Value, hashCode: Int, inputsHash: Int) = {
+    os.write.over(
+      metaPath,
+      upickle.stream(mill.api.Cached(json, hashCode, inputsHash), indent = 4),
+      createFolders = true
+    )
   }
 
   def resolveLogger(
@@ -425,7 +558,7 @@ trait GroupExecution {
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
       cached <-
-        try Some(upickle.read[Cached](paths.meta.toIO))
+        try Some(upickle.read[Cached](paths.meta.toIO, trace = false))
         catch {
           case NonFatal(_) => None
         }
@@ -435,7 +568,9 @@ trait GroupExecution {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
         (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.read(cached.value)(using reader)))
+          try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
+              reader
+            )))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(
@@ -450,7 +585,7 @@ trait GroupExecution {
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##
+    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
   }
   private def loadUpToDateWorker(
       logger: Logger,
@@ -482,20 +617,20 @@ trait GroupExecution {
           try {
             logger.debug(s"Closing previous worker: $labelled")
             GroupExecution.wrap(
-              workspace,
-              deps,
-              outPath,
-              paths,
-              upstreamPathRefs,
-              exclusive,
-              multiLogger,
-              logger,
-              exclusiveSystemStreams,
-              counterMsg,
-              destCreator,
-              getEvaluator().asInstanceOf[Evaluator],
-              terminal,
-              rootModule.getClass.getClassLoader
+              workspace = workspace,
+              deps = deps,
+              outPath = outPath,
+              paths = paths,
+              upstreamPathRefs = upstreamPathRefs,
+              exclusive = exclusive,
+              multiLogger = multiLogger,
+              logger = logger,
+              exclusiveSystemStreams = exclusiveSystemStreams,
+              counterMsg = counterMsg,
+              destCreator = destCreator,
+              evaluator = getEvaluator().asInstanceOf[Evaluator],
+              terminal = terminal,
+              classLoader = rootModule.getClass.getClassLoader
             ) {
               obsolete.close()
             }
@@ -546,7 +681,7 @@ object GroupExecution {
     def onRead(path: os.ReadablePath): Unit = path match {
       case path: os.Path =>
         if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
-          if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
+          if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith)) {
             sys.error(
               s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
                 "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
@@ -558,7 +693,7 @@ object GroupExecution {
 
     def onWrite(path: os.Path): Unit = {
       if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
-        if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
+        if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith)) {
           sys.error(
             s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
               "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
@@ -623,7 +758,10 @@ object GroupExecution {
             mill.api.ClassLoader.withContextClassLoader(classLoader) {
               if (!exclusive) t
               else {
-                logger.prompt.reportKey(Seq(counterMsg))
+                // For exclusive tasks, we print the task name once and then we disable the
+                // prompt/ticker so the output of the exclusive task can "clean" while still
+                // being identifiable
+                logger.prompt.logPrefixedLine(Seq(counterMsg), new ByteArrayOutputStream(), false)
                 logger.prompt.withPromptPaused {
                   t
                 }

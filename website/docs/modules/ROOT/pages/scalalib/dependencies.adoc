@@ -1,16 +1,15 @@
 = Scala Library Dependencies
-
-
-
+:language: Scala
+:language-small: scala
 
 This page goes into more detail about configuring third party dependencies
 for `ScalaModule`.
 
+== Basic Dependencies Configuration
 
+include::partial$example/scalalib/dependencies/1-dependencies.adoc[]
 
-== Adding Ivy Dependencies
-
-include::partial$example/scalalib/dependencies/1-mvn-deps.adoc[]
+== Programmable Dependencies Configuration
 
 include::partial$example/scalalib/dependencies/2-run-compile-deps.adoc[]
 

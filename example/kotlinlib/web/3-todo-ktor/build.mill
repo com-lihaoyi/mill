@@ -1,0 +1,57 @@
+// This example implementing the well known
+// https://todomvc.com/[TodoMVC] example app using Kotlin and Ktor.
+
+package build
+import mill.*, kotlinlib.*
+
+object `package` extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("com.example.TodoMVCApplicationKt")
+
+  val ktorVersion = "2.3.12"
+  val exposedVersion = "0.53.0"
+
+  def mvnDeps = Seq(
+    mvn"io.ktor:ktor-server-core:$ktorVersion",
+    mvn"io.ktor:ktor-server-netty:$ktorVersion",
+    mvn"org.jetbrains.exposed:exposed-core:$exposedVersion",
+    mvn"org.jetbrains.exposed:exposed-jdbc:$exposedVersion",
+    mvn"com.h2database:h2:2.2.224",
+    mvn"io.ktor:ktor-server-webjars:$ktorVersion",
+    mvn"org.webjars:jquery:3.2.1",
+    mvn"io.ktor:ktor-server-thymeleaf:$ktorVersion",
+    mvn"org.webjars:webjars-locator:0.41",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1",
+    mvn"ch.qos.logback:logback-classic:1.4.14"
+  )
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1",
+      mvn"io.ktor:ktor-server-test-host:2.3.12"
+    )
+  }
+}
+
+// Apart from running a webserver,  this example also demonstrates:
+
+// * Serving HTML templates using Thymeleaf
+// * Serving static Javascript and CSS using Webjars
+// * Querying a SQL database using Exposed
+// * Testing using a H2 in-memory database
+
+/** Usage
+
+> ./mill test
+
+> ./mill runBackground
+
+> curl http://localhost:8091
+...<h1>todos</h1>...
+
+> ./mill clean runBackground
+
+*/

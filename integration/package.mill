@@ -22,11 +22,11 @@ object `package` extends mill.Module {
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
 
-  def localOutFolder = Task.Worker {
+  def sharedOutFolder = Task.Worker {
     val counter = new java.util.concurrent.atomic.AtomicInteger(0)
     new mill.util.CachedFactory[Unit, os.Path] {
       def setup(key: Unit): os.Path = {
-        val res = Task.dest / s"local-${counter.getAndIncrement()}" / "out"
+        val res = Task.dest / s"shared-${counter.getAndIncrement()}" / "out"
         os.remove.all(res)
         os.makeDir.all(res)
         res
@@ -40,7 +40,7 @@ object `package` extends mill.Module {
     }
   }
 
-  trait IntegrationTestModule extends Cross.Module[String] {
+  trait IntegrationTestModule extends Cross.Module[String] with DefaultTaskModule {
     def moduleDir = super.moduleDir / crossValue
 
     def moduleDeps = Seq(build.libs.util.test, build.testkit, build.runner.daemon)
@@ -51,11 +51,15 @@ object `package` extends mill.Module {
     def forkEnv: T[Map[String, String]]
     def forkArgs: T[Seq[String]]
     def testExclusive = false
+    def testClasspath: T[Seq[PathRef]]
 
     trait ModeModule extends MillBaseTestsModule {
+      override def testClasspath: T[Seq[PathRef]] = IntegrationTestModule.this.testClasspath()
+      def useSharedOut: Boolean
+      override def enableBsp = false
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
-        val useSharedOut = moduleSegments.parts.contains("local")
-        localOutFolder().withValue(()) { sharedOutFolder =>
+
+        sharedOutFolder().withValue(()) { sharedOutFolder =>
           val testModuleUtil = new mill.javalib.TestModuleUtil(
             testUseArgsFile(),
             forkArgs(),
@@ -74,7 +78,8 @@ object `package` extends mill.Module {
             testReportXml(),
             javaHome().map(_.path),
             testParallelism(),
-            testLogLevel()
+            testLogLevel(),
+            jvmWorker = jvmWorker().internalWorker()
           )
           testModuleUtil.runTests()
         }
@@ -111,7 +116,15 @@ object `package` extends mill.Module {
 
     }
 
-    object local extends IntegrationLauncherModule {
+    // Set `packaged.daemon` as the default way to run integration and example tests
+    override def defaultTask(): String = "testForked"
+    def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+      Task.Command {
+        packaged.daemon.testForked(args*)()
+      }
+
+    object shared extends IntegrationLauncherModule {
+      override def useSharedOut = true
       def millIntegrationLauncher = build.dist.launcher()
       def millIntegrationIsPackagedLauncher = Task(false)
     }
@@ -124,14 +137,17 @@ object `package` extends mill.Module {
       def millIntegrationIsPackagedLauncher = Task(true)
     }
     trait IntegrationLauncherModule extends Module {
+      def useSharedOut = false
       def millIntegrationLauncher: T[PathRef]
       def millIntegrationIsPackagedLauncher: Task[Boolean]
       object nodaemon extends ModeModule {
+        override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
       object daemon extends ModeModule {
+        override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
@@ -142,13 +158,21 @@ object `package` extends mill.Module {
   object failure extends Cross[IntegrationCrossModule](build.listCross)
   object feature extends Cross[IntegrationCrossModule](build.listCross)
   object invalidation extends Cross[IntegrationCrossModule](build.listCross)
+  object manual extends Cross[IntegrationCrossModule](build.listCross)
   object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
   object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
   object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
+    override def testClasspath = Seq(compile().classes)
+    override lazy val test: MillScalaTests = new MillScalaTests {
+      // This `test` module isn't used, since `this` contains the test code we want to
+      // compile and the `ModeModule`s contain the entrypoints to run that code
+      def enableBsp = false
+    }
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkArgs: T[Seq[String]] = Task(List.empty[String])
     def forkEnv = super.forkEnv() ++ Seq(
+      // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
       "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
       "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
       "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
@@ -168,7 +192,10 @@ object `package` extends mill.Module {
   def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     Task {
-      PathRef(build.dist.installLocalTask(binFile = Task.Anon((Task.dest / name).toString()))())
+      val executable = build.dist.executable().path
+      val dest = Task.dest / name
+      os.copy.over(executable, dest)
+      PathRef(dest)
     }
   }
 

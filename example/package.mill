@@ -13,6 +13,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
 import mill.api.BuildCtx
+import mill.testkit.Chunk
 
 object `package` extends Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
@@ -31,8 +32,9 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModuleJava](build.listCross)
     object linting extends Cross[ExampleCrossModuleJava](build.listCross)
     object publishing extends Cross[ExampleCrossModuleJava](build.listCross)
-    object simple extends Cross[ExampleCrossModuleJava](build.listCross)
-    object web extends Cross[ExampleCrossModule](build.listCross)
+    object script extends Cross[ExampleCrossModuleJava](build.listCross)
+    object web extends Cross[ExampleCrossModuleJava](build.listCross)
+    object springboot extends Cross[ExampleCrossModule](build.listCross)
   }
   object kotlinlib extends Module {
     object basic extends Cross[ExampleCrossModuleKotlin](build.listCross)
@@ -41,7 +43,7 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object linting extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object publishing extends Cross[ExampleCrossModuleKotlin](build.listCross)
-    object simple extends Cross[ExampleCrossModuleKotlin](build.listCross)
+    object script extends Cross[ExampleCrossModuleKotlin](build.listCross)
     object web extends Cross[ExampleCrossModuleKotlin](build.listCross)
   }
   object scalalib extends Module {
@@ -51,7 +53,7 @@ object `package` extends Module {
     object testing extends Cross[ExampleCrossModule](build.listCross)
     object linting extends Cross[ExampleCrossModule](build.listCross)
     object publishing extends Cross[ExampleCrossModule](build.listCross)
-    object simple extends Cross[ExampleCrossModule](build.listCross)
+    object script extends Cross[ExampleCrossModule](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
     object native extends Cross[ExampleCrossModule](build.listCross)
     object spark extends Cross[ExampleCrossModule](build.listCross)
@@ -77,6 +79,11 @@ object `package` extends Module {
     object publishing extends Cross[ExampleCrossModule](build.listCross)
     object module extends Cross[ExampleCrossModule](build.listCross)
     object web extends Cross[ExampleCrossModule](build.listCross)
+    object testing extends Cross[ExampleCrossModule](build.listCross)
+  }
+
+  object groovylib extends Module {
+    object basic extends Cross[ExampleCrossModule](build.listCross)
     object testing extends Cross[ExampleCrossModule](build.listCross)
   }
 
@@ -118,7 +125,7 @@ object `package` extends Module {
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
 
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
-      case "1-test-suite" => line
+      case "2-test-suite" => line
           .replace(
             "./mill bar.test bar.BarTests.hello",
             "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test"
@@ -132,6 +139,7 @@ object `package` extends Module {
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
     def testExclusive = true
   }
+
   trait ExampleCrossModuleJava extends ExampleCrossModule {
 
     def upstreamCross(s: String) = s match {
@@ -141,15 +149,15 @@ object `package` extends Module {
       case "module" => Some(scalalib.module)
       case "web" => Some(scalalib.web)
       case "publishing" => Some(scalalib.publishing)
-      case "simple" => Some(scalalib.simple)
+      case "script" => Some(scalalib.script)
       case _ => None
     }
     val upstreamOpt = upstreamCross(this.moduleSegments.parts.dropRight(1).last)
       .flatMap(_.valuesToModules.get(List(crossValue)))
 
-    def testRepoRoot = Task {
-      os.copy(super.testRepoRoot().path, Task.dest, mergeFolders = true)
-      for (suffix <- Seq("build.sc", "build.mill", "build.mill.scala")) {
+    def testRepoSourceRoot = Task {
+      os.copy(super.testRepoSourceRoot().path, Task.dest, mergeFolders = true)
+      for (suffix <- Seq("build.mill")) {
         for (lines <- buildScLines() if os.exists(Task.dest / suffix)) {
           os.write.over(Task.dest / suffix, lines.mkString("\n"))
         }
@@ -162,7 +170,7 @@ object `package` extends Module {
       case Some(upstream) => Task {
           os.copy.over(super.testRepoRoot().path, Task.dest)
           val upstreamRoot = upstream.testRepoRoot().path
-          val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
+          val suffix = Seq("build.mill").find(s => os.exists(upstreamRoot / s)).head
           for (lines <- buildScLines()) {
             os.write.over(Task.dest / suffix, lines.mkString("\n"))
           }
@@ -173,10 +181,10 @@ object `package` extends Module {
       case None => Task { None }
       case Some(upstream) => Task {
           Some {
-            val upstreamRoot = upstream.testRepoRoot().path
-            val suffix = Seq("build.sc", "build.mill").find(s => os.exists(upstreamRoot / s)).head
-            val upstreamLines = os.read.lines(upstream.testRepoRoot().path / suffix)
-            val lines = os.read.lines(super.testRepoRoot().path / suffix)
+            val upstreamRoot = upstream.testRepoSourceRoot().path
+            val suffix = Seq("build.mill").find(s => os.exists(upstreamRoot / s)).head
+            val upstreamLines = os.read.lines(upstream.testRepoSourceRoot().path / suffix)
+            val lines = os.read.lines(super.testRepoSourceRoot().path / suffix)
 
             import collection.mutable
             val groupedLines = mutable.Map.empty[String, mutable.Buffer[String]]
@@ -209,10 +217,11 @@ object `package` extends Module {
   }
 
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
+
     // disable scalafix because these example modules don't have sources causing it to misbehave
     def testRepoSourceRoot: T[PathRef] = Task.Source(moduleDir)
     def testRepoRoot: T[PathRef] = Task { testRepoSourceRoot() }
-
+    def testClasspath: T[Seq[PathRef]] = localRunClasspath()
     def sources0 = Task.Sources(moduleDir)
     def sources = Task {
       sources0()
@@ -220,7 +229,9 @@ object `package` extends Module {
         .filter(os.isFile)
         .filterNot(p =>
           (p.ext == "java" || p.ext == "kt") &&
-            (p.segments.contains("linting") || p.segments.contains("10-external-module-aliases"))
+            (p.segments.contains("linting") ||
+              p.segments.contains("10-external-module-aliases") ||
+              p.segments.contains("4-linting"))
         )
         .map(PathRef(_))
     }
@@ -235,40 +246,42 @@ object `package` extends Module {
     /**
      * Parses a `build.mill` for specific comments and return the split-by-type content
      */
-    def parsed: T[Seq[(String, String)]] = Task {
-      mill.testkit.ExampleParser(testRepoRoot().path)
+    def parsed: T[Seq[mill.testkit.Chunk]] = Task {
+      mill.testkit.ExampleParser(testRepoSourceRoot().path)
     }
 
     def rendered = Task {
       var seenCode = false
       var seenFrontMatter = false
       val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
-      val frontMatter = parsed().takeWhile(_._1 == "yaml").map(_._2).mkString("\n")
-      val withoutFrontMatter = parsed().dropWhile(_._1 == "yaml")
-
+      val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).map {
+        case Chunk.Yaml(lines) => lines.mkString("\n")
+      }.mkString("\n")
+      val withoutFrontMatter = parsed().dropWhile(_.isInstanceOf[Chunk.Yaml])
+      val exampleDashed = examplePath.segments.mkString("-")
+      val download =
+        s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
       os.write(
         Task.dest / "example.adoc",
         withoutFrontMatter
-          .filter(_._2.nonEmpty)
           .map {
-            case (s"see:$path", txt) =>
+            case Chunk.See(path, lines) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
-              val lang = os.FilePath(path).ext
+              val lang = os.FilePath(path).ext match {
+                case "mill" => "scala"
+                case s => s
+              }
               s"""
-.$path ({mill-example-url}/$examplePath/$path[browse])
+.$path ($download, {mill-example-url}/$examplePath/$path[browse])
 [source,$lang,subs="attributes,verbatim"]
 ----
-$txt
+${lines.mkString("\n")}
 ----"""
-            case ("scala", txt) =>
+            case Chunk.Scala(lines) =>
               val title =
                 if (seenCode) ""
                 else {
-                  val exampleDashed = examplePath.segments.mkString("-")
-                  val download =
-                    s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
-                  val browse = s"{mill-example-url}/$examplePath[browse]"
-                  s".build.mill ($download, $browse)"
+                  s".build.mill ($download, {mill-example-url}/$examplePath[browse])"
                 }
               seenCode = true
               // avoid .stripMargin, as the embedded content may contain the margin symbol
@@ -285,19 +298,18 @@ ${
                   }
                 }
 
-$txt
+${lines.mkString("\n")}
 ----
 """
-            case ("comment", txt) => txt + "\n"
-            case ("example", txt) =>
+            case Chunk.Comment(lines) => lines.mkString("\n") + "\n"
+            case Chunk.Usage(lines) =>
               // avoid .stripMargin, as the embedded content may contain the margin symbol
               s"""
 [source,console,subs="attributes,verbatim"]
 ----
-$txt
+${lines.mkString("\n")}
 ----"""
-            case (kind, txt) =>
-              throw Exception(s"Unknown kind: $kind\n\nText: $txt")
+            case Chunk.Yaml(_) => ""
           }
           .mkString("\n")
       )
@@ -306,8 +318,8 @@ $txt
   }
 
   def repoInfo = Map(
-    "acyclic" -> ("com-lihaoyi/acyclic", "1ec221f377794db39e8ff9b43415f81c703c202f"),
-    "fansi" -> ("com-lihaoyi/fansi", "169ac96d7c6761a72590d312a433cf12c572573c"),
+    "acyclic" -> ("com-lihaoyi/acyclic", "4af02113286fcb3362f08e87ffbd14399e71c3b3"),
+    "fansi" -> ("com-lihaoyi/fansi", "387754bc1fc0be0ac787b195490275012d80c683"),
     "jimfs" -> ("google/jimfs", "5b60a42eb9d3cd7a2073d549bd0cb833f5a7e7e9"),
     "commons-io" -> ("apache/commons-io", "b91a48074231ef813bc9b91a815d77f6343ff8f0"),
     "netty" -> ("netty/netty", "20a790ed362a3c11e0e990b58598e4ac6aa88bef"),
@@ -348,8 +360,8 @@ $txt
         replaceExisting = true
       )
       os.remove.all(Task.dest / ".mill-version")
+      os.remove.all(Task.dest / ".mill-jvm-version")
 
-      os.remove.all(Task.dest / "build.sc")
       PathRef(Task.dest)
     }
   }

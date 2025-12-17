@@ -16,7 +16,7 @@ import mill.*, javalib.*
 import mill.api.ModuleRef
 
 object foo extends JavaModule {
-  def jvmId = "temurin:18.0.2"
+  def jvmId = "temurin:11.0.21"
 
   object test extends JavaTests, TestModule.Junit4
 }
@@ -24,10 +24,10 @@ object foo extends JavaModule {
 /** Usage
 
 > ./mill foo.run
-Foo running on Java 18.0.2
+Foo running on Java 11.0.21
 
 > ./mill foo.test
-Testing with JVM version: 18.0.2
+Testing with JVM version: 11.0.21
 Test foo.FooTest.testSimple finished...
 
 */
@@ -54,7 +54,7 @@ Test foo.FooTest.testSimple finished...
 import scalalib.*
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.12"
+  def scalaVersion = "2.13.16"
   def jvmId = "temurin:23.0.1"
   def jvmIndexVersion = "latest.release"
 }

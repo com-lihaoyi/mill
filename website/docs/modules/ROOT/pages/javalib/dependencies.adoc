@@ -1,13 +1,15 @@
 = Java Library Dependencies
-
-
+:language: Java
+:language-small: java
 
 This page goes into more detail about configuring third party dependencies
 for `JavaModule`.
 
-== Adding Ivy Dependencies
+== Basic Dependencies Configuration
 
-include::partial$example/javalib/dependencies/1-mvn-deps.adoc[]
+include::partial$example/javalib/dependencies/1-dependencies.adoc[]
+
+== Programmable Dependencies Configuration
 
 include::partial$example/javalib/dependencies/2-run-compile-deps.adoc[]
 

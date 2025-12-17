@@ -1,7 +1,7 @@
 package mill.integration
 
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
-import mill.constants.OutFiles.*
+import mill.constants.OutFiles.OutFiles.*
 import mill.daemon.RunnerState
 import utest.*
 
@@ -254,7 +254,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         checkChangedClassloaders(tester, null, true, true)
 
         causeParseError(workspacePath / "build.mill")
-        evalCheckErr(tester, "\n1 tasks failed", "\ngeneratedScriptSources", "build.mill")
+        evalCheckErr(tester, "\n[error] generatedScriptSources", "build.mill")
         // exactly which files get watched here can be non-deterministic depending on
         // how far evaluation gets before it terminates due to the task failure
         // checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
@@ -270,8 +270,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         causeParseError(workspacePath / "mill-build/build.mill")
         evalCheckErr(
           tester,
-          "\n1 tasks failed",
-          "\ngeneratedScriptSources",
+          "\n[error] generatedScriptSources",
           "mill-build/build.mill"
         )
         // checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), Nil)
@@ -280,7 +279,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
 
         fixParseError(workspacePath / "mill-build/build.mill")
         causeParseError(workspacePath / "build.mill")
-        evalCheckErr(tester, "\n1 tasks failed", "\ngeneratedScriptSources", "build.mill")
+        evalCheckErr(tester, "\n[error] generatedScriptSources", "build.mill")
         // checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
         if (tester.daemonMode) checkChangedClassloaders(tester, null, null, true)
         else checkChangedClassloaders(tester, null, null, true)
@@ -324,10 +323,9 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
         causeassertCompileError(workspacePath / "build.mill")
         evalCheckErr(
           tester,
-          "\n1 tasks failed",
           // Ensure the file path in the compile error is properly adjusted to point
           // at the original source file and not the generated file
-          (workspacePath / "build.mill").toString,
+          "build.mill",
           "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester))
@@ -336,8 +334,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
         causeassertCompileError(workspacePath / "mill-build/build.mill")
         evalCheckErr(
           tester,
-          "\n1 tasks failed",
-          (workspacePath / "mill-build/build.mill").toString,
+          "mill-build/build.mill",
           "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester))
@@ -346,8 +343,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
         fixassertCompileError(workspacePath / "mill-build/build.mill")
         evalCheckErr(
           tester,
-          "\n1 tasks failed",
-          (workspacePath / "build.mill").toString,
+          "build.mill",
           "Not found: doesnt"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester))
@@ -396,7 +392,7 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
         checkChangedClassloaders(tester, null, true, true)
 
         causeRuntimeError(workspacePath / "build.mill")
-        evalCheckErr(tester, "\n1 tasks failed", "foo.runClasspath java.lang.Exception: boom")
+        evalCheckErr(tester, "[error] foo.runClasspath", "java.lang.Exception: boom")
         checkWatchedFiles(
           tester,
           fooPaths(tester),
@@ -408,9 +404,9 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
         causeRuntimeError(workspacePath / "mill-build/build.mill")
         evalCheckErr(
           tester,
-          "\n1 tasks failed",
           "build.mill",
-          "runClasspath java.lang.Exception: boom"
+          "[error] runClasspath",
+          "java.lang.Exception: boom"
         )
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester))
         checkChangedClassloaders(tester, null, null, true)
@@ -418,9 +414,9 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
         fixRuntimeError(workspacePath / "mill-build/build.mill")
         evalCheckErr(
           tester,
-          "\n1 tasks failed",
           "build.mill",
-          "foo.runClasspath java.lang.Exception: boom"
+          "[error] foo.runClasspath",
+          "java.lang.Exception: boom"
         )
         checkWatchedFiles(
           tester,

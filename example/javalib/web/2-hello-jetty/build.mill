@@ -1,0 +1,18 @@
+/** See Also: build.mill.yaml */
+
+// This example demonstrates how to set up a simple Jetty webserver,
+// able to handle a single HTTP request at `/` and reply with a single response.
+
+/** Usage
+
+> ./mill test
+...HelloJettyTest.testHelloJetty finished...
+
+> ./mill runBackground
+
+> curl http://localhost:8085
+...<h1>Hello, World!</h1>...
+
+> ./mill clean runBackground
+
+*/

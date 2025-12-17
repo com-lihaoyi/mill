@@ -1,5 +1,6 @@
 package mill.testkit
-import mill.constants.OutFiles.{millDaemon, millNoDaemon, out}
+
+import mill.constants.OutFiles.OutFiles.{millDaemon, millNoDaemon, out}
 import mill.constants.DaemonFiles.processId
 import mill.util.Retry
 
@@ -10,9 +11,14 @@ trait IntegrationTesterBase {
 
   def propagateJavaHome: Boolean
 
-  def millTestSuiteEnv: Map[String, String] = (
-    Option.when(propagateJavaHome)("JAVA_HOME" -> sys.props("java.home"))
-  ).toMap
+  def millTestSuiteEnv: Map[String, String] = {
+    val javaHomeBin = sys.props("java.home") + "/bin"
+    if (!propagateJavaHome) Map.empty
+    else Map(
+      "JAVA_HOME" -> sys.props("java.home"),
+      "PATH" -> s"$javaHomeBin${System.getProperty("path.separator")}${sys.env("PATH")}"
+    )
+  }
 
   /**
    * The working directory of the integration test suite, which is the root of the
@@ -39,23 +45,28 @@ trait IntegrationTesterBase {
    * Initializes the workspace in preparation for integration testing
    */
   def initWorkspace(): Unit = {
-    println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
+    println(s"Preparing integration test in $workspacePath")
     os.makeDir.all(workspacePath)
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR"))
+    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
       Retry(logger = Retry.printStreamLogger(System.err)) {
         val tmp = os.temp.dir()
         val outDir = os.Path(out, workspacePath)
         if (os.exists(outDir)) os.move.into(outDir, tmp)
         os.remove.all(tmp)
       }
-
-    os.list(workspacePath).foreach { p =>
-      if (p.last != "out") os.remove.all(p)
+      for (p <- os.list(workspacePath)) os.remove.all(p)
+    } else {
+      println("Re-using out folder")
+      // if `MILL_TEST_SHARED_OUTPUT_DIR` is provided, keep `out/` intact
+      // to re-use the daemon
+      for (p <- os.list(workspacePath) if p.last != "out") os.remove.all(p)
     }
+
     val outRelPathOpt = os.FilePath(out) match {
       case relPath: os.RelPath if relPath.ups == 0 => Some(relPath)
       case _ => None
     }
+
     os.list(workspaceSourcePath)
       .filter(
         outRelPathOpt match {

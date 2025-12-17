@@ -5,19 +5,20 @@
 
 *Languages*
 
-* xref:javalib/intro.adoc[Java], xref:kotlinlib/intro.adoc[Kotlin], xref:scalalib/intro.adoc[Scala]
+* xref:javalib/intro.adoc[Java], xref:kotlinlib/intro.adoc[Kotlin], xref:scalalib/intro.adoc[Scala], xref:android/android-initial-setup.adoc[Android]
 
 
 *Dependency Management*
 
-* xref:javalib/dependencies.adoc#_adding_ivy_dependencies[Adding Dependencies]
+* xref:javalib/dependencies.adoc#_basic_dependencies_configuration[Compile & Runtime Dependencies]
 * xref:fundamentals/library-deps.adoc#_dependency_management[Dependency Version Management and BOMs]
+* xref:contrib/sbom.adoc[Software Bill of Materials (SBOMs)]
 * xref:javalib/dependencies.adoc#_unmanaged_jars[Unmanaged Dependencies]
 * xref:fundamentals/configuring-jvm-versions.adoc[JVM Version Management]
 
 *Testing*
 
-* xref:javalib/testing.adoc#_defining_unit_test_suites[JUnit4, JUnit5, TestNG, ScalaTest, Specs2, Munit]
+* xref:javalib/testing.adoc#_basic_testing_configuration[JUnit4, JUnit5, TestNG, ScalaTest, Specs2, Munit]
 * xref:javalib/testing.adoc#_defining_integration_test_suites[Integration Testing]
 * xref:javalib/testing.adoc#_test_parallelism[Test Parallelism]
 
@@ -43,14 +44,14 @@
 
 *Web Frameworks*
 
-* xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[Spring Boot], xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut]
+* xref:javalib/spring-boot.adoc[Spring Boot], xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut]
 * xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], xref:kotlinlib/web-examples.adoc#_ktor_webapp_kotlinjs_client[Kotlin.js]
-* xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4s], xref:scalalib/web-examples.adoc#_scala_js_webserver_integration[Scala.js]
+* xref:scalalib/web-examples.adoc#_todomvc_web_app[Cask], xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4s], xref:scalalib/web-examples.adoc#_scala_js_webserver_integration[Scala.js]
 
 
 *Others*
 
-* xref:javalib/module-config.adoc#_annotation_processors[Java Annotation Processors], xref:kotlinlib/module-config.adoc#_kotlin_compiler_plugins[Kotlin Compiler Plugins], xref:scalalib/module-config.adoc#_scala_compiler_plugins[Scala Compiler Plugins]
+* xref:javalib/module-config.adoc#_annotation_processors[Java Annotation Processors], xref:kotlinlib/module-config.adoc#_kotlin_compiler_plugins[Kotlin Compiler Plugins],  xref:kotlinlib/module-config.adoc#_dependency_injection_with_dagger_and_ksp[KSP], xref:scalalib/module-config.adoc#_scala_compiler_plugins[Scala Compiler Plugins]
 * xref:javalib/module-config.adoc#_native_c_code_with_jni[JNI]
 * xref:scalalib/spark.adoc[Apache Spark], xref:scalalib/native-examples.adoc[Scala-Native]
 * xref:large/selective-execution.adoc[Selective Test Execution], xref:large/multi-language-builds.adoc[Multi-Language Builds]

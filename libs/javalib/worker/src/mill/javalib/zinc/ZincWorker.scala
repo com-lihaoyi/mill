@@ -5,15 +5,10 @@ import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
 import mill.client.lock.*
-import mill.javalib.api.internal.{
-  JavaCompilerOptions,
-  ZincCompileJava,
-  ZincCompileMixed,
-  ZincScaladocJar
-}
+import mill.javalib.api.internal.*
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
-import mill.javalib.internal.ZincCompilerBridgeProvider
-import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
+import mill.javalib.api.internal.ZincCompilerBridgeProvider
+import mill.javalib.api.internal.ZincCompilerBridgeProvider.AcquireResult
 import mill.javalib.worker.*
 import mill.javalib.zinc.ZincWorker.*
 import mill.util.{CachedFactory, CachedFactoryWithInitData, RefCountedClassLoaderCache}
@@ -21,7 +16,7 @@ import sbt.internal.inc
 import sbt.internal.inc.*
 import sbt.internal.inc.classpath.ClasspathUtil
 import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
-import sbt.internal.util.{ConsoleAppender, ConsoleOut}
+import sbt.internal.util.ConsoleOut
 import sbt.mill.SbtLoggerUtils
 import xsbti.compile.*
 import xsbti.compile.analysis.ReadWriteMappers
@@ -33,9 +28,7 @@ import java.util.Optional
 import scala.collection.mutable
 
 /** @param jobs number of parallel jobs */
-class ZincWorker(
-    jobs: Int
-) extends AutoCloseable { self =>
+class ZincWorker(jobs: Int) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, MemoryLock] = mutable.Map.empty
 
@@ -70,10 +63,8 @@ class ZincWorker(
         timer <-
           Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
       } {
-
         timer.cancel()
       }
-
     }
   }
 
@@ -87,18 +78,20 @@ class ZincWorker(
 
       override def setup(
           key: ScalaCompilerCacheKey,
-          compilerBridge: ZincCompilerBridgeProvider
+          compilerBridgeProvider: ZincCompilerBridgeProvider
       ): ScalaCompilerCached = {
         import key.*
 
         val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
-        val compiledCompilerBridge = compileBridgeIfNeeded(
-          scalaVersion,
-          scalaOrganization,
-          compilerClasspath.map(_.path),
-          compilerBridge
-        )
+        val compiledCompilerBridge = compilerBridgeOpt.map(_.path).getOrElse {
+          compileBridgeIfNeeded(
+            scalaVersion,
+            scalaOrganization,
+            compilerClasspath.map(_.path),
+            compilerBridgeProvider
+          )
+        }
         val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
         val scalaInstance = new inc.ScalaInstance(
           version = key.scalaVersion,
@@ -170,83 +163,89 @@ class ZincWorker(
   }
 
   def compileJava(
-      op: ZincCompileJava,
+      op: ZincOp.CompileJava,
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(using
-      ctx: ZincWorker.InvocationContext,
-      deps: ZincWorker.InvocationDependencies
+      reportCachedProblems: Boolean,
+      localConfig: ZincWorker.LocalConfig,
+      processConfig: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
-    import op.*
-
-    val cacheKey = JavaCompilerCacheKey(javacOptions)
+    val cacheKey = JavaCompilerCacheKey(op.javacOptions)
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
       compileInternal(
-        upstreamCompileOutput = upstreamCompileOutput,
-        sources = sources,
-        compileClasspath = compileClasspath,
-        javacOptions = javacOptions,
+        upstreamCompileOutput = op.upstreamCompileOutput,
+        sources = op.sources,
+        compileClasspath = op.compileClasspath,
+        javacOptions = op.javacOptions,
         scalacOptions = Nil,
         compilers = compilers,
         reporter = reporter,
         reportCachedProblems = reportCachedProblems,
-        incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = Seq.empty
+        incrementalCompilation = op.incrementalCompilation,
+        auxiliaryClassFileExtensions = Seq.empty,
+        localConfig = localConfig,
+        processConfig = processConfig,
+        workDir = op.workDir
       )
     }
   }
 
   def compileMixed(
-      op: ZincCompileMixed,
+      op: ZincOp.CompileMixed,
       reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean
-  )(using
-      ctx: ZincWorker.InvocationContext,
-      deps: ZincWorker.InvocationDependencies
+      reportCachedProblems: Boolean,
+      localConfig: ZincWorker.LocalConfig,
+      processConfig: ZincWorker.ProcessConfig
   ): Result[CompilationResult] = {
-    import op.*
-
     withScalaCompilers(
-      scalaVersion = scalaVersion,
-      scalaOrganization = scalaOrganization,
-      compilerClasspath = compilerClasspath,
-      scalacPluginClasspath = scalacPluginClasspath,
-      javacOptions = javacOptions,
-      deps.compilerBridge
+      scalaVersion = op.scalaVersion,
+      scalaOrganization = op.scalaOrganization,
+      compilerClasspath = op.compilerClasspath,
+      scalacPluginClasspath = op.scalacPluginClasspath,
+      compilerBridgeOpt = op.compilerBridgeOpt,
+      javacOptions = op.javacOptions,
+      processConfig.compilerBridgeProvider
     ) { compilers =>
       compileInternal(
-        upstreamCompileOutput = upstreamCompileOutput,
-        sources = sources,
-        compileClasspath = compileClasspath,
-        javacOptions = javacOptions,
-        scalacOptions = scalacOptions,
+        upstreamCompileOutput = op.upstreamCompileOutput,
+        sources = op.sources,
+        compileClasspath = op.compileClasspath,
+        javacOptions = op.javacOptions,
+        scalacOptions = op.scalacOptions,
         compilers = compilers,
         reporter = reporter,
         reportCachedProblems = reportCachedProblems,
-        incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+        incrementalCompilation = op.incrementalCompilation,
+        auxiliaryClassFileExtensions = op.auxiliaryClassFileExtensions,
+        localConfig = localConfig,
+        processConfig = processConfig,
+        workDir = op.workDir
       )
     }
   }
 
   def scaladocJar(
-      op: ZincScaladocJar,
-      compilerBridge: ZincCompilerBridgeProvider
+      op: ZincOp.ScaladocJar,
+      processConfig: ZincWorker.ProcessConfig
   ): Boolean = {
-    import op.*
-
     withScalaCompilers(
-      scalaVersion,
-      scalaOrganization,
-      compilerClasspath,
-      scalacPluginClasspath,
-      JavaCompilerOptions.empty,
-      compilerBridge
+      scalaVersion = op.scalaVersion,
+      scalaOrganization = op.scalaOrganization,
+      compilerClasspath = op.compilerClasspath,
+      scalacPluginClasspath = op.scalacPluginClasspath,
+      compilerBridgeOpt = op.compilerBridgeOpt,
+      javacOptions = Nil,
+      compilerBridgeProvider = processConfig.compilerBridgeProvider
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
-      mill.util.Retry(count = 2) {
-        if (JvmWorkerUtil.isDotty(scalaVersion) || JvmWorkerUtil.isScala3Milestone(scalaVersion)) {
+      mill.util.Retry(
+        count = 2,
+        failWithFirstError = true,
+        logger = msg => processConfig.log.debug(msg)
+      ) {
+        if (
+          JvmWorkerUtil.isDotty(op.scalaVersion) || JvmWorkerUtil.isScala3Milestone(op.scalaVersion)
+        ) {
           // dotty 0.x and scala 3 milestones use the dotty-doc tool
           val dottydocClass =
             compilers.scalac().scalaInstance().loader().loadClass(
@@ -254,19 +253,19 @@ class ZincWorker(
             )
           val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
           val reporter =
-            dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
+            dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), op.args.toArray)
           val hasErrorsMethod = reporter.getClass.getMethod("hasErrors")
           !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
-        } else if (JvmWorkerUtil.isScala3(scalaVersion)) {
+        } else if (JvmWorkerUtil.isScala3(op.scalaVersion)) {
           // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
           // requires the ContextClassLoader to be set appropriately
-          mill.api.ClassLoader.withContextClassLoader(this.getClass.getClassLoader) {
+          mill.api.daemon.ClassLoader.withContextClassLoader(this.getClass.getClassLoader) {
             val scaladocClass =
               compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
 
             val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
             val reporter =
-              scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
+              scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), op.args.toArray)
             val hasErrorsMethod = reporter.getClass.getMethod("hasErrors")
             !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
           }
@@ -276,34 +275,11 @@ class ZincWorker(
           val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
           scaladocMethod.invoke(
             scaladocClass.getConstructor().newInstance(),
-            args.toArray
+            op.args.toArray
           ).asInstanceOf[Boolean]
         }
       }
     }
-  }
-
-  /** Constructs a [[ZincApi]] given the invocation context and dependencies. */
-  def api(using
-      ctx: ZincWorker.InvocationContext,
-      deps: ZincWorker.InvocationDependencies
-  ): ZincApi = new {
-    override def compileJava(
-        op: ZincCompileJava,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean
-    ): Result[CompilationResult] =
-      self.compileJava(op, reporter, reportCachedProblems)
-
-    override def compileMixed(
-        op: ZincCompileMixed,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean
-    ): Result[CompilationResult] =
-      self.compileMixed(op, reporter, reportCachedProblems)
-
-    override def scaladocJar(op: ZincScaladocJar): Boolean =
-      self.scaladocJar(op, deps.compilerBridge)
   }
 
   def close(): Unit = {
@@ -317,17 +293,19 @@ class ZincWorker(
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
-      javacOptions: JavaCompilerOptions,
-      compilerBridge: ZincCompilerBridgeProvider
+      compilerBridgeOpt: Option[PathRef],
+      javacOptions: Seq[String],
+      compilerBridgeProvider: ZincCompilerBridgeProvider
   )(f: Compilers => T) = {
     val cacheKey = ScalaCompilerCacheKey(
       scalaVersion,
       compilerClasspath,
       scalacPluginClasspath,
+      compilerBridgeOpt,
       scalaOrganization,
       javacOptions
     )
-    scalaCompilerCache.withValue(cacheKey, compilerBridge) { cached =>
+    scalaCompilerCache.withValue(cacheKey, compilerBridgeProvider) { cached =>
       f(cached.compilers)
     }
   }
@@ -336,39 +314,27 @@ class ZincWorker(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
-      javacOptions: JavaCompilerOptions,
+      javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
-      zincCache: os.SubPath = os.sub / "zinc"
-  )(using
-      ctx: ZincWorker.InvocationContext,
-      deps: ZincWorker.InvocationDependencies
+      zincCache: os.SubPath = os.sub / "zinc",
+      localConfig: ZincWorker.LocalConfig,
+      processConfig: ZincWorker.ProcessConfig,
+      workDir: os.Path
   ): Result[CompilationResult] = {
-    val requireReporter = ctx.env.get("MILL_JVM_WORKER_REQUIRE_REPORTER").contains("true")
-    if (requireReporter && reporter.isEmpty)
-      sys.error(
-        """A reporter is required, but none was passed. The following allows to get
-          |one from Mill tasks:
-          |
-          |    Task.reporter.apply(hashCode)
-          |
-          |`hashCode` should be the hashCode of the Mill module being compiled. Calling
-          |this in a task defined in a module should work.
-          |""".stripMargin
-      )
 
-    os.makeDir.all(ctx.dest)
+    os.makeDir.all(workDir)
 
-    val classesDir = ctx.dest / "classes"
+    val classesDir = workDir / "classes"
 
-    if (ctx.logDebugEnabled) {
-      deps.log.debug(
+    if (localConfig.logDebugEnabled) {
+      processConfig.log.debug(
         s"""Compiling:
-           |  javacOptions: ${javacOptions.options.map("'" + _ + "'").mkString(" ")}
+           |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
            |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
            |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
            |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
@@ -379,29 +345,18 @@ class ZincWorker(
 
     reporter.foreach(_.start())
 
-    val consoleAppender = ConsoleAppender(
+    val consoleAppender = SbtLoggerUtils.ConciseLevelConsoleAppender(
       name = "ZincLogAppender",
-      deps.consoleOut,
-      ansiCodesSupported = ctx.logPromptColored,
-      useFormat = ctx.logPromptColored,
-      suppressedMessage = _ => None
+      log = s => processConfig.log.info(s),
+      ansiCodesSupported0 = localConfig.logPromptColored
     )
     val loggerId = Thread.currentThread().getId.toString
-    val zincLogLevel = if (ctx.zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
+    val zincLogLevel =
+      if (localConfig.logDebugEnabled) sbt.util.Level.Debug else sbt.util.Level.Info
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
 
     val maxErrors = reporter.map(_.maxErrors).getOrElse(CompileProblemReporter.defaultMaxErrors)
 
-    def mkNewReporter(mapper: (xsbti.Position => xsbti.Position) | Null) = reporter match {
-      case None =>
-        new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, mapper) {}
-      case Some(forwarder) =>
-        new ManagedLoggedReporter(maxErrors, logger)
-          with ForwardingReporter(forwarder)
-          with RecordingReporter
-          with TransformingReporter(ctx.logPromptColored, mapper) {}
-    }
     val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
 
     def analysisMap(f: VirtualFile): Optional[CompileAnalysis] = {
@@ -417,7 +372,7 @@ class ZincWorker(
 
     val lookup = MockedLookup(analysisMap)
 
-    val store = fileAnalysisStore(ctx.dest / zincCache)
+    val store = fileAnalysisStore(workDir / zincCache)
 
     // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
     val converter = MappedFileConverter.empty
@@ -445,18 +400,37 @@ class ZincWorker(
       }
     }
 
-    val finalScalacOptions = {
-      val addColorNever = !ctx.logPromptColored &&
+    val addColorNeverOption = Option.when(
+      !localConfig.logPromptColored &&
         compilers.scalac().scalaInstance().version().startsWith("3.") &&
-        !scalacOptions.exists(_.startsWith("-color:")) // might be too broad
-      if (addColorNever)
-        "-color:never" +: scalacOptions
-      else
-        scalacOptions
+        // might be too broad
+        !scalacOptions.exists(_.startsWith("-color:"))
+    ) {
+      "-color:never"
     }
 
+    val finalScalacOptions = addColorNeverOption.toSeq ++ scalacOptions
+
     val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
-    val newReporter = mkNewReporter(posMapperOpt.orNull)
+
+    val newReporter = reporter match {
+      case None =>
+        new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
+          with TransformingReporter(
+            localConfig.logPromptColored,
+            posMapperOpt.orNull,
+            localConfig.workspaceRoot
+          ) {}
+      case Some(forwarder) =>
+        new ManagedLoggedReporter(maxErrors, logger)
+          with ForwardingReporter(forwarder)
+          with RecordingReporter
+          with TransformingReporter(
+            localConfig.logPromptColored,
+            posMapperOpt.orNull,
+            localConfig.workspaceRoot
+          ) {}
+    }
 
     val inputs = incrementalCompiler.inputs(
       classpath = classpath,
@@ -464,7 +438,7 @@ class ZincWorker(
       classesDirectory = classesDir.toNIO,
       earlyJarPath = None,
       scalacOptions = finalScalacOptions.toArray,
-      javacOptions = javacOptions.options.toArray,
+      javacOptions = javacOptions.toArray,
       maxErrors = maxErrors,
       sourcePositionMappers = Array(),
       order = CompileOrder.Mixed,
@@ -482,15 +456,9 @@ class ZincWorker(
       ),
       pr = if (incrementalCompilation) {
         val prev = store.get()
-        PreviousResult.of(
-          prev.map(_.getAnalysis): Optional[CompileAnalysis],
-          prev.map(_.getMiniSetup): Optional[MiniSetup]
-        )
+        PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
       } else {
-        PreviousResult.of(
-          Optional.empty[CompileAnalysis],
-          Optional.empty[MiniSetup]
-        )
+        PreviousResult.of(Optional.empty[CompileAnalysis], Optional.empty[MiniSetup])
       },
       temporaryClassesDirectory = java.util.Optional.empty(),
       converter = converter,
@@ -500,23 +468,15 @@ class ZincWorker(
     val scalaColorProp = "scala.color"
     val previousScalaColor = sys.props(scalaColorProp)
     try {
-      sys.props(scalaColorProp) = if (ctx.logPromptColored) "true" else "false"
-      val newResult = incrementalCompiler.compile(
-        in = inputs,
-        logger = logger
-      )
+      sys.props(scalaColorProp) = if (localConfig.logPromptColored) "true" else "false"
 
-      if (reportCachedProblems) {
-        newReporter.logOldProblems(newResult.analysis())
-      }
+      val newResult = incrementalCompiler.compile(in = inputs, logger = logger)
 
-      store.set(
-        AnalysisContents.create(
-          newResult.analysis(),
-          newResult.setup()
-        )
-      )
-      Result.Success(CompilationResult(ctx.dest / zincCache, PathRef(classesDir)))
+      if (reportCachedProblems) newReporter.logOldProblems(newResult.analysis())
+
+      store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
+
+      Result.Success(CompilationResult(workDir / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)
@@ -524,8 +484,7 @@ class ZincWorker(
       for (rep <- reporter) {
         for (f <- sources) {
           rep.fileVisited(f.toNIO)
-          for (f0 <- originalSourcesMap.get(f))
-            rep.fileVisited(f0.toNIO)
+          for (f0 <- originalSourcesMap.get(f)) rep.fileVisited(f0.toNIO)
         }
         rep.finish()
       }
@@ -545,11 +504,11 @@ class ZincWorker(
       scalaVersion: String,
       scalaOrganization: String,
       compilerClasspath: Seq[os.Path],
-      compilerBridge: ZincCompilerBridgeProvider
+      compilerBridgeProvider: ZincCompilerBridgeProvider
   ): os.Path = {
-    val workingDir = compilerBridge.workspace / s"zinc-${Versions.zinc}" / scalaVersion
+    val workingDir = compilerBridgeProvider.workspace / s"zinc-${Versions.zinc}" / scalaVersion
 
-    os.makeDir.all(compilerBridge.workspace / "compiler-bridge-locks")
+    os.makeDir.all(compilerBridgeProvider.workspace / "compiler-bridge-locks")
     val memoryLock = synchronized(
       compilerBridgeLocks.getOrElseUpdate(scalaVersion, new MemoryLock)
     )
@@ -560,20 +519,25 @@ class ZincWorker(
     // the compiler bridge inside a separate `ZincWorkerMain` subprocess
     val doubleLock = new DoubleLock(
       memoryLock,
-      new FileLock((compilerBridge.workspace / "compiler-bridge-locks" / scalaVersion).toString)
+      new FileLock(
+        (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString
+      )
     )
     try {
       doubleLock.lock()
       if (os.exists(doneFile)) compiledDest
       else {
         val acquired =
-          compilerBridge.acquire(scalaVersion = scalaVersion, scalaOrganization = scalaOrganization)
+          compilerBridgeProvider.acquire(
+            scalaVersion = scalaVersion,
+            scalaOrganization = scalaOrganization
+          )
 
         acquired match {
           case AcquireResult.Compiled(bridgeJar) => bridgeJar
           case AcquireResult.NotCompiled(bridgeClasspath, bridgeSourcesJar) =>
             ZincCompilerBridgeProvider.compile(
-              compilerBridge.logInfo,
+              compilerBridgeProvider.logInfo,
               workingDir,
               compiledDest,
               scalaVersion,
@@ -587,7 +551,48 @@ class ZincWorker(
       }
     } finally doubleLock.close()
   }
+
+  def apply(
+      op: ZincOp,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean,
+      localConfig: ZincWorker.LocalConfig,
+      processConfig: ZincWorker.ProcessConfig
+  ): op.Response = {
+    op match {
+      case msg: ZincOp.CompileJava =>
+        compileJava(
+          msg,
+          reporter,
+          reportCachedProblems,
+          localConfig,
+          processConfig
+        ).asInstanceOf[op.Response]
+
+      case msg: ZincOp.CompileMixed =>
+        compileMixed(
+          msg,
+          reporter,
+          reportCachedProblems,
+          localConfig,
+          processConfig
+        ).asInstanceOf[op.Response]
+
+      case msg: ZincOp.ScaladocJar =>
+        scaladocJar(msg, processConfig).asInstanceOf[op.Response]
+
+      case msg: ZincOp.DiscoverTests =>
+        mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]
+
+      case msg: ZincOp.GetTestTasks =>
+        mill.javalib.testrunner.GetTestTasksMain(msg).asInstanceOf[op.Response]
+
+      case msg: ZincOp.DiscoverJunit5Tests =>
+        mill.javalib.testrunner.DiscoverJunit5TestsMain(msg).asInstanceOf[op.Response]
+    }
+  }
 }
+
 object ZincWorker {
 
   /**
@@ -596,34 +601,34 @@ object ZincWorker {
    * Can come either from the local [[ZincWorker]] running in [[JvmWorkerImpl]] or from a zinc worker running
    * in a different process.
    */
-  case class InvocationDependencies(
+  case class ProcessConfig(
       log: Logger.Actions,
       consoleOut: ConsoleOut,
-      compilerBridge: ZincCompilerBridgeProvider
+      compilerBridgeProvider: ZincCompilerBridgeProvider
   )
 
   /** The invocation context, always comes from the Mill's process. */
-  case class InvocationContext(
-      env: Map[String, String],
+  case class LocalConfig(
       dest: os.Path,
       logDebugEnabled: Boolean,
       logPromptColored: Boolean,
-      zincLogDebug: Boolean
+      workspaceRoot: os.Path
   ) derives upickle.ReadWriter
 
   private case class ScalaCompilerCacheKey(
       scalaVersion: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      compilerBridgeOpt: Option[PathRef],
       scalaOrganization: String,
-      javacOptions: JavaCompilerOptions
+      javacOptions: Seq[String]
   ) {
     val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
   }
 
   private case class ScalaCompilerCached(classLoader: URLClassLoader, compilers: Compilers)
 
-  private case class JavaCompilerCacheKey(javacOptions: JavaCompilerOptions)
+  private case class JavaCompilerCacheKey(javacOptions: Seq[String])
 
   private def getLocalOrCreateJavaTools(): JavaTools = {
     val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork())

@@ -1,9 +1,65 @@
 // Mill workers defined using `Task.Worker` are long-lived in-memory objects that
-// can persistent across multiple evaluations. These are similar to persistent
+// can persist across multiple evaluations. These are similar to persistent
 // tasks in that they let you cache things, but the fact that they let you
 // cache the worker object in-memory allows for greater performance and
 // flexibility: you are no longer limited to caching only serializable data
 // and paying the cost of serializing it to disk every evaluation.
+//
+// A simple example of a worker is one that maintains a counter in memory,
+// incrementing it each time a task that uses the worker is evaluated. Note
+// that like normal cached tasks, the task using the worker only re-evaluates
+// when its inputs change:
+
+package build
+import mill.*, scalalib.*
+
+def input = Task.Source("input.txt")
+
+def counterWorker = Task.Worker {
+  new java.util.concurrent.atomic.AtomicInteger(0)
+}
+
+def counterTask = Task {
+  val count = counterWorker().incrementAndGet()
+  println(s"Counting: $count, input: ${os.read(input().path).trim}")
+  count
+}
+
+/** Usage
+
+> ./mill counterTask
+Counting: 1, input: one
+
+> ./mill counterTask # no input change, no re-evaluation
+
+> echo two > input.txt
+
+> ./mill counterTask # input changed, counter increments
+Counting: 2, input: two
+
+> echo three > input.txt
+
+> ./mill counterTask
+Counting: 3, input: three
+
+> ./mill clean counterWorker
+
+> echo four > input.txt
+
+> ./mill counterTask # cleaning the worker resets the counter
+Counting: 1, input: four
+
+*/
+
+// In the above example, the counter only increments when the input file changes.
+// Unlike persistent tasks which store state on disk, workers store state in memory.
+// `./mill clean` resets the worker by discarding the in-memory object.
+//
+// Workers live as long as the Mill process. By default, consecutive `mill`
+// commands in the same folder will re-use the same Mill process and workers,
+// unless `--no-daemon` is passed which will terminate the Mill process and
+// workers after every command. Commands run repeatedly using `--watch` will
+// also preserve the workers between them.
 //
 // Common things to put in workers include:
 //
@@ -13,14 +69,14 @@
 // 2. Classloaders containing plugin code, to avoid classpath conflicts while
 //    avoiding the cost of launching subprocesses
 //
+// ==== In-Memory Realistic Example: Compression Cache
+//
 // This example uses a Worker to provide simple two-level cache: in-memory caching
 // for compressed files, in addition to caching them on disk. This means that if the
 // Mill process is persistent (e.g. with `--watch`/`-w`) the cache lookups are instant,
 // but even if the Mill process is restarted it can load the cache values from disk
 // without having to recompute them:
 
-package build
-import mill.*, scalalib.*
 import java.util.Arrays
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
@@ -77,19 +133,13 @@ def compressBytes(input: Array[Byte]) = {
 //
 // NOTE: The _initialization_ of a ``Task.Worker``'s value is single threaded,
 // but _usage_ of the worker's value may be done concurrently. The user of
-// `Task.Worker` is responsible for ensuring it's value is safe to use in a
+// `Task.Worker` is responsible for ensuring its value is safe to use in a
 // multi-threaded environment via techniques like locks, atomics, or concurrent data
 // structures. The example above uses `synchronized{}` around all access to the
 // shared `cache` state to allow the slow `compressBytes` operation to run in
 // parallel while the fast mutation of the `cache` is single-threaded.
 //
-// Workers live as long as the Mill process. By default, consecutive `mill`
-// commands in the same folder will re-use the same Mill process and workers,
-// unless `--no-daemon` is passed which will terminate the Mill process and
-// workers after every command. Commands run repeatedly using `--watch` will
-// also preserve the workers between them.
-//
-// Workers can also make use of their `Task.dest` folder as a cache that persist
+// Workers can also make use of their `Task.dest` folder as a cache that persists
 // when the worker shuts down, as a second layer of caching. The example usage
 // below demonstrates how using the `--no-daemon` flag will make the worker
 // read from its disk cache, where it would have normally read from its

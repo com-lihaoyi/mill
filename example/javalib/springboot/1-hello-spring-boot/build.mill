@@ -1,0 +1,30 @@
+// This example demonstrates how to set up a simple Spring Boot webserver,
+// using Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative build.mill.yaml]
+// syntax.
+
+/** See Also: build.mill.yaml */
+
+/** See Also: resources/application.properties */
+
+/** See Also: src/com/example/HelloSpringBoot.java */
+
+// This server is able to handle a single HTTP request at `/` and reply with a
+// single response. It also contains a simple test suite:
+
+/** See Also: test/src/com/example/HelloSpringBootTest.java */
+
+// This can be tested via `curl`, or by running the test suite as shown below:
+
+/** Usage
+
+> ./mill test
+...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
+
+> ./mill runBackground
+
+> curl http://localhost:8086
+...<h1>Hello, World!</h1>...
+
+> ./mill clean runBackground
+
+*/

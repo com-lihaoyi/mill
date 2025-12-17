@@ -1,0 +1,61 @@
+//// SNIPPET:LINT
+// === Autoformatting
+//
+// To autoformat your Java code with
+// https://github.com/palantir/palantir-java-format[Palantir Java Format], you
+// can run `./mill mill.javalib.palantirformat/` as shown below:
+
+/** Usage
+
+> cat src/foo/Foo.java
+package foo;
+public class Foo {
+public static void main(String[] args) {
+System.out.println("Hello World");
+new java.util.HashSet<Short>().remove(1);
+}
+}
+
+> ./mill mill.javalib.palantirformat/
+formatting 1 java sources ...
+
+> cat src/foo/Foo.java
+package foo;
+public class Foo {
+  public static void main(String[] args) {
+    System.out.println("Hello World");
+    new java.util.HashSet<Short>().remove(1);
+  }
+}
+
+*/
+
+// See xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[Autoformatting with Palantir Java Format] for more information.
+// Apart from Palantir Format, Mill also comes with
+// xref:javalib/linting.adoc#_auto_formatting_with_spotless[mill.javalib.spotless.SpotlessModule]
+// that can also be used
+
+// === Linting
+
+// To lint your code with https://errorprone.info/index[ErrorProne], you can
+// make yor module extend `mill.javalib.errorprone.ErrorProneModule`, which will
+// run errorprone lint checks every time you `compile` that module.
+
+/** See Also: build.mill.yaml */
+/** Usage
+
+> ./mill compile
+[warn] src/foo/Foo.java:6:42
+    new java.util.HashSet<Short>().remove(1);
+                                         ^^^
+[CollectionIncompatibleType] Argument '1' should not be passed to this method; its type int is not compatible with its collection's type argument Short
+    (see https://errorprone.info/bugpattern/CollectionIncompatibleType)
+
+*/
+
+// See xref:javalib/linting.adoc#_linting_with_errorprone[Linting with ErrorProne] for more
+// details on how ErrorProne can be configured. Apart from ErrorProne, Mill also comes with
+// support for other linters via:
+//
+// - xref:javalib/linting.adoc#_linting_with_checkstyle[mill.contrib.checkstyle.CheckstyleModule]
+// - xref:javalib/linting.adoc#_static_analysis_with_pmd[mill.javalib.pmd.PmdModule]

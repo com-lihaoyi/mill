@@ -14,42 +14,53 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         .filter(_.startsWith("mill-"))
         .sorted
       val millLocalClasspath = deserialized
-        .map(_.path)
-        .filter(_.startsWith(BuildCtx.workspaceRoot))
-        .map(_.subRelativeTo(BuildCtx.workspaceRoot))
-        .filter(!_.startsWith("out/integration"))
-        .map(_.toString)
+        .flatMap { p =>
+          lazy val sub = p.path.subRelativeTo(BuildCtx.workspaceRoot)
+          Option.when(
+            p.path.startsWith(BuildCtx.workspaceRoot) &&
+              !sub.startsWith("out/integration") &&
+              !sub.startsWith("out/dist/localRepo.dest")
+          ) {
+            sub.toString()
+          }
+        }
         .sorted
+
       if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") == "true") {
         assertGoldenLiteral(
           millPublishedJars,
           List(
-            "mill-core-api-daemon_3.jar",
-            "mill-core-api_3.jar",
-            "mill-core-constants.jar",
-            "mill-libs-androidlib-databinding_3.jar",
-            "mill-libs-androidlib_3.jar",
-            "mill-libs-daemon-client.jar",
-            "mill-libs-daemon-server_3.jar",
-            "mill-libs-javalib-api_3.jar",
-            "mill-libs-javalib-testrunner-entrypoint.jar",
-            "mill-libs-javalib-testrunner_3.jar",
-            "mill-libs-javalib_3.jar",
-            "mill-libs-javascriptlib_3.jar",
-            "mill-libs-kotlinlib-api_3.jar",
-            "mill-libs-kotlinlib-ksp2-api_3.jar",
-            "mill-libs-kotlinlib_3.jar",
-            "mill-libs-pythonlib_3.jar",
-            "mill-libs-rpc_3.jar",
-            "mill-libs-scalajslib-api_3.jar",
-            "mill-libs-scalajslib_3.jar",
-            "mill-libs-scalalib_3.jar",
-            "mill-libs-scalanativelib-api_3.jar",
-            "mill-libs-scalanativelib_3.jar",
-            "mill-libs-script_3.jar",
-            "mill-libs-util_3.jar",
-            "mill-libs_3.jar",
-            "mill-moduledefs_3-0.11.10.jar"
+            "mill-core-api-daemon_3-SNAPSHOT.jar",
+            "mill-core-api-java11_3-SNAPSHOT.jar",
+            "mill-core-api_3-SNAPSHOT.jar",
+            "mill-core-constants-SNAPSHOT.jar",
+            "mill-libs-androidlib-databinding_3-SNAPSHOT.jar",
+            "mill-libs-androidlib_3-SNAPSHOT.jar",
+            "mill-libs-daemon-client-SNAPSHOT.jar",
+            "mill-libs-daemon-server_3-SNAPSHOT.jar",
+            "mill-libs-groovylib-api_3-SNAPSHOT.jar",
+            "mill-libs-groovylib_3-SNAPSHOT.jar",
+            "mill-libs-javalib-api_3-SNAPSHOT.jar",
+            "mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
+            "mill-libs-javalib-testrunner_3-SNAPSHOT.jar",
+            "mill-libs-javalib_3-SNAPSHOT.jar",
+            "mill-libs-javascriptlib_3-SNAPSHOT.jar",
+            "mill-libs-kotlinlib-api_3-SNAPSHOT.jar",
+            "mill-libs-kotlinlib-ksp2-api_3-SNAPSHOT.jar",
+            "mill-libs-kotlinlib_3-SNAPSHOT.jar",
+            "mill-libs-pythonlib_3-SNAPSHOT.jar",
+            "mill-libs-rpc_3-SNAPSHOT.jar",
+            "mill-libs-scalajslib-api_3-SNAPSHOT.jar",
+            "mill-libs-scalajslib_3-SNAPSHOT.jar",
+            "mill-libs-scalalib_3-SNAPSHOT.jar",
+            "mill-libs-scalanativelib-api_3-SNAPSHOT.jar",
+            "mill-libs-scalanativelib_3-SNAPSHOT.jar",
+            "mill-libs-script_3-SNAPSHOT.jar",
+            "mill-libs-util-java11_3-SNAPSHOT.jar",
+            "mill-libs-util_3-SNAPSHOT.jar",
+            "mill-libs_3-SNAPSHOT.jar",
+            "mill-moduledefs_3-0.12.5-RC1.jar",
+            "mill-runner-autooverride-api_3-SNAPSHOT.jar"
           )
         )
         assert(millLocalClasspath == Nil)

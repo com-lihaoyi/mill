@@ -5,8 +5,10 @@ import scala.math.Ordering.Implicits.seqOrdering
 /**
  * Models a path with the Mill build hierarchy, e.g. `amm.util[2.11].test.compile`.
  *
- * `.`-separated segments are [[Segment.Label]]s,
- * while `[]`-delimited segments are [[Segment.Cross]]s
+ * - `.`-separated segments are [[Segment.Label]]s,
+ * - `[]`-delimited segments are [[Segment.Cross]]s
+ * - If the first segment starts with `./`, it refers to a single-file script
+ * - If the first segment ends with `/`, it refers to an external module
  */
 final case class Segments private (value: Seq[Segment]) {
 
@@ -29,20 +31,40 @@ final case class Segments private (value: Seq[Segment]) {
   def head: Segment = value.head
 
   def render: String = {
-    def renderCross(cross: Segment.Cross): String = "[" + cross.value.mkString(",") + "]"
-    value.toList match {
+    // Replace `.`, `/`, and `:` with `_` since they have special meaning in Mill selectors
+    def renderCross(cross: Segment.Cross): Seq[String] =
+      cross.value.map(_.replace('.', '_').replace('/', '_').replace(':', '_'))
+
+    def renderValue(valueList: List[Segment]): String = valueList match {
       case Nil => ""
       case head :: rest =>
-        val headSegment = head match
-          case Segment.Label(s) => s
+        val headSegments = head match
+          case Segment.Label(s) => Seq(s)
           case c: Segment.Cross => renderCross(c)
-        val stringSegments = rest.map {
-          case Segment.Label(s) => "." + s
+        val restSegments = rest.flatMap {
+          case Segment.Label(s) => Seq(s)
           case c: Segment.Cross => renderCross(c)
         }
-        headSegment + stringSegments.mkString
+        (headSegments ++ restSegments).mkString(".")
+    }
+
+    value.toList match {
+      // ScriptModule segments always ends with `:`
+      case Segment.Label(s"$first:") :: rest => s"$first:${renderValue(rest)}"
+      // ExternalModule segments always ends with '/'
+      case Segment.Label(s"$first/") :: rest => s"$first/${renderValue(rest)}"
+      case valueList => renderValue(valueList)
     }
   }
+
+  /**
+   * Renders segments using bracket syntax for cross modules (e.g., `foo[2.12.20]`).
+   * Used for tab completion when the user has started typing with bracket syntax.
+   */
+  def renderBracketSyntax: String = value.map {
+    case Segment.Label(s) => "." + s
+    case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
+  }.mkString.drop(1)
   override lazy val hashCode: Int = value.hashCode()
 }
 

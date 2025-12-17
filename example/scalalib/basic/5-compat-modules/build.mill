@@ -1,0 +1,60 @@
+// Mill's default folder layout of `src/` and `test/src` differs from the `src/main/scala/`
+// and `src/test/scala/` common in Maven, Gradle, or SBT. If you are
+// adopting Mill in an existing codebase, you can use Mill's `{compat-module}` and
+// `{compat-test-module}` as shown below to preserve filesystem compatibility with an existing
+// build:
+
+/** See Also: build.mill.yaml */
+
+// Note the `object test:` and `object integration:` keys in the above file: these allow
+// you to define submodules in the same `build.mill.yaml` file as the parent module without
+// needing a separate `package.mill.yaml` in a subfolder. This is necessary  in scenarios
+// like this one where we want `test` and `integration` submodules but the filesystem layout
+// means we do not have `test/` or `integration/` folders to put a `package.mill.yaml` in.
+
+//// SNIPPET:FIRST
+
+// `SbtModule`/`CrossSbtModule` are variants of `ScalaModule`/`CrossScalaModule`
+// that use the more verbose folder layout of SBT, Maven, and other tools:
+//
+// - `src/main/scala/`
+// - `src/test/scala/`
+// - `src/integration/scala/`
+//
+// Rather than Mill's
+//
+// - `src/`
+// - `test/src/`
+// - `integration/src/`
+//
+//// SNIPPET:END
+// One use case of these compatibility modules is migrations: while migrating to Mill, a
+// project may be built using your previous build tool and Mill at the  same time. Using
+// ``{compat-module}``s means that during migration, you can leave all your source files
+// in place while setting up your Mill build, and do not need to invasively move them
+// around to match the Mill default module layout.
+//
+// Although the source layout of these compatibility modules is different from the
+// default `{language}Module`, the command-line usage is the same:
+//// SNIPPET:SECOND
+
+/** Usage
+
+> ./mill compile
+compiling 1 Scala source...
+
+> ./mill test.compile
+compiling 1 Scala source...
+
+> ./mill test.testForked
++ foo.FooTests...hello ...
+
+> ./mill test
++ foo.FooTests.hello ...
+
+> ./mill integration
++ foo.FooIntegrationTests.hello ...
+
+*/
+//// SNIPPET:END
+// For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]

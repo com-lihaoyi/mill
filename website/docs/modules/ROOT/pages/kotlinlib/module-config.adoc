@@ -11,51 +11,53 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[mill.kotlinlib.KotlinModule]
 
+== Declarative Configuration
+
+include::partial$example/kotlinlib/module/1-basic-config.adoc[]
+
+=== Kotlin Compiler Plugins
+
+include::partial$example/kotlinlib/module/2-kotlin-compiler-plugins.adoc[]
+
+=== Doc-Jar Generation
+
+include::partial$example/kotlinlib/module/3-docjar.adoc[]
+
+== Programmable Configuration
+
+include::partial$example/kotlinlib/module/4-programmable-config.adoc[]
+
+
+=== Custom Tasks
+
+include::partial$example/kotlinlib/module/5-custom-tasks.adoc[]
+
+
+=== Generated Sources
+
+include::partial$example/kotlinlib/module/6-generated-sources.adoc[]
 
 
 
-== Common Configuration Overrides
-
-include::partial$example/kotlinlib/module/2-common-config.adoc[]
-
-
-== Custom Tasks
-
-include::partial$example/kotlinlib/module/3-custom-tasks.adoc[]
-
-
-== Generated Sources
-
-include::partial$example/kotlinlib/module/4-generated-sources.adoc[]
-
-
-
-== Compilation & Execution Flags
-
-include::partial$example/kotlinlib/module/5-compilation-execution-flags.adoc[]
-
-== Classpath and Filesystem Resources
+=== Classpath and Filesystem Resources
 
 include::partial$example/kotlinlib/module/7-resources.adoc[]
 
-== Kotlin Compiler Plugins
-
-include::partial$example/kotlinlib/module/8-kotlin-compiler-plugins.adoc[]
-
-== Doc-Jar Generation
-
-include::partial$example/kotlinlib/module/9-docjar.adoc[]
-
-== Dependency Injection with Dagger and KSP
+=== Dependency Injection with Dagger and KSP
 
 include::partial$example/kotlinlib/module/10-dependency-injection.adoc[]
 
-== Specifying the Main Class
 
-include::partial$example/kotlinlib/module/11-main-class.adoc[]
-
-
-
-== Native C Code with JNI
+=== Native C Code with JNI
 
 include::partial$example/kotlinlib/module/15-jni.adoc[]
+
+== Integration Declarative and Programmatic Config
+
+=== Custom Module Traits
+
+include::partial$example/kotlinlib/module/17-custom-trait.adoc[]
+
+=== Programmable `moduleDeps`
+
+include::partial$example/kotlinlib/module/18-programmable-module-deps.adoc[]

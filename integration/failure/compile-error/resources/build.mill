@@ -1,6 +1,6 @@
 //| # make sure line numbers are correctly
 //| # offset in the presence of a yaml header
-//| dummy-key: dummy-value
+//| mvnDeps: []
 package build
 import mill._
 import mill.scalalib._

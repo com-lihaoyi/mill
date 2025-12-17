@@ -5,8 +5,8 @@ import mill.api.*
 import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
-import mill.api.internal.{Resolved, RootModule0}
-
+import mill.api.internal.{Located, Resolved, RootModule0}
+import upickle.core.BufferedValue
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -32,7 +32,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
-
+  private[mill] def staticBuildOverrides: Map[String, Located[BufferedValue]] = Map()
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(
@@ -48,12 +48,6 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Resolved]] = {
-    // These are used in the overrides.
-    val _ = scriptArgs
-    val _ = selectMode
-    val _ = allowPositionalCommandArgs
-    val _ = resolveToModuleTasks
-
     mill.api.Result.Success(Nil)
   }
 
@@ -134,6 +128,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
    * APIs related to selective execution
    */
   def selective: SelectiveExecution
+
 }
 object Evaluator {
   // This needs to be a ThreadLocal because we need to pass it into the body of

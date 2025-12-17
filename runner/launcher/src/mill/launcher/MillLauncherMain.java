@@ -1,5 +1,7 @@
 package mill.launcher;
 
+import static mill.constants.OutFiles.OutFiles;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +16,6 @@ import mill.client.*;
 import mill.client.lock.Locks;
 import mill.constants.BuildInfo;
 import mill.constants.EnvVars;
-import mill.constants.OutFiles;
 import mill.constants.OutFolderMode;
 import mill.internal.MillCliConfig;
 
@@ -27,8 +28,8 @@ public class MillLauncherMain {
   public static void main(String[] args) throws Exception {
     var needParsedConfig = Arrays.stream(args)
         .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
-    for (var token :
-        Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")) {
+    for (var token : Arrays.asList(
+        "--interactive", "--no-server", "--no-daemon", "--jshell", "--repl", "--bsp", "--help")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
@@ -40,9 +41,7 @@ public class MillLauncherMain {
     if (needParsedConfig) {
       var config = MillCliConfig.parse(args).toOption();
       if (config.exists(c -> c.bsp().value())) bspMode = true;
-      if (config.exists(
-          c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value()))
-        runNoDaemon = true;
+      if (config.exists(c -> c.noDaemonEnabled() > 0)) runNoDaemon = true;
     }
 
     // Ensure that if we're running in BSP mode we don't start a daemon.
@@ -71,6 +70,8 @@ public class MillLauncherMain {
                   + "' environment variable. This will reduce the CPU usage of the BSP server but"
                   + " make it less responsive.");
     }
+
+    coursier.Resolve.proxySetup();
 
     String[] runnerClasspath = MillProcessLauncher.cachedComputedValue0(
         outMode,
@@ -118,12 +119,19 @@ public class MillLauncherMain {
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir);
         var exitCode = launcher.run(daemonDir, javaHome, log);
-        if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
+        // Retry if server requests it. This can happen when:
+        // - There's a version mismatch between client and server
+        // - The server was terminated while this client was waiting
+        int maxRetries = 10;
+        for (int i = 0; i < maxRetries && exitCode == ClientUtil.ServerExitPleaseRetry(); i++) {
           exitCode = launcher.run(daemonDir, javaHome, log);
+        }
+        if (exitCode == ClientUtil.ServerExitPleaseRetry()) {
+          System.err.println("Max launcher retries exceeded (" + maxRetries + "), exiting");
         }
         System.exit(exitCode);
       } catch (Exception e) {
-        System.err.println("Mill client failed with unknown exception.");
+        System.err.println("Mill launcher failed with unknown exception.");
         System.err.println();
 
         System.err.println("Exception:");

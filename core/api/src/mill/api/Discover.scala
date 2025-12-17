@@ -16,10 +16,10 @@ import scala.collection.mutable
  * can then be used later to look up the `MainData` for any module.
  */
 final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
+  private[mill] val allTaskNames = classInfo.values.flatMap(_.declaredTaskNameSet).toSet
   private[mill] def resolveEntrypoint(cls: Class[?], name: String) = {
     val res = for {
-      (cls2, node) <- classInfo
-      if cls2.isAssignableFrom(cls)
+      (cls2, node) <- resolveClassInfos(cls)
       ep <- node.entryPoints
       if ep.mainName.getOrElse(ep.defaultName) == name
     } yield ep
@@ -29,6 +29,12 @@ final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
     // add additional arguments to a command (with default values) to
     // preserve binary compatibility while evolving the method signature
     res.maxByOption(_.argSigs0.length)
+  }
+  private[mill] def resolveClassInfos(cls: Class[?]) = {
+    for {
+      (cls2, node) <- classInfo
+      if cls2.isAssignableFrom(cls)
+    } yield (cls2, node)
   }
 }
 

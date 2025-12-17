@@ -136,8 +136,11 @@ object CompileRunTests extends TestSuite {
         val Right(result) = eval(task): @unchecked
 
         val paths = ExecutionPaths.resolve(eval.outPath, task)
+        val log = os.read(paths.log)
         val stdout = os.proc(paths.dest / "out").call().out.lines()
         assert(
+          log.contains("[info] Checking intermediate code (quick)"),
+          log.contains("[info] Linking native code"),
           stdout.contains("Hello Scala Native"),
           result.evalCount > 0
         )

@@ -6,15 +6,15 @@ import mill.*
 import mill.api.Result
 import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
-import mill.constants.OutFiles.*
+import mill.constants.OutFiles.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
-import mill.api.daemon.internal.MillScalaParser
+import mill.api.daemon.internal.{MillBuildRootModuleApi, MillScalaParser}
 import mill.api.JsonFormatters.given
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileMixed}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -28,7 +28,26 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 @internal
 trait MillBuildRootModule()(using
     rootModuleInfo: RootModule.Info
-) extends ScalaModule {
+) extends ScalaModule with MillBuildRootModuleApi {
+
+  def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
+
+  /**
+   * Default set of BSP ignores, meant to catch the common case of `.java`, `.scala`, or `.kt`
+   * files that definitely aren't scripts, but for some reason aren't recognized as being in
+   * a module's `def sources` task (e.g. maybe module import failed or something)
+   */
+  def bspScriptIgnoreDefault: T[Seq[String]] = Seq(
+    "**/src/",
+    "**/src-*/",
+    "**/resources/",
+    "**/out/",
+    "**/.bsp/mill-bsp-out/",
+    "**/target/"
+  )
+
+  def bspScriptIgnore: T[Seq[String]] = Nil
+
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
     .relativeTo(rootModuleInfo.topLevelProjectRoot)
@@ -37,7 +56,7 @@ trait MillBuildRootModule()(using
     .mkString("/")
 
   override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  private[mill] override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
+  override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
@@ -62,7 +81,8 @@ trait MillBuildRootModule()(using
         rootModuleInfo.projectRoot / os.up,
         rootModuleInfo.output,
         MillScalaParser.current.value,
-        scriptSources().map(_.path)
+        scriptSources().map(_.path),
+        Task.log.prompt.colored
       )
     }
   }
@@ -76,7 +96,10 @@ trait MillBuildRootModule()(using
   }
 
   override def mandatoryMvnDeps = Task {
-    Seq(mvn"com.lihaoyi::mill-libs:${Versions.millVersion}") ++
+    Seq(
+      mvn"com.lihaoyi::mill-libs:${Versions.millVersion}",
+      mvn"com.lihaoyi::mill-runner-autooverride-api:${Versions.millVersion}"
+    ) ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
         mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
@@ -105,14 +128,16 @@ trait MillBuildRootModule()(using
 
   /**
    * Additional script files, we generate, since not all Mill source
-   * files (e.g. `.sc` and `.mill`) can be fed to the compiler as-is.
+   * files (`*.mill` can be fed to the compiler as-is.
    *
    * The `wrapped` files aren't supposed to appear under [[generatedSources]] and [[allSources]],
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
    */
-  def generatedScriptSources: T[(wrapped: Seq[PathRef], support: Seq[PathRef])] = Task {
+  def generatedScriptSources
+      : T[(wrapped: Seq[PathRef], support: Seq[PathRef], resources: Seq[PathRef])] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
+    val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
@@ -122,19 +147,27 @@ trait MillBuildRootModule()(using
         parsed.seenScripts,
         wrapped,
         support,
+        resources,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
         MillScalaParser.current.value
       )
-      (wrapped = Seq(PathRef(wrapped)), support = Seq(PathRef(support)))
+      (
+        wrapped = Seq(PathRef(wrapped)),
+        support = Seq(PathRef(support)),
+        resources = Seq(PathRef(resources))
+      )
     }
   }
 
   def millBuildRootModuleResult = Task {
-    Tuple3(
+    Tuple4(
       runClasspath(),
       compile().classes,
-      codeSignatures()
+      codeSignatures(),
+      parseBuildFiles().seenScripts.collect {
+        case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v)
+      }
     )
   }
 
@@ -251,7 +284,11 @@ trait MillBuildRootModule()(using
   )
 
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
+    // Somehow these sourcecode exclusions are necessary otherwise the
+    // SOURCECODE_ORIGINAL_FILE_PATH comments aren't handled properly
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
+      .exclude("com.lihaoyi" -> "sourcecode_3"),
+    mvn"com.lihaoyi:::mill-runner-autooverride-plugin:${Versions.millVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
@@ -288,43 +325,46 @@ trait MillBuildRootModule()(using
     }
 
     // copied from `ScalaModule`
-    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
-    jvmWorker()
-      .internalWorker()
-      .compileMixed(
-        ZincCompileMixed(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = Seq.from(allSourceFiles().map(_.path)),
-          compileClasspath = compileClasspath().map(_.path),
-          javacOptions = jOpts.compiler,
-          scalaVersion = scalaVersion(),
-          scalaOrganization = scalaOrganization(),
-          scalacOptions = allScalacOptions(),
-          compilerClasspath = scalaCompilerClasspath(),
-          scalacPluginClasspath = scalacPluginClasspath(),
-          incrementalCompilation = zincIncrementalCompilation(),
-          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      ).map {
-        res =>
-          // Perform the line-number updating in a copy of the classfiles, because
-          // mangling the original class files messes up zinc incremental compilation
-          val transformedClasses = Task.dest / "transformed-classes"
-          os.remove.all(transformedClasses)
-          os.copy(res.classes.path, transformedClasses)
+    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+    val worker = jvmWorker().internalWorker()
+    worker.apply(
+      ZincOp.CompileMixed(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = Seq.from(allSourceFiles().map(_.path)),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = jOpts.compiler,
+        scalaVersion = scalaVersion(),
+        scalaOrganization = scalaOrganization(),
+        scalacOptions = allScalacOptions(),
+        compilerClasspath = scalaCompilerClasspath(),
+        scalacPluginClasspath = scalacPluginClasspath(),
+        compilerBridgeOpt = scalaCompilerBridge(),
+        incrementalCompilation = zincIncrementalCompilation(),
+        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+        workDir = Task.dest
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    ).map {
+      res =>
+        // Perform the line-number updating in a copy of the classfiles, because
+        // mangling the original class files messes up zinc incremental compilation
+        val transformedClasses = Task.dest / "transformed-classes"
+        os.remove.all(transformedClasses)
+        os.copy(res.classes.path, transformedClasses)
 
-          MillBuildRootModule.updateLineNumbers(
-            transformedClasses,
-            generatedScriptSources().wrapped.head.path
-          )
+        MillBuildRootModule.updateLineNumbers(
+          transformedClasses,
+          generatedScriptSources().wrapped.head.path
+        )
 
-          res.copy(classes = PathRef(transformedClasses))
-      }
+        res.copy(classes = PathRef(transformedClasses))
+    }
   }
+
+  def millDiscover: Discover
 }
 
 object MillBuildRootModule {
@@ -363,9 +403,10 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule()(using
+  class BootstrapModule(foundRootBuildFile: String)(using
       rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
+    override def moduleCtx = super.moduleCtx.withFileName(foundRootBuildFile)
     override lazy val millDiscover = Discover[this.type]
   }
 
