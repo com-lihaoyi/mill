@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: coursier/cache-action@v7
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           path: .
           name: ${{ inputs.os }}-artifact
