@@ -15,7 +15,7 @@ object MillInitGradleTests extends MillInitImportTestSuite {
     test("ehcache3") - checkImport(
       gitUrl = "https://github.com/ehcache/ehcache3.git",
       gitBranch = "v3.10.8",
-      initArgs = Seq("--gradle-jvm-id", "11", "--mill-jvm-id", "21"),
+      initArgs = Seq("--gradle-jvm-id", "11"),
       configsGoldenFile = "golden/gradle/ehcache3",
       failingTasks = Seq("osgi-test.test")
     )
