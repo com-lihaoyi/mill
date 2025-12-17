@@ -162,7 +162,7 @@ object CodeGen {
                   .mkString(".")
 
                 rootModulePrefix match {
-                  case "" => s"build.$renderedSegments"
+                  case "" => renderedSegments
                   case s"$externalModulePrefix/" => s"$externalModulePrefix.$renderedSegments"
                 }
             }
@@ -206,6 +206,7 @@ object CodeGen {
           s"""package $pkg
              |import mill.*, scalalib.*, javalib.*, kotlinlib.*
              |$aliasImports
+             |import build.*
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
              |object package_ extends $newParent, package_ {
