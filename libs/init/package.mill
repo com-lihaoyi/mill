@@ -170,7 +170,7 @@ object `package` extends MillPublishScalaModule {
       "asm" -> Mock("https://gitlab.ow2.org/asm/asm.git", "ASM_9_9"),
       "ehcache3" -> Mock(
         "https://github.com/ehcache/ehcache3.git",
-        "v3.11.1",
+        "v3.10.8",
         Seq("--gradle-jvm-id", "11")
       ),
       "fastcsv" -> Mock(

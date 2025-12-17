@@ -17,11 +17,9 @@ object GradleBuildGenMain {
 
   @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
   def init(
-      @mainargs.arg(doc = "Coursier JVM identifier for JDK to use to run Gradle")
+      @mainargs.arg(doc = "Coursier JVM ID for the JDK to use to run Gradle")
       gradleJvmId: String = "system",
-      @mainargs.arg(doc =
-        "Coursier JVM identifier to assign to mill-jvm-version key in the build header"
-      )
+      @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
       millJvmId: String = "system",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
