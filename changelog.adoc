@@ -23,7 +23,7 @@ _Changes since {prev-version}:_
 
 * Update zinc to 1.11.0 ({link-pr}/5934[#5934])
 * Added more forward-compatible API ({link-pr}/5914[#5914])
-* Deprecated more API that got remove in Mill 1.0 ({link-pr}/5914[#5914], {link-pr}/6363[#6363])
+* Deprecated more API that got remove in Mill 1.0 ({link-pr}/5914[#5914], {link-pr}/6393[#6393])
 
 
 [#0-12-16]
