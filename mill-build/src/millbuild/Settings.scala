@@ -18,7 +18,7 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.16",
+    "0.12.17",
     "1.0.6",
     "1.1.0-RC3"
   )

@@ -857,6 +857,19 @@ def namedTupleTask = Task {
 
 ----
 
+[#0-12-17]
+=== 0.12.17 - 2025-12-17
+:version: 0.12.17
+:milestone-name: 0.12.17
+:milestone: 132
+:prev-version: 0.12.16
+
+_Changes since {prev-version}:_
+
+* Update zinc to 1.11.0 ({link-pr}/5934[#5934])
+* Added more forward-compatible API ({link-pr}/5914[#5914])
+* Deprecated more API that got remove in Mill 1.0 ({link-pr}/5914[#5914], {link-pr}/6393[#6393])
+
 
 
 [#0-12-16]
