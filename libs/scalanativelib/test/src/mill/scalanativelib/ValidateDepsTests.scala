@@ -32,7 +32,7 @@ class ValidateDepsTests extends TestSuite {
           "Found org2::name2:1, did you mean org2::name2::1 ?"
         )
       )
-        msg
+      msg
     }
     test("platform-missing-full") {
       val msg = validatePlatformDeps(Seq(
