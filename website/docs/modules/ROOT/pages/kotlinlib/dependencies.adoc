@@ -19,7 +19,15 @@ include::partial$example/kotlinlib/dependencies/3-unmanaged-jars.adoc[]
 
 == Programmable Dependencies Configuration
 
-include::partial$example/kotlinlib/dependencies/2-run-compile-deps.adoc[]
+=== Downloading Unmanaged Jars
+
+include::partial$example/kotlinlib/dependencies/4-downloading-unmanaged-jars.adoc[]
+
+
+
+=== Repository Config
+
+include::partial$example/kotlinlib/dependencies/5-repository-config.adoc[]
 
 == Dependency Management
 
@@ -27,10 +35,3 @@ Mill has support for dependency management, see the
 xref:fundamentals/library-deps.adoc#_dependency_management[Dependency Management section]
 in xref:fundamentals/library-deps.adoc[].
 
-== Downloading Unmanaged Jars
-
-include::partial$example/kotlinlib/dependencies/4-downloading-unmanaged-jars.adoc[]
-
-== Repository Config
-
-include::partial$example/kotlinlib/dependencies/5-repository-config.adoc[]
