@@ -19,7 +19,7 @@
 *Testing*
 
 * xref:javalib/testing.adoc#_basic_testing_configuration[JUnit4, JUnit5, TestNG, ScalaTest, Specs2, Munit]
-* xref:javalib/testing.adoc#_defining_integration_test_suites[Integration Testing]
+* xref:javalib/testing.adoc[Integration Testing]
 * xref:javalib/testing.adoc#_test_parallelism[Test Parallelism]
 
 *Linting*
@@ -33,8 +33,8 @@
 
 *Packaging*
 
-* xref:javalib/publishing.adoc#_building_executable_assemblies[Executable Assemblies]
-* xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image], xref:javalib/publishing.adoc#_java_app_and_bundles_using_jlink[JLink], xref:javalib/publishing.adoc#_java_installers_using_jpackage[JPackage]
+* xref:javalib/packaging.adoc#_building_executable_assemblies[Executable Assemblies]
+* xref:javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image], xref:javalib/packaging.adoc#_java_app_and_bundles_using_jlink[JLink], xref:javalib/packaging.adoc#_java_installers_using_jpackage[JPackage]
 * xref:contrib/docker.adoc[Docker]
 
 *Publishing*
