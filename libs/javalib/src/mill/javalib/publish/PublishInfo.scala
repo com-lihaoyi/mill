@@ -113,10 +113,10 @@ object PublishInfo {
 
   private[mill] def fromMetadata(file: PathRef, metadata: IvyMetadata): PublishInfo =
     metadata.toPublishInfo(file)
-  def pom(pom: PathRef): PublishInfo = fromMetadata(pom, IvyMetadata.Pom)
-  def jar(jar: PathRef): PublishInfo = fromMetadata(jar, IvyMetadata.Jar)
-  def aar(aar: PathRef): PublishInfo = fromMetadata(aar, IvyMetadata.Aar)
-  def sourcesJar(sourcesJar: PathRef): PublishInfo =
+  private[mill] def pom(pom: PathRef): PublishInfo = fromMetadata(pom, IvyMetadata.Pom)
+  private[mill] def jar(jar: PathRef): PublishInfo = fromMetadata(jar, IvyMetadata.Jar)
+  private[mill] def aar(aar: PathRef): PublishInfo = fromMetadata(aar, IvyMetadata.Aar)
+  private[mill] def sourcesJar(sourcesJar: PathRef): PublishInfo =
     fromMetadata(sourcesJar, IvyMetadata.SourcesJar)
-  def docJar(docJar: PathRef): PublishInfo = fromMetadata(docJar, IvyMetadata.DocJar)
+  private[mill] def docJar(docJar: PathRef): PublishInfo = fromMetadata(docJar, IvyMetadata.DocJar)
 }
