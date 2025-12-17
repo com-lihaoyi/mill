@@ -75,4 +75,4 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...
 // xref:{language-small}lib/dependencies.adoc[]: `runMvnDeps`, `compileMvnDeps`,
 // `unmanagedClasspath`, etc.
 // For more flexibility, e.g. if you need to generate sources or resource files at build time,
-// you can instead use xref:{language-small}lib/intro.adoc#_programmable_module_config[Programmable Modules].
+// you can instead use xref:{language-small}lib/intro.adoc#_programmable_configuration[Programmable Modules].

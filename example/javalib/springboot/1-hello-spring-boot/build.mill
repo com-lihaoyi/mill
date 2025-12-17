@@ -1,5 +1,5 @@
 // This example demonstrates how to set up a simple Spring Boot webserver,
-// using Mill's xref:javalib/intro.adoc#_declarative_module_config[declarative build.mill.yaml]
+// using Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative build.mill.yaml]
 // syntax.
 
 /** See Also: build.mill.yaml */

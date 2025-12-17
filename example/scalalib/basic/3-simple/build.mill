@@ -180,5 +180,5 @@ compiling 1 Scala source to...
 // where you are just setting some configuration keys. This is discussed more in the documentation
 // for:
 //
-// * xref:{language-small}lib/module-config.adoc#_basic_module_configuration[Declarative {language} Modules]
+// * xref:{language-small}lib/module-config.adoc#_declarative_configuration[Declarative {language} Modules]
 //

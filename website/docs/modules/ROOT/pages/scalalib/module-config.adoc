@@ -11,7 +11,7 @@ Many of the APIs covered here are listed in the Scaladoc:
 
 * {mill-doc-url}/api/latest/mill/scalalib/ScalaModule.html[mill.scalalib.ScalaModule]
 
-== Basic Module Configuration
+== Declarative Configuration
 
 include::partial$example/scalalib/module/1-basic-config.adoc[]
 
@@ -23,7 +23,7 @@ include::partial$example/scalalib/module/2-scala-compiler-plugins.adoc[]
 
 include::partial$example/scalalib/module/3-docjar.adoc[]
 
-== Programmable Module Configuration
+== Programmable Configuration
 
 include::partial$example/scalalib/module/4-programmable-config.adoc[]
 

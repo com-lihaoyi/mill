@@ -95,7 +95,7 @@ flags the Mill executable can take.
 NOTE: `.mill-opts` is for passing options to Mill itself, and `.mill-jvm-opts` is for passing
 JVM options to the JVM running Mill. If you want to pass JVM options to the project that Mill
 is building and running, see the section on
-xref:javalib/module-config.adoc#_basic_module_configuration[Compilation and Execution Flags].
+xref:javalib/module-config.adoc#_declarative_configuration[Compilation and Execution Flags].
 
 
 == mill-jvm-version

@@ -294,7 +294,7 @@ new Mill build:
   to access the project root folder in custom build tasks, since the Mill build process
   also runs in a sandbox by default
 * Some tests may require xref:fundamentals/configuring-jvm-versions.adoc[] to run
-* Some modules may require specific xref:javalib/module-config.adoc#_basic_module_configuration[Compilation & Execution Flags]
+* Some modules may require specific xref:javalib/module-config.adoc#_declarative_configuration[Compilation & Execution Flags]
 * Some code may make use of xref:javalib/module-config.adoc#_annotation_processors[Annotation Processors]
 * You may have xref:javalib/module-config.adoc#_native_c_code_with_jni[native code you need to compile and interop with using JNI]
 * def may need to use frameworks like xref:javalib/spring-boot.adoc[Spring Boot]

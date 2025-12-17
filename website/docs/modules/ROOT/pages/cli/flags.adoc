@@ -7,7 +7,7 @@ flags or options:
    command line
 
 2. The JVM running the *task* e.g. `foo.run`, which may take flags e.g. `java -Xss10m -Xmx10G`.
-   These are configured using xref:javalib/module-config.adoc#_basic_module_configuration[Compilation and Execution Flags]
+   These are configured using xref:javalib/module-config.adoc#_declarative_configuration[Compilation and Execution Flags]
 
 3. The Mill build tool process, e.g. `./mill --jobs 10`. These can be passed directly after the
    `./mill` executable name, or set in your xref:cli/build-header.adoc[] or `.mill-opts` file as shown  in

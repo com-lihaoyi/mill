@@ -11,7 +11,7 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/kotlinlib/KotlinModule.html[mill.kotlinlib.KotlinModule]
 
-== Basic Module Configuration
+== Declarative Configuration
 
 include::partial$example/kotlinlib/module/1-basic-config.adoc[]
 
@@ -23,7 +23,7 @@ include::partial$example/kotlinlib/module/2-kotlin-compiler-plugins.adoc[]
 
 include::partial$example/kotlinlib/module/3-docjar.adoc[]
 
-== Programmable Module Configuration
+== Programmable Configuration
 
 include::partial$example/kotlinlib/module/4-programmable-config.adoc[]
 

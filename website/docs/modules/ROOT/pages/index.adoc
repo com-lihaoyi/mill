@@ -42,8 +42,8 @@ Or see the language-specific introductory documentation linked below:
 
 === Mill Features
 
-* *Ergonomics*: Mill's xref:javalib/intro.adoc#_declarative_module_config[declarative config files]
-are concise and easy to read, its xref:javalib/intro.adoc#_programmable_module_config[programmable config files]
+* *Ergonomics*: Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative config files]
+are concise and easy to read, its xref:javalib/intro.adoc#_programmable_configuration[programmable config files]
 have xref:cli/installation-ide.adoc#_ide_support[full IDE support in IntelliJ and VSCode], and its
 xref:cli/installation-ide.adoc#_bashzsh_tab_completion[terminal tab-completion]
 and syntax highlighted command-line output and error messages mean developers can easily
