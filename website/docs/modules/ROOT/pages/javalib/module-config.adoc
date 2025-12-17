@@ -13,37 +13,37 @@ Many of the APIs covered here are listed in the API documentation:
 
 == Basic Module Configuration
 
-include::partial$example/javalib/module/1-common-config.adoc[]
+include::partial$example/javalib/module/1-basic-config.adoc[]
 
-== Programmable Configuration Overrides
+=== Annotation Processors
 
-include::partial$example/javalib/module/2-common-config.adoc[]
+include::partial$example/javalib/module/2-annotation-processors.adoc[]
 
+=== Javadoc Config
 
-== Custom Tasks
+include::partial$example/javalib/module/3-docjar.adoc[]
 
-include::partial$example/javalib/module/3-custom-tasks.adoc[]
+== Programmable Module Configuration
 
-
-
-== Generated Sources
-
-include::partial$example/javalib/module/4-generated-sources.adoc[]
+include::partial$example/javalib/module/4-programmable-config.adoc[]
 
 
-== Classpath and Filesystem Resources
+=== Custom Tasks
+
+include::partial$example/javalib/module/5-custom-tasks.adoc[]
+
+
+
+=== Generated Sources
+
+include::partial$example/javalib/module/6-generated-sources.adoc[]
+
+
+=== Classpath and Filesystem Resources
 
 include::partial$example/javalib/module/7-resources.adoc[]
 
-== Annotation Processors
-
-include::partial$example/javalib/module/8-annotation-processors.adoc[]
-
-== Javadoc Config
-
-include::partial$example/javalib/module/9-docjar.adoc[]
-
-== Native C Code with JNI
+=== Native C Code with JNI
 
 include::partial$example/javalib/module/15-jni.adoc[]
 
