@@ -1,2 +1,2 @@
-# To generate API documentation you can use the `docJar` task on the module you'd
-# like to create the documentation for. Kotlin uses Dokka for documentation generation.
+extends: [mill.kotlinlib.KotlinModule]
+kotlinVersion: 1.9.24

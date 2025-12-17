@@ -1,2 +1,0 @@
-extends: [mill.kotlinlib.KotlinModule]
-kotlinVersion: 1.9.24
