@@ -6,6 +6,7 @@ import coursier.Repository
 import mill.api.Loose.Agg
 import mill.api.{BuildInfo, Ctx, IO, PathRef, Result}
 
+@deprecated("Util will be removed in Mill 1.0", "Mill 0.12.17")
 object Util {
 
   def isInteractive(): Boolean = mill.main.client.Util.hasConsole()
@@ -43,6 +44,10 @@ object Util {
       .reverse
   }
 
+  @deprecated(
+    "Util.download will be removed in Mill 1.0. Use `os.write` with `requests.get.strean` instead.",
+    "Mill 0.12.17"
+  )
   def download(url: String, dest: os.RelPath = os.rel / "download")(implicit
       ctx: Ctx.Dest
   ): PathRef = {
@@ -57,6 +62,10 @@ object Util {
     }
   }
 
+  @deprecated(
+    "Util.downloadUnpackZip will be removed in Mill 1.0. Use `os.unzip.stream` with `requests.get.strean` and `os.unzip` instead.",
+    "Mill 0.12.17"
+  )
   def downloadUnpackZip(url: String, dest: os.RelPath = os.rel / "unpacked")(implicit
       ctx: Ctx.Dest
   ): PathRef = {

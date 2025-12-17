@@ -6,6 +6,7 @@ import java.nio.file.Files
  * Misc IO utilities, eventually probably should be pushed upstream into
  * ammonite-ops
  */
+@deprecated("IO will be removed in Mill 1.0", "Mill 0.12.17")
 object IO extends StreamSupport {
 
   /**
@@ -15,6 +16,7 @@ object IO extends StreamSupport {
    * @param ctx The target context
    * @return The [[PathRef]] to the unpacked folder.
    */
+  @deprecated("IO.unpackZip will be removed in Mill 1.0. Use `os.unzip` instead.", "Mill 0.12.17")
   def unpackZip(
       src: os.Path,
       dest: os.RelPath = os.rel / "unpacked"

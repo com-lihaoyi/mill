@@ -16,11 +16,16 @@ object DummyOutputStream extends OutputStream {
   override def write(b: Array[Byte], off: Int, len: Int): Unit = ()
 }
 
+@deprecated("StreamSupport will be removed in Mill 1.0", "Mill 0.12.17")
 trait StreamSupport {
 
   /**
    * Pump the data from the `src` stream into the `dest` stream.
    */
+  @deprecated(
+    "StreamSupport.stream will be removed in Mill 1.0. Use `os.Internals.transfer` instead.",
+    "Mill 0.12.17"
+  )
   def stream(src: InputStream, dest: OutputStream): Unit = {
     val buffer = new Array[Byte](4096)
     while ({
@@ -35,4 +40,5 @@ trait StreamSupport {
 
 }
 
+@deprecated("StreamSupport will be removed in Mill 1.0", "Mill 0.12.17")
 private[api] object StreamSupport extends StreamSupport

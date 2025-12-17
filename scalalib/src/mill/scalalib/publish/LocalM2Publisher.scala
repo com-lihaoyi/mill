@@ -35,6 +35,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
   }
 
   // bin-compat shim
+  @deprecated("Use the other overload instead", "Mill 0.12.17")
   def publish(
       jar: os.Path,
       sourcesJar: os.Path,
