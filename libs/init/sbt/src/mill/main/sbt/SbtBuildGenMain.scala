@@ -16,7 +16,9 @@ object SbtBuildGenMain {
   def init(
       @mainargs.arg(doc = "path to custom SBT executable")
       customSbt: Option[String],
-      @mainargs.arg(doc = "Coursier JVM identifier to assign to mill-jvm-version key in the build header")
+      @mainargs.arg(doc =
+        "Coursier JVM identifier to assign to mill-jvm-version key in the build header"
+      )
       millJvmId: String = "system",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
