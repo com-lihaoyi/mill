@@ -1,0 +1,4 @@
+extends: [mill.scalalib.ScalaModule]
+scalaVersion: 3.7.1
+unmanagedClasspath:
+- lib/nanojson-1.8.jar

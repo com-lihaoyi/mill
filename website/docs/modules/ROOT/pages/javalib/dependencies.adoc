@@ -9,6 +9,12 @@ for `JavaModule`.
 
 include::partial$example/javalib/dependencies/1-dependencies.adoc[]
 
+
+=== Unmanaged Jars
+
+include::partial$example/javalib/dependencies/3-unmanaged-jars.adoc[]
+
+
 == Programmable Dependencies Configuration
 
 include::partial$example/javalib/dependencies/2-run-compile-deps.adoc[]
@@ -18,10 +24,6 @@ include::partial$example/javalib/dependencies/2-run-compile-deps.adoc[]
 Mill has support for dependency management, see the
 xref:fundamentals/library-deps.adoc#_dependency_management[Dependency Management section]
 in xref:fundamentals/library-deps.adoc[].
-
-== Unmanaged Jars
-
-include::partial$example/javalib/dependencies/3-unmanaged-jars.adoc[]
 
 == Downloading Unmanaged Jars
 
