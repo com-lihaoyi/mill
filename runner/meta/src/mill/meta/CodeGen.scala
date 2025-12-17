@@ -28,11 +28,6 @@ object CodeGen {
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
 
-    // Provide `build` as an alias to the root `build_.package_`, since from the user's
-    // perspective it looks like they're writing things that live in `package build`,
-    // but at compile-time we rename things, we so provide an alias to preserve the fiction
-    val aliasImports = "import build_.{package_ => build}"
-
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
@@ -62,8 +57,8 @@ object CodeGen {
         .map { c =>
           // Dummy references to sub-modules. Just used as metadata for the discover and
           // resolve logic to traverse, cannot actually be evaluated and used
-          val lhs = backtickWrap(c)
-          val rhs = s"${pkgSelector2(Some(c))}.package_"
+          val lhs = backtickWrap(c + "_alias")
+          val rhs = s"${pkgSelector2(Some(c))}.`package`"
           s"final lazy val $lhs: $rhs.type = $rhs // subfolder module reference"
         }
         .mkString("\n  ")
@@ -205,14 +200,13 @@ object CodeGen {
           (wrappedDestFile / os.up) / wrappedDestFile.baseName,
           s"""package $pkg
              |import mill.*, scalalib.*, javalib.*, kotlinlib.*
-             |$aliasImports
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-             |object package_ extends $newParent, package_ {
+             |@scala.annotation.experimental object `package` extends $newParent, PackageTrait {
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
              |  $childAliases
              |}
-             |${renderTemplate("trait package_", parsedHeaderData, segments)}
+             |${renderTemplate("trait PackageTrait", parsedHeaderData, segments)}
              |""".stripMargin,
           createFolders = true
         )
@@ -260,7 +254,6 @@ object CodeGen {
               s"""|$generatedFileHeader
                   |package $pkg
                   |
-                  |$aliasImports
                   |$importSiblingScripts
                   |
                   |object $wrapperName {
@@ -278,7 +271,6 @@ object CodeGen {
                 scriptFolderPath = scriptFolderPath,
                 childAliases = childAliases,
                 pkg = pkg,
-                aliasImports = aliasImports,
                 scriptCode = scriptCode,
                 markerComment = markerComment,
                 parser = parser,
@@ -323,7 +315,7 @@ object CodeGen {
     s"""|$generatedFileHeader
         |package $pkg
         |
-        |object BuildFileImpl extends mill.api.internal.BuildFileCls(${CGConst.wrapperObjectName})
+        |object BuildFileImpl extends mill.api.internal.BuildFileCls(`package`)
         |""".stripMargin
   }
 
@@ -334,7 +326,6 @@ object CodeGen {
       scriptFolderPath: os.Path,
       childAliases: String,
       pkg: String,
-      aliasImports: String,
       scriptCode: String,
       markerComment: String,
       parser: MillScalaParser,
@@ -357,45 +348,26 @@ object CodeGen {
     val expectedModuleMsg =
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "mill.Module"
 
-    val headerCode =
-      s"""|$generatedFileHeader
-          |package $pkg
-          |
-          |$aliasImports
-          |$importSiblingScripts
-          |$prelude
-          |
-          |object ${CGConst.wrapperObjectName} extends ${CGConst.wrapperObjectName} {
-          |  ${childAliases.linesWithSeparators.mkString("  ")}
-          |  ${exportSiblingScripts.linesWithSeparators.mkString("  ")}
-          |  ${millDiscover(segments.nonEmpty)}
-          |}
-          |""".stripMargin
+    val pkgLine = s"package $pkg"
 
     val newParent =
       if (segments.isEmpty) "_root_.mill.util.MainRootModule"
       else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
 
+    val parentClause = s"$newParent with MillDiscoverWrapper"
+
+    val millDiscoverWrapper =
+      s"""|trait MillDiscoverWrapper { this: `package`.type =>
+          |  ${millDiscover(segments.nonEmpty)}
+          |  $childAliases
+          |  ${exportSiblingScripts.linesWithSeparators.mkString("  ")}
+          |}
+          |""".stripMargin
+
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>
 
         var newScriptCode = scriptCode
-        objectData.endMarker match {
-          case Some(endMarker) =>
-            newScriptCode = endMarker.applyTo(newScriptCode, CGConst.wrapperObjectName)
-          case None =>
-            ()
-        }
-        objectData.finalStat match {
-          case Some((_, finalStat)) =>
-            val statLines = finalStat.text.linesWithSeparators.toSeq
-            val fenced = Seq(
-              "",
-              if statLines.sizeIs > 1 then statLines.tail.mkString else finalStat.text
-            ).mkString(System.lineSeparator())
-            newScriptCode = finalStat.applyTo(newScriptCode, fenced)
-          case None => ()
-        }
 
         newScriptCode = objectData.parent.applyTo(
           newScriptCode,
@@ -413,28 +385,41 @@ object CodeGen {
             val sep = {
               if (postParent.startsWith(",")) ", "
               else if (postParent.startsWith("with")) " with "
-              else ", " // no separator found, just use `,` by default
+              else
+                " with " // no separator found, use `with` to be consistent with MillDiscoverWrapper
             }
 
-            newParent + sep + objectData.parent.text
+            newParent + sep + objectData.parent.text + " with MillDiscoverWrapper"
           }
         )
 
-        newScriptCode = objectData.name.applyTo(newScriptCode, CGConst.wrapperObjectName)
-        newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
+        newScriptCode =
+          objectData.obj.applyTo(newScriptCode, "@scala.annotation.experimental object")
 
-        s"""$headerCode
+        s"""$generatedFileHeader
+           |$pkgLine
+           |
+           |$importSiblingScripts
+           |$prelude
            |$markerComment
            |$newScriptCode
+           |
+           |$millDiscoverWrapper
            |""".stripMargin
 
       case None =>
-        s"""$headerCode
-           |abstract class ${CGConst.wrapperObjectName}
-           |    extends $newParent { this: ${CGConst.wrapperObjectName}.type =>
+        s"""$generatedFileHeader
+           |$pkgLine
+           |
+           |$importSiblingScripts
+           |$prelude
+           |@scala.annotation.experimental object `package` extends $parentClause {
            |$markerComment
            |$scriptCode
-           |}""".stripMargin
+           |}
+           |
+           |$millDiscoverWrapper
+           |""".stripMargin
 
     }
   }
@@ -454,7 +439,7 @@ object CodeGen {
   def millDiscover(segmentsNonEmpty: Boolean): String = {
     if (segmentsNonEmpty) ""
     else {
-      val rhs = "_root_.mill.api.Discover[this.type]"
+      val rhs = "_root_.mill.api.Discover[`package`.type]"
       s"override lazy val millDiscover: _root_.mill.api.Discover = $rhs"
     }
   }
