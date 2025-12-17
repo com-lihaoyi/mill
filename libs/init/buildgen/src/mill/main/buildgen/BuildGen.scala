@@ -208,6 +208,7 @@ object BuildGen {
 
   def writeBuildFiles(
       packages: Seq[PackageSpec],
+      millJvmVersion: String,
       merge: Boolean = false,
       depNames: Seq[(MvnDep, String)] = Nil,
       baseModule: Option[ModuleSpec] = None,
@@ -238,8 +239,6 @@ object BuildGen {
       os.write(os.pwd / file, renderBaseModule(module), createFolders = true)
     }
     val rootPackage +: nestedPackages = packages0: @unchecked
-    val millJvmVersion = Option(os.pwd / ".mill-jvm-version").filter(os.exists)
-      .fold("system")(os.read)
     val millJvmOptsLine = if (millJvmOpts.isEmpty) ""
     else millJvmOpts.mkString("//| mill-jvm-opts: [\"", "\", \"", s"\"]$lineSeparator")
     println("writing build.mill")

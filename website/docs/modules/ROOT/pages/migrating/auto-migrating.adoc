@@ -61,12 +61,17 @@ xref:cli/installation-ide.adoc[Install] `mill` in your project directory and run
 
 This will generate Mill build files `build.mill` and `package.mill` for the root module and all nested modules, respectively. Additionally, meta-build files containing shared configurations are added in the `mill-build` directory.
 
-The generated output can be configured using command line options. To list available options, run:
+To set a custom value for xref:cli/build-header.adoc#_mill_jvm_version[mill-jvm-version] in the generated `build.mill` file, run:
+[source,sh]
+----
+./mill init --mill-jvm-id 25
+----
+
+The init command can be run multiple times with any combination of options. To list all available options, run:
 [source,sh]
 ----
 ./mill init --help
 ----
-TIP: The `init` command can be run multiple times with any combination of options.
 
 [#limitations]
 == Limitations

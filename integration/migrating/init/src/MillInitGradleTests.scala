@@ -7,9 +7,9 @@ object MillInitGradleTests extends MillInitImportTestSuite {
     test("FastCSV") - checkImport(
       gitUrl = "https://github.com/osiegmar/FastCSV.git",
       gitBranch = "v4.1.0",
+      initArgs = Seq("--gradle-jvm-id", "25", "--mill-jvm-id", "25"),
       configsGoldenFile = "golden/gradle/fast-csv",
-      failingTasks = Seq("lib.compile"),
-      systemJvmId = "25"
+      failingTasks = Seq("lib.compile")
     )
 
     test("ehcache3") - checkImport(

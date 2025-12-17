@@ -19,6 +19,8 @@ object GradleBuildGenMain {
   def init(
       @mainargs.arg(doc = "Coursier JVM identifier for JDK to use to run Gradle")
       gradleJvmId: String = "system",
+      @mainargs.arg(doc = "Coursier JVM identifier to assign to mill-jvm-version key in the build header")
+      millJvmId: String = "system",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
@@ -70,7 +72,7 @@ object GradleBuildGenMain {
       val prop = properties.getProperty("org.gradle.jvmargs")
       if (prop == null) Nil else prop.trim.split("\\s").toSeq
     }
-    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmOpts)
+    BuildGen.writeBuildFiles(packages1, millJvmId, merge.value, depNames, baseModule, millJvmOpts)
   }
 
   private def adjustModuleDeps(packages: Seq[PackageSpec]) = {

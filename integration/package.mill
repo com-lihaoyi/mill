@@ -160,7 +160,7 @@ object `package` extends mill.Module {
   object invalidation extends Cross[IntegrationCrossModule](build.listCross)
   object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
   object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
-  object migrating extends Cross[MigratingIntegrationCrossModule](build.listCross)
+  object migrating extends Cross[IntegrationCrossModule](build.listCross)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def testClasspath = Seq(compile().classes)
     override lazy val test: MillScalaTests = new MillScalaTests {
@@ -185,9 +185,6 @@ object `package` extends mill.Module {
     def forkArgs = super.forkArgs() ++ Seq(
       s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
     )
-  }
-  trait MigratingIntegrationCrossModule extends IntegrationCrossModule {
-    def moduleDeps = super.moduleDeps ++ Seq(build.libs.util)
   }
 
   /** Deploy freshly build mill for use in tests */

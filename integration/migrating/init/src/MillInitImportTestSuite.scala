@@ -1,6 +1,5 @@
 package mill.integration
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
-import mill.util.Jvm
 import utest.{assert, assertGoldenFile, assertGoldenLiteral}
 trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
   def checkImport(
@@ -9,8 +8,7 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
       initArgs: Seq[String] = Nil,
       configsGoldenFile: os.SubPath = null,
       passingTasks: Seq[os.Shellable] = Nil,
-      failingTasks: Seq[os.Shellable] = Nil,
-      systemJvmId: String = "zulu:21"
+      failingTasks: Seq[os.Shellable] = Nil
   ): Unit = {
     val tester = new IntegrationTester(
       daemonMode,
@@ -31,9 +29,7 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
     }
     try {
       import tester.{eval, workspaceSourcePath as resources}
-      val javaHome = Jvm.resolveJavaHome(systemJvmId).get
-      val env = Map("JAVA_HOME" -> javaHome.toString)
-      val initRes = eval("init" +: initArgs, env)
+      val initRes = eval("init" +: initArgs)
       assert(initRes.isSuccess)
 
       if (configsGoldenFile != null) {
@@ -61,9 +57,9 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
           "testParallelism",
           "testSandboxWorkingDir"
         )
-        val showModuleDepsOut = eval("__.showModuleDeps", env).out
+        val showModuleDepsOut = eval("__.showModuleDeps").out
         val actualConfigs = taskNames
-          .map(task => eval(("show", s"__.$task"), env).out)
+          .map(task => eval(("show", s"__.$task")).out)
           .mkString(
             s"""$showModuleDepsOut
                |""".stripMargin,
@@ -75,9 +71,9 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
         assertGoldenFile(actualConfigs, configsFile.wrapped)
       }
 
-      val passingTasks0 = passingTasks.filter(eval(_, env).isSuccess)
+      val passingTasks0 = passingTasks.filter(eval(_).isSuccess)
       assertGoldenLiteral(passingTasks0, passingTasks)
-      val failingTasks0 = failingTasks.filterNot(eval(_, env).isSuccess)
+      val failingTasks0 = failingTasks.filterNot(eval(_).isSuccess)
       assertGoldenLiteral(failingTasks0, failingTasks)
     } finally tester.close()
   }

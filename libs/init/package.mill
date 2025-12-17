@@ -114,13 +114,10 @@ object `package` extends MillPublishScalaModule {
         } else {
           os.proc("git", "clone", gitUrl, "--depth", 1, "-b", gitBranch, repoDir).call(cacheDir)
         }
-        val javaHome = Jvm.resolveJavaHome(systemJvmId).get
-        val env = Map(("JAVA_HOME", javaHome.toString))
         Jvm.callProcess(
           mainClass = finalMainClass(),
           mainArgs = initArgs,
           classPath = runClasspath().map(_.path),
-          env = env,
           cwd = repoDir,
           stdout = os.Inherit
         )
@@ -128,23 +125,22 @@ object `package` extends MillPublishScalaModule {
           mainClass = "org.scalafmt.cli.Cli",
           mainArgs = Seq("-c", scalafmtConfigFile().path.toString, repoDir.toString),
           classPath = ScalafmtModule.scalafmtClasspath().map(_.path),
-          env = env,
           cwd = repoDir,
           stdout = os.Inherit
         )
         val millExe = millExecutable().path
         def resolve(task: String) = {
-          os.proc(millExe, "resolve", task).call(repoDir, env).out.lines()
+          os.proc(millExe, "resolve", task).call(repoDir).out.lines()
         }
         def check(task: String) = {
-          val result = os.proc(millExe, task).call(repoDir, env, stdout = os.Inherit, check = false)
+          val result = os.proc(millExe, task).call(repoDir, stdout = os.Inherit, check = false)
           result.exitCode == 0
         }
         try {
           val (passed, failed) = checkTasks.flatMap(resolve).partition(check)
           MockResult(mock, passed, failed)
         } finally {
-          os.proc(millExe, "shutdown").call(repoDir, env, check = false)
+          os.proc(millExe, "shutdown").call(repoDir, check = false)
         }
       }
       def runMocks(ids: String*) = {
@@ -175,9 +171,13 @@ object `package` extends MillPublishScalaModule {
       "ehcache3" -> Mock(
         "https://github.com/ehcache/ehcache3.git",
         "v3.11.1",
-        initArgs = Seq("--gradle-jvm-id", "11")
+        Seq("--gradle-jvm-id", "11")
       ),
-      "fastcsv" -> Mock("https://github.com/osiegmar/FastCSV.git", "v4.1.0", "25"),
+      "fastcsv" -> Mock(
+        "https://github.com/osiegmar/FastCSV.git",
+        "v4.1.0",
+        Seq("--mill-jvm-id", "25")
+      ),
       "jcommander" -> Mock("https://github.com/cbeust/jcommander.git", "3.0"),
       "microconfig" -> Mock("https://github.com/microconfig/microconfig.git", "v4.9.5"),
       "mockito" -> Mock("https://github.com/mockito/mockito.git", "v5.20.0"),
@@ -185,8 +185,8 @@ object `package` extends MillPublishScalaModule {
       "spring-framework" -> Mock(
         "https://github.com/spring-projects/spring-framework.git",
         "v6.2.12",
-        "24",
-        checkTasks = Nil
+        Seq("--mill-jvm-id", "24"),
+        Nil
       )
     )
 
@@ -254,7 +254,11 @@ object `package` extends MillPublishScalaModule {
       ),
       "enumeratum" -> Mock("https://github.com/lloydmeta/enumeratum.git", "enumeratum-1.9.0"),
       "fs2" -> Mock("https://github.com/typelevel/fs2.git", "v3.12.2"),
-      "gatling" -> Mock("https://github.com/gatling/gatling.git", "v3.14.7", "24"),
+      "gatling" -> Mock(
+        "https://github.com/gatling/gatling.git",
+        "v3.14.7",
+        Seq("--mill-jvm-id", "24")
+      ),
       "lila" -> Mock("https://github.com/lichess-org/lila.git", "master"),
       "nscala-time" -> Mock("https://github.com/nscala-time/nscala-time.git", "releases/3.0.0"),
       "refined" -> Mock("https://github.com/fthomas/refined.git", "v0.11.3"),
@@ -282,7 +286,6 @@ object `package` extends MillPublishScalaModule {
 private case class Mock(
     @mainargs.arg(positional = true) gitUrl: String,
     @mainargs.arg(positional = true) gitBranch: String,
-    systemJvmId: String = "zulu:21",
     initArgs: Seq[String] = Nil,
     checkTasks: Seq[String] = Seq("__.compile", "__.test")
 ) derives upickle.default.ReadWriter

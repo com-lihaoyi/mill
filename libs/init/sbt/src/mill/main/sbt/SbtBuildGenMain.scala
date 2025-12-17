@@ -16,6 +16,8 @@ object SbtBuildGenMain {
   def init(
       @mainargs.arg(doc = "path to custom SBT executable")
       customSbt: Option[String],
+      @mainargs.arg(doc = "Coursier JVM identifier to assign to mill-jvm-version key in the build header")
+      millJvmId: String = "system",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
@@ -110,7 +112,7 @@ object SbtBuildGenMain {
         .flatMap(_.split("\\s"))
       else Nil
     }
-    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmOpts)
+    BuildGen.writeBuildFiles(packages1, millJvmId, merge.value, depNames, baseModule, millJvmOpts)
   }
 
   private def normalizeSbtBuild(sbtModules: Seq[SbtModuleSpec]) = {
