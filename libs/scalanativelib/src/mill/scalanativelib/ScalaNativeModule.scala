@@ -20,6 +20,7 @@ import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 import os.{Path, Shellable}
 
 import java.lang
+import scala.util.chaining.scalaUtilChainingOps
 
 /**
  * Core configuration required to compile a single Scala-Native module
@@ -106,6 +107,22 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     super.scalacPluginMvnDeps() ++ Seq(
       mvn"org.scala-native:::nscplugin:${scalaNativeVersion()}"
     )
+  }
+
+  override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+    // TODO: provide a way to and report how to silence this warn message
+    ScalaNativeModule.validatePlatformDeps(mvnDeps())
+      .mkString("\n")
+      .pipe(Task.log.warn)
+    super.resolvedMvnDeps()
+  }
+
+  override def resolvedRunMvnDeps: T[Seq[PathRef]] = Task {
+    // TODO: provide a way to and report how to silence this warn message
+    ScalaNativeModule.validatePlatformDeps(runMvnDeps())
+      .mkString("\n")
+      .pipe(Task.log.warn)
+    super.resolvedRunMvnDeps()
   }
 
   def logLevel: T[NativeLogLevel] = Task { NativeLogLevel.Info }
@@ -477,6 +494,28 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   override def zincAuxiliaryClassFileExtensions: T[Seq[String]] =
     super.zincAuxiliaryClassFileExtensions() :+ "nir"
 
+}
+
+object ScalaNativeModule {
+  private[scalanativelib] def validatePlatformDeps(deps: Seq[Dep]): Seq[String] = {
+    val nonPlatformDeps = deps.filter(dep => !dep.cross.platformed)
+    if (nonPlatformDeps.isEmpty) Seq()
+    else {
+      val msg =
+        s"Detected ${nonPlatformDeps.size} (out of ${deps.size}) non-platform dependencies. This if often an error due to a missing second colon (:) before the version."
+      val details = nonPlatformDeps.map { dep =>
+        s"Found ${dep.formatted}, did you mean ${
+            dep.copy(cross = dep.cross match {
+              case c: CrossVersion.Constant => CrossVersion.Constant(c.value, true)
+              case _: CrossVersion.Binary => CrossVersion.Binary(true)
+              case _: CrossVersion.Full => CrossVersion.Full(true)
+            })
+              .formatted
+          } ?"
+      }
+      msg +: details
+    }
+  }
 }
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {

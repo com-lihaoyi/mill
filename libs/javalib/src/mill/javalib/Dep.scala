@@ -61,6 +61,9 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def name = dep.module.name.value
   def version = dep.versionConstraint.asString
 
+  /** A compact string representation of this dependency. */
+  def formatted: String = Dep.unparse(this).getOrElse(toString())
+
   /**
    * If scalaVersion is a Dotty version, replace the cross-version suffix
    * by the Scala 2.x version that the Dotty version is retro-compatible with,
@@ -139,9 +142,9 @@ object Dep {
   @unused private implicit val depFormat: RW[Dependency] = mill.javalib.JsonFormatters.depFormat
 
   def unparse(dep: Dep): Option[String] = {
-    val org = dep.dep.module.organization.value
-    val mod = dep.dep.module.name.value
-    val ver = dep.dep.version
+    val org = dep.organization
+    val mod = dep.name
+    val ver = dep.version
 
     val classifierAttr = dep.dep.attributes.classifier.value match {
       case "" => ""
