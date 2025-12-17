@@ -25,7 +25,7 @@ include::partial$example/kotlinlib/dependencies/4-downloading-unmanaged-jars.ado
 
 
 
-=== Repository Config
+=== Repository Configuration
 
 include::partial$example/kotlinlib/dependencies/5-repository-config.adoc[]
 

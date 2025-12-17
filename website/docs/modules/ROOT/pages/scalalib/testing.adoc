@@ -13,14 +13,11 @@ include::partial$example/scalalib/testing/1-testing.adoc[]
 
 include::partial$example/scalalib/testing/2-test-suite.adoc[]
 
-== Programmable Testing Configuration
-
-
-
 === Test Dependencies
 
 include::partial$example/scalalib/testing/3-test-deps.adoc[]
 
+== Programmable Testing Configuration
 
 === Test Parallelism
 

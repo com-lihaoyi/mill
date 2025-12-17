@@ -1,0 +1,4 @@
+extends: [build.qux.ScalaTests]
+testFramework: utest.runner.Framework
+mvnDeps: [com.lihaoyi::utest:0.8.9]
+moduleDeps: [qux, baz.test]
