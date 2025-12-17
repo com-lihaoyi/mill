@@ -1,0 +1,5 @@
+extends: [mill.javalib.JavaModule]
+
+# Explicit annotation processor configuration
+compileMvnDeps: [org.projectlombok:lombok:1.18.34]
+annotationProcessorsMvnDeps: [org.projectlombok:lombok:1.18.34]

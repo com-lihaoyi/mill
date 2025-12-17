@@ -1,0 +1,10 @@
+extends: [mill.scalalib.ScalaModule]
+scalaVersion: 3.3.6
+
+# When using Scala 3 you're also able to use Scaladoc to generate a full static
+# site next to your API documentation. This can include general documentation for
+# your project and even a blog.
+#
+# By default, Mill will consider the _site root_ as it's called in Scala 3
+# docs, to be the value of `docResources()`. It will look there for your
+# `_docs/` and your `_blog/` directory if any exist.

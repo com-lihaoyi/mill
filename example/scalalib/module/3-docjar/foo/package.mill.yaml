@@ -1,0 +1,5 @@
+extends: [mill.scalalib.ScalaModule]
+scalaVersion: 3.3.6
+
+# Configure scaladoc options
+scalaDocOptions: [-siteroot, mydocs, -no-link-warnings]

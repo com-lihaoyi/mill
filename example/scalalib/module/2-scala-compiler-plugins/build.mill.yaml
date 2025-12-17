@@ -1,0 +1,14 @@
+extends: [mill.scalalib.ScalaModule]
+scalaVersion: 2.13.16
+
+# You can use Scala compiler plugins by setting `scalacPluginMvnDeps`. The below
+# example also adds the plugin to `compileMvnDeps`, since that plugin's artifact
+# is needed on the compilation classpath (though not at runtime).
+#
+# NOTE: Remember that compiler plugins are published against the full Scala
+# version (eg. 2.13.16 instead of just 2.13), so when including them make sure to
+# use the `:::` syntax shown below in the example.
+
+compileMvnDeps: [com.lihaoyi:::acyclic:0.3.18]
+scalacOptions: [-P:acyclic:force]
+scalacPluginMvnDeps: [com.lihaoyi:::acyclic:0.3.18]

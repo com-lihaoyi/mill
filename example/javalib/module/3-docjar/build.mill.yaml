@@ -1,0 +1,2 @@
+# To generate API documentation you can use the `docJar` task on the module you'd
+# like to create the docs for, configured via `javadocOptions`

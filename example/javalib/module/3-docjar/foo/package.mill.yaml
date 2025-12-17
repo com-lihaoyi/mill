@@ -1,0 +1,4 @@
+extends: [mill.javalib.JavaModule]
+
+# Configure javadoc options
+javadocOptions: [-quiet]

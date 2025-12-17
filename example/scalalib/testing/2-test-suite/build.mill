@@ -1,15 +1,7 @@
 //// SNIPPET:BUILD1
-package build
-import mill.*, scalalib.*
 
-object foo extends ScalaModule {
-  def scalaVersion = "3.7.1"
-  object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.9.1")
-    def testFramework = "utest.runner.Framework"
-  }
-}
-
+/** See Also: foo/package.mill.yaml */
+/** See Also: foo/test/package.mill.yaml */
 /** See Also: foo/src/Foo.scala */
 /** See Also: foo/test/src/FooTests.scala */
 
@@ -65,13 +57,9 @@ compiling 2 ... source...
 // details on how to use each one from the command line.
 //
 //// SNIPPET:BUILD2
-object bar extends ScalaModule {
-  def scalaVersion = "3.7.1"
 
-  object test extends ScalaTests, TestModule.Utest {
-    def utestVersion = "0.8.9"
-  }
-}
+/** See Also: bar/package.mill.yaml */
+/** See Also: bar/test/package.mill.yaml */
 
 //// SNIPPET:END
 /** Usage

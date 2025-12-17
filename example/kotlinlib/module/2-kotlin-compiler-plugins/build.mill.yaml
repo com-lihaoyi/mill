@@ -1,0 +1,2 @@
+# The Kotlin compiler requires plugins to be passed explicitly. You can define
+# plugins via `kotlincPluginMvnDeps`:
