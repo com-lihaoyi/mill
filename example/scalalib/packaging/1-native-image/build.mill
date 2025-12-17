@@ -2,6 +2,8 @@
 // We recommend you xref:fundamentals/configuring-jvm-versions.adoc[configure a specific JDK version]
 // via a custom `JvmWorkerModule` overriding `def jvmId` (shown above), as not every JVM can build Graal native images.
 
+/** See Also: build.mill.yaml */
+/** See Also: foo/package.mill.yaml */
 /** Usage
 
 > ./mill show foo.nativeImage
@@ -12,4 +14,3 @@ Finished generating...native-executable...
 Hello, World!
 */
 
-// See Also: build.mill.yaml, foo/package.mill.yaml
