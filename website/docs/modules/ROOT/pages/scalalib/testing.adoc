@@ -9,18 +9,20 @@ This page will discuss common topics around working with test suites using the M
 
 include::partial$example/scalalib/testing/1-testing.adoc[]
 
+=== Common Test Framework Support
+
 include::partial$example/scalalib/testing/2-test-suite.adoc[]
 
 == Programmable Testing Configuration
 
 
 
-== Test Dependencies
+=== Test Dependencies
 
 include::partial$example/scalalib/testing/3-test-deps.adoc[]
 
 
-== Test Parallelism
+=== Test Parallelism
 
 include::partial$example/scalalib/testing/5-test-parallel.adoc[]
 
