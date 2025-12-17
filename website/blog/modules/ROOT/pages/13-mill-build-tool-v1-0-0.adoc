@@ -47,7 +47,7 @@ as any native binary, because it is one!
 
 Apart from being a Graal Native Image itself, Mill also can be used to build your
 own Java, Scala, and Kotlin apps into native images. See
-xref:mill::javalib/package.adoc#_building_native_image_binaries_with_graal_vm[Building
+xref:mill::javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[Building
 Native Image Binaries with Graal VM] for more details.
 
 

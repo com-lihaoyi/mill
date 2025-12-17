@@ -4,26 +4,23 @@
 
 This page will discuss common topics around packaging your Kotlin projects for distribution.
 
-== Basic Native Image Configuration
-
-include::partial$example/kotlinlib/packaging/1-native-image.adoc[]
-
-== Building Executable Assemblies
-
-include::partial$example/kotlinlib/packaging/2-assembly-config.adoc[]
-
-== Building `Repackage` Assemblies
-
-include::partial$example/kotlinlib/packaging/3-repackage-config.adoc[]
-
 == Building Native Image Binaries with Graal VM
 
-include::partial$example/kotlinlib/packaging/4-native-image.adoc[]
+include::partial$example/kotlinlib/packaging/1-native-image.adoc[]
 
 For another example building a slightly less trivial project into a Graal native
 image, see below:
 
-include::partial$example/kotlinlib/packaging/5-native-image-libs.adoc[]
+include::partial$example/kotlinlib/packaging/2-native-image-libs.adoc[]
+
+
+== Building Executable Assemblies
+
+include::partial$example/kotlinlib/packaging/3-assembly-config.adoc[]
+
+== Building `Repackage` Assemblies
+
+include::partial$example/kotlinlib/packaging/4-repackage-config.adoc[]
 
 
 == `jlink` and `jpackage`
@@ -32,6 +29,6 @@ Mill has builtin support for the https://docs.oracle.com/en/java/javase/11/tools
 https://docs.oracle.com/en/java/javase/17/docs/specs/man/jpackage.html[JPackage] command line tools.
 For more details, see:
 
-* xref:javalib/package.adoc#_java_app_and_bundles_using_jlink[Java App and Bundles using JLink]
-* xref:javalib/package.adoc#_java_installers_using_jpackage[Java Installers using JPackage]
+* xref:javalib/packaging.adoc#_java_app_and_bundles_using_jlink[Java App and Bundles using JLink]
+* xref:javalib/packaging.adoc#_java_installers_using_jpackage[Java Installers using JPackage]
 

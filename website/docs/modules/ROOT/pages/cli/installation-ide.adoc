@@ -110,7 +110,7 @@ crashes and errors.
 === Mill Native and JVM Executables
 
 The default Mill launcher configured above is a
-xref:javalib/package.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image],
+xref:javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image],
 that provides faster startup and is able to run even on machines without Java installed.
 Mill native executables are supported on the following OS/CPU combinations:
 

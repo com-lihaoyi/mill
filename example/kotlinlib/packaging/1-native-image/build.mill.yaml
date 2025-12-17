@@ -1,4 +1,2 @@
-extends: [mill.kotlinlib.KotlinModule, mill.kotlinlib.NativeImageModule]
-kotlinVersion: 2.0.20
-jvmId: "graalvm-community:24"
-nativeImageOptions: ["--no-fallback"]
+extends: [mill.kotlinlib.KotlinModule]
+kotlinVersion: "1.9.24"

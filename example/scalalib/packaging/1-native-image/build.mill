@@ -1,21 +1,15 @@
-// This example demonstrates how to define a Mill project with a `build.mill.yaml`
-// that can be packaged into a Graal native executable. To do so, your module must extend
-// `mill.scalalib.NativeImageModule`, and set your `jvmId` to a GraalVM distribution as
-// shown below. You can pass native-image specific command-line flags via `nativeImageOptions`
-
-/** See Also: build.mill.yaml */
+// This example uses `NativeImageModule` to generate a native executable using https://www.graalvm.org/[Graal VM].
+// We recommend you xref:fundamentals/configuring-jvm-versions.adoc[configure a specific JDK version]
+// via a custom `JvmWorkerModule` overriding `def jvmId` (shown above), as not every JVM can build Graal native images.
 
 /** Usage
 
-> ./mill nativeImage
+> ./mill show foo.nativeImage
+GraalVM Native Image: Generating...native-executable...
+Finished generating...native-executable...
 
-> out/nativeImage.dest/native-executable
-Hello Graal Native: 24...
+> ./out/foo/nativeImage.dest/native-executable
+Hello, World!
 */
 
-// This generates an `out/nativeImage.dest/native-executable` binary that you can run later.
-// These native binaries do not need a JVM installed in order to run, but they do require
-// that the OS/CPU architecture that they are run on is the same as that on which they were built.
-// See xref:javalib/package.adoc#_building_native_image_binaries_with_graal_vm[Building
-// Native Image Binaries with Graal VM] for more details.
-//
+// See Also: build.mill.yaml, foo/package.mill.yaml
