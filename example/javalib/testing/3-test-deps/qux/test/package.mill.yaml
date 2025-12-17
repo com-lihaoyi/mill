@@ -1,0 +1,3 @@
+extends: [build.qux.JavaTests, mill.javalib.TestModule.Junit4]
+mvnDeps: [com.google.guava:guava:33.3.0-jre]
+moduleDeps: [qux, baz.test]

@@ -1,0 +1,4 @@
+extends: [mill.kotlinlib.KotlinModule]
+kotlinVersion: 1.9.24
+unmanagedClasspath:
+- lib/nanojson-1.8.jar

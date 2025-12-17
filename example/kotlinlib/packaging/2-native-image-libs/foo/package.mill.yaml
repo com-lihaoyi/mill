@@ -1,0 +1,10 @@
+extends: [mill.kotlinlib.KotlinModule, mill.javalib.NativeImageModule]
+kotlinVersion: "1.9.24"
+mvnDeps:
+  - com.github.ajalt.clikt:clikt:4.4.0
+  - org.jetbrains.kotlinx:kotlinx-html:0.11.0
+nativeImageOptions:
+  - "--no-fallback"
+  - "-Os"
+  - "--initialize-at-build-time=com.github.ajalt.mordant.internal.nativeimage.NativeImagePosixMppImpls"
+jvmId: "graalvm-community:23.0.2"

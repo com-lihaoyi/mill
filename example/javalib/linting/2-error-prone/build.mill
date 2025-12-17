@@ -4,14 +4,7 @@
 // Mix the `ErrorProneModule` trait into your `JavaModule` and it will
 // automatically run with every compilation.
 
-package build
-
-import mill.*, javalib.*, errorprone.*
-
-object `package` extends JavaModule, ErrorProneModule {
-  def errorProneOptions = Seq("-XepAllErrorsAsWarnings")
-}
-
+/** See Also: build.mill.yaml */
 /** See Also: src/example/ShortSet.java */
 
 // When adding the `ErrorProneModule` to your `JavaModule`,

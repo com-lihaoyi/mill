@@ -1,14 +1,4 @@
-package build
-import mill.*, scalalib.*
-
-object `package` extends ScalaModule {
-  def scalaVersion = "2.13.16"
-
-  def compileMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.18")
-  def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.18")
-}
-
+/** See Also: build.mill.yaml */
 //
 // You can use Scala compiler plugins by setting `scalacPluginMvnDeps`. The above
 // example also adds the plugin to `compileMvnDeps`, since that plugin's artifact

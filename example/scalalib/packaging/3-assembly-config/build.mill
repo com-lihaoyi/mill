@@ -1,0 +1,73 @@
+// Mill's built in `.assembly` task makes it easy to generate an executable assembly
+// jar from any JVM module. These assembly jars contain the transitive classpath of the
+// module flattened into a single jar file, along with a Bash/Bat script prefix allowing
+// you to run the jar via `./out.jar` on Mac/Linux and `./out.bat` on Windows. JVM assemblies
+// are convenient mostly-self-contained executables, with the end user only needing to ensure
+// they have a JVM installed on the machine they wish to run them on.
+//
+// You can also customize the assembly jar as shown below:
+
+//// SNIPPET:BUILD
+package build
+import mill.*, scalalib.*
+import mill.scalalib.Assembly.*
+
+object foo extends ScalaModule {
+  def moduleDeps = Seq(bar)
+  def scalaVersion = "3.7.1"
+  def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.11.4")
+  def assemblyRules = Seq(
+    // all application.conf files will be concatenated into single file
+    Rule.Append("application.conf"),
+    // all *.conf files will be concatenated into single file
+    Rule.AppendPattern(".*\\.conf"),
+    // all *.temp files will be excluded from a final jar
+    Rule.ExcludePattern(".*\\.temp"),
+    // the `shapeless` package will be relocated under the `shade` package
+    Rule.Relocate("shapeless.**", "shade.shapless.@1")
+  )
+
+  // def manifest: T[JarManifest]
+  // def prependShellScript: T[String]
+}
+
+object bar extends ScalaModule {
+  def scalaVersion = "3.7.1"
+}
+//// SNIPPET:END
+
+// The most common way of configuring an assembly is
+// excluding some files from a final jar (like signature files,
+// and manifest files from library jars), and merging duplicated files (for
+// instance `reference.conf` files from library dependencies). This is
+// done by overriding `def assemblyRules` as shown above
+//
+// By default mill excludes all `+*.sf+`, `+*.dsa+`, `+*.rsa+`, and
+// `META-INF/MANIFEST.MF` files from assembly, and concatenates all
+// `reference.conf` files. You can also define your own merge/exclude rules.
+
+/** Usage
+
+> ./mill foo.assembly
+
+> unzip -p ./out/foo/assembly.dest/out.jar application.conf || true
+Bar Application Conf
+Foo Application Conf
+
+> java -jar ./out/foo/assembly.dest/out.jar
+Loaded application.conf from resources:...
+...Foo Application Conf
+...Bar Application Conf
+
+*/
+
+// Note that when running the assembly directly via `./out.jar`, you can configure
+// JVM flags via the `JAVA_OPTS` environment variable, and select the JVM
+// to use via `JAVA_HOME`.
+
+/** Usage
+
+> JAVA_OPTS=-Dtest.property=1337 ./out/foo/assembly.dest/out.jar
+Loaded test.property: 1337
+
+*/

@@ -1,18 +1,8 @@
-package build
-
-import mill.*
-import mill.util.Jvm
-
-import kotlinlib.KotlinModule
-import kotlinlib.ktfmt.KtfmtModule
-
-object `package` extends KotlinModule, KtfmtModule {
-  def kotlinVersion = "1.9.24"
-}
-
 // This example demonstrates how to use the https://github.com/facebook/ktfmt[KtFmt]
 // autoformatter from Facebook both to enforce and apply formatting to your `KotlinModule`
 // source files. You can configure a non-default version of KtFmt by overriding `def ktfmtVersion`
+
+/** See Also: build.mill.yaml */
 
 /** Usage
 

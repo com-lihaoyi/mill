@@ -1,0 +1,2 @@
+extends: [mill.kotlinlib.KotlinModule, mill.kotlinlib.detekt.DetektModule]
+kotlinVersion: "1.9.24"

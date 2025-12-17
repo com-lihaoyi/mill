@@ -1,61 +1,27 @@
-= Java Packaging & Publishing
+= Publishing Java Projects
 :page-aliases: Publishing_Java_Projects.adoc
 :language: Java
 :language-small: java
 
-This page will discuss common topics around packaging and publishing your Java projects for others to use.
-
-== Basic Native Image Configuration
-
-include::partial$example/javalib/publishing/1-native-image.adoc[]
+This page will discuss common topics around publishing your Java projects for others to use.
 
 == Basic Publishing Configuration
 
-include::partial$example/javalib/publishing/2-publishing.adoc[]
+include::partial$example/javalib/publishing/1-publishing.adoc[]
 
-== Building Executable Assemblies
+== Programmatic Publishing Configuration
 
-include::partial$example/javalib/publishing/3-assembly-config.adoc[]
-
-== Building `Repackage` Assemblies
-
-include::partial$example/javalib/publishing/11-repackage-config.adoc[]
-
-== Building Native Image Binaries with Graal VM
-
-include::partial$example/javalib/publishing/9-native-image.adoc[]
-
-
-For another example building a slightly less trivial project into a Graal native
-image, see below:
-
-include::partial$example/javalib/publishing/10-native-image-libs.adoc[]
-
-
-[#_java_app_and_bundles_using_jlink]
-== Java App and Bundles using `jlink`
-
-include::partial$example/javalib/publishing/7-jlink.adoc[]
-
-[#_java_installers_using_jpackage]
-== Java Installers using `jpackage`
-
-include::partial$example/javalib/publishing/8-jpackage.adoc[]
-
-
-== Publishing Locally
-
-include::partial$example/javalib/publishing/4-publish-module.adoc[]
+include::partial$example/javalib/publishing/2-publish-module.adoc[]
 
 == Publishing to Sonatype Maven Central
 
-include::partial$example/javalib/publishing/5-publish-module-sonatype.adoc[]
+include::partial$example/javalib/publishing/3-publish-module-sonatype.adoc[]
 
 == Checking API compatibility
 
 Mill provides the ability to check API changes with the https://revapi.org/revapi-site/main/index.html[Revapi] analysis and change tracking tool.
 
-include::partial$example/javalib/publishing/6-revapi.adoc[]
+include::partial$example/javalib/publishing/4-revapi.adoc[]
 
 CAUTION: The `revapi` task does not fail if incompatibilities are reported. You should fix these, and verify by re-running `revapi`, before a release.
 

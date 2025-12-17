@@ -1,0 +1,2 @@
+extends: [mill.javalib.JavaModule]
+javadocOptions: [-quiet]

@@ -1,12 +1,7 @@
 // Mill supports auto-formatting Java code via the
 // https://github.com/palantir/palantir-java-format[Palantir Java Format] project.
-package build
 
-import mill.*
-import mill.javalib.palantirformat.*
-
-object `package` extends PalantirFormatModule
-
+/** See Also: build.mill.yaml */
 /** See Also: src/A.java */
 
 // Palantir Java Format can  be used on a per-module basis by inheriting from

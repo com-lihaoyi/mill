@@ -1,0 +1,38 @@
+// This example shows how to generate native images for projects using third-party
+// libraries, in this case Scalatags and Mainargs. We also demonstrate setting
+// using `-Os` to optimize for the smallest binary size
+// which is available in the `graalvm-community:23` JDK selected above
+
+/** See Also: build.mill.yaml */
+/** See Also: foo/package.mill.yaml */
+
+/** Usage
+
+> ./mill show foo.nativeImage
+
+> ./out/foo/nativeImage.dest/native-executable --text hello-world
+<h1>hello-world</h1>
+
+*/
+
+// You can see the Graal documentation to see what flags are available:
+//
+// * https://www.graalvm.org/21.3/reference-manual/native-image/Options/
+//
+// Or access the `native-image` compiler directly via `show foo.nativeImageTool`
+// if you want to experiment it or view its `--help` text to see what you need to pass to
+// `nativeImageOptions`:
+
+/** Usage
+
+> ./mill show foo.nativeImageTool # mac/linux
+".../bin/native-image"
+
+> ./mill show foo.nativeImageTool # windows
+".../bin/native-image.cmd"
+
+*/
+
+// For more details on using Graal, check the this blog post:
+//
+// - xref:blog:ROOT:7-graal-native-executables.adoc[]
