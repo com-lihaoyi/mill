@@ -125,7 +125,7 @@ object `package` extends Module {
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
 
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
-      case "1-test-suite" => line
+      case "2-test-suite" => line
           .replace(
             "./mill bar.test bar.BarTests.hello",
             "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test"
