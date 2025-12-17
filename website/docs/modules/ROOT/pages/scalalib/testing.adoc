@@ -18,19 +18,16 @@ include::partial$example/scalalib/testing/2-test-suite.adoc[]
 
 include::partial$example/scalalib/testing/3-test-deps.adoc[]
 
-== Defining Integration Test Suites
-
-include::partial$example/scalalib/testing/4-integration-suite.adoc[]
 
 == Test Parallelism
 
 include::partial$example/scalalib/testing/5-test-parallel.adoc[]
 
-== Test Grouping
+=== Test Grouping
 
 include::partial$example/scalalib/testing/6-test-grouping.adoc[]
 
-== Test Grouping & Test Parallelism together
+=== Test Grouping & Test Parallelism together
 
 include::partial$example/scalalib/testing/7-test-group-parallel.adoc[]
 

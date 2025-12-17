@@ -18,19 +18,16 @@ include::partial$example/kotlinlib/testing/2-test-suite.adoc[]
 
 include::partial$example/kotlinlib/testing/3-test-deps.adoc[]
 
-== Defining Integration Test Suites
-
-include::partial$example/kotlinlib/testing/4-integration-suite.adoc[]
 
 == Test Parallelism
 
 include::partial$example/kotlinlib/testing/5-test-parallel.adoc[]
 
-== Test Grouping
+=== Test Grouping
 
 include::partial$example/kotlinlib/testing/6-test-grouping.adoc[]
 
-== Test Grouping & Test Parallelism together
+=== Test Grouping & Test Parallelism together
 
 include::partial$example/kotlinlib/testing/7-test-group-parallel.adoc[]
 
