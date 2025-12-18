@@ -230,13 +230,13 @@ object Dep {
         s"Detected ${nonPlatformDeps.size} (out of ${deps.size}) non-platform dependencies. This if often an error due to a missing second colon (:) before the version."
       val details = nonPlatformDeps.map { dep =>
         s"Found ${dep.formatted}, did you mean ${
-          dep.copy(cross = dep.cross match {
+            dep.copy(cross = dep.cross match {
               case c: CrossVersion.Constant => CrossVersion.Constant(c.value, true)
               case _: CrossVersion.Binary => CrossVersion.Binary(true)
               case _: CrossVersion.Full => CrossVersion.Full(true)
             })
-            .formatted
-        } ?"
+              .formatted
+          } ?"
       }
       msg +: details
     }
