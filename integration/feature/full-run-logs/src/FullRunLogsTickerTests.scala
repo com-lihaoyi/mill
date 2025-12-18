@@ -51,7 +51,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "<digits>] compile compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
           "<digits>] run",
-          "74/<digits>] <dashes> run --text hello <dashes>"
+          "75/<digits>] <dashes> run --text hello <dashes>"
         )
       )
     }
