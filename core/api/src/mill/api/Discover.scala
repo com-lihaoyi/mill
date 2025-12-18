@@ -107,6 +107,20 @@ object Discover {
           if returnType <:< sub
         } yield m
 
+      // Same as sortedMethods but includes abstract methods. Used for collecting
+      // task names that can be overridden via YAML configuration (issue #6410)
+      def sortedMethodsIncludingAbstract(
+          curCls: TypeRepr,
+          sub: TypeRepr,
+          methods: Seq[Symbol]
+      ): Seq[Symbol] =
+        for {
+          m <- methods.toList.sortBy(_.fullName)
+          mType = curCls.memberType(m)
+          returnType = methodReturn(mType)
+          if returnType <:< sub
+        } yield m
+
       // Make sure we sort the types and methods to keep the output deterministic;
       // otherwise the compiler likes to give us stuff in random orders, which
       // causes the code to be generated in random order resulting in code hashes
@@ -115,8 +129,9 @@ object Discover {
         for (curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)) yield {
           val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
 
+          // Include abstract methods in task names so they can be overridden via YAML config
           val names =
-            sortedMethods(
+            sortedMethodsIncludingAbstract(
               curCls,
               sub = TypeRepr.of[mill.api.Task.Named[?]],
               declMethods

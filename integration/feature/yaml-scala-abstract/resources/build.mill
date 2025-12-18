@@ -1,0 +1,3 @@
+// Root build file to enable the project
+import mill._
+import mill.scalalib._
