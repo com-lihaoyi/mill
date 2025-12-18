@@ -1,1 +1,1 @@
-extends: [mill.javalib.JavaModule, mill.javalib.spotless.SpotlessModule]
+extends: [JavaModule, spotless.SpotlessModule]

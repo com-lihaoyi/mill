@@ -1,4 +1,4 @@
-extends: [mill.scalalib.ScalaModule]
+extends: [ScalaModule]
 scalaVersion: 3.3.6
 
 # When using Scala 3 you're also able to use Scaladoc to generate a full static

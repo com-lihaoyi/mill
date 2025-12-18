@@ -1,4 +1,4 @@
-package mill.api
+package mill.api.internal
 
 private[mill] case class Cached(value: ujson.Value, valueHash: Int, inputsHash: Int)
 

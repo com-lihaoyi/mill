@@ -1,4 +1,4 @@
-extends: [mill.kotlinlib.KotlinModule, mill.kotlinlib.PublishModule]
+extends: [KotlinModule, PublishModule]
 kotlinVersion: 2.0.20
 publishVersion: "0.0.1"
 artifactName: "example"

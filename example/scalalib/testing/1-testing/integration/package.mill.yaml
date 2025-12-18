@@ -1,3 +1,3 @@
-extends: [build.ScalaTests, mill.scalalib.TestModule.Utest]
+extends: [build.ScalaTests, TestModule.Utest]
 moduleDeps: [build, test]
 mvnDeps: [com.lihaoyi::utest:0.9.1]

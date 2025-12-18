@@ -135,7 +135,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       mill.internal.Util.parseHeaderData(scriptFile).flatMap(parsedHeaderData =>
         moduleFor(
           scriptFile,
-          parsedHeaderData.`extends`.value.headOption,
+          parsedHeaderData.`extends`.value.value.headOption,
           parsedHeaderData.moduleDeps.value,
           parsedHeaderData.compileModuleDeps.value,
           parsedHeaderData.runModuleDeps.value,

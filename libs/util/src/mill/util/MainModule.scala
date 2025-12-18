@@ -3,7 +3,7 @@ package mill.util
 import mill.{util, *}
 import mill.api.daemon.internal.MainModuleApi
 import mill.api.*
-import mill.api.internal.{RootModule, RootModule0}
+import mill.api.internal.{RootModule, RootModule0, Cached}
 import mill.api.SelectMode.Separated
 import mill.api.daemon.Watchable
 import mill.moduledefs.Scaladoc

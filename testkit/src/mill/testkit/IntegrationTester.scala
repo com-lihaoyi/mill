@@ -1,6 +1,7 @@
 package mill.testkit
 
-import mill.api.{Cached, SelectMode}
+import mill.api.SelectMode
+import mill.api.internal.Cached
 import mill.constants.OutFiles.OutFiles
 import ujson.Value
 

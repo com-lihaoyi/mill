@@ -1,2 +1,2 @@
-extends: [mill.javalib.JavaModule, mill.javalib.pmd.PmdModule]
+extends: [JavaModule, pmd.PmdModule]
 pmdVersion: "7.15.0"

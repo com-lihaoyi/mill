@@ -2,6 +2,7 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
+import mill.api.internal.Cached
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
 
@@ -529,7 +530,7 @@ trait GroupExecution {
   def writeCacheJson(metaPath: os.Path, json: ujson.Value, hashCode: Int, inputsHash: Int) = {
     os.write.over(
       metaPath,
-      upickle.stream(mill.api.Cached(json, hashCode, inputsHash), indent = 4),
+      upickle.stream(Cached(json, hashCode, inputsHash), indent = 4),
       createFolders = true
     )
   }

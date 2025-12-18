@@ -1,1 +1,1 @@
-extends: [millbuild.LineCountJavaModule]
+extends: millbuild.LineCountJavaModule

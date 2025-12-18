@@ -1,6 +1,7 @@
-package mill.api
+package mill.api.internal
 
 import mainargs.TokensReader
+import mill.api.Task
 
 /**
  * Transparently handle `Task[T]` like simple `T` but lift the result into a [[Task.Anon]].

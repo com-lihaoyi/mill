@@ -1,1 +1,1 @@
-extends: [mill.javalib.palantirformat.PalantirFormatModule]
+extends: [palantirformat.PalantirFormatModule]

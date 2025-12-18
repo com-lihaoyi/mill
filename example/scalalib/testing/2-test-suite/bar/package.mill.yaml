@@ -1,3 +1,3 @@
-extends: [mill.scalalib.ScalaModule]
+extends: [ScalaModule]
 scalaVersion: "3.7.1"
 

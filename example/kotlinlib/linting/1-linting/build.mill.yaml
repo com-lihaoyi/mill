@@ -1,2 +1,2 @@
-extends: [mill.kotlinlib.KotlinModule, kotlinlib.detekt.DetektModule]
+extends: [KotlinModule, kotlinlib.detekt.DetektModule]
 kotlinVersion: "2.2.20"

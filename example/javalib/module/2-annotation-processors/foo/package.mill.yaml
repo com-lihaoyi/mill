@@ -1,4 +1,4 @@
-extends: [mill.javalib.JavaModule]
+extends: [JavaModule]
 
 # Auto-discovery of annotation processors via compileMvnDeps
 compileMvnDeps: [org.projectlombok:lombok:1.18.34]

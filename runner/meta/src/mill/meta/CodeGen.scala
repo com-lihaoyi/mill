@@ -142,7 +142,7 @@ object CodeGen {
         )
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
-          val extendsConfig = data.`extends`.value.map(_.value)
+          val extendsConfig = data.`extends`.value.value.map(_.value)
           val definitions = processDataRest(data)(
             onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
             onNestedObject = (k, nestedData) =>

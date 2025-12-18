@@ -1,4 +1,4 @@
-extends: [mill.scalalib.ScalaModule]
+extends: [ScalaModule]
 scalaVersion: 2.13.16
 
 # You can use Scala compiler plugins by setting `scalacPluginMvnDeps`. The below

@@ -1,2 +1,2 @@
-extends: [mill.javalib.checkstyle.CheckstyleModule]
+extends: [checkstyle.CheckstyleModule]
 checkstyleVersion: "9.3"

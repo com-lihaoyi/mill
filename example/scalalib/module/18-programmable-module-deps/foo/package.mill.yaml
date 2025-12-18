@@ -1,4 +1,4 @@
-extends: [mill.scalalib.ScalaModule]
+extends: [ScalaModule]
 moduleDeps: [bar, "qux[1]"]
 scalaVersion: 3.7.3
 mvnDeps: [com.lihaoyi::mainargs:0.7.7]

@@ -1,2 +1,2 @@
-extends: [build.KotlinTests, mill.kotlinlib.TestModule.Junit5]
+extends: [build.KotlinTests, TestModule.Junit5]
 mvnDeps: [io.kotest:kotest-runner-junit5:5.9.1]

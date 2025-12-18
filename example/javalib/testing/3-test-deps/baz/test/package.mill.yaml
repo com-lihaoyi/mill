@@ -1,2 +1,2 @@
-extends: [build.baz.JavaTests, mill.javalib.TestModule.Junit4]
+extends: [build.baz.JavaTests, TestModule.Junit4]
 mvnDeps: [com.google.guava:guava:33.3.0-jre]
