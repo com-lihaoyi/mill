@@ -233,7 +233,7 @@ object Dep {
     if (platformSuffix.isEmpty || nonPlatformDeps.isEmpty) Seq()
     else {
       val msg =
-        s"Detected ${nonPlatformDeps.size} (out of ${deps.size}) non-platform dependencies. This if often an error due to a missing second colon (:) before the version."
+        s"Detected ${nonPlatformDeps.size} (out of ${deps.size}) non-platform dependencies. This is often an error due to a missing second colon (:) before the version."
       val details = nonPlatformDeps.map { dep =>
         s"Found ${dep.formatted}, did you mean ${
             dep.copy(cross = dep.cross match {

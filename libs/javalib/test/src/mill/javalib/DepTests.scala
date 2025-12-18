@@ -32,7 +32,7 @@ class DepTests extends TestSuite {
         assertGoldenLiteral(
           msg,
           List(
-            "Detected 1 (out of 2) non-platform dependencies. This if often an error due to a missing second colon (:) before the version.",
+            "Detected 1 (out of 2) non-platform dependencies. This is often an error due to a missing second colon (:) before the version.",
             "Found org2::name2:1, did you mean org2::name2::1 ?"
           )
         )
@@ -49,7 +49,7 @@ class DepTests extends TestSuite {
         assertGoldenLiteral(
           msg,
           List(
-            "Detected 1 (out of 2) non-platform dependencies. This if often an error due to a missing second colon (:) before the version.",
+            "Detected 1 (out of 2) non-platform dependencies. This is often an error due to a missing second colon (:) before the version.",
             "Found org2:::name2:1, did you mean org2:::name2::1 ?"
           )
         )
@@ -68,7 +68,7 @@ class DepTests extends TestSuite {
         assertGoldenLiteral(
           msg,
           List(
-            "Detected 2 (out of 4) non-platform dependencies. This if often an error due to a missing second colon (:) before the version.",
+            "Detected 2 (out of 4) non-platform dependencies. This is often an error due to a missing second colon (:) before the version.",
             "Found org2::name2:1, did you mean org2::name2::1 ?",
             "Found org3:name3:1, did you mean org3:name3::1 ?"
           )
