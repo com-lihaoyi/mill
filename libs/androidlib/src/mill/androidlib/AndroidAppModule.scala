@@ -527,26 +527,21 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(Task.dest)
   }
 
-  /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
-  def androidVirtualDeviceIdentifier: String = "test"
-
-  /** The device  id as listed from avdmanager list device. Default is medium_phone */
-  def androidDeviceId: String = "medium_phone"
-
-  /**
-   * The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
-   *  For example, "x86_64" (default). For a list of system images and their architectures,
-   *  see the Android SDK Manager `sdkmanager --list`.
-   */
-  def androidEmulatorArchitecture: String = "x86_64"
+  def androidVirtualDevice: T[AndroidVirtualDevice] = Task {
+    AndroidVirtualDevice(
+      deviceId = "medium_phone",
+      apiVersion = androidSdkModule().platformsVersion(),
+      architecture = "x86_64",
+      systemImageSource = "google_apis_playstore"
+    )
+  }
 
   /**
    * Installs the user specified system image for the emulator
    * using sdkmanager . E.g. "system-images;android-35;google_apis_playstore;x86_64"
    */
   def sdkInstallSystemImage(): Command[String] = Task.Command {
-    val image =
-      s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;$androidEmulatorArchitecture"
+    val image = androidVirtualDevice().systemImage
     Task.log.info(s"Downloading $image")
     val installCall = os.call((
       androidSdkModule().sdkManagerExe().path,
@@ -567,23 +562,25 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * Creates the android virtual device identified in virtualDeviceIdentifier
    */
   def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
+    val name = androidVirtualDevice().name
+    val deviceId = androidVirtualDevice().deviceId
     val command = os.call((
       androidSdkModule().avdmanagerExe().path,
       "create",
       "avd",
       "--name",
-      androidVirtualDeviceIdentifier,
+      name,
       "--package",
       sdkInstallSystemImage()(),
       "--device",
-      androidDeviceId,
+      deviceId,
       "--force"
     ))
     if (command.exitCode != 0) {
       Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")
       throw new Exception(s"Failed to create android virtual device: ${command.exitCode}")
     }
-    s"DeviceName: $androidVirtualDeviceIdentifier, DeviceId: $androidDeviceId"
+    s"DeviceName: $name, DeviceId: $deviceId"
   }
 
   /**
@@ -595,7 +592,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "delete",
       "avd",
       "--name",
-      androidVirtualDeviceIdentifier
+      androidVirtualDevice().name
     ))
   }
 
@@ -630,7 +627,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       androidEmulatorPort,
       "-no-metrics",
       "-avd",
-      androidVirtualDeviceIdentifier
+      androidVirtualDevice().name
     )
 
     val command = Seq(
@@ -679,7 +676,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidEmulatorPort: String = "5554"
 
   /**
-   * Returns the emulator identifier for created from startAndroidEmulator
+   * Returns the emulator identifier for created from [[startAndroidEmulator]]
    * by iterating the adb device list
    */
   def runningEmulator: T[String] = Task {
@@ -687,7 +684,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Installs the app to the android device identified by this configuration in [[androidVirtualDeviceIdentifier]].
+   * Installs the app to the [[runningEmulator]]
    *
    * @return The name of the device the app was installed to
    */
@@ -1043,8 +1040,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
     }
 
-    override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
-    override def androidEmulatorArchitecture: String = outer.androidEmulatorArchitecture
+    override def androidVirtualDevice: T[AndroidVirtualDevice] = outer.androidVirtualDevice()
 
     /**
      * Re/Installs the app apk and then the test apk on the [[runningEmulator]]
