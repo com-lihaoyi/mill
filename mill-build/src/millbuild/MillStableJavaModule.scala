@@ -11,17 +11,14 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("*<clinit>"),
     // private class
     ProblemFilter.exclude[Problem]("mill.javalib.RunModule#RunnerImpl*"),
+    // forgot to mark this class experimental
+    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources"),
+    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$"),
+    // private class
     ProblemFilter.exclude[Problem]("mill.api.internal.Resolved*"),
     ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
     ProblemFilter.exclude[Problem]("mill.util.Timed*"),
     ProblemFilter.exclude[Problem]("mill.javalib.bsp.BspRunModule*"),
-    // private class, later moved to mill.api.internal
-    ProblemFilter.exclude[MissingClassProblem]("mill.api.Cached"),
-    ProblemFilter.exclude[MissingClassProblem]("mill.api.Cached$"),
-    ProblemFilter.exclude[MissingClassProblem]("mill.api.SimpleTaskTokenReader"),
-    // forgot to mark this class experimental
-    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources"),
-    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$"),
     // internal stuff
     ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),
     ProblemFilter.exclude[Problem]("mill.javalib.internal.*"),
@@ -58,7 +55,11 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // See https://github.com/com-lihaoyi/mill/pull/5747#issuecomment-3641324806 and following discussion
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.javalib.TestModule#Junit5.mill$javalib$TestModule$Junit5$$super$bomMvnDeps"
-    )
+    ),
+    // private class, later moved to mill.api.internal
+    ProblemFilter.exclude[MissingClassProblem]("mill.api.Cached"),
+    ProblemFilter.exclude[MissingClassProblem]("mill.api.Cached$"),
+    ProblemFilter.exclude[MissingClassProblem]("mill.api.SimpleTaskTokenReader"),
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
