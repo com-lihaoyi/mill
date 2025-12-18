@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.api.internal.{Reflect, Resolved, RootModule0}
+import mill.api.internal.{Reflect, Resolved, RootModule0, SimpleTaskTokenReader}
 import mill.api.{
   DefaultTaskModule,
   Discover,
@@ -10,7 +10,6 @@ import mill.api.{
   Result,
   Segments,
   SelectMode,
-  SimpleTaskTokenReader,
   Task
 }
 

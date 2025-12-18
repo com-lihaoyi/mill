@@ -20,4 +20,3 @@ private[mill] object HeaderData {
     upickle.macroR[HeaderData]
   }
 }
-
