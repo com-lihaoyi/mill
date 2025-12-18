@@ -59,7 +59,7 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // private class, later moved to mill.api.internal
     ProblemFilter.exclude[MissingClassProblem]("mill.api.Cached"),
     ProblemFilter.exclude[MissingClassProblem]("mill.api.Cached$"),
-    ProblemFilter.exclude[MissingClassProblem]("mill.api.SimpleTaskTokenReader"),
+    ProblemFilter.exclude[MissingClassProblem]("mill.api.SimpleTaskTokenReader")
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
