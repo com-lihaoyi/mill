@@ -1,1 +1,1 @@
-extends: [build.bar.JavaTests, mill.javalib.TestModule.Junit4]
+extends: [build.bar.JavaTests, TestModule.Junit4]

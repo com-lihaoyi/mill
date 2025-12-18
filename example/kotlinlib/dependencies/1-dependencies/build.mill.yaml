@@ -1,4 +1,4 @@
-extends: [mill.kotlinlib.KotlinModule]
+extends: [KotlinModule]
 kotlinVersion: "2.0.20"
 
 # Add library dependencies that are visible to the compiler at compile-time but

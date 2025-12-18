@@ -1,4 +1,4 @@
-extends: [mill.scalalib.ScalaModule, mill.javalib.NativeImageModule]
+extends: [ScalaModule, NativeImageModule]
 scalaVersion: "3.7.1"
 mvnDeps:
   - com.lihaoyi::scalatags:0.13.1

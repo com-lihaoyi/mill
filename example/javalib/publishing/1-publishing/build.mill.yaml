@@ -1,4 +1,4 @@
-extends: [mill.javalib.JavaModule, mill.javalib.PublishModule]
+extends: [JavaModule, PublishModule]
 publishVersion: "0.0.1"
 artifactName: "example"
 pomSettings:

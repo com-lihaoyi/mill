@@ -1,3 +1,3 @@
-extends: [mill.kotlinlib.KotlinModule]
+extends: [KotlinModule]
 kotlinVersion: "1.9.24"
 

@@ -1,5 +1,5 @@
 mill-jvm-version: 17
-extends: mill.javalib.JavaModule
+extends: JavaModule
 mvnDeps:
 - org.springframework.boot:spring-boot-starter-data-jpa:2.5.4
 - org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4
@@ -11,14 +11,14 @@ mvnDeps:
 - org.webjars.npm:todomvc-app-css:2.4.1
 
 object test:
-  extends: [JavaTests, mill.javalib.TestModule.Junit5]
+  extends: [JavaTests, TestModule.Junit5]
   mainClass: com.example.TodomvcApplication
   mvnDeps:
   - com.h2database:h2:2.3.230
   - org.springframework.boot:spring-boot-starter-test:2.5.6
 
 object integration:
-  extends: [JavaTests, mill.javalib.TestModule.Junit5]
+  extends: [JavaTests, TestModule.Junit5]
   mainClass: com.example.TodomvcApplication
   mvnDeps:
   - org.testcontainers:testcontainers:1.18.0

@@ -1,4 +1,4 @@
-extends: [mill.kotlinlib.KotlinModule]
+extends: [KotlinModule]
 kotlinVersion: 1.9.24
 mvnDeps:
 - org.jetbrains.kotlinx:kotlinx-html:0.11.0

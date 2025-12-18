@@ -1,4 +1,4 @@
-extends: [build.bar.KotlinTests, mill.kotlinlib.TestModule.Junit5]
+extends: [build.bar.KotlinTests, TestModule.Junit5]
 mvnDeps:
 - io.kotest:kotest-runner-junit5:5.9.1
 - org.mockito.kotlin:mockito-kotlin:5.4.0

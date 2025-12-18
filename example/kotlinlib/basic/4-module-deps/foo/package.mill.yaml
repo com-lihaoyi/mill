@@ -1,4 +1,4 @@
-extends: mill.kotlinlib.KotlinModule
+extends: KotlinModule
 moduleDeps: [bar]
 kotlinVersion: 2.0.20
 mvnDeps:

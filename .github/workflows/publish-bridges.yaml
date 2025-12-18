@@ -32,6 +32,6 @@ jobs:
       - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
 
-      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts bridge.__.publishArtifacts
+      - run: ./mill -i PublishModule/ --publishArtifacts bridge.__.publishArtifacts
 
 

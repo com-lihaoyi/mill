@@ -1,1 +1,1 @@
-extends: [mill.javalib.JavaModuleTypod]
+extends: [JavaModuleTypod]

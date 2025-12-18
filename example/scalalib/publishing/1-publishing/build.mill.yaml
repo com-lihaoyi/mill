@@ -1,4 +1,4 @@
-extends: [mill.scalalib.ScalaModule, mill.scalalib.PublishModule]
+extends: [ScalaModule, PublishModule]
 scalaVersion: 3.7.3
 publishVersion: "0.0.1"
 artifactName: "example"

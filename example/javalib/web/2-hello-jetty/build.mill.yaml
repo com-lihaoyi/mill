@@ -1,6 +1,6 @@
-extends: mill.javalib.JavaModule
+extends: JavaModule
 mvnDeps:
 - org.eclipse.jetty:jetty-server:9.4.43.v20210629
 - javax.servlet:javax.servlet-api:4.0.1
 object test:
-  extends: [JavaTests, mill.javalib.TestModule.Junit4]
+  extends: [JavaTests, TestModule.Junit4]
