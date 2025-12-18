@@ -128,7 +128,7 @@ For example, you can define a simple `JavaModule` an it's test submodule via:
 .`build.mill.yaml`
 [,yaml]
 ----
-extends: [mill.javalib.JavaModule]
+extends: mill.javalib.JavaModule
 mvnDeps:
 - "net.sourceforge.argparse4j:argparse4j:0.9.0"
 - "org.thymeleaf:thymeleaf:3.1.1.RELEASE"

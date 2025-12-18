@@ -1,4 +1,4 @@
-extends: [mill.javalib.MavenModule]
+extends: mill.javalib.MavenModule
 
 bomMvnDeps:
 - org.springframework.boot:spring-boot-dependencies:3.5.7

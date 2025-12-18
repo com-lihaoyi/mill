@@ -1,4 +1,4 @@
-extends: [mill.scalalib.ScalaModule]
+extends: mill.scalalib.ScalaModule
 moduleDeps: [bar]
 scalaVersion: 3.7.1
 mvnDeps:

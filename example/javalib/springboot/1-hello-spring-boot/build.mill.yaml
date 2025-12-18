@@ -1,5 +1,5 @@
 mill-jvm-version: 17
-extends: [mill.javalib.JavaModule]
+extends: mill.javalib.JavaModule
 mvnDeps:
 - org.springframework.boot:spring-boot-starter-web:2.5.6
 - org.springframework.boot:spring-boot-starter-actuator:2.5.6

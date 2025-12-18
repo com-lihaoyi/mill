@@ -1,4 +1,4 @@
-//| extends: [mill.script.ScalaModule.Raw]
+//| extends: mill.script.ScalaModule.Raw
 //| mvnDeps: [com.lihaoyi::os-lib:0.11.4]
 
 def main(args: Array[String]): Unit = {

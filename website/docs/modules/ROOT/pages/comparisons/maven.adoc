@@ -326,7 +326,7 @@ the `HtmlScraper.java` file shown above, the minimal configuration file looks li
 
 `build.mill.yaml`
 ```yaml
-extends: [mill.javalib.JavaModule]
+extends: mill.javalib.JavaModule
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
 ```

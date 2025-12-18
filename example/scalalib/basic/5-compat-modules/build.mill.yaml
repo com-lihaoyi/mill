@@ -1,4 +1,4 @@
-extends: [mill.scalalib.SbtModule]
+extends: mill.scalalib.SbtModule
 scalaVersion: 3.7.2
 mvnDeps:
 - com.lihaoyi::scalatags:0.13.1

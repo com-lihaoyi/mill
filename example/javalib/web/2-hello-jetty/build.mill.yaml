@@ -1,4 +1,4 @@
-extends: [mill.javalib.JavaModule]
+extends: mill.javalib.JavaModule
 mvnDeps:
 - org.eclipse.jetty:jetty-server:9.4.43.v20210629
 - javax.servlet:javax.servlet-api:4.0.1

@@ -1,4 +1,4 @@
-//| extends: [mill.script.KotlinModule.Junit5]
+//| extends: mill.script.KotlinModule.Junit5
 //| moduleDeps: [./Bar.kt]
 //| mvnDeps:
 //| - io.kotest:kotest-runner-junit5:5.9.1
