@@ -11,14 +11,16 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[Problem]("*<clinit>"),
     // private class
     ProblemFilter.exclude[Problem]("mill.javalib.RunModule#RunnerImpl*"),
-    // forgot to mark this class experimental
-    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources"),
-    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$"),
-    // private class
     ProblemFilter.exclude[Problem]("mill.api.internal.Resolved*"),
     ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
     ProblemFilter.exclude[Problem]("mill.util.Timed*"),
     ProblemFilter.exclude[Problem]("mill.javalib.bsp.BspRunModule*"),
+    ProblemFilter.exclude[MissingClassProblem]("mill.api.Cached"),
+    ProblemFilter.exclude[MissingClassProblem]("mill.api.Cached$"),
+    ProblemFilter.exclude[MissingClassProblem]("mill.api.SimpleTaskTokenReader"),
+    // forgot to mark this class experimental
+    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources"),
+    ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$"),
     // internal stuff
     ProblemFilter.exclude[Problem]("mill.javalib.api.internal.*"),
     ProblemFilter.exclude[Problem]("mill.javalib.internal.*"),
