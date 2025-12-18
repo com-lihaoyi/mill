@@ -16,6 +16,8 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$"),
     // private class
     ProblemFilter.exclude[Problem]("mill.api.internal.Resolved*"),
+    ProblemFilter.exclude[Problem]("mill.api.Cached*"),
+    ProblemFilter.exclude[Problem]("mill.api.SimpleTaskTokenReader*"),
     ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
     ProblemFilter.exclude[Problem]("mill.util.Timed*"),
     ProblemFilter.exclude[Problem]("mill.javalib.bsp.BspRunModule*"),

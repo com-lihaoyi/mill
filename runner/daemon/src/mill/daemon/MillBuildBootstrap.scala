@@ -225,7 +225,7 @@ class MillBuildBootstrap(
 
               val staticBuildOverrideFiles =
                 staticBuildOverrides0.toSeq ++
-                  nestedState.frames.lastOption.fold(Map())(_.buildOverrideFiles)
+                  nestedState.frames.headOption.fold(Map())(_.buildOverrideFiles)
 
               Using.resource(makeEvaluator(
                 topLevelProjectRoot,
