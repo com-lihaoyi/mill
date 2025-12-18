@@ -1,10 +1,10 @@
-package mill.api
+package mill.api.internal
 
 import upickle.core.{BufferedValue, Visitor}
 
-case class OneOrMore[T](value: Seq[T])
+private[mill] case class OneOrMore[T](value: Seq[T])
 
-object OneOrMore {
+private[mill] object OneOrMore {
   private val bufferedValueReader: upickle.Reader[BufferedValue] =
     new upickle.Reader.Delegate(BufferedValue.Builder)
 

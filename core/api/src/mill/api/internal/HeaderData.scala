@@ -1,7 +1,5 @@
 package mill.api.internal
 
-import mill.api.OneOrMore
-
 private[mill] case class HeaderData(
     `extends`: Located[OneOrMore[Located[String]]] = Located(null, -1, OneOrMore(Nil)),
     moduleDeps: Located[Seq[Located[String]]] = Located(null, -1, Nil),
