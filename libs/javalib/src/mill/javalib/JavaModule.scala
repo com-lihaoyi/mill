@@ -1059,7 +1059,9 @@ trait JavaModule
    */
   def resolvedMvnDeps: T[Seq[PathRef]] = Task {
     if (resolvedDepsWarnNonPlatform()) {
-      Dep.validatePlatformDeps(platformSuffix(), mvnDeps()).mkString("\n").pipe(Task.log.warn)
+      Dep.validatePlatformDeps(platformSuffix(), mvnDeps()).pipe(warn =>
+        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
+      )
     }
     millResolver().classpath(
       Seq(
@@ -1102,7 +1104,9 @@ trait JavaModule
 
   def resolvedRunMvnDeps: T[Seq[PathRef]] = Task {
     if (resolvedDepsWarnNonPlatform()) {
-      Dep.validatePlatformDeps(platformSuffix(), mvnDeps()).mkString("\n").pipe(Task.log.warn)
+      Dep.validatePlatformDeps(platformSuffix(), runMvnDeps()).pipe(warn =>
+        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
+      )
     }
     millResolver().classpath(
       Seq(
