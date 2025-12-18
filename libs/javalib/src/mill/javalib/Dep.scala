@@ -220,6 +220,27 @@ object Dep {
     Dep.parse(dep)
   }
 
+  private[mill] def validatePlatformDeps(platformSuffix: String, deps: Seq[Dep]): Seq[String] = {
+    val nonPlatformDeps = deps
+      .filter(dep => !dep.cross.platformed)
+      .filter(dep => !dep.name.endsWith(platformSuffix))
+    if (platformSuffix.isEmpty || nonPlatformDeps.isEmpty) Seq()
+    else {
+      val msg =
+        s"Detected ${nonPlatformDeps.size} (out of ${deps.size}) non-platform dependencies. This if often an error due to a missing second colon (:) before the version."
+      val details = nonPlatformDeps.map { dep =>
+        s"Found ${dep.formatted}, did you mean ${
+          dep.copy(cross = dep.cross match {
+              case c: CrossVersion.Constant => CrossVersion.Constant(c.value, true)
+              case _: CrossVersion.Binary => CrossVersion.Binary(true)
+              case _: CrossVersion.Full => CrossVersion.Full(true)
+            })
+            .formatted
+        } ?"
+      }
+      msg +: details
+    }
+  }
 }
 
 /**
