@@ -11,45 +11,48 @@ Many of the APIs covered here are listed in the API documentation:
 
 * {mill-doc-url}/api/latest/mill/javalib/JavaModule.html[mill.javalib.JavaModule]
 
-== Common Configuration Overrides
+== Declarative Configuration
 
-include::partial$example/javalib/module/2-common-config.adoc[]
+include::partial$example/javalib/module/1-basic-config.adoc[]
 
+=== Annotation Processors
 
-== Custom Tasks
+include::partial$example/javalib/module/2-annotation-processors.adoc[]
 
-include::partial$example/javalib/module/3-custom-tasks.adoc[]
+=== Javadoc Config
 
+include::partial$example/javalib/module/3-docjar.adoc[]
 
+== Programmable Configuration
 
-== Generated Sources
-
-include::partial$example/javalib/module/4-generated-sources.adoc[]
-
-
-== Compilation & Execution Flags
-
-include::partial$example/javalib/module/5-compilation-execution-flags.adoc[]
+include::partial$example/javalib/module/4-programmable-config.adoc[]
 
 
-== Classpath and Filesystem Resources
+=== Custom Tasks
+
+include::partial$example/javalib/module/5-custom-tasks.adoc[]
+
+
+
+=== Generated Sources
+
+include::partial$example/javalib/module/6-generated-sources.adoc[]
+
+
+=== Classpath and Filesystem Resources
 
 include::partial$example/javalib/module/7-resources.adoc[]
 
-== Annotation Processors
-
-include::partial$example/javalib/module/8-annotation-processors.adoc[]
-
-== Javadoc Config
-
-include::partial$example/javalib/module/9-docjar.adoc[]
-
-== Specifying the Main Class
-
-include::partial$example/javalib/module/11-main-class.adoc[]
-
-
-== Native C Code with JNI
+=== Native C Code with JNI
 
 include::partial$example/javalib/module/15-jni.adoc[]
 
+== Integration Declarative and Programmatic Config
+
+=== Custom Module Traits
+
+include::partial$example/javalib/module/17-custom-trait.adoc[]
+
+=== Programmable `moduleDeps`
+
+include::partial$example/javalib/module/18-programmable-module-deps.adoc[]

@@ -1,10 +1,10 @@
 package build.utilities
-
+import mill.*
 import mill.javalib.*
-import millbuild.*
-
+import millbuild.Deps
+import millbuild.ProjectBaseModule
 object `package` extends ProjectBaseModule {
 
-  def moduleDeps = super.moduleDeps ++ Seq(build.list)
+  def moduleDeps = Seq(build.list)
 
 }

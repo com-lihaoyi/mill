@@ -334,6 +334,8 @@ object Jetchat extends mill.api.Module {
 
 > ./mill JetNews.app.androidApk
 
+> ./mill JetNews.app.androidTest.androidTestApk
+
 > ./mill show JetNews.app.createAndroidVirtualDevice
 ...Name: test, DeviceId: medium_phone...
 

@@ -1,4 +1,4 @@
-//| extends: [millbuild.LineCountScalaModule]
+//| extends: millbuild.LineCountScalaModule
 //| scalaVersion: 3.7.3
 package qux
 

@@ -1,14 +1,25 @@
 package build.`jvm-util`
-
 import mill.*
-import mill.javalib.*
+import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
-import millbuild.*
-
+import millbuild.Deps
 object `package` extends Cross[JvmUtilModule]("2.12.20", "2.13.14", "3.7.1")
-trait JvmUtilModule
-    extends CrossprojectCrossVersionBaseModule with CrossSbtModule {
+trait JvmUtilModule extends PublishModule, CrossSbtModule {
+
+  def mvnDeps = Seq(Deps.upickle)
+
+  def scalacOptions = Seq("-deprecation") ++
+    (crossScalaVersion match {
+      case "2.12.20" => Seq(
+          "-Xlint:_,-unused",
+          "-Ywarn-numeric-widen",
+          "-Ywarn-unused:_,-nowarn,-privates"
+        )
+      case "2.13.14" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+      case "3.7.1"   => Seq("-Wunused")
+      case _         => Seq()
+    })
 
   def artifactName = "jvmutil"
 
@@ -20,5 +31,7 @@ trait JvmUtilModule
     VersionControl(None, None, None, None),
     Seq()
   )
+
+  def publishVersion = "0.1.0-SNAPSHOT"
 
 }

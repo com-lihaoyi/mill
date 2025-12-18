@@ -158,10 +158,6 @@ jobs:
             setup-android: true
 
           - java-version: 17
-            millargs: "'example.groovylib.__.shared.daemon'"
-            setup-android: true
-
-          - java-version: 17
             millargs: "example.thirdparty.android-compose-samples.packaged.daemon"
             setup-android: true
 
@@ -170,7 +166,7 @@ jobs:
             install-sbt: true
 
           - java-version: 24
-            millargs: "'example.{pythonlib,javascriptlib}.__.shared.daemon'"
+            millargs: "'example.{groovylib,pythonlib,javascriptlib}.__.shared.daemon'"
 
           - java-version: 21
             millargs: "'example.{cli,fundamentals,depth,extending,large}.__.shared.daemon'"

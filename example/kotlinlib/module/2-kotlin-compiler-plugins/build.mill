@@ -1,0 +1,15 @@
+// The Kotlin compiler requires plugins to be passed explicitly. To do this, you can define
+// a module to contain the exact annotation processors you want, and pass
+// in `-Xplugin` to `kotlincOptions`:
+
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
+
+/** Usage
+
+> ./mill test
+Test foo.ProjectTest simple started
+Test foo.ProjectTest simple finished...
+...
+
+*/
