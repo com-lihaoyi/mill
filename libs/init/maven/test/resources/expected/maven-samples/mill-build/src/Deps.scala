@@ -1,7 +1,5 @@
 package millbuild
-
 import mill.javalib.*
-
 object Deps {
 
   val hamcrestCore = mvn"org.hamcrest:hamcrest-core:1.2.1"

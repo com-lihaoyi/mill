@@ -1,11 +1,13 @@
-package build.`jvm-util`
+package millbuild
 import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
+import mill.scalajslib.ScalaJSModule
+import mill.scalajslib.api.*
 import mill.scalalib.*
-import millbuild.Deps
-object `package` extends Cross[JvmUtilModule]("2.12.20", "2.13.14", "3.7.1")
-trait JvmUtilModule extends PublishModule, CrossSbtModule {
+import mill.scalanativelib.ScalaNativeModule
+import mill.scalanativelib.api.*
+trait ProjectBaseModule extends PublishModule, CrossSbtPlatformModule {
 
   def mvnDeps = Seq(Deps.upickle)
 
@@ -20,17 +22,6 @@ trait JvmUtilModule extends PublishModule, CrossSbtModule {
       case "3.7.1"   => Seq("-Wunused")
       case _         => Seq()
     })
-
-  def artifactName = "jvmutil"
-
-  def pomSettings = PomSettings(
-    "jvmUtil",
-    "jvmutil",
-    "",
-    Seq(),
-    VersionControl(None, None, None, None),
-    Seq()
-  )
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
