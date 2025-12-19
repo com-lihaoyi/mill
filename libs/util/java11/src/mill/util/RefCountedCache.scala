@@ -1,7 +1,5 @@
 package mill.util
 
-import scala.collection.mutable
-
 /**
  * Generic reference counted cache, where values are created on-demand and closed when no more references exist.
  *
@@ -12,54 +10,21 @@ import scala.collection.mutable
  */
 class RefCountedCache[Key, InternalKey, InitData, Value](
     convertKey: Key => InternalKey,
-    setup: (Key, InternalKey, InitData) => Value,
+    setupFn: (Key, InternalKey, InitData) => Value,
     closeValue: Value => Unit
-) extends AutoCloseable {
-  private val cache = mutable.LinkedHashMap.empty[InternalKey, RefCountedCache.Entry[Value]]
+) extends CachedFactoryBase[Key, InternalKey, InitData, Value] {
 
-  /** Gets the value associated with the given key, creating a new value if necessary. */
-  def get(key: Key, initData: => InitData): Value = synchronized {
-    val iKey = convertKey(key)
-    cache.get(iKey) match {
-      case Some(entry) =>
-        cache(iKey) = entry.copy(refCount = entry.refCount + 1)
-        entry.value
+  def keyToInternalKey(key: Key): InternalKey = convertKey(key)
+  def setup(key: Key, internalKey: InternalKey, initData: InitData): Value =
+    setupFn(key, internalKey, initData)
+  def teardown(key: Key, internalKey: InternalKey, value: Value): Unit = closeValue(value)
+  def maxCacheSize: Int = 0 // Values are closed immediately when refCount reaches 0
+  def shareValues: Boolean = true // Multiple consumers can share the same value
 
-      case None =>
-        val value = setup(key, iKey, initData)
-        cache.update(iKey, RefCountedCache.Entry(value, 1))
-        value
-    }
-  }
-
-  /**
-   * Reduces the reference count of the value associated with the given key. If the reference count
-   * reaches zero, the value is closed and removed from the cache.
-   *
-   * @return the value with the new reference count, [[None]] if the last reference was released.
-   * @throws IllegalArgumentException if the key is unknown
-   */
-  def release(key: Key): Option[RefCountedCache.Entry[Value]] = synchronized {
-    val iKey = convertKey(key)
-    cache.updateWith(iKey) {
-      case Some(RefCountedCache.Entry(value, 1)) =>
-        closeValue(value)
-        None
-      case Some(entry @ RefCountedCache.Entry(_, n)) if n > 1 =>
-        Some(entry.copy(refCount = n - 1))
-      case None => throw IllegalArgumentException(s"Unknown key: $key (internal key = $iKey)")
-      case Some(other) =>
-        throw IllegalStateException(
-          s"Unknown entry for key = $key, internal key = $iKey: $other"
-        ) // No other cases; n should never be zero or negative
-    }
-  }
-
-  override def close(): Unit = {
-    cache.valuesIterator.foreach(entry => closeValue(entry.value))
-    cache.clear()
-  }
+  /** Binary compatibility forwarder */
+  def get(key: Key, initData: => InitData): Value = getOrCreate(key, initData)
 }
+
 object RefCountedCache {
 
   /**

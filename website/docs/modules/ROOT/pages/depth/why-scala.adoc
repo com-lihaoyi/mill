@@ -274,7 +274,7 @@ Mill makes heavy use of Maven Central and the rest of the Java publishing infras
 Mill's own artifacts are all published on Maven Central, Mill builds can resolve any
 artifact from Maven Central to use in your build, and anyone can publish their own plugins
 to Maven Central for free. it is easy to
-xref:javalib/dependencies.adoc#_repository_config[configure alternate repositories],
+xref:javalib/dependencies.adoc#_repository_configuration[configure alternate repositories],
 and Mill provides a wealth of xref:fundamentals/library-deps.adoc[tools and techniques for
 working with JVM dependencies].
 

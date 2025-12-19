@@ -33,6 +33,48 @@ Module dependencies of all:
   transport-classes-io_uring
   codec-classes-quic
 Module dependencies of bom:
+  buffer
+  codec-base
+  codec
+  codec-dns
+  codec-haproxy
+  codec-compression
+  codec-http
+  codec-http2
+  codec-http3
+  codec-memcache
+  codec-mqtt
+  codec-redis
+  codec-smtp
+  codec-socks
+  codec-stomp
+  codec-xml
+  codec-protobuf
+  codec-marshalling
+  common
+  dev-tools
+  handler
+  handler-proxy
+  handler-ssl-ocsp
+  resolver
+  resolver-dns
+  transport
+  transport-rxtx
+  transport-sctp
+  transport-udt
+  pkitesting
+  all
+  resolver-dns-classes-macos
+  resolver-dns-native-macos
+  transport-native-unix-common
+  transport-classes-epoll
+  transport-native-epoll
+  transport-classes-io_uring
+  transport-native-io_uring
+  transport-classes-kqueue
+  transport-native-kqueue
+  codec-classes-quic
+  codec-native-quic
 Module dependencies of buffer:
   common
   jfr-stub (compile)
@@ -55,7 +97,7 @@ Module dependencies of codec-base:
   transport
 Module dependencies of codec-base.test:
   codec-base
-  transport
+  transport.test
 Module dependencies of codec-classes-quic:
   common
   buffer
@@ -70,7 +112,7 @@ Module dependencies of codec-compression:
   codec-base
 Module dependencies of codec-compression.test:
   codec-compression
-  transport
+  transport.test
 Module dependencies of codec-dns:
   common
   buffer
@@ -78,14 +120,14 @@ Module dependencies of codec-dns:
   codec-base
 Module dependencies of codec-dns.test:
   codec-dns
-  transport
+  transport.test
 Module dependencies of codec-haproxy:
   buffer
   transport
   codec-base
 Module dependencies of codec-haproxy.test:
   codec-haproxy
-  transport
+  transport.test
 Module dependencies of codec-http:
   common
   buffer
@@ -95,7 +137,7 @@ Module dependencies of codec-http:
   handler
 Module dependencies of codec-http.test:
   codec-http
-  transport
+  transport.test
 Module dependencies of codec-http2:
   common
   buffer
@@ -107,7 +149,7 @@ Module dependencies of codec-http2:
 Module dependencies of codec-http2.test:
   codec-http2
   pkitesting
-  transport
+  transport.test
 Module dependencies of codec-http3:
   common
   buffer
@@ -118,6 +160,7 @@ Module dependencies of codec-http3:
   codec-native-quic (runtime)
 Module dependencies of codec-http3.test:
   codec-http3
+  codec-native-quic (runtime)
 Module dependencies of codec-marshalling:
   common
   buffer
@@ -125,7 +168,7 @@ Module dependencies of codec-marshalling:
   codec-base
 Module dependencies of codec-marshalling.test:
   codec-marshalling
-  transport
+  transport.test
 Module dependencies of codec-memcache:
   common
   buffer
@@ -133,7 +176,7 @@ Module dependencies of codec-memcache:
   codec-base
 Module dependencies of codec-memcache.test:
   codec-memcache
-  transport
+  transport.test
 Module dependencies of codec-mqtt:
   common
   buffer
@@ -141,7 +184,7 @@ Module dependencies of codec-mqtt:
   codec-base
 Module dependencies of codec-mqtt.test:
   codec-mqtt
-  transport
+  transport.test
 Module dependencies of codec-native-quic:
   codec-classes-quic
 Module dependencies of codec-native-quic.test:
@@ -155,7 +198,7 @@ Module dependencies of codec-protobuf:
   codec-base
 Module dependencies of codec-protobuf.test:
   codec-protobuf
-  transport
+  transport.test
 Module dependencies of codec-redis:
   common
   buffer
@@ -163,7 +206,7 @@ Module dependencies of codec-redis:
   codec-base
 Module dependencies of codec-redis.test:
   codec-redis
-  transport
+  transport.test
 Module dependencies of codec-smtp:
   common
   buffer
@@ -171,7 +214,7 @@ Module dependencies of codec-smtp:
   codec-base
 Module dependencies of codec-smtp.test:
   codec-smtp
-  transport
+  transport.test
 Module dependencies of codec-socks:
   common
   buffer
@@ -179,7 +222,7 @@ Module dependencies of codec-socks:
   codec-base
 Module dependencies of codec-socks.test:
   codec-socks
-  transport
+  transport.test
 Module dependencies of codec-stomp:
   common
   buffer
@@ -187,14 +230,14 @@ Module dependencies of codec-stomp:
   codec-base
 Module dependencies of codec-stomp.test:
   codec-stomp
-  transport
+  transport.test
 Module dependencies of codec-xml:
   buffer
   transport
   codec-base
 Module dependencies of codec-xml.test:
   codec-xml
-  transport
+  transport.test
 Module dependencies of common:
   jfr-stub (compile)
   varhandle-stub (compile)
@@ -237,7 +280,7 @@ Module dependencies of handler:
   pkitesting
 Module dependencies of handler.test:
   handler
-  transport
+  transport.test
 Module dependencies of handler-proxy:
   common
   buffer
@@ -248,7 +291,7 @@ Module dependencies of handler-proxy:
   handler
 Module dependencies of handler-proxy.test:
   handler-proxy
-  transport
+  transport.test
   pkitesting
 Module dependencies of handler-ssl-ocsp:
   codec-http
@@ -288,7 +331,7 @@ Module dependencies of resolver-dns:
   handler
 Module dependencies of resolver-dns.test:
   resolver-dns
-  transport
+  transport.test
 Module dependencies of resolver-dns-classes-macos:
   common
   resolver-dns
@@ -298,6 +341,7 @@ Module dependencies of resolver-dns-native-macos:
 Module dependencies of resolver-dns-native-macos.test:
   resolver-dns-native-macos
 Module dependencies of :
+  dev-tools
 Module dependencies of testsuite:
   common
   buffer
@@ -486,7 +530,7 @@ Module dependencies of transport-sctp:
   transport
 Module dependencies of transport-sctp.test:
   transport-sctp
-  transport
+  transport.test
 Module dependencies of transport-udt:
   common
   buffer
@@ -717,76 +761,187 @@ Module dependencies of varhandle-stub:
   ]
 }
 {
-  "all.jvmId": "zulu:11",
-  "bom.jvmId": "",
-  "buffer.jvmId": "zulu:11",
-  "codec.jvmId": "zulu:11",
-  "codec-base.jvmId": "zulu:11",
-  "codec-classes-quic.jvmId": "zulu:11",
-  "codec-compression.jvmId": "zulu:11",
-  "codec-dns.jvmId": "zulu:11",
-  "codec-haproxy.jvmId": "zulu:11",
-  "codec-http.jvmId": "zulu:11",
-  "codec-http2.jvmId": "zulu:11",
-  "codec-http3.jvmId": "zulu:11",
-  "codec-marshalling.jvmId": "zulu:11",
-  "codec-memcache.jvmId": "zulu:11",
-  "codec-mqtt.jvmId": "zulu:11",
-  "codec-native-quic.jvmId": "zulu:11",
-  "codec-protobuf.jvmId": "zulu:11",
-  "codec-redis.jvmId": "zulu:11",
-  "codec-smtp.jvmId": "zulu:11",
-  "codec-socks.jvmId": "zulu:11",
-  "codec-stomp.jvmId": "zulu:11",
-  "codec-xml.jvmId": "zulu:11",
-  "common.jvmId": "zulu:11",
-  "dev-tools.jvmId": "zulu:11",
-  "example.jvmId": "zulu:11",
-  "handler.jvmId": "zulu:11",
-  "handler-proxy.jvmId": "zulu:11",
-  "handler-ssl-ocsp.jvmId": "zulu:11",
-  "jfr-stub.jvmId": "zulu:11",
-  "jvmId": "zulu:11",
-  "microbench.jvmId": "zulu:11",
-  "pkitesting.jvmId": "zulu:11",
-  "resolver.jvmId": "zulu:11",
-  "resolver-dns.jvmId": "zulu:11",
-  "resolver-dns-classes-macos.jvmId": "zulu:11",
-  "resolver-dns-native-macos.jvmId": "zulu:11",
-  "testsuite.jvmId": "zulu:11",
-  "testsuite-autobahn.jvmId": "zulu:11",
-  "testsuite-http2.jvmId": "zulu:11",
-  "testsuite-jpms.jvmId": "zulu:11",
-  "testsuite-karaf.jvmId": "zulu:11",
-  "testsuite-native.jvmId": "zulu:11",
-  "testsuite-native-image.jvmId": "zulu:11",
-  "testsuite-native-image-client.jvmId": "zulu:11",
-  "testsuite-native-image-client-runtime-init.jvmId": "zulu:11",
-  "testsuite-osgi.jvmId": "zulu:11",
-  "testsuite-shading.jvmId": "zulu:11",
-  "transport.jvmId": "zulu:11",
-  "transport-blockhound-tests.jvmId": "zulu:11",
-  "transport-classes-epoll.jvmId": "zulu:11",
-  "transport-classes-io_uring.jvmId": "zulu:11",
-  "transport-classes-kqueue.jvmId": "zulu:11",
-  "transport-native-epoll.jvmId": "zulu:11",
-  "transport-native-io_uring.jvmId": "zulu:11",
-  "transport-native-kqueue.jvmId": "zulu:11",
-  "transport-native-unix-common.jvmId": "zulu:11",
-  "transport-native-unix-common-tests.jvmId": "zulu:11",
-  "transport-rxtx.jvmId": "zulu:11",
-  "transport-sctp.jvmId": "zulu:11",
-  "transport-udt.jvmId": "zulu:11",
-  "varhandle-stub.jvmId": "zulu:11"
+  "all.mandatoryMvnDeps": [],
+  "bom.mandatoryMvnDeps": [],
+  "buffer.mandatoryMvnDeps": [],
+  "buffer.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec.mandatoryMvnDeps": [],
+  "codec-base.mandatoryMvnDeps": [],
+  "codec-base.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-classes-quic.mandatoryMvnDeps": [],
+  "codec-compression.mandatoryMvnDeps": [],
+  "codec-compression.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-dns.mandatoryMvnDeps": [],
+  "codec-dns.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-haproxy.mandatoryMvnDeps": [],
+  "codec-haproxy.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-http.mandatoryMvnDeps": [],
+  "codec-http.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-http2.mandatoryMvnDeps": [],
+  "codec-http2.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-http3.mandatoryMvnDeps": [],
+  "codec-http3.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-marshalling.mandatoryMvnDeps": [],
+  "codec-marshalling.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-memcache.mandatoryMvnDeps": [],
+  "codec-memcache.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-mqtt.mandatoryMvnDeps": [],
+  "codec-mqtt.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-native-quic.mandatoryMvnDeps": [],
+  "codec-native-quic.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-protobuf.mandatoryMvnDeps": [],
+  "codec-protobuf.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-redis.mandatoryMvnDeps": [],
+  "codec-redis.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-smtp.mandatoryMvnDeps": [],
+  "codec-smtp.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-socks.mandatoryMvnDeps": [],
+  "codec-socks.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-stomp.mandatoryMvnDeps": [],
+  "codec-stomp.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "codec-xml.mandatoryMvnDeps": [],
+  "codec-xml.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "common.mandatoryMvnDeps": [],
+  "common.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "dev-tools.mandatoryMvnDeps": [],
+  "example.mandatoryMvnDeps": [],
+  "handler.mandatoryMvnDeps": [],
+  "handler.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "handler-proxy.mandatoryMvnDeps": [],
+  "handler-proxy.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "handler-ssl-ocsp.mandatoryMvnDeps": [],
+  "handler-ssl-ocsp.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "jfr-stub.mandatoryMvnDeps": [],
+  "mandatoryMvnDeps": [],
+  "microbench.mandatoryMvnDeps": [],
+  "pkitesting.mandatoryMvnDeps": [],
+  "pkitesting.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "resolver.mandatoryMvnDeps": [],
+  "resolver.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "resolver-dns.mandatoryMvnDeps": [],
+  "resolver-dns.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "resolver-dns-classes-macos.mandatoryMvnDeps": [],
+  "resolver-dns-native-macos.mandatoryMvnDeps": [],
+  "resolver-dns-native-macos.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "testsuite.mandatoryMvnDeps": [],
+  "testsuite-autobahn.mandatoryMvnDeps": [],
+  "testsuite-http2.mandatoryMvnDeps": [],
+  "testsuite-jpms.mandatoryMvnDeps": [],
+  "testsuite-jpms.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "testsuite-karaf.mandatoryMvnDeps": [],
+  "testsuite-native.mandatoryMvnDeps": [],
+  "testsuite-native.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "testsuite-native-image.mandatoryMvnDeps": [],
+  "testsuite-native-image-client.mandatoryMvnDeps": [],
+  "testsuite-native-image-client-runtime-init.mandatoryMvnDeps": [],
+  "testsuite-osgi.mandatoryMvnDeps": [],
+  "testsuite-shading.mandatoryMvnDeps": [],
+  "testsuite-shading.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport.mandatoryMvnDeps": [],
+  "transport.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-blockhound-tests.mandatoryMvnDeps": [],
+  "transport-blockhound-tests.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-classes-epoll.mandatoryMvnDeps": [],
+  "transport-classes-io_uring.mandatoryMvnDeps": [],
+  "transport-classes-kqueue.mandatoryMvnDeps": [],
+  "transport-native-epoll.mandatoryMvnDeps": [],
+  "transport-native-epoll.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-native-io_uring.mandatoryMvnDeps": [],
+  "transport-native-io_uring.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-native-kqueue.mandatoryMvnDeps": [],
+  "transport-native-kqueue.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-native-unix-common.mandatoryMvnDeps": [],
+  "transport-native-unix-common.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-native-unix-common-tests.mandatoryMvnDeps": [],
+  "transport-rxtx.mandatoryMvnDeps": [],
+  "transport-sctp.mandatoryMvnDeps": [],
+  "transport-sctp.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "transport-udt.mandatoryMvnDeps": [],
+  "transport-udt.test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
+  ],
+  "varhandle-stub.mandatoryMvnDeps": []
 }
 {
   "all.mvnDeps": [],
   "bom.mvnDeps": [],
   "buffer.mvnDeps": [],
   "buffer.test.mvnDeps": [
-    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
@@ -798,12 +953,12 @@ Module dependencies of varhandle-stub:
   ],
   "codec-base.mvnDeps": [],
   "codec-base.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.apache.commons:commons-compress:1.26.0",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -823,31 +978,31 @@ Module dependencies of varhandle-stub:
     "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0"
   ],
   "codec-compression.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.apache.commons:commons-compress:1.26.0",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-dns.mvnDeps": [],
   "codec-dns.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.apache.directory.server:apacheds-protocol-dns:1.5.7",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-haproxy.mvnDeps": [],
   "codec-haproxy.test.mvnDeps": [
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -857,6 +1012,8 @@ Module dependencies of varhandle-stub:
     "com.github.luben:zstd-jni:1.5.6-5"
   ],
   "codec-http.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "commons-io:commons-io:2.14.0",
     "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
@@ -867,8 +1024,6 @@ Module dependencies of varhandle-stub:
     "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -878,9 +1033,11 @@ Module dependencies of varhandle-stub:
     "com.github.luben:zstd-jni:1.5.6-5"
   ],
   "codec-http2.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
     "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
     "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
     "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
@@ -890,8 +1047,6 @@ Module dependencies of varhandle-stub:
     "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -909,31 +1064,31 @@ Module dependencies of varhandle-stub:
     "org.jboss.marshalling:jboss-marshalling:2.2.3.Final"
   ],
   "codec-marshalling.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.jboss.marshalling:jboss-marshalling-serial:2.2.3.Final",
     "org.jboss.marshalling:jboss-marshalling-river:2.2.3.Final",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-memcache.mvnDeps": [],
   "codec-memcache.test.mvnDeps": [
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-mqtt.mvnDeps": [],
   "codec-mqtt.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -941,9 +1096,9 @@ Module dependencies of varhandle-stub:
     "io.netty:netty-jni-util:0.0.9.Final;classifier=sources"
   ],
   "codec-native-quic.test.mvnDeps": [
-    "org.bouncycastle:bcpkix-jdk18on:1.80",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
@@ -953,46 +1108,46 @@ Module dependencies of varhandle-stub:
     "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5"
   ],
   "codec-protobuf.test.mvnDeps": [
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-redis.mvnDeps": [],
   "codec-redis.test.mvnDeps": [
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-smtp.mvnDeps": [],
   "codec-smtp.test.mvnDeps": [
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-socks.mvnDeps": [],
   "codec-socks.test.mvnDeps": [
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-stomp.mvnDeps": [],
   "codec-stomp.test.mvnDeps": [
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1000,10 +1155,10 @@ Module dependencies of varhandle-stub:
     "com.fasterxml:aalto-xml:1.3.3"
   ],
   "codec-xml.test.mvnDeps": [
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1016,10 +1171,10 @@ Module dependencies of varhandle-stub:
     "io.projectreactor.tools:blockhound:1.0.13.RELEASE"
   ],
   "common.test.mvnDeps": [
-    "org.apache.logging.log4j:log4j-core:2.23.1",
-    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.apache.logging.log4j:log4j-core:2.23.1",
+    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
@@ -1039,24 +1194,24 @@ Module dependencies of varhandle-stub:
     "org.conscrypt:conscrypt-openjdk-uber:2.5.2"
   ],
   "handler.test.mvnDeps": [
-    "org.mockito:mockito-core:3.6.28",
-    "software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.4.1;classifier=${os.detected.name}-${os.detected.arch}",
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.mockito:mockito-core:3.6.28",
+    "software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.4.1;classifier={os.detected.name}-{os.detected.arch}",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
   ],
   "handler-proxy.mvnDeps": [],
   "handler-proxy.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1089,20 +1244,20 @@ Module dependencies of varhandle-stub:
   ],
   "resolver.mvnDeps": [],
   "resolver.test.mvnDeps": [
-    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "resolver-dns.mvnDeps": [],
   "resolver-dns.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.apache.directory.server:apacheds-protocol-dns:1.5.7;exclude=commons-lang:commons-lang",
     "commons-lang:commons-lang:2.6",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1128,11 +1283,13 @@ Module dependencies of varhandle-stub:
   "testsuite-http2.mvnDeps": [],
   "testsuite-jpms.mvnDeps": [
     "io.netty:netty-tcnative-classes:2.0.73.Final",
-    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final;classifier=${os.detected.name}-${os.detected.arch}",
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final;classifier={os.detected.name}-{os.detected.arch}",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
     "org.bouncycastle:bcprov-jdk18on:1.80"
   ],
   "testsuite-jpms.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "com.google.protobuf:protobuf-java:3.25.5",
     "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5",
     "org.jboss.marshalling:jboss-marshalling:2.2.3.Final",
@@ -1141,8 +1298,6 @@ Module dependencies of varhandle-stub:
     "org.apache.logging.log4j:log4j-core:2.23.1",
     "com.github.luben:zstd-jni:1.5.6-5",
     "com.aayushatharva.brotli4j:brotli4j:1.16.0",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "ch.qos.logback:logback-classic:1.3.14",
     "commons-logging:commons-logging:1.3.5"
   ],
@@ -1161,7 +1316,7 @@ Module dependencies of varhandle-stub:
     "org.apache.felix:org.apache.felix.configadmin:1.9.14"
   ],
   "testsuite-shading.mvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
   ],
   "testsuite-shading.test.mvnDeps": [
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
@@ -1169,11 +1324,11 @@ Module dependencies of varhandle-stub:
   ],
   "transport.mvnDeps": [],
   "transport.test.mvnDeps": [
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
@@ -1182,9 +1337,9 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-blockhound-tests.test.mvnDeps": [
-    "io.projectreactor.tools:blockhound:1.0.13.RELEASE",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "io.projectreactor.tools:blockhound:1.0.13.RELEASE",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1195,19 +1350,19 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-native-epoll.test.mvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
-    "io.github.artsok:rerunner-jupiter:2.1.6",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "io.github.artsok:rerunner-jupiter:2.1.6",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "transport-native-io_uring.mvnDeps": [],
   "transport-native-io_uring.test.mvnDeps": [
-    "org.bouncycastle:bcpkix-jdk18on:1.80",
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1215,9 +1370,9 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-native-kqueue.test.mvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1239,10 +1394,10 @@ Module dependencies of varhandle-stub:
   ],
   "transport-sctp.mvnDeps": [],
   "transport-sctp.test.mvnDeps": [
-    "org.reflections:reflections:0.10.2",
-    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "org.reflections:reflections:0.10.2",
+    "com.google.code.gson:gson:2.8.9",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1250,9 +1405,9 @@ Module dependencies of varhandle-stub:
     "com.barchart.udt:barchart-udt-bundle:2.3.0"
   ],
   "transport-udt.test.mvnDeps": [
-    "com.google.caliper:caliper:0.5-rc1",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
+    "com.google.caliper:caliper:0.5-rc1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1393,58 +1548,92 @@ Module dependencies of varhandle-stub:
   "bom.runMvnDeps": [],
   "buffer.runMvnDeps": [],
   "buffer.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:",
     "org.graalvm.nativeimage:svm:19.3.6"
   ],
   "codec.runMvnDeps": [],
   "codec-base.runMvnDeps": [],
-  "codec-base.test.runMvnDeps": [],
+  "codec-base.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-classes-quic.runMvnDeps": [],
   "codec-compression.runMvnDeps": [],
-  "codec-compression.test.runMvnDeps": [],
+  "codec-compression.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-dns.runMvnDeps": [],
-  "codec-dns.test.runMvnDeps": [],
+  "codec-dns.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-haproxy.runMvnDeps": [],
-  "codec-haproxy.test.runMvnDeps": [],
+  "codec-haproxy.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-http.runMvnDeps": [],
-  "codec-http.test.runMvnDeps": [],
+  "codec-http.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-http2.runMvnDeps": [],
-  "codec-http2.test.runMvnDeps": [],
+  "codec-http2.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-http3.runMvnDeps": [],
   "codec-http3.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:",
     "org.jetbrains:annotations:26.0.2",
     "com.google.code.findbugs:jsr305:3.0.2"
   ],
   "codec-marshalling.runMvnDeps": [],
-  "codec-marshalling.test.runMvnDeps": [],
+  "codec-marshalling.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-memcache.runMvnDeps": [],
-  "codec-memcache.test.runMvnDeps": [],
+  "codec-memcache.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-mqtt.runMvnDeps": [],
-  "codec-mqtt.test.runMvnDeps": [],
+  "codec-mqtt.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-native-quic.runMvnDeps": [],
   "codec-native-quic.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:",
     "org.jetbrains:annotations:26.0.2"
   ],
   "codec-protobuf.runMvnDeps": [],
-  "codec-protobuf.test.runMvnDeps": [],
+  "codec-protobuf.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-redis.runMvnDeps": [],
-  "codec-redis.test.runMvnDeps": [],
+  "codec-redis.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-smtp.runMvnDeps": [],
-  "codec-smtp.test.runMvnDeps": [],
+  "codec-smtp.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-socks.runMvnDeps": [],
-  "codec-socks.test.runMvnDeps": [],
+  "codec-socks.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-stomp.runMvnDeps": [],
-  "codec-stomp.test.runMvnDeps": [],
+  "codec-stomp.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "codec-xml.runMvnDeps": [],
-  "codec-xml.test.runMvnDeps": [],
+  "codec-xml.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "common.runMvnDeps": [],
   "common.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:",
     "org.graalvm.nativeimage:svm:19.3.6",
     "org.jboss:jdk-misc:3.Final",
     "org.jetbrains:annotations:26.0.2"
   ],
   "dev-tools.runMvnDeps": [],
   "example.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
     "com.jcraft:jzlib:1.1.3",
     "ch.qos.logback:logback-classic:1.3.14",
     "com.aayushatharva.brotli4j:brotli4j:1.16.0",
@@ -1457,70 +1646,107 @@ Module dependencies of varhandle-stub:
     "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0"
   ],
   "handler.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
   ],
-  "handler.test.runMvnDeps": [],
+  "handler.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+  ],
   "handler-proxy.runMvnDeps": [],
-  "handler-proxy.test.runMvnDeps": [],
+  "handler-proxy.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "handler-ssl-ocsp.runMvnDeps": [],
   "handler-ssl-ocsp.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:",
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "jfr-stub.runMvnDeps": [],
   "microbench.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
   ],
   "pkitesting.runMvnDeps": [],
-  "pkitesting.test.runMvnDeps": [],
+  "pkitesting.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "resolver.runMvnDeps": [],
-  "resolver.test.runMvnDeps": [],
+  "resolver.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "resolver-dns.runMvnDeps": [],
-  "resolver-dns.test.runMvnDeps": [],
+  "resolver-dns.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "resolver-dns-classes-macos.runMvnDeps": [],
   "resolver-dns-native-macos.runMvnDeps": [],
-  "resolver-dns-native-macos.test.runMvnDeps": [],
+  "resolver-dns-native-macos.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "runMvnDeps": [],
   "testsuite.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
   ],
   "testsuite-autobahn.runMvnDeps": [],
   "testsuite-http2.runMvnDeps": [],
   "testsuite-jpms.runMvnDeps": [],
-  "testsuite-jpms.test.runMvnDeps": [],
+  "testsuite-jpms.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "testsuite-karaf.runMvnDeps": [
     "org.apache.karaf.features:framework:4.4.8;classifier=features;type=xml"
   ],
   "testsuite-native.runMvnDeps": [],
-  "testsuite-native.test.runMvnDeps": [],
+  "testsuite-native.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "testsuite-native-image.runMvnDeps": [],
   "testsuite-native-image-client.runMvnDeps": [],
   "testsuite-native-image-client-runtime-init.runMvnDeps": [],
   "testsuite-osgi.runMvnDeps": [],
   "testsuite-shading.runMvnDeps": [],
-  "testsuite-shading.test.runMvnDeps": [],
-  "transport.runMvnDeps": [],
-  "transport.test.runMvnDeps": [],
-  "transport-blockhound-tests.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier=${os.detected.classifier}"
+  "testsuite-shading.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
   ],
-  "transport-blockhound-tests.test.runMvnDeps": [],
+  "transport.runMvnDeps": [],
+  "transport.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
+  "transport-blockhound-tests.runMvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+  ],
+  "transport-blockhound-tests.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:",
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+  ],
   "transport-classes-epoll.runMvnDeps": [],
   "transport-classes-io_uring.runMvnDeps": [],
   "transport-classes-kqueue.runMvnDeps": [],
   "transport-native-epoll.runMvnDeps": [],
-  "transport-native-epoll.test.runMvnDeps": [],
+  "transport-native-epoll.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "transport-native-io_uring.runMvnDeps": [],
-  "transport-native-io_uring.test.runMvnDeps": [],
+  "transport-native-io_uring.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "transport-native-kqueue.runMvnDeps": [],
-  "transport-native-kqueue.test.runMvnDeps": [],
+  "transport-native-kqueue.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "transport-native-unix-common.runMvnDeps": [],
-  "transport-native-unix-common.test.runMvnDeps": [],
+  "transport-native-unix-common.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "transport-native-unix-common-tests.runMvnDeps": [],
   "transport-rxtx.runMvnDeps": [],
   "transport-sctp.runMvnDeps": [],
-  "transport-sctp.test.runMvnDeps": [],
+  "transport-sctp.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "transport-udt.runMvnDeps": [],
-  "transport-udt.test.runMvnDeps": [],
+  "transport-udt.test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ],
   "varhandle-stub.runMvnDeps": []
 }
 {
@@ -1528,486 +1754,429 @@ Module dependencies of varhandle-stub:
   "bom.bomMvnDeps": [],
   "bomMvnDeps": [],
   "buffer.bomMvnDeps": [],
-  "buffer.test.bomMvnDeps": [],
+  "buffer.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec.bomMvnDeps": [],
   "codec-base.bomMvnDeps": [],
-  "codec-base.test.bomMvnDeps": [],
+  "codec-base.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-classes-quic.bomMvnDeps": [],
   "codec-compression.bomMvnDeps": [],
-  "codec-compression.test.bomMvnDeps": [],
+  "codec-compression.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-dns.bomMvnDeps": [],
-  "codec-dns.test.bomMvnDeps": [],
+  "codec-dns.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-haproxy.bomMvnDeps": [],
-  "codec-haproxy.test.bomMvnDeps": [],
+  "codec-haproxy.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-http.bomMvnDeps": [],
-  "codec-http.test.bomMvnDeps": [],
+  "codec-http.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-http2.bomMvnDeps": [],
-  "codec-http2.test.bomMvnDeps": [],
+  "codec-http2.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-http3.bomMvnDeps": [],
-  "codec-http3.test.bomMvnDeps": [],
+  "codec-http3.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-marshalling.bomMvnDeps": [],
-  "codec-marshalling.test.bomMvnDeps": [],
+  "codec-marshalling.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-memcache.bomMvnDeps": [],
-  "codec-memcache.test.bomMvnDeps": [],
+  "codec-memcache.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-mqtt.bomMvnDeps": [],
-  "codec-mqtt.test.bomMvnDeps": [],
+  "codec-mqtt.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-native-quic.bomMvnDeps": [],
-  "codec-native-quic.test.bomMvnDeps": [],
+  "codec-native-quic.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-protobuf.bomMvnDeps": [],
-  "codec-protobuf.test.bomMvnDeps": [],
+  "codec-protobuf.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-redis.bomMvnDeps": [],
-  "codec-redis.test.bomMvnDeps": [],
+  "codec-redis.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-smtp.bomMvnDeps": [],
-  "codec-smtp.test.bomMvnDeps": [],
+  "codec-smtp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-socks.bomMvnDeps": [],
-  "codec-socks.test.bomMvnDeps": [],
+  "codec-socks.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-stomp.bomMvnDeps": [],
-  "codec-stomp.test.bomMvnDeps": [],
+  "codec-stomp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-xml.bomMvnDeps": [],
-  "codec-xml.test.bomMvnDeps": [],
+  "codec-xml.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "common.bomMvnDeps": [],
-  "common.test.bomMvnDeps": [],
+  "common.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "dev-tools.bomMvnDeps": [],
   "example.bomMvnDeps": [],
   "handler.bomMvnDeps": [],
-  "handler.test.bomMvnDeps": [],
+  "handler.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "handler-proxy.bomMvnDeps": [],
-  "handler-proxy.test.bomMvnDeps": [],
+  "handler-proxy.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "handler-ssl-ocsp.bomMvnDeps": [],
-  "handler-ssl-ocsp.test.bomMvnDeps": [],
+  "handler-ssl-ocsp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "jfr-stub.bomMvnDeps": [],
   "microbench.bomMvnDeps": [],
   "pkitesting.bomMvnDeps": [],
-  "pkitesting.test.bomMvnDeps": [],
+  "pkitesting.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "resolver.bomMvnDeps": [],
-  "resolver.test.bomMvnDeps": [],
+  "resolver.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "resolver-dns.bomMvnDeps": [],
-  "resolver-dns.test.bomMvnDeps": [],
+  "resolver-dns.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "resolver-dns-classes-macos.bomMvnDeps": [],
   "resolver-dns-native-macos.bomMvnDeps": [],
-  "resolver-dns-native-macos.test.bomMvnDeps": [],
+  "resolver-dns-native-macos.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "testsuite.bomMvnDeps": [],
   "testsuite-autobahn.bomMvnDeps": [],
   "testsuite-http2.bomMvnDeps": [],
   "testsuite-jpms.bomMvnDeps": [],
-  "testsuite-jpms.test.bomMvnDeps": [],
+  "testsuite-jpms.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "testsuite-karaf.bomMvnDeps": [],
   "testsuite-native.bomMvnDeps": [],
-  "testsuite-native.test.bomMvnDeps": [],
+  "testsuite-native.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "testsuite-native-image.bomMvnDeps": [],
   "testsuite-native-image-client.bomMvnDeps": [],
   "testsuite-native-image-client-runtime-init.bomMvnDeps": [],
   "testsuite-osgi.bomMvnDeps": [],
   "testsuite-shading.bomMvnDeps": [],
-  "testsuite-shading.test.bomMvnDeps": [],
+  "testsuite-shading.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport.bomMvnDeps": [],
-  "transport.test.bomMvnDeps": [],
+  "transport.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-blockhound-tests.bomMvnDeps": [],
-  "transport-blockhound-tests.test.bomMvnDeps": [],
+  "transport-blockhound-tests.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-classes-epoll.bomMvnDeps": [],
   "transport-classes-io_uring.bomMvnDeps": [],
   "transport-classes-kqueue.bomMvnDeps": [],
   "transport-native-epoll.bomMvnDeps": [],
-  "transport-native-epoll.test.bomMvnDeps": [],
+  "transport-native-epoll.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-native-io_uring.bomMvnDeps": [],
-  "transport-native-io_uring.test.bomMvnDeps": [],
+  "transport-native-io_uring.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-native-kqueue.bomMvnDeps": [],
-  "transport-native-kqueue.test.bomMvnDeps": [],
+  "transport-native-kqueue.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-native-unix-common.bomMvnDeps": [],
-  "transport-native-unix-common.test.bomMvnDeps": [],
+  "transport-native-unix-common.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-native-unix-common-tests.bomMvnDeps": [],
   "transport-rxtx.bomMvnDeps": [],
   "transport-sctp.bomMvnDeps": [],
-  "transport-sctp.test.bomMvnDeps": [],
+  "transport-sctp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-udt.bomMvnDeps": [],
-  "transport-udt.test.bomMvnDeps": [],
+  "transport-udt.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "varhandle-stub.bomMvnDeps": []
 }
 {
   "all.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "bom.javacOptions": [],
   "buffer.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "buffer.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-base.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-base.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-classes-quic.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-compression.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-compression.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-dns.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-dns.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-haproxy.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-haproxy.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-http.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-http.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-http2.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-http2.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-http3.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-http3.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-marshalling.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-marshalling.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-memcache.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-memcache.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-mqtt.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-mqtt.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-native-quic.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-native-quic.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-protobuf.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-protobuf.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-redis.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-redis.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-smtp.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-smtp.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-socks.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-socks.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-stomp.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-stomp.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-xml.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "codec-xml.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "common.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "common.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "dev-tools.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "example.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "handler.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "handler.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "handler-proxy.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "handler-proxy.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "handler-ssl-ocsp.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "handler-ssl-ocsp.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
-  "javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
-  ],
+  "javacOptions": [],
   "jfr-stub.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "microbench.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "pkitesting.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "pkitesting.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "resolver.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "resolver.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "resolver-dns.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "resolver-dns.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "resolver-dns-classes-macos.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "resolver-dns-native-macos.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "resolver-dns-native-macos.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-autobahn.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-http2.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-jpms.javacOptions": [
     "--release",
@@ -2018,188 +2187,128 @@ Module dependencies of varhandle-stub:
     "11"
   ],
   "testsuite-karaf.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-native.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-native.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-native-image.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-native-image-client.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-native-image-client-runtime-init.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-osgi.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-shading.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "testsuite-shading.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-blockhound-tests.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-blockhound-tests.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-classes-epoll.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-classes-io_uring.javacOptions": [
     "--release",
     "9"
   ],
   "transport-classes-kqueue.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-native-epoll.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-native-epoll.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-native-io_uring.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-native-io_uring.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-native-kqueue.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-native-kqueue.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-native-unix-common.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-native-unix-common.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-native-unix-common-tests.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-rxtx.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-sctp.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-sctp.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-udt.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "transport-udt.test.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ],
   "varhandle-stub.javacOptions": [
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
+    "--release",
+    "8"
   ]
 }
 {
@@ -3048,7 +3157,6 @@ Module dependencies of varhandle-stub:
   "transport-udt.publishProperties": {},
   "varhandle-stub.publishProperties": {}
 }
-
 
 
 

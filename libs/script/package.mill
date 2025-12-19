@@ -4,7 +4,8 @@ import mill.contrib.buildinfo.BuildInfo
 import millbuild.*
 
 object `package` extends MillPublishScalaModule with BuildInfo {
-  def moduleDeps = Seq(build.core.api, build.libs.scalalib, build.libs.kotlinlib)
+  def moduleDeps =
+    Seq(build.core.api, build.libs.scalalib, build.libs.kotlinlib, build.libs.groovylib)
   def runModuleDeps = Seq(build.core.internal)
   def compileModuleDeps = Seq(build.core.internal)
 
@@ -15,7 +16,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     BuildInfo.Value("osLibVersion", millbuild.Deps.osLib.version),
     BuildInfo.Value("upickleVersion", millbuild.Deps.upickle.version),
     BuildInfo.Value("requestsVersion", millbuild.Deps.requests.version),
-    BuildInfo.Value("mainargsVersion", millbuild.Deps.mainargs.version)
+    BuildInfo.Value("mainargsVersion", millbuild.Deps.mainargs.version),
+    BuildInfo.Value("groovyVersion", millbuild.Deps.groovyVersion)
   )
 
   object `asm-worker` extends MillPublishScalaModule {

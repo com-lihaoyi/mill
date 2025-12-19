@@ -53,6 +53,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           case "java" => Result.Success("mill.script.JavaModule")
           case "kt" => Result.Success("mill.script.KotlinModule")
           case "scala" => Result.Success("mill.script.ScalaModule")
+          case "groovy" => Result.Success("mill.script.GroovyModule")
           case _ =>
             Result.Failure(
               s"Script ${scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)} has no `extends` clause configured and is of an unknown extension `${scriptFile.ext}`"
@@ -134,7 +135,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       mill.internal.Util.parseHeaderData(scriptFile).flatMap(parsedHeaderData =>
         moduleFor(
           scriptFile,
-          parsedHeaderData.`extends`.value.headOption,
+          parsedHeaderData.`extends`.value.value.headOption,
           parsedHeaderData.moduleDeps.value,
           parsedHeaderData.compileModuleDeps.value,
           parsedHeaderData.runModuleDeps.value,

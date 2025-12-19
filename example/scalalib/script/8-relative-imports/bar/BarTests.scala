@@ -1,4 +1,4 @@
-//| extends: [mill.script.ScalaModule.Utest]
+//| extends: mill.script.ScalaModule.Utest
 //| moduleDeps: [./Bar.scala]
 //| mvnDeps:
 //| - com.lihaoyi::utest:0.9.1

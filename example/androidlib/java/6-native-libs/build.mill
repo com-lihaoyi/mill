@@ -68,6 +68,8 @@ object app extends AndroidNativeAppModule { // <1>
 > ./mill show app.androidApk
 ".../out/app/androidApk.dest/app.apk"
 
+> ./mill show app.it.androidTestApk
+
 > ./mill show app.createAndroidVirtualDevice
 ...Name: java-test, DeviceId: medium_phone...
 

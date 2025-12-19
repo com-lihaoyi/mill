@@ -1,0 +1,154 @@
+// `CheckstyleModule` Performs quality checks on Java source files using
+// https://checkstyle.org[Checkstyle] and generates reports from these checks.
+
+/** See Also: build.mill.yaml */
+
+// To use this plugin in a Java/Scala module,
+//
+// 1. Extend `mill.contrib.checkstyle.CheckstyleModule`.
+// 2. Define a https://checkstyle.org/config.html[configuration] file `checkstyle-config.xml`.
+// 3. Run the `checkstyle` command.
+
+/** Usage
+
+> ./mill checkstyle # run checkstyle to produce a report, defaults to warning without error
+...src/InputWhitespaceCharacters.java:3:23: Line contains a tab character...
+...src/InputWhitespaceCharacters.java:16:3: Line contains a tab character...
+...src/InputFileName1.java:2:1: Top-level class MyAnnotation1 has to reside in its own source file...
+...src/InputFileName1.java:13:1: Top-level class Enum1 has to reside in its own source file...
+...src/InputFileName1.java:26:1: Top-level class TestRequireThisEnum has to reside in its own source file...
+Audit done.
+
+> sed -i.bak 's/warning/error/g' checkstyle-config.xml # make checkstyle error on violations
+
+> ./mill checkstyle
+error: ...src/InputWhitespaceCharacters.java:3:23: Line contains a tab character...
+...src/InputWhitespaceCharacters.java:16:3: Line contains a tab character...
+...src/InputFileName1.java:2:1: Top-level class MyAnnotation1 has to reside in its own source file...
+...src/InputFileName1.java:13:1: Top-level class Enum1 has to reside in its own source file...
+...src/InputFileName1.java:26:1: Top-level class TestRequireThisEnum has to reside in its own source file...
+Audit done.
+
+> sed -i.bak 's/\t/    /g' src/InputWhitespaceCharacters.java
+
+> rm src/InputFileName1.java
+
+> ./mill checkstyle # after fixing the violations, checkstyle no longer errors
+Audit done.
+*/
+
+//
+// === Checkstyle Flags
+// [source,sh]
+// ----
+//
+// // if an exception should be raised when violations are found
+// ./mill checkstyle --check
+//
+// // if Checkstyle output report should be written to System.out
+// ./mill checkstyle --stdout
+// ----
+//
+// === Checkstyle Sources (optional)
+// [source,sh]
+// ----
+// // incorrect paths will cause a command failure
+// ./mill checkstyle a/b
+//
+// // you can specify paths relative to moduleDir
+// ./mill checkstyle src/a/b
+//
+// // process a single file
+// ./mill checkstyle src/a/B.java
+//
+// // process multiple sources
+// ./mill checkstyle src/a/b src/c/d src/e/F.java
+//
+// // process with flags
+// ./mill checkstyle --check --stdout src/a/b src/c/d
+//
+// // process all module sources
+// ./mill checkstyle
+// ----
+//
+// === Shared Checkstyle Configuration
+//
+// To share `checkstyle-config.xml` across modules, adapt the following example.
+// [source,scala]
+// ----
+// import mill.*
+// import mill.contrib.checkstyle.CheckstyleModule
+// import mill.scalalib.*
+//
+// object foo extends Module {
+//
+//   object bar extends MyModule
+//   object baz extends Module {
+//     object fizz extends MyModule
+//     object buzz extends MyModule
+//   }
+//
+//   trait MyModule extends JavaModule, CheckstyleModule {
+//
+//     override def checkstyleConfig = Task {
+//       api.PathRef(mill.api.BuildCtx.workspaceRoot / "checkstyle-config.xml")
+//     }
+//   }
+// }
+// ----
+//
+//
+// === Limitations
+//
+// - Version `6.3` or above is required for `plain` and `xml` formats.
+// - Setting `checkstyleOptions` might cause failures with legacy versions.
+//
+// === CheckstyleXsltModule
+//
+// This plugin extends the `mill.contrib.checkstyle.CheckstyleModule` with the ability to generate reports by applying https://www.w3.org/TR/xslt/[XSL Transformations] on a Checkstyle output report.
+//
+// ==== Auto detect XSL Transformations
+//
+// XSLT files are detected automatically provided a prescribed directory structure is followed.
+// [source,scala]
+// ----
+// /**
+//  * checkstyle-xslt
+//  *  ├─ html
+//  *  │   ├─ xslt0.xml
+//  *  │   └─ xslt1.xml
+//  *  └─ pdf
+//  *      ├─ xslt1.xml
+//  *      └─ xslt2.xml
+//  *
+//  * html/xslt0.xml -> xslt0.html
+//  * html/xslt1.xml -> xslt1.html
+//  * pdf/xslt1.xml  -> xslt1.pdf
+//  * pdf/xslt2.xml  -> xslt2.pdf
+//  */
+// ----
+//
+// ==== Specify XSL Transformations manually
+//
+// For a custom setup, adapt the following example.
+// [source,scala]
+// ----
+// import mill.*
+// import mill.api.PathRef
+// import mill.contrib.checkstyle.CheckstyleXsltModule
+// import mill.contrib.checkstyle.CheckstyleXsltReport
+// import mill.scalalib.*
+//
+// object foo extends JavaModule, CheckstyleXsltModule {
+//
+//     override def checkstyleXsltReports = Task {
+//       Set(
+//         CheckstyleXsltReport(
+//           PathRef(moduleDir / "checkstyle-no-frames.xml"),
+//           PathRef(Task.dest / "checkstyle-no-frames.html"),
+//         )
+//       )
+//   }
+// }
+// ----
+//

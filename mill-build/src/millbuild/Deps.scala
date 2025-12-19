@@ -9,7 +9,7 @@ object Deps {
   val scalaVersion = "3.8.0-RC3"
 
   val scalaVersionJava11 = "3.7.4"
-  val scala2Version = "2.13.15"
+  val scala2Version = "2.13.18"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
   val sbtScalaVersion212 = workerScalaVersion212
@@ -128,7 +128,7 @@ object Deps {
     mvn"com.caoccao.javet:javet-macos:4.0.0"
   )
 
-  val jline = mvn"org.jline:jline:3.28.0"
+  val jline = mvn"org.jline:jline:3.30.6"
   val jnaVersion = "5.16.0"
 
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
@@ -142,7 +142,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.7"
-  val millModuledefsVersion = "0.12.4"
+  val millModuledefsVersion = "0.12.5-RC1"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -188,12 +188,13 @@ object Deps {
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
-  val zinc = mvn"org.scala-sbt::zinc:1.11.0".withDottyCompat(scalaVersion)
+  val zinc = mvn"org.scala-sbt::zinc:1.12.0-M2".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2
   val gson = mvn"com.google.code.gson:gson:2.13.2"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
+  val javaparser = mvn"com.github.javaparser:javaparser-core:3.27.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.21"
@@ -204,6 +205,10 @@ object Deps {
   val kotlinBuildToolsApi = mvn"org.jetbrains.kotlin:kotlin-build-tools-api:$kotlinVersion"
   val kotlinBuildToolsImpl = mvn"org.jetbrains.kotlin:kotlin-build-tools-impl:$kotlinVersion"
   val kotlinStdlib = mvn"org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+  val groovyVersion_lowerBound = "4.0.28"
+  val groovyCompiler_lowerBound = mvn"org.apache.groovy:groovy:$groovyVersion_lowerBound"
+  val groovyVersion = "5.0.3"
+  val groovyCompiler = mvn"org.apache.groovy:groovy:$groovyVersion"
 
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
@@ -271,6 +276,7 @@ object Deps {
       errorProneCore,
       freemarker,
       jupiterInterface,
+      groovyCompiler,
       kotestJvm,
       kotlinxHtmlJvm,
       koverCli,

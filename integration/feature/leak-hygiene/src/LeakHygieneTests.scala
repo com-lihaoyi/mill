@@ -38,6 +38,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       .filter {
         case s"coursier-pool-$_" => false
         case s"scala-execution-context-$_" => false
+        // DirectBufferWrapper thread is created by Kotlin Build Tools API for direct buffer management
+        case "DirectBufferWrapper allocation thread" => false
         case other =>
           taskPoolPrefixOpt.forall { taskPoolPrefix =>
             !other.startsWith(taskPoolPrefix) &&

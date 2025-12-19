@@ -429,6 +429,7 @@ object MillScalaParserImpl extends MillScalaParser {
           val renderedLines = MillRendering.messageAndPos(d).linesIterator.toSeq
           val lineContent = mill.api.internal.Util.scrapeColoredLineContent(
             renderedLines,
+            pos.line,
             pos.lineContent.stripLineEnd
           )
 

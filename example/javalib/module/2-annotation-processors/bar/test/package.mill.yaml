@@ -1,0 +1,1 @@
+extends: [build.bar.JavaTests, TestModule.Junit4]

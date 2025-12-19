@@ -70,6 +70,9 @@ trait KotlinJsModule extends KotlinModule { outer =>
   override def mandatoryMvnDeps: T[Seq[Dep]] =
     Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}")
 
+  // Kotlin/JS doesn't support -module-name (uses -Xir-module-name instead, set in compile task)
+  override protected def kotlinModuleNameOption: T[Seq[String]] = Task { Seq.empty }
+
   override def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) {
       case js: KotlinJsModule if js != kotlinJsFriendModule.orNull =>

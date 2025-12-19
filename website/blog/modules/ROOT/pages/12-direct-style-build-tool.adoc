@@ -515,7 +515,7 @@ interactive website without getting lost in callback hell.
 
 I think Mill has a chance to do the same thing for build systems. Like Web UIs 10 years ago,
 configuring and maintaining a build-system often requires juggling multiple different
-templating/config/scripting languages in an intricate dance of callbacks and filesystem
+templating/declarative/scripting languages in an intricate dance of callbacks and filesystem
 mutations. Like React.js, Mill collapses all this complexity, letting you write naive
 "direct-style" code in a single language while getting all the benefits of caching and
 parallelism, making previously challenging build pipelines implementations trivial.

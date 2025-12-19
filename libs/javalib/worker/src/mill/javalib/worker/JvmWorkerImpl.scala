@@ -8,7 +8,7 @@ import mill.constants.DaemonFiles
 import mill.javalib.api.internal.*
 import mill.javalib.api.JvmWorkerArgs
 import mill.javalib.zinc.{ZincApi, ZincWorker}
-import mill.util.{CachedFactoryWithInitData, Jvm, RefCountedCache}
+import mill.util.{CachedFactoryBase, Jvm}
 import sbt.internal.util.ConsoleOut
 
 import java.nio.file.FileSystemException
@@ -55,25 +55,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
     close0() // make sure this is invoked last as it closes the classloader that we need for other `.close` calls
   }
 
-  private val subprocessCache = new CachedFactoryWithInitData[
-    SubprocessZincApi.Key,
-    SubprocessZincApi.Initialize,
-    SubprocessZincApi.Value
-  ] {
-    def setup(
-        key: SubprocessZincApi.Key,
-        initData: SubprocessZincApi.Initialize
-    ): SubprocessZincApi.Value = {
-      subprocessCache0.get(key, initData)
-    }
-
-    def maxCacheSize = args.jobs
-
-    def teardown(key: SubprocessZincApi.Key, value: SubprocessZincApi.Value): Unit = {
-      subprocessCache0.release(key)
-    }
-  }
-  private val subprocessCache0: RefCountedCache[
+  private val subprocessCache: CachedFactoryBase[
     SubprocessZincApi.Key,
     SubprocessZincApi.Key,
     SubprocessZincApi.Initialize,
@@ -92,14 +74,21 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
       }
     }
 
-    new RefCountedCache[
+    new CachedFactoryBase[
       SubprocessZincApi.Key,
       SubprocessZincApi.Key,
       SubprocessZincApi.Initialize,
       SubprocessZincApi.Value
-    ](
-      convertKey = identity,
-      setup = (key, _, init) => {
+    ] {
+      def keyToInternalKey(key: SubprocessZincApi.Key): SubprocessZincApi.Key = key
+      def maxCacheSize: Int = args.jobs
+      def shareValues: Boolean = true
+
+      def setup(
+          key: SubprocessZincApi.Key,
+          internalKey: SubprocessZincApi.Key,
+          init: SubprocessZincApi.Initialize
+      ): SubprocessZincApi.Value = {
         val workerDir = init.taskDest / "zinc-worker" / key.hashCode.toString
         val daemonDir = workerDir / "daemon"
 
@@ -150,8 +139,13 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         )
 
         SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer, locks)
-      },
-      closeValue = value => {
+      }
+
+      def teardown(
+          key: SubprocessZincApi.Key,
+          internalKey: SubprocessZincApi.Key,
+          value: SubprocessZincApi.Value
+      ): Unit = {
         os.remove(value.daemonDir / DaemonFiles.processId)
         while (value.launchedServer.isAlive) Thread.sleep(1)
 
@@ -172,7 +166,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           while (!tryRemoving()) Thread.sleep(10)
         }
       }
-    )
+    }
   }
 
   /** Gives you API for the [[zincLocalWorker]] instance. */

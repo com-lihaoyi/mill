@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.api.internal.{Reflect, Resolved, RootModule0}
+import mill.api.internal.{Reflect, Resolved, RootModule0, SimpleTaskTokenReader}
 import mill.api.{
   DefaultTaskModule,
   Discover,
@@ -10,7 +10,6 @@ import mill.api.{
   Result,
   Segments,
   SelectMode,
-  SimpleTaskTokenReader,
   Task
 }
 
@@ -264,11 +263,22 @@ object Resolve {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {
-        a.copy(default =
-          if (a.reader.isInstanceOf[SimpleTaskTokenReader[?]])
-            Some(_ => mill.api.Task.Anon(null))
-          else Some(_ => null)
-        )
+        a.reader match {
+          // For TokensReader.Class (e.g., mainargs.ParserForClass), we replace the reader
+          // with a Constant reader that returns null. This prevents mainargs from trying
+          // to recursively parse nested fields that may have required parameters without
+          // defaults, which would cause None.get failures in mainargs.Invoker.makeReadCall
+          case _: mainargs.TokensReader.Class[?] =>
+            val nullReader = new mainargs.TokensReader.Constant[Any] {
+              def read() = Right(null)
+            }
+            a.copy(default = Some(_ => null), reader = nullReader)
+          case _ =>
+            a.copy(default =
+              if (a.reader.isInstanceOf[SimpleTaskTokenReader[?]]) Some(_ => Task.Anon(null))
+              else Some(_ => null)
+            )
+        }
       } else a
     }
 

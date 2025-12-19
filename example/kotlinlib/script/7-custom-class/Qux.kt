@@ -1,4 +1,4 @@
-//| extends: [millbuild.LineCountKotlinModule]
+//| extends: millbuild.LineCountKotlinModule
 //| kotlinVersion: 2.0.20
 package qux
 
