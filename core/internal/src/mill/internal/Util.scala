@@ -62,10 +62,7 @@ object Util {
   def backtickWrap(s: String): String = s match {
     case s"`$_`" => s
     case _ =>
-      if (
-        encode(s) == s && !alphaKeywords.contains(s) &&
-        (s.isEmpty || Character.isJavaIdentifierStart(s.charAt(0)))
-      ) s
+      if (encode(s) == s && !alphaKeywords.contains(s) && Character.isJavaIdentifierStart(s.head)) s
       else "`" + s + "`"
   }
 
