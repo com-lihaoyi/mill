@@ -122,6 +122,9 @@ trait MillBuildRootModule()(using
 
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
+  // using non-platform dependencies is usually ok
+  protected def resolvedDepsWarnNonPlatform: T[Boolean] = false
+
   override def generatedSources: T[Seq[PathRef]] = Task {
     generatedScriptSources().support
   }

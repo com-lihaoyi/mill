@@ -21,9 +21,14 @@ object foo extends ScalaModule {
 // This is an example of Mill's programmable configuration syntax.
 // This is slightly more verbose than the YAML syntax shown above, but
 // in exchange allows more flexibility in how tasks are defined and their
-// values are computed. Keys such as `mvnDeps:` in the YAML syntax correspond
-// directly to the `def mvnDeps` methods in the programmable syntax.
-
+// values are computed.
+//
+// * Keys such as `mvnDeps:` in the declarative YAML syntax correspond to  `def mvnDeps` methods
+//   in the programmable syntax.
+//
+// * The root `build.mill.yaml` file and nested `package.mill.yaml` files in the declarative YAML
+//   syntax correspond to then root and nested ``object``s in in the programmable syntax.
+//
 //// SNIPPET:TREE
 // ----
 // build.mill

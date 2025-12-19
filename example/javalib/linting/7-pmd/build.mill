@@ -9,14 +9,7 @@
 // 2. Define a PMD ruleset file(s) with `pmdRulesets` (default is `pmd-rules.xml` in root).
 // 3. Define the PMD version with `pmdVersion`.
 
-package build
-
-import mill._, javalib._
-import mill.javalib.pmd.PmdModule
-
-object `package` extends JavaModule, PmdModule {
-  def pmdVersion = "7.15.0"
-}
+/** See Also: build.mill.yaml */
 
 // Here's an example of a simple PMD ruleset file and a single Java source file.
 

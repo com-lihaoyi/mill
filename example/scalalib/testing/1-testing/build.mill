@@ -14,7 +14,22 @@
 //   giving access to code and utilities defined in `test/src/`
 
 // These two test modules will expect their sources to be in their respective `test/` and
-// `integration/` folders respectively. You can use Mill's task query syntax to select
+// `integration/` folders respectively. This results in a module dependency graph that looks
+// like:
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   "<root-module>" -> "test"
+//   "<root-module>" -> "integration"
+//   "test" -> "integration"
+// }
+// ....
+//
+//
+//
+// You can use Mill's task query syntax to select
 // the test modules which you want to run
 
 //// SNIPPET:USAGE

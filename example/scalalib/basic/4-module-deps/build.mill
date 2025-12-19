@@ -9,7 +9,9 @@
 
 // Inter-module dependencies are defined by the `moduleDeps` key, and modules
 // can also be nested within each other, as `bar.test` is nested
-// within `bar`.
+// within `bar`. Note that you can reference modules in `moduleDeps` via
+// their short name `moduleDeps: [bar]`, or fully qualified via `moduleDeps: [build.bar]`
+// where `build` is the name of the root module.
 //
 // ==== Multi-Module Folder Layout
 //

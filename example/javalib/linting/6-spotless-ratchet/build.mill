@@ -2,13 +2,8 @@
 // enforce formatting gradually aka https://github.com/diffplug/spotless/tree/main/plugin-gradle#ratchet[ratchet].
 
 // We define a module with an incorrectly formatted file.
-package build
 
-import mill.javalib.JavaModule
-import mill.javalib.spotless.SpotlessModule
-
-object `package` extends JavaModule with SpotlessModule
-
+/** See Also: build.mill.yaml */
 /** See Also: src/A.java */
 
 // A Git repository is initialized and a base commit is created with the incorrectly formatted file.
@@ -18,7 +13,7 @@ object `package` extends JavaModule with SpotlessModule
 
 /** Usage
 > git init . -b main
-> git add .gitignore build.mill src/A.java
+> git add .gitignore build.mill build.mill.yaml src/A.java
 > git commit -a -m "1"
 */
 

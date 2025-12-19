@@ -1,4 +1,4 @@
-extends: [mill.groovylib.GroovyModule]
+extends: mill.groovylib.GroovyModule
 groovyVersion: "5.0.3"
 mvnDeps:
 - org.apache.groovy:groovy-cli-commons

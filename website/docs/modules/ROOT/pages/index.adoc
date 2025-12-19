@@ -65,9 +65,9 @@ convenient and large projects performant, so you never need to change toolchains
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
 xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
 xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing],
-building xref:javalib/publishing.adoc#_building_executable_assemblies[executable assemblies],
-xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[native binaries]
-or xref:javalib/publishing.adoc#_java_installers_using_jpackage[installers],
+building xref:javalib/packaging.adoc#_building_executable_assemblies[executable assemblies],
+xref:javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[native binaries]
+or xref:javalib/packaging.adoc#_java_installers_using_jpackage[installers],
 etc. This lets you focus on your actual project and spend less time
 fiddling with tooling and plugins.
 

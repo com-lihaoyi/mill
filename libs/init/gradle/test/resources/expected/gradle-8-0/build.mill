@@ -1,6 +1,6 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: system
 package build
-
 import mill.*
-
+import millbuild.Deps
 object `package` extends Module {}

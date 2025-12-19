@@ -1,7 +1,7 @@
 package mill.api.internal
 
 private[mill] case class HeaderData(
-    `extends`: Located[Seq[Located[String]]] = Located(null, -1, Nil),
+    `extends`: Located[OneOrMore[Located[String]]] = Located(null, -1, OneOrMore(Nil)),
     moduleDeps: Located[Seq[Located[String]]] = Located(null, -1, Nil),
     compileModuleDeps: Located[Seq[Located[String]]] = Located(null, -1, Nil),
     runModuleDeps: Located[Seq[Located[String]]] = Located(null, -1, Nil),

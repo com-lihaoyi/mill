@@ -74,6 +74,8 @@ object app extends AndroidAppKotlinModule {
 > ./mill show app.androidApk
 ".../out/app/androidApk.dest/app.apk"
 
+> ./mill app.it.androidTestApk
+
 */
 
 // This command triggers the build process, which installs the Android Setup, compiles the kotlin

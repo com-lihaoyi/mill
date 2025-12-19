@@ -1,4 +1,4 @@
-extends: [mill.javalib.JavaModule]
+extends: [JavaModule]
 
 # Add library dependencies that are visible to the compiler at compile-time but
 # not visible at runtime. This is commonly used for "optional" dependencies that

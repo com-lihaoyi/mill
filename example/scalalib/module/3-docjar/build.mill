@@ -2,14 +2,7 @@
 // like to create the docs for, configured via `{language-doc}Options`:
 
 //// SNIPPET:BUILD
-package build
-import mill.*, scalalib.*
-
-object foo extends ScalaModule {
-  def scalaVersion = "3.3.6"
-
-  def scalaDocOptions = Seq("-siteroot", "mydocs", "-no-link-warnings")
-}
+/** See Also: foo/package.mill.yaml */
 
 /** Usage
 
@@ -52,9 +45,7 @@ object foo extends ScalaModule {
 // `_docs/` and your `_blog/` directory if any exist. Given a
 // project called `bar`:
 
-object bar extends ScalaModule {
-  def scalaVersion = "3.3.6"
-}
+/** See Also: bar/package.mill.yaml */
 
 // Your project structure for this would look something like this:
 //

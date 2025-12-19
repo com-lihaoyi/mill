@@ -9,34 +9,25 @@
 // and `runMvnDeps` to declare dependencies in test modules, and test modules
 // can use their `moduleDeps` to also depend on each other
 
-//// SNIPPET:BUILD
-package build
-import mill.*, scalalib.*
-
-object qux extends ScalaModule {
-  def scalaVersion = "3.7.1"
-  def moduleDeps = Seq(baz)
-
-  object test extends ScalaTests, TestModule.Utest {
-    def utestVersion = "0.8.9"
-    def moduleDeps = super.moduleDeps ++ Seq(baz.test)
-  }
-}
-
-object baz extends ScalaModule {
-  def scalaVersion = "3.7.1"
-
-  object test extends ScalaTests, TestModule.Utest {
-    def utestVersion = "0.8.9"
-  }
-}
-
-//// SNIPPET:END
+/** See Also: baz/package.mill.yaml */
+/** See Also: baz/test/package.mill.yaml */
+/** See Also: qux/package.mill.yaml */
+/** See Also: qux/test/package.mill.yaml */
 
 // In this example, not only does `qux` depend on `baz`, but we also make
 // `qux.test` depend on `baz.test`.
 //
-// image::basic/VisualizeTestDeps.svg[VisualizeTestDeps.svg]
+// [graphviz]
+// ....
+// digraph G {
+//   rankdir=LR
+//   node [shape=box width=0 height=0 style=filled fillcolor=white]
+//   baz -> "baz.test"
+//   qux -> "qux.test"
+//   qux -> baz
+//   "qux.test" -> "baz.test"
+// }
+// ....
 //
 // That lets `qux.test` make use of the
 // `BazTestUtils` class that `baz.test` defines, allowing us to re-use this

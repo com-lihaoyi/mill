@@ -35,7 +35,7 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
       if (configsGoldenFile != null) {
         val taskNames = Seq(
           "repositories",
-          "jvmId",
+          "mandatoryMvnDeps",
           "mvnDeps",
           "compileMvnDeps",
           "runMvnDeps",
@@ -46,7 +46,6 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
           "publishVersion",
           "versionScheme",
           "publishProperties",
-          "errorProneVersion",
           "errorProneDeps",
           "errorProneOptions",
           "scalaVersion",

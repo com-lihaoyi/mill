@@ -1,16 +1,15 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: system
 package build
-
 import mill.*
-import mill.javalib.*
+import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
-
 object `package` extends Module {
 
-  object common extends PublishModule with SbtModule {
+  object common extends PublishModule, SbtModule {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"ch.qos.logback:logback-classic:1.2.3",
       mvn"net.logstash.logback:logstash-logback-encoder:4.11",
       mvn"com.typesafe.scala-logging::scala-logging:3.7.2",
@@ -19,11 +18,9 @@ object `package` extends Module {
       mvn"com.typesafe.akka::akka-stream:2.5.6"
     )
 
-    def artifactName = "common"
-
     def scalaVersion = "2.12.3"
 
-    def scalacOptions = super.scalacOptions() ++ Seq(
+    def scalacOptions = Seq(
       "-unchecked",
       "-feature",
       "-language:existentials",
@@ -35,8 +32,9 @@ object `package` extends Module {
       "utf8"
     )
 
-    def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++
-      Seq(mvn"org.wartremover::wartremover:2.2.1")
+    def scalacPluginMvnDeps = Seq(mvn"org.wartremover::wartremover:2.2.1")
+
+    def artifactName = "common"
 
     def pomSettings = PomSettings(
       "This is the common module.",
@@ -63,14 +61,14 @@ object `package` extends Module {
 
     def publishVersion = "0.1.0-SNAPSHOT"
 
-    def repositories = super.repositories() ++ Seq(
+    def repositories = Seq(
       "https://oss.sonatype.org/service/local/repositories/releases/content/",
       "https://oss.sonatype.org/content/repositories/snapshots"
     )
 
-    object test extends SbtTests with TestModule.ScalaTest {
+    object test extends SbtTests, TestModule.ScalaTest {
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         mvn"org.scalatest::scalatest:3.0.4",
         mvn"org.scalacheck::scalacheck:1.13.5"
       )
@@ -83,9 +81,11 @@ object `package` extends Module {
 
   }
 
-  object multi1 extends PublishModule with SbtModule {
+  object multi1 extends PublishModule, SbtModule {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def moduleDeps = Seq(build.common)
+
+    def mvnDeps = Seq(
       mvn"ch.qos.logback:logback-classic:1.2.3",
       mvn"net.logstash.logback:logstash-logback-encoder:4.11",
       mvn"com.typesafe.scala-logging::scala-logging:3.7.2",
@@ -96,13 +96,9 @@ object `package` extends Module {
       mvn"com.github.julien-truffaut::monocle-macro:1.4.0"
     )
 
-    def moduleDeps = super.moduleDeps ++ Seq(build.common)
-
-    def artifactName = "multi1"
-
     def scalaVersion = "2.12.3"
 
-    def scalacOptions = super.scalacOptions() ++ Seq(
+    def scalacOptions = Seq(
       "-unchecked",
       "-feature",
       "-language:existentials",
@@ -115,8 +111,9 @@ object `package` extends Module {
       "-V"
     )
 
-    def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++
-      Seq(mvn"org.wartremover::wartremover:2.2.1")
+    def scalacPluginMvnDeps = Seq(mvn"org.wartremover::wartremover:2.2.1")
+
+    def artifactName = "multi1"
 
     def pomSettings = PomSettings(
       "This is an sbt sample project for testing Mill's init command.",
@@ -143,14 +140,14 @@ object `package` extends Module {
 
     def publishVersion = "0.1.0-SNAPSHOT"
 
-    def repositories = super.repositories() ++ Seq(
+    def repositories = Seq(
       "https://oss.sonatype.org/service/local/repositories/releases/content/",
       "https://oss.sonatype.org/content/repositories/snapshots"
     )
 
-    object test extends SbtTests with TestModule.ScalaTest {
+    object test extends SbtTests, TestModule.ScalaTest {
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         mvn"org.scalatest::scalatest:3.0.4",
         mvn"org.scalacheck::scalacheck:1.13.5"
       )
@@ -163,9 +160,11 @@ object `package` extends Module {
 
   }
 
-  object multi2 extends PublishModule with SbtModule {
+  object multi2 extends PublishModule, SbtModule {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def moduleDeps = Seq(build.common)
+
+    def mvnDeps = Seq(
       mvn"ch.qos.logback:logback-classic:1.2.3",
       mvn"net.logstash.logback:logstash-logback-encoder:4.11",
       mvn"com.typesafe.scala-logging::scala-logging:3.7.2",
@@ -175,13 +174,9 @@ object `package` extends Module {
       mvn"com.github.pureconfig::pureconfig:0.8.0"
     )
 
-    def moduleDeps = super.moduleDeps ++ Seq(build.common)
-
-    def artifactName = "multi2"
-
     def scalaVersion = "2.12.3"
 
-    def scalacOptions = super.scalacOptions() ++ Seq(
+    def scalacOptions = Seq(
       "-unchecked",
       "-feature",
       "-language:existentials",
@@ -191,8 +186,9 @@ object `package` extends Module {
       "-deprecation"
     )
 
-    def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++
-      Seq(mvn"org.wartremover::wartremover:2.2.1")
+    def scalacPluginMvnDeps = Seq(mvn"org.wartremover::wartremover:2.2.1")
+
+    def artifactName = "multi2"
 
     def pomSettings = PomSettings(
       "This is an sbt sample project for testing Mill's init command.",
@@ -219,14 +215,14 @@ object `package` extends Module {
 
     def publishVersion = "0.1.0-SNAPSHOT"
 
-    def repositories = super.repositories() ++ Seq(
+    def repositories = Seq(
       "https://oss.sonatype.org/service/local/repositories/releases/content/",
       "https://oss.sonatype.org/content/repositories/snapshots"
     )
 
-    object test extends SbtTests with TestModule.ScalaTest {
+    object test extends SbtTests, TestModule.ScalaTest {
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         mvn"org.scalatest::scalatest:3.0.4",
         mvn"org.scalacheck::scalacheck:1.13.5"
       )
@@ -241,17 +237,15 @@ object `package` extends Module {
 
   object nested extends Module {
 
-    object nested extends PublishModule with SbtModule {
+    object nested extends PublishModule, SbtModule {
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         mvn"io.netty:netty-transport-native-epoll:4.1.118.Final;classifier=linux-x86_64;type=pom;exclude=io.netty:netty-transport-native-epoll"
       )
 
-      def artifactName = "nested"
-
       def scalaVersion = "2.12.3"
 
-      def scalacOptions = super.scalacOptions() ++ Seq(
+      def scalacOptions = Seq(
         "-unchecked",
         "-feature",
         "-language:existentials",
@@ -263,8 +257,9 @@ object `package` extends Module {
         "utf8"
       )
 
-      def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++
-        Seq(mvn"org.wartremover::wartremover:2.2.1")
+      def scalacPluginMvnDeps = Seq(mvn"org.wartremover::wartremover:2.2.1")
+
+      def artifactName = "nested"
 
       def pomSettings = PomSettings(
         "This is an sbt sample project for testing Mill's init command.",
@@ -295,13 +290,11 @@ object `package` extends Module {
 
       def publishVersion = "0.1.0-SNAPSHOT"
 
-      def repositories = super.repositories() ++ Seq(
+      def repositories = Seq(
         "https://oss.sonatype.org/service/local/repositories/releases/content/",
         "https://oss.sonatype.org/content/repositories/snapshots"
       )
 
     }
-
   }
-
 }

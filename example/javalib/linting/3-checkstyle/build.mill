@@ -1,12 +1,7 @@
 // `CheckstyleModule` Performs quality checks on Java source files using
 // https://checkstyle.org[Checkstyle] and generates reports from these checks.
 
-package build
-import mill.*, javalib.*, checkstyle.*
-
-object `package` extends CheckstyleModule {
-  def checkstyleVersion = "9.3"
-}
+/** See Also: build.mill.yaml */
 
 // To use this plugin in a Java/Scala module,
 //

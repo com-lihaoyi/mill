@@ -17,8 +17,118 @@ Module dependencies of 3_3_3.test:
   "3_3_3.test.repositories": []
 }
 {
-  "2_13_16.jvmId": "",
-  "3_3_3.jvmId": ""
+  "2_13_16.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-js::scalajs-library:1.16.0",
+    "org.scala-js::scalajs-scalalib:2.13.16+1.16.0"
+  ],
+  "2_13_16.test.mandatoryMvnDeps": [
+    "org.scala-lang:scala-library:2.13.16",
+    "org.scala-js::scalajs-library:1.16.0",
+    "org.scala-js::scalajs-scalalib:2.13.16+1.16.0"
+  ],
+  "3_3_3.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library::3.3.3",
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.16.0",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional": false,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    }
+  ],
+  "3_3_3.test.mandatoryMvnDeps": [
+    "org.scala-lang::scala3-library::3.3.3",
+    {
+      "dep": {
+        "module": {
+          "organization": {
+            "value": "org.scala-js"
+          },
+          "name": {
+            "value": "scalajs-library"
+          },
+          "attributes": {}
+        },
+        "versionConstraint": "1.16.0",
+        "variantSelector": {
+          "$type": "ConfigurationBased",
+          "configuration": {
+            "value": ""
+          }
+        },
+        "minimizedExclusions": {
+          "data": "ExcludeNone"
+        },
+        "publication": {
+          "name": "",
+          "type": {
+            "value": ""
+          },
+          "ext": {
+            "value": ""
+          },
+          "classifier": {
+            "value": ""
+          }
+        },
+        "optional": false,
+        "transitive": true,
+        "overrides": [],
+        "boms": [],
+        "bomDependencies": [],
+        "overridesMap": [],
+        "endorseStrictVersions": false
+      },
+      "cross": {
+        "$type": "Constant",
+        "value": "_2.13",
+        "platformed": false
+      },
+      "force": false
+    }
+  ]
 }
 {
   "2_13_16.mvnDeps": [
@@ -126,7 +236,6 @@ Module dependencies of 3_3_3.test:
   "2_13_16.publishProperties": {},
   "3_3_3.publishProperties": {}
 }
-
 
 
 {

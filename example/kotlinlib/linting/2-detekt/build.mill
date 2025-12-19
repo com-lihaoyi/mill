@@ -1,17 +1,8 @@
-package build
-
-import mill.*
-import kotlinlib.KotlinModule
-import kotlinlib.detekt.DetektModule
-
-object `package` extends KotlinModule, DetektModule {
-  def kotlinVersion = "1.9.24"
-}
-
 // This example shows how to use the https://github.com/detekt/detekt[Detekt]
 // static code analyzer for linting a `KotlinModule`, by mixing in the trait
 // `DetektModule` and calling the `detekt` task:
 
+/** See Also: build.mill.yaml */
 /** See Also: src/example/Foo.kt */
 
 /** Usage

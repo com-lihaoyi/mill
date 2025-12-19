@@ -1,16 +1,11 @@
 //// SNIPPET:BUILD
-package build
-import mill.*, javalib.*
-
-object foo extends JavaModule {
-  def javadocOptions = Seq("-quiet")
-}
+/** See Also: build.mill.yaml */
 
 /** Usage
 
-> ./mill show foo.docJar
+> ./mill show docJar
 
-> unzip -p out/foo/docJar.dest/out.jar foo/Foo.html
+> unzip -p out/docJar.dest/out.jar foo/Foo.html
 ...
 ...My Awesome Docs for class Foo...
 

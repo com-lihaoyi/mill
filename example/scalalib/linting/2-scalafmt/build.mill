@@ -1,10 +1,4 @@
-package build
-import mill.*, scalalib.*
-
-object `package` extends ScalaModule {
-  def scalaVersion = "3.7.1"
-}
-
+/** See Also: build.mill.yaml */
 /** See Also: .scalafmt.conf */
 
 // Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out of the box.

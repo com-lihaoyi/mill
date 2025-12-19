@@ -1,12 +1,4 @@
-package build
-import mill.*, javalib.*
-import java.io.File
-
-object foo extends JavaModule {
-  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
-
-  object test extends JavaTests, TestModule.Junit4
-}
+/** See Also: foo/package.mill.yaml */
 
 // This is an example of how to use Mill to build Java projects using Java annotations and
 // annotation processors. In this case, we use the annotations provided by
@@ -34,15 +26,7 @@ Test foo.HelloWorldTest.testSimple finished...
 //
 // Mill provides an easy way to add these processors via the annotationProcessorsMvnDeps
 
-object bar extends JavaModule {
-  def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
-
-  override def annotationProcessorsMvnDeps =
-    Seq(mvn"org.projectlombok:lombok:1.18.34")
-
-  object test extends JavaTests, TestModule.Junit4
-}
-
+/** See Also: bar/package.mill.yaml */
 /** Usage
 
 > ./mill bar.test
