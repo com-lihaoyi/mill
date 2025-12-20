@@ -130,7 +130,8 @@ object `package` extends MillPublishScalaModule {
         )
         val millExe = millExecutable().path
         def resolve(task: String) = {
-          os.proc(millExe, "resolve", task).call(repoDir).out.lines()
+          val result = os.proc(millExe, "resolve", task).call(repoDir, check = false)
+          if (result.exitCode == 0) result.out.lines() else Nil
         }
         def check(task: String) = {
           val result = os.proc(millExe, task).call(repoDir, stdout = os.Inherit, check = false)
@@ -265,7 +266,11 @@ object `package` extends MillPublishScalaModule {
       "scala3" -> Mock("https://github.com/scala/scala3.git", "3.7.3", checkTasks = Nil),
       "scala-logging" -> Mock("https://github.com/lightbend-labs/scala-logging.git", "v3.9.6"),
       "scalapb" -> Mock("https://github.com/scalapb/ScalaPB.git", "v0.11.20"),
-      "scopt" -> Mock("https://github.com/scopt/scopt.git", "v4.1.0"),
+      "scopt" -> Mock(
+        "https://github.com/scopt/scopt.git",
+        "v4.1.0",
+        Seq("--mill-jvm-id", "17")
+      ),
       "scrypto" -> Mock("https://github.com/input-output-hk/scrypto.git", "v3.1.0")
     )
 

@@ -33,8 +33,8 @@ object BuildGen {
         case _ => deps.sortBy(_.toString).zipWithIndex.map((dep, i) => (dep, s"`$ref#$i`"))
       }
     }
+    if (names.isEmpty) return (Nil, packages)
     val lookup = names.lift.andThen(_.map(ref => s"Deps.$ref"))
-
     def updateDeps(values: Values[MvnDep]) = values.copy(
       base = values.base.map(dep => dep.copy(ref = lookup(dep))),
       cross = values.cross.map((k, v) => (k, v.map(dep => dep.copy(ref = lookup(dep)))))
@@ -52,7 +52,7 @@ object BuildGen {
       )
     }
     def updateModule(module: ModuleSpec): ModuleSpec = updateModule0(module.copy(
-      imports = "import millbuild.Deps" +: module.imports,
+      imports = "import millbuild.*" +: module.imports,
       test = module.test.map(updateModule0),
       children = module.children.map(updateModule)
     ))
@@ -174,7 +174,7 @@ object BuildGen {
     def extendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
       val a0 = if (isChild(a)) extendModule0(
         a.copy(
-          imports = s"import millbuild.${parent.name}" +: a.imports,
+          imports = "import millbuild.*" +: a.imports,
           test = a.test.zip(parent.test).map(extendModule0)
         ),
         parent
@@ -185,24 +185,14 @@ object BuildGen {
 
     val childModules = packages.flatMap(_.module.tree).filter(isChild)
     Option.when(childModules.length > 1) {
-      val baseModule = childModules.reduce(parentModule)
-      val baseModule0 = baseModule.copy(
+      var baseModule = childModules.reduce(parentModule)
+      baseModule = baseModule.copy(
         name = "ProjectBaseModule",
-        imports = baseModule.imports.diff(Seq("import millbuild.Deps")),
+        imports = baseModule.imports.filter(_ != "import millbuild.*"),
         test = baseModule.test.map(_.copy(name = "Tests"))
       )
-      val packages0 = packages.map(pkg => pkg.copy(module = extendModule(pkg.module, baseModule0)))
-      (baseModule0, packages0)
-    }
-  }
-
-  def buildFiles(workspace: os.Path): Seq[os.Path] = {
-    val skip = Seq(workspace / "mill-build", workspace / "out")
-    os.walk.stream(workspace, skip = skip.contains).filter(path =>
-      os.isFile(path) && (path.last == "build.mill" || path.last == "package.mill")
-    ).toSeq ++ {
-      val path = workspace / "mill-build"
-      if (os.exists(path)) os.walk.stream(path).filter(os.isFile).toSeq else Nil
+      val packages0 = packages.map(pkg => pkg.copy(module = extendModule(pkg.module, baseModule)))
+      (baseModule, packages0)
     }
   }
 
