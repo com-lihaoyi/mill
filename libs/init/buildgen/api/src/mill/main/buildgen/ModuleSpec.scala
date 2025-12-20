@@ -11,6 +11,7 @@ case class ModuleSpec(
     supertypes: Seq[String] = Nil,
     mixins: Seq[String] = Nil,
     crossKeys: Seq[String] = Nil,
+    hasOuterAlias: Boolean = false,
     useOuterModuleDir: Boolean = false,
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
@@ -223,7 +224,8 @@ object ModuleSpec {
       base: Seq[A] = Nil,
       cross: Seq[(String, Seq[A])] = Nil,
       appendSuper: Boolean = false,
-      appendRefs: Seq[ModuleDep] = Nil // append reference for corresponding module member
+      appendOuterMembers: Seq[String] = Nil,
+      appendModuleRefs: Seq[ModuleDep] = Nil
   )
   object Values {
     implicit def rw[A: ReadWriter]: ReadWriter[Values[A]] = macroRW

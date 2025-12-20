@@ -8,6 +8,6 @@ object PackageSpec {
     readwriter[String].bimap(_.toString, os.SubPath(_))
   implicit val rw: ReadWriter[PackageSpec] = macroRW
 
-  def root(dir: os.SubPath, children: Seq[ModuleSpec] = Nil): PackageSpec =
-    apply(dir, ModuleSpec(dir.lastOpt.getOrElse(os.pwd.last), children = children))
+  def root(dir: os.SubPath): PackageSpec =
+    apply(dir, ModuleSpec(dir.lastOpt.getOrElse(os.pwd.last)))
 }

@@ -31,6 +31,8 @@ object MavenBuildGenMain {
     }.toMap.compose {
       case dep: Dependency => (dep.getGroupId, dep.getArtifactId, dep.getVersion)
     }
+    def toMvnOrModuleDep(dep: Dependency) =
+      Either.cond(moduleDepLookup.isDefinedAt(dep), moduleDepLookup(dep), toMvnDep(dep))
 
     var packages = modelBuildingResults.map { result =>
       val model = result.getEffectiveModel
@@ -50,10 +52,8 @@ object MavenBuildGenMain {
       ) {
         val (boms, deps) =
           model.getDependencyManagement.getDependencies.asScala.toSeq.partition(isBom)
-        val (bomMvnDeps, bomModuleDeps) =
-          boms.partitionMap(dep => moduleDepLookup.lift(dep).toRight(toMvnDep(dep)))
-        val (depManagement, moduleDeps) =
-          deps.partitionMap(dep => moduleDepLookup.lift(dep).toRight(toMvnDep(dep)))
+        val (bomMvnDeps, bomModuleDeps) = boms.partitionMap(toMvnOrModuleDep)
+        val (depManagement, moduleDeps) = deps.partitionMap(toMvnOrModuleDep)
         mainModule = mainModule.copy(
           imports = "import mill.javalib.*" +: mainModule.imports,
           supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
@@ -74,9 +74,10 @@ object MavenBuildGenMain {
         val (bomMvnDeps, depManagement, bomModuleDeps) =
           Option(model.getDependencyManagement).fold((Nil, Nil, Nil)) { dm =>
             val (boms, deps) = dm.getDependencies.asScala.toSeq.partition(isBom)
-            val (bomMvnDeps, bomModuleDeps) =
-              boms.partitionMap(dep => moduleDepLookup.lift(dep).toRight(toMvnDep(dep)))
-            val depManagement = deps.map(toMvnDep)
+            val (bomMvnDeps, bomModuleDeps) = boms.partitionMap(toMvnOrModuleDep)
+            val depManagement = deps.collect {
+              case dep if !moduleDepLookup.isDefinedAt(dep) => toMvnDep(dep)
+            }
             (bomMvnDeps, depManagement, bomModuleDeps)
           }
         val (
@@ -121,11 +122,25 @@ object MavenBuildGenMain {
               forkArgs = plugins.testForkArgs,
               forkWorkingDir = Some(os.rel),
               mvnDeps = testMvnDeps,
-              compileMvnDeps = mainModule.compileMvnDeps.base,
-              runMvnDeps = mainModule.compileMvnDeps.base ++ mainModule.runMvnDeps.base,
+              compileMvnDeps = Values(appendOuterMembers =
+                if (mainModule.compileMvnDeps.base.isEmpty) Nil else Seq("compileMvnDeps")
+              ),
+              runMvnDeps = Values(appendOuterMembers =
+                Seq(
+                  Option.when(mainModule.compileMvnDeps.base.nonEmpty)("compileMvnDeps"),
+                  Option.when(mainModule.runMvnDeps.base.nonEmpty)("runMvnDeps")
+                ).flatten
+              ),
               moduleDeps = Values(testModuleDeps, appendSuper = true),
-              compileModuleDeps = mainModule.compileModuleDeps.base,
-              runModuleDeps = mainModule.compileModuleDeps.base ++ mainModule.runModuleDeps.base,
+              compileModuleDeps = Values(appendOuterMembers =
+                if (mainModule.compileModuleDeps.base.isEmpty) Nil else Seq("compileModuleDeps")
+              ),
+              runModuleDeps = Values(appendOuterMembers =
+                Seq(
+                  Option.when(mainModule.compileModuleDeps.base.nonEmpty)("compileModuleDeps"),
+                  Option.when(mainModule.runModuleDeps.base.nonEmpty)("runModuleDeps")
+                ).flatten
+              ),
               sourcesFolders = testSourcesFolders,
               sources = testSources,
               resources = testResources,
@@ -156,7 +171,13 @@ object MavenBuildGenMain {
                   }
               }
             }
-            mainModule = mainModule.copy(test = Some(testModule))
+            mainModule = mainModule.copy(
+              hasOuterAlias = mainModule.compileMvnDeps.base.nonEmpty ||
+                mainModule.runMvnDeps.base.nonEmpty ||
+                mainModule.compileModuleDeps.base.nonEmpty ||
+                mainModule.runModuleDeps.base.nonEmpty,
+              test = Some(testModule)
+            )
           }
         }
       }
@@ -268,8 +289,8 @@ object MavenBuildGenMain {
         }
         if (bomModuleDepRefs.nonEmpty) {
           module0 = module0.copy(
-            bomMvnDeps = module0.bomMvnDeps.copy(appendRefs = bomModuleDepRefs),
-            depManagement = module0.depManagement.copy(appendRefs = bomModuleDepRefs),
+            bomMvnDeps = module0.bomMvnDeps.copy(appendModuleRefs = bomModuleDepRefs),
+            depManagement = module0.depManagement.copy(appendModuleRefs = bomModuleDepRefs),
             bomModuleDeps = bomModuleDeps
           )
         }

@@ -83,13 +83,12 @@ object GradleBuildGenMain {
       var module0 = module
       if (module.supertypes.contains("PublishModule")) {
         val (bomModuleDeps, bomModuleDepRefs) = module0.bomModuleDeps.base.partition { dep =>
-          val module = moduleLookup(dep.segments)
-          module.supertypes.contains("PublishModule")
+          moduleLookup(dep.segments).supertypes.contains("PublishModule")
         }
         if (bomModuleDepRefs.nonEmpty) {
           module0 = module0.copy(
-            bomMvnDeps = module0.bomMvnDeps.copy(appendRefs = bomModuleDepRefs),
-            depManagement = module0.depManagement.copy(appendRefs = bomModuleDepRefs),
+            bomMvnDeps = module0.bomMvnDeps.copy(appendModuleRefs = bomModuleDepRefs),
+            depManagement = module0.depManagement.copy(appendModuleRefs = bomModuleDepRefs),
             bomModuleDeps = bomModuleDeps
           )
         }

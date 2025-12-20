@@ -88,7 +88,13 @@ object SbtBuildGenMain {
           case (_, Seq(module)) => module
           case (_, crossVersionSpecs) => toCrossModule(crossVersionSpecs)
         }.toSeq
-        PackageSpec.root(dir, children)
+        val root = PackageSpec.root(dir)
+        root.copy(module =
+          root.module.copy(
+            hasOuterAlias = children.exists(_.useOuterModuleDir),
+            children = children
+          )
+        )
     }.toSeq
 
     val (depNames, packages0) =

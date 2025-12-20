@@ -9,18 +9,19 @@ object BuildGen {
 
   def withNamedDeps(packages: Seq[PackageSpec]): (Seq[(MvnDep, String)], Seq[PackageSpec]) = {
     val names = packages.flatMap(_.module.tree).flatMap { module =>
-      (module +: module.test.toSeq).flatMap(module =>
+      (module +: module.test.toSeq).flatMap { module =>
+        import module.*
         Seq(
-          module.mandatoryMvnDeps,
-          module.mvnDeps,
-          module.compileMvnDeps,
-          module.runMvnDeps,
-          module.bomMvnDeps,
-          module.depManagement,
-          module.errorProneDeps,
-          module.scalacPluginMvnDeps
+          mandatoryMvnDeps,
+          mvnDeps,
+          compileMvnDeps,
+          runMvnDeps,
+          bomMvnDeps,
+          depManagement,
+          errorProneDeps,
+          scalacPluginMvnDeps
         )
-      )
+      }
     }.flatMap { values =>
       values.base ++ values.cross.flatMap(_._2)
     }.distinct.filter(_.version.nonEmpty).groupBy(_.name).flatMap { (name, deps) =>
@@ -413,7 +414,7 @@ object BuildGen {
       s"""object $name0 $crossExtendsClause
          |trait $crossTraitName $extendsClause""".stripMargin
     }
-    val aliasDeclaration = if (children.exists(_.useOuterModuleDir)) " outer => " else ""
+    val aliasDeclaration = if (hasOuterAlias) " outer => " else ""
     val renderModuleDir = if (useOuterModuleDir) "def moduleDir = outer.moduleDir" else ""
 
     s"""$typeDeclaration {$aliasDeclaration
@@ -442,7 +443,7 @@ object BuildGen {
   ): String = {
     def encodeAll(as: Seq[A]) = as.map(encode).mkString(s"$collection(", ", ", ")")
     import values.*
-    if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
+    if (base.isEmpty && cross.isEmpty && appendOuterMembers.isEmpty && appendModuleRefs.isEmpty) ""
     else {
       val stmt = StringBuilder(s"def $member = ")
       var append = false
@@ -451,9 +452,13 @@ object BuildGen {
         append = true
         stmt ++= s"super.$member$invoke"
       }
-      if (appendRefs.nonEmpty) {
+      if (appendOuterMembers.nonEmpty) {
         if (append) stmt ++= " ++ " else append = true
-        stmt ++= appendRefs.map(encodeModuleDep(_) ++ s".$member$invoke").mkString(" ++ ")
+        stmt ++= appendOuterMembers.map(member => s"outer.$member$invoke").mkString(" ++ ")
+      }
+      if (appendModuleRefs.nonEmpty) {
+        if (append) stmt ++= " ++ " else append = true
+        stmt ++= appendModuleRefs.map(encodeModuleDep(_) ++ s".$member$invoke").mkString(" ++ ")
       }
       if (base.nonEmpty) {
         if (append) stmt ++= " ++ " else append = true
@@ -476,8 +481,10 @@ object BuildGen {
     def encodeSeq(rels: Seq[os.RelPath]) =
       rels.map(encodeRelPath("os.rel", _)).mkString("Seq(", ", ", ")")
     import values.*
-    if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
-    else if (cross.isEmpty && !appendSuper && appendRefs.isEmpty) {
+    if (base.isEmpty && cross.isEmpty && appendOuterMembers.isEmpty && appendModuleRefs.isEmpty) ""
+    else if (
+      cross.isEmpty && !appendSuper && appendOuterMembers.isEmpty && appendModuleRefs.isEmpty
+    ) {
       s"def $member = ${encodeSources(base)}"
     } else {
       val stmt = StringBuilder(s"def $member = ")
@@ -486,9 +493,13 @@ object BuildGen {
         append = true
         stmt ++= s"super.$member()"
       }
-      if (appendRefs.nonEmpty) {
+      if (appendOuterMembers.nonEmpty) {
         if (append) stmt ++= " ++ " else append = true
-        stmt ++= appendRefs.map(encodeModuleDep(_) ++ s".$member()").mkString(" ++ ")
+        stmt ++= appendOuterMembers.map(member => s"outer.$member()").mkString(" ++ ")
+      }
+      if (appendModuleRefs.nonEmpty) {
+        if (append) stmt ++= " ++ " else append = true
+        stmt ++= appendModuleRefs.map(encodeModuleDep(_) ++ s".$member()").mkString(" ++ ")
       }
       if (base.nonEmpty) {
         val customTask = s"custom${member.capitalize}"
