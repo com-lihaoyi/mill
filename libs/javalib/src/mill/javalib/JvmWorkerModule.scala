@@ -3,13 +3,12 @@ package mill.javalib
 import mainargs.Flag
 import mill.*
 import mill.api.{PathRef, Task, *}
-import mill.api.daemon.internal.internal
+import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.javalib.api.internal.InternalJvmWorkerApi as InternalJvmWorkerApi
-import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.javalib.api.{JvmWorkerArgs}
-import mill.javalib.api.internal.{ZincCompilerBridgeProvider}
+import mill.javalib.api.internal.InternalJvmWorkerApi
+import mill.javalib.api.{CompilationResult, JvmWorkerApi, JvmWorkerArgs, JvmWorkerUtil, Versions}
+import mill.javalib.api.internal.ZincCompilerBridgeProvider
 
 /**
  * A default implementation of [[JvmWorkerModule]]
@@ -54,7 +53,97 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   /** Whether Zinc debug logging is enabled. */
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
-  def worker: Worker[JvmWorkerApi] = internalWorker
+  def worker: Worker[JvmWorkerApi] = Task.Worker {
+    // don't know why we have `worker` and `internalWorker`,
+    // but we can't share the same instance, as we risk to run `close` on one,
+    // while the other is still in use, hence the delegating facade.
+    val internal = internalWorker()
+    // just forward everything to `internalWorker`
+    new JvmWorkerApi {
+      override def compileJava(
+          upstreamCompileOutput: Seq[CompilationResult],
+          sources: Seq[os.Path],
+          compileClasspath: Seq[os.Path],
+          javaHome: Option[os.Path],
+          javacOptions: Seq[String],
+          reporter: Option[CompileProblemReporter],
+          reportCachedProblems: Boolean,
+          incrementalCompilation: Boolean,
+          workDir: os.Path
+      )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
+        internal.compileJava(
+          upstreamCompileOutput,
+          sources,
+          compileClasspath,
+          javaHome,
+          javacOptions,
+          reporter,
+          reportCachedProblems,
+          incrementalCompilation,
+          workDir
+        )
+
+      override def compileMixed(
+          upstreamCompileOutput: Seq[CompilationResult],
+          sources: Seq[os.Path],
+          compileClasspath: Seq[os.Path],
+          javaHome: Option[os.Path],
+          javacOptions: Seq[String],
+          scalaVersion: String,
+          scalaOrganization: String,
+          scalacOptions: Seq[String],
+          compilerClasspath: Seq[PathRef],
+          scalacPluginClasspath: Seq[PathRef],
+          compilerBridgeOpt: Option[PathRef],
+          reporter: Option[CompileProblemReporter],
+          reportCachedProblems: Boolean,
+          incrementalCompilation: Boolean,
+          auxiliaryClassFileExtensions: Seq[String],
+          workDir: os.Path
+      )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
+        internal.compileMixed(
+          upstreamCompileOutput = upstreamCompileOutput,
+          sources = sources,
+          compileClasspath = compileClasspath,
+          javaHome = javaHome,
+          javacOptions = javacOptions,
+          scalaVersion = scalaVersion,
+          scalaOrganization = scalaOrganization,
+          scalacOptions = scalacOptions,
+          compilerClasspath = compilerClasspath,
+          scalacPluginClasspath = scalacPluginClasspath,
+          compilerBridgeOpt = compilerBridgeOpt,
+          reporter = reporter,
+          reportCachedProblems = reportCachedProblems,
+          incrementalCompilation = incrementalCompilation,
+          auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+          workDir = workDir
+        )
+
+      override def docJar(
+          scalaVersion: String,
+          scalaOrganization: String,
+          compilerClasspath: Seq[PathRef],
+          scalacPluginClasspath: Seq[PathRef],
+          compilerBridgeOpt: Option[PathRef],
+          javaHome: Option[os.Path],
+          args: Seq[String],
+          workDir: os.Path
+      )(using ctx: JvmWorkerApi.Ctx): Boolean =
+        internal.docJar(
+          scalaVersion = scalaVersion,
+          scalaOrganization = scalaOrganization,
+          compilerClasspath = compilerClasspath,
+          scalacPluginClasspath = scalacPluginClasspath,
+          compilerBridgeOpt = compilerBridgeOpt,
+          javaHome = javaHome,
+          args = args,
+          workDir = workDir
+        )
+
+    }
+  }
+
   def internalWorkerClassLoader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
     mill.util.Jvm.createClassLoader(classpath().map(_.path), getClass.getClassLoader)
   }
