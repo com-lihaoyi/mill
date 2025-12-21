@@ -166,7 +166,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       classPath = classpath().map(_.path),
       jobs = jobs,
       zincLogDebug = zincLogDebug(),
-      close0 = () => cl.close()
+      close0 = () => ()
     )
 
     cl.loadClass("mill.javalib.worker.JvmWorkerImpl")
