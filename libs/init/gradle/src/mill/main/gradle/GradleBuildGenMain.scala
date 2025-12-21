@@ -17,7 +17,7 @@ object GradleBuildGenMain {
 
   @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
   def init(
-      @mainargs.arg(doc = "Coursier JVM ID for the JDK to use to run Gradle")
+      @mainargs.arg(doc = "Coursier ID for the JVM to run Gradle")
       gradleJvmId: String = "system",
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
       millJvmId: String = "system",

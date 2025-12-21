@@ -7,8 +7,7 @@ import mill.scalajslib.api.*
 import mill.scalalib.*
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.*
-import millbuild.Deps
-import millbuild.ProjectBaseModule
+import millbuild.*
 object `package` extends Module {
 
   object js extends ProjectBaseModule, ScalaJSModule {
@@ -32,11 +31,7 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends Tests, ScalaJSTests, TestModule.Utest {
-
-      def moduleDeps = super.moduleDeps ++ Seq(build.pure.js.test)
-
-    }
+    object test extends Tests, ScalaJSTests, TestModule.Utest {}
 
   }
 
@@ -57,11 +52,7 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends Tests, TestModule.Utest {
-
-      def moduleDeps = super.moduleDeps ++ Seq(build.pure.jvm.test)
-
-    }
+    object test extends Tests, TestModule.Utest {}
 
   }
 
@@ -84,11 +75,7 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends Tests, ScalaNativeTests, TestModule.Utest {
-
-      def moduleDeps = super.moduleDeps ++ Seq(build.pure.native.test)
-
-    }
+    object test extends Tests, ScalaNativeTests, TestModule.Utest {}
 
   }
 }

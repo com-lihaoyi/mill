@@ -122,12 +122,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         resources = if (mainResources == Seq(os.rel / "src/main/resources")) Nil else mainResources
       ).withErrorProneModule(mvnDeps("errorprone"))
 
-      if (
-        testSourceSets.exists(ss =>
-          ss.getJava.getSrcDirs.asScala.exists(_.exists()) ||
-            ss.getResources.asScala.exists(_.exists())
-        )
-      ) {
+      if (os.exists(moduleDir / "src/test")) {
         val testMixin = ModuleSpec.testModuleMixin(configs.find(_.getName == "testRuntimeClasspath")
           .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep)))
         val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)

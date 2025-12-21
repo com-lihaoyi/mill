@@ -72,55 +72,49 @@ object BuildGen {
       (a.cross ++ b.cross).groupMapReduce(_._1)(_._2)(_.intersect(_)).toSeq.filter(_._2.nonEmpty),
       a.appendSuper && b.appendSuper
     )
-    def parentModule0(a: ModuleSpec, b: ModuleSpec, defaultSupertypes: Seq[String]) = ModuleSpec(
-      name = "",
-      imports = (a.imports ++ b.imports).distinct,
-      supertypes = a.supertypes.intersect(b.supertypes) match {
-        case Nil => defaultSupertypes
-        case seq => seq
-      },
-      mixins = if (a.supertypes == b.supertypes && a.mixins == b.mixins) a.mixins else Nil,
-      repositories = parentValues(a.repositories, b.repositories),
-      forkArgs = parentValues(a.forkArgs, b.forkArgs),
-      forkWorkingDir = parentValue(a.forkWorkingDir, b.forkWorkingDir),
-      mandatoryMvnDeps = parentValues(a.mandatoryMvnDeps, b.mandatoryMvnDeps),
-      mvnDeps = parentValues(a.mvnDeps, b.mvnDeps),
-      compileMvnDeps = parentValues(a.compileMvnDeps, b.compileMvnDeps),
-      runMvnDeps = parentValues(a.runMvnDeps, b.runMvnDeps),
-      bomMvnDeps = parentValues(a.bomMvnDeps, b.bomMvnDeps),
-      depManagement = parentValues(a.depManagement, b.depManagement),
-      javacOptions = parentValues(a.javacOptions, b.javacOptions),
-      sourcesFolders = parentValues(a.sourcesFolders, b.sourcesFolders),
-      sources = parentValues(a.sources, b.sources),
-      resources = parentValues(a.resources, b.resources),
-      artifactName = parentValue(a.artifactName, b.artifactName),
-      pomPackagingType = parentValue(a.pomPackagingType, b.pomPackagingType),
-      pomParentProject = parentValue(a.pomParentProject, b.pomParentProject),
-      pomSettings = parentValue(a.pomSettings, b.pomSettings),
-      publishVersion = parentValue(a.publishVersion, b.publishVersion),
-      versionScheme = parentValue(a.versionScheme, b.versionScheme),
-      publishProperties = parentValues(a.publishProperties, b.publishProperties),
-      errorProneDeps = parentValues(a.errorProneDeps, b.errorProneDeps),
-      errorProneOptions = parentValues(a.errorProneOptions, b.errorProneOptions),
-      errorProneJavacEnableOptions =
-        parentValues(a.errorProneJavacEnableOptions, b.errorProneJavacEnableOptions),
-      scalaVersion = parentValue(a.scalaVersion, b.scalaVersion),
-      scalacOptions = parentValues(a.scalacOptions, b.scalacOptions),
-      scalacPluginMvnDeps = parentValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
-      scalaJSVersion = parentValue(a.scalaJSVersion, b.scalaJSVersion),
-      moduleKind = parentValue(a.moduleKind, b.moduleKind),
-      scalaNativeVersion = parentValue(a.scalaNativeVersion, b.scalaNativeVersion),
-      sourcesRootFolders = parentValues(a.sourcesRootFolders, b.sourcesRootFolders),
-      testParallelism = parentValue(a.testParallelism, b.testParallelism),
-      testSandboxWorkingDir = parentValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir),
-      testFramework = parentValue(a.testFramework, b.testFramework)
-    )
-    val defaultSupertypes = moduleHierarchy.take(1)
-    val defaultTestSupertypes = Seq(testSupertype)
-    def parentModule(a: ModuleSpec, b: ModuleSpec) =
-      parentModule0(a, b, defaultSupertypes).copy(
-        children = (a.children ++ b.children).filter(_.isTestModule)
-          .reduceOption(parentModule0(_, _, defaultTestSupertypes)).toSeq
+    def parentModule(a: ModuleSpec, b: ModuleSpec, name: String, defaultSupertypes: Seq[String]) =
+      ModuleSpec(
+        name = name,
+        imports = (a.imports ++ b.imports).distinct.filter(_ != "import millbuild.*"),
+        supertypes = a.supertypes.intersect(b.supertypes) match {
+          case Nil => defaultSupertypes
+          case seq => seq
+        },
+        mixins = if (a.supertypes == b.supertypes && a.mixins == b.mixins) a.mixins else Nil,
+        repositories = parentValues(a.repositories, b.repositories),
+        forkArgs = parentValues(a.forkArgs, b.forkArgs),
+        forkWorkingDir = parentValue(a.forkWorkingDir, b.forkWorkingDir),
+        mandatoryMvnDeps = parentValues(a.mandatoryMvnDeps, b.mandatoryMvnDeps),
+        mvnDeps = parentValues(a.mvnDeps, b.mvnDeps),
+        compileMvnDeps = parentValues(a.compileMvnDeps, b.compileMvnDeps),
+        runMvnDeps = parentValues(a.runMvnDeps, b.runMvnDeps),
+        bomMvnDeps = parentValues(a.bomMvnDeps, b.bomMvnDeps),
+        depManagement = parentValues(a.depManagement, b.depManagement),
+        javacOptions = parentValues(a.javacOptions, b.javacOptions),
+        sourcesFolders = parentValues(a.sourcesFolders, b.sourcesFolders),
+        sources = parentValues(a.sources, b.sources),
+        resources = parentValues(a.resources, b.resources),
+        artifactName = parentValue(a.artifactName, b.artifactName),
+        pomPackagingType = parentValue(a.pomPackagingType, b.pomPackagingType),
+        pomParentProject = parentValue(a.pomParentProject, b.pomParentProject),
+        pomSettings = parentValue(a.pomSettings, b.pomSettings),
+        publishVersion = parentValue(a.publishVersion, b.publishVersion),
+        versionScheme = parentValue(a.versionScheme, b.versionScheme),
+        publishProperties = parentValues(a.publishProperties, b.publishProperties),
+        errorProneDeps = parentValues(a.errorProneDeps, b.errorProneDeps),
+        errorProneOptions = parentValues(a.errorProneOptions, b.errorProneOptions),
+        errorProneJavacEnableOptions =
+          parentValues(a.errorProneJavacEnableOptions, b.errorProneJavacEnableOptions),
+        scalaVersion = parentValue(a.scalaVersion, b.scalaVersion),
+        scalacOptions = parentValues(a.scalacOptions, b.scalacOptions),
+        scalacPluginMvnDeps = parentValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
+        scalaJSVersion = parentValue(a.scalaJSVersion, b.scalaJSVersion),
+        moduleKind = parentValue(a.moduleKind, b.moduleKind),
+        scalaNativeVersion = parentValue(a.scalaNativeVersion, b.scalaNativeVersion),
+        sourcesRootFolders = parentValues(a.sourcesRootFolders, b.sourcesRootFolders),
+        testParallelism = parentValue(a.testParallelism, b.testParallelism),
+        testSandboxWorkingDir = parentValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir),
+        testFramework = parentValue(a.testFramework, b.testFramework)
       )
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
       if (a.base == parent.base) None else a.base,
@@ -189,12 +183,14 @@ object BuildGen {
 
     val extendingModules = packages.flatMap(_.module.tree).filter(canExtend)
     Option.when(extendingModules.length > 1) {
-      var baseModule = extendingModules.reduce(parentModule)
-      baseModule = baseModule.copy(
-        name = "ProjectBaseModule",
-        imports = baseModule.imports.filter(_ != "import millbuild.*"),
-        children = baseModule.children.map(_.copy(name = "Tests"))
-      )
+      val defaultSupertypes = moduleHierarchy.take(1)
+      val defaultTestSupertypes = Seq(testSupertype)
+      val baseModule = extendingModules
+        .reduce(parentModule(_, _, "ProjectBaseModule", defaultSupertypes))
+        .copy(children =
+          extendingModules.flatMap(_.children.filter(_.isTestModule))
+            .reduceOption(parentModule(_, _, "Tests", defaultTestSupertypes)).toSeq
+        )
       val packages0 = packages.map(pkg => pkg.copy(module = extendModule(pkg.module, baseModule)))
       (baseModule, packages0)
     }
