@@ -49,9 +49,11 @@ case class ModuleSpec(
     sourcesRootFolders: Values[os.SubPath] = Values(),
     testParallelism: Value[Boolean] = Value(),
     testSandboxWorkingDir: Value[Boolean] = Value(),
-    test: Option[ModuleSpec] = None,
+    testFramework: Value[String] = Value(),
     children: Seq[ModuleSpec] = Nil
 ) {
+
+  def isTestModule: Boolean = mixins.exists(_.startsWith("TestModule."))
 
   def tree: Seq[ModuleSpec] = this +: children.flatMap(_.tree)
 

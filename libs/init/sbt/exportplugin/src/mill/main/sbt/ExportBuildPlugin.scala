@@ -70,8 +70,20 @@ object ExportBuildPlugin extends AutoPlugin {
     val outFile = outDir / s"${project.id}-$scalaVersion.json"
     // Ignore duplicate invocations triggered by cross-build execution.
     Def.task(if (!os.exists(outFile)) {
+      def hasAutoPlugin(label: String) = project.autoPlugins.exists(_.label == label)
+      val hasScalaJSPlugin = hasAutoPlugin("org.scalajs.sbtplugin.ScalaJSPlugin")
+      val hasScalaNativePlugin = hasAutoPlugin("scala.scalanative.sbtplugin.ScalaNativePlugin")
+      val structure = Project.structure(Keys.state.value)
+      def isBaseDirShared(baseDir: File) =
+        structure.allProjects.count(p => p.aggregate.isEmpty && p.base == baseDir) > 1
+      val useOuterModuleDir = isBaseDirShared(project.base)
+      val baseDir = os.Path(project.base)
+      val crossProjectBaseDir = crossProjectBaseDirectory.?.value.map(os.Path(_)).orElse(
+        if (baseDir.last.matches("""^[.]?(js|jvm|native)$""")) Some(baseDir / os.up) else None
+      )
+      val isCrossPlatform = crossProjectBaseDir.nonEmpty
       val isCrossVersion = Keys.crossScalaVersions.value.length > 1
-      // Base values are duplicated for ease of processing when combining cross-version specs.
+      // Values are duplicated by cross version for ease of processing when combining cross specs.
       implicit def value[A](base: Option[A]): Value[A] = Value(
         base,
         base match {
@@ -83,20 +95,6 @@ object ExportBuildPlugin extends AutoPlugin {
         base = base,
         cross = if (isCrossVersion && base.nonEmpty) Seq(scalaVersion -> base) else Nil
       )
-
-      def hasAutoPlugin(label: String) = project.autoPlugins.exists(_.label == label)
-      val hasScalaJSPlugin = hasAutoPlugin("org.scalajs.sbtplugin.ScalaJSPlugin")
-      val hasScalaNativePlugin = hasAutoPlugin("scala.scalanative.sbtplugin.ScalaNativePlugin")
-      val structure = Project.structure(Keys.state.value)
-
-      def isBaseDirShared(baseDir: File) =
-        structure.allProjects.count(p => p.aggregate.isEmpty && p.base == baseDir) > 1
-      val useOuterModuleDir = isBaseDirShared(project.base)
-      val baseDir = os.Path(project.base)
-      val crossProjectBaseDir = crossProjectBaseDirectory.?.value.map(os.Path(_)).orElse(
-        if (baseDir.last.matches("""^[.]?(js|jvm|native)$""")) Some(baseDir / os.up) else None
-      )
-      val isCrossPlatform = crossProjectBaseDir.nonEmpty
       var mainModule = ModuleSpec(
         name = if (useOuterModuleDir) project.id else toModuleName(baseDir.last),
         imports = Seq("import mill.scalalib.*"),
@@ -137,7 +135,7 @@ object ExportBuildPlugin extends AutoPlugin {
       }
       val configProjectDeps = project.dependencies
         .map(dep => dep -> dep.configuration.getOrElse("compile").split(";").toSeq)
-      def moduleDeps(p: String => Boolean, nestedSegment: Option[String] = None): Seq[ModuleDep] =
+      def moduleDeps(p: String => Boolean, childSegment: Option[String] = None): Seq[ModuleDep] =
         configProjectDeps.flatMap {
           case (dep, configs) if configs.exists(p) =>
             (dep.project / Keys.baseDirectory).get(structure.data).flatMap { depBaseDir =>
@@ -149,7 +147,7 @@ object ExportBuildPlugin extends AutoPlugin {
               if (depCrossScalaVersions.contains(scalaVersion)) {
                 val crossSuffix = if (depCrossScalaVersions.length < 2) None
                 else Some(if (isCrossVersion) "()" else s"""("$scalaVersion")""")
-                Some(ModuleDep(depModuleDir.segments, crossSuffix, nestedSegment))
+                Some(ModuleDep(depModuleDir.segments, crossSuffix, childSegment))
               } else None
             }
           case _ => None
@@ -219,33 +217,53 @@ object ExportBuildPlugin extends AutoPlugin {
       }
       if ((Test / Keys.sourceDirectories).value.exists(_.exists)) {
         val testMvnDeps = mvnDeps("test")
-        ModuleSpec.testModuleMixin(testMvnDeps).foreach { mixin =>
-          val supertypes = mainModule.supertypes.collect {
-            case "ScalaJSModule" => "ScalaJSTests"
-            case "ScalaNativeModule" => "ScalaNativeTests"
-            case "CrossSbtPlatformModule" => "CrossSbtPlatformTests"
-            case "SbtPlatformModule" => "SbtPlatformTests"
-            case "CrossSbtModule" => "CrossSbtTests"
-            case "SbtModule" => "SbtTests"
-          }
-          val testModule = ModuleSpec(
-            name = "test",
-            supertypes = supertypes,
-            mixins = Seq(mixin),
-            mvnDeps = testMvnDeps,
-            compileMvnDeps = mainModule.compileMvnDeps,
-            runMvnDeps = mainModule.compileMvnDeps.base ++ mainModule.runMvnDeps.base,
-            moduleDeps = values(
-              moduleDeps(_ == "test") ++
-                moduleDeps(_ == "test->test", nestedSegment = Some("test"))
-            ).copy(appendSuper = true),
-            compileModuleDeps = mainModule.compileModuleDeps.base,
-            runModuleDeps = mainModule.compileModuleDeps.base ++ mainModule.runModuleDeps.base,
-            testParallelism = Some(false),
-            testSandboxWorkingDir = Some(false)
-          )
-          mainModule = mainModule.copy(test = Some(testModule))
+        val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
+        val supertypes = mainModule.supertypes.collect {
+          case "ScalaJSModule" => "ScalaJSTests"
+          case "ScalaNativeModule" => "ScalaNativeTests"
+          case "CrossSbtPlatformModule" => "CrossSbtPlatformTests"
+          case "SbtPlatformModule" => "SbtPlatformTests"
+          case "CrossSbtModule" => "CrossSbtTests"
+          case "SbtModule" => "SbtTests"
         }
+        val testModule = ModuleSpec(
+          name = "test",
+          supertypes = supertypes,
+          mixins = testMixin.toSeq,
+          mvnDeps = testMvnDeps,
+          compileMvnDeps = Values(appendOuterMembers =
+            if (mainModule.compileMvnDeps.base.isEmpty) Nil else Seq("compileMvnDeps")
+          ),
+          runMvnDeps = Values(appendOuterMembers =
+            Seq(
+              if (mainModule.compileMvnDeps.base.isEmpty) None else Some("compileMvnDeps"),
+              if (mainModule.runMvnDeps.base.isEmpty) None else Some("runMvnDeps")
+            ).flatten
+          ),
+          moduleDeps = values(
+            moduleDeps(_ == "test") ++
+              moduleDeps(_ == "test->test", childSegment = Some("test"))
+          ).copy(appendSuper = true),
+          compileModuleDeps = Values(appendOuterMembers =
+            if (mainModule.compileModuleDeps.base.isEmpty) Nil else Seq("compileModuleDeps")
+          ),
+          runModuleDeps = Values(appendOuterMembers =
+            Seq(
+              if (mainModule.compileModuleDeps.base.isEmpty) None else Some("compileModuleDeps"),
+              if (mainModule.runModuleDeps.base.isEmpty) None else Some("runModuleDeps")
+            ).flatten
+          ),
+          testParallelism = Some(false),
+          testSandboxWorkingDir = Some(false),
+          testFramework = if (testMixin.isEmpty) Some(testFramework(testMvnDeps)) else None
+        )
+        mainModule = mainModule.copy(
+          hasOuterAlias = mainModule.compileMvnDeps.base.nonEmpty ||
+            mainModule.runMvnDeps.base.nonEmpty ||
+            mainModule.compileModuleDeps.base.nonEmpty ||
+            mainModule.runModuleDeps.base.nonEmpty,
+          children = Seq(testModule)
+        )
       }
 
       val moduleDir = toModuleDir(crossProjectBaseDir.getOrElse(baseDir))
@@ -261,6 +279,10 @@ object ExportBuildPlugin extends AutoPlugin {
 
   private def skipScalacOption(s: String) =
     s.startsWith("-P") || s.startsWith("-Xplugin") || s.startsWith("-scalajs")
+
+  private def testFramework(deps: Seq[MvnDep]) = deps.collectFirst {
+    case dep if dep.organization == "com.eed3si9n.verify" => "verify.runner.Framework"
+  }.getOrElse("")
 
   // Cleanup `CrossType.Pure` module names.
   private def toModuleName(dirName: String) = dirName.stripPrefix(".")

@@ -9,19 +9,17 @@ object BuildGen {
 
   def withNamedDeps(packages: Seq[PackageSpec]): (Seq[(MvnDep, String)], Seq[PackageSpec]) = {
     val names = packages.flatMap(_.module.tree).flatMap { module =>
-      (module +: module.test.toSeq).flatMap { module =>
-        import module.*
-        Seq(
-          mandatoryMvnDeps,
-          mvnDeps,
-          compileMvnDeps,
-          runMvnDeps,
-          bomMvnDeps,
-          depManagement,
-          errorProneDeps,
-          scalacPluginMvnDeps
-        )
-      }
+      import module.*
+      Seq(
+        mandatoryMvnDeps,
+        mvnDeps,
+        compileMvnDeps,
+        runMvnDeps,
+        bomMvnDeps,
+        depManagement,
+        errorProneDeps,
+        scalacPluginMvnDeps
+      )
     }.flatMap { values =>
       values.base ++ values.cross.flatMap(_._2)
     }.distinct.filter(_.version.nonEmpty).groupBy(_.name).flatMap { (name, deps) =>
@@ -54,10 +52,9 @@ object BuildGen {
     }
     def updateModule(module: ModuleSpec): ModuleSpec = updateModule0(module.copy(
       imports = "import millbuild.*" +: module.imports,
-      test = module.test.map(updateModule0),
       children = module.children.map(updateModule)
     ))
-    val packages0 = for (pkg <- packages) yield pkg.copy(module = updateModule(pkg.module))
+    val packages0 = packages.map(pkg => pkg.copy(module = updateModule(pkg.module)))
     (names.toSeq, packages0)
   }
 
@@ -115,11 +112,15 @@ object BuildGen {
       scalaNativeVersion = parentValue(a.scalaNativeVersion, b.scalaNativeVersion),
       sourcesRootFolders = parentValues(a.sourcesRootFolders, b.sourcesRootFolders),
       testParallelism = parentValue(a.testParallelism, b.testParallelism),
-      testSandboxWorkingDir = parentValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir)
+      testSandboxWorkingDir = parentValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir),
+      testFramework = parentValue(a.testFramework, b.testFramework)
     )
+    val defaultSupertypes = moduleHierarchy.take(1)
+    val defaultTestSupertypes = Seq(testSupertype)
     def parentModule(a: ModuleSpec, b: ModuleSpec) =
-      parentModule0(a, b, moduleHierarchy.take(1)).copy(
-        test = (a.test.toSeq ++ b.test.toSeq).reduceOption(parentModule0(_, _, Seq(testSupertype)))
+      parentModule0(a, b, defaultSupertypes).copy(
+        children = (a.children ++ b.children).filter(_.isTestModule)
+          .reduceOption(parentModule0(_, _, defaultTestSupertypes)).toSeq
       )
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
       if (a.base == parent.base) None else a.base,
@@ -169,28 +170,30 @@ object BuildGen {
       scalaNativeVersion = extendValue(a.scalaNativeVersion, parent.scalaNativeVersion),
       sourcesRootFolders = extendValues(a.sourcesRootFolders, parent.sourcesRootFolders),
       testParallelism = extendValue(a.testParallelism, parent.testParallelism),
-      testSandboxWorkingDir = extendValue(a.testSandboxWorkingDir, parent.testSandboxWorkingDir)
+      testSandboxWorkingDir = extendValue(a.testSandboxWorkingDir, parent.testSandboxWorkingDir),
+      testFramework = extendValue(a.testFramework, parent.testFramework)
     )
-    def isChild(module: ModuleSpec) = module.supertypes.exists(moduleHierarchy.contains)
+    def canExtend(module: ModuleSpec) = module.supertypes.exists(moduleHierarchy.contains)
     def extendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
-      val a0 = if (isChild(a)) extendModule0(
-        a.copy(
-          imports = "import millbuild.*" +: a.imports,
-          test = a.test.zip(parent.test).map(extendModule0)
-        ),
-        parent
-      )
-      else a
-      a0.copy(children = a0.children.map(extendModule(_, parent)))
+      var a0 = a
+      var (tests0, children0) = a0.children.partition(_.isTestModule)
+      if (canExtend(a0)) {
+        a0 = extendModule0(a0.copy(imports = "import millbuild.*" +: a0.imports), parent)
+        if (parent.children.nonEmpty) {
+          tests0 = tests0.map(extendModule0(_, parent.children.head))
+        }
+      }
+      children0 = children0.map(extendModule(_, parent))
+      a0.copy(children = tests0 ++ children0)
     }
 
-    val childModules = packages.flatMap(_.module.tree).filter(isChild)
-    Option.when(childModules.length > 1) {
-      var baseModule = childModules.reduce(parentModule)
+    val extendingModules = packages.flatMap(_.module.tree).filter(canExtend)
+    Option.when(extendingModules.length > 1) {
+      var baseModule = extendingModules.reduce(parentModule)
       baseModule = baseModule.copy(
         name = "ProjectBaseModule",
         imports = baseModule.imports.filter(_ != "import millbuild.*"),
-        test = baseModule.test.map(_.copy(name = "Tests"))
+        children = baseModule.children.map(_.copy(name = "Tests"))
       )
       val packages0 = packages.map(pkg => pkg.copy(module = extendModule(pkg.module, baseModule)))
       (baseModule, packages0)
@@ -292,7 +295,7 @@ object BuildGen {
        |
        |  ${renderModuleBody(module)}
        |
-       |  ${test.fold("")(renderTestModule("trait", _))}
+       |  ${children.sortBy(_.name).map(renderTestModule("trait", _)).mkString(lineSeparator * 2)}
        |}""".stripMargin
   }
 
@@ -378,6 +381,8 @@ object BuildGen {
        |
        |${render("testSandboxWorkingDir", testSandboxWorkingDir, _.toString)}
        |
+       |${render("testFramework", testFramework, encodeTestFramework)}
+       |
        |${render("repositories", repositories, encodeString)}
        |""".stripMargin
   }
@@ -416,6 +421,7 @@ object BuildGen {
     }
     val aliasDeclaration = if (hasOuterAlias) " outer => " else ""
     val renderModuleDir = if (useOuterModuleDir) "def moduleDir = outer.moduleDir" else ""
+    val (tests, children0) = children.partition(_.isTestModule)
 
     s"""$typeDeclaration {$aliasDeclaration
        |
@@ -423,9 +429,9 @@ object BuildGen {
        |
        |  ${renderModuleBody(module)}
        |
-       |  ${test.fold("")(renderTestModule("object", _))}
+       |  ${tests.map(renderTestModule("object", _)).mkString(lineSeparator * 2)}
        |
-       |  ${children.sortBy(_.name).map(renderModule(_)).mkString(lineSeparator * 2)}
+       |  ${children0.sortBy(_.name).map(renderModule(_)).mkString(lineSeparator * 2)}
        |}""".stripMargin
   }
 
@@ -553,7 +559,7 @@ object BuildGen {
     ("build" +: segments.map(toScalaIdentifier)).mkString("", ".", suffix)
   }
   private def encodeMvnDep(a: MvnDep) = a.ref.getOrElse(a.toString)
-  private def encodeString[A](a: A) = s"\"$a\""
+  private def encodeString(s: String) = s"\"$s\""
   private def encodeLiteralOpt(a: Opt) = a.group.map(literalize(_)).mkString(", ")
   private def encodeOpt(a: Opt) = a.group.mkString("\"", "\", \"", "\"")
   private def encodeSubPath(a: os.SubPath) = if (a.segments.isEmpty) "os.sub" else s"\"$a\""
@@ -597,4 +603,6 @@ object BuildGen {
     val (k, v) = kv
     s"(\"$k\", ${literalize(v)})"
   }
+  private def encodeTestFramework(s: String) =
+    if (s.isEmpty) "sys.error(\"no test framework\")" else encodeString(s)
 }

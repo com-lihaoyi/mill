@@ -1,6 +1,6 @@
 package mill.main.maven
 
-import mill.main.buildgen.ModuleSpec.{MvnDep, Opt, Values}
+import mill.main.buildgen.ModuleSpec.{MvnDep, Opt}
 import org.apache.maven.model.{ConfigurationContainer, Model, Resource}
 import org.apache.maven.shared.utils.io.FileUtils
 import org.codehaus.plexus.util.xml.Xpp3Dom
@@ -41,12 +41,12 @@ class Plugins(model: Model) {
     .flatMap(value(_, "skip")).fold(false)(_.toBoolean)
 
   def sources: (
-      Values[os.SubPath],
-      Values[os.RelPath],
-      Values[os.RelPath],
-      Values[os.SubPath],
-      Values[os.RelPath],
-      Values[os.RelPath]
+      Seq[os.RelPath],
+      Seq[os.RelPath],
+      Seq[os.RelPath],
+      Seq[os.RelPath],
+      Seq[os.RelPath],
+      Seq[os.RelPath]
   ) = {
     val helperExecutions = plugin("build-helper-maven-plugin", "org.codehaus.mojo").toSeq
       .flatMap(_.getExecutions.asScala)
@@ -100,14 +100,12 @@ class Plugins(model: Model) {
     val testResources =
       resources(model.getBuild.getTestResources.asScala.toSeq, helperConfigs("add-test-resource"))
     (
-      if (mainSourcesFolders == Seq(os.rel / "src/main/java")) Nil
-      else mainSourcesFolders.map(_.asSubPath),
-      Values(mainSources, appendSuper = true),
-      if (mainResources == Seq(os.rel / "src/main/resources")) Nil else mainResources,
-      if (testSourcesFolders == Seq(os.rel / "src/test/java")) Nil
-      else testSourcesFolders.map(_.asSubPath),
-      Values(testSources, appendSuper = true),
-      if (testResources == Seq(os.rel / "src/test/resources")) Nil else testResources
+      mainSourcesFolders,
+      mainSources,
+      mainResources,
+      testSourcesFolders,
+      testSources,
+      testResources
     )
   }
 

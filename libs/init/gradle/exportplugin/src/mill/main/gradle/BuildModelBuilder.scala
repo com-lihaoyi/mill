@@ -70,10 +70,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       def mvnDeps(configNames: String*) = deps(configNames*).filterNot(isBom).collect(toMvnDep)
       def moduleDeps(configNames: String*) =
         deps(configNames*).filterNot(isBom).collect(toModuleDep)
-      val mainConfigs = configs.filter(config =>
-        config.getName != "errorprone" && !config.getName.startsWith("test")
-      )
-      val mainDeps = mainConfigs.flatMap(_.getDependencies.asScala)
+      val (testConfigs, mainConfigs) = configs.partition(_.getName.startsWith("test"))
+      val mainBomDeps = mainConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
       val mainConstraints = mainConfigs.flatMap(_.getDependencyConstraints.asScala)
       def task[T](name: String)(using T: TypeTest[Task, T]) = getTasks.findByName(name) match {
         case T(t) => Some(t)
@@ -88,9 +86,8 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         val sources = Seq.newBuilder[os.RelPath]
         val resources = Seq.newBuilder[os.RelPath]
         for (set <- sets) do {
-          val (_sourcesFolders, _sources) = set.getJava.getSrcDirs.asScala.map(os.Path(_)).collect(
-            toRelModule
-          ).partition(_.ups == 0)
+          val (_sourcesFolders, _sources) = set.getJava.getSrcDirs.asScala.map(os.Path(_))
+            .collect(toRelModule).partition(_.ups == 0)
           sourcesFolders ++= _sourcesFolders.map(_.asSubPath)
           sources ++= _sources
           val res = set.getResources
@@ -106,39 +103,40 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           .flatMap(ctx.sourceSetContainer).toSeq.flatMap(_.asScala.toSeq)
           .partition(isTest)
       val (mainSourcesFolders, mainSources, mainResources) = sources(mainSourceSets)
-      val errorProneDeps = mvnDeps("errorprone")
       mainModule = mainModule.copy(
         imports = "import mill.javalib.*" +: mainModule.imports,
         supertypes = "MavenModule" +: mainModule.supertypes,
         mvnDeps = mvnDeps("implementation", "api"),
         compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
         runMvnDeps = mvnDeps("runtimeOnly"),
-        bomMvnDeps = mainDeps.filter(isBom).collect(toMvnDep),
+        bomMvnDeps = mainBomDeps.collect(toMvnDep),
         depManagement = mainConstraints.collect(toMvnDep),
         javacOptions = task[JavaCompile]("compileJava").fold(Nil)(javacOptions),
         moduleDeps = moduleDeps("implementation", "api"),
         compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
         runModuleDeps = moduleDeps("runtimeOnly"),
-        bomModuleDeps = mainDeps.filter(isBom).collect(toModuleDep),
+        bomModuleDeps = mainBomDeps.collect(toModuleDep),
         sourcesFolders = if (mainSourcesFolders == Seq(os.sub / "src/main/java")) Nil
         else mainSourcesFolders,
         sources = Values(mainSources, appendSuper = true),
         resources = if (mainResources == Seq(os.rel / "src/main/resources")) Nil else mainResources
-      ).withErrorProneModule(errorProneDeps)
+      ).withErrorProneModule(mvnDeps("errorprone"))
 
-      for {
-        testRunConfig <- configs.find(_.getName == "testRuntimeClasspath")
-        testRunDeps = testRunConfig.getAllDependencies.asScala.toSeq
-        testMixin <- ModuleSpec.testModuleMixin(testRunDeps.collect(toMvnDep))
-        if os.exists(moduleDir / "src/test")
-      } do {
-        val testConfigs = configs.filter(config => config.getName.startsWith("test"))
+      if (
+        testSourceSets.exists(ss =>
+          ss.getJava.getSrcDirs.asScala.exists(_.exists()) ||
+            ss.getResources.asScala.exists(_.exists())
+        )
+      ) {
+        val testMixin = ModuleSpec.testModuleMixin(configs.find(_.getName == "testRuntimeClasspath")
+          .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep)))
+        val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
         val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
         val (testSourcesFolders, testSources, testResources) = sources(testSourceSets)
         var testModule = ModuleSpec(
           name = "test",
           supertypes = Seq("MavenTests"),
-          mixins = Seq(testMixin),
+          mixins = testMixin.toSeq,
           forkArgs = task[Test]("test").fold(Nil) { task =>
             task.getSystemProperties.asScala.map {
               case (k, v) => Opt(s"-D$k=$v")
@@ -148,7 +146,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           mvnDeps = mvnDeps("testImplementation"),
           compileMvnDeps = mvnDeps("testCompileOnly"),
           runMvnDeps = mvnDeps("testRuntimeOnly"),
-          bomMvnDeps = testRunDeps.filter(isBom).collect(toMvnDep),
+          bomMvnDeps = testBomDeps.collect(toMvnDep),
           depManagement = testConstraints.collect(toMvnDep),
           javacOptions = task[JavaCompile]("compileTestJava").fold(Nil)(javacOptions),
           moduleDeps = Values(
@@ -158,16 +156,17 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           ),
           compileModuleDeps = moduleDeps("testCompileOnly"),
           runModuleDeps = moduleDeps("testRuntimeOnly"),
-          bomModuleDeps = testRunDeps.filter(isBom).collect(toModuleDep),
+          bomModuleDeps = testBomDeps.collect(toModuleDep),
           sourcesFolders = if (testSourcesFolders == Seq(os.sub / "src/test/java")) Nil
           else testSourcesFolders,
           sources = Values(testSources, appendSuper = true),
           resources =
             if (testResources == Seq(os.rel / "src/test/resources")) Nil else testResources,
           testParallelism = Some(false),
-          testSandboxWorkingDir = Some(false)
-        ).withErrorProneModule(errorProneDeps)
-        if (testMixin == "TestModule.Junit5") {
+          testSandboxWorkingDir = Some(false),
+          testFramework = Option.when(testMixin.isEmpty)("")
+        ).withErrorProneModule(mainModule.errorProneDeps.base)
+        if (testMixin.contains("TestModule.Junit5")) {
           testModule.mvnDeps.base.collectFirst {
             case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
               val junitVersion = dep.version
@@ -190,7 +189,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
               }
           }
         }
-        mainModule = mainModule.copy(test = Some(testModule))
+        mainModule = mainModule.copy(children = Seq(testModule))
       }
     }
 

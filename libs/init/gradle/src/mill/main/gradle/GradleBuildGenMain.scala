@@ -76,9 +76,7 @@ object GradleBuildGenMain {
   }
 
   private def adjustModuleDeps(packages: Seq[PackageSpec]) = {
-    val moduleLookup =
-      packages.map(pkg => (pkg.dir.segments, pkg.module)).toMap[Seq[String], ModuleSpec]
-
+    val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
     def adjust(module: ModuleSpec): ModuleSpec = {
       var module0 = module
       if (module.supertypes.contains("PublishModule")) {
@@ -93,7 +91,7 @@ object GradleBuildGenMain {
           )
         }
       }
-      module0.copy(test = module0.test.map(adjust))
+      module0.copy(children = module0.children.map(adjust))
     }
     packages.map(pkg => pkg.copy(module = adjust(pkg.module)))
   }
