@@ -249,7 +249,11 @@ object `package` extends MillPublishScalaModule {
     def mocks = Map(
       "airstream" -> Mock("https://github.com/raquo/Airstream.git", "v17.2.1"),
       "cats" -> Mock("https://github.com/typelevel/cats.git", "v2.13.0", checkTasks = Nil),
-      "enumeratum" -> Mock("https://github.com/lloydmeta/enumeratum.git", "enumeratum-1.9.0"),
+      "enumeratum" -> Mock(
+        "https://github.com/lloydmeta/enumeratum.git",
+        "enumeratum-1.9.0",
+        Seq("--mill-jvm-id", "11", "-Denumeratum.useLocalVersion=true")
+      ),
       "fs2" -> Mock("https://github.com/typelevel/fs2.git", "v3.12.2"),
       "gatling" -> Mock(
         "https://github.com/gatling/gatling.git",

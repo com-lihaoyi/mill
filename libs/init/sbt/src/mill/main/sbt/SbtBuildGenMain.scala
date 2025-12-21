@@ -15,7 +15,9 @@ object SbtBuildGenMain {
   @mainargs.main(doc = "Generates Mill build files that are derived from an SBT build.")
   def init(
       @mainargs.arg(doc = "path to custom SBT executable")
-      customSbt: Option[String],
+      sbt: Option[String],
+      @mainargs.arg(doc = "command line arguments for SBT")
+      sbtArgs: mainargs.Leftover[String],
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
       millJvmId: String = "system",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
@@ -25,7 +27,7 @@ object SbtBuildGenMain {
   ): Unit = {
     println("converting sbt build")
 
-    val sbtCmd = customSbt.getOrElse {
+    val sbtCmd = sbt.getOrElse {
       def systemSbtExists(cmd: String) = os.call((cmd, "--help"), check = false).exitCode == 1
       if (isWin) {
         val cmd = "sbt.bat"
@@ -61,6 +63,7 @@ object SbtBuildGenMain {
     try {
       os.proc(
         sbtCmd,
+        sbtArgs.value,
         s"-DmillInitExportDir=$exportDir",
         // Run task with cross-build prefix to export data for all cross Scala versions.
         "+millInitExportBuild"
