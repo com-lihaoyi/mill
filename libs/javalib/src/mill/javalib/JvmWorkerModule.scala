@@ -55,7 +55,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
   def worker: Worker[JvmWorkerApi] = internalWorker
-  def internalWorkerClassLoader = Task.Worker {
+  def internalWorkerClassLoader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
     mill.util.Jvm.createClassLoader(classpath().map(_.path), getClass.getClassLoader)
   }
 
@@ -77,7 +77,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       classPath = classpath().map(_.path),
       jobs = jobs,
       zincLogDebug = zincLogDebug(),
-      close0 = () => cl.close()
+      close0 = () => ()
     )
 
     cl.loadClass("mill.javalib.worker.JvmWorkerImpl")
