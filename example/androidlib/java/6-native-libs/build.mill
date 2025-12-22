@@ -34,7 +34,7 @@ object app extends AndroidNativeAppModule { // <1>
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
-  override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidVirtualDevice = super.androidVirtualDevice().withName("java-test")
 
   def androidExternalNativeLibs = Task { // <2>
     Seq(
