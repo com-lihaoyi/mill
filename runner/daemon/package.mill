@@ -15,6 +15,10 @@ object `package` extends MillPublishScalaModule {
   def localTestExtraModules =
     build.dist.allPublishModules
 
+  def compileMvnDeps = Seq(
+    Deps.scalaCompiler(scalaVersion())
+  )
+
   def mvnDeps = Seq(
     Deps.sourcecode,
     Deps.osLib,
@@ -22,8 +26,7 @@ object `package` extends MillPublishScalaModule {
     Deps.mainargs,
     Deps.upickle,
     Deps.pprint,
-    Deps.fansi,
-    Deps.scalaCompiler(scalaVersion())
+    Deps.fansi
   )
 
   def moduleDeps = Seq(
