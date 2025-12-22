@@ -31,19 +31,7 @@ object app extends AndroidR8AppModule { // <2>
   def androidApplicationId = "com.helloworld.app"
   def androidApplicationNamespace = "com.helloworld.app"
 
-  /**
-   * Configuration for ReleaseKey
-   * WARNING: Replace these default values with secure and private credentials before using in production.
-   * Never use these defaults in a production environment as they are not secure.
-   * This is just for testing purposes.
-   */
-  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
-  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
-  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
-  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-
   override def androidVirtualDeviceIdentifier: String = "java-test"
-  override def androidIsDebug: T[Boolean] = Task { false }
 
   def androidProjectProguardFiles = Task.Sources(
     "proguard-rules.pro"
@@ -57,10 +45,6 @@ object app extends AndroidR8AppModule { // <2>
   // Instrumented tests (runs on emulator)
   object it extends AndroidAppInstrumentedTests, AndroidR8AppModule {
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
-
-    override def androidIsDebug: T[Boolean] = Task {
-      false
-    }
 
     override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(isMinifyEnabled = false)
@@ -78,6 +62,18 @@ object app extends AndroidR8AppModule { // <2>
     )
   }
 
+  object release extends AndroidReleaseModule, AndroidR8ReleaseModule
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 }
 
 // <1> Create and configure an Android SDK module to manage Android SDK paths and tools.
