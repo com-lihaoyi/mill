@@ -98,8 +98,7 @@ object SbtBuildGenMain {
           )
         )
     }.toSeq
-    packages = adjustModuleDeps(packages)
-    packages = adjustMvnDeps(packages)
+    packages = conformBuild(packages)
 
     val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
@@ -208,34 +207,21 @@ object SbtBuildGenMain {
     normalizeModule(crossVersionModules.reduce(combineModule))
   }
 
-  private def adjustModuleDeps(packages: Seq[PackageSpec]) = {
-    val moduleSegments = packages.flatMap(_.modulesBySegments).toMap
-    def exists(dep: ModuleDep) = moduleSegments.contains(dep.segments ++ dep.childSegment)
-    def update(values: Values[ModuleDep]) = {
+  private def conformBuild(packages: Seq[PackageSpec]) = {
+    val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
+    def moduleDepExists(dep: ModuleDep) = moduleLookup.contains(dep.segments ++ dep.childSegment)
+    def conformModuleDeps(values: Values[ModuleDep]) = {
       import values.*
       values.copy(
-        base.filter(exists),
-        cross.map((k, v) => (k, v.filter(exists))).filter(_._2.nonEmpty)
+        base.filter(moduleDepExists),
+        cross.map((k, v) => (k, v.filter(moduleDepExists))).filter(_._2.nonEmpty)
       )
     }
-    def adjust(module: ModuleSpec): ModuleSpec = {
-      import module.*
-      module.copy(
-        moduleDeps = update(moduleDeps),
-        compileModuleDeps = update(compileModuleDeps),
-        runModuleDeps = update(runModuleDeps),
-        children = children.map(adjust)
-      )
-    }
-    packages.map(pkg => pkg.copy(module = adjust(pkg.module)))
-  }
-
-  private def adjustMvnDeps(packages: Seq[PackageSpec]) = {
     val platformedDeps = packages.flatMap(_.module.tree).flatMap { module =>
       import module.*
       Seq(mvnDeps, compileMvnDeps, runMvnDeps, scalacPluginMvnDeps)
     }.flatMap(values => values.base ++ values.cross.flatMap(_._2)).filter(_.cross.platformed).toSet
-    def updateDep(dep: MvnDep) = {
+    def beautifyMvnDep(dep: MvnDep) = {
       val dep0 = if (dep.cross.platformed) dep
       else dep.copy(cross = dep.cross match {
         case v: CrossVersion.Constant => v.copy(platformed = true)
@@ -244,20 +230,23 @@ object SbtBuildGenMain {
       })
       if (platformedDeps.contains(dep0)) dep0 else dep
     }
-    def updateDeps(deps: Values[MvnDep]) = deps.copy(
-      base = deps.base.map(updateDep),
-      cross = deps.cross.map((k, v) => (k, v.map(updateDep)))
+    def beautifyMvnDeps(deps: Values[MvnDep]) = deps.copy(
+      base = deps.base.map(beautifyMvnDep),
+      cross = deps.cross.map((k, v) => (k, v.map(beautifyMvnDep)))
     )
-    def updateModule(module: ModuleSpec): ModuleSpec = {
-      import module.*
-      module.copy(
-        mvnDeps = updateDeps(mvnDeps),
-        compileMvnDeps = updateDeps(compileMvnDeps),
-        runMvnDeps = updateDeps(runMvnDeps),
-        scalacPluginMvnDeps = updateDeps(scalacPluginMvnDeps),
-        children = children.map(updateModule)
-      )
-    }
-    packages.map(pkg => pkg.copy(module = updateModule(pkg.module)))
+    packages.map(pkg =>
+      pkg.copy(module = pkg.module.recMap { module =>
+        import module.*
+        module.copy(
+          moduleDeps = conformModuleDeps(moduleDeps),
+          compileModuleDeps = conformModuleDeps(compileModuleDeps),
+          runModuleDeps = conformModuleDeps(runModuleDeps),
+          mvnDeps = beautifyMvnDeps(mvnDeps),
+          compileMvnDeps = beautifyMvnDeps(compileMvnDeps),
+          runMvnDeps = beautifyMvnDeps(runMvnDeps),
+          scalacPluginMvnDeps = beautifyMvnDeps(scalacPluginMvnDeps)
+        )
+      })
+    )
   }
 }

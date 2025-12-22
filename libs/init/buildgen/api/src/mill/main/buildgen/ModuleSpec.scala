@@ -55,6 +55,9 @@ case class ModuleSpec(
 
   def isTestModule: Boolean = mixins.exists(_.startsWith("TestModule."))
 
+  def recMap(f: ModuleSpec => ModuleSpec): ModuleSpec =
+    f(copy(children = children.map(_.recMap(f))))
+
   def tree: Seq[ModuleSpec] = this +: children.flatMap(_.tree)
 
   def withErrorProneModule(errorProneMvnDeps: Seq[MvnDep]): ModuleSpec = {

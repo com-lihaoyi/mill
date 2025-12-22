@@ -58,7 +58,7 @@ object GradleBuildGenMain {
           upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
       finally gradleConnector.disconnect()
-    packages = adjustModuleDeps(packages)
+    packages = conformBuild(packages)
 
     val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
@@ -75,24 +75,25 @@ object GradleBuildGenMain {
     BuildGen.writeBuildFiles(packages1, millJvmId, merge.value, depNames, baseModule, millJvmOpts)
   }
 
-  private def adjustModuleDeps(packages: Seq[PackageSpec]) = {
+  private def conformBuild(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
-    def adjust(module: ModuleSpec): ModuleSpec = {
-      var module0 = module
-      if (module.supertypes.contains("PublishModule")) {
-        val (bomModuleDeps, bomModuleDepRefs) = module0.bomModuleDeps.base.partition { dep =>
-          moduleLookup(dep.segments).supertypes.contains("PublishModule")
+    packages.map(pkg =>
+      pkg.copy(module = pkg.module.recMap { module =>
+        var module0 = module
+        if (module0.supertypes.contains("PublishModule")) {
+          val (bomModuleDeps, bomModuleDepRefs) = module0.bomModuleDeps.base.partition { dep =>
+            moduleLookup(dep.segments).supertypes.contains("PublishModule")
+          }
+          if (bomModuleDepRefs.nonEmpty) {
+            module0 = module0.copy(
+              bomMvnDeps = module0.bomMvnDeps.copy(appendModuleRefs = bomModuleDepRefs),
+              depManagement = module0.depManagement.copy(appendModuleRefs = bomModuleDepRefs),
+              bomModuleDeps = bomModuleDeps
+            )
+          }
         }
-        if (bomModuleDepRefs.nonEmpty) {
-          module0 = module0.copy(
-            bomMvnDeps = module0.bomMvnDeps.copy(appendModuleRefs = bomModuleDepRefs),
-            depManagement = module0.depManagement.copy(appendModuleRefs = bomModuleDepRefs),
-            bomModuleDeps = bomModuleDeps
-          )
-        }
-      }
-      module0.copy(children = module0.children.map(adjust))
-    }
-    packages.map(pkg => pkg.copy(module = adjust(pkg.module)))
+        module0
+      })
+    )
   }
 }

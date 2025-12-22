@@ -34,27 +34,25 @@ object BuildGen {
     }
     if (names.isEmpty) return (Nil, packages)
     val lookup = names.lift.andThen(_.map(ref => s"Deps.$ref"))
-    def updateDeps(values: Values[MvnDep]) = values.copy(
+    def withRefs(values: Values[MvnDep]) = values.copy(
       base = values.base.map(dep => dep.copy(ref = lookup(dep))),
       cross = values.cross.map((k, v) => (k, v.map(dep => dep.copy(ref = lookup(dep)))))
     )
-    def updateModule0(module: ModuleSpec) = {
-      import module.*
-      module.copy(
-        mvnDeps = updateDeps(mvnDeps),
-        compileMvnDeps = updateDeps(compileMvnDeps),
-        runMvnDeps = updateDeps(runMvnDeps),
-        bomMvnDeps = updateDeps(bomMvnDeps),
-        depManagement = updateDeps(depManagement),
-        errorProneDeps = updateDeps(errorProneDeps),
-        scalacPluginMvnDeps = updateDeps(scalacPluginMvnDeps)
-      )
-    }
-    def updateModule(module: ModuleSpec): ModuleSpec = updateModule0(module.copy(
-      imports = "import millbuild.*" +: module.imports,
-      children = module.children.map(updateModule)
-    ))
-    val packages0 = packages.map(pkg => pkg.copy(module = updateModule(pkg.module)))
+    val packages0 = packages.map(pkg =>
+      pkg.copy(module = pkg.module.recMap { module =>
+        import module.*
+        module.copy(
+          imports = "import millbuild.*" +: imports,
+          mvnDeps = withRefs(mvnDeps),
+          compileMvnDeps = withRefs(compileMvnDeps),
+          runMvnDeps = withRefs(runMvnDeps),
+          bomMvnDeps = withRefs(bomMvnDeps),
+          depManagement = withRefs(depManagement),
+          errorProneDeps = withRefs(errorProneDeps),
+          scalacPluginMvnDeps = withRefs(scalacPluginMvnDeps)
+        )
+      })
+    )
     (names.toSeq, packages0)
   }
 
@@ -168,7 +166,7 @@ object BuildGen {
       testFramework = extendValue(a.testFramework, parent.testFramework)
     )
     def canExtend(module: ModuleSpec) = module.supertypes.exists(moduleHierarchy.contains)
-    def extendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
+    def recExtendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
       var a0 = a
       var (tests0, children0) = a0.children.partition(_.isTestModule)
       if (canExtend(a0)) {
@@ -177,7 +175,7 @@ object BuildGen {
           tests0 = tests0.map(extendModule0(_, parent.children.head))
         }
       }
-      children0 = children0.map(extendModule(_, parent))
+      children0 = children0.map(recExtendModule(_, parent))
       a0.copy(children = tests0 ++ children0)
     }
 
@@ -191,7 +189,7 @@ object BuildGen {
           extendingModules.flatMap(_.children.filter(_.isTestModule))
             .reduceOption(parentModule(_, _, "Tests", defaultTestSupertypes)).toSeq
         )
-      val packages0 = packages.map(pkg => pkg.copy(module = extendModule(pkg.module, baseModule)))
+      val packages0 = packages.map(pkg => pkg.copy(module = recExtendModule(pkg.module, baseModule)))
       (baseModule, packages0)
     }
   }
