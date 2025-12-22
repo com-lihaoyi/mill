@@ -163,6 +163,10 @@ object Deps {
     if (JvmWorkerUtil.isScala3(scalaVersion)) mvn"org.scala-lang:scala3-compiler_3:${scalaVersion}"
     else mvn"org.scala-lang:scala-compiler:${scalaVersion}"
   }
+  def scalaCompiler_WoCompilerInterface(scalaVersion: String) = scalaCompiler(scalaVersion)
+    .exclude("org.scala-sbt" -> "compiler-interface")
+
+  def scalaCompilerInterface = mvn"org.scala-sbt:compiler-interface:${zinc.version}"
   val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.9.4".withDottyCompat(scalaVersion)
   def scalaReflect(scalaVersion: String) =
     if (JvmWorkerUtil.isScala3(scalaVersion))
