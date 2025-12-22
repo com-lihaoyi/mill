@@ -304,7 +304,10 @@ trait GroupExecution {
 
               case _ =>
                 // uncached
-                if (!labelled.persistent) os.remove.all(paths.dest)
+                if (!labelled.persistent && os.exists(paths.dest)) {
+                  logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
+                  os.remove.all(paths.dest)
+                }
 
                 val (newResults, newEvaluated) =
                   executeGroup(
@@ -343,7 +346,12 @@ trait GroupExecution {
                 GroupExecution.Results(
                   newResults = newResults,
                   newEvaluated = newEvaluated.toSeq,
-                  cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
+                  cached =
+                    if (
+                      labelled.isInstanceOf[Task.Input[?]] ||
+                      labelled.isInstanceOf[Task.Uncached[?]]
+                    ) null
+                    else false,
                   inputsHash = inputsHash,
                   previousInputsHash = cached.map(_._1).getOrElse(-1),
                   valueHashChanged = !cached.map(_._3).contains(valueHash),
