@@ -527,6 +527,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(Task.dest)
   }
 
+  /**
+   * Specifies the default configuration for the Android Virtual Device (AVD).
+   */
   def androidVirtualDevice: T[AndroidVirtualDevice] = Task {
     AndroidVirtualDevice(
       deviceId = "medium_phone",
@@ -537,7 +540,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Installs the user specified system image for the emulator
+   * Installs the android system image specified in [[androidVirtualDevice]]
    * using sdkmanager . E.g. "system-images;android-35;google_apis_playstore;x86_64"
    */
   def sdkInstallSystemImage(): Command[String] = Task.Command {
@@ -559,7 +562,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Creates the android virtual device identified in virtualDeviceIdentifier
+   * Creates the android virtual device identified in [[androidVirtualDevice]]
    */
   def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
     val name = androidVirtualDevice().name

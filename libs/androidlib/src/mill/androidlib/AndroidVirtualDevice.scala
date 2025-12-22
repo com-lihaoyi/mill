@@ -19,7 +19,10 @@ case class AndroidVirtualDevice(
     deviceId: String,
     systemImageSource: String
 ) {
-  val systemImage: String = s"system-images;${systemImageSource};${apiVersion};${architecture}"
+  val systemImage: String = s"system-images;${apiVersion};${systemImageSource};${architecture}"
+
+  def withName(newName: String): AndroidVirtualDevice =
+    this.copy(name = newName)
 }
 
 object AndroidVirtualDevice {
