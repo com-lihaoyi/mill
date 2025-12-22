@@ -39,7 +39,4 @@ object `package` extends MillPublishScalaModule {
     build.libs.script
   )
 
-//  def runMvnDeps = super.runMvnDeps() ++ Seq(
-//    Deps.scalaCompilerInterface
-//  )
 }
