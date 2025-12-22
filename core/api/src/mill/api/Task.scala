@@ -197,6 +197,20 @@ object Task {
   ): Simple[T] =
     ${ Macros.uncachedImpl[T]('t)('w, 'ctx, persistent = '{ false }) }
 
+  def Uncached(
+      @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      persistent: Boolean = false
+  ): UncachedFactory =
+    // Magnet pattern for the second param list in Task.Uncached(persistent = true) { ... }
+    new UncachedFactory(persistent)
+
+  class UncachedFactory private[mill] (val persistent: Boolean) {
+    inline def apply[T](inline t: Result[T])(using
+        inline w: Writer[T],
+        inline ctx: ModuleCtx
+    ): Simple[T] = ${ Macros.uncachedImpl[T]('t)('w, 'ctx, '{ persistent }) }
+  }
+
   /**
    * [[Command]]s are only [[Task.Named]]s defined using
    * `def foo() = Task.Command{...}` and are typically called from the
