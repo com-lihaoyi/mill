@@ -58,13 +58,15 @@ object GradleBuildGenMain {
           upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
       finally gradleConnector.disconnect()
-    packages = conformBuild(packages)
+    packages = normalizeBuild(packages)
 
     val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
-    val (baseModule, packages1) =
-      Option.when(!noMeta.value)(BuildGen.withBaseModule(packages0, "MavenTests", "MavenModule"))
-        .flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
+    val (baseModule, packages1) = Option.when(!noMeta.value)(BuildGen.withBaseModule(
+      packages0,
+      Seq("MavenModule"),
+      Seq("MavenTests")
+    )).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
     val millJvmOpts = {
       val properties = new Properties()
       val file = os.pwd / "gradle/wrapper/gradle-wrapper.properties"
@@ -75,19 +77,19 @@ object GradleBuildGenMain {
     BuildGen.writeBuildFiles(packages1, millJvmId, merge.value, depNames, baseModule, millJvmOpts)
   }
 
-  private def conformBuild(packages: Seq[PackageSpec]) = {
+  private def normalizeBuild(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
     packages.map(pkg =>
       pkg.copy(module = pkg.module.recMap { module =>
         var module0 = module
         if (module0.supertypes.contains("PublishModule")) {
-          val (bomModuleDeps, bomModuleDepRefs) = module0.bomModuleDeps.base.partition { dep =>
-            moduleLookup(dep.segments).supertypes.contains("PublishModule")
+          val (bomModuleDeps, bomModuleRefs) = module0.bomModuleDeps.base.partition { dep =>
+            moduleLookup(dep.segments ++ dep.childSegment).supertypes.contains("PublishModule")
           }
-          if (bomModuleDepRefs.nonEmpty) {
+          if (bomModuleRefs.nonEmpty) {
             module0 = module0.copy(
-              bomMvnDeps = module0.bomMvnDeps.copy(appendModuleRefs = bomModuleDepRefs),
-              depManagement = module0.depManagement.copy(appendModuleRefs = bomModuleDepRefs),
+              bomMvnDeps = module0.bomMvnDeps.copy(appendModuleRefs = bomModuleRefs),
+              depManagement = module0.depManagement.copy(appendModuleRefs = bomModuleRefs),
               bomModuleDeps = bomModuleDeps
             )
           }

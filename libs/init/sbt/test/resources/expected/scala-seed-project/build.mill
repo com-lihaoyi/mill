@@ -32,5 +32,4 @@ object `package` extends PublishModule, SbtModule {
     def testSandboxWorkingDir = false
 
   }
-
 }

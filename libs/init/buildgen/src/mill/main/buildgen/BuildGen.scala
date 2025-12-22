@@ -4,6 +4,7 @@ import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
 
 import java.lang.System.lineSeparator
+import scala.reflect.NameTransformer.encode
 
 object BuildGen {
 
@@ -58,8 +59,8 @@ object BuildGen {
 
   def withBaseModule(
       packages: Seq[PackageSpec],
-      testSupertype: String,
-      moduleHierarchy: String*
+      moduleHierarchy: Seq[String],
+      testHierarchy: Seq[String]
   ): Option[(ModuleSpec, Seq[PackageSpec])] = {
     def parentValue[A](a: Value[A], b: Value[A]) = Value(
       if (a.base == b.base) a.base else None,
@@ -73,7 +74,7 @@ object BuildGen {
     def parentModule(a: ModuleSpec, b: ModuleSpec, name: String, defaultSupertypes: Seq[String]) =
       ModuleSpec(
         name = name,
-        imports = (a.imports ++ b.imports).distinct.filter(_ != "import millbuild.*"),
+        imports = (a.imports ++ b.imports).distinct.filter(!_.startsWith("import millbuild.")),
         supertypes = a.supertypes.intersect(b.supertypes) match {
           case Nil => defaultSupertypes
           case seq => seq
@@ -166,9 +167,10 @@ object BuildGen {
       testFramework = extendValue(a.testFramework, parent.testFramework)
     )
     def canExtend(module: ModuleSpec) = module.supertypes.exists(moduleHierarchy.contains)
+    def isTestModule(module: ModuleSpec) = module.supertypes.exists(testHierarchy.contains)
     def recExtendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
       var a0 = a
-      var (tests0, children0) = a0.children.partition(_.isTestModule)
+      var (tests0, children0) = a0.children.partition(isTestModule)
       if (canExtend(a0)) {
         a0 = extendModule0(a0.copy(imports = "import millbuild.*" +: a0.imports), parent)
         if (parent.children.nonEmpty) {
@@ -182,14 +184,15 @@ object BuildGen {
     val extendingModules = packages.flatMap(_.module.tree).filter(canExtend)
     Option.when(extendingModules.length > 1) {
       val defaultSupertypes = moduleHierarchy.take(1)
-      val defaultTestSupertypes = Seq(testSupertype)
+      val defaultTestSupertypes = testHierarchy.take(1)
       val baseModule = extendingModules
         .reduce(parentModule(_, _, "ProjectBaseModule", defaultSupertypes))
         .copy(children =
-          extendingModules.flatMap(_.children.filter(_.isTestModule))
+          extendingModules.flatMap(_.children.filter(isTestModule))
             .reduceOption(parentModule(_, _, "Tests", defaultTestSupertypes)).toSeq
         )
-      val packages0 = packages.map(pkg => pkg.copy(module = recExtendModule(pkg.module, baseModule)))
+      val packages0 =
+        packages.map(pkg => pkg.copy(module = recExtendModule(pkg.module, baseModule)))
       (baseModule, packages0)
     }
   }
@@ -224,7 +227,13 @@ object BuildGen {
     for (module <- baseModule) do {
       val file = os.sub / os.SubPath(s"mill-build/src/${module.name}.scala")
       println(s"writing $file")
-      os.write(os.pwd / file, renderBaseModule(module), createFolders = true)
+      os.write(
+        os.pwd / file,
+        s"""package millbuild
+           |${renderImports(module)}
+           |${renderBaseModule(module)}""".stripMargin,
+        createFolders = true
+      )
     }
     val rootPackage +: nestedPackages = packages0: @unchecked
     val millJvmOptsLine = if (millJvmOpts.isEmpty) ""
@@ -269,8 +278,59 @@ object BuildGen {
     )
   }
 
-  private val ScalaIdentifier = "^[a-zA-Z_][\\w]*$".r
-  private def toScalaIdentifier(s: String) = if (ScalaIdentifier.matches(s)) s else s"`$s`"
+  private val alphaKeywords: Set[String] = Set(
+    "abstract",
+    "case",
+    "catch",
+    "class",
+    "def",
+    "do",
+    "else",
+    "enum",
+    "export",
+    "extends",
+    "false",
+    "final",
+    "finally",
+    "forSome",
+    "for",
+    "given",
+    "if",
+    "implicit",
+    "import",
+    "lazy",
+    "match",
+    "new",
+    "null",
+    "object",
+    "override",
+    "package",
+    "private",
+    "protected",
+    "return",
+    "sealed",
+    "super",
+    "then",
+    "this",
+    "throw",
+    "trait",
+    "try",
+    "true",
+    "type",
+    "val",
+    "var",
+    "while",
+    "with",
+    "yield",
+    "_",
+    "macro"
+  )
+  private def backtickWrap(s: String) = s match {
+    case s"`$_`" => s
+    case _ =>
+      if (encode(s) == s && !alphaKeywords.contains(s) && Character.isJavaIdentifierStart(s.head)) s
+      else s"`" + s + "`"
+  }
 
   private def renderDepsObject(depNames: Seq[(MvnDep, String)]) = {
     s"""package millbuild
@@ -281,15 +341,13 @@ object BuildGen {
        |}""".stripMargin
   }
 
-  private def renderBaseModule(module: ModuleSpec) = {
+  private def renderBaseModule(module: ModuleSpec): String = {
     import module.*
-    s"""package millbuild
-       |${renderImports(module)}
-       |trait $name ${renderExtendsClause(supertypes ++ mixins)} {
+    s"""trait $name ${renderExtendsClause(supertypes ++ mixins)} {
        |
        |  ${renderModuleBody(module)}
        |
-       |  ${children.sortBy(_.name).map(renderTestModule("trait", _)).mkString(lineSeparator * 2)}
+       |  ${children.sortBy(_.name).map(renderBaseModule).mkString(lineSeparator * 2)}
        |}""".stripMargin
   }
 
@@ -305,7 +363,13 @@ object BuildGen {
 
   private def renderModuleBody(module: ModuleSpec) = {
     import module.*
-    s"""${render("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)}
+    val aliasDeclaration = if (hasOuterAlias) " outer => " else ""
+    val renderModuleDir = if (useOuterModuleDir) "def moduleDir = outer.moduleDir" else ""
+    s"""$aliasDeclaration
+       |
+       |$renderModuleDir
+       |
+       |${render("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)}
        |
        |${render("compileModuleDeps", compileModuleDeps, encodeModuleDep, isTask = false)}
        |
@@ -381,17 +445,9 @@ object BuildGen {
        |""".stripMargin
   }
 
-  private def renderTestModule(scalaType: String, spec: ModuleSpec) = {
-    import spec.*
-    s"""$scalaType $name ${renderExtendsClause(supertypes ++ mixins)} {
-       |
-       |  ${renderModuleBody(spec)}
-       |}""".stripMargin
-  }
-
   private def renderPackage(pkg: PackageSpec) = {
     import pkg.*
-    val namespace = ("build" +: dir.segments.map(toScalaIdentifier)).mkString(".")
+    val namespace = ("build" +: dir.segments.map(backtickWrap)).mkString(".")
     s"""package $namespace
        |${renderImports(module)}
        |${renderModule(module, isPackageRoot = true)}
@@ -400,11 +456,11 @@ object BuildGen {
 
   private def renderModule(module: ModuleSpec, isPackageRoot: Boolean = false): String = {
     import module.*
-    val name0 = if (isPackageRoot) "`package`" else toScalaIdentifier(name)
+    val name0 = if (isPackageRoot) "`package`" else backtickWrap(name)
     val extendsClause = renderExtendsClause(supertypes ++ mixins)
     val typeDeclaration = if (crossKeys.isEmpty) s"object $name0 $extendsClause"
     else {
-      val crossTraitName = toScalaIdentifier(name.split("\\W") match {
+      val crossTraitName = backtickWrap(name.split("\\W") match {
         case Array("") => s"`${name}Module`"
         case parts => parts.map(_.capitalize).mkString("", "", "Module")
       })
@@ -413,19 +469,12 @@ object BuildGen {
       s"""object $name0 $crossExtendsClause
          |trait $crossTraitName $extendsClause""".stripMargin
     }
-    val aliasDeclaration = if (hasOuterAlias) " outer => " else ""
-    val renderModuleDir = if (useOuterModuleDir) "def moduleDir = outer.moduleDir" else ""
-    val (tests, children0) = children.partition(_.isTestModule)
 
-    s"""$typeDeclaration {$aliasDeclaration
-       |
-       |  $renderModuleDir
+    s"""$typeDeclaration {
        |
        |  ${renderModuleBody(module)}
        |
-       |  ${tests.map(renderTestModule("object", _)).mkString(lineSeparator * 2)}
-       |
-       |  ${children0.sortBy(_.name).map(renderModule(_)).mkString(lineSeparator * 2)}
+       |  ${children.sortBy(_.name).map(renderModule(_)).mkString(lineSeparator * 2)}
        |}""".stripMargin
   }
 
@@ -550,7 +599,7 @@ object BuildGen {
   private def encodeModuleDep(a: ModuleDep) = {
     import a.*
     val suffix = crossSuffix.getOrElse("") + childSegment.fold("")("." + _)
-    ("build" +: segments.map(toScalaIdentifier)).mkString("", ".", suffix)
+    ("build" +: segments.map(backtickWrap)).mkString("", ".", suffix)
   }
   private def encodeMvnDep(a: MvnDep) = a.ref.getOrElse(a.toString)
   private def encodeString(s: String) = s"\"$s\""

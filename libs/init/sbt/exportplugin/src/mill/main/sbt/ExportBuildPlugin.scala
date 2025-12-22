@@ -255,7 +255,8 @@ object ExportBuildPlugin extends AutoPlugin {
           ),
           testParallelism = Some(false),
           testSandboxWorkingDir = Some(false),
-          testFramework = if (testMixin.isEmpty) Some(testFramework(testMvnDeps)) else None
+          testFramework =
+            if (testMixin.isEmpty) testFramework(testMvnDeps).orElse(Some("")) else None
         )
         mainModule = mainModule.copy(
           hasOuterAlias = mainModule.compileMvnDeps.base.nonEmpty ||
@@ -282,7 +283,7 @@ object ExportBuildPlugin extends AutoPlugin {
 
   private def testFramework(deps: Seq[MvnDep]) = deps.collectFirst {
     case dep if dep.organization == "com.eed3si9n.verify" => "verify.runner.Framework"
-  }.getOrElse("")
+  }
 
   // Cleanup `CrossType.Pure` module names.
   private def toModuleName(dirName: String) = dirName.stripPrefix(".")

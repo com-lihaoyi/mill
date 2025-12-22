@@ -438,4 +438,17 @@ object `package` extends MavenModule, PublishModule {
 
   def publishVersion = "0.0.1-SNAPSHOT"
 
+  object test extends MavenTests {
+
+    def mvnDeps = Seq(Deps.springBootStarterTest)
+
+    def forkWorkingDir = moduleDir
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+
+    def testFramework = sys.error("no test framework")
+
+  }
 }

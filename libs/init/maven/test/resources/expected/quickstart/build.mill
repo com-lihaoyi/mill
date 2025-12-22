@@ -44,5 +44,4 @@ object `package` extends MavenModule, ErrorProneModule, PublishModule {
     def testSandboxWorkingDir = false
 
   }
-
 }

@@ -98,20 +98,28 @@ object SbtBuildGenMain {
           )
         )
     }.toSeq
-    packages = conformBuild(packages)
+    packages = normalizeBuild(packages)
 
     val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
     val (baseModule, packages1) = Option.when(!noMeta.value)(
-      BuildGen.withBaseModule(packages0, "CrossSbtPlatformTests", "CrossSbtPlatformModule")
-        .orElse(BuildGen.withBaseModule(
-          packages0,
-          "CrossSbtTests",
-          "CrossSbtModule",
-          "CrossSbtPlatformModule"
-        ))
-        .orElse(BuildGen.withBaseModule(packages0, "SbtPlatformTests", "SbtPlatformModule"))
-        .orElse(BuildGen.withBaseModule(packages0, "SbtTests", "SbtModule", "SbtPlatformModule"))
+      BuildGen.withBaseModule(
+        packages0,
+        Seq("CrossSbtPlatformModule"),
+        Seq("CrossSbtPlatformTests")
+      ).orElse(BuildGen.withBaseModule(
+        packages0,
+        Seq("CrossSbtModule", "CrossSbtPlatformModule"),
+        Seq("CrossSbtTests")
+      )).orElse(BuildGen.withBaseModule(
+        packages0,
+        Seq("SbtPlatformModule"),
+        Seq("SbtPlatformTests")
+      )).orElse(BuildGen.withBaseModule(
+        packages0,
+        Seq("SbtModule", "SbtPlatformModule"),
+        Seq("SbtTests")
+      ))
     ).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
     val millJvmOpts = {
       val file = os.pwd / ".jvmopts"
@@ -207,45 +215,54 @@ object SbtBuildGenMain {
     normalizeModule(crossVersionModules.reduce(combineModule))
   }
 
-  private def conformBuild(packages: Seq[PackageSpec]) = {
+  private def normalizeBuild(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
     def moduleDepExists(dep: ModuleDep) = moduleLookup.contains(dep.segments ++ dep.childSegment)
-    def conformModuleDeps(values: Values[ModuleDep]) = {
+    def filterModuleDeps(values: Values[ModuleDep]) = {
       import values.*
       values.copy(
         base.filter(moduleDepExists),
         cross.map((k, v) => (k, v.filter(moduleDepExists))).filter(_._2.nonEmpty)
       )
     }
-    val platformedDeps = packages.flatMap(_.module.tree).flatMap { module =>
+    val platformedMvnDeps = packages.flatMap(_.module.tree).flatMap { module =>
       import module.*
       Seq(mvnDeps, compileMvnDeps, runMvnDeps, scalacPluginMvnDeps)
     }.flatMap(values => values.base ++ values.cross.flatMap(_._2)).filter(_.cross.platformed).toSet
-    def beautifyMvnDep(dep: MvnDep) = {
+    def toPlatformedMvnDep(dep: MvnDep) = {
       val dep0 = if (dep.cross.platformed) dep
       else dep.copy(cross = dep.cross match {
         case v: CrossVersion.Constant => v.copy(platformed = true)
         case v: CrossVersion.Binary => v.copy(platformed = true)
         case v: CrossVersion.Full => v.copy(platformed = true)
       })
-      if (platformedDeps.contains(dep0)) dep0 else dep
+      if (platformedMvnDeps.contains(dep0)) dep0 else dep
     }
-    def beautifyMvnDeps(deps: Values[MvnDep]) = deps.copy(
-      base = deps.base.map(beautifyMvnDep),
-      cross = deps.cross.map((k, v) => (k, v.map(beautifyMvnDep)))
+    def toPlatformedMvnDeps(deps: Values[MvnDep]) = deps.copy(
+      base = deps.base.map(toPlatformedMvnDep),
+      cross = deps.cross.map((k, v) => (k, v.map(toPlatformedMvnDep)))
     )
+    def recMvnDeps(module: ModuleSpec): Seq[MvnDep] = module.mvnDeps.base ++ module.moduleDeps.base
+      .flatMap(dep => recMvnDeps(moduleLookup(dep.segments ++ dep.childSegment)))
     packages.map(pkg =>
       pkg.copy(module = pkg.module.recMap { module =>
         import module.*
-        module.copy(
-          moduleDeps = conformModuleDeps(moduleDeps),
-          compileModuleDeps = conformModuleDeps(compileModuleDeps),
-          runModuleDeps = conformModuleDeps(runModuleDeps),
-          mvnDeps = beautifyMvnDeps(mvnDeps),
-          compileMvnDeps = beautifyMvnDeps(compileMvnDeps),
-          runMvnDeps = beautifyMvnDeps(runMvnDeps),
-          scalacPluginMvnDeps = beautifyMvnDeps(scalacPluginMvnDeps)
+        var module0 = module.copy(
+          moduleDeps = filterModuleDeps(moduleDeps),
+          compileModuleDeps = filterModuleDeps(compileModuleDeps),
+          runModuleDeps = filterModuleDeps(runModuleDeps),
+          mvnDeps = toPlatformedMvnDeps(mvnDeps),
+          compileMvnDeps = toPlatformedMvnDeps(compileMvnDeps),
+          runMvnDeps = toPlatformedMvnDeps(runMvnDeps),
+          scalacPluginMvnDeps = toPlatformedMvnDeps(scalacPluginMvnDeps)
         )
+        if (module0.testFramework.base.contains("")) {
+          val testMixin = ModuleSpec.testModuleMixin(recMvnDeps(module0))
+          if (testMixin.nonEmpty) {
+            module0 = module0.copy(mixins = module0.mixins ++ testMixin, testFramework = None)
+          }
+        }
+        module0
       })
     )
   }

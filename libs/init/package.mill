@@ -108,12 +108,13 @@ object `package` extends MillPublishScalaModule {
         import mock.*
         val cacheDir = Task.dest
         val repoName = gitUrl.split("/").last.stripSuffix(".git")
-        val repoDir = cacheDir / repoName / os.RelPath(gitBranch)
+        val repoDir = cacheDir / repoName
         if (os.exists(repoDir)) {
           os.proc("git", "clean", "-fdx").call(repoDir)
         } else {
-          os.proc("git", "clone", gitUrl, "--depth", 1, "-b", gitBranch, repoDir).call(cacheDir)
+          os.proc("git", "clone", gitUrl, repoDir).call(cacheDir)
         }
+        os.proc("git", "checkout", "--detach", gitRev).call(repoDir, stdout = os.Inherit)
         Jvm.callProcess(
           mainClass = finalMainClass(),
           mainArgs = initArgs,
@@ -129,16 +130,11 @@ object `package` extends MillPublishScalaModule {
           stdout = os.Inherit
         )
         val millExe = millExecutable().path
-        def resolve(task: String) = {
-          val result = os.proc(millExe, "resolve", task).call(repoDir, check = false)
-          if (result.exitCode == 0) result.out.lines() else Nil
-        }
-        def check(task: String) = {
-          val result = os.proc(millExe, task).call(repoDir, stdout = os.Inherit, check = false)
-          result.exitCode == 0
-        }
         try {
-          val (passed, failed) = checkTasks.flatMap(resolve).partition(check)
+          val (passed, failed) = checkTasks.partition { task =>
+            val result = os.proc(millExe, task).call(repoDir, stdout = os.Inherit, check = false)
+            result.exitCode == 0
+          }
           MockResult(mock, passed, failed)
         } finally {
           os.proc(millExe, "shutdown").call(repoDir, check = false)
@@ -155,7 +151,7 @@ object `package` extends MillPublishScalaModule {
     }
   }
   object gradle extends buildgen.MainModule with BuildInfo {
-    def moduleDeps = Seq(api, buildgen, build.libs.util.java11)
+    def moduleDeps = super.moduleDeps ++ Seq(api, build.libs.util.java11)
     def mvnDeps = super.mvnDeps() ++ Seq(Deps.gradleApi)
     def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
     def buildInfoPackageName = "mill.main.gradle"
@@ -168,7 +164,12 @@ object `package` extends MillPublishScalaModule {
     }
     def resources = Task { super.resources() ++ Seq(exportpluginAssemblyResource()) }
     def mocks = Map(
-      "asm" -> Mock("https://gitlab.ow2.org/asm/asm.git", "ASM_9_9"),
+      "asm" -> Mock(
+        "https://gitlab.ow2.org/asm/asm.git",
+        "ASM_9_9",
+        Seq("--gradle-jvm-id", "11"),
+        Seq("__.compile", "__.test")
+      ),
       "ehcache3" -> Mock(
         "https://github.com/ehcache/ehcache3.git",
         "v3.10.8",
@@ -203,7 +204,6 @@ object `package` extends MillPublishScalaModule {
     }
   }
   object maven extends buildgen.MainModule {
-    def moduleDeps = Seq(buildgen)
     override def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.MavenInit.mavenEmbedder,
       Deps.MavenInit.mavenResolverConnectorBasic,
@@ -222,10 +222,20 @@ object `package` extends MillPublishScalaModule {
       "byte-buddy" -> Mock("https://github.com/raphw/byte-buddy.git", "byte-buddy-1.17.8"),
       "checkstyle" -> Mock("https://github.com/checkstyle/checkstyle.git", "checkstyle-12.1.1"),
       "error-prone" -> Mock("https://github.com/google/error-prone.git", "v2.43.0"),
-      "jansi" -> Mock("https://github.com/fusesource/jansi.git", "jansi-2.4.2"),
+      "fastjson2" -> Mock(
+        "https://github.com/alibaba/fastjson2.git",
+        "2.0.60",
+        Seq("--mill-jvm-id", "zulu:21")
+      ),
+      "jansi" -> Mock(
+        "https://github.com/fusesource/jansi.git",
+        "jansi-2.4.2",
+        checkTasks = Seq("__.compile", "__.test")
+      ),
       "java-design-patterns" -> Mock(
         "https://github.com/iluwatar/java-design-patterns",
-        "open-source-java-design-patterns-2nd-edition"
+        "ede37bd05568b1b8b814d8e9a1d2bbd71d9d615d",
+        Seq("--mill-jvm-id", "temurin:21")
       ),
       "joda-beans" -> Mock("https://github.com/JodaOrg/joda-beans.git", "v2.11.1"),
       "netty" -> Mock("https://github.com/netty/netty.git", "netty-4.2.7.Final"),
@@ -234,7 +244,7 @@ object `package` extends MillPublishScalaModule {
   }
 
   object sbt extends buildgen.MainModule with BuildInfo {
-    def moduleDeps = Seq(api(Deps.scalaVersionJava11), buildgen)
+    def moduleDeps = super.moduleDeps ++ Seq(api(Deps.scalaVersionJava11))
     def sbtPluginJarResource = Task {
       os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
@@ -286,9 +296,9 @@ object `package` extends MillPublishScalaModule {
 @mainargs.main
 private case class Mock(
     @mainargs.arg(positional = true) gitUrl: String,
-    @mainargs.arg(positional = true) gitBranch: String,
+    @mainargs.arg(positional = true) gitRev: String,
     initArgs: Seq[String] = Nil,
-    checkTasks: Seq[String] = Seq("__.compile", "__.test")
+    checkTasks: Seq[String] = Seq("__.compile")
 ) derives upickle.default.ReadWriter
 private object Mock {
   given mainargs.TokensReader[Mock] = mainargs.Parser[Mock]

@@ -23,13 +23,15 @@ object GradleBuildGenTests extends TestSuite {
     test("8.0") {
       assert(checker.check(
         sourceRel = "gradle-8-0",
-        expectedRel = os.sub / "expected/gradle-8-0"
+        expectedRel = os.sub / "expected/gradle-8-0",
+        initArgs = Seq("--gradle-jvm-id", "11")
       ))
     }
     test("9.0.0") {
       assert(checker.check(
         sourceRel = "gradle-9-0-0",
-        expectedRel = os.sub / "expected/gradle-9-0-0"
+        expectedRel = os.sub / "expected/gradle-9-0-0",
+        initArgs = Seq("--gradle-jvm-id", "21")
       ))
     }
     test("with-args") {

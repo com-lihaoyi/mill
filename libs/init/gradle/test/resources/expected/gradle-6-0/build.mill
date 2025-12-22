@@ -25,5 +25,4 @@ object `package` extends MavenModule {
     def testSandboxWorkingDir = false
 
   }
-
 }

@@ -108,7 +108,6 @@ object `package` extends MavenModule, PublishModule {
         def testSandboxWorkingDir = false
 
       }
-
     }
 
     object webapp extends MavenModule, PublishModule {
@@ -208,6 +207,5 @@ object `package` extends MavenModule, PublishModule {
       def testSandboxWorkingDir = false
 
     }
-
   }
 }

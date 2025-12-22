@@ -109,13 +109,14 @@ class Plugins(model: Model) {
     )
   }
 
-  def testForkArgs: Seq[Opt] = plugin("maven-surefire-plugin").flatMap(config).fold(Nil) { dom =>
-    children(dom, "systemPropertyVariables").map { dom =>
-      val key = dom.getName
-      val value = dom.getValue
-      Opt(s"-D$key=$value")
+  def testForkArgs: Seq[Opt] = plugin("maven-surefire-plugin").flatMap(config)
+    .flatMap(child(_, "systemPropertyVariables")).fold(Nil) { dom =>
+      dom.getChildren.toSeq.map { dom =>
+        val key = dom.getName
+        val value = dom.getValue
+        Opt(s"-D$key=$value")
+      }
     }
-  }
 
   private def plugin(artifactId: String, groupId: String = "org.apache.maven.plugins") =
     model.getBuild.getPlugins.asScala.find(p =>

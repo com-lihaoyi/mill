@@ -20,5 +20,4 @@ object `package` extends ProjectBaseModule, ErrorProneModule {
       Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
   }
-
 }

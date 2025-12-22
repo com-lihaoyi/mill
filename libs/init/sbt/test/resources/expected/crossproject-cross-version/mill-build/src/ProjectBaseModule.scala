@@ -25,4 +25,13 @@ trait ProjectBaseModule extends PublishModule, CrossSbtPlatformModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
+  trait Tests extends CrossSbtPlatformTests {
+
+    def testParallelism = false
+
+    def testSandboxWorkingDir = false
+
+    def testFramework = sys.error("no test framework")
+
+  }
 }

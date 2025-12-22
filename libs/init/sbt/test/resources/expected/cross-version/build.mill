@@ -35,5 +35,4 @@ trait CrossVersionModule extends PublishModule, CrossSbtModule {
     def testSandboxWorkingDir = false
 
   }
-
 }
