@@ -4,8 +4,8 @@ import mill.*, scalalib.*
 object foo extends ScalaModule {
   def scalaVersion = "2.12.20"
   def mvnDeps = Seq(
-    mvn"org.apache.spark::spark-core:3.5.4",
-    mvn"org.apache.spark::spark-sql:3.5.4"
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6"
   )
 
   def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
@@ -18,7 +18,35 @@ object foo extends ScalaModule {
   }
 
 }
-// This examples demonstrates running spark using mill.
+
+// This example demonstrates the basic setup for an Apache Spark application
+// using Mill. It shows how to configure Spark dependencies and create a simple
+// "Hello World" Spark application that creates and displays a DataFrame.
+//
+// === Build Configuration
+//
+// The build uses Scala 2.12, which is the recommended version for Spark 3.x
+// applications. The key dependencies are:
+//
+// * `spark-core` - The core Spark library providing RDD-based processing
+// * `spark-sql` - Provides DataFrame and Dataset APIs for structured data
+//
+// The `forkArgs` configuration adds JVM flags required by Spark 3.x on Java 17+
+// to allow internal reflection. Without this flag, you would see
+// `InaccessibleObjectException` errors at runtime.
+
+/** See Also: foo/src/foo/Foo.scala */
+
+// The application creates a local SparkSession, which is the entry point to
+// Spark functionality. The `local[*]` master URL tells Spark to run locally
+// using all available CPU cores.
+
+/** See Also: foo/test/src/FooTests.scala */
+
+// === Running the Application
+//
+// Mill makes it straightforward to run Spark applications locally during
+// development:
 
 /** Usage
 
@@ -36,3 +64,8 @@ object foo extends ScalaModule {
 + foo.FooTests.helloWorld should create a DataFrame with one row containing 'Hello, World!'...
 ...
 */
+
+// The test suite demonstrates how to unit test Spark code by creating a local
+// SparkSession and validating DataFrame contents. This pattern of creating
+// isolated SparkSessions in tests is a common practice for testing Spark
+// applications.

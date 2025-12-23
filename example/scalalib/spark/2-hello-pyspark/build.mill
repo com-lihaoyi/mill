@@ -10,6 +10,36 @@ object foo extends PythonModule {
 
 }
 
+// This example shows how to run PySpark applications using Mill's Python
+// support. PySpark is the Python API for Apache Spark, allowing you to write
+// Spark applications entirely in Python.
+//
+// === Build Configuration
+//
+// The build extends `PythonModule` (from `mill.pythonlib`) rather than
+// `ScalaModule`. Key configurations:
+//
+// * `mainScript` - Points to the Python entry point
+// * `pythonDeps` - Lists Python package dependencies (uses pip-style syntax)
+//
+// Note: PySpark 4.x is Spark 4.0, which supports Python 3.9+. For Spark 3.x,
+// use `pyspark==3.5.4` instead.
+
+/** See Also: foo/src/foo.py */
+
+// The Python code mirrors the Scala example, creating a SparkSession and a
+// simple DataFrame. PySpark's API closely follows Spark's Scala API, making
+// it easy to translate between the two languages.
+
+/** See Also: foo/test/src/test.py */
+
+// The test uses Python's standard `unittest` framework. Mill's `TestModule.Unittest`
+// handles test discovery and execution automatically.
+//
+// === Running the Application
+//
+// Running PySpark apps works the same as any Mill Python module:
+
 /** Usage
 
 > ./mill foo.run
@@ -30,3 +60,7 @@ Ran 1 test...
 OK
 ...
 */
+
+// Mill handles PySpark dependency installation and environment setup
+// automatically. The `pyspark` package includes Spark itself, so no separate
+// Spark installation is required for local development.

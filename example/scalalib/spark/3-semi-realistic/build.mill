@@ -21,8 +21,34 @@ object `package` extends ScalaModule {
 
 }
 
-// This examples demonstrates a semi realistic example calculating summary statics
-// from a transactions.csv passed in as argument, defaulting to resources if not present.
+// This example demonstrates a more realistic Spark application that reads data
+// from a CSV file and computes summary statistics. It also shows how to package
+// and deploy the application using `spark-submit`.
+//
+// === Build Configuration
+//
+// The build uses `object \`package\`` syntax to define a root-level module,
+// making commands shorter (`./mill run` instead of `./mill foo.run`). Key
+// configurations:
+//
+// * `prependShellScript = ""` - Disables the shell script preamble in the
+//   assembly JAR. This is required for `spark-submit` compatibility, as Spark
+//   expects a plain JAR file without embedded scripts.
+
+/** See Also: src/foo/Foo.scala */
+
+// The application demonstrates several common Spark patterns:
+//
+// * Reading CSV files with schema inference
+// * Using typed Datasets with case classes
+// * DataFrame aggregations (`groupBy`, `sum`, `avg`, `count`)
+// * Command-line argument handling for input file paths
+
+/** See Also: resources/transactions.csv */
+
+// === Running Locally
+//
+// During development, you can run the application directly through Mill:
 
 /** Usage
 
@@ -43,9 +69,24 @@ Summary Statistics by Category:
 + foo.FooTests.computeSummary should compute correct summary statistics...
 ...
 
+*/
+
+// === Packaging for Deployment
+//
+// For production deployment to a Spark cluster, use Mill's `assembly` task
+// to create a fat JAR containing all dependencies:
+
+/** See Also: spark-submit.sh */
+
+// The `spark-submit.sh` script handles Spark installation (if needed) and
+// runs the application. It accepts the JAR path, main class, and optional
+// arguments:
+
+/** Usage
+
 > chmod +x spark-submit.sh
 
-> ./mill show assembly # prepare for spark-submit
+> ./mill show assembly
 ".../out/assembly.dest/out.jar"
 
 > ./spark-submit.sh out/assembly.dest/out.jar foo.Foo resources/transactions.csv
@@ -60,3 +101,13 @@ Summary Statistics by Category:
 +-----------+------------+--------------+-----------------+
 ...
 */
+
+// === Testing
+//
+// The test suite validates the aggregation logic using in-memory test data:
+
+/** See Also: test/src/FooTests.scala */
+
+// This pattern of testing Spark transformations with small in-memory datasets
+// allows for fast, reliable unit tests without needing external data sources
+// or cluster resources.

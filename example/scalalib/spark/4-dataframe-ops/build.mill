@@ -1,0 +1,73 @@
+package build
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.12.20"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+}
+
+// This example demonstrates common DataFrame operations in Spark using Mill.
+// DataFrames are the primary abstraction for working with structured data in
+// Spark, providing a distributed collection organized into named columns.
+//
+// === DataFrame Operations Covered
+//
+// This example shows several essential DataFrame operations:
+//
+// * *Creating DataFrames* - From sequences, case classes, and external sources
+// * *Column Selection* - Using `select()` to choose specific columns
+// * *Filtering* - Using `filter()` and `where()` with conditions
+// * *Transformations* - Adding columns with `withColumn()`, renaming, dropping
+// * *Aggregations* - Computing statistics with `groupBy()` and agg functions
+// * *Joins* - Combining DataFrames with various join types
+// * *Sorting* - Ordering results with `orderBy()`
+
+/** See Also: src/dataframe/DataFrameOps.scala */
+
+// The example uses a sample employee dataset to demonstrate these operations.
+// Each operation prints its results to show the transformation applied.
+//
+// === Key Concepts
+//
+// * *Column references* - Use `$"columnName"` or `col("columnName")` syntax
+// * *Lazy evaluation* - Transformations are only executed when an action
+//   (like `show()` or `collect()`) is called
+// * *Immutability* - Each operation returns a new DataFrame; the original
+//   is unchanged
+// * *Schema inference* - Spark automatically infers column types from data
+
+/** Usage
+
+> ./mill run
+...
+=== Original DataFrame ===
++---+-------+----------+------+
+| id|   name|department|salary|
++---+-------+----------+------+
+|  1|  Alice|   Finance| 75000|
+|  2|    Bob|       Eng| 85000|
+|  3|Charlie|       Eng| 90000|
+|  4|  Diana|   Finance| 72000|
+|  5|    Eve|        HR| 65000|
++---+-------+----------+------+
+...
+=== Select name and salary ===
+...
+=== Filter salary > 70000 ===
+...
+=== Add bonus column ===
+...
+=== Group by department ===
+...
+=== Sorted by salary desc ===
+...
+*/
+
+// These DataFrame operations are the foundation of most Spark data processing
+// pipelines. They can be chained together to build complex transformations
+// while maintaining readable code.

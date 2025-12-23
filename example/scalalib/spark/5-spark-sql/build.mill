@@ -1,0 +1,69 @@
+package build
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.12.20"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+}
+
+// This example demonstrates using Spark SQL to query data using standard SQL
+// syntax. Spark SQL allows you to run SQL queries against DataFrames and
+// external data sources, making it easy for analysts familiar with SQL to
+// work with distributed data.
+//
+// === Key Features
+//
+// Spark SQL provides:
+//
+// * *SQL Queries* - Write familiar SQL against DataFrames
+// * *Temporary Views* - Register DataFrames as queryable tables
+// * *External Data Sources* - Query Parquet, JSON, CSV, and databases directly
+// * *UDFs* - Create custom SQL functions in Scala
+// * *Catalog API* - Manage tables, views, and metadata programmatically
+//
+// === Registering Views
+//
+// Before querying a DataFrame with SQL, you must register it as a view:
+//
+// * `createOrReplaceTempView("name")` - Session-scoped temporary view
+// * `createOrReplaceGlobalTempView("name")` - Cross-session view (accessed
+//   via `global_temp.name`)
+
+/** See Also: src/sparksql/SparkSQLExample.scala */
+
+// The example reads product data from a JSON file and demonstrates various
+// SQL queries including filtering, aggregation, and window functions.
+
+/** See Also: resources/products.json */
+
+/** Usage
+
+> ./mill run
+...
+=== All products ===
++---+-----------+--------+-----+--------+
+| id|       name|category|price|in_stock|
++---+-----------+--------+-----+--------+
+|  1|     Laptop|   Tech| 999|    true|
+|  2|     Tablet|   Tech| 499|    true|
+|  3|      Chair|  Office| 150|   false|
+|  4|       Desk|  Office| 350|    true|
+|  5|  Headphone|   Tech| 199|    true|
++---+-----------+--------+-----+--------+
+...
+=== Products over $200 ===
+...
+=== Average price by category ===
+...
+=== Rank products by price within category ===
+...
+*/
+
+// Spark SQL queries are optimized using the Catalyst optimizer, providing
+// the same performance as DataFrame operations. You can mix SQL queries
+// with DataFrame transformations in the same application.

@@ -1,17 +1,82 @@
-= Spark Examples
+= Apache Spark with Mill
 :page-aliases: Spark_Examples.adoc
 
+This page provides documentation and examples for building Apache Spark applications
+with Mill. Spark is a unified analytics engine for large-scale data processing,
+supporting batch processing, SQL queries, streaming, and machine learning workloads.
 
-This page will discuss running spark in scala and python.
+Mill makes it straightforward to develop Spark applications by managing dependencies,
+compilation, testing, and packaging. The examples below progress from basic setups
+to production-ready patterns.
 
-== Hello Spark
+== Getting Started
+
+=== Hello Spark (Scala)
 
 include::partial$example/scalalib/spark/1-hello-spark.adoc[]
 
-== Hello Pyspark
+=== Hello PySpark (Python)
 
 include::partial$example/scalalib/spark/2-hello-pyspark.adoc[]
 
-== Semi realistic spark project with spark submit
+== Data Processing
+
+=== DataFrame Operations
+
+include::partial$example/scalalib/spark/4-dataframe-ops.adoc[]
+
+=== Spark SQL Queries
+
+include::partial$example/scalalib/spark/5-spark-sql.adoc[]
+
+== Advanced Topics
+
+=== Realistic Project with spark-submit
 
 include::partial$example/scalalib/spark/3-semi-realistic.adoc[]
+
+=== Multi-Module Projects
+
+include::partial$example/scalalib/spark/6-multi-module.adoc[]
+
+=== Structured Streaming
+
+include::partial$example/scalalib/spark/7-streaming.adoc[]
+
+=== Machine Learning Pipeline
+
+include::partial$example/scalalib/spark/8-mllib.adoc[]
+
+== Best Practices
+
+=== Scala Version
+
+Spark 3.x is built against Scala 2.12 and 2.13. Use Scala 2.12.x for maximum
+compatibility with the Spark ecosystem, as many libraries still target 2.12.
+For Spark 4.x (PySpark 4.0+), Scala 2.13 is recommended.
+
+=== Java Compatibility
+
+When running Spark 3.x on Java 17+, add JVM arguments to allow internal reflection:
+
+[source,scala]
+----
+def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+----
+
+=== Assembly JARs for Deployment
+
+When creating fat JARs for `spark-submit`, disable the shell script preamble:
+
+[source,scala]
+----
+def prependShellScript = ""
+----
+
+This ensures the JAR is a plain JAR file that Spark can process correctly.
+
+=== Testing Spark Code
+
+Create isolated SparkSessions in tests using `local[*]` mode. This allows
+parallel test execution and proper cleanup. Consider using `spark.sql.shuffle.partitions`
+set to a small number (e.g., 4) for faster test execution on local data.

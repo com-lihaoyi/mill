@@ -1,0 +1,5 @@
+{"id": 1, "name": "Laptop", "category": "Tech", "price": 999, "in_stock": true}
+{"id": 2, "name": "Tablet", "category": "Tech", "price": 499, "in_stock": true}
+{"id": 3, "name": "Chair", "category": "Office", "price": 150, "in_stock": false}
+{"id": 4, "name": "Desk", "category": "Office", "price": 350, "in_stock": true}
+{"id": 5, "name": "Headphone", "category": "Tech", "price": 199, "in_stock": true}
