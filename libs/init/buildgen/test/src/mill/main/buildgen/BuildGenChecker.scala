@@ -26,15 +26,21 @@ class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfig
       .call(cwd = testRoot, stdout = os.Inherit)
 
     val buildFiles = Util.buildFiles(testRoot)
-    object module extends TestRootModule with ScalafmtModule {
-      override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = buildFiles.map(PathRef(_))
+    // Only format Scala files, not YAML files
+    val scalaFiles = buildFiles.filter(_.last.endsWith(".mill"))
+    if (scalaFiles.nonEmpty) {
+      object module extends TestRootModule with ScalafmtModule {
+        override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = scalaFiles.map(PathRef(_))
 
-      override def scalafmtConfig: T[Seq[PathRef]] = Seq(PathRef(scalafmtConfigFile))
+        override def scalafmtConfig: T[Seq[PathRef]] = Seq(PathRef(scalafmtConfigFile))
 
-      lazy val millDiscover = Discover[this.type]
+        lazy val millDiscover = Discover[this.type]
+      }
+      UnitTester(module, testRoot).scoped { eval =>
+        eval(module.reformat())
+      }
     }
-    UnitTester(module, testRoot).scoped { eval =>
-      eval(module.reformat())
+    locally {
 
       // Remove non-build files before computing diff
       val toCleanUp = os.walk.stream(testRoot, skip = buildFiles.contains)
@@ -45,7 +51,7 @@ class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfig
       val expectedRoot = sourceRoot / expectedRel
       // Try to normalize permissions while not touching those of committed test data
       val supportsPerms = FileSystems.getDefault.supportedFileAttributeViews().contains("posix")
-      if (supportsPerms)
+      if (supportsPerms && os.exists(expectedRoot))
         for {
           testFile <- os.walk(expectedRoot)
           if os.isFile(testFile)
@@ -54,9 +60,11 @@ class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfig
         }
           os.perms.set(targetFile, os.perms(testFile))
 
-      val diffExitCode = os.proc("git", "diff", "--no-index", expectedRoot, testRoot)
-        .call(stdin = os.Inherit, stdout = os.Inherit, check = !updateSnapshots)
-        .exitCode
+      val diffExitCode =
+        if (!os.exists(expectedRoot)) 1  // Force update if expected doesn't exist
+        else os.proc("git", "diff", "--no-index", expectedRoot, testRoot)
+          .call(stdin = os.Inherit, stdout = os.Inherit, check = !updateSnapshots)
+          .exitCode
 
       if (updateSnapshots && diffExitCode != 0) {
         System.err.println(
@@ -64,7 +72,7 @@ class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfig
         )
 
         os.remove.all(expectedRoot)
-        os.copy(testRoot, expectedRoot)
+        os.copy(testRoot, expectedRoot, createFolders = true)
       }
 
       diffExitCode == 0 || updateSnapshots

@@ -1,0 +1,10 @@
+mill-version: SNAPSHOT
+mill-jvm-version: system
+extends: [MavenModule, PublishModule]
+artifactName: parent
+pomPackagingType: pom
+pomSettings:
+  description: Just a pom that makes it easy to build both projects at the same time.
+  organization: com.example.maven-samples
+publishVersion: "1.0-SNAPSHOT"
+
