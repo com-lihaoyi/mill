@@ -1,0 +1,16 @@
+mill-version: SNAPSHOT
+mill-jvm-version: system
+extends: [PublishModule, SbtModule]
+scalaVersion: "2.13.12"
+artifactName: scala-seed-project
+pomSettings:
+  description: Scala Seed Project
+  organization: com.example
+publishVersion: "0.1.0-SNAPSHOT"
+object test:
+  extends: [SbtTests, TestModule.Munit]
+  mvnDeps:
+  - org.scalameta::munit:0.7.29
+  testParallelism: false
+  testSandboxWorkingDir: false
+
