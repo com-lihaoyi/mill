@@ -433,5 +433,5 @@ you may hit recursion limits. Design your tasks to avoid this.
 For complete API documentation, see:
 
 * {mill-doc-url}/api/latest/mill/api/Evaluator.html[`mill.api.Evaluator`]
-* {mill-doc-url}/api/latest/mill/api/SelectMode.html[`mill.api.SelectMode`]
+* {mill-doc-url}/api/latest/mill/api/daemon/SelectMode.html[`mill.api.SelectMode`]
 * {mill-doc-url}/api/latest/mill/api/Plan.html[`mill.api.Plan`]
