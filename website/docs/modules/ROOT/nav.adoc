@@ -91,6 +91,7 @@
 ** xref:extending/thirdparty-plugins.adoc[]
 ** xref:extending/running-jvm-code.adoc[]
 ** xref:extending/writing-plugins.adoc[]
+** xref:extending/evaluator-commands.adoc[]
 ** xref:extending/meta-build.adoc[]
 ** xref:extending/example-typescript-support.adoc[]
 ** xref:extending/example-python-support.adoc[]
@@ -138,4 +139,4 @@
 * Reference
 ** {mill-doc-url}/api/latest/mill.html[Mill API Reference]
 ** {mill-github-url}/blob/main/changelog.adoc[Changelog]
-** xref:reference/talks-blog-posts.adoc[]]
+** xref:reference/talks-blog-posts.adoc[]

@@ -1,0 +1,437 @@
+= Evaluator Commands
+:page-aliases: Evaluator_Commands.adoc
+
+
+
+The `Evaluator` is Mill's core API for resolving, planning, and executing tasks
+programmatically. While most Mill users interact with tasks by running them from
+the command line, plugin authors sometimes need to work with tasks dynamically
+at runtime. The `Evaluator` provides this capability.
+
+== When to Use Evaluator Commands
+
+The `Evaluator` API is designed for advanced use cases where you need to:
+
+* **Discover tasks at runtime**: Find all tasks matching a pattern (e.g., all `compile` tasks across modules)
+* **Build custom tooling**: Create commands that aggregate results across multiple modules
+* **Implement meta-commands**: Like Mill's built-in `show`, `plan`, `inspect`, and `visualize`
+* **Generate reports**: Collect data from multiple modules (e.g., coverage reports, dependency graphs)
+
+NOTE: Regular Mill tasks should *not* use the `Evaluator` directly. Instead, they
+should declare their dependencies explicitly via `Task` inputs. The `Evaluator`
+is specifically for `Task.Command`s marked with `exclusive = true` that need
+to introspect or orchestrate the build dynamically.
+
+== Accessing the Evaluator
+
+To access the `Evaluator` in your command, add it as a parameter to a
+`Task.Command` marked with `exclusive = true`:
+
+[source,scala]
+----
+import mill._
+import mill.api.{Evaluator, SelectMode}
+
+def myCommand(evaluator: Evaluator): Command[Unit] = Task.Command(exclusive = true) {
+  // Use evaluator here
+  ()
+}
+----
+
+The `exclusive = true` flag is required because commands using the `Evaluator`
+need exclusive access to Mill's execution environment. This prevents conflicts
+with other concurrent evaluations.
+
+== Core Evaluator Methods
+
+The `Evaluator` provides a pipeline of methods that mirror Mill's internal
+evaluation phases:
+
+[cols="1,3"]
+|===
+|Method |Purpose
+
+|`resolveSegments`
+|Parse task selector strings into `Segments` (path components)
+
+|`resolveTasks`
+|Convert selectors into actual `Task` objects
+
+|`plan`
+|Create an execution plan from tasks
+
+|`execute`
+|Run tasks and return results
+
+|`evaluate`
+|Convenience method combining resolve + execute
+|===
+
+=== resolveSegments
+
+Use `resolveSegments` when you need to know which tasks match a selector
+pattern without actually loading the task objects. This is useful for
+displaying matching tasks or validating selectors.
+
+[source,scala]
+----
+import mill._
+import mill.api.{Evaluator, SelectMode}
+
+def listMatchingTasks(evaluator: Evaluator, selector: String*): Command[List[String]] =
+  Task.Command(exclusive = true) {
+    evaluator.resolveSegments(selector, SelectMode.Multi) match {
+      case mill.api.Result.Success(segmentsList) =>
+        val taskPaths = segmentsList.map(_.render)
+        taskPaths.foreach(println)
+        mill.api.Result.Success(taskPaths)
+      case f: mill.api.Result.Failure =>
+        f
+    }
+  }
+----
+
+**Parameters:**
+
+* `scriptArgs: Seq[String]` - Task selectors like `"foo.compile"`, `"__.test"`, or `"_:ScalaModule.compile"`
+* `selectMode: SelectMode` - How to interpret multiple selectors:
+** `SelectMode.Separated` - Each selector is independent
+** `SelectMode.Multi` - All selectors combined
+
+**Use case example:** Mill's built-in `resolve` command uses this to show what
+tasks match a given query pattern:
+
+[source,bash]
+----
+./mill resolve __.compile
+# Outputs: foo.compile, bar.compile, etc.
+----
+
+=== resolveTasks
+
+Use `resolveTasks` when you need the actual `Task` objects, for example to
+inspect their dependencies or execute them selectively.
+
+[source,scala]
+----
+import mill._
+import mill.api.{Evaluator, SelectMode}
+
+def countSourceFiles(evaluator: Evaluator, modules: String*): Command[Int] =
+  Task.Command(exclusive = true) {
+    // Resolve all "allSourceFiles" tasks for matching modules
+    val selector = if (modules.isEmpty) Seq("__.allSourceFiles") else modules.map(_ + ".allSourceFiles")
+
+    evaluator.resolveTasks(selector, SelectMode.Multi).flatMap { tasks =>
+      // Execute the resolved tasks
+      val results = evaluator.execute(tasks)
+      results.values match {
+        case mill.api.Result.Success(values) =>
+          val totalFiles = values.flatMap { v =>
+            v.asInstanceOf[Seq[mill.api.PathRef]].map(_.path)
+          }.distinct.size
+          println(s"Total source files: $totalFiles")
+          mill.api.Result.Success(totalFiles)
+        case f: mill.api.Result.Failure =>
+          f
+      }
+    }
+  }
+----
+
+**Key difference from resolveSegments:** This returns `Task.Named[?]` objects
+that can be inspected for their dependencies (`.inputs`) and executed.
+
+=== plan
+
+Use `plan` to see what tasks would be executed without actually running them.
+This is essential for understanding task dependencies and debugging.
+
+[source,scala]
+----
+import mill._
+import mill.api.{Evaluator, SelectMode}
+
+def showExecutionPlan(evaluator: Evaluator, tasks: String*): Command[Seq[String]] =
+  Task.Command(exclusive = true) {
+    evaluator.resolveTasks(tasks, SelectMode.Multi).map { resolvedTasks =>
+      val executionPlan = evaluator.plan(resolvedTasks)
+
+      // Extract named tasks from the plan in execution order
+      val orderedTasks = executionPlan.sortedGroups.keys().collect {
+        case t: Task.Named[_] => t.ctx.segments.render
+      }.toSeq
+
+      println("Execution order:")
+      orderedTasks.zipWithIndex.foreach { case (name, idx) =>
+        println(s"  ${idx + 1}. $name")
+      }
+
+      orderedTasks
+    }
+  }
+----
+
+The `Plan` object returned by `plan` contains:
+
+* `sortedGroups` - Tasks grouped and topologically sorted for execution
+* All transitive dependencies of the input tasks
+
+**Use case:** Mill's built-in `plan` command uses this to show what would run:
+
+[source,bash]
+----
+./mill plan foo.assembly
+# Shows: foo.sources, foo.compile, foo.resources, foo.assembly
+----
+
+=== execute
+
+Use `execute` to run tasks directly when you have `Task` objects. This gives
+you fine-grained control over execution.
+
+[source,scala]
+----
+import mill._
+import mill.api.{Evaluator, SelectMode}
+
+def runTestsAndReport(evaluator: Evaluator): Command[String] =
+  Task.Command(exclusive = true) {
+    // Find all test tasks
+    evaluator.resolveTasks(Seq("__.test"), SelectMode.Multi).flatMap { testTasks =>
+      // Execute them
+      val results = evaluator.execute(testTasks)
+
+      // Analyze results
+      val executionResults = results.executionResults
+      val passed = executionResults.transitiveFailing.isEmpty
+      val totalTasks = executionResults.transitiveResults.size
+      val failedCount = executionResults.transitiveFailing.size
+
+      val summary = if (passed) {
+        s"All $totalTasks test tasks passed!"
+      } else {
+        s"$failedCount of $totalTasks test tasks failed"
+      }
+
+      println(summary)
+      mill.api.Result.Success(summary)
+    }
+  }
+----
+
+**Result structure:** `execute` returns an `Evaluator.Result[T]` containing:
+
+* `values` - The actual return values from executed tasks
+* `executionResults` - Detailed info about what ran, cached vs computed, failures
+* `selectedTasks` - Which tasks were actually selected to run
+* `watchable` - Files/inputs to watch for changes
+
+=== evaluate
+
+Use `evaluate` as a convenience method when you want to resolve and execute
+in one step. It's equivalent to calling `resolveTasks` followed by `execute`.
+
+[source,scala]
+----
+import mill._
+import mill.api.{Evaluator, SelectMode}
+
+def quickEval(evaluator: Evaluator, tasks: String*): Command[Unit] =
+  Task.Command(exclusive = true) {
+    evaluator.evaluate(tasks, SelectMode.Separated).flatMap {
+      case Evaluator.Result(_, mill.api.Result.Success(values), selectedTasks, _) =>
+        selectedTasks.zip(values).foreach { case (task, value) =>
+          println(s"${task}: $value")
+        }
+        mill.api.Result.Success(())
+      case Evaluator.Result(_, f: mill.api.Result.Failure, _, _) =>
+        f
+    }
+  }
+----
+
+== Real-World Examples
+
+=== Example 1: Cross-Module Report Generator
+
+A common use case is generating reports that aggregate data from multiple modules,
+like a combined test coverage report:
+
+[source,scala]
+----
+import mill._
+import mill.api.{Evaluator, SelectMode, PathRef}
+
+trait CoverageReportModule extends mill.Module {
+
+  def coverageReportAll(evaluator: Evaluator): Command[PathRef] =
+    Task.Command(exclusive = true) {
+      // Resolve all coverage data tasks across the build
+      val coverageDataSelector = "__.scoverage.data"
+      val sourceSelector = "__.allSources"
+
+      for {
+        dataTasks <- evaluator.resolveTasks(Seq(coverageDataSelector), SelectMode.Multi)
+        sourceTasks <- evaluator.resolveTasks(Seq(sourceSelector), SelectMode.Multi)
+
+        dataResults <- evaluator.execute(dataTasks).values
+        sourceResults <- evaluator.execute(sourceTasks).values
+      } yield {
+        val coverageFiles = dataResults.flatMap(_.asInstanceOf[Seq[PathRef]])
+        val sourceFiles = sourceResults.flatMap(_.asInstanceOf[Seq[PathRef]])
+
+        // Generate combined report (implementation details omitted)
+        val reportPath = Task.dest / "coverage-report"
+        os.makeDir.all(reportPath)
+
+        println(s"Generated coverage report from ${coverageFiles.size} data files")
+        println(s"Covering ${sourceFiles.size} source directories")
+
+        PathRef(reportPath)
+      }
+    }
+}
+----
+
+=== Example 2: Dependency Path Finder
+
+Find the dependency path between two tasks, useful for debugging why
+a task depends on another:
+
+[source,scala]
+----
+import mill._
+import mill.api.{Evaluator, SelectMode}
+
+def findPath(
+    evaluator: Evaluator,
+    from: String,
+    to: String
+): Command[List[String]] = Task.Command(exclusive = true) {
+
+  evaluator.resolveTasks(Seq(from, to), SelectMode.Multi).flatMap {
+    case Seq(srcTask, destTask) =>
+      // BFS to find path from src to dest via task inputs
+      val queue = collection.mutable.Queue[List[Task[?]]](List(srcTask))
+      val visited = collection.mutable.Set.empty[Task[?]]
+      var foundPath: Option[List[Task[?]]] = None
+
+      while (queue.nonEmpty && foundPath.isEmpty) {
+        val currentPath = queue.dequeue()
+        val currentTask = currentPath.head
+
+        if (currentTask == destTask) {
+          foundPath = Some(currentPath)
+        } else if (!visited.contains(currentTask)) {
+          visited.add(currentTask)
+          currentTask.inputs.foreach { input =>
+            queue.enqueue(input :: currentPath)
+          }
+        }
+      }
+
+      foundPath match {
+        case Some(path) =>
+          val labels = path.reverse.collect {
+            case t: Task.Named[_] => t.ctx.segments.render
+          }
+          println(s"Path from $from to $to:")
+          labels.foreach(l => println(s"  -> $l"))
+          mill.api.Result.Success(labels)
+
+        case None =>
+          mill.api.Result.Failure(s"No dependency path found from $from to $to")
+      }
+
+    case other =>
+      mill.api.Result.Failure(s"Expected exactly 2 tasks, got ${other.size}")
+  }
+}
+----
+
+=== Example 3: Selective Module Execution
+
+Execute tasks only on modules that match certain criteria:
+
+[source,scala]
+----
+import mill._
+import mill.api.{Evaluator, SelectMode}
+import mill.scalalib.ScalaModule
+
+def compileChangedModules(
+    evaluator: Evaluator,
+    filter: String = ""
+): Command[Int] = Task.Command(exclusive = true) {
+
+  // Resolve all compile tasks
+  evaluator.resolveTasks(Seq("__.compile"), SelectMode.Multi).flatMap { allCompileTasks =>
+    // Filter to only ScalaModule compiles if specified
+    val filteredTasks = if (filter.isEmpty) {
+      allCompileTasks
+    } else {
+      allCompileTasks.filter { task =>
+        task.ctx.segments.render.contains(filter)
+      }
+    }
+
+    if (filteredTasks.isEmpty) {
+      println("No matching modules found")
+      mill.api.Result.Success(0)
+    } else {
+      println(s"Compiling ${filteredTasks.size} modules...")
+      evaluator.execute(filteredTasks).values.map { _ =>
+        println(s"Successfully compiled ${filteredTasks.size} modules")
+        filteredTasks.size
+      }
+    }
+  }
+}
+----
+
+== Best Practices
+
+=== Do
+
+* **Always mark Evaluator commands as `exclusive = true`** - This ensures proper isolation
+* **Handle `Result.Failure` explicitly** - Task resolution and execution can fail
+* **Use appropriate `SelectMode`** - `Multi` for glob patterns, `Separated` for independent selectors
+* **Document your custom commands** - Users need to know what selectors are supported
+
+=== Don't
+
+* **Don't use Evaluator in regular tasks** - Only in `Task.Command(exclusive = true)`
+* **Don't ignore the Plan** - Understanding execution order helps debug issues
+* **Don't assume task types** - Use pattern matching when extracting values
+* **Don't call `execute` in loops** - Batch tasks together for efficient execution
+
+== Troubleshooting
+
+=== Common Issues
+
+**"Task not found" errors:**
+Check that your selector syntax is correct. Use `./mill resolve <selector>` to
+test patterns before using them in code.
+
+**Type casting errors:**
+Task results are typed as `Any`. Use pattern matching:
+[source,scala]
+----
+result match {
+  case seq: Seq[PathRef] => // handle
+  case other => // handle unexpected type
+}
+----
+
+**Recursive evaluation:**
+If your Evaluator command triggers tasks that themselves use the Evaluator,
+you may hit recursion limits. Design your tasks to avoid this.
+
+== API Reference
+
+For complete API documentation, see:
+
+* {mill-doc-url}/api/latest/mill/api/Evaluator.html[`mill.api.Evaluator`]
+* {mill-doc-url}/api/latest/mill/api/SelectMode.html[`mill.api.SelectMode`]
+* {mill-doc-url}/api/latest/mill/api/Plan.html[`mill.api.Plan`]
