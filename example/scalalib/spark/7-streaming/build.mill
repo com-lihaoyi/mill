@@ -1,0 +1,79 @@
+package build
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.12.20"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+}
+
+// This example demonstrates Spark Structured Streaming, which provides a
+// scalable and fault-tolerant stream processing engine built on the Spark SQL
+// engine. Structured Streaming lets you express streaming computations the
+// same way you would express batch computations on static data.
+//
+// === Structured Streaming Concepts
+//
+// Key concepts in Structured Streaming:
+//
+// * *Input Sources* - Where data comes from (files, Kafka, sockets, rate)
+// * *Output Sinks* - Where results go (console, files, Kafka, memory)
+// * *Triggers* - When to process new data (micro-batch or continuous)
+// * *Watermarks* - How to handle late-arriving data
+// * *Checkpointing* - Fault tolerance through state persistence
+//
+// === The Rate Source
+//
+// This example uses the `rate` source, which generates rows at a specified
+// rate. This is useful for testing and learning without needing external
+// systems like Kafka.
+
+/** See Also: src/streaming/StructuredStreamingExample.scala */
+
+// The example creates a streaming query that:
+//
+// 1. Generates events at 1 row per second
+// 2. Adds derived columns (event_type based on value)
+// 3. Aggregates counts by event type over a time window
+// 4. Outputs results to the console
+//
+// === Running the Stream
+
+/** Usage
+
+> timeout 15 ./mill run || true
+...
+=== Starting Structured Streaming Example ===
+...
+-------------------------------------------
+Batch: 0
+-------------------------------------------
+...
+-------------------------------------------
+Batch: 1
+-------------------------------------------
++----------+-----+
+|event_type|count|
++----------+-----+
+...
++----------+-----+
+...
+*/
+
+// Note: The example runs for a limited time using `timeout`. In production,
+// streaming jobs run continuously until explicitly stopped.
+//
+// === Output Modes
+//
+// Structured Streaming supports three output modes:
+//
+// * `complete` - Output the entire updated result table (used for aggregations)
+// * `append` - Only output new rows (no updates to previous output)
+// * `update` - Only output rows that were updated
+//
+// This example uses `complete` mode because it performs aggregations and
+// needs to show the full state of counts at each trigger.

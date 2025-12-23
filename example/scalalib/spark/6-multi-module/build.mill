@@ -1,0 +1,117 @@
+package build
+import mill.*, scalalib.*
+
+trait SparkModule extends ScalaModule {
+  def scalaVersion = "2.12.20"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6"
+  )
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+}
+
+object common extends SparkModule
+
+object etl extends SparkModule {
+  def moduleDeps = Seq(common)
+}
+
+object analytics extends SparkModule {
+  def moduleDeps = Seq(common)
+}
+
+// This example demonstrates how to structure a multi-module Spark project
+// using Mill. Multi-module builds are essential for larger Spark applications
+// where you want to separate concerns and promote code reuse.
+//
+// === Project Structure
+//
+// The project is organized into three modules:
+//
+// * `common` - Shared utilities, SparkSession configuration, and data models
+// * `etl` - Extract, Transform, Load jobs that prepare data
+// * `analytics` - Analysis jobs that consume prepared data
+//
+// === Defining Shared Configuration
+//
+// The `SparkModule` trait centralizes common settings across all modules:
+//
+// * Scala and Spark versions are defined once
+// * JVM arguments for Java 17+ compatibility
+// * Common dependencies
+
+/** See Also: common/src/common/SparkUtils.scala */
+
+// The common module provides reusable components like SparkSession builders
+// and shared data models.
+
+/** See Also: etl/src/etl/DataPrepJob.scala */
+
+// The ETL module depends on `common` and contains data preparation jobs.
+
+/** See Also: analytics/src/analytics/AnalyticsJob.scala */
+
+// The analytics module also depends on `common` and contains analysis jobs.
+//
+// === Running Individual Modules
+//
+// Each module can be run independently:
+
+/** Usage
+
+> ./mill etl.run
+...
+=== ETL Job: Preparing user data ===
+...
++----+-------+---+------+
+|user|   name|age|active|
++----+-------+---+------+
+|   1|  Alice| 28|  true|
+|   2|    Bob| 35|  true|
+|   3|Charlie| 42| false|
++----+-------+---+------+
+...
+
+> ./mill analytics.run
+...
+=== Analytics Job: Computing metrics ===
+...
++------+----------+--------+
+|active|user_count| avg_age|
++------+----------+--------+
+|  true|         2|    31.5|
+| false|         1|    42.0|
++------+----------+--------+
+...
+
+*/
+
+// === Building All Modules
+//
+// Mill allows running tasks across all modules:
+
+/** Usage
+
+> ./mill __.compile
+...
+
+*/
+
+// This compiles all modules in the project. The `__.compile` pattern uses
+// Mill's query syntax to match all `compile` tasks.
+//
+// === Dependency Graph
+//
+// Mill automatically handles the dependency graph:
+//
+// ----
+// common
+//   ^
+//   |
+// +-----+-----+
+// |           |
+// etl     analytics
+// ----
+//
+// When compiling `etl` or `analytics`, Mill automatically compiles `common`
+// first since it's a dependency.

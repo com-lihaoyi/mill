@@ -1,0 +1,79 @@
+package build
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.12.20"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.6",
+    mvn"org.apache.spark::spark-sql:3.5.6",
+    mvn"org.apache.spark::spark-mllib:3.5.6"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+}
+
+// This example demonstrates building a machine learning pipeline with Spark
+// MLlib. MLlib is Spark's machine learning library, providing distributed
+// implementations of common ML algorithms.
+//
+// === MLlib Components
+//
+// Spark MLlib provides:
+//
+// * *Transformers* - Transform DataFrames (e.g., `StringIndexer`, `VectorAssembler`)
+// * *Estimators* - Learn from data to produce models (e.g., `LogisticRegression`)
+// * *Pipelines* - Chain transformers and estimators together
+// * *Evaluators* - Measure model performance (e.g., `BinaryClassificationEvaluator`)
+// * *Cross-validators* - Hyperparameter tuning with cross-validation
+//
+// === The ML Pipeline Pattern
+//
+// Pipelines combine data preparation and model training into a single workflow:
+//
+// 1. *Feature Engineering* - Transform raw data into features
+// 2. *Model Training* - Fit an estimator on training data
+// 3. *Prediction* - Apply the trained model to new data
+// 4. *Evaluation* - Assess model performance
+//
+// Note: The `spark-mllib` dependency adds ML capabilities. It's separate from
+// `spark-sql` to keep core Spark lightweight for non-ML use cases.
+
+/** See Also: src/mllib/MLPipelineExample.scala */
+
+// This example builds a simple classification model to predict customer churn
+// based on usage metrics. It demonstrates:
+//
+// * Feature assembly with `VectorAssembler`
+// * Label encoding with `StringIndexer`
+// * Model training with `LogisticRegression`
+// * Model evaluation with accuracy metrics
+
+/** Usage
+
+> ./mill run
+...
+=== Spark MLlib Pipeline Example ===
+...
+=== Training Data ===
++--------+----------+-------+---------------+-----+
+|customer|usage_mins|support_calls|monthly_charges|churn|
++--------+----------+-------+---------------+-----+
+...
++--------+----------+-------+---------------+-----+
+...
+=== Model trained successfully ===
+=== Predictions ===
+...
+=== Model Accuracy:...
+...
+*/
+
+// === Saving and Loading Models
+//
+// Trained models and pipelines can be saved and loaded:
+//
+// * `model.write.overwrite().save("path/to/model")`
+// * `PipelineModel.load("path/to/model")`
+//
+// This allows you to train once and deploy the model for batch or real-time
+// predictions.
