@@ -61,7 +61,7 @@ class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfig
           os.perms.set(targetFile, os.perms(testFile))
 
       val diffExitCode =
-        if (!os.exists(expectedRoot)) 1  // Force update if expected doesn't exist
+        if (!os.exists(expectedRoot)) 1 // Force update if expected doesn't exist
         else os.proc("git", "diff", "--no-index", expectedRoot, testRoot)
           .call(stdin = os.Inherit, stdout = os.Inherit, check = !updateSnapshots)
           .exitCode

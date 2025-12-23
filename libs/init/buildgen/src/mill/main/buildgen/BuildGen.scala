@@ -112,7 +112,12 @@ object BuildGen {
     renderYamlModuleDeps(sb, prefix, "bomModuleDeps", module.bomModuleDeps)
 
     // Render maven deps
-    renderYamlMvnDeps(sb, prefix, "mvnDeps", combineMvnDeps(module.mandatoryMvnDeps, module.mvnDeps))
+    renderYamlMvnDeps(
+      sb,
+      prefix,
+      "mvnDeps",
+      combineMvnDeps(module.mandatoryMvnDeps, module.mvnDeps)
+    )
     renderYamlMvnDeps(sb, prefix, "compileMvnDeps", module.compileMvnDeps)
     renderYamlMvnDeps(sb, prefix, "runMvnDeps", module.runMvnDeps)
     renderYamlMvnDeps(sb, prefix, "bomMvnDeps", module.bomMvnDeps)
@@ -143,7 +148,13 @@ object BuildGen {
     // Render error prone configuration
     renderYamlMvnDeps(sb, prefix, "errorProneDeps", module.errorProneDeps)
     renderYamlStrings(sb, prefix, "errorProneOptions", module.errorProneOptions)
-    renderYamlValues(sb, prefix, "errorProneJavacEnableOptions", module.errorProneJavacEnableOptions, encodeYamlOpt)
+    renderYamlValues(
+      sb,
+      prefix,
+      "errorProneJavacEnableOptions",
+      module.errorProneJavacEnableOptions,
+      encodeYamlOpt
+    )
 
     // Render publishing configuration
     renderYamlValue(sb, prefix, "artifactName", module.artifactName)
@@ -421,7 +432,8 @@ object BuildGen {
 
   private def quoteIfNeeded(s: String): String = {
     // Quote if contains special YAML characters or looks like a number/boolean
-    if (s.isEmpty ||
+    if (
+      s.isEmpty ||
       s.contains(":") ||
       s.contains("#") ||
       s.contains("[") ||
@@ -444,7 +456,8 @@ object BuildGen {
       s.matches("^(true|false|yes|no|on|off|null|~)$") ||
       s.matches("^[0-9].*") ||
       s.matches("^\\s.*") ||
-      s.matches(".*\\s$")) {
+      s.matches(".*\\s$")
+    ) {
       "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
     } else {
       s
