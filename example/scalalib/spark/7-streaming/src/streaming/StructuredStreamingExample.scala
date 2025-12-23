@@ -27,7 +27,8 @@ object StructuredStreamingExample {
 
     // Transform the stream: add derived columns
     val enrichedDF = streamingDF
-      .withColumn("event_type",
+      .withColumn(
+        "event_type",
         when($"value" % 3 === 0, "type_a")
           .when($"value" % 3 === 1, "type_b")
           .otherwise("type_c")
@@ -40,14 +41,14 @@ object StructuredStreamingExample {
 
     // Write the stream to console
     val query = aggregatedDF.writeStream
-      .outputMode("complete")    // Output full result table on each trigger
-      .format("console")         // Write to console for demonstration
-      .trigger(Trigger.ProcessingTime(2, TimeUnit.SECONDS))  // Process every 2 seconds
+      .outputMode("complete") // Output full result table on each trigger
+      .format("console") // Write to console for demonstration
+      .trigger(Trigger.ProcessingTime(2, TimeUnit.SECONDS)) // Process every 2 seconds
       .start()
 
     // Run for a limited time for demonstration purposes
     // In production, you would use query.awaitTermination() without timeout
-    query.awaitTermination(10000)  // Wait 10 seconds
+    query.awaitTermination(10000) // Wait 10 seconds
 
     println("=== Streaming query completed ===")
     spark.stop()

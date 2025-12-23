@@ -17,8 +17,9 @@ object DataPrepJob {
 
     // Apply some transformations (simulating ETL)
     val preparedDF = usersDF
-      .filter($"age" >= 18)  // Filter valid users
-      .withColumn("age_group",
+      .filter($"age" >= 18) // Filter valid users
+      .withColumn(
+        "age_group",
         when($"age" < 30, "young")
           .when($"age" < 50, "middle")
           .otherwise("senior")

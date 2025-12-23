@@ -9,11 +9,11 @@ import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
 object MLPipelineExample {
 
   case class Customer(
-    customer: Int,
-    usage_mins: Double,
-    support_calls: Int,
-    monthly_charges: Double,
-    churn: String
+      customer: Int,
+      usage_mins: Double,
+      support_calls: Int,
+      monthly_charges: Double,
+      churn: String
   )
 
   def main(args: Array[String]): Unit = {
@@ -85,7 +85,8 @@ object MLPipelineExample {
     println(s"=== Model Accuracy: AUC = ${"%.4f".format(auc)} ===")
 
     // Show model coefficients
-    val lrModel = model.stages(2).asInstanceOf[org.apache.spark.ml.classification.LogisticRegressionModel]
+    val lrModel =
+      model.stages(2).asInstanceOf[org.apache.spark.ml.classification.LogisticRegressionModel]
     println(s"Coefficients: ${lrModel.coefficients}")
     println(s"Intercept: ${lrModel.intercept}")
 
