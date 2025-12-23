@@ -38,7 +38,7 @@ object app extends AndroidAppKotlinModule {
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
-  override def androidVirtualDeviceIdentifier: String = "kotlin-test"
+  override def androidVirtualDevice = super.androidVirtualDevice().withName("kotlin-test")
   override def androidEmulatorPort: String = "5556"
 
   override def androidIsDebug: T[Boolean] = Task { false }
