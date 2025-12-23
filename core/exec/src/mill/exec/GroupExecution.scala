@@ -304,7 +304,10 @@ trait GroupExecution {
 
               case _ =>
                 // uncached
-                if (!labelled.persistent) os.remove.all(paths.dest)
+                if (!labelled.persistent && os.exists(paths.dest)) {
+                  logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
+                  os.remove.all(paths.dest)
+                }
 
                 val (newResults, newEvaluated) =
                   executeGroup(
