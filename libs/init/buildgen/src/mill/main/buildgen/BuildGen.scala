@@ -68,9 +68,16 @@ object BuildGen {
       testParallelism = parentValue(a.testParallelism, b.testParallelism),
       testSandboxWorkingDir = parentValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir)
     )
+    // For test modules, don't extract common mvnDeps because YAML can't append to parent deps
+    def parentTestModule(a: ModuleSpec, b: ModuleSpec) = parentModule0(a, b, Seq(testSupertype)).copy(
+      mandatoryMvnDeps = Values(),
+      mvnDeps = Values(),
+      compileMvnDeps = Values(),
+      runMvnDeps = Values()
+    )
     def parentModule(a: ModuleSpec, b: ModuleSpec) =
       parentModule0(a, b, moduleHierarchy.take(1)).copy(
-        test = (a.test.toSeq ++ b.test.toSeq).reduceOption(parentModule0(_, _, Seq(testSupertype)))
+        test = (a.test.toSeq ++ b.test.toSeq).reduceOption(parentTestModule)
       )
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
       if (a.base == parent.base) None else a.base,
@@ -86,7 +93,15 @@ object BuildGen {
       a.appendSuper || parent.base.nonEmpty || parent.cross.nonEmpty
     )
     def extendModule0(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = a.copy(
-      supertypes = (parent.name +: a.supertypes).diff(parent.supertypes),
+      // Don't subtract nested test traits (MavenTests, SbtTests, etc.) - they can't be inherited
+      // through a standalone trait and must remain in the child's extends clause.
+      // Put nested traits first for proper linearization (MavenTests before ProjectBaseModuleTests)
+      supertypes = {
+        val filtered = (a.supertypes :+ parent.name).diff(parent.supertypes.filterNot(nestedTestTraits.contains))
+        // Reorder: nested test traits first, then others
+        val (nested, others) = filtered.partition(nestedTestTraits.contains)
+        nested ++ others
+      },
       mixins = if (a.mixins == parent.mixins) Nil else a.mixins,
       repositories = extendValues(a.repositories, parent.repositories),
       forkArgs = extendValues(a.forkArgs, parent.forkArgs),
@@ -134,11 +149,17 @@ object BuildGen {
     Option.when(childModules.length > 1) {
       val baseModule = childModules.reduce(parentModule)
       val baseModule0 = baseModule.copy(
-        name = "ProjectBaseModule",
-        test = baseModule.test.map(_.copy(name = "Tests"))
+        name = "millbuild.ProjectBaseModule",
+        // Use a top-level Tests trait instead of nested one for YAML compatibility
+        test = baseModule.test.map(_.copy(name = "millbuild.ProjectBaseModuleTests"))
       )
       val packages0 = packages.map(pkg => pkg.copy(module = extendModule(pkg.module, baseModule0)))
-      (baseModule0, packages0)
+      // Return the base module with simple name for file generation
+      val baseModuleForFile = baseModule0.copy(
+        name = "ProjectBaseModule",
+        test = baseModule0.test.map(_.copy(name = "ProjectBaseModuleTests"))
+      )
+      (baseModuleForFile, packages0)
     }
   }
 
@@ -185,6 +206,17 @@ object BuildGen {
       val file = os.sub / os.SubPath(s"mill-build/src/${module.name}.scala")
       println(s"writing $file")
       os.write(os.pwd / file, renderBaseModule(module), createFolders = true)
+      // Also write a build.mill with "See Also" directive to trigger Mill to include mill-build/src/
+      val buildMillFile = os.pwd / "build.mill"
+      if (!os.exists(buildMillFile)) {
+        println("writing build.mill")
+        os.write(
+          buildMillFile,
+          s"""|/** See Also: build.mill.yaml */
+              |/** See Also: mill-build/src/${module.name}.scala */
+              |""".stripMargin
+        )
+      }
     }
 
     val rootPackage +: nestedPackages = packages0: @unchecked
@@ -195,13 +227,13 @@ object BuildGen {
       os.pwd / "build.mill.yaml",
       s"""mill-version: SNAPSHOT
          |mill-jvm-version: $millJvmVersion
-         |$millJvmOptsLine${renderYamlPackage(rootPackage)}
+         |$millJvmOptsLine${renderYamlPackage(rootPackage, isRootBuild = true)}
          |""".stripMargin
     )
     for (pkg <- nestedPackages) do {
       val file = os.sub / pkg.dir / "package.mill.yaml"
       println(s"writing $file")
-      os.write(os.pwd / file, renderYamlPackage(pkg))
+      os.write(os.pwd / file, renderYamlPackage(pkg, isRootBuild = false))
     }
   }
 
@@ -234,16 +266,29 @@ object BuildGen {
   // Scala rendering for ProjectBaseModule.scala
   // ============================================
 
+  // These are nested traits that can't be extended by standalone traits
+  private val nestedTestTraits = Set("MavenTests", "SbtTests", "JavaTests", "ScalaTests")
+
   private def renderBaseModule(module: ModuleSpec) = {
     import module.*
-    s"""package millbuild
-       |${renderScalaImports(module)}
-       |trait $name ${renderScalaExtendsClause(supertypes ++ mixins)} {
+    val mainTrait = s"""trait $name ${renderScalaExtendsClause(supertypes ++ mixins)} {
        |
        |  ${renderScalaModuleBody(module)}
-       |
-       |  ${test.fold("")(renderScalaTestModule("trait", _))}
        |}""".stripMargin
+    // Generate Tests as a top-level trait for YAML compatibility
+    // Filter out nested test traits (like MavenTests) that can't be extended by standalone traits
+    val testTrait = test.fold("") { testSpec =>
+      val standaloneSupertypes = testSpec.supertypes.filterNot(nestedTestTraits.contains)
+      s"""
+         |
+         |trait ${testSpec.name} ${renderScalaExtendsClause(standaloneSupertypes ++ testSpec.mixins)} {
+         |
+         |  ${renderScalaModuleBody(testSpec)}
+         |}""".stripMargin
+    }
+    s"""package millbuild
+       |${renderScalaImports(module)}
+       |$mainTrait$testTrait""".stripMargin
   }
 
   private def renderScalaImports(module: ModuleSpec) = {
@@ -370,7 +415,7 @@ object BuildGen {
       collection: String = "Seq"
   ) = {
     val defType = if (isTask) "def" else "override def"
-    val appender = if (values.appendSuper) s" ++ super.$name" else ""
+    val appender = if (values.appendSuper) s" ++ super.$name()" else ""
     val cross = values.cross.map { (key, values) =>
       s"""case "$key" => $collection(${values.map(encode).mkString(", ")})$appender"""
     }.mkString(lineSeparator)
@@ -431,7 +476,7 @@ object BuildGen {
 
   private def encodeScalaString(s: String) = literalize(s)
 
-  private def encodeScalaOpt(opt: Opt) = opt.group.map(s => literalize(s)).mkString("Seq(", ", ", ")")
+  private def encodeScalaOpt(opt: Opt) = opt.group.map(s => literalize(s)).mkString(", ")
 
   private def encodeScalaLiteralOpt(opt: Opt) = opt.group.mkString("Seq(", ", ", ")")
 
@@ -493,87 +538,105 @@ object BuildGen {
   // YAML rendering for build.mill.yaml and package.mill.yaml
   // ============================================
 
-  private def renderYamlPackage(pkg: PackageSpec): String = {
-    renderYamlModule(pkg.module, indent = 0, isRoot = true)
+  private def renderYamlPackage(pkg: PackageSpec, isRootBuild: Boolean): String = {
+    renderYamlModule(pkg.module, indent = 0, isRoot = isRootBuild)
   }
 
   private def renderYamlModule(module: ModuleSpec, indent: Int, isRoot: Boolean): String = {
     val sb = new StringBuilder
     val prefix = "  " * indent
 
-    // Render extends
-    val allSupertypes = module.supertypes ++ module.mixins
-    if (allSupertypes.nonEmpty) {
-      if (allSupertypes.size == 1) {
-        sb ++= s"${prefix}extends: ${allSupertypes.head}$lineSeparator"
-      } else {
-        sb ++= s"${prefix}extends: [${allSupertypes.mkString(", ")}]$lineSeparator"
+    // Render extends (not for root module - root modules don't extend regular module traits)
+    if (!isRoot) {
+      val allSupertypes = module.supertypes ++ module.mixins
+      if (allSupertypes.nonEmpty) {
+        if (allSupertypes.size == 1) {
+          sb ++= s"${prefix}extends: ${allSupertypes.head}$lineSeparator"
+        } else {
+          sb ++= s"${prefix}extends: [${allSupertypes.mkString(", ")}]$lineSeparator"
+        }
       }
     }
 
-    // Render module deps
-    renderYamlModuleDeps(sb, prefix, "moduleDeps", module.moduleDeps)
-    renderYamlModuleDeps(sb, prefix, "compileModuleDeps", module.compileModuleDeps)
-    renderYamlModuleDeps(sb, prefix, "runModuleDeps", module.runModuleDeps)
-    renderYamlModuleDeps(sb, prefix, "bomModuleDeps", module.bomModuleDeps)
+    // Module-specific configuration (not for root module - it's not a JavaModule)
+    if (!isRoot) {
+      // Render module deps
+      renderYamlModuleDeps(sb, prefix, "moduleDeps", module.moduleDeps)
+      renderYamlModuleDeps(sb, prefix, "compileModuleDeps", module.compileModuleDeps)
+      renderYamlModuleDeps(sb, prefix, "runModuleDeps", module.runModuleDeps)
+      renderYamlModuleDeps(sb, prefix, "bomModuleDeps", module.bomModuleDeps)
 
-    // Render maven deps
-    renderYamlMvnDeps(
-      sb,
-      prefix,
-      "mvnDeps",
-      combineMvnDeps(module.mandatoryMvnDeps, module.mvnDeps)
-    )
-    renderYamlMvnDeps(sb, prefix, "compileMvnDeps", module.compileMvnDeps)
-    renderYamlMvnDeps(sb, prefix, "runMvnDeps", module.runMvnDeps)
-    renderYamlMvnDeps(sb, prefix, "bomMvnDeps", module.bomMvnDeps)
-    renderYamlMvnDeps(sb, prefix, "depManagement", module.depManagement)
-    renderYamlMvnDeps(sb, prefix, "scalacPluginMvnDeps", module.scalacPluginMvnDeps)
+      // Render maven deps
+      renderYamlMvnDeps(
+        sb,
+        prefix,
+        "mvnDeps",
+        combineMvnDeps(module.mandatoryMvnDeps, module.mvnDeps)
+      )
+      renderYamlMvnDeps(sb, prefix, "compileMvnDeps", module.compileMvnDeps)
+      renderYamlMvnDeps(sb, prefix, "runMvnDeps", module.runMvnDeps)
+      renderYamlMvnDeps(sb, prefix, "bomMvnDeps", module.bomMvnDeps)
+      renderYamlMvnDeps(sb, prefix, "depManagement", module.depManagement)
+      renderYamlMvnDeps(sb, prefix, "scalacPluginMvnDeps", module.scalacPluginMvnDeps)
 
-    // Render scala/java configuration
-    renderYamlValue(sb, prefix, "scalaVersion", module.scalaVersion)
-    renderYamlValues(sb, prefix, "scalacOptions", module.scalacOptions, encodeYamlOpt)
-    renderYamlValues(sb, prefix, "javacOptions", module.javacOptions, encodeYamlOpt)
-    renderYamlValue(sb, prefix, "scalaJSVersion", module.scalaJSVersion)
-    renderYamlValue(sb, prefix, "moduleKind", module.moduleKind)
-    renderYamlValue(sb, prefix, "scalaNativeVersion", module.scalaNativeVersion)
+      // Render scala/java configuration
+      renderYamlValue(sb, prefix, "scalaVersion", module.scalaVersion)
+      renderYamlValues(sb, prefix, "scalacOptions", module.scalacOptions, encodeYamlOpt)
+      renderYamlValues(sb, prefix, "javacOptions", module.javacOptions, encodeYamlOpt)
+      renderYamlValue(sb, prefix, "scalaJSVersion", module.scalaJSVersion)
+      renderYamlValue(sb, prefix, "moduleKind", module.moduleKind)
+      renderYamlValue(sb, prefix, "scalaNativeVersion", module.scalaNativeVersion)
 
-    // Render sources and resources
-    renderYamlPaths(sb, prefix, "sources", module.sources)
-    renderYamlPaths(sb, prefix, "resources", module.resources)
-    renderYamlSubPaths(sb, prefix, "sourcesRootFolders", module.sourcesRootFolders)
-    renderYamlSubPaths(sb, prefix, "sourcesFolders", module.sourcesFolders)
+      // Render sources and resources
+      renderYamlPaths(sb, prefix, "sources", module.sources)
+      renderYamlPaths(sb, prefix, "resources", module.resources)
+      renderYamlSubPaths(sb, prefix, "sourcesRootFolders", module.sourcesRootFolders)
+      renderYamlSubPaths(sb, prefix, "sourcesFolders", module.sourcesFolders)
+    }
 
-    // Render fork configuration
-    renderYamlValues(sb, prefix, "forkArgs", module.forkArgs, encodeYamlOpt)
-    renderYamlForkWorkingDir(sb, prefix, module.forkWorkingDir)
+    // Render additional module-specific configuration (not for root module)
+    if (!isRoot) {
+      // Render fork configuration
+      renderYamlValues(sb, prefix, "forkArgs", module.forkArgs, encodeYamlOpt)
+      renderYamlForkWorkingDir(sb, prefix, module.forkWorkingDir)
 
-    // Render repositories
-    renderYamlStrings(sb, prefix, "repositories", module.repositories)
+      // Render repositories
+      renderYamlStrings(sb, prefix, "repositories", module.repositories)
 
-    // Render error prone configuration
-    renderYamlMvnDeps(sb, prefix, "errorProneDeps", module.errorProneDeps)
-    renderYamlStrings(sb, prefix, "errorProneOptions", module.errorProneOptions)
-    renderYamlValues(
-      sb,
-      prefix,
-      "errorProneJavacEnableOptions",
-      module.errorProneJavacEnableOptions,
-      encodeYamlOpt
-    )
+      // Render error prone configuration
+      renderYamlMvnDeps(sb, prefix, "errorProneDeps", module.errorProneDeps)
+      renderYamlStrings(sb, prefix, "errorProneOptions", module.errorProneOptions)
+      renderYamlValues(
+        sb,
+        prefix,
+        "errorProneJavacEnableOptions",
+        module.errorProneJavacEnableOptions,
+        encodeYamlOpt
+      )
 
-    // Render publishing configuration
-    renderYamlValue(sb, prefix, "artifactName", module.artifactName)
-    renderYamlValue(sb, prefix, "pomPackagingType", module.pomPackagingType)
-    renderYamlPomParentProject(sb, prefix, module.pomParentProject)
-    renderYamlPomSettings(sb, prefix, module.pomSettings)
-    renderYamlValue(sb, prefix, "publishVersion", module.publishVersion)
-    renderYamlVersionScheme(sb, prefix, module.versionScheme)
-    renderYamlPublishProperties(sb, prefix, module.publishProperties)
+      // Render publishing configuration only for modules that extend PublishModule
+      val extendsPublishModule = module.supertypes.exists(s =>
+        s.contains("PublishModule") || s.contains("ProjectBaseModule")
+      )
+      if (extendsPublishModule) {
+        renderYamlValue(sb, prefix, "artifactName", module.artifactName)
+        // Skip pomPackagingType for pom/war - these are aggregator/web modules in Maven
+        // that don't need special packaging in Mill
+        val skipPackagingType = module.pomPackagingType.base.exists(p => p == "pom" || p == "war")
+        if (!skipPackagingType) {
+          renderYamlValue(sb, prefix, "pomPackagingType", module.pomPackagingType)
+        }
+        renderYamlPomParentProject(sb, prefix, module.pomParentProject)
+        renderYamlPomSettings(sb, prefix, module.pomSettings)
+        renderYamlValue(sb, prefix, "publishVersion", module.publishVersion)
+        renderYamlVersionScheme(sb, prefix, module.versionScheme)
+        renderYamlPublishProperties(sb, prefix, module.publishProperties)
+      }
 
-    // Render test configuration
-    renderYamlBoolValue(sb, prefix, "testParallelism", module.testParallelism)
-    renderYamlBoolValue(sb, prefix, "testSandboxWorkingDir", module.testSandboxWorkingDir)
+      // Render test configuration
+      renderYamlBoolValue(sb, prefix, "testParallelism", module.testParallelism)
+      renderYamlBoolValue(sb, prefix, "testSandboxWorkingDir", module.testSandboxWorkingDir)
+    }
 
     // Render test submodule
     module.test.foreach { testSpec =>
