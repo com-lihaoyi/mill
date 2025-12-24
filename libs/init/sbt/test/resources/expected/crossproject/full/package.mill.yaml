@@ -1,0 +1,60 @@
+object js:
+  extends: [ScalaJSModule, PublishModule, SbtPlatformModule]
+  moduleDeps: [pure/js]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalaVersion: "2.13.14"
+  scalaJSVersion: "1.16.0"
+  moduleKind: ModuleKind.NoModule
+  sourcesRootFolders: [./shared]
+  artifactName: full
+  pomSettings:
+    description: full
+    organization: full
+  publishVersion: "0.1.0-SNAPSHOT"
+  object test:
+    extends: [ScalaJSTests, SbtPlatformTests, TestModule.Utest]
+    moduleDeps: [pure/js/test]
+    mvnDeps:
+    - com.lihaoyi::utest::0.9.1
+    testParallelism: false
+    testSandboxWorkingDir: false
+object jvm:
+  extends: [PublishModule, SbtPlatformModule]
+  moduleDeps: [pure/jvm]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalaVersion: "2.13.14"
+  sourcesRootFolders: [./shared]
+  artifactName: full
+  pomSettings:
+    description: full
+    organization: full
+  publishVersion: "0.1.0-SNAPSHOT"
+  object test:
+    extends: [SbtPlatformTests, TestModule.Utest]
+    moduleDeps: [pure/jvm/test]
+    mvnDeps:
+    - com.lihaoyi::utest::0.9.1
+    testParallelism: false
+    testSandboxWorkingDir: false
+object native:
+  extends: [ScalaNativeModule, PublishModule, SbtPlatformModule]
+  moduleDeps: [pure/native]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalaVersion: "2.13.14"
+  scalaNativeVersion: "0.5.4"
+  sourcesRootFolders: [./shared]
+  artifactName: full
+  pomSettings:
+    description: full
+    organization: full
+  publishVersion: "0.1.0-SNAPSHOT"
+  object test:
+    extends: [ScalaNativeTests, SbtPlatformTests, TestModule.Utest]
+    moduleDeps: [pure/native/test]
+    mvnDeps:
+    - com.lihaoyi::utest::0.9.1
+    testParallelism: false
+    testSandboxWorkingDir: false

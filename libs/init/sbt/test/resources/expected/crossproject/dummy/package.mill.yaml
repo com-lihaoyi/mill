@@ -1,0 +1,33 @@
+object js:
+  extends: [ScalaJSModule, PublishModule, SbtPlatformModule]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalaVersion: "2.13.14"
+  scalaJSVersion: "1.16.0"
+  moduleKind: ModuleKind.NoModule
+  artifactName: dummy
+  pomSettings:
+    description: dummy
+    organization: dummy
+  publishVersion: "0.1.0-SNAPSHOT"
+object jvm:
+  extends: [PublishModule, SbtPlatformModule]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalaVersion: "2.13.14"
+  artifactName: dummy
+  pomSettings:
+    description: dummy
+    organization: dummy
+  publishVersion: "0.1.0-SNAPSHOT"
+object native:
+  extends: [ScalaNativeModule, PublishModule, SbtPlatformModule]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalaVersion: "2.13.14"
+  scalaNativeVersion: "0.5.4"
+  artifactName: dummy
+  pomSettings:
+    description: dummy
+    organization: dummy
+  publishVersion: "0.1.0-SNAPSHOT"

@@ -1,0 +1,18 @@
+extends: [PublishModule, SbtModule]
+mvnDeps:
+- io.netty:netty-transport-native-epoll:4.1.118.Final;classifier=linux-x86_64;type=pom;exclude=io.netty:netty-transport-native-epoll
+scalacPluginMvnDeps:
+- org.wartremover::wartremover:2.2.1
+scalaVersion: "2.12.3"
+scalacOptions: ["-unchecked", "-feature", "-language:existentials", "-language:higherKinds", "-language:implicitConversions", "-language:postfixOps", "-deprecation", "-encoding", utf8]
+repositories: ["https://oss.sonatype.org/service/local/repositories/releases/content/", "https://oss.sonatype.org/content/repositories/snapshots"]
+artifactName: nested
+pomSettings:
+  description: "This is an sbt sample project for testing Mill's init command."
+  organization: com.pbassiner
+  url: "https://github.com/com-lihaoyi/mill"
+  licenses: [Apache-2.0]
+  versionControl: "https://github.com/com-lihaoyi/mill"
+  developers:
+  - {"id": "johnd", "name": "John Doe", "url": "https://example.com/johnd"}
+publishVersion: "0.1.0-SNAPSHOT"

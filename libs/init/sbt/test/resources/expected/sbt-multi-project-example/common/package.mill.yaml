@@ -1,0 +1,30 @@
+extends: [PublishModule, SbtModule]
+mvnDeps:
+- ch.qos.logback:logback-classic:1.2.3
+- net.logstash.logback:logstash-logback-encoder:4.11
+- com.typesafe.scala-logging::scala-logging:3.7.2
+- org.slf4j:jcl-over-slf4j:1.7.25
+- com.typesafe:config:1.3.1
+- com.typesafe.akka::akka-stream:2.5.6
+scalacPluginMvnDeps:
+- org.wartremover::wartremover:2.2.1
+scalaVersion: "2.12.3"
+scalacOptions: ["-unchecked", "-feature", "-language:existentials", "-language:higherKinds", "-language:implicitConversions", "-language:postfixOps", "-deprecation", "-encoding", utf8]
+repositories: ["https://oss.sonatype.org/service/local/repositories/releases/content/", "https://oss.sonatype.org/content/repositories/snapshots"]
+artifactName: common
+pomSettings:
+  description: This is the common module.
+  organization: com.pbassiner
+  url: "https://github.com/com-lihaoyi/mill"
+  licenses: [Apache-2.0]
+  versionControl: "https://github.com/com-lihaoyi/mill"
+  developers:
+  - {"id": "johnd", "name": "John Doe", "url": "https://example.com/johnd"}
+publishVersion: "0.1.0-SNAPSHOT"
+object test:
+  extends: [SbtTests, TestModule.ScalaTest]
+  mvnDeps:
+  - org.scalatest::scalatest:3.0.4
+  - org.scalacheck::scalacheck:1.13.5
+  testParallelism: false
+  testSandboxWorkingDir: false

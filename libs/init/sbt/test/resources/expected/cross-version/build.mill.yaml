@@ -1,0 +1,17 @@
+mill-version: SNAPSHOT
+mill-jvm-version: system
+mill-jvm-opts: ["-Xms2g", "-Xmx2g"]
+extends: [PublishModule, CrossSbtModule]
+javacOptions: ["--release", "8"]
+artifactName: my-cross-project
+pomSettings:
+  description: my-cross-project
+  organization: com.example
+publishVersion: "0.1.0-SNAPSHOT"
+object test:
+  extends: [CrossSbtTests, TestModule.ScalaTest]
+  mvnDeps:
+  - org.scalatest::scalatest:3.2.18
+  testParallelism: false
+  testSandboxWorkingDir: false
+

@@ -1,0 +1,33 @@
+object js:
+  extends: [ScalaJSModule, PublishModule, CrossSbtPlatformModule]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalacOptions: ["-deprecation"]
+  scalaJSVersion: "1.16.0"
+  moduleKind: ModuleKind.NoModule
+  artifactName: pure
+  pomSettings:
+    description: pure
+    organization: pure
+  publishVersion: "0.1.0-SNAPSHOT"
+object jvm:
+  extends: [PublishModule, CrossSbtPlatformModule]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalacOptions: ["-deprecation"]
+  artifactName: pure
+  pomSettings:
+    description: pure
+    organization: pure
+  publishVersion: "0.1.0-SNAPSHOT"
+object native:
+  extends: [ScalaNativeModule, PublishModule, CrossSbtPlatformModule]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalacOptions: ["-deprecation"]
+  scalaNativeVersion: "0.5.7"
+  artifactName: pure
+  pomSettings:
+    description: pure
+    organization: pure
+  publishVersion: "0.1.0-SNAPSHOT"
