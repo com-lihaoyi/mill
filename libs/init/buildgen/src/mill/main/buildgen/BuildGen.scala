@@ -69,7 +69,10 @@ object BuildGen {
       testSandboxWorkingDir = parentValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir)
     )
     // For test modules, don't extract common mvnDeps because YAML can't append to parent deps
-    def parentTestModule(a: ModuleSpec, b: ModuleSpec) = parentModule0(a, b, Seq(testSupertype)).copy(
+    def parentTestModule(
+        a: ModuleSpec,
+        b: ModuleSpec
+    ) = parentModule0(a, b, Seq(testSupertype)).copy(
       mandatoryMvnDeps = Values(),
       mvnDeps = Values(),
       compileMvnDeps = Values(),
@@ -97,7 +100,8 @@ object BuildGen {
       // through a standalone trait and must remain in the child's extends clause.
       // Put nested traits first for proper linearization (MavenTests before ProjectBaseModuleTests)
       supertypes = {
-        val filtered = (a.supertypes :+ parent.name).diff(parent.supertypes.filterNot(nestedTestTraits.contains))
+        val filtered =
+          (a.supertypes :+ parent.name).diff(parent.supertypes.filterNot(nestedTestTraits.contains))
         // Reorder: nested test traits first, then others
         val (nested, others) = filtered.partition(nestedTestTraits.contains)
         nested ++ others
@@ -140,7 +144,8 @@ object BuildGen {
     def isChild(module: ModuleSpec) = module.supertypes.exists(moduleHierarchy.contains)
     def extendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
       val a0 =
-        if (isChild(a)) extendModule0(a.copy(test = a.test.zip(parent.test).map(extendModule0)), parent)
+        if (isChild(a))
+          extendModule0(a.copy(test = a.test.zip(parent.test).map(extendModule0)), parent)
         else a
       a0.copy(children = a0.children.map(extendModule(_, parent)))
     }
@@ -272,16 +277,18 @@ object BuildGen {
   private def renderBaseModule(module: ModuleSpec) = {
     import module.*
     val mainTrait = s"""trait $name ${renderScalaExtendsClause(supertypes ++ mixins)} {
-       |
-       |  ${renderScalaModuleBody(module)}
-       |}""".stripMargin
+                       |
+                       |  ${renderScalaModuleBody(module)}
+                       |}""".stripMargin
     // Generate Tests as a top-level trait for YAML compatibility
     // Filter out nested test traits (like MavenTests) that can't be extended by standalone traits
     val testTrait = test.fold("") { testSpec =>
       val standaloneSupertypes = testSpec.supertypes.filterNot(nestedTestTraits.contains)
       s"""
          |
-         |trait ${testSpec.name} ${renderScalaExtendsClause(standaloneSupertypes ++ testSpec.mixins)} {
+         |trait ${testSpec.name} ${renderScalaExtendsClause(
+          standaloneSupertypes ++ testSpec.mixins
+        )} {
          |
          |  ${renderScalaModuleBody(testSpec)}
          |}""".stripMargin
@@ -305,7 +312,12 @@ object BuildGen {
     import module.*
     s"""${renderScalaValues("moduleDeps", moduleDeps, encodeScalaModuleDep, isTask = false)}
        |
-       |${renderScalaValues("compileModuleDeps", compileModuleDeps, encodeScalaModuleDep, isTask = false)}
+       |${renderScalaValues(
+        "compileModuleDeps",
+        compileModuleDeps,
+        encodeScalaModuleDep,
+        isTask = false
+      )}
        |
        |${renderScalaValues("runModuleDeps", runModuleDeps, encodeScalaModuleDep, isTask = false)}
        |
@@ -337,7 +349,12 @@ object BuildGen {
        |
        |${renderScalaValues("javacOptions", javacOptions, encodeScalaOpt)}
        |
-       |${renderScalaValues("sourcesRootFolders", sourcesRootFolders, encodeScalaSubPath, isTask = false)}
+       |${renderScalaValues(
+        "sourcesRootFolders",
+        sourcesRootFolders,
+        encodeScalaSubPath,
+        isTask = false
+      )}
        |
        |${renderScalaValues("sourcesFolders", sourcesFolders, encodeScalaSubPath, isTask = false)}
        |
@@ -353,7 +370,11 @@ object BuildGen {
        |
        |${renderScalaValues("errorProneOptions", errorProneOptions, encodeScalaString)}
        |
-       |${renderScalaValues("errorProneJavacEnableOptions", errorProneJavacEnableOptions, encodeScalaOpt)}
+       |${renderScalaValues(
+        "errorProneJavacEnableOptions",
+        errorProneJavacEnableOptions,
+        encodeScalaOpt
+      )}
        |
        |${renderScala("artifactName", artifactName, encodeScalaString)}
        |
@@ -367,7 +388,12 @@ object BuildGen {
        |
        |${renderScala("versionScheme", versionScheme, a => s"Some($a)")}
        |
-       |${renderScalaValues("publishProperties", publishProperties, encodeScalaProperty, collection = "Map")}
+       |${renderScalaValues(
+        "publishProperties",
+        publishProperties,
+        encodeScalaProperty,
+        collection = "Map"
+      )}
        |
        |${renderScala("testParallelism", testParallelism, _.toString)}
        |
@@ -377,13 +403,7 @@ object BuildGen {
        |""".stripMargin
   }
 
-  private def renderScalaTestModule(scalaType: String, spec: ModuleSpec) = {
-    import spec.*
-    s"""$scalaType $name ${renderScalaExtendsClause(supertypes ++ mixins)} {
-       |
-       |  ${renderScalaModuleBody(spec)}
-       |}""".stripMargin
-  }
+  
 
   private def renderScala[A](
       name: String,
@@ -460,7 +480,8 @@ object BuildGen {
         case v: CrossVersion.Constant => v.value
         case _ => ""
       }
-      val platformSeparator = if (dep.version.isEmpty) "" else if (dep.cross.platformed) "::" else ":"
+      val platformSeparator =
+        if (dep.version.isEmpty) "" else if (dep.cross.platformed) "::" else ":"
       val versionPart = dep.version
       val classifierAttr = dep.classifier.collect {
         case c if c.nonEmpty => s";classifier=$c"
@@ -486,7 +507,8 @@ object BuildGen {
 
   private def encodeScalaRelPath(base: String, path: os.RelPath) = {
     val ups = if (path.ups > 0) s" / os.up".repeat(path.ups) else ""
-    val downs = if (path.segments.isEmpty) "" else path.segments.map(s => literalize(s)).mkString(" / ", " / ", "")
+    val downs = if (path.segments.isEmpty) ""
+    else path.segments.map(s => literalize(s)).mkString(" / ", " / ", "")
     base + ups + downs
   }
 
@@ -512,9 +534,11 @@ object BuildGen {
   }
 
   private def encodeScalaVersionControl(vc: VersionControl) = {
-    val browsableRepository = vc.browsableRepository.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
+    val browsableRepository =
+      vc.browsableRepository.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
     val connection = vc.connection.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
-    val developerConnection = vc.developerConnection.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
+    val developerConnection =
+      vc.developerConnection.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
     val tag = vc.tag.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
     s"VersionControl($browsableRepository, $connection, $developerConnection, $tag)"
   }
@@ -523,8 +547,10 @@ object BuildGen {
     val id = literalize(dev.id)
     val name = literalize(dev.name)
     val url = literalize(dev.url)
-    val organization = dev.organization.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
-    val organizationUrl = dev.organizationUrl.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
+    val organization =
+      dev.organization.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
+    val organizationUrl =
+      dev.organizationUrl.map(s => literalize(s)).map("Some(" + _ + ")").getOrElse("None")
     s"Developer($id, $name, $url, $organization, $organizationUrl)"
   }
 
