@@ -403,8 +403,6 @@ object BuildGen {
        |""".stripMargin
   }
 
-  
-
   private def renderScala[A](
       name: String,
       value: Value[A],
