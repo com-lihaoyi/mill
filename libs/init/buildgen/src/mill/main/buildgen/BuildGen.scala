@@ -1,10 +1,13 @@
 package mill.main.buildgen
 
+import mill.constants.CodeGenConstants.rootModuleAlias
+import mill.constants.OutFiles.OutFiles.millBuild
+import mill.init.Util
+import mill.internal.Util.backtickWrap
 import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
 
 import java.lang.System.lineSeparator
-import scala.reflect.NameTransformer.encode
 
 object BuildGen {
 
@@ -207,25 +210,19 @@ object BuildGen {
   ): Unit = {
     var packages0 = fillPackages(packages).sortBy(_.dir)
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
-    val existingBuildFiles =
-      os.walk(os.pwd, skip = Seq(os.pwd / "mill-build", os.pwd / "out").contains).filter(path =>
-        os.isFile(path) && (path.last == "build.mill" || path.last == "package.mill")
-      ) ++ (
-        if (os.exists(os.pwd / "mill-build")) os.walk(os.pwd / "mill-build").filter(os.isFile)
-        else Nil
-      )
+    val existingBuildFiles = Util.buildFiles(os.pwd)
     if (existingBuildFiles.nonEmpty) {
       println("removing existing build files ...")
       for (file <- existingBuildFiles) do os.remove(file)
     }
 
     if (depNames.nonEmpty) {
-      val file = os.sub / "mill-build/src/Deps.scala"
+      val file = os.sub / millBuild / "src/Deps.scala"
       println(s"writing $file")
       os.write(os.pwd / file, renderDepsObject(depNames), createFolders = true)
     }
     for (module <- baseModule) do {
-      val file = os.sub / os.SubPath(s"mill-build/src/${module.name}.scala")
+      val file = os.sub / millBuild / os.SubPath(s"src/${module.name}.scala")
       println(s"writing $file")
       os.write(
         os.pwd / file,
@@ -276,60 +273,6 @@ object BuildGen {
     root.copy(module =
       root.module.copy(children = root.module.children ++ newChildren(root.dir))
     )
-  }
-
-  private val alphaKeywords: Set[String] = Set(
-    "abstract",
-    "case",
-    "catch",
-    "class",
-    "def",
-    "do",
-    "else",
-    "enum",
-    "export",
-    "extends",
-    "false",
-    "final",
-    "finally",
-    "forSome",
-    "for",
-    "given",
-    "if",
-    "implicit",
-    "import",
-    "lazy",
-    "match",
-    "new",
-    "null",
-    "object",
-    "override",
-    "package",
-    "private",
-    "protected",
-    "return",
-    "sealed",
-    "super",
-    "then",
-    "this",
-    "throw",
-    "trait",
-    "try",
-    "true",
-    "type",
-    "val",
-    "var",
-    "while",
-    "with",
-    "yield",
-    "_",
-    "macro"
-  )
-  private def backtickWrap(s: String) = s match {
-    case s"`$_`" => s
-    case _ =>
-      if (encode(s) == s && !alphaKeywords.contains(s) && Character.isJavaIdentifierStart(s.head)) s
-      else s"`" + s + "`"
   }
 
   private def renderDepsObject(depNames: Seq[(MvnDep, String)]) = {
@@ -447,7 +390,7 @@ object BuildGen {
 
   private def renderPackage(pkg: PackageSpec) = {
     import pkg.*
-    val namespace = ("build" +: dir.segments.map(backtickWrap)).mkString(".")
+    val namespace = (rootModuleAlias +: dir.segments.map(backtickWrap)).mkString(".")
     s"""package $namespace
        |${renderImports(module)}
        |${renderModule(module, isPackageRoot = true)}
@@ -599,7 +542,7 @@ object BuildGen {
   private def encodeModuleDep(a: ModuleDep) = {
     import a.*
     val suffix = crossSuffix.getOrElse("") + childSegment.fold("")("." + _)
-    ("build" +: segments.map(backtickWrap)).mkString("", ".", suffix)
+    (rootModuleAlias +: segments.map(backtickWrap)).mkString("", ".", suffix)
   }
   private def encodeMvnDep(a: MvnDep) = a.ref.getOrElse(a.toString)
   private def encodeString(s: String) = s"\"$s\""

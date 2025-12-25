@@ -69,18 +69,22 @@ object `package` extends MillPublishScalaModule {
     PathRef(Task.dest)
   }
 
-  object buildgen extends MillPublishScalaModule with MillJava11ScalaModule {
-    def moduleDeps = Seq(api(Deps.scalaVersionJava11))
+  object buildgen extends MillPublishScalaModule {
+    def moduleDeps = Seq(api(Deps.scalaVersion), build.core.internal, build.libs.init)
     def mvnDeps = Seq(Deps.pprint)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, build.libs.init)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
 
-    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersionJava11)
+    object api extends Cross[ApiModule](
+          Deps.sbtScalaVersion212,
+          Deps.scalaVersionJava11,
+          Deps.scalaVersion
+        )
     trait ApiModule extends MillPublishCrossScalaModule {
       def mvnDeps = Seq(Deps.osLib, Deps.upickle)
-      def jvmId = "11"
+      def jvmId = if (crossScalaVersion == Deps.scalaVersion) "" else "11"
     }
 
-    trait MainModule extends MillPublishScalaModule with MillJava11ScalaModule {
+    trait MainModule extends MillPublishScalaModule {
       def moduleDeps = Seq(buildgen)
       def mvnDeps = Seq(Deps.mainargs)
       def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
@@ -150,8 +154,9 @@ object `package` extends MillPublishScalaModule {
       def defaultTask() = "runMocks"
     }
   }
+
   object gradle extends buildgen.MainModule with BuildInfo {
-    def moduleDeps = super.moduleDeps ++ Seq(api, build.libs.util.java11)
+    def moduleDeps = super.moduleDeps ++ Seq(api)
     def mvnDeps = super.mvnDeps() ++ Seq(Deps.gradleApi)
     def testModuleDeps = super.testModuleDeps ++ Seq(buildgen.test)
     def buildInfoPackageName = "mill.main.gradle"
@@ -203,6 +208,7 @@ object `package` extends MillPublishScalaModule {
       def compileMvnDeps = Seq(Deps.gradleApi)
     }
   }
+
   object maven extends buildgen.MainModule {
     override def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.MavenInit.mavenEmbedder,
@@ -244,7 +250,7 @@ object `package` extends MillPublishScalaModule {
   }
 
   object sbt extends buildgen.MainModule with BuildInfo {
-    def moduleDeps = super.moduleDeps ++ Seq(api(Deps.scalaVersionJava11))
+    def moduleDeps = super.moduleDeps ++ Seq(api(Deps.scalaVersion))
     def sbtPluginJarResource = Task {
       os.copy(exportplugin.assembly().path, Task.dest / "exportplugin-assembly.jar")
       PathRef(Task.dest)
@@ -280,7 +286,7 @@ object `package` extends MillPublishScalaModule {
       "scrypto" -> Mock("https://github.com/input-output-hk/scrypto.git", "v3.1.0")
     )
 
-    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersionJava11)
+    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
     trait ApiModule extends MillPublishCrossScalaModule {
       def moduleDeps = Seq(buildgen.api())
     }
@@ -293,6 +299,7 @@ object `package` extends MillPublishScalaModule {
     }
   }
 }
+
 @mainargs.main
 private case class Mock(
     @mainargs.arg(positional = true) gitUrl: String,
