@@ -93,7 +93,7 @@ def listMatchingTasks(evaluator: Evaluator, selector: String*): Command[List[Str
 
 **Parameters:**
 
-* `scriptArgs: Seq[String]` - Task selectors like `"foo.compile"`, `"__.test"`, or `"_:ScalaModule.compile"`
+* `scriptArgs: Seq[String]` - Task selectors like `"foo.compile"`, `+"__.test"+`, or `+"_:ScalaModule.compile"+`
 * `selectMode: SelectMode` - How to interpret multiple selectors:
 ** `SelectMode.Separated` - Each selector is independent
 ** `SelectMode.Multi` - All selectors combined
