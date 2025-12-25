@@ -73,23 +73,7 @@ Use `resolveSegments` when you need to know which tasks match a selector
 pattern without actually loading the task objects. This is useful for
 displaying matching tasks or validating selectors.
 
-[source,scala]
-----
-import mill._
-import mill.api.{Evaluator, SelectMode}
-
-def listMatchingTasks(evaluator: Evaluator, selector: String*): Command[List[String]] =
-  Task.Command(exclusive = true) {
-    evaluator.resolveSegments(selector, SelectMode.Multi) match {
-      case mill.api.Result.Success(segmentsList) =>
-        val taskPaths = segmentsList.map(_.render)
-        taskPaths.foreach(println)
-        mill.api.Result.Success(taskPaths)
-      case f: mill.api.Result.Failure =>
-        f
-    }
-  }
-----
+include::partial$example/extending/evaluator/1-list-matching-tasks.adoc[]
 
 **Parameters:**
 
@@ -147,30 +131,7 @@ that can be inspected for their dependencies (`.inputs`) and executed.
 Use `plan` to see what tasks would be executed without actually running them.
 This is essential for understanding task dependencies and debugging.
 
-[source,scala]
-----
-import mill._
-import mill.api.{Evaluator, SelectMode}
-
-def showExecutionPlan(evaluator: Evaluator, tasks: String*): Command[Seq[String]] =
-  Task.Command(exclusive = true) {
-    evaluator.resolveTasks(tasks, SelectMode.Multi).map { resolvedTasks =>
-      val executionPlan = evaluator.plan(resolvedTasks)
-
-      // Extract named tasks from the plan in execution order
-      val orderedTasks = executionPlan.sortedGroups.keys().collect {
-        case t: Task.Named[_] => t.ctx.segments.render
-      }.toSeq
-
-      println("Execution order:")
-      orderedTasks.zipWithIndex.foreach { case (name, idx) =>
-        println(s"  ${idx + 1}. $name")
-      }
-
-      orderedTasks
-    }
-  }
-----
+include::partial$example/extending/evaluator/2-show-execution-plan.adoc[]
 
 The `Plan` object returned by `plan` contains:
 
@@ -258,41 +219,7 @@ def quickEval(evaluator: Evaluator, tasks: String*): Command[Unit] =
 A common use case is generating reports that aggregate data from multiple modules,
 like a combined test coverage report:
 
-[source,scala]
-----
-import mill._
-import mill.api.{Evaluator, SelectMode, PathRef}
-
-trait CoverageReportModule extends mill.Module {
-
-  def coverageReportAll(evaluator: Evaluator): Command[PathRef] =
-    Task.Command(exclusive = true) {
-      // Resolve all coverage data tasks across the build
-      val coverageDataSelector = "__.scoverage.data"
-      val sourceSelector = "__.allSources"
-
-      for {
-        dataTasks <- evaluator.resolveTasks(Seq(coverageDataSelector), SelectMode.Multi)
-        sourceTasks <- evaluator.resolveTasks(Seq(sourceSelector), SelectMode.Multi)
-
-        dataResults <- evaluator.execute(dataTasks).values
-        sourceResults <- evaluator.execute(sourceTasks).values
-      } yield {
-        val coverageFiles = dataResults.flatMap(_.asInstanceOf[Seq[PathRef]])
-        val sourceFiles = sourceResults.flatMap(_.asInstanceOf[Seq[PathRef]])
-
-        // Generate combined report (implementation details omitted)
-        val reportPath = Task.dest / "coverage-report"
-        os.makeDir.all(reportPath)
-
-        println(s"Generated coverage report from ${coverageFiles.size} data files")
-        println(s"Covering ${sourceFiles.size} source directories")
-
-        PathRef(reportPath)
-      }
-    }
-}
-----
+include::partial$example/extending/evaluator/3-cross-module-report.adoc[]
 
 === Example 2: Dependency Path Finder
 

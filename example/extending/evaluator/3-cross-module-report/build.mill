@@ -1,0 +1,109 @@
+//| mill-jvm-version: 17
+// This example demonstrates using the `Evaluator` API to generate cross-module
+// reports by aggregating data from multiple modules. This is a common pattern
+// for implementing commands like combined test coverage reports, dependency
+// graphs, or other build-wide analyses.
+//
+// The example shows how to resolve tasks across multiple modules, execute them,
+// and aggregate the results into a single output.
+
+package build
+import mill._
+import mill.api.{Evaluator, SelectMode, PathRef}
+import mill.scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.12"
+
+  // Simulate a coverage data task
+  def coverageData = Task {
+    val dataFile = Task.dest / "coverage.dat"
+    os.write(dataFile, "foo coverage data")
+    PathRef(dataFile)
+  }
+}
+
+object bar extends ScalaModule {
+  def scalaVersion = "2.13.12"
+
+  // Simulate a coverage data task
+  def coverageData = Task {
+    val dataFile = Task.dest / "coverage.dat"
+    os.write(dataFile, "bar coverage data")
+    PathRef(dataFile)
+  }
+}
+
+object baz extends ScalaModule {
+  def scalaVersion = "2.13.12"
+
+  // Simulate a coverage data task
+  def coverageData = Task {
+    val dataFile = Task.dest / "coverage.dat"
+    os.write(dataFile, "baz coverage data")
+    PathRef(dataFile)
+  }
+}
+
+// The `coverageReportAll` command demonstrates aggregating data from multiple
+// modules by using the Evaluator to:
+// 1. Resolve all matching tasks using a selector pattern
+// 2. Execute those tasks to get their results
+// 3. Combine the results into a single report
+def coverageReportAll(evaluator: Evaluator): Command[PathRef] =
+  Task.Command(exclusive = true) {
+    // Resolve all coverage data tasks across the build
+    val coverageDataSelector = "__.coverageData"
+    val sourceSelector = "__.allSourceFiles"
+
+    for {
+      dataTasks <- evaluator.resolveTasks(Seq(coverageDataSelector), SelectMode.Multi)
+      sourceTasks <- evaluator.resolveTasks(Seq(sourceSelector), SelectMode.Multi)
+
+      dataResults <- evaluator.execute(dataTasks).values
+      sourceResults <- evaluator.execute(sourceTasks).values
+    } yield {
+      val coverageFiles = dataResults.flatMap(_.asInstanceOf[PathRef] match {
+        case pathRef => Seq(pathRef)
+      })
+      val sourceFiles = sourceResults.flatMap(_.asInstanceOf[Seq[PathRef]])
+
+      // Generate combined report
+      val reportPath = Task.dest / "coverage-report"
+      os.makeDir.all(reportPath)
+
+      val reportFile = reportPath / "report.txt"
+      os.write(
+        reportFile,
+        s"""Coverage Report
+           |================
+           |Coverage data files: ${coverageFiles.size}
+           |Source directories: ${sourceFiles.size}
+           |
+           |Coverage files:
+           |${coverageFiles.map(f => s"  - ${f.path}").mkString("\n")}
+           |
+           |Source directories:
+           |${sourceFiles.map(f => s"  - ${f.path}").mkString("\n")}
+           |""".stripMargin
+      )
+
+      println(s"Generated coverage report from ${coverageFiles.size} data files")
+      println(s"Covering ${sourceFiles.size} source directories")
+      println(s"Report written to: $reportFile")
+
+      PathRef(reportPath)
+    }
+  }
+
+// This pattern of using `resolveTasks` + `execute` + aggregation is useful for
+// any command that needs to collect and combine data from across the build,
+// such as generating reports, running checks, or collecting metrics.
+
+/** Usage
+
+> ./mill coverageReportAll
+Generated coverage report from 3 data files
+Covering 3 source directories
+Report written to: ...
+*/

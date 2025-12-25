@@ -1,0 +1,60 @@
+//| mill-jvm-version: 17
+// This example demonstrates using the `Evaluator` API to create an execution plan
+// showing what tasks would be executed without actually running them. This is
+// essential for understanding task dependencies and debugging, similar to how
+// Mill's built-in `plan` command works.
+//
+// The `plan` method returns a Plan object containing tasks grouped and topologically
+// sorted for execution, including all transitive dependencies.
+
+package build
+import mill._
+import mill.api.{Evaluator, SelectMode}
+import mill.scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.12"
+}
+
+object bar extends ScalaModule {
+  def scalaVersion = "2.13.12"
+  def moduleDeps = Seq(foo)
+}
+
+// The `showExecutionPlan` command demonstrates using `plan` to see what tasks
+// would be executed in what order. This uses `resolveTasks` to get Task objects,
+// then calls `plan` to build the execution graph.
+def showExecutionPlan(evaluator: Evaluator, tasks: String*): Command[Seq[String]] =
+  Task.Command(exclusive = true) {
+    evaluator.resolveTasks(tasks, SelectMode.Multi).map { resolvedTasks =>
+      val executionPlan = evaluator.plan(resolvedTasks)
+
+      // Extract named tasks from the plan in execution order
+      val orderedTasks = executionPlan.sortedGroups.keys().collect {
+        case t: Task.Named[_] => t.label
+      }.toSeq
+
+      println("Execution order:")
+      orderedTasks.zipWithIndex.foreach { case (name, idx) =>
+        println(s"  ${idx + 1}. $name")
+      }
+
+      orderedTasks
+    }
+  }
+
+// The Plan shows all transitive dependencies in topological order, which helps
+// understand why certain tasks run before others and debug dependency issues.
+
+/** Usage
+
+> ./mill showExecutionPlan foo.compile
+Execution order:
+  1. ...
+...compile
+
+> ./mill showExecutionPlan bar.compile
+Execution order:
+  1. ...
+...compile
+*/

@@ -1,0 +1,55 @@
+//| mill-jvm-version: 17
+// This example demonstrates using the `Evaluator` API to resolve task selectors
+// into matching task paths without actually loading the task objects. This is
+// useful for displaying matching tasks or validating selectors, similar to how
+// Mill's built-in `resolve` command works.
+//
+// The `Evaluator` is Mill's core API for resolving, planning, and executing tasks
+// programmatically. While most Mill users interact with tasks by running them from
+// the command line, plugin authors sometimes need to work with tasks dynamically
+// at runtime.
+
+package build
+import mill._
+import mill.api.{Evaluator, SelectMode}
+
+object foo extends Module {
+  def compile = Task { "foo compiled" }
+  def test = Task { "foo tested" }
+}
+
+object bar extends Module {
+  def compile = Task { "bar compiled" }
+  def test = Task { "bar tested" }
+}
+
+// The `listMatchingTasks` command demonstrates using `resolveSegments` to find
+// all tasks matching a selector pattern. This is marked with `exclusive = true`
+// because commands using the Evaluator need exclusive access to Mill's execution
+// environment.
+def listMatchingTasks(evaluator: Evaluator, selector: String*): Command[List[String]] =
+  Task.Command(exclusive = true) {
+    evaluator.resolveSegments(selector, SelectMode.Multi) match {
+      case mill.api.Result.Success(segmentsList) =>
+        val taskPaths = segmentsList.map(_.render)
+        taskPaths.foreach(println)
+        mill.api.Result.Success(taskPaths)
+      case f: mill.api.Result.Failure =>
+        f
+    }
+  }
+
+// The key difference between `resolveSegments` and `resolveTasks` is that
+// `resolveSegments` only returns path segments (as strings), while `resolveTasks`
+// returns actual Task objects that can be inspected and executed.
+
+/** Usage
+
+> ./mill listMatchingTasks __.compile
+foo.compile
+bar.compile
+
+> ./mill listMatchingTasks foo._
+foo.compile
+foo.test
+*/
