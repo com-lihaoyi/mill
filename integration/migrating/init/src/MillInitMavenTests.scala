@@ -7,13 +7,15 @@ object MillInitMavenTests extends MillInitImportTestSuite {
     test("jansi") - checkImport(
       gitUrl = "https://github.com/fusesource/jansi.git",
       gitBranch = "jansi-2.4.2",
+      initArgs = Seq("--mill-jvm-id", "17"),
       configsGoldenFile = "golden/maven/jansi",
-      passingTasks = Seq("compile")
+      passingTasks = Seq("test")
     )
 
     test("netty") - checkImport(
       gitUrl = "https://github.com/netty/netty.git",
       gitBranch = "netty-4.2.6.Final",
+      initArgs = Seq("--mill-jvm-id", "17"),
       configsGoldenFile = "golden/maven/netty",
       passingTasks = Seq("common.compile")
     )

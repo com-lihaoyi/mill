@@ -11,7 +11,6 @@ case class ModuleSpec(
     supertypes: Seq[String] = Nil,
     mixins: Seq[String] = Nil,
     crossKeys: Seq[String] = Nil,
-    hasOuterAlias: Boolean = false,
     useOuterModuleDir: Boolean = false,
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
@@ -27,7 +26,7 @@ case class ModuleSpec(
     compileModuleDeps: Values[ModuleDep] = Values(),
     runModuleDeps: Values[ModuleDep] = Values(),
     bomModuleDeps: Values[ModuleDep] = Values(),
-    sourcesFolders: Values[os.SubPath] = Values(),
+    sourcesFolders: Values[String] = Values(),
     sources: Values[os.RelPath] = Values(),
     resources: Values[os.RelPath] = Values(),
     artifactName: Value[String] = Value(),
@@ -46,7 +45,7 @@ case class ModuleSpec(
     scalaJSVersion: Value[String] = Value(),
     moduleKind: Value[String] = Value(),
     scalaNativeVersion: Value[String] = Value(),
-    sourcesRootFolders: Values[os.SubPath] = Values(),
+    sourcesRootFolders: Values[String] = Values(),
     testParallelism: Value[Boolean] = Value(),
     testSandboxWorkingDir: Value[Boolean] = Value(),
     testFramework: Value[String] = Value(),
@@ -215,8 +214,6 @@ object ModuleSpec {
   }
   implicit val rwRelPath: ReadWriter[os.RelPath] =
     readwriter[String].bimap(_.toString, os.RelPath(_))
-  implicit val rwSubPath: ReadWriter[os.SubPath] =
-    readwriter[String].bimap(_.toString, os.SubPath(_))
 
   case class Value[+A](base: Option[A] = None, cross: Seq[(String, A)] = Nil)
   object Value {
@@ -227,8 +224,8 @@ object ModuleSpec {
       base: Seq[A] = Nil,
       cross: Seq[(String, Seq[A])] = Nil,
       appendSuper: Boolean = false,
-      appendOuterMembers: Seq[String] = Nil,
-      appendModuleRefs: Seq[ModuleDep] = Nil
+      appendRefs: Seq[ModuleDep] = Nil,
+      empty: Boolean = false
   )
   object Values {
     implicit def rw[A: ReadWriter]: ReadWriter[Values[A]] = macroRW

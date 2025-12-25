@@ -1239,13 +1239,13 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::cats-effect::3.6.0"
   ],
   "core.native.2_12_20.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17",
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
     "org.typelevel::discipline-munit::2.0.0-M3",
     "org.typelevel::munit-cats-effect::2.0.0",
-    "org.typelevel::scalacheck-effect-munit::2.0.0-M2",
-    "org.scala-native::test-interface::0.4.17"
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.native.2_13_16.mvnDeps": [
     "org.scodec::scodec-core::1.11.10",
@@ -1254,13 +1254,13 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::cats-effect::3.6.0"
   ],
   "core.native.2_13_16.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17",
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
     "org.typelevel::discipline-munit::2.0.0-M3",
     "org.typelevel::munit-cats-effect::2.0.0",
-    "org.typelevel::scalacheck-effect-munit::2.0.0-M2",
-    "org.scala-native::test-interface::0.4.17"
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.native.3_3_5.mvnDeps": [
     "org.scodec::scodec-core::2.2.1",
@@ -1269,13 +1269,13 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::cats-effect::3.6.0"
   ],
   "core.native.3_3_5.test.mvnDeps": [
+    "org.scala-native::test-interface::0.4.17",
     "org.typelevel::cats-effect-laws::3.6.0",
     "org.typelevel::cats-effect-testkit::3.6.0",
     "org.typelevel::cats-laws::2.11.0",
     "org.typelevel::discipline-munit::2.0.0-M3",
     "org.typelevel::munit-cats-effect::2.0.0",
-    "org.typelevel::scalacheck-effect-munit::2.0.0-M2",
-    "org.scala-native::test-interface::0.4.17"
+    "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "integration.2_12_20.mvnDeps": [],
   "integration.2_12_20.test.mvnDeps": [
@@ -1477,90 +1477,135 @@ Module dependencies of unidocs.3_3_5:
   "core.js.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js.2_12_20.test.compileMvnDeps": [],
+  "core.js.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.js.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js.2_13_16.test.compileMvnDeps": [],
+  "core.js.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.js.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.js.3_3_5.test.compileMvnDeps": [],
+  "core.js.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.jvm.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm.2_12_20.test.compileMvnDeps": [],
+  "core.jvm.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.jvm.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm.2_13_16.test.compileMvnDeps": [],
+  "core.jvm.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.jvm.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.jvm.3_3_5.test.compileMvnDeps": [],
+  "core.jvm.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.native.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native.2_12_20.test.compileMvnDeps": [],
+  "core.native.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.native.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native.2_13_16.test.compileMvnDeps": [],
+  "core.native.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.native.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "core.native.3_3_5.test.compileMvnDeps": [],
+  "core.native.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "integration.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration.2_12_20.test.compileMvnDeps": [],
+  "integration.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "integration.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration.2_13_16.test.compileMvnDeps": [],
+  "integration.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "integration.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "integration.3_3_5.test.compileMvnDeps": [],
+  "integration.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.js.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.js.2_12_20.test.compileMvnDeps": [],
+  "io.js.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.js.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.js.2_13_16.test.compileMvnDeps": [],
+  "io.js.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.js.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.js.3_3_5.test.compileMvnDeps": [],
+  "io.js.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.jvm.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4",
     "com.github.jnr:jnr-unixsocket:0.38.23"
   ],
-  "io.jvm.2_12_20.test.compileMvnDeps": [],
+  "io.jvm.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4",
+    "com.github.jnr:jnr-unixsocket:0.38.23"
+  ],
   "io.jvm.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4",
     "com.github.jnr:jnr-unixsocket:0.38.23"
   ],
-  "io.jvm.2_13_16.test.compileMvnDeps": [],
+  "io.jvm.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4",
+    "com.github.jnr:jnr-unixsocket:0.38.23"
+  ],
   "io.jvm.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4",
     "com.github.jnr:jnr-unixsocket:0.38.23"
   ],
-  "io.jvm.3_3_5.test.compileMvnDeps": [],
+  "io.jvm.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4",
+    "com.github.jnr:jnr-unixsocket:0.38.23"
+  ],
   "io.native.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.native.2_12_20.test.compileMvnDeps": [],
+  "io.native.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.native.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.native.2_13_16.test.compileMvnDeps": [],
+  "io.native.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.native.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "io.native.3_3_5.test.compileMvnDeps": [],
+  "io.native.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "mdoc.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
@@ -1573,87 +1618,129 @@ Module dependencies of unidocs.3_3_5:
   "protocols.js.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.js.2_12_20.test.compileMvnDeps": [],
+  "protocols.js.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.js.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.js.2_13_16.test.compileMvnDeps": [],
+  "protocols.js.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.js.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.js.3_3_5.test.compileMvnDeps": [],
+  "protocols.js.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.jvm.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.jvm.2_12_20.test.compileMvnDeps": [],
+  "protocols.jvm.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.jvm.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.jvm.2_13_16.test.compileMvnDeps": [],
+  "protocols.jvm.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.jvm.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.jvm.3_3_5.test.compileMvnDeps": [],
+  "protocols.jvm.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.native.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.native.2_12_20.test.compileMvnDeps": [],
+  "protocols.native.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.native.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.native.2_13_16.test.compileMvnDeps": [],
+  "protocols.native.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.native.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "protocols.native.3_3_5.test.compileMvnDeps": [],
+  "protocols.native.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "reactive-streams.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams.2_12_20.test.compileMvnDeps": [],
+  "reactive-streams.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "reactive-streams.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams.2_13_16.test.compileMvnDeps": [],
+  "reactive-streams.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "reactive-streams.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "reactive-streams.3_3_5.test.compileMvnDeps": [],
+  "reactive-streams.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.js.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.js.2_12_20.test.compileMvnDeps": [],
+  "scodec.js.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.js.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.js.2_13_16.test.compileMvnDeps": [],
+  "scodec.js.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.js.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.js.3_3_5.test.compileMvnDeps": [],
+  "scodec.js.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.jvm.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.jvm.2_12_20.test.compileMvnDeps": [],
+  "scodec.jvm.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.jvm.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.jvm.2_13_16.test.compileMvnDeps": [],
+  "scodec.jvm.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.jvm.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.jvm.3_3_5.test.compileMvnDeps": [],
+  "scodec.jvm.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.native.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.native.2_12_20.test.compileMvnDeps": [],
+  "scodec.native.2_12_20.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.native.2_13_16.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.native.2_13_16.test.compileMvnDeps": [],
+  "scodec.native.2_13_16.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.native.3_3_5.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
-  "scodec.native.3_3_5.test.compileMvnDeps": [],
+  "scodec.native.3_3_5.test.compileMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "unidocs.2_12_20.compileMvnDeps": [
     "org.typelevel::scalac-compat-annotation:0.1.4"
   ],
@@ -1669,92 +1756,179 @@ Module dependencies of unidocs.3_3_5:
   "benchmark.2_13_16.runMvnDeps": [],
   "benchmark.3_3_5.runMvnDeps": [],
   "core.js.2_12_20.runMvnDeps": [],
-  "core.js.2_12_20.test.runMvnDeps": [],
+  "core.js.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.js.2_13_16.runMvnDeps": [],
-  "core.js.2_13_16.test.runMvnDeps": [],
+  "core.js.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.js.3_3_5.runMvnDeps": [],
-  "core.js.3_3_5.test.runMvnDeps": [],
+  "core.js.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.jvm.2_12_20.runMvnDeps": [],
-  "core.jvm.2_12_20.test.runMvnDeps": [],
+  "core.jvm.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.jvm.2_13_16.runMvnDeps": [],
-  "core.jvm.2_13_16.test.runMvnDeps": [],
+  "core.jvm.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.jvm.3_3_5.runMvnDeps": [],
-  "core.jvm.3_3_5.test.runMvnDeps": [],
+  "core.jvm.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.native.2_12_20.runMvnDeps": [],
-  "core.native.2_12_20.test.runMvnDeps": [],
+  "core.native.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.native.2_13_16.runMvnDeps": [],
-  "core.native.2_13_16.test.runMvnDeps": [],
+  "core.native.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "core.native.3_3_5.runMvnDeps": [],
-  "core.native.3_3_5.test.runMvnDeps": [],
+  "core.native.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "integration.2_12_20.runMvnDeps": [],
-  "integration.2_12_20.test.runMvnDeps": [],
+  "integration.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "integration.2_13_16.runMvnDeps": [],
-  "integration.2_13_16.test.runMvnDeps": [],
+  "integration.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "integration.3_3_5.runMvnDeps": [],
-  "integration.3_3_5.test.runMvnDeps": [],
+  "integration.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.js.2_12_20.runMvnDeps": [],
-  "io.js.2_12_20.test.runMvnDeps": [],
+  "io.js.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.js.2_13_16.runMvnDeps": [],
-  "io.js.2_13_16.test.runMvnDeps": [],
+  "io.js.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.js.3_3_5.runMvnDeps": [],
-  "io.js.3_3_5.test.runMvnDeps": [],
+  "io.js.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.jvm.2_12_20.runMvnDeps": [],
-  "io.jvm.2_12_20.test.runMvnDeps": [],
+  "io.jvm.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4",
+    "com.github.jnr:jnr-unixsocket:0.38.23"
+  ],
   "io.jvm.2_13_16.runMvnDeps": [],
-  "io.jvm.2_13_16.test.runMvnDeps": [],
+  "io.jvm.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4",
+    "com.github.jnr:jnr-unixsocket:0.38.23"
+  ],
   "io.jvm.3_3_5.runMvnDeps": [],
-  "io.jvm.3_3_5.test.runMvnDeps": [],
+  "io.jvm.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4",
+    "com.github.jnr:jnr-unixsocket:0.38.23"
+  ],
   "io.native.2_12_20.runMvnDeps": [],
-  "io.native.2_12_20.test.runMvnDeps": [],
+  "io.native.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.native.2_13_16.runMvnDeps": [],
-  "io.native.2_13_16.test.runMvnDeps": [],
+  "io.native.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "io.native.3_3_5.runMvnDeps": [],
-  "io.native.3_3_5.test.runMvnDeps": [],
+  "io.native.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "mdoc.2_12_20.runMvnDeps": [],
   "mdoc.2_13_16.runMvnDeps": [],
   "mdoc.3_3_5.runMvnDeps": [],
   "protocols.js.2_12_20.runMvnDeps": [],
-  "protocols.js.2_12_20.test.runMvnDeps": [],
+  "protocols.js.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.js.2_13_16.runMvnDeps": [],
-  "protocols.js.2_13_16.test.runMvnDeps": [],
+  "protocols.js.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.js.3_3_5.runMvnDeps": [],
-  "protocols.js.3_3_5.test.runMvnDeps": [],
+  "protocols.js.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.jvm.2_12_20.runMvnDeps": [],
-  "protocols.jvm.2_12_20.test.runMvnDeps": [],
+  "protocols.jvm.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.jvm.2_13_16.runMvnDeps": [],
-  "protocols.jvm.2_13_16.test.runMvnDeps": [],
+  "protocols.jvm.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.jvm.3_3_5.runMvnDeps": [],
-  "protocols.jvm.3_3_5.test.runMvnDeps": [],
+  "protocols.jvm.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.native.2_12_20.runMvnDeps": [],
-  "protocols.native.2_12_20.test.runMvnDeps": [],
+  "protocols.native.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.native.2_13_16.runMvnDeps": [],
-  "protocols.native.2_13_16.test.runMvnDeps": [],
+  "protocols.native.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "protocols.native.3_3_5.runMvnDeps": [],
-  "protocols.native.3_3_5.test.runMvnDeps": [],
+  "protocols.native.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "reactive-streams.2_12_20.runMvnDeps": [],
-  "reactive-streams.2_12_20.test.runMvnDeps": [],
+  "reactive-streams.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "reactive-streams.2_13_16.runMvnDeps": [],
-  "reactive-streams.2_13_16.test.runMvnDeps": [],
+  "reactive-streams.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "reactive-streams.3_3_5.runMvnDeps": [],
-  "reactive-streams.3_3_5.test.runMvnDeps": [],
+  "reactive-streams.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.js.2_12_20.runMvnDeps": [],
-  "scodec.js.2_12_20.test.runMvnDeps": [],
+  "scodec.js.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.js.2_13_16.runMvnDeps": [],
-  "scodec.js.2_13_16.test.runMvnDeps": [],
+  "scodec.js.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.js.3_3_5.runMvnDeps": [],
-  "scodec.js.3_3_5.test.runMvnDeps": [],
+  "scodec.js.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.jvm.2_12_20.runMvnDeps": [],
-  "scodec.jvm.2_12_20.test.runMvnDeps": [],
+  "scodec.jvm.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.jvm.2_13_16.runMvnDeps": [],
-  "scodec.jvm.2_13_16.test.runMvnDeps": [],
+  "scodec.jvm.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.jvm.3_3_5.runMvnDeps": [],
-  "scodec.jvm.3_3_5.test.runMvnDeps": [],
+  "scodec.jvm.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.native.2_12_20.runMvnDeps": [],
-  "scodec.native.2_12_20.test.runMvnDeps": [],
+  "scodec.native.2_12_20.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.native.2_13_16.runMvnDeps": [],
-  "scodec.native.2_13_16.test.runMvnDeps": [],
+  "scodec.native.2_13_16.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "scodec.native.3_3_5.runMvnDeps": [],
-  "scodec.native.3_3_5.test.runMvnDeps": [],
+  "scodec.native.3_3_5.test.runMvnDeps": [
+    "org.typelevel::scalac-compat-annotation:0.1.4"
+  ],
   "unidocs.2_12_20.runMvnDeps": [],
   "unidocs.2_13_16.runMvnDeps": [],
   "unidocs.3_3_5.runMvnDeps": []

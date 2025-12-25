@@ -5,9 +5,7 @@ import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
-object `package` extends ProjectBaseModule {
-
-  def artifactName = "parent"
+object `package` extends PublishModule {
 
   def pomPackagingType = "pom"
 
@@ -19,5 +17,7 @@ object `package` extends ProjectBaseModule {
     VersionControl(None, None, None, None),
     Seq()
   )
+
+  def publishVersion = "1.0-SNAPSHOT"
 
 }

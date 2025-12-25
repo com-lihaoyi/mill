@@ -7,8 +7,6 @@ object `package` extends ProjectBaseModule {
 
   def mvnDeps = Seq(Deps.servletApi, Deps.jspApi)
 
-  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
-
   def artifactName = "single-module-project"
 
   def pomSettings = PomSettings(

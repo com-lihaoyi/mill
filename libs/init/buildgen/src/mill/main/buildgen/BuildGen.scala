@@ -4,6 +4,7 @@ import mill.constants.CodeGenConstants.rootModuleAlias
 import mill.constants.OutFiles.OutFiles.millBuild
 import mill.init.Util
 import mill.internal.Util.backtickWrap
+import mill.main.buildgen.BuildInfo.millVersion
 import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
 
@@ -202,10 +203,10 @@ object BuildGen {
 
   def writeBuildFiles(
       packages: Seq[PackageSpec],
-      millJvmVersion: String,
       merge: Boolean = false,
       depNames: Seq[(MvnDep, String)] = Nil,
       baseModule: Option[ModuleSpec] = None,
+      millJvmVersion: Option[String] = None,
       millJvmOpts: Seq[String] = Nil
   ): Unit = {
     var packages0 = fillPackages(packages).sortBy(_.dir)
@@ -233,13 +234,17 @@ object BuildGen {
       )
     }
     val rootPackage +: nestedPackages = packages0: @unchecked
+    val millJvmVersion0 = millJvmVersion.getOrElse {
+      val path = os.pwd / ".mill-jvm-version"
+      if (os.exists(path)) os.read(path) else "system"
+    }
     val millJvmOptsLine = if (millJvmOpts.isEmpty) ""
     else millJvmOpts.mkString("//| mill-jvm-opts: [\"", "\", \"", s"\"]$lineSeparator")
     println("writing build.mill")
     os.write(
       os.pwd / "build.mill",
-      s"""//| mill-version: SNAPSHOT
-         |//| mill-jvm-version: $millJvmVersion
+      s"""//| mill-version: $millVersion
+         |//| mill-jvm-version: $millJvmVersion0
          |$millJvmOptsLine${renderPackage(rootPackage)}
          |""".stripMargin
     )
@@ -306,11 +311,8 @@ object BuildGen {
 
   private def renderModuleBody(module: ModuleSpec) = {
     import module.*
-    val aliasDeclaration = if (hasOuterAlias) " outer => " else ""
     val renderModuleDir = if (useOuterModuleDir) "def moduleDir = outer.moduleDir" else ""
-    s"""$aliasDeclaration
-       |
-       |$renderModuleDir
+    s"""$renderModuleDir
        |
        |${render("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)}
        |
@@ -346,9 +348,9 @@ object BuildGen {
        |
        |${render("javacOptions", javacOptions, encodeOpt)}
        |
-       |${render("sourcesRootFolders", sourcesRootFolders, encodeSubPath, isTask = false)}
+       |${render("sourcesRootFolders", sourcesRootFolders, encodeString, isTask = false)}
        |
-       |${render("sourcesFolders", sourcesFolders, encodeSubPath, isTask = false)}
+       |${render("sourcesFolders", sourcesFolders, encodeString, isTask = false)}
        |
        |${renderSources("sources", sources)}
        |
@@ -412,8 +414,9 @@ object BuildGen {
       s"""object $name0 $crossExtendsClause
          |trait $crossTraitName $extendsClause""".stripMargin
     }
+    val aliasDeclaration = if (children.exists(_.useOuterModuleDir)) " outer => " else ""
 
-    s"""$typeDeclaration {
+    s"""$typeDeclaration {$aliasDeclaration
        |
        |  ${renderModuleBody(module)}
        |
@@ -435,7 +438,8 @@ object BuildGen {
   ): String = {
     def encodeAll(as: Seq[A]) = as.map(encode).mkString(s"$collection(", ", ", ")")
     import values.*
-    if (base.isEmpty && cross.isEmpty && appendOuterMembers.isEmpty && appendModuleRefs.isEmpty) ""
+    if (empty) s"def $member = $collection()"
+    else if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
     else {
       val stmt = StringBuilder(s"def $member = ")
       var append = false
@@ -444,13 +448,9 @@ object BuildGen {
         append = true
         stmt ++= s"super.$member$invoke"
       }
-      if (appendOuterMembers.nonEmpty) {
+      if (appendRefs.nonEmpty) {
         if (append) stmt ++= " ++ " else append = true
-        stmt ++= appendOuterMembers.map(member => s"outer.$member$invoke").mkString(" ++ ")
-      }
-      if (appendModuleRefs.nonEmpty) {
-        if (append) stmt ++= " ++ " else append = true
-        stmt ++= appendModuleRefs.map(encodeModuleDep(_) ++ s".$member$invoke").mkString(" ++ ")
+        stmt ++= appendRefs.map(encodeModuleDep(_) ++ s".$member$invoke").mkString(" ++ ")
       }
       if (base.nonEmpty) {
         if (append) stmt ++= " ++ " else append = true
@@ -468,15 +468,14 @@ object BuildGen {
   }
   private def renderSources(member: String, values: Values[os.RelPath]) = {
     def encodeSources(rels: Seq[os.RelPath]) = rels.map(rel =>
-      if (rel.ups == 0) encodeSubPath(rel.asSubPath) else encodeRelPath("os.rel", rel)
+      if (rel.ups == 0) encodeString(rel.toString) else encodeRelPath("os.rel", rel)
     ).mkString("Task.Sources(", ", ", ")")
     def encodeSeq(rels: Seq[os.RelPath]) =
       rels.map(encodeRelPath("os.rel", _)).mkString("Seq(", ", ", ")")
     import values.*
-    if (base.isEmpty && cross.isEmpty && appendOuterMembers.isEmpty && appendModuleRefs.isEmpty) ""
-    else if (
-      cross.isEmpty && !appendSuper && appendOuterMembers.isEmpty && appendModuleRefs.isEmpty
-    ) {
+    if (empty) s"def $member = Task.Sources()"
+    else if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
+    else if (cross.isEmpty && !appendSuper && appendRefs.isEmpty) {
       s"def $member = ${encodeSources(base)}"
     } else {
       val stmt = StringBuilder(s"def $member = ")
@@ -485,13 +484,9 @@ object BuildGen {
         append = true
         stmt ++= s"super.$member()"
       }
-      if (appendOuterMembers.nonEmpty) {
+      if (appendRefs.nonEmpty) {
         if (append) stmt ++= " ++ " else append = true
-        stmt ++= appendOuterMembers.map(member => s"outer.$member()").mkString(" ++ ")
-      }
-      if (appendModuleRefs.nonEmpty) {
-        if (append) stmt ++= " ++ " else append = true
-        stmt ++= appendModuleRefs.map(encodeModuleDep(_) ++ s".$member()").mkString(" ++ ")
+        stmt ++= appendRefs.map(encodeModuleDep(_) ++ s".$member()").mkString(" ++ ")
       }
       if (base.nonEmpty) {
         val customTask = s"custom${member.capitalize}"
@@ -548,7 +543,6 @@ object BuildGen {
   private def encodeString(s: String) = s"\"$s\""
   private def encodeLiteralOpt(a: Opt) = a.group.map(literalize(_)).mkString(", ")
   private def encodeOpt(a: Opt) = a.group.mkString("\"", "\", \"", "\"")
-  private def encodeSubPath(a: os.SubPath) = if (a.segments.isEmpty) "os.sub" else s"\"$a\""
   private def encodeRelPath(root: String, a: os.RelPath) = {
     val ups = " / os.up" * a.ups
     val segments = if (a.segments.isEmpty) "" else a.segments.mkString(" / \"", "/", "\"")

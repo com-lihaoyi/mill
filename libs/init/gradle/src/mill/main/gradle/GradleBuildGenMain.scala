@@ -19,12 +19,12 @@ object GradleBuildGenMain {
   def init(
       @mainargs.arg(doc = "Coursier ID for the JVM to run Gradle")
       gradleJvmId: String = "system",
-      @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
-      millJvmId: String = "system",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
-      noMeta: mainargs.Flag
+      noMeta: mainargs.Flag,
+      @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
+      millJvmId: Option[String]
   ): Unit = {
     println("converting Gradle build")
 
@@ -74,7 +74,7 @@ object GradleBuildGenMain {
       val prop = properties.getProperty("org.gradle.jvmargs")
       if (prop == null) Nil else prop.trim.split("\\s").toSeq
     }
-    BuildGen.writeBuildFiles(packages1, millJvmId, merge.value, depNames, baseModule, millJvmOpts)
+    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmId, millJvmOpts)
   }
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {
@@ -88,8 +88,8 @@ object GradleBuildGenMain {
           }
           if (bomModuleRefs.nonEmpty) {
             module0 = module0.copy(
-              bomMvnDeps = module0.bomMvnDeps.copy(appendModuleRefs = bomModuleRefs),
-              depManagement = module0.depManagement.copy(appendModuleRefs = bomModuleRefs),
+              bomMvnDeps = module0.bomMvnDeps.copy(appendRefs = bomModuleRefs),
+              depManagement = module0.depManagement.copy(appendRefs = bomModuleRefs),
               bomModuleDeps = bomModuleDeps
             )
           }

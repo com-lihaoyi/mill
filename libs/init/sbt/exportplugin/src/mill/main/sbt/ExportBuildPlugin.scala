@@ -106,8 +106,10 @@ object ExportBuildPlugin extends AutoPlugin {
         }),
         mixins =
           if (
-            (Compile / Keys.unmanagedSourceDirectories).value
-              .exists(dir => Seq('+', '-').contains(dir.name.last))
+            (Compile / Keys.unmanagedSourceDirectories).value.exists(_.name.last match {
+              case '+' | '-' => true
+              case _ => false
+            })
           ) Seq("CrossScalaVersionRanges")
           else Nil,
         useOuterModuleDir = useOuterModuleDir,
@@ -168,7 +170,7 @@ object ExportBuildPlugin extends AutoPlugin {
         scalacOptions = Opt.groups(Keys.scalacOptions.value.filterNot(skipScalacOption)),
         scalacPluginMvnDeps = mvnDeps("plugin->default(compile)"),
         sourcesRootFolders = values(
-          if (crossProjectBaseDir.exists(dir => os.isDir(dir / "shared"))) Seq(os.sub / "shared")
+          if (crossProjectBaseDir.exists(dir => os.isDir(dir / "shared"))) Seq("shared")
           else Nil
         ).copy(appendSuper = true)
       )
@@ -218,53 +220,32 @@ object ExportBuildPlugin extends AutoPlugin {
       if ((Test / Keys.sourceDirectories).value.exists(_.exists)) {
         val testMvnDeps = mvnDeps("test")
         val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
-        val supertypes = mainModule.supertypes.collect {
-          case "ScalaJSModule" => "ScalaJSTests"
-          case "ScalaNativeModule" => "ScalaNativeTests"
-          case "CrossSbtPlatformModule" => "CrossSbtPlatformTests"
-          case "SbtPlatformModule" => "SbtPlatformTests"
-          case "CrossSbtModule" => "CrossSbtTests"
-          case "SbtModule" => "SbtTests"
-        }
         val testModule = ModuleSpec(
           name = "test",
-          supertypes = supertypes,
+          supertypes = mainModule.supertypes.collect {
+            case "ScalaJSModule" => "ScalaJSTests"
+            case "ScalaNativeModule" => "ScalaNativeTests"
+            case "CrossSbtPlatformModule" => "CrossSbtPlatformTests"
+            case "SbtPlatformModule" => "SbtPlatformTests"
+            case "CrossSbtModule" => "CrossSbtTests"
+            case "SbtModule" => "SbtTests"
+          },
           mixins = testMixin.toSeq,
-          mvnDeps = testMvnDeps,
-          compileMvnDeps = Values(appendOuterMembers =
-            if (mainModule.compileMvnDeps.base.isEmpty) Nil else Seq("compileMvnDeps")
-          ),
-          runMvnDeps = Values(appendOuterMembers =
-            Seq(
-              if (mainModule.compileMvnDeps.base.isEmpty) None else Some("compileMvnDeps"),
-              if (mainModule.runMvnDeps.base.isEmpty) None else Some("runMvnDeps")
-            ).flatten
-          ),
+          mvnDeps = values(testMvnDeps).copy(appendSuper = hasScalaNativePlugin),
+          compileMvnDeps = mainModule.compileMvnDeps,
+          runMvnDeps = mainModule.compileMvnDeps.base ++ mainModule.runMvnDeps.base,
           moduleDeps = values(
             moduleDeps(_ == "test") ++
               moduleDeps(_ == "test->test", childSegment = Some("test"))
           ).copy(appendSuper = true),
-          compileModuleDeps = Values(appendOuterMembers =
-            if (mainModule.compileModuleDeps.base.isEmpty) Nil else Seq("compileModuleDeps")
-          ),
-          runModuleDeps = Values(appendOuterMembers =
-            Seq(
-              if (mainModule.compileModuleDeps.base.isEmpty) None else Some("compileModuleDeps"),
-              if (mainModule.runModuleDeps.base.isEmpty) None else Some("runModuleDeps")
-            ).flatten
-          ),
+          compileModuleDeps = mainModule.compileModuleDeps,
+          runModuleDeps = mainModule.compileModuleDeps.base ++ mainModule.runModuleDeps.base,
           testParallelism = Some(false),
           testSandboxWorkingDir = Some(false),
           testFramework =
             if (testMixin.isEmpty) testFramework(testMvnDeps).orElse(Some("")) else None
         )
-        mainModule = mainModule.copy(
-          hasOuterAlias = mainModule.compileMvnDeps.base.nonEmpty ||
-            mainModule.runMvnDeps.base.nonEmpty ||
-            mainModule.compileModuleDeps.base.nonEmpty ||
-            mainModule.runModuleDeps.base.nonEmpty,
-          children = Seq(testModule)
-        )
+        mainModule = mainModule.copy(children = Seq(testModule))
       }
 
       val moduleDir = toModuleDir(crossProjectBaseDir.getOrElse(baseDir))

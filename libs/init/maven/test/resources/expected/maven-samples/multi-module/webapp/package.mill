@@ -18,8 +18,6 @@ object `package` extends ProjectBaseModule {
     Deps.mockitoCore
   )
 
-  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
-
   def artifactName = "webapp"
 
   def pomPackagingType = "war"

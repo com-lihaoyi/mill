@@ -18,12 +18,12 @@ object SbtBuildGenMain {
       sbt: Option[String],
       @mainargs.arg(doc = "command line arguments for SBT")
       sbtArgs: mainargs.Leftover[String],
-      @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
-      millJvmId: String = "system",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
-      noMeta: mainargs.Flag
+      noMeta: mainargs.Flag,
+      @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
+      millJvmId: Option[String]
   ): Unit = {
     println("converting sbt build")
 
@@ -91,12 +91,7 @@ object SbtBuildGenMain {
           case (_, crossVersionModules) => toCrossModule(crossVersionModules)
         }.toSeq
         val root = PackageSpec.root(dir)
-        root.copy(module =
-          root.module.copy(
-            hasOuterAlias = children.exists(_.useOuterModuleDir),
-            children = children
-          )
-        )
+        root.copy(module = root.module.copy(children = children))
     }.toSeq
     packages = normalizeBuild(packages)
 
@@ -129,7 +124,7 @@ object SbtBuildGenMain {
         .flatMap(_.split("\\s"))
       else Nil
     }
-    BuildGen.writeBuildFiles(packages1, millJvmId, merge.value, depNames, baseModule, millJvmOpts)
+    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmId, millJvmOpts)
   }
 
   private def toCrossModule(crossVersionModules: Seq[ModuleSpec]) = {
@@ -148,6 +143,7 @@ object SbtBuildGenMain {
       supertypes = a.supertypes.intersect(b.supertypes),
       mixins = if (a.mixins == b.mixins) a.mixins else Nil,
       crossKeys = a.crossKeys ++ b.crossKeys,
+      useOuterModuleDir = a.useOuterModuleDir && b.useOuterModuleDir,
       repositories = combineValues(a.repositories, b.repositories),
       mvnDeps = combineValues(a.mvnDeps, b.mvnDeps),
       compileMvnDeps = combineValues(a.compileMvnDeps, b.compileMvnDeps),

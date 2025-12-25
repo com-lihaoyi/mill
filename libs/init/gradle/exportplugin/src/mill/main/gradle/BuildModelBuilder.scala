@@ -14,7 +14,6 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.*
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -78,31 +77,6 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         case _ => None
       }
       val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
-      def sources(sets: Seq[SourceSet]) = {
-        val toRelModule: PartialFunction[os.Path, os.RelPath] = {
-          case path if !path.startsWith(buildDir) => path.relativeTo(moduleDir)
-        }
-        val sourcesFolders = Seq.newBuilder[os.SubPath]
-        val sources = Seq.newBuilder[os.RelPath]
-        val resources = Seq.newBuilder[os.RelPath]
-        for (set <- sets) do {
-          val (_sourcesFolders, _sources) = set.getJava.getSrcDirs.asScala.map(os.Path(_))
-            .collect(toRelModule).partition(_.ups == 0)
-          sourcesFolders ++= _sourcesFolders.map(_.asSubPath)
-          sources ++= _sources
-          val res = set.getResources
-          val _resources = if (res.getIncludes.isEmpty && res.getExcludes.isEmpty)
-            res.getSrcDirs.asScala.toSeq.map(os.Path(_)).collect(toRelModule)
-          else res.getFiles.asScala.toSeq.map(os.Path(_)).collect(toRelModule)
-          resources ++= _resources
-        }
-        (sourcesFolders.result(), sources.result(), resources.result())
-      }
-      val (testSourceSets, mainSourceSets) =
-        Option(getExtensions.findByType(classOf[JavaPluginExtension]))
-          .flatMap(ctx.sourceSetContainer).toSeq.flatMap(_.asScala.toSeq)
-          .partition(isTest)
-      val (mainSourcesFolders, mainSources, mainResources) = sources(mainSourceSets)
       mainModule = mainModule.copy(
         imports = "import mill.javalib.*" +: mainModule.imports,
         supertypes = "MavenModule" +: mainModule.supertypes,
@@ -115,11 +89,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         moduleDeps = moduleDeps("implementation", "api"),
         compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
         runModuleDeps = moduleDeps("runtimeOnly"),
-        bomModuleDeps = mainBomDeps.collect(toModuleDep),
-        sourcesFolders = if (mainSourcesFolders == Seq(os.sub / "src/main/java")) Nil
-        else mainSourcesFolders,
-        sources = Values(mainSources, appendSuper = true),
-        resources = if (mainResources == Seq(os.rel / "src/main/resources")) Nil else mainResources
+        bomModuleDeps = mainBomDeps.collect(toModuleDep)
       ).withErrorProneModule(mvnDeps("errorprone"))
 
       if (os.exists(moduleDir / "src/test")) {
@@ -127,7 +97,6 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep)))
         val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
         val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
-        val (testSourcesFolders, testSources, testResources) = sources(testSourceSets)
         var testModule = ModuleSpec(
           name = "test",
           supertypes = Seq("MavenTests"),
@@ -152,11 +121,6 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           compileModuleDeps = moduleDeps("testCompileOnly"),
           runModuleDeps = moduleDeps("testRuntimeOnly"),
           bomModuleDeps = testBomDeps.collect(toModuleDep),
-          sourcesFolders = if (testSourcesFolders == Seq(os.sub / "src/test/java")) Nil
-          else testSourcesFolders,
-          sources = Values(testSources, appendSuper = true),
-          resources =
-            if (testResources == Seq(os.rel / "src/test/resources")) Nil else testResources,
           testParallelism = Some(false),
           testSandboxWorkingDir = Some(false),
           testFramework = Option.when(testMixin.isEmpty)("")
@@ -268,9 +232,6 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       Option(task.getOptions.getEncoding).map(Opt("-encoding", _)) ++
       Opt.groups(task.getOptions.getAllCompilerArgs.asScala.toSeq)
   }
-
-  private val TestSourceSetName = s"(?i)test".r.unanchored
-  private def isTest(set: SourceSet) = TestSourceSetName.matches(set.getName)
 
   private def toPomPackagingType(pom: MavenPom): Option[String] =
     Try(pom.getPackaging).filter(_ != "jar").toOption
