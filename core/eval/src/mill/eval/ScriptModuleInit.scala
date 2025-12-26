@@ -147,8 +147,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
       if (resolvingScripts.contains(scriptFile)) {
         val relPath = scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot)
         val chain = resolvingScripts.toSeq.map(_.relativeTo(mill.api.BuildCtx.workspaceRoot))
-        val cycleStart = chain.indexOf(relPath)
-        val cyclePath = (chain.drop(cycleStart) :+ relPath).mkString(" -> ")
+        val cyclePath = (chain :+ relPath).mkString(" -> ")
         Result.Failure(s"Recursive moduleDeps detected: $cyclePath")
       } else {
         resolvingScripts.add(scriptFile)
