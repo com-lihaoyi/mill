@@ -1,0 +1,7 @@
+//// SNIPPET:LAST
+/** See Also: Foo.kt */
+/** Usage
+> ./mill Bar.kt
+1337
+*/
+

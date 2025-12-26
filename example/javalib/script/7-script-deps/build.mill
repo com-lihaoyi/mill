@@ -1,0 +1,8 @@
+
+//// SNIPPET:LAST
+/** See Also: Foo.java */
+/** Usage
+> ./mill Bar.java
+1337
+*/
+
