@@ -1,0 +1,73 @@
+package build
+import mill.*, javalib.*
+
+object `package` extends QuarkusModule {
+  def quarkusVersion = "3.30.5"
+  
+  def runMvnDeps = Seq(
+    mvn"com.h2database:h2:2.2.224"
+  )
+
+  def mvnDeps = Seq(
+    mvn"io.quarkus:quarkus-resteasy-reactive",
+    mvn"io.quarkus:quarkus-resteasy-reactive-qute",
+    mvn"io.quarkus:quarkus-hibernate-orm-panache",
+    mvn"io.quarkus:quarkus-jdbc-h2",
+    mvn"io.quarkus:quarkus-arc",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1",
+    mvn"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
+  )
+
+  object test extends MavenTests, TestModule.Junit5 {
+    override def bomMvnDeps = Seq(
+      mvn"io.quarkus.platform:quarkus-bom:${quarkusVersion}"
+    )
+
+    def mvnDeps = Seq(
+      mvn"com.h2database:h2:2.2.224",
+      mvn"io.quarkus:quarkus-junit5",
+      mvn"io.rest-assured:rest-assured"
+    )
+
+    def testParallelism = false
+  }
+}
+
+trait QuarkusModule extends MavenModule {
+  def quarkusVersion: String
+  
+  override def bomMvnDeps = Seq(
+    mvn"io.quarkus.platform:quarkus-bom:${quarkusVersion}"
+  )
+  
+  def javacOptions = super.javacOptions() ++ Seq("-parameters")
+}
+
+// This example demonstrates a complete Quarkus web application using Mill,
+// adapted from the Micronaut todo-mvc example. It shows:
+//
+// * Qute templates for HTML rendering
+// * Webjars for Javascript and CSS
+// * HTMX for interactivity  
+// * Database interactions using Hibernate ORM with Panache and H2
+// * JAX-RS Resources, Repositories, Entities, Forms
+// * Exception handling with ExceptionMappers
+// * A test suite using @QuarkusTest and RestAssured
+//
+// This demonstrates how Mill integrates with Quarkus's build-time 
+// augmentation and Arc dependency injection.
+
+/** Usage
+
+> ./mill test
+...example.quarkus.TodoItemResourceTest...
+
+> ./mill runBackground
+
+> curl http://localhost:8080
+...{"id":...}...
+
+> ./mill clean runBackground
+
+*/
