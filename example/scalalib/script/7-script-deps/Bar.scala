@@ -1,4 +1,4 @@
-//| moduleDeps: [./PrintMessages.scala]
+//| moduleDeps: [./Foo.scala]
 
 @main def main() =
   println(fooValue)

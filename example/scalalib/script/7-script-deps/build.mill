@@ -3,6 +3,7 @@
 
 //// SNIPPET:LAST
 /** See Also: Foo.scala */
+/** See Also: Bar.scala */
 /** Usage
 > ./mill Bar.scala
 1337

@@ -38,7 +38,7 @@ include::partial$example/scalalib/script/7-script-deps.adoc[]
 
 == Relative and Absolute Script moduleDeps
 
-include::partial$example/scalalib/script/8-relative-imports.adoc[]
+include::partial$example/scalalib/script/8-relative-deps.adoc[]
 
 
 == Project `moduleDeps`

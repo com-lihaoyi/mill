@@ -26,7 +26,7 @@ include::partial$example/kotlinlib/script/7-script-deps.adoc[]
 
 == Relative and Absolute Script moduleDeps
 
-include::partial$example/kotlinlib/script/8-relative-imports.adoc[]
+include::partial$example/kotlinlib/script/8-relative-deps.adoc[]
 
 == Project `moduleDeps`
 
