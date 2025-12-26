@@ -23,19 +23,19 @@ import java.util.List;
 @ApplicationScoped
 public class TodoItemRepository implements PanacheRepository<TodoItem> {
 
-    public long countByCompleted(boolean completed) {
-        return count("completed", completed);
-    }
+  public long countByCompleted(boolean completed) {
+    return count("completed", completed);
+  }
 
-    public List<TodoItem> findByCompleted(boolean completed) {
-        return list("completed", completed);
-    }
+  public List<TodoItem> findByCompleted(boolean completed) {
+    return list("completed", completed);
+  }
 
-    public void updateCompleted(boolean completed) {
-        update("completed = ?1", completed);
-    }
+  public void updateCompleted(boolean completed) {
+    update("completed = ?1", completed);
+  }
 
-    public void updateCompletedById(Long id, boolean completed) {
-        update("completed = ?1 where id = ?2", completed, id);
-    }
+  public void updateCompletedById(Long id, boolean completed) {
+    update("completed = ?1 where id = ?2", completed, id);
+  }
 }

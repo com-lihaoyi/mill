@@ -3,7 +3,7 @@ import mill.*, javalib.*
 
 object `package` extends QuarkusModule {
   def quarkusVersion = "3.30.5"
-  
+
   def runMvnDeps = Seq(
     mvn"com.h2database:h2:2.2.224"
   )
@@ -36,11 +36,11 @@ object `package` extends QuarkusModule {
 
 trait QuarkusModule extends MavenModule {
   def quarkusVersion: String
-  
+
   override def bomMvnDeps = Seq(
     mvn"io.quarkus.platform:quarkus-bom:${quarkusVersion}"
   )
-  
+
   def javacOptions = super.javacOptions() ++ Seq("-parameters")
 }
 
@@ -49,13 +49,13 @@ trait QuarkusModule extends MavenModule {
 //
 // * Qute templates for HTML rendering
 // * Webjars for Javascript and CSS
-// * HTMX for interactivity  
+// * HTMX for interactivity
 // * Database interactions using Hibernate ORM with Panache and H2
 // * JAX-RS Resources, Repositories, Entities, Forms
 // * Exception handling with ExceptionMappers
 // * A test suite using @QuarkusTest and RestAssured
 //
-// This demonstrates how Mill integrates with Quarkus's build-time 
+// This demonstrates how Mill integrates with Quarkus's build-time
 // augmentation and Arc dependency injection.
 
 /** Usage

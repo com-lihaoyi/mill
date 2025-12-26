@@ -17,7 +17,7 @@
 package example.quarkus;
 
 public class TodoItemNotFoundException extends RuntimeException {
-    public TodoItemNotFoundException(Long id) {
-        super("TodoItem with id " + id + " not found");
-    }
+  public TodoItemNotFoundException(Long id) {
+    super("TodoItem with id " + id + " not found");
+  }
 }

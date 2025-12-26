@@ -16,33 +16,30 @@
 
 package example.quarkus;
 
-import io.quarkus.test.junit.QuarkusTest;
-import org.junit.jupiter.api.Test;
-
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.notNullValue;
+
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 public class TodoItemResourceTest {
 
-    @Test
-    public void testList() {
-        given()
-          .when().get("/")
-          .then()
-             .statusCode(200)
-             .body(notNullValue());
-    }
+  @Test
+  public void testList() {
+    given().when().get("/").then().statusCode(200).body(notNullValue());
+  }
 
-    @Test
-    public void testSave() {
-        given()
-          .contentType("application/json")
-          .body("{\"title\":\"Test Todo\",\"completed\":false}")
-          .when().post("/save")
-          .then()
-             .statusCode(201)
-             .body("title", notNullValue())
-             .body("id", notNullValue());
-    }
+  @Test
+  public void testSave() {
+    given()
+        .contentType("application/json")
+        .body("{\"title\":\"Test Todo\",\"completed\":false}")
+        .when()
+        .post("/save")
+        .then()
+        .statusCode(201)
+        .body("title", notNullValue())
+        .body("id", notNullValue());
+  }
 }

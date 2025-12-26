@@ -21,23 +21,23 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class TodoItemMapper {
 
-    public TodoItem toEntity(TodoItemFormData formData) {
-        if (formData == null) {
-            return null;
-        }
-        TodoItem entity = new TodoItem();
-        entity.title = formData.title;
-        entity.completed = formData.completed;
-        return entity;
+  public TodoItem toEntity(TodoItemFormData formData) {
+    if (formData == null) {
+      return null;
     }
+    TodoItem entity = new TodoItem();
+    entity.title = formData.title;
+    entity.completed = formData.completed;
+    return entity;
+  }
 
-    public TodoItemFormData toFormData(TodoItem entity) {
-        if (entity == null) {
-            return null;
-        }
-        TodoItemFormData formData = new TodoItemFormData();
-        formData.title = entity.title;
-        formData.completed = entity.completed;
-        return formData;
+  public TodoItemFormData toFormData(TodoItem entity) {
+    if (entity == null) {
+      return null;
     }
+    TodoItemFormData formData = new TodoItemFormData();
+    formData.title = entity.title;
+    formData.completed = entity.completed;
+    return formData;
+  }
 }

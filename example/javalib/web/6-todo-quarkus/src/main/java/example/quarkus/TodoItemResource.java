@@ -32,26 +32,26 @@ import java.util.List;
 @ApplicationScoped
 public class TodoItemResource {
 
-    @Inject
-    TodoItemRepository repository;
+  @Inject
+  TodoItemRepository repository;
 
-    @Inject
-    TodoItemMapper mapper;
+  @Inject
+  TodoItemMapper mapper;
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<TodoItem> list() {
-        return repository.listAll();
-    }
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<TodoItem> list() {
+    return repository.listAll();
+  }
 
-    @POST
-    @Path("/save")
-    @Transactional
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response save(TodoItemFormData formData) {
-        TodoItem item = mapper.toEntity(formData);
-        repository.persist(item);
-        return Response.status(Response.Status.CREATED).entity(item).build();
-    }
+  @POST
+  @Path("/save")
+  @Transactional
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response save(TodoItemFormData formData) {
+    TodoItem item = mapper.toEntity(formData);
+    repository.persist(item);
+    return Response.status(Response.Status.CREATED).entity(item).build();
+  }
 }

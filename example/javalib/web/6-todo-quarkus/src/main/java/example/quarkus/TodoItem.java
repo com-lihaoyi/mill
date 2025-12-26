@@ -21,6 +21,6 @@ import jakarta.persistence.Entity;
 
 @Entity
 public class TodoItem extends PanacheEntity {
-    public String title;
-    public boolean completed;
+  public String title;
+  public boolean completed;
 }

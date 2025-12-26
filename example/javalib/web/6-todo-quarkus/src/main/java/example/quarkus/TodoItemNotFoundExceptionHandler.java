@@ -21,12 +21,13 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 
 @Provider
-public class TodoItemNotFoundExceptionHandler implements ExceptionMapper<TodoItemNotFoundException> {
+public class TodoItemNotFoundExceptionHandler
+    implements ExceptionMapper<TodoItemNotFoundException> {
 
-    @Override
-    public Response toResponse(TodoItemNotFoundException exception) {
-        return Response.status(Response.Status.NOT_FOUND)
-                .entity(exception.getMessage())
-                .build();
-    }
+  @Override
+  public Response toResponse(TodoItemNotFoundException exception) {
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(exception.getMessage())
+        .build();
+  }
 }

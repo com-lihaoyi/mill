@@ -17,6 +17,6 @@
 package example.quarkus;
 
 public class TodoItemFormData {
-    public String title;
-    public boolean completed;
+  public String title;
+  public boolean completed;
 }
