@@ -1,0 +1,569 @@
+= Evaluator API
+:page-nav_order: 50
+:page-section: Extending Mill
+:toc: left
+:toclevels: 3
+:sectanchors:
+:sectlinks:
+:source-highlighter: rouge
+:rouge-style: github
+:description: Comprehensive documentation of Mill's Evaluator API: resolving segments/tasks, planning, executing, and evaluating with realistic extension patterns.
+
+Mill's `Evaluator` is the programmatic entry point for turning *user intent* (CLI-like selectors and args) into *resolved tasks*, building an *execution plan*, and *executing* those tasks.
+
+This page is for extension authors embedding Mill, writing custom commands, or building developer tooling (profilers, analyzers, IDE integrations) that needs to:
+
+* Parse/resolve selectors the same way Mill does (`resolveSegments`, `resolveTasks`)
+* Inspect task graphs without running them (`plan`)
+* Execute tasks under custom logging/reporting (`execute`)
+* Reuse Mill's "resolve + execute" end-to-end behavior (`evaluate`)
+
+[NOTE]
+====
+The API signatures shown here are simplified excerpts. In the real Mill API, these methods accept additional parameters
+(e.g., `base`, `env`, `evaluatorCtx`, `classLoaderSig`, `home`, `outPath`, `failFast`, etc.). The core semantics remain the same.
+
+When adapting examples, search in your Mill version for `trait Evaluator` and follow the parameter list from there.
+====
+
+== Mental model
+
+At a high level:
+
+1. *Selectors* (strings like `foo.bar`, `__.compile`, `foo.test`, `foo.{compile,test}`) are resolved into *segments* and *tasks*.
+2. Tasks are turned into an executable *plan*, which encodes dependency ordering and grouping.
+3. The plan is executed, producing values (or failures) and metadata (watchables, execution results).
+
+The `Evaluator.Result[T]` returned by execution contains both the computed values and useful metadata for tooling.
+
+[source,scala]
+----
+case class Evaluator.Result[T](
+  watchable: Seq[Watchable],
+  values: Result[Seq[T]],
+  selectedTasks: Seq[Task[?]],
+  executionResults: ExecutionResults
+)
+----
+
+=== Key types
+
+`Result[_]`::
+Represents success or failure (Mill uses this widely to avoid throwing for expected failures).
+Your integration should handle both success and error cases and present useful diagnostics.
+
+`Segments`::
+A low-level parsed representation of a selector path (e.g. module path + target).
+
+`Task[_]` / `Task.Named[_]`::
+A build computation node. Named tasks are addressable via selectors (e.g. `core.compile`).
+
+`Plan`::
+An ordered execution graph constructed from a set of root tasks. Typically includes a topologically sorted grouping.
+From the excerpt: `Plan` has `sortedGroups: MultiBiMap[Task[?], Task[?]]` (exact shape may vary by version).
+
+`ExecutionResults`::
+Execution metadata (timings, cache hits, failures, etc.—exact fields vary). Useful for profilers and reporting.
+
+`Watchable`::
+A file or other input that can be watched for changes for incremental / watch mode.
+
+== Method-by-method reference
+
+=== 1) `resolveSegments`
+
+[source,scala]
+----
+def resolveSegments(
+  scriptArgs: Seq[String],
+  selectMode: SelectMode,
+  ...
+): Result[List[Segments]]
+----
+
+Resolves CLI-like selectors into low-level `Segments`.
+
+Use this when you want to:
+
+* Validate selectors early (before loading tasks)
+* Implement custom selector UX
+* Perform *build introspection* or autocomplete-like features without committing to actual tasks
+
+Typical `scriptArgs`:
+
+* `Seq("core.compile")`
+* `Seq("__.test")` (wildcards)
+* `Seq("core.{compile,test}")` (selector expansion)
+* `Seq("core.test", "--", "-k", "MySuite")` (depending on Mill version, args separation may happen earlier)
+
+`selectMode` controls how selectors are interpreted (e.g., normal selection, scripted command modes, etc.). Check your Mill version's `SelectMode` docs or source.
+
+==== Example: build introspection command (selectors → segments)
+
+This example implements a simple command that prints the resolved segments for debugging selector parsing.
+
+[source,scala]
+----
+// Pseudo-code for an embedding tool / custom main.
+// The exact way to obtain `evaluator` and `selectMode` depends on your integration.
+
+def printResolvedSegments(
+  evaluator: Evaluator,
+  args: Seq[String],
+  selectMode: SelectMode
+): Unit = {
+
+  evaluator.resolveSegments(args, selectMode /*, ... */) match {
+    case Result.Success(segmentsList) =>
+      println("Resolved segments:")
+      segmentsList.zipWithIndex.foreach { case (segs, idx) =>
+        // `Segments` typically has a structured representation; use .toString for diagnostics.
+        println(s"  [${idx}] ${segs}")
+      }
+
+    case f: Result.Failure =>
+      // Keep failures user-friendly: show selector errors prominently.
+      System.err.println("Failed to resolve segments:")
+      System.err.println(f.toString)
+  }
+}
+----
+
+Patterns:
+
+* Prefer `resolveSegments` when you only need parse/resolve feedback, not tasks.
+* Use this to implement `--explain-selector` style commands.
+
+---
+
+=== 2) `resolveTasks`
+
+[source,scala]
+----
+def resolveTasks(
+  scriptArgs: Seq[String],
+  selectMode: SelectMode,
+  ...
+): Result[List[Task.Named[?]]]
+----
+
+Resolves selectors all the way into actual *named tasks*.
+
+Use this when you want:
+
+* The exact tasks Mill would run for some selector(s)
+* A task graph for analysis (dependency exploration, impact analysis)
+* To `plan` or `execute` those tasks yourself
+
+This is the most common "entry point" for tooling that needs tasks.
+
+==== Example: dependency analyzer (resolveTasks + plan)
+
+This example builds an "analyze deps" command that prints a dependency summary for the selected tasks without executing them.
+
+[source,scala]
+----
+// Goal: take user selectors, resolve to tasks, build a plan, and print dependencies.
+// This does NOT execute tasks; it only inspects the planned graph.
+
+def analyzeDependencies(
+  evaluator: Evaluator,
+  args: Seq[String],
+  selectMode: SelectMode
+): Unit = {
+
+  evaluator.resolveTasks(args, selectMode /*, ... */) match {
+    case Result.Success(namedTasks) =>
+      // `plan` typically wants generic Task[_], not necessarily Named.
+      val rootTasks: Seq[Task[?]] = namedTasks
+
+      val plan: Plan = evaluator.plan(rootTasks)
+
+      // Plan internals differ by Mill version; excerpt says `sortedGroups: MultiBiMap[Task, Task]`.
+      // Treat it as an adjacency representation: for each task, what are its deps?
+      //
+      // You may need to adapt this to the concrete API in your version.
+      val graph = plan.sortedGroups
+
+      println("Dependency analysis:")
+      rootTasks.foreach { t =>
+        val deps: Seq[Task[?]] =
+          graph.lookupKey(t).toSeq.flatten // pseudo-code: adapt to MultiBiMap API
+
+        println(s"- ${t}:")
+        if (deps.isEmpty) println("    (no dependencies)")
+        else deps.foreach(d => println(s"    dependsOn: ${d}"))
+      }
+
+    case f: Result.Failure =>
+      System.err.println("Could not resolve tasks for dependency analysis:")
+      System.err.println(f.toString)
+  }
+}
+----
+
+Patterns and caveats:
+
+* `resolveTasks` can expand wildcards/selectors into many tasks. Be careful with output volume.
+* If you need a full transitive graph, rely on the `Plan` graph rather than only the roots.
+* The shape of `Plan`/`MultiBiMap` is intentionally a *plan representation*, not a stable public graph API—keep this in mind for long-lived tools.
+
+---
+
+=== 3) `plan`
+
+[source,scala]
+----
+def plan(tasks: Seq[Task[?]]): Plan  // Plan has sortedGroups: MultiBiMap[Task[?], Task[?]]
+----
+
+Constructs an execution plan from a set of root tasks.
+
+Use `plan` when:
+
+* You want to inspect the task order/grouping without executing
+* You want to implement "dry-run" or "what would run" tooling
+* You want to build a custom executor (rare) or wrap execution with instrumentation
+
+`Plan` contains a grouping/topological sorting of tasks so that dependencies run before dependents. In many Mill versions, tasks in the same group can execute "together" because their dependencies are satisfied.
+
+==== Example: custom "dry-run" command using plan()
+
+This prints the approximate execution order for selected tasks without running them.
+
+[source,scala]
+----
+// Goal: show "what would run" for selectors.
+// This helps users understand what `mill ...` would do without paying execution costs.
+
+def dryRun(
+  evaluator: Evaluator,
+  args: Seq[String],
+  selectMode: SelectMode
+): Unit = {
+
+  val resolved: Result[List[Task.Named[?]]] =
+    evaluator.resolveTasks(args, selectMode /*, ... */)
+
+  resolved match {
+    case Result.Success(namedTasks) =>
+      val plan = evaluator.plan(namedTasks)
+
+      println("Dry-run plan (topological groups):")
+
+      // Pseudo-code: adapt based on actual Plan API.
+      // Some Mill versions expose a sequence of groups; others only a bi-map structure.
+      val groups: Seq[Seq[Task[?]]] =
+        plan.sortedGroups.keysGroupedTopologically // pseudo-code helper you may implement
+
+      groups.zipWithIndex.foreach { case (group, idx) =>
+        println(s"Group #$idx:")
+        group.foreach(t => println(s"  - $t"))
+      }
+
+      // Also show the originally selected tasks (roots) to match CLI semantics.
+      println("\nSelected root tasks:")
+      namedTasks.foreach(t => println(s"  - $t"))
+
+    case f: Result.Failure =>
+      System.err.println("Dry-run failed to resolve tasks:")
+      System.err.println(f.toString)
+  }
+}
+----
+
+Practical notes:
+
+* A "dry-run" output should clearly separate *selected roots* from *all planned tasks*.
+* If your Mill version provides a stable "task label" (e.g., `t.toString` contains module path + target), use it consistently.
+
+---
+
+=== 4) `execute`
+
+[source,scala]
+----
+def execute[T](
+  tasks: Seq[Task[T]],
+  reporter,
+  testReporter,
+  logger,
+  ...
+): Evaluator.Result[T]
+----
+
+Executes already-resolved tasks.
+
+Use `execute` when:
+
+* You already know exactly which tasks to run (e.g., from `resolveTasks`)
+* You want custom reporting/logging/instrumentation
+* You want to run tasks in a non-standard workflow (profiling, IDE integration, partial evaluation)
+
+Compared to `evaluate`, `execute` typically assumes you've done selection/resolution already.
+
+==== Example: performance profiler using execute()
+
+This wraps execution with timing, and uses the returned `ExecutionResults` to present additional detail.
+
+[source,scala]
+----
+// Goal: profile task execution time for a given selector.
+// Outline:
+//  1) resolveTasks to get tasks
+//  2) execute tasks
+//  3) print high-level timing plus any per-task info available in ExecutionResults
+
+def profileExecution(
+  evaluator: Evaluator,
+  args: Seq[String],
+  selectMode: SelectMode,
+  reporter: Any,      // replace with actual Reporter type in your Mill version
+  testReporter: Any,  // replace with actual TestReporter type
+  logger: Any         // replace with actual Logger type
+): Unit = {
+
+  evaluator.resolveTasks(args, selectMode /*, ... */) match {
+    case Result.Success(namedTasks) =>
+      // `execute` expects Seq[Task[T]] where T is the result type of the task.
+      // For heterogeneous tasks, you can execute as Task[Any] if your API supports it,
+      // or call execute per-task.
+      val tasksToRun: Seq[Task[Any]] =
+        namedTasks.asInstanceOf[Seq[Task[Any]]] // keep the cast localized; prefer safer APIs if available
+
+      val startNanos = System.nanoTime()
+
+      val execResult: Evaluator.Result[Any] =
+        evaluator.execute(tasksToRun, reporter, testReporter, logger /*, ... */)
+
+      val elapsedMs = (System.nanoTime() - startNanos) / 1000000L
+
+      // `values` is a Result[Seq[T]]; handle failure.
+      execResult.values match {
+        case Result.Success(values) =>
+          println(s"Execution succeeded in ${elapsedMs}ms; produced ${values.size} value(s).")
+        case f: Result.Failure =>
+          System.err.println(s"Execution failed in ${elapsedMs}ms.")
+          System.err.println(f.toString)
+      }
+
+      // Watchables: helpful for watch mode / incremental workflows.
+      println(s"Watchables: ${execResult.watchable.size}")
+
+      // Selected tasks: the actual task nodes executed / targeted.
+      println("Selected tasks:")
+      execResult.selectedTasks.foreach(t => println(s"  - $t"))
+
+      // ExecutionResults: varies by version; can expose per-task timing, cache hits, failures, etc.
+      // Prefer to print a concise summary + optionally a verbose mode.
+      println(s"Execution metadata: ${execResult.executionResults}")
+
+    case f: Result.Failure =>
+      System.err.println("Profiling failed to resolve tasks:")
+      System.err.println(f.toString)
+  }
+}
+----
+
+Profiler patterns:
+
+* Measure end-to-end wall time externally (cheap and robust).
+* Prefer `executionResults` for per-task breakdown when available; fall back to wall-clock timing otherwise.
+* Keep casts isolated. If your Mill version offers a typed API to avoid casts for heterogeneous tasks, use it.
+
+---
+
+=== 5) `evaluate`
+
+[source,scala]
+----
+def evaluate(
+  scriptArgs: Seq[String],
+  selectMode,
+  reporter,
+  ...
+): Result[Evaluator.Result[Any]]
+----
+
+Resolves selectors and executes tasks in one call.
+
+Use `evaluate` when:
+
+* You want behavior close to what the CLI does
+* You want to minimize tooling code and let Mill handle resolution + execution consistently
+* You want a simple "run this selector" from an external program
+
+It returns `Result[Evaluator.Result[Any]]`:
+
+* The outer `Result` covers resolution/setup errors (e.g., invalid selectors).
+* The inner `Evaluator.Result[Any]` contains `values: Result[Seq[Any]]` which covers runtime task failures.
+
+This two-layer structure is important: resolution failures and execution failures are not the same thing and often need different UX.
+
+==== Example: selective test runner using evaluate()
+
+This example shows a custom "run tests with filtering" command:
+
+* Use `evaluate` to let Mill resolve and execute `__.test`
+* Forward test framework arguments after `--` (common pattern)
+* Print results and exit codes appropriately
+
+[source,scala]
+----
+// Goal: reimplement a small, selective test runner.
+// The key is to use `evaluate` so task resolution matches Mill CLI behavior.
+
+final case class Exit(code: Int)
+
+def runTests(
+  evaluator: Evaluator,
+  args: Seq[String],
+  selectMode: SelectMode,
+  reporter: Any,
+  testReporter: Any,
+  logger: Any
+): Exit = {
+
+  // Example invocation:
+  //   mytool test core.test -- -k MySuite
+  //
+  // How you split args may depend on your front-end.
+  // Here we assume args already contains the selector and passthrough.
+  val scriptArgs: Seq[String] = args
+
+  evaluator.evaluate(scriptArgs, selectMode, reporter /*, ... */) match {
+    case Result.Success(evalRes) =>
+      // Execution happened; now interpret task values.
+      evalRes.values match {
+        case Result.Success(values) =>
+          // Many test tasks return some structured test report type; treat as Any here.
+          println(s"Tests executed successfully. Returned ${values.size} value(s).")
+          Exit(0)
+
+        case f: Result.Failure =>
+          // Test failures typically appear here (task executed but failed).
+          System.err.println("Tests failed.")
+          System.err.println(f.toString)
+          Exit(1)
+      }
+
+    case f: Result.Failure =>
+      // Resolution/setup failed (invalid selector, module not found, etc.)
+      System.err.println("Could not start test run (selector resolution failed).")
+      System.err.println(f.toString)
+      Exit(2)
+  }
+}
+----
+
+Patterns:
+
+* Map different failure layers to different exit codes for better automation.
+* Use `selectedTasks` to print "what tests were actually selected" for transparency.
+* Use `watchable` for `--watch` implementations.
+
+== Common use cases and extension patterns
+
+=== A) Build introspection command
+
+Use `resolveSegments` (fast, no task loading) for selector debugging and basic introspection.
+Use `resolveTasks` + lightweight reflection on tasks for richer insights.
+
+Ideas:
+
+* Print resolved module paths/targets for a selector (`resolveSegments`)
+* Enumerate the expanded tasks for a wildcard selector (`resolveTasks`)
+* Show the root tasks versus the full planned graph (`plan`)
+
+A practical "introspect" command often provides:
+
+* "Selected tasks" (roots)
+* "Expanded tasks count"
+* "First N tasks in plan order"
+* Optional `--json` output for tooling/IDE integration (if your embedding supports it)
+
+=== B) Dry-run / explain execution
+
+Use `resolveTasks` + `plan`.
+
+Recommended output structure:
+
+1. Original selector(s)
+2. Resolved root tasks
+3. Planned execution groups (topological order)
+4. Notes about parallelism/grouping (if relevant)
+
+Also consider:
+
+* `--verbose`: include full transitive plan
+* default: include only groups that contain selected roots or their direct dependencies (to reduce noise)
+
+=== C) Dependency analyzer
+
+Use `resolveTasks` + `plan` to build a stable dependency view.
+
+Pitfalls:
+
+* The plan graph is an execution artifact; it may change between Mill versions.
+  Treat it as "best effort" and avoid depending on too many internal details.
+* Some tasks may be dynamically generated; ensure your analyzer handles missing labels gracefully.
+
+If you need richer semantics (e.g., distinguishing "hard" deps vs "inputs"), you may need to inspect Task internals—only do this if your project is prepared to track Mill internals across upgrades.
+
+=== D) Selective test runner
+
+Use `evaluate` if you want a CLI-like experience with minimal code.
+
+Enhancements that fit naturally with `Evaluator.Result`:
+
+* Print `selectedTasks` to show which test tasks ran
+* Use `watchable` to implement a watch loop (rerun on changes)
+* Use `executionResults` to show timing per test module (if available)
+
+=== E) Performance profiler / instrumentation
+
+Use `execute` when you need to:
+
+* Inject your own reporter/testReporter/logger (or wrappers around them)
+* Add timers around execution phases
+* Collect per-task diagnostics via `executionResults`
+
+A pragmatic approach:
+
+* Start with wall-clock timing around `execute`.
+* If `executionResults` provides a per-task timing map, print a top-N slow tasks report.
+* Keep the default output short; add `--verbose` for full dumps.
+
+== Error handling and Result layering
+
+A common mistake is to treat the return type of `evaluate` as "single-layer success/failure".
+
+* `resolveSegments` / `resolveTasks`: `Result[...]` tells you whether selection succeeded.
+* `evaluate`: outer `Result` indicates resolution/setup; inner `Evaluator.Result.values` indicates task runtime success/failure.
+
+Recommended UX:
+
+* If selection fails: print selector + resolution diagnostic + help hint.
+* If execution fails: print task failure(s) + optionally plan roots + optionally how to re-run with `--stacktrace` or verbose logging (depending on your environment).
+
+== FAQ
+
+=== When should I use `evaluate` vs `resolveTasks` + `execute`?
+
+Use `evaluate` when:
+
+* You want Mill's default behavior (resolve + run) and minimal integration code.
+
+Use `resolveTasks` + `execute` when:
+
+* You need custom reporting/logging
+* You want to analyze or modify the task set/plan before running
+* You need instrumentation/profiling
+
+=== Is `plan` stable across Mill versions?
+
+The concept is stable; the concrete shape of `Plan` and its internal graph structures can change.
+For long-lived tools, keep your use of `Plan` minimal and defensive:
+
+* Use it mainly for ordering and dependency traversal
+* Avoid relying on internal fields beyond what your version exposes publicly
