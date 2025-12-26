@@ -2,6 +2,6 @@ extends: [ScalaModule, NativeImageModule]
 scalaVersion: "3.7.1"
 mvnDeps:
   - com.lihaoyi::scalatags:0.13.1
-  - com.lihaoyi::mainargs:0.7.7
+  - com.lihaoyi::mainargs:0.7.8
 nativeImageOptions: ["--no-fallback", "-Os"]
 jvmId: "graalvm-community:23.0.1"
