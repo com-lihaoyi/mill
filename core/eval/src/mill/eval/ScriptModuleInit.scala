@@ -36,7 +36,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
     }
 
     def resolveOrErr(located: Located[String]) =
-      resolveModuleDep(eval, relativize(located.value)) match{
+      resolveModuleDep(eval, relativize(located.value)) match {
         case Result.Success(Some(r)) => Right(r)
         case Result.Success(None) => Left((located, None))
         case f: Result.Failure => Left((located, Some(f)))
@@ -58,7 +58,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
           Result.Failure(
             s"Unable to resolve module ${pprint.Util.literalize(located.value)}",
             path = scriptFile.toNIO,
-            index = located.index,
+            index = located.index
           )
       }
       Result.Failure.join(failures)
