@@ -1,0 +1,26 @@
+package build
+import mill.*, javalib.*
+
+object `package` extends QuarkusModule {
+  def quarkusVersion = "3.30.5"
+  def mvnDeps = Seq(
+    mvn"io.quarkus:quarkus-resteasy-reactive",
+    mvn"io.quarkus:quarkus-arc"
+  )
+  object test extends MavenTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"io.quarkus:quarkus-junit5",
+      mvn"io.rest-assured:rest-assured"
+    )
+    def testParallelism = false
+  }
+}
+
+trait QuarkusModule extends MavenModule {
+  def quarkusVersion: String
+  override def bomMvnDeps = Seq(
+    mvn"io.quarkus.platform:quarkus-bom:${quarkusVersion}"
+  )
+  // Quarkus requires -parameters for proper parameter name discovery (e.g. in REST/CDI)
+  def javacOptions = super.javacOptions() ++ Seq("-parameters")
+}
