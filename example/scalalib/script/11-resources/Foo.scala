@@ -2,6 +2,6 @@
 
 package foo
 
-@main def main() = {
+def main() = {
   println(os.read(os.resource / "file.txt"))
 }
