@@ -47,6 +47,7 @@ trait GroupExecution {
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
       val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
+
       def rec(
           segments: Seq[String],
           bufValue: upickle.core.BufferedValue
@@ -91,15 +92,17 @@ trait GroupExecution {
         true,
         -1
       )
-      rec(
-        (path / "..").subRelativeTo(workspace).segments,
-        if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
-          parsed0
-            .value0
-            .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
-            .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
-        } else parsed0
-      )
+      if ((path / "..").startsWith(workspace)) {
+        rec(
+          (path / "..").subRelativeTo(workspace).segments,
+          if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+            parsed0
+              .value0
+              .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
+              .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
+          } else parsed0
+        )
+      } else Nil
     }
     .toMap
 
