@@ -720,29 +720,27 @@ object ScalaModule {
    * Workaround for https://github.com/scala/scala3/issues/20421
    * Strips module-info.class from a classpath entry (jar or directory) to fix
    * Scala 3 REPL autocomplete issues with JPMS modules.
-   *
-   * @param dest destination directory to copy modified entries to
-   * @param path the classpath entry to process
-   * @return the original path if no module-info.class, or the path to a modified copy
    */
   private def stripModuleInfo(dest: os.Path, path: os.Path): os.Path = {
     // Use path hash to avoid collisions when multiple entries have the same filename
-    def uniqueDestPath() = {
+    val uniqueDestPath = {
       val hash = path.toString.hashCode.toHexString
       dest / s"${path.baseName}-$hash-module-info-stripped-${path.ext}"
     }
 
     val moduleInfoClass = os.sub / "module-info.class"
     if (os.isDir(path) && os.exists(path / moduleInfoClass)) {
-      val destDir = uniqueDestPath()
-      os.copy(path, destDir, replaceExisting = true, createFolders = true)
-      os.remove(destDir / moduleInfoClass)
-      destDir
-    } else if (os.isFile(path) && path.ext == "jar" && os.unzip.list(path).contains(moduleInfoClass)) {
-      val destJar = uniqueDestPath()
-      os.copy(path, destJar)
-      Using.resource(os.zip.open(destJar)){fs => os.remove(fs / moduleInfoClass)}
-      destJar
+      os.copy(path, uniqueDestPath)
+      os.remove(uniqueDestPath / moduleInfoClass)
+      uniqueDestPath
+    } else if (
+      os.isFile(path) &&
+        path.ext == "jar" &&
+        os.unzip.list(path).contains(moduleInfoClass)
+    ) {
+      os.copy(path, uniqueDestPath)
+      Using.resource(os.zip.open(uniqueDestPath)) { fs => os.remove(fs / moduleInfoClass) }
+      uniqueDestPath
     } else path
   }
 }
