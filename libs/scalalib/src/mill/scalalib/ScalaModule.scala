@@ -423,36 +423,32 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def consoleScalacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
-  @deprecated("Use `repl` instead")
+  @deprecated("Use `ScalaModule#repl` instead")
   def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
     Task.Command(exclusive = true) {
-      console0(args)()
-    }
+      if (!mill.constants.Util.hasConsole()) {
+        Task.fail("console needs to be run with the -i/--interactive flag")
+      } else {
+        val useJavaCp = "-usejavacp"
 
-  private def console0(args: mill.api.Args) = {
-    if (!mill.constants.Util.hasConsole()) {
-      Task.fail("console needs to be run with the -i/--interactive flag")
-    } else {
-      val useJavaCp = "-usejavacp"
-
-      Jvm.callProcess(
-        mainClass =
-          if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
-            "dotty.tools.repl.Main"
-          else
-            "scala.tools.nsc.MainGenericRunner",
-        classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
-        jvmArgs = forkArgs(),
-        env = allForkEnv(),
-        mainArgs =
-          Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
-        cwd = forkWorkingDir(),
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
-      ()
+        Jvm.callProcess(
+          mainClass =
+            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
+              "dotty.tools.repl.Main"
+            else
+              "scala.tools.nsc.MainGenericRunner",
+          classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
+          jvmArgs = forkArgs(),
+          env = allForkEnv(),
+          mainArgs =
+            Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
+          cwd = forkWorkingDir(),
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
+        ()
+      }
     }
-  }
 
   /**
    * The classpath used to run the Scala console with [[console]].
@@ -509,17 +505,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     }
   }
 
-  /**
-   * Makes `repl` open up an Ammonite Scala REPL instead of a standard Scala REPL.
-   * Defaults to `false` since most of Ammonite's features have been upstreamed
-   */
-  def ammoniteRepl: Boolean = false
+  /** Set to `true` to use Ammonite for the `repl` command rather than the builtin Scala REPL */
+  def ammoniteRepl = false
 
   /**
    * Opens up a Scala REPL with your module and all dependencies present,
    * for you to test and operate your code interactively.
    */
-  def repl(replOptions: String*): Command[Unit] =
+  def repl(replOptions: String*): Command[Unit] = {
     if (ammoniteRepl) {
       Task.Command(exclusive = true) {
         if (Task.log.streams.in == DummyInputStream) {
@@ -539,13 +532,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           )
           ()
         }
-
       }
-    } else {
-      Task.Command(exclusive = true) {
-        console0(args)()
-      }
-    }
+    } else console(mill.api.Args(replOptions))
+  }
 
   /**
    * Whether to publish artifacts with name "mill_2.12.4" instead of "mill_2.12"
