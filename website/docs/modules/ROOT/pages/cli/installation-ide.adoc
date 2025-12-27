@@ -230,11 +230,6 @@ image::basic/IntellijApp.png[]
 
 image::basic/IntellijBuild.png[]
 
-If IntelliJ does not highlight the `.mill` files correctly, you can explicitly enable
-it by adding `*.mill` to the `Scala` file type:
-
-image::basic/IntellijFileTypeConfig.png[]
-
 If you make changes to your Mill `build.mill`, you can ask Intellij to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
 
