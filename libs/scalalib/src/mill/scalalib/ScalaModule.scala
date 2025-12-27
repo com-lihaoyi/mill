@@ -735,8 +735,8 @@ object ScalaModule {
       uniqueDestPath
     } else if (
       os.isFile(path) &&
-        path.ext == "jar" &&
-        os.unzip.list(path).contains(moduleInfoClass)
+      path.ext == "jar" &&
+      os.unzip.list(path).contains(moduleInfoClass)
     ) {
       os.copy(path, uniqueDestPath)
       Using.resource(os.zip.open(uniqueDestPath)) { fs => os.remove(fs / moduleInfoClass) }

@@ -3,8 +3,7 @@ import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
-import millbuild.Deps
-import millbuild.ProjectBaseModule
+import millbuild.*
 object `package` extends ProjectBaseModule {
 
   def moduleDeps = Seq(build.common)
@@ -46,5 +45,4 @@ object `package` extends ProjectBaseModule {
   )
 
   object test extends Tests {}
-
 }

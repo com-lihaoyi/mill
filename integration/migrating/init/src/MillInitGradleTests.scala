@@ -9,15 +9,15 @@ object MillInitGradleTests extends MillInitImportTestSuite {
       gitBranch = "v4.1.0",
       initArgs = Seq("--gradle-jvm-id", "25", "--mill-jvm-id", "25"),
       configsGoldenFile = "golden/gradle/fast-csv",
-      failingTasks = Seq("lib.compile")
+      passingTasks = Seq(Seq("resolve", "_"))
     )
 
     test("ehcache3") - checkImport(
       gitUrl = "https://github.com/ehcache/ehcache3.git",
       gitBranch = "v3.10.8",
-      initArgs = Seq("--gradle-jvm-id", "11"),
+      initArgs = Seq("--gradle-jvm-id", "11", "--mill-jvm-id", "17"),
       configsGoldenFile = "golden/gradle/ehcache3",
-      failingTasks = Seq("osgi-test.test")
+      passingTasks = Seq(Seq("resolve", "_"))
     )
   }
 }

@@ -7,8 +7,7 @@ import mill.scalajslib.api.*
 import mill.scalalib.*
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.*
-import millbuild.Deps
-import millbuild.ProjectBaseModule
+import millbuild.*
 object `package` extends Module {
 
   object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
@@ -29,6 +28,7 @@ object `package` extends Module {
       Seq()
     )
 
+    object test extends Tests, ScalaJSTests {}
   }
 
   object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
@@ -45,6 +45,7 @@ object `package` extends Module {
       Seq()
     )
 
+    object test extends Tests {}
   }
 
   object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
@@ -63,5 +64,6 @@ object `package` extends Module {
       Seq()
     )
 
+    object test extends Tests, ScalaNativeTests {}
   }
 }

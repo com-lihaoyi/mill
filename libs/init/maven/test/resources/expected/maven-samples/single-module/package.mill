@@ -2,13 +2,10 @@ package build.`single-module`
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
-import millbuild.Deps
-import millbuild.ProjectBaseModule
+import millbuild.*
 object `package` extends ProjectBaseModule {
 
   def mvnDeps = Seq(Deps.servletApi, Deps.jspApi)
-
-  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
   def artifactName = "single-module-project"
 
@@ -27,5 +24,4 @@ object `package` extends ProjectBaseModule {
   )
 
   object test extends Tests {}
-
 }

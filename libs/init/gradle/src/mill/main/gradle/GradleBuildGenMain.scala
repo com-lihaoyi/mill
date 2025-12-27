@@ -17,14 +17,14 @@ object GradleBuildGenMain {
 
   @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
   def init(
-      @mainargs.arg(doc = "Coursier JVM ID for the JDK to use to run Gradle")
+      @mainargs.arg(doc = "Coursier ID for the JVM to run Gradle")
       gradleJvmId: String = "system",
-      @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
-      millJvmId: String = "system",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
-      noMeta: mainargs.Flag
+      noMeta: mainargs.Flag,
+      @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
+      millJvmId: Option[String]
   ): Unit = {
     println("converting Gradle build")
 
@@ -58,13 +58,15 @@ object GradleBuildGenMain {
           upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
       finally gradleConnector.disconnect()
-    packages = adjustModuleDeps(packages)
+    packages = normalizeBuild(packages)
 
     val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
-    val (baseModule, packages1) =
-      Option.when(!noMeta.value)(BuildGen.withBaseModule(packages0, "MavenTests", "MavenModule"))
-        .flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
+    val (baseModule, packages1) = Option.when(!noMeta.value)(BuildGen.withBaseModule(
+      packages0,
+      Seq("MavenModule"),
+      Seq("MavenTests")
+    )).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
     val millJvmOpts = {
       val properties = new Properties()
       val file = os.pwd / "gradle/wrapper/gradle-wrapper.properties"
@@ -72,30 +74,28 @@ object GradleBuildGenMain {
       val prop = properties.getProperty("org.gradle.jvmargs")
       if (prop == null) Nil else prop.trim.split("\\s").toSeq
     }
-    BuildGen.writeBuildFiles(packages1, millJvmId, merge.value, depNames, baseModule, millJvmOpts)
+    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmId, millJvmOpts)
   }
 
-  private def adjustModuleDeps(packages: Seq[PackageSpec]) = {
-    val moduleLookup =
-      packages.map(pkg => (pkg.dir.segments, pkg.module)).toMap[Seq[String], ModuleSpec]
-
-    def adjust(module: ModuleSpec): ModuleSpec = {
-      var module0 = module
-      if (module.supertypes.contains("PublishModule")) {
-        val (bomModuleDeps, bomModuleDepRefs) = module0.bomModuleDeps.base.partition { dep =>
-          val module = moduleLookup(dep.segments)
-          module.supertypes.contains("PublishModule")
+  private def normalizeBuild(packages: Seq[PackageSpec]) = {
+    val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
+    packages.map(pkg =>
+      pkg.copy(module = pkg.module.recMap { module =>
+        var module0 = module
+        if (module0.supertypes.contains("PublishModule")) {
+          val (bomModuleDeps, bomModuleRefs) = module0.bomModuleDeps.base.partition { dep =>
+            moduleLookup(dep.segments ++ dep.childSegment).supertypes.contains("PublishModule")
+          }
+          if (bomModuleRefs.nonEmpty) {
+            module0 = module0.copy(
+              bomMvnDeps = module0.bomMvnDeps.copy(appendRefs = bomModuleRefs),
+              depManagement = module0.depManagement.copy(appendRefs = bomModuleRefs),
+              bomModuleDeps = bomModuleDeps
+            )
+          }
         }
-        if (bomModuleDepRefs.nonEmpty) {
-          module0 = module0.copy(
-            bomMvnDeps = module0.bomMvnDeps.copy(appendRefs = bomModuleDepRefs),
-            depManagement = module0.depManagement.copy(appendRefs = bomModuleDepRefs),
-            bomModuleDeps = bomModuleDeps
-          )
-        }
-      }
-      module0.copy(test = module0.test.map(adjust))
-    }
-    packages.map(pkg => pkg.copy(module = adjust(pkg.module)))
+        module0
+      })
+    )
   }
 }

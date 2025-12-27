@@ -5,7 +5,7 @@ import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
-import millbuild.Deps
+import millbuild.*
 object `package` extends PublishModule, SbtModule {
 
   def scalaVersion = "2.13.12"
@@ -32,5 +32,4 @@ object `package` extends PublishModule, SbtModule {
     def testSandboxWorkingDir = false
 
   }
-
 }

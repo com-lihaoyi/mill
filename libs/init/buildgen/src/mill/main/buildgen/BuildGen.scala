@@ -1,5 +1,10 @@
 package mill.main.buildgen
 
+import mill.constants.CodeGenConstants.rootModuleAlias
+import mill.constants.OutFiles.OutFiles.millBuild
+import mill.init.Util
+import mill.internal.Util.backtickWrap
+import mill.main.buildgen.BuildInfo.millVersion
 import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
 
@@ -9,17 +14,16 @@ object BuildGen {
 
   def withNamedDeps(packages: Seq[PackageSpec]): (Seq[(MvnDep, String)], Seq[PackageSpec]) = {
     val names = packages.flatMap(_.module.tree).flatMap { module =>
-      (module +: module.test.toSeq).flatMap(module =>
-        Seq(
-          module.mandatoryMvnDeps,
-          module.mvnDeps,
-          module.compileMvnDeps,
-          module.runMvnDeps,
-          module.bomMvnDeps,
-          module.depManagement,
-          module.errorProneDeps,
-          module.scalacPluginMvnDeps
-        )
+      import module.*
+      Seq(
+        mandatoryMvnDeps,
+        mvnDeps,
+        compileMvnDeps,
+        runMvnDeps,
+        bomMvnDeps,
+        depManagement,
+        errorProneDeps,
+        scalacPluginMvnDeps
       )
     }.flatMap { values =>
       values.base ++ values.cross.flatMap(_._2)
@@ -33,37 +37,34 @@ object BuildGen {
         case _ => deps.sortBy(_.toString).zipWithIndex.map((dep, i) => (dep, s"`$ref#$i`"))
       }
     }
+    if (names.isEmpty) return (Nil, packages)
     val lookup = names.lift.andThen(_.map(ref => s"Deps.$ref"))
-
-    def updateDeps(values: Values[MvnDep]) = values.copy(
+    def withRefs(values: Values[MvnDep]) = values.copy(
       base = values.base.map(dep => dep.copy(ref = lookup(dep))),
       cross = values.cross.map((k, v) => (k, v.map(dep => dep.copy(ref = lookup(dep)))))
     )
-    def updateModule0(module: ModuleSpec) = {
-      import module.*
-      module.copy(
-        mvnDeps = updateDeps(mvnDeps),
-        compileMvnDeps = updateDeps(compileMvnDeps),
-        runMvnDeps = updateDeps(runMvnDeps),
-        bomMvnDeps = updateDeps(bomMvnDeps),
-        depManagement = updateDeps(depManagement),
-        errorProneDeps = updateDeps(errorProneDeps),
-        scalacPluginMvnDeps = updateDeps(scalacPluginMvnDeps)
-      )
-    }
-    def updateModule(module: ModuleSpec): ModuleSpec = updateModule0(module.copy(
-      imports = "import millbuild.Deps" +: module.imports,
-      test = module.test.map(updateModule0),
-      children = module.children.map(updateModule)
-    ))
-    val packages0 = for (pkg <- packages) yield pkg.copy(module = updateModule(pkg.module))
+    val packages0 = packages.map(pkg =>
+      pkg.copy(module = pkg.module.recMap { module =>
+        import module.*
+        module.copy(
+          imports = "import millbuild.*" +: imports,
+          mvnDeps = withRefs(mvnDeps),
+          compileMvnDeps = withRefs(compileMvnDeps),
+          runMvnDeps = withRefs(runMvnDeps),
+          bomMvnDeps = withRefs(bomMvnDeps),
+          depManagement = withRefs(depManagement),
+          errorProneDeps = withRefs(errorProneDeps),
+          scalacPluginMvnDeps = withRefs(scalacPluginMvnDeps)
+        )
+      })
+    )
     (names.toSeq, packages0)
   }
 
   def withBaseModule(
       packages: Seq[PackageSpec],
-      testSupertype: String,
-      moduleHierarchy: String*
+      moduleHierarchy: Seq[String],
+      testHierarchy: Seq[String]
   ): Option[(ModuleSpec, Seq[PackageSpec])] = {
     def parentValue[A](a: Value[A], b: Value[A]) = Value(
       if (a.base == b.base) a.base else None,
@@ -74,51 +75,49 @@ object BuildGen {
       (a.cross ++ b.cross).groupMapReduce(_._1)(_._2)(_.intersect(_)).toSeq.filter(_._2.nonEmpty),
       a.appendSuper && b.appendSuper
     )
-    def parentModule0(a: ModuleSpec, b: ModuleSpec, defaultSupertypes: Seq[String]) = ModuleSpec(
-      name = "",
-      imports = (a.imports ++ b.imports).distinct,
-      supertypes = a.supertypes.intersect(b.supertypes) match {
-        case Nil => defaultSupertypes
-        case seq => seq
-      },
-      mixins = if (a.supertypes == b.supertypes && a.mixins == b.mixins) a.mixins else Nil,
-      repositories = parentValues(a.repositories, b.repositories),
-      forkArgs = parentValues(a.forkArgs, b.forkArgs),
-      forkWorkingDir = parentValue(a.forkWorkingDir, b.forkWorkingDir),
-      mandatoryMvnDeps = parentValues(a.mandatoryMvnDeps, b.mandatoryMvnDeps),
-      mvnDeps = parentValues(a.mvnDeps, b.mvnDeps),
-      compileMvnDeps = parentValues(a.compileMvnDeps, b.compileMvnDeps),
-      runMvnDeps = parentValues(a.runMvnDeps, b.runMvnDeps),
-      bomMvnDeps = parentValues(a.bomMvnDeps, b.bomMvnDeps),
-      depManagement = parentValues(a.depManagement, b.depManagement),
-      javacOptions = parentValues(a.javacOptions, b.javacOptions),
-      sourcesFolders = parentValues(a.sourcesFolders, b.sourcesFolders),
-      sources = parentValues(a.sources, b.sources),
-      resources = parentValues(a.resources, b.resources),
-      artifactName = parentValue(a.artifactName, b.artifactName),
-      pomPackagingType = parentValue(a.pomPackagingType, b.pomPackagingType),
-      pomParentProject = parentValue(a.pomParentProject, b.pomParentProject),
-      pomSettings = parentValue(a.pomSettings, b.pomSettings),
-      publishVersion = parentValue(a.publishVersion, b.publishVersion),
-      versionScheme = parentValue(a.versionScheme, b.versionScheme),
-      publishProperties = parentValues(a.publishProperties, b.publishProperties),
-      errorProneDeps = parentValues(a.errorProneDeps, b.errorProneDeps),
-      errorProneOptions = parentValues(a.errorProneOptions, b.errorProneOptions),
-      errorProneJavacEnableOptions =
-        parentValues(a.errorProneJavacEnableOptions, b.errorProneJavacEnableOptions),
-      scalaVersion = parentValue(a.scalaVersion, b.scalaVersion),
-      scalacOptions = parentValues(a.scalacOptions, b.scalacOptions),
-      scalacPluginMvnDeps = parentValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
-      scalaJSVersion = parentValue(a.scalaJSVersion, b.scalaJSVersion),
-      moduleKind = parentValue(a.moduleKind, b.moduleKind),
-      scalaNativeVersion = parentValue(a.scalaNativeVersion, b.scalaNativeVersion),
-      sourcesRootFolders = parentValues(a.sourcesRootFolders, b.sourcesRootFolders),
-      testParallelism = parentValue(a.testParallelism, b.testParallelism),
-      testSandboxWorkingDir = parentValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir)
-    )
-    def parentModule(a: ModuleSpec, b: ModuleSpec) =
-      parentModule0(a, b, moduleHierarchy.take(1)).copy(
-        test = (a.test.toSeq ++ b.test.toSeq).reduceOption(parentModule0(_, _, Seq(testSupertype)))
+    def parentModule(a: ModuleSpec, b: ModuleSpec, name: String, defaultSupertypes: Seq[String]) =
+      ModuleSpec(
+        name = name,
+        imports = (a.imports ++ b.imports).distinct.filter(!_.startsWith("import millbuild.")),
+        supertypes = a.supertypes.intersect(b.supertypes) match {
+          case Nil => defaultSupertypes
+          case seq => seq
+        },
+        mixins = if (a.supertypes == b.supertypes && a.mixins == b.mixins) a.mixins else Nil,
+        repositories = parentValues(a.repositories, b.repositories),
+        forkArgs = parentValues(a.forkArgs, b.forkArgs),
+        forkWorkingDir = parentValue(a.forkWorkingDir, b.forkWorkingDir),
+        mandatoryMvnDeps = parentValues(a.mandatoryMvnDeps, b.mandatoryMvnDeps),
+        mvnDeps = parentValues(a.mvnDeps, b.mvnDeps),
+        compileMvnDeps = parentValues(a.compileMvnDeps, b.compileMvnDeps),
+        runMvnDeps = parentValues(a.runMvnDeps, b.runMvnDeps),
+        bomMvnDeps = parentValues(a.bomMvnDeps, b.bomMvnDeps),
+        depManagement = parentValues(a.depManagement, b.depManagement),
+        javacOptions = parentValues(a.javacOptions, b.javacOptions),
+        sourcesFolders = parentValues(a.sourcesFolders, b.sourcesFolders),
+        sources = parentValues(a.sources, b.sources),
+        resources = parentValues(a.resources, b.resources),
+        artifactName = parentValue(a.artifactName, b.artifactName),
+        pomPackagingType = parentValue(a.pomPackagingType, b.pomPackagingType),
+        pomParentProject = parentValue(a.pomParentProject, b.pomParentProject),
+        pomSettings = parentValue(a.pomSettings, b.pomSettings),
+        publishVersion = parentValue(a.publishVersion, b.publishVersion),
+        versionScheme = parentValue(a.versionScheme, b.versionScheme),
+        publishProperties = parentValues(a.publishProperties, b.publishProperties),
+        errorProneDeps = parentValues(a.errorProneDeps, b.errorProneDeps),
+        errorProneOptions = parentValues(a.errorProneOptions, b.errorProneOptions),
+        errorProneJavacEnableOptions =
+          parentValues(a.errorProneJavacEnableOptions, b.errorProneJavacEnableOptions),
+        scalaVersion = parentValue(a.scalaVersion, b.scalaVersion),
+        scalacOptions = parentValues(a.scalacOptions, b.scalacOptions),
+        scalacPluginMvnDeps = parentValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
+        scalaJSVersion = parentValue(a.scalaJSVersion, b.scalaJSVersion),
+        moduleKind = parentValue(a.moduleKind, b.moduleKind),
+        scalaNativeVersion = parentValue(a.scalaNativeVersion, b.scalaNativeVersion),
+        sourcesRootFolders = parentValues(a.sourcesRootFolders, b.sourcesRootFolders),
+        testParallelism = parentValue(a.testParallelism, b.testParallelism),
+        testSandboxWorkingDir = parentValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir),
+        testFramework = parentValue(a.testFramework, b.testFramework)
       )
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
       if (a.base == parent.base) None else a.base,
@@ -168,84 +167,84 @@ object BuildGen {
       scalaNativeVersion = extendValue(a.scalaNativeVersion, parent.scalaNativeVersion),
       sourcesRootFolders = extendValues(a.sourcesRootFolders, parent.sourcesRootFolders),
       testParallelism = extendValue(a.testParallelism, parent.testParallelism),
-      testSandboxWorkingDir = extendValue(a.testSandboxWorkingDir, parent.testSandboxWorkingDir)
+      testSandboxWorkingDir = extendValue(a.testSandboxWorkingDir, parent.testSandboxWorkingDir),
+      testFramework = extendValue(a.testFramework, parent.testFramework)
     )
-    def isChild(module: ModuleSpec) = module.supertypes.exists(moduleHierarchy.contains)
-    def extendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
-      val a0 = if (isChild(a)) extendModule0(
-        a.copy(
-          imports = s"import millbuild.${parent.name}" +: a.imports,
-          test = a.test.zip(parent.test).map(extendModule0)
-        ),
-        parent
-      )
-      else a
-      a0.copy(children = a0.children.map(extendModule(_, parent)))
+    def canExtend(module: ModuleSpec) = module.supertypes.exists(moduleHierarchy.contains)
+    def isTestModule(module: ModuleSpec) = module.supertypes.exists(testHierarchy.contains)
+    def recExtendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
+      var a0 = a
+      var (tests0, children0) = a0.children.partition(isTestModule)
+      if (canExtend(a0)) {
+        a0 = extendModule0(a0.copy(imports = "import millbuild.*" +: a0.imports), parent)
+        if (parent.children.nonEmpty) {
+          tests0 = tests0.map(extendModule0(_, parent.children.head))
+        }
+      }
+      children0 = children0.map(recExtendModule(_, parent))
+      a0.copy(children = tests0 ++ children0)
     }
 
-    val childModules = packages.flatMap(_.module.tree).filter(isChild)
-    Option.when(childModules.length > 1) {
-      val baseModule = childModules.reduce(parentModule)
-      val baseModule0 = baseModule.copy(
-        name = "ProjectBaseModule",
-        imports = baseModule.imports.diff(Seq("import millbuild.Deps")),
-        test = baseModule.test.map(_.copy(name = "Tests"))
-      )
-      val packages0 = packages.map(pkg => pkg.copy(module = extendModule(pkg.module, baseModule0)))
-      (baseModule0, packages0)
-    }
-  }
-
-  def buildFiles(workspace: os.Path): Seq[os.Path] = {
-    val skip = Seq(workspace / "mill-build", workspace / "out")
-    os.walk.stream(workspace, skip = skip.contains).filter(path =>
-      os.isFile(path) && (path.last == "build.mill" || path.last == "package.mill")
-    ).toSeq ++ {
-      val path = workspace / "mill-build"
-      if (os.exists(path)) os.walk.stream(path).filter(os.isFile).toSeq else Nil
+    val extendingModules = packages.flatMap(_.module.tree).filter(canExtend)
+    Option.when(extendingModules.length > 1) {
+      val defaultSupertypes = moduleHierarchy.take(1)
+      val defaultTestSupertypes = testHierarchy.take(1)
+      val baseModule = extendingModules
+        .reduce(parentModule(_, _, "ProjectBaseModule", defaultSupertypes))
+        .copy(children =
+          extendingModules.flatMap(_.children.filter(isTestModule))
+            .reduceOption(parentModule(_, _, "Tests", defaultTestSupertypes)).toSeq
+        )
+      val packages0 =
+        packages.map(pkg => pkg.copy(module = recExtendModule(pkg.module, baseModule)))
+      (baseModule, packages0)
     }
   }
 
   def writeBuildFiles(
       packages: Seq[PackageSpec],
-      millJvmVersion: String,
       merge: Boolean = false,
       depNames: Seq[(MvnDep, String)] = Nil,
       baseModule: Option[ModuleSpec] = None,
+      millJvmVersion: Option[String] = None,
       millJvmOpts: Seq[String] = Nil
   ): Unit = {
     var packages0 = fillPackages(packages).sortBy(_.dir)
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
-    val existingBuildFiles =
-      os.walk(os.pwd, skip = Seq(os.pwd / "mill-build", os.pwd / "out").contains).filter(path =>
-        os.isFile(path) && (path.last == "build.mill" || path.last == "package.mill")
-      ) ++ (
-        if (os.exists(os.pwd / "mill-build")) os.walk(os.pwd / "mill-build").filter(os.isFile)
-        else Nil
-      )
+    val existingBuildFiles = Util.buildFiles(os.pwd)
     if (existingBuildFiles.nonEmpty) {
       println("removing existing build files ...")
       for (file <- existingBuildFiles) do os.remove(file)
     }
 
     if (depNames.nonEmpty) {
-      val file = os.sub / "mill-build/src/Deps.scala"
+      val file = os.sub / millBuild / "src/Deps.scala"
       println(s"writing $file")
       os.write(os.pwd / file, renderDepsObject(depNames), createFolders = true)
     }
     for (module <- baseModule) do {
-      val file = os.sub / os.SubPath(s"mill-build/src/${module.name}.scala")
+      val file = os.sub / millBuild / os.SubPath(s"src/${module.name}.scala")
       println(s"writing $file")
-      os.write(os.pwd / file, renderBaseModule(module), createFolders = true)
+      os.write(
+        os.pwd / file,
+        s"""package millbuild
+           |${renderImports(module)}
+           |${renderBaseModule(module)}""".stripMargin,
+        createFolders = true
+      )
     }
     val rootPackage +: nestedPackages = packages0: @unchecked
+    val millJvmVersion0 = millJvmVersion.getOrElse {
+      val path = os.pwd / ".mill-jvm-version"
+      if (os.exists(path)) os.read(path) else "system"
+    }
     val millJvmOptsLine = if (millJvmOpts.isEmpty) ""
     else millJvmOpts.mkString("//| mill-jvm-opts: [\"", "\", \"", s"\"]$lineSeparator")
     println("writing build.mill")
     os.write(
       os.pwd / "build.mill",
-      s"""//| mill-version: SNAPSHOT
-         |//| mill-jvm-version: $millJvmVersion
+      s"""//| mill-version: $millVersion
+         |//| mill-jvm-version: $millJvmVersion0
          |$millJvmOptsLine${renderPackage(rootPackage)}
          |""".stripMargin
     )
@@ -281,9 +280,6 @@ object BuildGen {
     )
   }
 
-  private val ScalaIdentifier = "^[a-zA-Z_][\\w]*$".r
-  private def toScalaIdentifier(s: String) = if (ScalaIdentifier.matches(s)) s else s"`$s`"
-
   private def renderDepsObject(depNames: Seq[(MvnDep, String)]) = {
     s"""package millbuild
        |import mill.javalib.*
@@ -293,15 +289,13 @@ object BuildGen {
        |}""".stripMargin
   }
 
-  private def renderBaseModule(module: ModuleSpec) = {
+  private def renderBaseModule(module: ModuleSpec): String = {
     import module.*
-    s"""package millbuild
-       |${renderImports(module)}
-       |trait $name ${renderExtendsClause(supertypes ++ mixins)} {
+    s"""trait $name ${renderExtendsClause(supertypes ++ mixins)} {
        |
        |  ${renderModuleBody(module)}
        |
-       |  ${test.fold("")(renderTestModule("trait", _))}
+       |  ${children.sortBy(_.name).map(renderBaseModule).mkString(lineSeparator * 2)}
        |}""".stripMargin
   }
 
@@ -317,7 +311,10 @@ object BuildGen {
 
   private def renderModuleBody(module: ModuleSpec) = {
     import module.*
-    s"""${render("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)}
+    val renderModuleDir = if (useOuterModuleDir) "def moduleDir = outer.moduleDir" else ""
+    s"""$renderModuleDir
+       |
+       |${render("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)}
        |
        |${render("compileModuleDeps", compileModuleDeps, encodeModuleDep, isTask = false)}
        |
@@ -351,9 +348,9 @@ object BuildGen {
        |
        |${render("javacOptions", javacOptions, encodeOpt)}
        |
-       |${render("sourcesRootFolders", sourcesRootFolders, encodeSubPath, isTask = false)}
+       |${render("sourcesRootFolders", sourcesRootFolders, encodeString, isTask = false)}
        |
-       |${render("sourcesFolders", sourcesFolders, encodeSubPath, isTask = false)}
+       |${render("sourcesFolders", sourcesFolders, encodeString, isTask = false)}
        |
        |${renderSources("sources", sources)}
        |
@@ -387,21 +384,15 @@ object BuildGen {
        |
        |${render("testSandboxWorkingDir", testSandboxWorkingDir, _.toString)}
        |
+       |${render("testFramework", testFramework, encodeTestFramework)}
+       |
        |${render("repositories", repositories, encodeString)}
        |""".stripMargin
   }
 
-  private def renderTestModule(scalaType: String, spec: ModuleSpec) = {
-    import spec.*
-    s"""$scalaType $name ${renderExtendsClause(supertypes ++ mixins)} {
-       |
-       |  ${renderModuleBody(spec)}
-       |}""".stripMargin
-  }
-
   private def renderPackage(pkg: PackageSpec) = {
     import pkg.*
-    val namespace = ("build" +: dir.segments.map(toScalaIdentifier)).mkString(".")
+    val namespace = (rootModuleAlias +: dir.segments.map(backtickWrap)).mkString(".")
     s"""package $namespace
        |${renderImports(module)}
        |${renderModule(module, isPackageRoot = true)}
@@ -410,11 +401,11 @@ object BuildGen {
 
   private def renderModule(module: ModuleSpec, isPackageRoot: Boolean = false): String = {
     import module.*
-    val name0 = if (isPackageRoot) "`package`" else toScalaIdentifier(name)
+    val name0 = if (isPackageRoot) "`package`" else backtickWrap(name)
     val extendsClause = renderExtendsClause(supertypes ++ mixins)
     val typeDeclaration = if (crossKeys.isEmpty) s"object $name0 $extendsClause"
     else {
-      val crossTraitName = toScalaIdentifier(name.split("\\W") match {
+      val crossTraitName = backtickWrap(name.split("\\W") match {
         case Array("") => s"`${name}Module`"
         case parts => parts.map(_.capitalize).mkString("", "", "Module")
       })
@@ -424,15 +415,10 @@ object BuildGen {
          |trait $crossTraitName $extendsClause""".stripMargin
     }
     val aliasDeclaration = if (children.exists(_.useOuterModuleDir)) " outer => " else ""
-    val renderModuleDir = if (useOuterModuleDir) "def moduleDir = outer.moduleDir" else ""
 
     s"""$typeDeclaration {$aliasDeclaration
        |
-       |  $renderModuleDir
-       |
        |  ${renderModuleBody(module)}
-       |
-       |  ${test.fold("")(renderTestModule("object", _))}
        |
        |  ${children.sortBy(_.name).map(renderModule(_)).mkString(lineSeparator * 2)}
        |}""".stripMargin
@@ -452,7 +438,8 @@ object BuildGen {
   ): String = {
     def encodeAll(as: Seq[A]) = as.map(encode).mkString(s"$collection(", ", ", ")")
     import values.*
-    if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
+    if (empty) s"def $member = $collection()"
+    else if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
     else {
       val stmt = StringBuilder(s"def $member = ")
       var append = false
@@ -481,12 +468,13 @@ object BuildGen {
   }
   private def renderSources(member: String, values: Values[os.RelPath]) = {
     def encodeSources(rels: Seq[os.RelPath]) = rels.map(rel =>
-      if (rel.ups == 0) encodeSubPath(rel.asSubPath) else encodeRelPath("os.rel", rel)
+      if (rel.ups == 0) encodeString(rel.toString) else encodeRelPath("os.rel", rel)
     ).mkString("Task.Sources(", ", ", ")")
     def encodeSeq(rels: Seq[os.RelPath]) =
       rels.map(encodeRelPath("os.rel", _)).mkString("Seq(", ", ", ")")
     import values.*
-    if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
+    if (empty) s"def $member = Task.Sources()"
+    else if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
     else if (cross.isEmpty && !appendSuper && appendRefs.isEmpty) {
       s"def $member = ${encodeSources(base)}"
     } else {
@@ -549,13 +537,12 @@ object BuildGen {
   private def encodeModuleDep(a: ModuleDep) = {
     import a.*
     val suffix = crossSuffix.getOrElse("") + childSegment.fold("")("." + _)
-    ("build" +: segments.map(toScalaIdentifier)).mkString("", ".", suffix)
+    (rootModuleAlias +: segments.map(backtickWrap)).mkString("", ".", suffix)
   }
   private def encodeMvnDep(a: MvnDep) = a.ref.getOrElse(a.toString)
-  private def encodeString[A](a: A) = s"\"$a\""
+  private def encodeString(s: String) = s"\"$s\""
   private def encodeLiteralOpt(a: Opt) = a.group.map(literalize(_)).mkString(", ")
   private def encodeOpt(a: Opt) = a.group.mkString("\"", "\", \"", "\"")
-  private def encodeSubPath(a: os.SubPath) = if (a.segments.isEmpty) "os.sub" else s"\"$a\""
   private def encodeRelPath(root: String, a: os.RelPath) = {
     val ups = " / os.up" * a.ups
     val segments = if (a.segments.isEmpty) "" else a.segments.mkString(" / \"", "/", "\"")
@@ -596,4 +583,6 @@ object BuildGen {
     val (k, v) = kv
     s"(\"$k\", ${literalize(v)})"
   }
+  private def encodeTestFramework(s: String) =
+    if (s.isEmpty) "sys.error(\"no test framework\")" else encodeString(s)
 }

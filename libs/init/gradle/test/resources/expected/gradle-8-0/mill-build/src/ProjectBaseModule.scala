@@ -6,7 +6,7 @@ trait ProjectBaseModule extends MavenModule {
 
   def depManagement = Seq(Deps.commonsText)
 
-  def javacOptions = Seq("-source", "17", "-target", "17")
+  def javacOptions = Seq("-source", "11", "-target", "11")
 
   trait Tests extends MavenTests {
 
@@ -16,7 +16,7 @@ trait ProjectBaseModule extends MavenModule {
 
     def bomMvnDeps = Seq(Deps.junitBom)
 
-    def javacOptions = Seq("-source", "17", "-target", "17")
+    def javacOptions = Seq("-source", "11", "-target", "11")
 
     def forkWorkingDir = moduleDir
 

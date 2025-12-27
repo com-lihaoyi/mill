@@ -33,7 +33,6 @@ object `package` extends Module {
       def testSandboxWorkingDir = false
 
     }
-
   }
 
   object list extends MavenModule, ErrorProneModule {
@@ -72,7 +71,6 @@ object `package` extends Module {
       def testSandboxWorkingDir = false
 
     }
-
   }
 
   object utilities extends MavenModule, ErrorProneModule {
