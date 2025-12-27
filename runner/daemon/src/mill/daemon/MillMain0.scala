@@ -337,7 +337,7 @@ object MillMain0 {
                       val bootstrapped = runMillBootstrap(
                         skipSelectiveExecution = false,
                         prevState = Some(stateCache),
-                        tasksAndParams = Seq("console") ++ config.leftoverArgs.value,
+                        tasksAndParams = Seq("repl") ++ config.leftoverArgs.value,
                         streams = streams,
                         millActiveCommandMessage = "repl",
                         metaLevelOverride = Some(1)

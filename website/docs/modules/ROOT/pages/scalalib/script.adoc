@@ -28,7 +28,7 @@ This can be useful to interactively exercise and experiment with the code define
 your script.
 
 ```scala
-./mill -i Foo.scala:console
+./mill -i Foo.scala:repl
 ```
 
 
