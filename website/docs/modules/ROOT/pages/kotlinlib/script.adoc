@@ -20,25 +20,30 @@ include::partial$example/kotlinlib/script/5-static-site.adoc[]
 include::partial$example/kotlinlib/script/6-packaging.adoc[]
 
 
-== Custom Script Module Classes
+== Script moduleDeps
 
-include::partial$example/kotlinlib/script/7-custom-class.adoc[]
-
+include::partial$example/kotlinlib/script/7-script-deps.adoc[]
 
 == Relative and Absolute Script moduleDeps
 
-include::partial$example/kotlinlib/script/8-relative-imports.adoc[]
+include::partial$example/kotlinlib/script/8-relative-deps.adoc[]
 
 == Project `moduleDeps`
 
 include::partial$example/kotlinlib/script/9-programmable-module-deps.adoc[]
 
+
+== Custom Script Module Classes
+
+include::partial$example/kotlinlib/script/10-custom-class.adoc[]
+
+
 == Script Resources
 
-include::partial$example/kotlinlib/script/10-resources.adoc[]
+include::partial$example/kotlinlib/script/11-resources.adoc[]
 
 include::partial$Script_Footer.adoc[]
 
 == Custom JVM Versions
 
-include::partial$example/kotlinlib/script/11-jvm-version.adoc[]
+include::partial$example/kotlinlib/script/12-jvm-version.adoc[]

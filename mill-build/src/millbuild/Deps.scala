@@ -6,7 +6,7 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.8.0-RC3"
+  val scalaVersion = "3.8.0-RC4"
 
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.18"
@@ -137,12 +137,12 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.21.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
-  val osLibVersion = "0.11.5"
+  val osLibVersion = "0.11.6"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
-  val mainargs = mvn"com.lihaoyi::mainargs:0.7.7"
-  val millModuledefsVersion = "0.12.5-RC1"
+  val mainargs = mvn"com.lihaoyi::mainargs:0.7.8"
+  val millModuledefsVersion = "0.12.7"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =

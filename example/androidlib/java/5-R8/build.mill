@@ -42,7 +42,7 @@ object app extends AndroidR8AppModule { // <2>
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
-  override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidVirtualDevice = super.androidVirtualDevice().withName("java-test")
   override def androidIsDebug: T[Boolean] = Task { false }
 
   def androidProjectProguardFiles = Task.Sources(

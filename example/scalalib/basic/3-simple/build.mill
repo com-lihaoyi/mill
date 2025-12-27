@@ -158,7 +158,7 @@ compiling 1 Scala source to...
 // [source,console]
 // ----
 // > ./mill -i console    # start a Scala console within your project
-// > ./mill -i test.console
+// > ./mill -i test.repl
 //
 // > ./mill -i repl       # start an Ammonite Scala REPL within your project
 // ----
