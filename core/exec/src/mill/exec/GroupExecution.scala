@@ -92,7 +92,7 @@ trait GroupExecution {
         true,
         -1
       )
-      if ((path / "..").startsWith(workspace)){
+      if ((path / "..").startsWith(workspace)) {
         rec(
           (path / "..").subRelativeTo(workspace).segments,
           if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
