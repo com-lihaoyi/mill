@@ -349,7 +349,12 @@ trait GroupExecution {
                 GroupExecution.Results(
                   newResults = newResults,
                   newEvaluated = newEvaluated.toSeq,
-                  cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
+                  cached =
+                    if (
+                      labelled.isInstanceOf[Task.Input[?]] ||
+                      labelled.isInstanceOf[Task.Uncached[?]]
+                    ) null
+                    else false,
                   inputsHash = inputsHash,
                   previousInputsHash = cached.map(_._1).getOrElse(-1),
                   valueHashChanged = !cached.map(_._3).contains(valueHash),
