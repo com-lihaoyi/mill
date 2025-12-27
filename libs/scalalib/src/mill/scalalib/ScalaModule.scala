@@ -431,13 +431,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       } else {
         val useJavaCp = "-usejavacp"
 
+        // Workaround for https://github.com/scala/scala3/issues/20421
+        // Remove module-info.class from classpath entries to fix REPL autocomplete
+        val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
+          ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
+        }
+
         Jvm.callProcess(
           mainClass =
-            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
-              "dotty.tools.repl.Main"
-            else
-              "scala.tools.nsc.MainGenericRunner",
-          classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
+            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
+            else "scala.tools.nsc.MainGenericRunner",
+          classPath = classPath,
           jvmArgs = forkArgs(),
           env = allForkEnv(),
           mainArgs =
@@ -709,7 +713,36 @@ object ScalaModule {
     override def scalacPluginClasspath: T[Seq[PathRef]] = outer.scalacPluginClasspath()
     override def scalaCompilerBridge: T[Option[PathRef]] = outer.scalaCompilerBridge()
     override def scalacOptions: T[Seq[String]] = outer.scalacOptions()
-    override def mandatoryScalacOptions: T[Seq[String]] =
-      Task { super.mandatoryScalacOptions() }
+    override def mandatoryScalacOptions: T[Seq[String]] = Task { super.mandatoryScalacOptions() }
+  }
+
+  /**
+   * Workaround for https://github.com/scala/scala3/issues/20421
+   * Strips module-info.class from a classpath entry (jar or directory) to fix
+   * Scala 3 REPL autocomplete issues with JPMS modules.
+   *
+   * @param dest destination directory to copy modified entries to
+   * @param path the classpath entry to process
+   * @return the original path if no module-info.class, or the path to a modified copy
+   */
+  private def stripModuleInfo(dest: os.Path, path: os.Path): os.Path = {
+    // Use path hash to avoid collisions when multiple entries have the same filename
+    def uniqueDestPath() = {
+      val hash = path.toString.hashCode.toHexString
+      dest / s"${path.baseName}-$hash-module-info-stripped-${path.ext}"
+    }
+
+    val moduleInfoClass = os.sub / "module-info.class"
+    if (os.isDir(path) && os.exists(path / moduleInfoClass)) {
+      val destDir = uniqueDestPath()
+      os.copy(path, destDir, replaceExisting = true, createFolders = true)
+      os.remove(destDir / moduleInfoClass)
+      destDir
+    } else if (os.isFile(path) && path.ext == "jar" && os.unzip.list(path).contains(moduleInfoClass)) {
+      val destJar = uniqueDestPath()
+      os.copy(path, destJar)
+      Using.resource(os.zip.open(destJar)){fs => os.remove(fs / moduleInfoClass)}
+      destJar
+    } else path
   }
 }
