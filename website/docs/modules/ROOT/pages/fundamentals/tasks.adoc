@@ -58,7 +58,8 @@ include::partial$example/fundamentals/tasks/6-workers.adoc[]
 
 === Uncached Tasks
 
-Uncached tasks are only required in some limited use cases.
+You can define unached tasks with the `Task.Uncached {...}` syntax.
+They are only required in some limited use cases.
 You typically should be able to use other task types that are cached.
 
 Uncached tasks (like commands) will never be read from the cache, but always re-evaluate their result.
