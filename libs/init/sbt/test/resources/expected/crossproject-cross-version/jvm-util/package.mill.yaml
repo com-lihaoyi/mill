@@ -1,0 +1,9 @@
+extends: [PublishModule, CrossSbtModule]
+mvnDeps:
+- com.lihaoyi::upickle::4.3.0
+scalacOptions: ["-deprecation"]
+artifactName: jvmutil
+pomSettings:
+  description: jvmUtil
+  organization: jvmutil
+publishVersion: "0.1.0-SNAPSHOT"

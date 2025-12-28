@@ -1,0 +1,11 @@
+extends: [ProjectBaseModule, PublishModule]
+moduleDeps: [list]
+artifactName: utilities
+pomSettings:
+  organization: org.gradle.sample
+  url: "http://www.example.com/library"
+  licenses: ["The Apache License, Version 2.0"]
+  versionControl: "http://example.com/my-library/"
+  developers:
+  - {"id": "johnd", "name": "John Doe"}
+publishVersion: unspecified

@@ -1,0 +1,116 @@
+mill-version: SNAPSHOT
+mill-jvm-version: system
+object dummy:
+  object js:
+    extends: [ScalaJSModule, PublishModule, CrossSbtPlatformModule]
+    mvnDeps:
+    - com.lihaoyi::upickle::4.3.0
+    scalacOptions: ["-deprecation"]
+    scalaJSVersion: "1.16.0"
+    moduleKind: ModuleKind.NoModule
+    artifactName: dummy
+    pomSettings:
+      description: dummy
+      organization: dummy
+    publishVersion: "0.1.0-SNAPSHOT"
+  object jvm:
+    extends: [PublishModule, CrossSbtPlatformModule]
+    mvnDeps:
+    - com.lihaoyi::upickle::4.3.0
+    scalacOptions: ["-deprecation"]
+    artifactName: dummy
+    pomSettings:
+      description: dummy
+      organization: dummy
+    publishVersion: "0.1.0-SNAPSHOT"
+  object native:
+    extends: [ScalaNativeModule, PublishModule, CrossSbtPlatformModule]
+    mvnDeps:
+    - com.lihaoyi::upickle::4.3.0
+    scalacOptions: ["-deprecation"]
+    scalaNativeVersion: "0.5.7"
+    artifactName: dummy
+    pomSettings:
+      description: dummy
+      organization: dummy
+    publishVersion: "0.1.0-SNAPSHOT"
+object full:
+  object js:
+    extends: [ScalaJSModule, PublishModule, CrossSbtPlatformModule]
+    mvnDeps:
+    - com.lihaoyi::upickle::4.3.0
+    scalacOptions: ["-deprecation"]
+    scalaJSVersion: "1.16.0"
+    moduleKind: ModuleKind.NoModule
+    artifactName: full
+    pomSettings:
+      description: full
+      organization: full
+    publishVersion: "0.1.0-SNAPSHOT"
+  object jvm:
+    extends: [PublishModule, CrossSbtPlatformModule]
+    moduleDeps: [jvm-util]
+    mvnDeps:
+    - com.lihaoyi::upickle::4.3.0
+    scalacOptions: ["-deprecation"]
+    artifactName: full
+    pomSettings:
+      description: full
+      organization: full
+    publishVersion: "0.1.0-SNAPSHOT"
+  object native:
+    extends: [ScalaNativeModule, PublishModule, CrossSbtPlatformModule]
+    mvnDeps:
+    - com.lihaoyi::upickle::4.3.0
+    scalacOptions: ["-deprecation"]
+    scalaNativeVersion: "0.5.7"
+    artifactName: full
+    pomSettings:
+      description: full
+      organization: full
+    publishVersion: "0.1.0-SNAPSHOT"
+object jvm-util:
+  extends: [PublishModule, CrossSbtModule]
+  mvnDeps:
+  - com.lihaoyi::upickle::4.3.0
+  scalacOptions: ["-deprecation"]
+  artifactName: jvmutil
+  pomSettings:
+    description: jvmUtil
+    organization: jvmutil
+  publishVersion: "0.1.0-SNAPSHOT"
+object pure:
+  object js:
+    extends: [ScalaJSModule, PublishModule, CrossSbtPlatformModule]
+    mvnDeps:
+    - com.lihaoyi::upickle::4.3.0
+    scalacOptions: ["-deprecation"]
+    scalaJSVersion: "1.16.0"
+    moduleKind: ModuleKind.NoModule
+    artifactName: pure
+    pomSettings:
+      description: pure
+      organization: pure
+    publishVersion: "0.1.0-SNAPSHOT"
+  object jvm:
+    extends: [PublishModule, CrossSbtPlatformModule]
+    mvnDeps:
+    - com.lihaoyi::upickle::4.3.0
+    scalacOptions: ["-deprecation"]
+    artifactName: pure
+    pomSettings:
+      description: pure
+      organization: pure
+    publishVersion: "0.1.0-SNAPSHOT"
+  object native:
+    extends: [ScalaNativeModule, PublishModule, CrossSbtPlatformModule]
+    mvnDeps:
+    - com.lihaoyi::upickle::4.3.0
+    scalacOptions: ["-deprecation"]
+    scalaNativeVersion: "0.5.7"
+    artifactName: pure
+    pomSettings:
+      description: pure
+      organization: pure
+    publishVersion: "0.1.0-SNAPSHOT"
+

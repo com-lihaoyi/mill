@@ -1,0 +1,2 @@
+extends: ProjectBaseModule
+moduleDeps: [list]
