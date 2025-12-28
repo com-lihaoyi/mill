@@ -82,7 +82,7 @@ object Watching {
             skipSelectiveExecution = watchAndWait(
               result.watched,
               watchArgs,
-              () => None,
+              () => Option.when(lookForEnterKey(streams.in))(()),
               "  (Enter to re-run, Ctrl-C to exit)",
               streams.err.println(_)
             ).isDefined
