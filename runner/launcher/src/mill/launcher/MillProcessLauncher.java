@@ -47,6 +47,7 @@ public class MillProcessLauncher {
     try {
       Process p = configureRunMillProcess(builder, processDir);
       return p.waitFor();
+
     } catch (InterruptedException e) {
       interrupted = true;
       throw e;
