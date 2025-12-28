@@ -6,7 +6,7 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.8.0-RC4-bin-SNAPSHOT"
+  val scalaVersion = "3.8.0-RC4"
 
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.18"
@@ -146,7 +146,7 @@ object Deps {
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
-    mvn"com.lihaoyi:scalac-mill-moduledefs-plugin_3.8.0-RC4:${millModuledefsVersion}"
+    mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
   val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
   val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
 
