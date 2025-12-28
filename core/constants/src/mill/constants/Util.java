@@ -1,5 +1,8 @@
 package mill.constants;
 
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
+
 import java.io.Console;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -17,6 +20,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
+
+  /// Override (by default: disable) SIGINT interrupt signal in the Mill server.
+  ///
+  /// This gets passed through from the client to server whenever the user
+  /// hits `Ctrl-C`, which by default kills the server, which defeats the purpose
+  /// of running a background daemon. Furthermore, the background daemon already
+  /// can detect when the Mill client goes away, which is necessary to handle
+  /// the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
+  public static void overrideSigIntHandling(SignalHandler handler) {
+    Signal.handle(new Signal("INT"), handler);
+  }
 
   private static String lowerCaseOsName() {
     return System.getProperty("os.name").toLowerCase(Locale.ROOT);

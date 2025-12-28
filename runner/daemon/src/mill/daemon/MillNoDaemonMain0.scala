@@ -22,6 +22,10 @@ object MillNoDaemonMain0 {
       // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
       sys.props("coursier.windows.disable-ffm") = "true"
 
+    if (Util.hasConsole()) {
+      mill.constants.Util.overrideSigIntHandling(_ => ())
+    }
+
     // Take into account proxy-related Java properties
     coursier.Resolve.proxySetup()
 

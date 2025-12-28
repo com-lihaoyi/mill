@@ -26,6 +26,9 @@ import mill.internal.MillCliConfig;
 public class MillLauncherMain {
 
   public static void main(String[] args) throws Exception {
+    if (mill.constants.Util.hasConsole()) {
+      mill.constants.Util.overrideSigIntHandling(s -> {});
+    }
     var needParsedConfig = Arrays.stream(args)
         .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
     for (var token : Arrays.asList(

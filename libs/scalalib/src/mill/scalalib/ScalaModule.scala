@@ -437,15 +437,19 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
         }
 
-        Jvm.callProcess(
-          mainClass =
+        // Match jshell implementation exactly - simple os.call with os.Inherit
+        val cmd = Seq(Jvm.javaExe(None)) ++
+          forkArgs() ++
+          Seq("-cp", classPath.mkString(java.io.File.pathSeparator)) ++
+          Seq(
             if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
-            else "scala.tools.nsc.MainGenericRunner",
-          classPath = classPath,
-          jvmArgs = forkArgs(),
+            else "scala.tools.nsc.MainGenericRunner"
+          ) ++
+          Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value
+
+        os.call(
+          cmd = cmd,
           env = allForkEnv(),
-          mainArgs =
-            Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
           cwd = forkWorkingDir(),
           stdin = os.Inherit,
           stdout = os.Inherit
@@ -524,12 +528,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         } else {
           val mainClass = ammoniteMainClass()
           Task.log.debug(s"Using ammonite main class: ${mainClass}")
-          Jvm.callProcess(
-            mainClass = mainClass,
-            classPath = ammoniteReplClasspath().map(_.path).toVector,
-            jvmArgs = forkArgs(),
+
+          // Match jshell implementation - simple os.call with os.Inherit
+          val cmd = Seq(Jvm.javaExe(None)) ++
+            forkArgs() ++
+            Seq("-cp", ammoniteReplClasspath().map(_.path).mkString(java.io.File.pathSeparator)) ++
+            Seq(mainClass) ++
+            replOptions
+
+          os.call(
+            cmd = cmd,
             env = allForkEnv(),
-            mainArgs = replOptions,
             cwd = forkWorkingDir(),
             stdin = os.Inherit,
             stdout = os.Inherit
@@ -735,8 +744,8 @@ object ScalaModule {
       uniqueDestPath
     } else if (
       os.isFile(path) &&
-        path.ext == "jar" &&
-        os.unzip.list(path).contains(moduleInfoClass)
+      path.ext == "jar" &&
+      os.unzip.list(path).contains(moduleInfoClass)
     ) {
       os.copy(path, uniqueDestPath)
       Using.resource(os.zip.open(uniqueDestPath)) { fs => os.remove(fs / moduleInfoClass) }

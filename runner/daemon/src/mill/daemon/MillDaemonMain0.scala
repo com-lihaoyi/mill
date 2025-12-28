@@ -45,7 +45,7 @@ object MillDaemonMain0 {
     coursier.Resolve.proxySetup() // Take into account proxy-related Java properties
 
     mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
-      Server.overrideSigIntHandling()
+      mill.constants.Util.overrideSigIntHandling(_ => ())
 
       val acceptTimeout =
         Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
