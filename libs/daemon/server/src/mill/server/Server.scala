@@ -4,7 +4,6 @@ import mill.api.daemon.StartThread
 import mill.client.lock.{Lock, Locks, TryLocked}
 import mill.constants.{DaemonFiles, SocketUtil}
 import mill.server.Server.ConnectionData
-import sun.misc.{Signal, SignalHandler}
 
 import java.io.{BufferedInputStream, BufferedOutputStream}
 import java.net.{InetAddress, ServerSocket, Socket, SocketException}
