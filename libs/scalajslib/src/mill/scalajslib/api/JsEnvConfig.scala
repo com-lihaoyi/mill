@@ -213,7 +213,13 @@ object JsEnvConfig {
             case v: Double => upickle.default.writeJs(v)
             case v: String => upickle.default.writeJs(v)
           },
-          json => ???
+          json =>
+            json.boolOpt
+              .orElse(
+                json.numOpt
+              ).orElse(
+                json.strOpt.map(_.toString)
+              ).getOrElse(throw new Exception("Invalid value"))
         )
       given rw: RW[FirefoxOptions] = macroRW
 
