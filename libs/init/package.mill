@@ -109,11 +109,12 @@ object `package` extends MillPublishScalaModule {
         )
         PathRef(file)
       }
-      def millExecutable: T[PathRef] = build.dist.executableRaw()
+      def millExecutable: T[PathRef] = build.dist.executable()
       def mocks: Map[String, Mock]
-      def runMock(mock: Mock) = Task.Command(persistent = true) {
+      def mockCache: T[PathRef] = Task(persistent = true)(PathRef(Task.dest))
+      def runMock0(mock: Mock, millTask: Seq[String]): Task[Unit] = Task.Anon {
         import mock.*
-        val cacheDir = Task.dest
+        val cacheDir = mockCache().path
         val repoName = gitUrl.split("/").last.stripSuffix(".git")
         val repoDir = cacheDir / repoName
         if (os.exists(repoDir)) {
@@ -137,14 +138,16 @@ object `package` extends MillPublishScalaModule {
           stdout = os.Inherit
         )
         val millExe = millExecutable().path
-        for (task <- checkTasks) do
-          os.proc(millExe, "--no-daemon", task).call(repoDir, stdout = os.Inherit, check = false)
+        if (millTask.nonEmpty) {
+          os.proc(millExe, "--no-daemon", millTask).call(repoDir, stdout = os.Inherit)
+        }
+        os.symlink(repoDir / millExe.last, millExe)
       }
-      def runMocks(ids: String*) = {
-        val task = Task.traverse(if (ids.isEmpty) mocks.values.toSeq else ids.map(mocks))(runMock)
+      def runMock(args: String*) = {
+        val task = runMock0(mocks(args.head), args.tail)
         Task.Command { task() }
       }
-      def defaultTask() = "runMocks"
+      def defaultTask() = "runMock"
     }
   }
 
@@ -165,25 +168,30 @@ object `package` extends MillPublishScalaModule {
       "ehcache3" -> Mock(
         "https://github.com/ehcache/ehcache3.git",
         "v3.10.8",
-        Seq("--gradle-jvm-id", "11", "--mill-jvm-id", "17"),
-        "__.compile"
+        Seq("--gradle-jvm-id", "11", "--mill-jvm-id", "17")
+//        "__.compile"
       ),
       "fastcsv" -> Mock(
         "https://github.com/osiegmar/FastCSV.git",
         "v4.1.0",
         Seq("--gradle-jvm-id", "25", "--mill-jvm-id", "25")
       ),
+      "jadx" -> Mock(
+        "https://github.com/skylot/jadx.git",
+        "v1.5.3",
+        Seq("--gradle-jvm-id", "17", "--mill-jvm-id", "25")
+      ),
       "jcommander" -> Mock(
         "https://github.com/cbeust/jcommander.git",
         "3.0",
-        Seq("--gradle-jvm-id", "21", "--mill-jvm-id", "21"),
-        "__.compile"
+        Seq("--gradle-jvm-id", "21", "--mill-jvm-id", "21")
+//        "__.compile"
       ),
       "microconfig" -> Mock(
         "https://github.com/microconfig/microconfig.git",
         "v4.9.5",
-        Seq("--gradle-jvm-id", "17", "--mill-jvm-id", "17"),
-        "__.test"
+        Seq("--gradle-jvm-id", "17", "--mill-jvm-id", "17")
+//        "__.test"
       ),
       "mockito" -> Mock(
         "https://github.com/mockito/mockito.git",
@@ -193,8 +201,8 @@ object `package` extends MillPublishScalaModule {
       "spotbugs" -> Mock(
         "https://github.com/spotbugs/spotbugs.git",
         "4.9.8",
-        Seq("--gradle-jvm-id", "17", "--mill-jvm-id", "25"),
-        "__.compile"
+        Seq("--gradle-jvm-id", "17", "--mill-jvm-id", "25")
+//        "__.compile"
       ),
       "spring-framework" -> Mock(
         "https://github.com/spring-projects/spring-framework.git",
@@ -234,62 +242,62 @@ object `package` extends MillPublishScalaModule {
       "byte-buddy" -> Mock(
         "https://github.com/raphw/byte-buddy.git",
         "byte-buddy-1.17.8",
-        Seq("--mill-jvm-id", "25"),
-        "__.compile"
+        Seq("--mill-jvm-id", "25")
+//        "__.compile"
       ),
       "checkstyle" -> Mock(
         "https://github.com/checkstyle/checkstyle.git",
         "checkstyle-12.1.1",
-        Seq("--mill-jvm-id", "21"),
-        "__.compile"
+        Seq("--mill-jvm-id", "21")
+//        "__.compile"
       ),
       "error-prone" -> Mock(
         "https://github.com/google/error-prone.git",
         "v2.43.0",
-        Seq("--mill-jvm-id", "21"),
-        "__.compile"
+        Seq("--mill-jvm-id", "21")
+//        "__.compile"
       ),
       "fastjson2" -> Mock(
         "https://github.com/alibaba/fastjson2.git",
         "2.0.60",
-        Seq("--mill-jvm-id", "21"),
-        "__.compile"
+        Seq("--mill-jvm-id", "21")
+//        "__.compile"
       ),
       "hikaricp" -> Mock(
         "https://github.com/brettwooldridge/HikariCP.git",
         "HikariCP-7.0.2",
-        Seq("--mill-jvm-id", "17"),
-        "__.compile"
+        Seq("--mill-jvm-id", "17")
+//        "__.compile"
       ),
       "jansi" -> Mock(
         "https://github.com/fusesource/jansi.git",
         "jansi-2.4.2",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
+        Seq("--mill-jvm-id", "17")
+//        "__.test"
       ),
       "java-design-patterns" -> Mock(
         "https://github.com/iluwatar/java-design-patterns",
         "ede37bd05568b1b8b814d8e9a1d2bbd71d9d615d",
-        Seq("--mill-jvm-id", "21"),
-        "__.compile"
+        Seq("--mill-jvm-id", "21")
+//        "__.compile"
       ),
       "netty" -> Mock(
         "https://github.com/netty/netty.git",
         "netty-4.2.7.Final",
-        Seq("--mill-jvm-id", "17"),
-        "__.compile"
+        Seq("--mill-jvm-id", "17")
+//        "__.compile"
       ),
       "spring-ai" -> Mock(
         "https://github.com/spring-projects/spring-ai.git",
         "v1.0.3",
-        Seq("--mill-jvm-id", "17"),
-        "__.compile"
+        Seq("--mill-jvm-id", "17")
+//        "__.compile"
       ),
       "thealgorithms" -> Mock(
         "https://github.com/TheAlgorithms/Java.git",
         "2707da25e35f6973ceacdf4aa7dde9ecf7d4d34c",
-        Seq("--mill-jvm-id", "21"),
-        "__.test"
+        Seq("--mill-jvm-id", "21")
+//        "__.test"
       )
     )
   }
@@ -305,14 +313,15 @@ object `package` extends MillPublishScalaModule {
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoMembers = Seq(
       BuildInfo.Value("exportpluginAssemblyResource", "/exportplugin-assembly.jar"),
-      BuildInfo.Value("sbtVersion", Deps.sbt.version)
+      BuildInfo.Value("sbtVersion", Deps.sbt.version),
+      BuildInfo.Value("scalafixDep", "com.goyeau::mill-scalafix_mill1:0.6.0")
     )
     def mocks = Map(
       "airstream" -> Mock(
         "https://github.com/raquo/Airstream.git",
         "v17.2.1",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
+        Seq("--mill-jvm-id", "17")
+//        "__.test"
       ),
       "cats" -> Mock(
         "https://github.com/typelevel/cats.git",
@@ -322,20 +331,22 @@ object `package` extends MillPublishScalaModule {
       "enumeratum" -> Mock(
         "https://github.com/lloydmeta/enumeratum.git",
         "enumeratum-1.9.0",
-        Seq("--mill-jvm-id", "17", "-Denumeratum.useLocalVersion=true"),
-        "__[3.3.5].compile"
+        Seq("--mill-jvm-id", "17", "-Denumeratum.useLocalVersion=true")
+//        "__[3.3.5].compile",
+//        "enumeratum-core.jvm[3.3.5].scoverage.consoleReport"
       ),
       "fs2" -> Mock(
         "https://github.com/typelevel/fs2.git",
         "v3.12.2",
-        Seq("--mill-jvm-id", "17"),
-        "__.compile"
+        Seq("--mill-jvm-id", "17")
+//        "__.compile",
+//        "__.checkFormat"
       ),
       "gatling" -> Mock(
         "https://github.com/gatling/gatling.git",
         "v3.14.7",
-        Seq("--mill-jvm-id", "24"),
-        "__.test"
+        Seq("--mill-jvm-id", "24")
+//        "__.test"
       ),
       "lila" -> Mock(
         "https://github.com/lichess-org/lila.git",
@@ -345,8 +356,8 @@ object `package` extends MillPublishScalaModule {
       "nscala-time" -> Mock(
         "https://github.com/nscala-time/nscala-time.git",
         "releases/3.0.0",
-        Seq("--mill-jvm-id", "21"),
-        "__.test"
+        Seq("--mill-jvm-id", "21")
+//        "__.test"
       ),
       "refined" -> Mock(
         "https://github.com/fthomas/refined.git",
@@ -361,20 +372,26 @@ object `package` extends MillPublishScalaModule {
       "scala-logging" -> Mock(
         "https://github.com/lightbend-labs/scala-logging.git",
         "v3.9.6",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
+        Seq("--mill-jvm-id", "17")
+//        "__.test"
       ),
       "scopt" -> Mock(
         "https://github.com/scopt/scopt.git",
         "v4.1.0",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
+        Seq("--mill-jvm-id", "17")
+//        "__.test"
       ),
       "scrypto" -> Mock(
         "https://github.com/input-output-hk/scrypto.git",
         "v3.1.0",
-        Seq("--mill-jvm-id", "17"),
-        "__.test"
+        Seq("--mill-jvm-id", "17")
+//        "__.test"
+      ),
+      "zio-http" -> Mock(
+        "https://github.com/zio/zio-http.git",
+        "v3.7.4",
+        Seq("--mill-jvm-id", "17")
+//        "zio-http.jvm[2.13.16].fix"
       )
     )
 
@@ -392,13 +409,8 @@ object `package` extends MillPublishScalaModule {
   }
 }
 
-@mainargs.main
 private case class Mock(
-    @mainargs.arg(positional = true) gitUrl: String,
-    @mainargs.arg(positional = true) gitRev: String,
-    @mainargs.arg(short = 'i') initArgs: Seq[String],
-    checkTasks: String*
-) derives upickle.default.ReadWriter
-private object Mock {
-  given mainargs.TokensReader[Mock] = mainargs.Parser[Mock]
-}
+    gitUrl: String,
+    gitRev: String,
+    initArgs: Seq[String]
+)

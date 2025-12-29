@@ -10,7 +10,7 @@ object `package` extends ProjectBaseModule, ErrorProneModule {
   def errorProneJavacEnableOptions =
     Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
-  object test extends Tests, ErrorProneModule, TestModule.Junit5 {
+  object test extends Tests, ErrorProneModule {
 
     def errorProneDeps = Seq(Deps.error_prone_core)
 

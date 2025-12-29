@@ -31,7 +31,7 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends Tests, ScalaJSTests, TestModule.Utest {}
+    object test extends Tests, ScalaJSTests {}
   }
 
   object jvm extends ProjectBaseModule {
@@ -51,7 +51,7 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends Tests, TestModule.Utest {}
+    object test extends Tests {}
   }
 
   object native extends ProjectBaseModule, ScalaNativeModule {
@@ -73,6 +73,6 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends Tests, ScalaNativeTests, TestModule.Utest {}
+    object test extends Tests, ScalaNativeTests {}
   }
 }

@@ -3,8 +3,6 @@ package mill.main.gradle
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.compile.CompileOptions
 
 import scala.math.Ordered.orderingToOrdered
@@ -15,7 +13,6 @@ import scala.math.Ordered.orderingToOrdered
 trait GradleBuildCtx {
   def releaseVersion(opts: CompileOptions): Option[Int]
   def project(dep: ProjectDependency): Project
-  def sourceSetContainer(ext: JavaPluginExtension): Option[SourceSetContainer]
 }
 object GradleBuildCtx {
 
@@ -38,8 +35,5 @@ object GradleBuildCtx {
     def project(dep: ProjectDependency) =
       if ((8, 11) <= gradleVersion) gradle.getRootProject.findProject(dep.getPath)
       else dep.getDependencyProject: @scala.annotation.nowarn("cat=deprecation")
-    def sourceSetContainer(ext: JavaPluginExtension) =
-      if ((7, 1) <= gradleVersion) Option(ext.getSourceSets)
-      else None
   }
 }

@@ -3,17 +3,17 @@ package mill.main.buildgen
 import upickle.default.{ReadWriter, macroRW, readwriter}
 
 case class PackageSpec(dir: os.SubPath, module: ModuleSpec) {
-  def modulesBySegments: Seq[(Seq[String], ModuleSpec)] = {
-    def recurse(segments: Seq[String], module: ModuleSpec): Seq[(Seq[String], ModuleSpec)] =
-      (segments, module) +: module.children.flatMap(module =>
-        recurse(segments :+ module.name, module)
+
+  def moduleTree: Seq[(os.SubPath, ModuleSpec)] = {
+    def recurse(dir: os.SubPath, module: ModuleSpec): Seq[(os.SubPath, ModuleSpec)] =
+      (dir, module) +: module.children.flatMap(module =>
+        recurse(dir / module.name, module)
       )
-    recurse(dir.segments, module)
+    recurse(dir, module)
   }
 }
 object PackageSpec {
-  implicit val rwSubPath: ReadWriter[os.SubPath] =
-    readwriter[String].bimap(_.toString, os.SubPath(_))
+  import ModuleSpec.rwSubPath
   implicit val rw: ReadWriter[PackageSpec] = macroRW
 
   def root(dir: os.SubPath): PackageSpec =

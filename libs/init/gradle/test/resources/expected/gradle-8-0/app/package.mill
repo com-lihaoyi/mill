@@ -8,5 +8,5 @@ object `package` extends ProjectBaseModule {
 
   def mvnDeps = Seq(mvn"org.apache.commons:commons-text")
 
-  object test extends Tests, TestModule.Junit5 {}
+  object test extends Tests {}
 }

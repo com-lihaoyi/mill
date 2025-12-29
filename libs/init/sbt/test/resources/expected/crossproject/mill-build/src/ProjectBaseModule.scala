@@ -7,7 +7,7 @@ import mill.scalajslib.api.*
 import mill.scalalib.*
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.*
-trait ProjectBaseModule extends PublishModule, SbtPlatformModule {
+trait ProjectBaseModule extends SbtPlatformModule, PublishModule {
 
   def mvnDeps = Seq(Deps.upickle)
 
@@ -15,7 +15,7 @@ trait ProjectBaseModule extends PublishModule, SbtPlatformModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  trait Tests extends SbtPlatformTests {
+  trait Tests extends SbtPlatformTests, TestModule.Utest {
 
     def mvnDeps = Seq(Deps.utest)
 

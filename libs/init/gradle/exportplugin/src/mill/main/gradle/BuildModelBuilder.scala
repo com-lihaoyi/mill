@@ -38,9 +38,10 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
   private def toPackage(project0: Project): PackageSpec = {
     import project0.*
-    val moduleDir = os.Path(getProjectDir)
+    val projectDir = os.Path(getProjectDir)
+    val moduleDir = projectDir.subRelativeTo(workspace)
     var mainModule = ModuleSpec(
-      name = moduleDir.last,
+      name = projectDir.last,
       repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
         .diff(Seq(
           getRepositories.mavenCentral,
@@ -54,7 +55,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       val deps = configs.flatMap(_.getDependencies.asScala)
       val constraints = configs.flatMap(_.getDependencyConstraints.asScala)
       mainModule = mainModule.copy(
-        imports = "import mill.javalib.*" +: mainModule.imports,
+        imports = "mill.javalib.*" +: mainModule.imports,
         supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
         bomMvnDeps = deps.filter(isBom).collect(toMvnDep),
         depManagement = constraints.collect(toMvnDep),
@@ -78,7 +79,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       }
       val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
       mainModule = mainModule.copy(
-        imports = "import mill.javalib.*" +: mainModule.imports,
+        imports = "mill.javalib.*" +: mainModule.imports,
         supertypes = "MavenModule" +: mainModule.supertypes,
         mvnDeps = mvnDeps("implementation", "api"),
         compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
@@ -92,21 +93,24 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         bomModuleDeps = mainBomDeps.collect(toModuleDep)
       ).withErrorProneModule(mvnDeps("errorprone"))
 
-      if (os.exists(moduleDir / "src/test")) {
+      if (os.exists(projectDir / "src/test")) {
         val testMixin = ModuleSpec.testModuleMixin(configs.find(_.getName == "testRuntimeClasspath")
           .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep)))
         val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
         val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
         var testModule = ModuleSpec(
           name = "test",
-          supertypes = Seq("MavenTests"),
-          mixins = testMixin.toSeq,
+          supertypes = "MavenTests" +: testMixin.toSeq,
+          codeBlocks = Seq(
+            "def forkWorkingDir = moduleDir",
+            "def testParallelism = false",
+            "def testSandboxWorkingDir = false"
+          ),
           forkArgs = task[Test]("test").fold(Nil) { task =>
             task.getSystemProperties.asScala.map {
               case (k, v) => Opt(s"-D$k=$v")
             }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
           },
-          forkWorkingDir = Some(os.rel),
           mvnDeps = mvnDeps("testImplementation"),
           compileMvnDeps = mvnDeps("testCompileOnly"),
           runMvnDeps = mvnDeps("testRuntimeOnly"),
@@ -114,15 +118,12 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
           depManagement = testConstraints.collect(toMvnDep),
           javacOptions = task[JavaCompile]("compileTestJava").fold(Nil)(javacOptions),
           moduleDeps = Values(
-            moduleDeps("testImplementation")
-              .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace).segments))),
+            moduleDeps("testImplementation").diff(Seq(ModuleDep(moduleDir))),
             appendSuper = true
           ),
           compileModuleDeps = moduleDeps("testCompileOnly"),
           runModuleDeps = moduleDeps("testRuntimeOnly"),
           bomModuleDeps = testBomDeps.collect(toModuleDep),
-          testParallelism = Some(false),
-          testSandboxWorkingDir = Some(false),
           testFramework = Option.when(testMixin.isEmpty)("")
         ).withErrorProneModule(mainModule.errorProneDeps.base)
         if (testMixin.contains("TestModule.Junit5")) {
@@ -158,7 +159,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       pom = Option(pub.getPom)
     } do {
       mainModule = mainModule.copy(
-        imports = "import mill.javalib.*" +: "import mill.javalib.publish.*" +: mainModule.imports,
+        imports = "mill.javalib.*" +: "mill.javalib.publish.*" +: mainModule.imports,
         supertypes = mainModule.supertypes :+ "PublishModule",
         artifactName = Option(pub.getArtifactId),
         pomPackagingType = pom.flatMap(toPomPackagingType),
@@ -167,7 +168,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       )
     }
 
-    PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
+    PackageSpec(moduleDir, mainModule)
   }
 
   private val toRepositoryUrlString: PartialFunction[ArtifactRepository, String] = {
@@ -219,7 +220,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
 
   private val toModuleDep: PartialFunction[Dependency | DependencyConstraint, ModuleDep] = {
     case dep: ProjectDependency =>
-      ModuleDep(os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace).segments)
+      ModuleDep(os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace))
     case dep: DefaultProjectDependencyConstraint =>
       toModuleDep(dep.getProjectDependency)
   }

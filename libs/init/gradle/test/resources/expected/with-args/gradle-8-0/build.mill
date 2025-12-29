@@ -1,5 +1,6 @@
 //| mill-version: SNAPSHOT
 //| mill-jvm-version: system
+
 package build
 import mill.*
 import mill.javalib.*
@@ -46,7 +47,7 @@ object `package` extends Module {
     def errorProneJavacEnableOptions =
       Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
-    object test extends MavenTests, ErrorProneModule, TestModule.Junit5 {
+    object test extends MavenTests, TestModule.Junit5, ErrorProneModule {
 
       def mvnDeps = Seq(mvn"org.junit.jupiter:junit-jupiter:5.9.1")
 
@@ -56,8 +57,6 @@ object `package` extends Module {
 
       def javacOptions = Seq("-source", "17", "-target", "17")
 
-      def forkWorkingDir = moduleDir
-
       def errorProneDeps =
         Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 
@@ -65,6 +64,8 @@ object `package` extends Module {
 
       def errorProneJavacEnableOptions =
         Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+
+      def forkWorkingDir = moduleDir
 
       def testParallelism = false
 

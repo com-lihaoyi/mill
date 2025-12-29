@@ -9,12 +9,11 @@ case class ModuleSpec(
     name: String,
     imports: Seq[String] = Nil,
     supertypes: Seq[String] = Nil,
-    mixins: Seq[String] = Nil,
     crossKeys: Seq[String] = Nil,
-    useOuterModuleDir: Boolean = false,
+    alias: Option[String] = None,
+    codeBlocks: Seq[String] = Nil,
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
-    forkWorkingDir: Value[os.RelPath] = Value(),
     mandatoryMvnDeps: Values[MvnDep] = Values(),
     mvnDeps: Values[MvnDep] = Values(),
     compileMvnDeps: Values[MvnDep] = Values(),
@@ -26,9 +25,6 @@ case class ModuleSpec(
     compileModuleDeps: Values[ModuleDep] = Values(),
     runModuleDeps: Values[ModuleDep] = Values(),
     bomModuleDeps: Values[ModuleDep] = Values(),
-    sourcesFolders: Values[String] = Values(),
-    sources: Values[os.RelPath] = Values(),
-    resources: Values[os.RelPath] = Values(),
     artifactName: Value[String] = Value(),
     pomPackagingType: Value[String] = Value(),
     pomParentProject: Value[Artifact] = Value(),
@@ -45,17 +41,30 @@ case class ModuleSpec(
     scalaJSVersion: Value[String] = Value(),
     moduleKind: Value[String] = Value(),
     scalaNativeVersion: Value[String] = Value(),
-    sourcesRootFolders: Values[String] = Values(),
-    testParallelism: Value[Boolean] = Value(),
-    testSandboxWorkingDir: Value[Boolean] = Value(),
     testFramework: Value[String] = Value(),
+    scalafixIvyDeps: Values[MvnDep] = Values(),
+    scoverageVersion: Value[String] = Value(),
+    branchCoverageMin: Value[Double] = Value(),
+    statementCoverageMin: Value[Double] = Value(),
     children: Seq[ModuleSpec] = Nil
 ) {
+
+  def isBomModule: Boolean = supertypes.contains("BomModule")
+
+  def isPublishModule: Boolean = supertypes.contains("PublishModule")
 
   def recMap(f: ModuleSpec => ModuleSpec): ModuleSpec =
     f(copy(children = children.map(_.recMap(f))))
 
   def tree: Seq[ModuleSpec] = this +: children.flatMap(_.tree)
+
+  def withAlias(alias: String = "outer"): ModuleSpec = copy(alias =
+    if (
+      children.exists(_.codeBlocks.exists(_.contains(alias))) ||
+      codeBlocks.exists(_.contains("val scoverage"))
+    ) Some(alias)
+    else None
+  )
 
   def withErrorProneModule(errorProneMvnDeps: Seq[MvnDep]): ModuleSpec = {
     javacOptions.base.find(_.group.head.startsWith("-Xplugin:ErrorProne")).fold(this) { epOption =>
@@ -64,7 +73,7 @@ case class ModuleSpec(
         .diff(Seq(epOption, Opt("-XDcompilePolicy=simple")))
         .partition(_.group.head.startsWith("-XD"))
       this.copy(
-        imports = "import mill.javalib.errorprone.ErrorProneModule" +: imports,
+        imports = "mill.javalib.errorprone.ErrorProneModule" +: imports,
         supertypes = supertypes :+ "ErrorProneModule",
         errorProneDeps = errorProneMvnDeps,
         errorProneOptions = epOptions,
@@ -145,10 +154,12 @@ object ModuleSpec {
     implicit val rw: ReadWriter[MvnDep] = macroRW
   }
   case class ModuleDep(
-      segments: Seq[String],
+      moduleDir: os.SubPath,
       crossSuffix: Option[String] = None,
       childSegment: Option[String] = None
-  )
+  ) {
+    def dir: os.SubPath = childSegment.fold(moduleDir)(moduleDir / _)
+  }
   object ModuleDep {
     implicit val rw: ReadWriter[ModuleDep] = macroRW
   }
@@ -212,8 +223,6 @@ object ModuleSpec {
   object PomSettings {
     implicit val rw: ReadWriter[PomSettings] = macroRW
   }
-  implicit val rwRelPath: ReadWriter[os.RelPath] =
-    readwriter[String].bimap(_.toString, os.RelPath(_))
 
   case class Value[+A](base: Option[A] = None, cross: Seq[(String, A)] = Nil)
   object Value {
@@ -223,14 +232,14 @@ object ModuleSpec {
   case class Values[+A](
       base: Seq[A] = Nil,
       cross: Seq[(String, Seq[A])] = Nil,
-      appendSuper: Boolean = false,
-      appendRefs: Seq[ModuleDep] = Nil,
-      empty: Boolean = false
+      appendSuper: Boolean = false
   )
   object Values {
     implicit def rw[A: ReadWriter]: ReadWriter[Values[A]] = macroRW
     implicit def from[A](base: Seq[A]): Values[A] = apply(base = base)
   }
+  implicit val rwSubPath: ReadWriter[os.SubPath] =
+    readwriter[String].bimap(_.toString, os.SubPath(_))
   implicit val rw: ReadWriter[ModuleSpec] = macroRW
 
   def testModuleMixin(mvnDeps: Seq[MvnDep]): Option[String] = {

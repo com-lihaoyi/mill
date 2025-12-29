@@ -171,6 +171,7 @@ object `package` extends mill.Module {
   object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
   object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
   object migrating extends Cross[IntegrationCrossModule](build.listCross)
+  object manual extends Cross[IntegrationCrossModule](build.listCross)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def testClasspath = Seq(compile().classes)
     override lazy val test: MillScalaTests = new MillScalaTests {

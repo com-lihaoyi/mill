@@ -7,7 +7,7 @@ import mill.scalajslib.api.*
 import mill.scalalib.*
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.*
-trait ProjectBaseModule extends PublishModule, CrossSbtPlatformModule {
+trait ProjectBaseModule extends CrossSbtModule, PublishModule {
 
   def mvnDeps = Seq(Deps.upickle)
 

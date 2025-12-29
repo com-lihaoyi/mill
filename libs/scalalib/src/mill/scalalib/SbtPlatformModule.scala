@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.api.PathRef
+import mill.api.Task
 
 /**
  * A cross-platform module that can share sources with other cross members.
@@ -32,15 +32,14 @@ trait SbtPlatformModule extends PlatformScalaModule with SbtModule { outer =>
   override def sourcesFolders =
     sourcesRootFolders.flatMap(root => super.sourcesFolders.map(root / _))
   override def resources =
-    sourcesRootFolders.map(root => PathRef(moduleDir / root / "src/main/resources"))
+    Task.Sources(sourcesRootFolders.map(_ / "src/main/resources")*)
 
   trait SbtPlatformTests extends SbtTests {
 
     override def sourcesFolders = outer.sourcesRootFolders.flatMap(root =>
       super.sourcesFolders.map(root / _)
     )
-    override def resources = outer.sourcesRootFolders.map(root =>
-      PathRef(moduleDir / root / "src" / testModuleName / "resources")
-    )
+    override def resources =
+      Task.Sources(outer.sourcesRootFolders.map(_ / "src" / testModuleName / "resources")*)
   }
 }
