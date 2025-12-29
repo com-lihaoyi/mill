@@ -6,7 +6,7 @@ import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
-import millbuild.Deps
+import millbuild.*
 object `package`
     extends Cross[CrossVersionModule]("2.12.18", "2.13.12", "3.3.1")
 trait CrossVersionModule extends PublishModule, CrossSbtModule {
@@ -35,5 +35,4 @@ trait CrossVersionModule extends PublishModule, CrossSbtModule {
     def testSandboxWorkingDir = false
 
   }
-
 }
