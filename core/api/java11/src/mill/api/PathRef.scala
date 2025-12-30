@@ -218,7 +218,7 @@ object PathRef {
         storeSerializedPaths(pr)
         pr
       case s =>
-        val path = s match{
+        val path = s match {
           case s"//$rest" => os.Path(rest, BuildCtx.workspaceRoot)
           case _ => os.Path(s, currentOverrideModulePath.value)
         }

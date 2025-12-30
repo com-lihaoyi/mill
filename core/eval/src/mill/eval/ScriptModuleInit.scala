@@ -29,7 +29,7 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   ): Result[ExternalModule] = {
     val scriptText = os.read(scriptFile)
 
-    def relativize(s: String) = s match{
+    def relativize(s: String) = s match {
       case s"//$rest" => rest
       case _ =>
         val scriptFolder = scriptFile / os.up
