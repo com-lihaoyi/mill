@@ -25,7 +25,7 @@ println("Hello World")
 }
 
 > ./mill mill.kotlinlib.ktfmt/
-Done formatting ..src//foo/Foo.kt
+Done formatting .../src/foo/Foo.kt
 
 > cat src/foo/Foo.kt
 package example
@@ -56,6 +56,6 @@ fun main() {
 /** Usage
 
 > ./mill __.detekt
-error: ...NestedBlockDepth - 5/4 - [Function main is nested too deeply.] at ..src//foo/Foo.kt:5:5
+error: ...NestedBlockDepth - 5/4 - [Function main is nested too deeply.] at .../src/foo/Foo.kt:5:5
 
 */
