@@ -29,10 +29,11 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
   ): Result[ExternalModule] = {
     val scriptText = os.read(scriptFile)
 
-    def relativize(s: String) = {
-      if (s.startsWith("."))
-        (scriptFile.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.up / os.RelPath(s)).toString
-      else s
+    def relativize(s: String) = s match{
+      case s"//$rest" => rest
+      case _ =>
+        val scriptFolder = scriptFile / os.up
+        (scriptFolder.relativeTo(mill.api.BuildCtx.workspaceRoot) / os.RelPath(s)).toString
     }
 
     def resolveOrErr(located: Located[String]) =

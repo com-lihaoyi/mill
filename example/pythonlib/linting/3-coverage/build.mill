@@ -21,7 +21,7 @@ object `package` extends PythonModule {
 > ./mill test.coverageReport
 Name ...                        Stmts   Miss  Cover
 ...------------------------------------------------
-.../src/main.py                 4      1    75%
+..src//main.py                 4      1    75%
 .../test/src/test_main.py       5      0   100%
 ...------------------------------------------------
 TOTAL ...                       9      1    89%

@@ -1,11 +1,11 @@
-// Mill single-file scripts can import each other via either relative or absolute imports.
+// Mill single-file scripts can import each other via either relative or workspace-root imports.
 // For example, given a `bar/Bar.{language-ext}` file such as below:
 
 //// SNIPPET:BAR
 /** See Also: bar/Bar.scala */
 //// SNIPPET:END
 
-// It can be imported via a `./Bar.{language-ext}` import relative to its own enclosing folder
+// It can be imported via a `Bar.{language-ext}` import relative to its own enclosing folder
 // (in this case `bar/`), as shown below where it is imported from the `bar/BarTests.{language-ext}`
 // test suite in the same folder:
 
@@ -13,8 +13,8 @@
 /** See Also: bar/BarTests.scala */
 //// SNIPPET:END
 
-// Or it can be imported via `bar/Bar.{language-ext}` absolute import, as shown below where it
-// is imported from the `foo/Foo.{language-ext}`
+// Or it can be imported via `//bar/Bar.{language-ext}` workspace-root import (with the `//` prefix),
+// as shown below where it is imported from the `foo/Foo.{language-ext}`
 
 //// SNIPPET:FOO
 /** See Also: foo/Foo.scala */

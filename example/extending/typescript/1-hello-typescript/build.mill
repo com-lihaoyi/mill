@@ -85,7 +85,7 @@ def compile = Task {
 /** Usage
 
 > ./mill compile
-error: .../src/hello.ts(...): error ... Property 'name' does not exist on type...
+error: ..src//hello.ts(...): error ... Property 'name' does not exist on type...
 
 > sed -i.bak 's/user.name/user.firstName/g' src/hello.ts
 

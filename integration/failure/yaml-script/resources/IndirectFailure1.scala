@@ -1,2 +1,2 @@
-//| moduleDeps: [./DoesntExist.scala]
+//| moduleDeps: [DoesntExist.scala]
 val x = 1337

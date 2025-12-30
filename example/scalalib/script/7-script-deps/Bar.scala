@@ -1,4 +1,4 @@
-//| moduleDeps: [./Foo.scala]
+//| moduleDeps: [Foo.scala]
 
 def main() =
   println(fooValue)
