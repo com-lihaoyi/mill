@@ -225,7 +225,7 @@ object `package` extends OllamaModule, TsLintModule {
 //    "format": "prettier --write .",
 //    "test": "vitest --run",
 //    "build": "unbuild",
-//    "lint": "eslint src//*",
+//    "lint": "eslint ./src/*",
 //    "prepublishOnly": "npm run build"
 //  },
 //  "homepage": "https://github.com/ollama/ollama-js",
@@ -273,7 +273,7 @@ object `package` extends OllamaModule, TsLintModule {
 //    "esm": true,
 //  },
 //
-//  "include": ["src//**/*.ts"],
+//  "include": ["./src/**/*.ts"],
 //
 //  "exclude": ["node_modules"]
 //}
