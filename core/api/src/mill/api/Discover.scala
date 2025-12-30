@@ -58,7 +58,7 @@ object Discover {
       import quotes.reflect.*
       val seen = mutable.Set.empty[TypeRepr]
       val moduleSym = Symbol.requiredClass("mill.api.Module")
-      val deprecatedSym = Symbol.requiredClass("scala.deprecated")
+      Symbol.requiredClass("scala.deprecated")
       def rec(tpe: TypeRepr): Unit = {
         if (seen.add(tpe)) {
           val typeSym = tpe.typeSymbol
