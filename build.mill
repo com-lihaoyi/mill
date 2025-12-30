@@ -26,6 +26,7 @@ import scala.util.Properties
 import mill.api.BuildCtx
 import mill.androidlib.AndroidSdkModule
 
+val x = println(123)
 def millVersionIsStable0(using ctx: mill.api.TaskCtx) = ctx.env.contains("MILL_STABLE_VERSION")
 def millVersionIsStable: T[Boolean] = Task.Input { millVersionIsStable0 }
 
