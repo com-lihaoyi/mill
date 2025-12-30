@@ -1,3 +1,3 @@
-//| moduleDeps: [./Foo.kt]
+//| moduleDeps: [Foo.kt]
 
 fun main() = println(fooValue)

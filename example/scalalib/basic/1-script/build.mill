@@ -31,7 +31,7 @@
 // Mill Scala scripts are integrated with https://github.com/com-lihaoyi/mainargs[MainArgs], one
 // of the xref:scalalib/script.adoc#_bundled_libraries[Bundled Libraries], which automatically
 // detects top-level methods named `def main` in scripts and treats them as program entry points.
-// MainArgs allows you to  add additional metadata with `@mainargs.arg` annotations on the
+// MainArgs allows you to add additional metadata with `@mainargs.arg` annotations on the
 // parameters, explicitly annotate your main methods with `@mainargs.main` to configure them,
 // or define explicit `def main(args: Array[String]): Unit` or `@scala.main def main`
 // methods if you prefer.
