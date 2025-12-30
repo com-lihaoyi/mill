@@ -65,7 +65,7 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...
 //
 // * Pinning a specific Java runtime/compile version via `jvmId`
 //
-// Paths such as `custom-src/` or `custom-resources/` are relative to the
+// NOTE: Paths such as `custom-src/` or `custom-resources/` are relative to the
 // xref:fundamentals/modules.adoc#_moduledir[moduleDir] of the module being configured.
 // In the example above this is the root folder of your codebase, but in multi-module
 // projects this may be a subfolder containing the current `package.mill.yaml` file.
