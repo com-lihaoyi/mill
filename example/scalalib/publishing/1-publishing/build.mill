@@ -1,4 +1,4 @@
-// This example demonstrates how to publish a Mill project to to Maven Central. To
+// This example demonstrates how to publish a Mill project to Maven Central. To
 // do so, your module must extend `mill.scalalib.PublishModule`, and configure the
 // publishing metadata shown below:
 

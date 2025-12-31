@@ -24,7 +24,7 @@ object foo extends ScalaModule {
     // all *.temp files will be excluded from a final jar
     Rule.ExcludePattern(".*\\.temp"),
     // the `shapeless` package will be relocated under the `shade` package
-    Rule.Relocate("shapeless.**", "shade.shapless.@1")
+    Rule.Relocate("shapeless.**", "shade.shapeless.@1")
   )
 
   // def manifest: T[JarManifest]

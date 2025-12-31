@@ -34,7 +34,7 @@ def myProjectVersion: T[String] = Task.Input {
   the same folder on one machine, but if the two calls are run on separate machines
   you need to make sure the directory path is the same.
 
-- *You must use the same Operating System amd Filesystem*, as differences there will
+- *You must use the same Operating System and Filesystem*, as differences there will
   cause the filesystem signatures to change and thus spuriously trigger downstream tasks.
   e.g. you cannot run `selective.prepare` on a Windows machine and `selective.run` on Linux
 

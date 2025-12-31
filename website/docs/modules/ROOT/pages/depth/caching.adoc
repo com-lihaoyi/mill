@@ -15,7 +15,7 @@ xref:depth/evaluation-model.adoc[Mill's Evaluation Model]:
 * If there were changes in `build.mill` or `package.mill` files, compilation is done
   incrementally using the Scala incremental compiler https://github.com/sbt/zinc[Zinc].
   Typically, this limits compilation to the `.mill` files you changed, though the
-  exact about of caching and reuse that occurs may vary depending on the nature
+  exact amount of caching and reuse that occurs may vary depending on the nature
   of the code change.
 
 * If no `.mill` files were changed, this phase is skipped entirely.
@@ -23,7 +23,7 @@ xref:depth/evaluation-model.adoc[Mill's Evaluation Model]:
 ### Resolution
 
 * In the common case where the `build.mill` and `package.mill` files were not
-  changed - and re-compilation of th `.mill` files did not occur - any `Module`
+  changed - and re-compilation of the `.mill` files did not occur - any `Module`
   objects instantiated during previous resolutions are kept around and re-used.
 
 * If re-compilation of `.mill` files did occur due to a code change, then
@@ -97,7 +97,7 @@ Mill build:
 - Execution of any task may-or-may-not happen in parallel with other unrelated
   tasks, and may happen in arbitrary order
 
-Your build code code needs to work regardless of which order they are executed in.
+Your build code needs to work regardless of which order they are executed in.
 However, for code written in a typical Scala style (which tends to avoid side effects),
 and limits filesystem operations to the `Task.dest` folder, this is not a problem at all.
 
@@ -112,7 +112,7 @@ the new value.
 Incremental compilation for the various JVM languages is implemented via:
 
 - https://github.com/sbt/zinc[Zinc] for incrementally compiling Java and Scala
-- https://kotlinlang.org/docs/build-tools-api.html#enable-incremental-compilation-with-in-process-strategy[Koltin's Build Tool API]
+- https://kotlinlang.org/docs/build-tools-api.html#enable-incremental-compilation-with-in-process-strategy[Kotlin's Build Tool API]
   for incrementally compiling Kotlin
 
 These are used within xref:fundamentals/tasks.adoc#_persistent_tasks[persistent tasks], to allow

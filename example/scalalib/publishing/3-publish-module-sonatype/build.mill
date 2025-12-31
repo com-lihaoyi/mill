@@ -1,5 +1,5 @@
 //| mill-jvm-version: 17
-// This example configured for publishing to Sonatype Maven Central via
+// This example is configured for publishing to Sonatype Maven Central via
 // Central Portal. We extend `SonatypeCentralPublishModule` which provides
 // simplified publishing tasks without requiring Nexus repository manager.
 //// SNIPPET:BUILD

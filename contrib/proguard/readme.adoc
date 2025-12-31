@@ -45,7 +45,7 @@ object foo extends ScalaModule with Proguard {
   // customise to be as narrow/wide as your application requires
   override def additionalOptions = Seq (
     "-keep class myProject.main.myApp { *; }",
-    "-keep class Scala.Symbol { *; };
+    "-keep class Scala.Symbol { *; }"
   )
 }
 ----

@@ -27,7 +27,7 @@ object foo extends ScalaModule {
 //   in the programmable syntax.
 //
 // * The root `build.mill.yaml` file and nested `package.mill.yaml` files in the declarative YAML
-//   syntax correspond to then root and nested ``object``s in in the programmable syntax.
+//   syntax correspond to the root and nested ``object``s in the programmable syntax.
 //
 //// SNIPPET:TREE
 // ----

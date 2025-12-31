@@ -46,7 +46,7 @@ Add the `DependencyTrackModule` and provide the necessary details:
 package build
 import mill.*
 import mill.javalib.*
-import mill.contrib.sbom.CycloneDXModule
+import mill.contrib.sbom.CycloneDXJavaModule
 import mill.contrib.sbom.upload.DependencyTrack
 
 object `sbom-demo` extends JavaModule with CycloneDXJavaModule with DependencyTrackModule {

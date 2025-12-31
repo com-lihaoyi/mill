@@ -84,7 +84,7 @@ repository.
 
 See https://central.sonatype.org/publish/publish-portal-snapshots/[Sonatype Central documentation] for more information.
 
-You build file should look like:
+Your build file should look like:
 
 [source,scala]
 ----
@@ -94,7 +94,7 @@ object mymodule extends JavaModule {
 ----
 
 Running any of the publishing tasks will now publish SNAPSHOT versions. When running them you should see a note from
-Mill that is has detected a SNAPSHOT version.
+Mill that it has detected a SNAPSHOT version.
 
 To consume SNAPSHOT versions in your project, make sure to add the snapshot repository to your build file:
 
@@ -193,7 +193,7 @@ When you do not provide the username and password parameters, Mill will instead 
 `MILL_MAVEN_PASSWORD` environment variables. Providing the credentials via environment variables is the recommended
 approach due to security considerations.
 
-== Instructions for Publishing to Maven Central via Legacy OSSHR (Deprecated)
+== Instructions for Publishing to Maven Central via Legacy OSSRH (Deprecated)
 
 [NOTE]
 --
@@ -203,7 +203,7 @@ Migration is strongly encouraged to avoid disruptions. For full details, see the
 --
 
 Just like publishing via the Central Portal requires a GPG key and publish secrets, 
-publishing via the legacy OSSHR(OSS Repository Hosting) also requires them.
+publishing via the legacy OSSRH (OSS Repository Hosting) also requires them.
 
 === Publishing
 
