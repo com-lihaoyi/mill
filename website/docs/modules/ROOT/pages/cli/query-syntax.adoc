@@ -13,8 +13,8 @@ Examples:
 
 [source,console]
 ----
-> mill for.compile
-> mill for.run hello world
+> mill foo.compile
+> mill foo.run hello world
 > mill foo.testCached
 ----
 

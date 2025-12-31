@@ -1405,7 +1405,7 @@ of the build files.
 with tested workflows and an official testkit to help you write and publish your own Mill
 plugins for others to use
 
-5. Mill now supports other JVM langauges: https://mill-build.org/mill/javalib/intro.html[Java],
+5. Mill now supports other JVM languages: https://mill-build.org/mill/javalib/intro.html[Java],
 experimental support for https://mill-build.org/mill/kotlinlib/intro.html[Kotlin/KotlinJs],
 and https://mill-build.org/mill/android/kotlin.html[even-more-experimental support for Android].
 This includes IDE integrations, tooling integrations (docs, autoformatters, linters, testing

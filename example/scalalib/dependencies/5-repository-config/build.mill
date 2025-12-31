@@ -50,7 +50,7 @@ object foo extends ScalaModule {
 // To add custom resolvers to the initial bootstrap of the build, you can create a
 // custom `JvmWorkerModule` (named after the https://github.com/sbt/zinc[Zinc Incremental compiler]
 // used to compile the `build.mill` files) and override the `jvmWorker` method in your
-// `ScalaModule` by pointing it to that custom object:
+// `Module` by pointing it to that custom object:
 
 //// SNIPPET:BUILD2
 

@@ -84,7 +84,7 @@ repository.
 
 See https://central.sonatype.org/publish/publish-portal-snapshots/[Sonatype Central documentation] for more information.
 
-You build file should look like:
+Your build file should look like:
 
 [source,scala]
 ----
@@ -94,7 +94,7 @@ object mymodule extends JavaModule {
 ----
 
 Running any of the publishing tasks will now publish SNAPSHOT versions. When running them you should see a note from
-Mill that is has detected a SNAPSHOT version.
+Mill that it has detected a SNAPSHOT version.
 
 To consume SNAPSHOT versions in your project, make sure to add the snapshot repository to your build file:
 

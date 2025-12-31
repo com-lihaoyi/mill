@@ -140,7 +140,7 @@ include::partial$example/cli/header/4-jvm-index-version.adoc[]
 
 == mill-jvm-opts
 
-Mill supports `mill-jvm-opts` to set JVM-level flags
+Mill supports `mill-jvm-opts` to set JVM-level flags.
 It's possible to pass JVM options to the Mill launcher.To do this you can either set
 the `JAVA_OPTS` environment variable, xref:cli/build-header.adoc[], or create a `.mill-jvm-opts` file in your project's
 root that contains JVM options one per line.
