@@ -1,5 +1,5 @@
 // Single-file scripts can depend on programmable modules. This can be useful to integrate
-// your scripts into a large project, where your scripts may make of classes and methods
+// your scripts into a large project, where your scripts may make use of classes and methods
 // defined in your library or application code to perform domain-specific actions that may
 // not be available in the standard library or third-party libraries.
 

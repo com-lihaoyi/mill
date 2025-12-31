@@ -338,7 +338,7 @@ In this file,
 - The other keys such as `mvnDeps` tell us configuration on that module we want to override
 
 Mill follows Mavens principle of _Convention over Configuration_: although there are a lot
-of possible configuration options (`mvnDeps`, `moduleDeps`, `repositiries`,
+of possible configuration options (`mvnDeps`, `moduleDeps`, `repositories`,
 `javacOptions`, etc.) the  `build.mill.yaml` file only needs to contain
 the keys the user needs to customize. This greatly simplifies the common case where
 the user is mostly fine with the default configuration and avoids much of the

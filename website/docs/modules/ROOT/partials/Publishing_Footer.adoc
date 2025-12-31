@@ -193,7 +193,7 @@ When you do not provide the username and password parameters, Mill will instead 
 `MILL_MAVEN_PASSWORD` environment variables. Providing the credentials via environment variables is the recommended
 approach due to security considerations.
 
-== Instructions for Publishing to Maven Central via Legacy OSSHR (Deprecated)
+== Instructions for Publishing to Maven Central via Legacy OSSRH (Deprecated)
 
 [NOTE]
 --
@@ -203,7 +203,7 @@ Migration is strongly encouraged to avoid disruptions. For full details, see the
 --
 
 Just like publishing via the Central Portal requires a GPG key and publish secrets, 
-publishing via the legacy OSSHR(OSS Repository Hosting) also requires them.
+publishing via the legacy OSSRH (OSS Repository Hosting) also requires them.
 
 === Publishing
 
