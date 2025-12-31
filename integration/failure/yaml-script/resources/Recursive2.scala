@@ -1,1 +1,1 @@
-//| moduleDeps: [./Recursive3.scala]
+//| moduleDeps: [Recursive3.scala]

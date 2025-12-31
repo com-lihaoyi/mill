@@ -507,7 +507,7 @@ Or find the latest unstable version here:
 
 * https://central.sonatype.com/artifact/com.lihaoyi/mill-dist
 
-You can update your `.mill-version` to to the unstable version and the bootstrap script
+You can update your `.mill-version` to the unstable version and the bootstrap script
 will download it for you to try it out in your project.
 
 

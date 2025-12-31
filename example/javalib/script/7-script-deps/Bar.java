@@ -1,4 +1,4 @@
-//| moduleDeps: [./Foo.java]
+//| moduleDeps: [Foo.java]
 
 public class Bar {
   public static void main(String[] args) {

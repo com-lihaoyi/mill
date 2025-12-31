@@ -6,7 +6,7 @@ import mill.*, kotlinlib.*, publish.*
 import mill.scalalib.SonatypeCentralPublishModule
 
 object foo extends KotlinModule, SonatypeCentralPublishModule {
-  def scalaVersion = "2.13.16"
+  def kotlinVersion = "2.2.21"
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(

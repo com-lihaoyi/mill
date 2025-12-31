@@ -1,4 +1,4 @@
-//| moduleDeps: [bar/Bar.java]
+//| moduleDeps: [//bar/Bar.java]
 package foo;
 
 public class Foo {

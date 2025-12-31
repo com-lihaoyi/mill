@@ -32,5 +32,5 @@ foo.BuildInfo.scalaVersion: 2.13.16
 //   compatible with any Mill version
 //
 // * Like third-party plugins, contrib modules are submitted by third-parties,
-//   and do now maintain the same binary compatibility guarantees of Mill's
+//   and do not maintain the same binary compatibility guarantees of Mill's
 //   builtin comdules

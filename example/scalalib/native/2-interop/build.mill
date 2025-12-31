@@ -15,7 +15,7 @@ object `package` extends ScalaNativeModule {
 // This is an example of how to use Mill to compile C code together with your Scala Native
 // code.
 //
-// The above build expect the following project layout:
+// The above build expects the following project layout:
 //
 // ----
 // build.mill

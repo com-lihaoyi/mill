@@ -27,7 +27,7 @@ The following table contains the main ways you can test the code in
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
 | In-Process Tests | `core.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process Tests| `example.\\__.local.daemon`, `integration.__.local.daemon` | `dist.run` | `test-mill-dev.sh`
+| Sub-Process Tests| `example.\\__.packaged.daemon`, `integration.__.packaged.daemon` | `dist.run` | `test-mill-dev.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
 |===
 
@@ -59,7 +59,7 @@ and do not exercise the Mill script-file bootstrapping, transformation, and comp
 
 === Sub-Process Tests
 
-In general, you use `example.basic.3-simple.` or `integration.feature.inspect.` to run subproxess
+In general, you use `example.basic.3-simple` or `integration.feature.inspect` to run subproxess
 tests using the default configuration. You can reproduce these tests manually using
 `./mill dist.run <test-folder-path> <command>`.
 

@@ -24,7 +24,7 @@ dlrowolleh
 //
 // This example web project comes with a small test suite in the `test/` folder,
 // configured by `test/package.mill.yaml`. This test suite spins up the server and
-// makes a single HTTP reqeust against and checks it behaves as expected.
+// makes a single HTTP request against and checks it behaves as expected.
 
 /** See Also: test/package.mill.yaml */
 

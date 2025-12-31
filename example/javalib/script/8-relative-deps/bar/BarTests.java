@@ -1,5 +1,5 @@
 //| extends: [mill.script.JavaModule.Junit4]
-//| moduleDeps: [./Bar.java]
+//| moduleDeps: [Bar.java]
 package bar;
 
 import static org.junit.Assert.assertEquals;

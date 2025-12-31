@@ -423,7 +423,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def consoleScalacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
-  @deprecated("Use `ScalaModule#repl` instead")
+  /** Use `repl` instead */
   def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
     Task.Command(exclusive = true) {
       if (!mill.constants.Util.hasConsole()) {

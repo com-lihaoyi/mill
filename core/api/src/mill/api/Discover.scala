@@ -58,7 +58,7 @@ object Discover {
       import quotes.reflect.*
       val seen = mutable.Set.empty[TypeRepr]
       val moduleSym = Symbol.requiredClass("mill.api.Module")
-      val deprecatedSym = Symbol.requiredClass("scala.deprecated")
+
       def rec(tpe: TypeRepr): Unit = {
         if (seen.add(tpe)) {
           val typeSym = tpe.typeSymbol
@@ -91,7 +91,6 @@ object Discover {
       def filterDefs(methods: List[Symbol]): List[Symbol] =
         methods.filterNot { m =>
           m.isSuperAccessor
-          || m.hasAnnotation(deprecatedSym)
           || m.flags.is(
             Flags.Synthetic | Flags.Invisible | Flags.Private | Flags.Protected
           )
