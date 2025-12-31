@@ -1,5 +1,5 @@
 //| extends: mill.script.KotlinModule.Junit5
-//| moduleDeps: [./Bar.kt]
+//| moduleDeps: [Bar.kt]
 //| mvnDeps:
 //| - io.kotest:kotest-runner-junit5:5.9.1
 //| - com.github.sbt.junit:jupiter-interface:0.11.2
