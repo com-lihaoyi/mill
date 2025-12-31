@@ -97,15 +97,15 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.zinc.ZincWorkerMain"
-        val fileLocks = Locks.files(daemonDir.toString)
+        val baseLocks = Locks.auto(daemonDir.toString)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
             //
             // We can get multiple lock acquisitions when we compile several modules in parallel,
-            DoubleLock(memLockFor(daemonDir), fileLocks.launcherLock),
+            DoubleLock(memLockFor(daemonDir), baseLocks.launcherLock),
             // We never take the daemon lock, just check if it's already taken
-            fileLocks.daemonLock
+            baseLocks.daemonLock
           )
         }
 

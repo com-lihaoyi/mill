@@ -37,7 +37,7 @@ object ZincWorkerMain {
       extends Server[Object, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
-        Locks.files(daemonDir.toString),
+        Locks.auto(daemonDir.toString),
         bufferSize = 4 * 1024
       )) {
     private val className = summon[TPrint[ZincWorkerTcpServer]].render(using TPrintColors.Colors)

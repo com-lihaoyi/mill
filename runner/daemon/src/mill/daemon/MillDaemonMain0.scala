@@ -53,7 +53,7 @@ object MillDaemonMain0 {
       val exitCode = new MillDaemonMain0(
         daemonDir = args.daemonDir,
         acceptTimeout = acceptTimeout,
-        Locks.files(args.daemonDir.toString),
+        Locks.auto(args.daemonDir.toString),
         outMode = args.outMode
       ).run().getOrElse(0)
 
