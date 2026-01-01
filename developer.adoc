@@ -59,9 +59,34 @@ and do not exercise the Mill script-file bootstrapping, transformation, and comp
 
 === Sub-Process Tests
 
-In general, you use `example.basic.3-simple` or `integration.feature.inspect` to run subproxess
-tests using the default configuration. You can reproduce these tests manually using
-`./mill dist.run <test-folder-path> <command>`.
+These are tests that involve bootstrapping an entire Mill subprocess to exercise its functionality.
+Typically end-to-end test to verify user workflows, or integration tests to assert on behavior that
+is difficult to cover via unit tests.
+
+**Automated Test**
+
+[source,console]
+----
+> ./mill example.javalib.basic.3-simple
+> ./mill integration.feature.inspect
+----
+
+For automated test runs, you can see the state of the workspace and `out/` folder contents in
+the respective test sandboxes e.g. `out/integration/feature/inspect/testForked.dest/sandbox/run-1/`.
+
+**Manual Test**
+
+[source,console]
+----
+> ./mill -i dist.run example/javalib/basic/3-simple -i foo.run --text hello
+----
+
+**Manual Test using Launcher Script**
+
+[source,console]
+----
+> ./mill dist.launcher && (cd example/javalib/basic/3-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
+----
 
 `example` tests are written in a single `build.mill` file, with the test commands written
 in a comment with a bash-like syntax together with the build code and comments that explain
@@ -83,29 +108,6 @@ infrastructure, but with differences:
 
 2. `integration` tests are written using a Scala test suite extending
 `IntegrationTestSuite`, giving more flexibility at the expense of readability
-
-You can reproduce any of the tests manually using `dist.run`, e.g.
-
-**Automated Test**
-
-[source,console]
-----
-> ./mill "example.javalib.basic.3-simple"
-----
-
-**Manual Test**
-
-[source,console]
-----
-> ./mill -i dist.run example/javalib/basic/3-simple -i foo.run --text hello
-----
-
-**Manual Test using Launcher Script**
-
-[source,console]
-----
-> ./mill dist.launcher && (cd example/javalib/basic/3-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
-----
 
 ==== Different Flavors or Sub-Process Tests
 
