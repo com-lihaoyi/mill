@@ -109,6 +109,12 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           )
         }
 
+        // Suppress Unsafe warnings on Java >=23, since we use Scala modules built in Scala-3.7 for
+        // compatibility with Java >=11, and Scala-3.7 generates such warnings spuriously
+        val suppressArg = Option.when(Jvm.getJavaMajorVersion(key.javaHome) >= 23) {
+          "--sun-misc-unsafe-memory-access=allow"
+        }
+
         val launched = ServerLauncher.launchOrConnectToServer(
           locks,
           daemonDir.toNIO,
@@ -118,7 +124,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
               mainClass = mainClass,
               mainArgs = Seq(daemonDir.toString, jobs.toString),
               javaHome = key.javaHome,
-              jvmArgs = key.runtimeOptions,
+              jvmArgs = key.runtimeOptions ++ suppressArg,
               classPath = classPath
             )
             LaunchedServer.OsProcess(process.wrapped.toHandle)
