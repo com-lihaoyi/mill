@@ -73,6 +73,7 @@ is difficult to cover via unit tests.
 
 For automated test runs, you can see the state of the workspace and `out/` folder contents in
 the respective test sandboxes e.g. `out/integration/feature/inspect/testForked.dest/sandbox/run-1/`.
+This is useful for analysis of why the test passed or failed.
 
 **Manual Test**
 
