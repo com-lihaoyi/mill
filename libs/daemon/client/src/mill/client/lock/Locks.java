@@ -16,7 +16,7 @@ public final class Locks implements AutoCloseable {
   }
 
   /**
-   * @deprecated Use {@link #auto(String)} instead, which works on all filesystems.
+   * @deprecated Use {@link #pid(String)} instead, which works on all filesystems.
    */
   @Deprecated
   public static Locks files(String daemonDir) throws Exception {
@@ -30,7 +30,7 @@ public final class Locks implements AutoCloseable {
    * This works on all filesystems, including those that don't support file locking
    * (e.g., some network filesystems, Docker containers on macOS).
    */
-  public static Locks pids(String daemonDir) {
+  public static Locks pid(String daemonDir) {
     return new Locks(
         new PidLock(daemonDir + "/" + DaemonFiles.launcherLock),
         new PidLock(daemonDir + "/" + DaemonFiles.daemonLock));
@@ -38,14 +38,6 @@ public final class Locks implements AutoCloseable {
 
   public static Locks memory() {
     return new Locks(new MemoryLock(), new MemoryLock());
-  }
-
-  /**
-   * Creates locks appropriate for the given daemon directory.
-   * Uses PID-based locking which works on all filesystems.
-   */
-  public static Locks auto(String daemonDir) {
-    return pids(daemonDir);
   }
 
   @Override

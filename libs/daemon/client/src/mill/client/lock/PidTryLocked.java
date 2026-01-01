@@ -25,8 +25,6 @@ class PidTryLocked implements TryLocked {
 
   @Override
   public void release() throws Exception {
-    if (locked && lockPath != null) {
-      Files.deleteIfExists(lockPath);
-    }
+    if (locked && lockPath != null) Files.deleteIfExists(lockPath);
   }
 }

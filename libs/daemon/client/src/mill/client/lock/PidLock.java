@@ -12,13 +12,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * This works on filesystems that don't support file locking (e.g., some
  * network filesystems, Docker containers on macOS).
  *
- * <p>The lock file contains the PID and a random token unique to this process,
- * in the format "{pid}:{randomToken}". Using both PID and a random token
- * prevents issues with PID reuse - if a process dies and a new unrelated process
- * gets the same PID, we can detect this because the token will differ.
- *
- * <p>Stale locks (where the process has died or the PID was reused) are
- * automatically detected and cleaned up.
+ * Creation of the lock file is atomic on most filesystems, and we use this atomic
+ * to build a lock/mutex abstraction.
  */
 public class PidLock extends Lock {
 
@@ -51,11 +46,8 @@ public class PidLock extends Lock {
   public Locked lock() throws Exception {
     while (true) {
       TryLocked result = tryLock();
-      if (result.isLocked()) {
-        return result;
-      }
-      // Small sleep before retrying to avoid busy-spinning
-      Thread.sleep(1);
+      if (result.isLocked()) return result;
+      else Thread.sleep(1);
     }
   }
 
@@ -66,9 +58,6 @@ public class PidLock extends Lock {
    */
   @Override
   public TryLocked tryLock() throws Exception {
-    // First, clean up any stale lock
-    cleanupStaleLock();
-
     // Try to create the lock file atomically
     try {
       Files.write(
@@ -88,10 +77,6 @@ public class PidLock extends Lock {
    */
   @Override
   public boolean probe() throws Exception {
-    if (!Files.exists(lockPath)) {
-      return true; // Lock file doesn't exist, lock is available
-    }
-
     return !isLockValid();
   }
 
@@ -101,30 +86,7 @@ public class PidLock extends Lock {
   }
 
   @Override
-  public void delete() throws Exception {
-    try {
-      // Only delete if we own the lock (our content is in the file)
-      String content = readLockFileContent();
-      if (lockContent.equals(content)) {
-        Files.deleteIfExists(lockPath);
-      }
-    } catch (Exception e) {
-      // Ignore errors during cleanup
-    }
-  }
-
-  /**
-   * Cleans up a stale lock file if the holding process is dead or PID was reused.
-   */
-  private void cleanupStaleLock() {
-    if (!Files.exists(lockPath)) {
-      return;
-    }
-
-    if (!isLockValid()) {
-      tryDeleteLockFile();
-    }
-  }
+  public void delete() throws Exception {}
 
   /**
    * Checks if the current lock file represents a valid (non-stale) lock.
@@ -136,17 +98,11 @@ public class PidLock extends Lock {
    */
   private boolean isLockValid() {
     LockInfo info = readLockInfo();
-    if (info == null) {
-      return false; // Couldn't read lock info, treat as stale
-    }
-
+    if (info == null) return false; // Couldn't read lock info, treat as stale
     // If it's our own lock, verify the token matches
-    if (info.pid == pid) {
-      return info.token == PROCESS_TOKEN;
-    }
-
+    else if (info.pid == pid) return info.token == PROCESS_TOKEN;
     // For other processes, check if they're alive
-    return ProcessHandle.of(info.pid).map(ProcessHandle::isAlive).orElse(false);
+    else return ProcessHandle.of(info.pid).map(ProcessHandle::isAlive).orElse(false);
   }
 
   /**
@@ -167,19 +123,13 @@ public class PidLock extends Lock {
    */
   private LockInfo readLockInfo() {
     String content = readLockFileContent();
-    if (content == null) {
-      return null;
-    }
+    if (content == null) return null;
 
     String[] parts = content.split(":");
-    if (parts.length != 2) {
-      return null;
-    }
+    if (parts.length != 2) return null;
 
     try {
-      long pid = Long.parseLong(parts[0]);
-      long token = Long.parseLong(parts[1]);
-      return new LockInfo(pid, token);
+      return new LockInfo(Long.parseLong(parts[0]), Long.parseLong(parts[1]));
     } catch (NumberFormatException e) {
       return null;
     }
