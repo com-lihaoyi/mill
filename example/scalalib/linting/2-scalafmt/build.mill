@@ -32,8 +32,7 @@ object Foo {
   def main(args: Array[String]): Unit = { println("hello world") }
 }
 
-> ./mill mill.scalalib.scalafmt/checkFormatAll
-Everything is formatted already
+> ./mill mill.scalalib.scalafmt/checkFormatAll # passes
 
 */
 

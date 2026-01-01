@@ -23,7 +23,6 @@ val res = println("Hello world")
 }
 
 > ./mill mill.scalalib.scalafmt/
-Formatting 1 Scala sources
 
 > cat src/Foo.scala
 package foo
