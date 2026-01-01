@@ -59,7 +59,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-util-java11_3-SNAPSHOT.jar",
             "mill-libs-util_3-SNAPSHOT.jar",
             "mill-libs_3-SNAPSHOT.jar",
-            "mill-moduledefs_3-0.12.7.jar",
+            "mill-moduledefs_3-0.12.8.jar",
             "mill-runner-autooverride-api_3-SNAPSHOT.jar"
           )
         )
