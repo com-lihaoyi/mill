@@ -283,8 +283,8 @@ In addition, due to xref:12-direct-style-build-tool.adoc#_direct_style_builds[Mi
 
 [,scala]
 ----
-import mill._
-import mill.androidlib._
+import mill.*
+import mill.androidlib.*
 
 object app extends AndroidAppModule {
   def androidApplicationNamespace = "com.example.app"

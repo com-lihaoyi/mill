@@ -1,2 +1,2 @@
 extends: [checkstyle.CheckstyleModule]
-checkstyleVersion: "9.3"
+checkstyleVersion: 9.3
