@@ -739,9 +739,7 @@ private object ResolveCore {
         (parentCls, superSegments)
       }
 
-      // Filter by the requested suffix if provided
-
-      val filteredTasks =
+      val filteredTasks = // Filter by the requested suffix if provided
         // No suffix specified - return all super tasks if there's only one,
         // otherwise require disambiguation
         if (superSuffix.isEmpty) superTasks
@@ -795,11 +793,9 @@ private object ResolveCore {
         discover
       )
 
-      // No matching super tasks found
-      if (superTasks.isEmpty) None
+      if (superTasks.isEmpty) None // No matching super tasks found
       else if (superTasks.size == 1 || afterSuper.nonEmpty) Some(Success(superTasks))
-      else {
-        // Multiple super tasks and no disambiguation - show error with options
+      else {// Multiple super tasks and no disambiguation - show error with options
         val options = superTasks.map(_.taskSegments.render).mkString(", ")
         Some(Error(mill.api.Result.Failure(
           s"Ambiguous super task reference. Available super tasks: $options"
