@@ -716,7 +716,6 @@ private object ResolveCore {
       superSuffix: List[Segment],
       discover: Discover
   ): Seq[Resolved.NamedTask] = {
-    // Get the linearization of classes for this module
     val linearized = OverrideMapping.computeLinearization(moduleCls)
 
     // Find all classes that declare this task
@@ -724,8 +723,7 @@ private object ResolveCore {
       discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(baseTaskName))
     }
 
-    // No overrides, no super tasks exist
-    if (declaring.size <= 1) Nil
+    if (declaring.size <= 1) Nil // No overrides, no super tasks exist
     else {
       // The last class in `declaring` is the final override (not a super task)
       // All others are potential super tasks
