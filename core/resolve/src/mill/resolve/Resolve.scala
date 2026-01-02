@@ -112,15 +112,18 @@ object Resolve {
         task: Resolved
     ) = task match {
       case r: Resolved.NamedTask =>
-        // Check if this is a super task by looking for ".super" in segments
-        val superTaskInfo = extractSuperTaskInfo(r.taskSegments)
-        val moduleSegments = superTaskInfo match {
-          case Some((moduleSegs, _, _)) => moduleSegs
-          case None => r.taskSegments.init
+        // For super tasks like ["m", "foo.super", "Parent"], module is at segments before ".super"
+        // For regular tasks like ["m", "foo"], module is at init (all but last)
+        val superIdx = r.taskSegments.value.indexWhere {
+          case Segment.Label(l) => l.endsWith(".super")
+          case _ => false
         }
+        val moduleSegments =
+          if (superIdx >= 0) mill.api.Segments(r.taskSegments.value.take(superIdx))
+          else r.taskSegments.init
         val instantiated = ResolveCore
           .instantiateModule(rootModule, rootModulePrefix, moduleSegments, cache)
-          .flatMap(instantiateNamedTask(r, _, superTaskInfo, cache))
+          .flatMap(instantiateNamedTask(r, _, cache))
         instantiated.map(Some(_))
 
       case r: Resolved.Command =>
@@ -157,7 +160,7 @@ object Resolve {
 
             directChildrenOrErr.flatMap(directChildren =>
               directChildren.head match {
-                case r: Resolved.NamedTask => instantiateNamedTask(r, value, None, cache).map(Some(_))
+                case r: Resolved.NamedTask => instantiateNamedTask(r, value, cache).map(Some(_))
                 case r: Resolved.Command =>
                   instantiateCommand(
                     rootModule,
@@ -208,44 +211,20 @@ object Resolve {
       items.distinctBy(_.ctx.segments)
   }
 
-  /**
-   * Extract super task information from segments.
-   *
-   * For segments like ["m", "foo.super", "ParentModule"], returns:
-   * Some((moduleSegments=["m"], baseTaskName="foo", superSuffix=["ParentModule"]))
-   *
-   * For regular segments like ["m", "foo"], returns None.
-   */
-  private def extractSuperTaskInfo(
-      segments: mill.api.Segments
-  ): Option[(mill.api.Segments, String, Seq[Segment])] = {
-    val segList = segments.value.toList
-    val superIdx = segList.indexWhere {
-      case Segment.Label(l) => l.endsWith(".super")
-      case _ => false
-    }
-    if (superIdx < 0) None
-    else {
-      val moduleSegs = mill.api.Segments(segList.take(superIdx))
-      val superLabel = segList(superIdx) match {
-        case Segment.Label(l) => l
-        case _ => return None
-      }
-      val baseTaskName = superLabel.stripSuffix(".super")
-      val superSuffix = segList.drop(superIdx + 1)
-      Some((moduleSegs, baseTaskName, superSuffix))
-    }
-  }
-
   private def instantiateNamedTask(
       r: Resolved.NamedTask,
       p: Module,
-      superTaskInfo: Option[(Segments, String, Seq[Segment])],
       cache: ResolveCore.Cache
   ): Result[Task.Named[?]] = {
-    superTaskInfo match {
-      case Some((_, baseTaskName, _)) =>
+    // Check if this is a super task by looking for ".super" in segments
+    val superSegment = r.taskSegments.value.collectFirst {
+      case Segment.Label(l) if l.endsWith(".super") => l
+    }
+
+    superSegment match {
+      case Some(label) =>
         // This is a super task - invoke the method on the parent class
+        val baseTaskName = label.stripSuffix(".super")
         instantiateSuperTask(r, p, baseTaskName, cache)
       case None =>
         // Regular task instantiation
