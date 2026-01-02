@@ -473,8 +473,8 @@ private object ResolveCore {
       direct.map {
         case (Resolved.Module(rootModule, rootModulePrefix, s, cls), _) =>
           Resolved.Module(rootModule, rootModulePrefix, segments ++ s, cls)
-        case (Resolved.NamedTask(rootModule, rootModulePrefix, s, enclosing), _) =>
-          Resolved.NamedTask(rootModule, rootModulePrefix, segments ++ s, enclosing)
+        case (Resolved.NamedTask(rootModule, rootModulePrefix, s, enclosing, superSuffix), _) =>
+          Resolved.NamedTask(rootModule, rootModulePrefix, segments ++ s, enclosing, superSuffix)
         case (Resolved.Command(rootModule, rootModulePrefix, s, enclosing), _) =>
           Resolved.Command(rootModule, rootModulePrefix, segments ++ s, enclosing)
       }
@@ -701,7 +701,7 @@ private object ResolveCore {
       moduleCls: Class[?],
       moduleSegments: Segments,
       baseTaskName: String,
-      superSuffix: List[Segment],
+      superSuffixSegments: List[Segment],
       discover: Discover
   ): Seq[Resolved.NamedTask] = {
     val linearized = OverrideMapping.computeLinearization(moduleCls)
@@ -717,31 +717,25 @@ private object ResolveCore {
       // All others are potential super tasks
       val superClasses = declaring.init
 
-      // Compute super segments for each parent class
-      val superTasks = superClasses.map { parentCls =>
-        val superSegments = OverrideMapping.assignOverridenTaskSegments(
-          declaring.map(_.getName),
-          baseTaskName,
-          parentCls.getName
-        )
-        (parentCls, superSegments)
-      }
-
       // Filter by the requested suffix if provided
-      val filteredTasks =
-        if (superSuffix.isEmpty) superTasks
-        else superTasks.filter { case (_, segments) =>
-          // The super segments are like [Label("foo.super"), Label("Parent"), ...]
-          // Skip the first segment ("foo.super") and match the rest against the suffix
-          segments.value.drop(1) == superSuffix
+      val filteredClasses =
+        if (superSuffixSegments.isEmpty) superClasses
+        else {
+          // Match suffix against parent class simple names
+          val suffixNames = superSuffixSegments.collect { case Segment.Label(l) => l }
+          superClasses.filter { parentCls =>
+            // The suffix from OverrideMapping uses simple class names
+            suffixNames == List(parentCls.getSimpleName)
+          }
         }
 
-      filteredTasks.map { case (parentCls, superSegments) =>
+      filteredClasses.map { parentCls =>
         Resolved.NamedTask(
           rootModule,
           rootModulePrefix,
-          moduleSegments ++ superSegments,
-          parentCls
+          moduleSegments ++ Segments.labels(baseTaskName),
+          moduleCls,
+          superSuffix = Some(parentCls)
         )
       }
     }

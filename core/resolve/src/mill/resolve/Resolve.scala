@@ -112,17 +112,9 @@ object Resolve {
         task: Resolved
     ) = task match {
       case r: Resolved.NamedTask =>
-        // For super tasks like ["m", "foo.super", "Parent"], module is at segments before ".super"
-        // For regular tasks like ["m", "foo"], module is at init (all but last)
-        val superIdx = r.taskSegments.value.indexWhere {
-          case Segment.Label(l) => l.endsWith(".super")
-          case _ => false
-        }
-        val moduleSegments =
-          if (superIdx >= 0) mill.api.Segments(r.taskSegments.value.take(superIdx))
-          else r.taskSegments.init
+        // taskSegments is ["module", "task"] - module is init, task is last
         val instantiated = ResolveCore
-          .instantiateModule(rootModule, rootModulePrefix, moduleSegments, cache)
+          .instantiateModule(rootModule, rootModulePrefix, r.taskSegments.init, cache)
           .flatMap(instantiateNamedTask(r, _, cache))
         instantiated.map(Some(_))
 
@@ -216,20 +208,18 @@ object Resolve {
       p: Module,
       cache: ResolveCore.Cache
   ): Result[Task.Named[?]] = {
-    // Check if this is a super task by looking for ".super" in segments
-    val superSegment = r.taskSegments.value.collectFirst {
-      case Segment.Label(s"$l.super") => l
-    }
-
-    superSegment match {
-      // This is a super task - invoke the method on the parent class
-      case Some(label) => instantiateSuperTask(r, p, label, cache)
-      case None => // Regular task instantiation
+    val taskName = r.taskSegments.last.value
+    r.superSuffix match {
+      case Some(parentClass) =>
+        // Super task - invoke the parent class method directly
+        instantiateSuperTask(p, parentClass, taskName, cache)
+      case None =>
+        // Regular task instantiation
         val definition = Reflect
           .reflect(
             p.getClass,
             classOf[Task.Named[?]],
-            _ == r.taskSegments.last.value,
+            _ == taskName,
             true,
             getMethods = cache.getMethods
           )
@@ -242,38 +232,35 @@ object Resolve {
   }
 
   private def instantiateSuperTask(
-      r: Resolved.NamedTask,
       p: Module,
-      baseTaskName: String,
+      parentClass: Class[?],
+      taskName: String,
       cache: ResolveCore.Cache
   ): Result[Task.Named[?]] = {
     import java.lang.invoke.{MethodHandles, MethodType}
 
     mill.api.ExecResult.catchWrapException {
-      // r.cls is the parent class that declares the super task
-      val parentClass = r.cls
-
-      // First, find the method on the parent class to get its exact return type
+      // Find the method on the parent class to get its exact return type
       val method = Reflect
         .reflect(
           parentClass,
           classOf[Task.Named[?]],
-          _ == baseTaskName,
+          _ == taskName,
           noParams = true,
           getMethods = cache.getMethods
         )
         .headOption
         .getOrElse(
           throw new NoSuchMethodException(
-            s"Cannot find method $baseTaskName on class ${parentClass.getName}"
+            s"Cannot find method $taskName on class ${parentClass.getName}"
           )
         )
 
       // Use MethodHandle.findSpecial to invoke the parent class method directly,
-      // bypassing virtual dispatch. Use the actual return type from the method.
+      // bypassing virtual dispatch
       val lookup = MethodHandles.privateLookupIn(parentClass, MethodHandles.lookup())
       val methodType = MethodType.methodType(method.getReturnType)
-      val handle = lookup.findSpecial(parentClass, baseTaskName, methodType, p.getClass)
+      val handle = lookup.findSpecial(parentClass, taskName, methodType, p.getClass)
 
       handle.invoke(p).asInstanceOf[Task.Named[?]]
     }
