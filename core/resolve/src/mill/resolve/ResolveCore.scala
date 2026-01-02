@@ -737,19 +737,13 @@ private object ResolveCore {
         (parentCls, superSegments)
       }
 
-      val filteredTasks = // Filter by the requested suffix if provided
-        // No suffix specified - return all super tasks if there's only one,
-        // otherwise require disambiguation
+      // Filter by the requested suffix if provided
+      val filteredTasks =
         if (superSuffix.isEmpty) superTasks
-        else {
-          // Match the suffix against the super task segments
-          val suffixLabels = superSuffix.collect { case Segment.Label(l) => l }
-          superTasks.filter { case (_, segments) =>
-            // The super segments are like [Label("foo.super"), Label("Parent"), ...]
-            // Skip the first segment ("foo.super") and match the rest
-            val segmentLabels = segments.value.drop(1).collect { case Segment.Label(l) => l }
-            segmentLabels == suffixLabels
-          }
+        else superTasks.filter { case (_, segments) =>
+          // The super segments are like [Label("foo.super"), Label("Parent"), ...]
+          // Skip the first segment ("foo.super") and match the rest against the suffix
+          segments.value.drop(1) == superSuffix
         }
 
       filteredTasks.map { case (parentCls, superSegments) =>
