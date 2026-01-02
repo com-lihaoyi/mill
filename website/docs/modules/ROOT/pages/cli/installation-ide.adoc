@@ -160,7 +160,7 @@ such as `customCommand` below:
 
 ```scala
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mainargs.arg
 object foo extends JavaModule {
   def customCommand(
