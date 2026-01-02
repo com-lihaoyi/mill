@@ -157,11 +157,17 @@ private object ResolveCore {
           // Handle super task resolution specially since it may consume tail for disambiguation
           case (Segment.Label(s"$baseTaskName.super"), m: Resolved.Module) =>
             val taskExists = Reflect
-              .reflect(m.cls, classOf[Task.Named[?]], _ == baseTaskName, noParams = true, cache.getMethods)
+              .reflect(
+                m.cls,
+                classOf[Task.Named[?]],
+                _ == baseTaskName,
+                noParams = true,
+                cache.getMethods
+              )
               .nonEmpty
-            if (!taskExists) {
-              currentNotFoundResult
-            } else {
+
+            if (!taskExists) currentNotFoundResult
+            else {
               val superTasks = resolveSuperTasks(
                 rootModule,
                 rootModulePrefix,
@@ -179,7 +185,9 @@ private object ResolveCore {
                 ))
               } else if (superTasks.size > 1 && tail.isEmpty) {
                 val options = superTasks.map(t => t.superSuffix.get.getSimpleName).mkString(", ")
-                Error(mill.api.Result.Failure(s"Ambiguous super task reference. Available: $options"))
+                Error(
+                  mill.api.Result.Failure(s"Ambiguous super task reference. Available: $options")
+                )
               } else {
                 // Super task resolution is complete - return directly without further recursion
                 // (tail was consumed for disambiguation)

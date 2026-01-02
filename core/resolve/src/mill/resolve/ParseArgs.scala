@@ -100,7 +100,8 @@ object ParseArgs {
 
     def typePattern(simple: Boolean) = P(wildcard ~~ (":" ~~ typeQualifier(simple)).rep(1)).!
 
-    def segment0(simple: Boolean) = P(typePattern(simple) | labelWithSuper | label).map(Segment.Label(_))
+    def segment0(simple: Boolean) =
+      P(typePattern(simple) | labelWithSuper | label).map(Segment.Label(_))
     def segment = P("(" ~ segment0(false) ~ ")" | segment0(true))
 
     def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!

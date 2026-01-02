@@ -14,7 +14,10 @@ object Segment {
     case Cross(value) => ("", value)
   }
   final case class Label(value: String) extends Segment {
-    assert(value != "super", "Use 'foo.super' format for super task segments, not standalone 'super'")
+    assert(
+      value != "super",
+      "Use 'foo.super' format for super task segments, not standalone 'super'"
+    )
   }
   final case class Cross(value: Seq[String]) extends Segment
 }
