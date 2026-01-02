@@ -108,10 +108,11 @@ trait MillBuildRootModule()(using
 
   override def runMvnDeps = Task {
     val imports = cliImports()
-    val ivyImports = imports.collect {
+    val ivyImports = imports.map {
       // compat with older Mill-versions
       case s"ivy:$rest" => rest
       case s"mvn:$rest" => rest
+      case rest => rest
     }
     MillIvy.processMillMvnDepsignature(ivyImports).map(mill.scalalib.Dep.parse) ++
       // Needed at runtime to instantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
@@ -121,6 +122,9 @@ trait MillBuildRootModule()(using
   }
 
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
+
+  // using non-platform dependencies is usually ok
+  protected def resolvedDepsWarnNonPlatform: T[Boolean] = false
 
   override def generatedSources: T[Seq[PathRef]] = Task {
     generatedScriptSources().support

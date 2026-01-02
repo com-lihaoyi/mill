@@ -29,7 +29,7 @@ trait MyModule extends ScalaModule, PublishModule {
 }
 
 object SpringBootTools2 extends SpringBootToolsModule {
-  // Default version requires Java 17+, so downgrate to latest 2.x version
+  // Default version requires Java 17+, so downgrade to latest 2.x version
   override def springBootToolsVersion = "2.7.18"
   lazy val millDiscover = Discover[this.type]
 }
@@ -80,7 +80,7 @@ Qux.value: 31337
 */
 //// SNIPPET:END
 
-// *Futher notes:*
+// *Further notes:*
 //
 // * a small wrapper application needs to be added, which is run as entry point and transparently manages loading the embedded jars and running your `main` method.
 // This works for all Java (also Scala or Kotlin) applications.

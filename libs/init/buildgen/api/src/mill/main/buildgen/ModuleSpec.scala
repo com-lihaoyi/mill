@@ -26,7 +26,7 @@ case class ModuleSpec(
     compileModuleDeps: Values[ModuleDep] = Values(),
     runModuleDeps: Values[ModuleDep] = Values(),
     bomModuleDeps: Values[ModuleDep] = Values(),
-    sourcesFolders: Values[os.SubPath] = Values(),
+    sourcesFolders: Values[String] = Values(),
     sources: Values[os.RelPath] = Values(),
     resources: Values[os.RelPath] = Values(),
     artifactName: Value[String] = Value(),
@@ -45,12 +45,15 @@ case class ModuleSpec(
     scalaJSVersion: Value[String] = Value(),
     moduleKind: Value[String] = Value(),
     scalaNativeVersion: Value[String] = Value(),
-    sourcesRootFolders: Values[os.SubPath] = Values(),
+    sourcesRootFolders: Values[String] = Values(),
     testParallelism: Value[Boolean] = Value(),
     testSandboxWorkingDir: Value[Boolean] = Value(),
-    test: Option[ModuleSpec] = None,
+    testFramework: Value[String] = Value(),
     children: Seq[ModuleSpec] = Nil
 ) {
+
+  def recMap(f: ModuleSpec => ModuleSpec): ModuleSpec =
+    f(copy(children = children.map(_.recMap(f))))
 
   def tree: Seq[ModuleSpec] = this +: children.flatMap(_.tree)
 
@@ -211,8 +214,6 @@ object ModuleSpec {
   }
   implicit val rwRelPath: ReadWriter[os.RelPath] =
     readwriter[String].bimap(_.toString, os.RelPath(_))
-  implicit val rwSubPath: ReadWriter[os.SubPath] =
-    readwriter[String].bimap(_.toString, os.SubPath(_))
 
   case class Value[+A](base: Option[A] = None, cross: Seq[(String, A)] = Nil)
   object Value {
@@ -223,7 +224,8 @@ object ModuleSpec {
       base: Seq[A] = Nil,
       cross: Seq[(String, Seq[A])] = Nil,
       appendSuper: Boolean = false,
-      appendRefs: Seq[ModuleDep] = Nil // append reference for corresponding module member
+      appendRefs: Seq[ModuleDep] = Nil,
+      empty: Boolean = false
   )
   object Values {
     implicit def rw[A: ReadWriter]: ReadWriter[Values[A]] = macroRW

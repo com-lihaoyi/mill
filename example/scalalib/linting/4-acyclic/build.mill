@@ -2,11 +2,11 @@
 // detects circular dependencies between files within a module. This can be very
 // useful for ensuring code quality at a high-level:
 //
-// * While most linters can be concern themselves at a micro-level with formatting
+// * While most linters concern themselves at a micro-level with formatting
 //   and whitespace, acyclic is concerned at a macro-level with how your codebase
 //   is structured into different files
 //
-// * While most linters satisfied by tweaking whitespace, circular dependencies may
+// * While most linters are satisfied by tweaking whitespace, circular dependencies may
 //   need significant refactorings like dependency-injection or
 //   interface-implementation-separation to resolve.
 //

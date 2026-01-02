@@ -973,6 +973,6 @@ object GenIdeaImpl {
       }
   }
 
-  case class GenIdeaException(msg: String) extends RuntimeException
+  case class GenIdeaException(msg: String) extends RuntimeException(msg)
 
 }

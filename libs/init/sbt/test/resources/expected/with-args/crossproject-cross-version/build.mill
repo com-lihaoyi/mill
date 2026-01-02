@@ -303,6 +303,15 @@ object `package` extends Module {
 
       def publishVersion = "0.1.0-SNAPSHOT"
 
+      object test extends ScalaJSTests, CrossSbtPlatformTests {
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+
+        def testFramework = sys.error("no test framework")
+
+      }
     }
 
     object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
@@ -336,6 +345,15 @@ object `package` extends Module {
 
       def publishVersion = "0.1.0-SNAPSHOT"
 
+      object test extends CrossSbtPlatformTests {
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+
+        def testFramework = sys.error("no test framework")
+
+      }
     }
 
     object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
@@ -372,6 +390,15 @@ object `package` extends Module {
 
       def publishVersion = "0.1.0-SNAPSHOT"
 
+      object test extends ScalaNativeTests, CrossSbtPlatformTests {
+
+        def testParallelism = false
+
+        def testSandboxWorkingDir = false
+
+        def testFramework = sys.error("no test framework")
+
+      }
     }
   }
 }

@@ -47,6 +47,7 @@ trait GroupExecution {
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
       val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
+
       def rec(
           segments: Seq[String],
           bufValue: upickle.core.BufferedValue
@@ -91,15 +92,17 @@ trait GroupExecution {
         true,
         -1
       )
-      rec(
-        (path / "..").subRelativeTo(workspace).segments,
-        if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
-          parsed0
-            .value0
-            .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
-            .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
-        } else parsed0
-      )
+      if ((path / "..").startsWith(workspace)) {
+        rec(
+          (path / "..").subRelativeTo(workspace).segments,
+          if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+            parsed0
+              .value0
+              .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
+              .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
+          } else parsed0
+        )
+      } else Nil
     }
     .toMap
 
@@ -304,7 +307,10 @@ trait GroupExecution {
 
               case _ =>
                 // uncached
-                if (!labelled.persistent) os.remove.all(paths.dest)
+                if (!labelled.persistent && os.exists(paths.dest)) {
+                  logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
+                  os.remove.all(paths.dest)
+                }
 
                 val (newResults, newEvaluated) =
                   executeGroup(
@@ -343,7 +349,12 @@ trait GroupExecution {
                 GroupExecution.Results(
                   newResults = newResults,
                   newEvaluated = newEvaluated.toSeq,
-                  cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
+                  cached =
+                    if (
+                      labelled.isInstanceOf[Task.Input[?]] ||
+                      labelled.isInstanceOf[Task.Uncached[?]]
+                    ) null
+                    else false,
                   inputsHash = inputsHash,
                   previousInputsHash = cached.map(_._1).getOrElse(-1),
                   valueHashChanged = !cached.map(_._3).contains(valueHash),

@@ -445,6 +445,30 @@ Module dependencies of testsuite-native-image-client:
 Module dependencies of testsuite-native-image-client-runtime-init:
   common
 Module dependencies of testsuite-osgi:
+Module dependencies of testsuite-osgi.test:
+  testsuite-osgi
+  buffer
+  codec
+  codec-dns
+  codec-haproxy
+  codec-http
+  codec-http2
+  codec-memcache
+  codec-mqtt
+  codec-socks
+  codec-stomp
+  codec-protobuf
+  codec-marshalling
+  codec-compression
+  common
+  handler
+  handler-proxy
+  resolver
+  resolver-dns
+  transport
+  transport-sctp
+  transport-udt
+  transport-native-epoll
 Module dependencies of testsuite-shading:
   common
   transport-native-epoll
@@ -705,6 +729,7 @@ Module dependencies of varhandle-stub:
   "testsuite-osgi.repositories": [
     "https://oss.sonatype.org/content/repositories/snapshots"
   ],
+  "testsuite-osgi.test.repositories": [],
   "testsuite-shading.repositories": [
     "https://oss.sonatype.org/content/repositories/snapshots"
   ],
@@ -891,6 +916,7 @@ Module dependencies of varhandle-stub:
   "testsuite-native-image-client.mandatoryMvnDeps": [],
   "testsuite-native-image-client-runtime-init.mandatoryMvnDeps": [],
   "testsuite-osgi.mandatoryMvnDeps": [],
+  "testsuite-osgi.test.mandatoryMvnDeps": [],
   "testsuite-shading.mandatoryMvnDeps": [],
   "testsuite-shading.test.mandatoryMvnDeps": [
     "com.github.sbt.junit:jupiter-interface:0.13.3"
@@ -939,9 +965,9 @@ Module dependencies of varhandle-stub:
   "bom.mvnDeps": [],
   "buffer.mvnDeps": [],
   "buffer.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
-    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
@@ -953,12 +979,12 @@ Module dependencies of varhandle-stub:
   ],
   "codec-base.mvnDeps": [],
   "codec-base.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.apache.commons:commons-compress:1.26.0",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -978,31 +1004,31 @@ Module dependencies of varhandle-stub:
     "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0"
   ],
   "codec-compression.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.apache.commons:commons-compress:1.26.0",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-dns.mvnDeps": [],
   "codec-dns.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.apache.directory.server:apacheds-protocol-dns:1.5.7",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-haproxy.mvnDeps": [],
   "codec-haproxy.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1012,8 +1038,6 @@ Module dependencies of varhandle-stub:
     "com.github.luben:zstd-jni:1.5.6-5"
   ],
   "codec-http.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "commons-io:commons-io:2.14.0",
     "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
@@ -1024,6 +1048,8 @@ Module dependencies of varhandle-stub:
     "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1033,8 +1059,6 @@ Module dependencies of varhandle-stub:
     "com.github.luben:zstd-jni:1.5.6-5"
   ],
   "codec-http2.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
     "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
@@ -1047,6 +1071,8 @@ Module dependencies of varhandle-stub:
     "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1064,31 +1090,31 @@ Module dependencies of varhandle-stub:
     "org.jboss.marshalling:jboss-marshalling:2.2.3.Final"
   ],
   "codec-marshalling.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.jboss.marshalling:jboss-marshalling-serial:2.2.3.Final",
     "org.jboss.marshalling:jboss-marshalling-river:2.2.3.Final",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-memcache.mvnDeps": [],
   "codec-memcache.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-mqtt.mvnDeps": [],
   "codec-mqtt.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1096,9 +1122,9 @@ Module dependencies of varhandle-stub:
     "io.netty:netty-jni-util:0.0.9.Final;classifier=sources"
   ],
   "codec-native-quic.test.mvnDeps": [
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
-    "org.bouncycastle:bcpkix-jdk18on:1.80",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
@@ -1108,46 +1134,46 @@ Module dependencies of varhandle-stub:
     "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5"
   ],
   "codec-protobuf.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-redis.mvnDeps": [],
   "codec-redis.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-smtp.mvnDeps": [],
   "codec-smtp.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-socks.mvnDeps": [],
   "codec-socks.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "codec-stomp.mvnDeps": [],
   "codec-stomp.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1155,10 +1181,10 @@ Module dependencies of varhandle-stub:
     "com.fasterxml:aalto-xml:1.3.3"
   ],
   "codec-xml.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1171,10 +1197,10 @@ Module dependencies of varhandle-stub:
     "io.projectreactor.tools:blockhound:1.0.13.RELEASE"
   ],
   "common.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.apache.logging.log4j:log4j-core:2.23.1",
     "org.mockito:mockito-core:3.6.28",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
@@ -1194,24 +1220,24 @@ Module dependencies of varhandle-stub:
     "org.conscrypt:conscrypt-openjdk-uber:2.5.2"
   ],
   "handler.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "software.amazon.cryptools:AmazonCorrettoCryptoProvider:2.4.1;classifier={os.detected.name}-{os.detected.arch}",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
   ],
   "handler-proxy.mvnDeps": [],
   "handler-proxy.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1244,20 +1270,20 @@ Module dependencies of varhandle-stub:
   ],
   "resolver.mvnDeps": [],
   "resolver.test.mvnDeps": [
+    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
-    "org.mockito:mockito-core:3.6.28",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "resolver-dns.mvnDeps": [],
   "resolver-dns.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.apache.directory.server:apacheds-protocol-dns:1.5.7;exclude=commons-lang:commons-lang",
     "commons-lang:commons-lang:2.6",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1288,8 +1314,6 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcprov-jdk18on:1.80"
   ],
   "testsuite-jpms.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "com.google.protobuf:protobuf-java:3.25.5",
     "com.google.protobuf.nano:protobuf-javanano:3.0.0-alpha-5",
     "org.jboss.marshalling:jboss-marshalling:2.2.3.Final",
@@ -1298,6 +1322,8 @@ Module dependencies of varhandle-stub:
     "org.apache.logging.log4j:log4j-core:2.23.1",
     "com.github.luben:zstd-jni:1.5.6-5",
     "com.aayushatharva.brotli4j:brotli4j:1.16.0",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "ch.qos.logback:logback-classic:1.3.14",
     "commons-logging:commons-logging:1.3.5"
   ],
@@ -1315,6 +1341,12 @@ Module dependencies of varhandle-stub:
   "testsuite-osgi.mvnDeps": [
     "org.apache.felix:org.apache.felix.configadmin:1.9.14"
   ],
+  "testsuite-osgi.test.mvnDeps": [
+    "org.apache.felix:org.apache.felix.framework:6.0.2",
+    "org.ops4j.pax.exam:pax-exam-junit4:4.13.0",
+    "org.ops4j.pax.exam:pax-exam-container-native:4.13.0",
+    "org.ops4j.pax.exam:pax-exam-link-assembly:4.13.0"
+  ],
   "testsuite-shading.mvnDeps": [
     "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
   ],
@@ -1324,11 +1356,11 @@ Module dependencies of varhandle-stub:
   ],
   "transport.mvnDeps": [],
   "transport.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.mockito:mockito-core:3.6.28",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0",
     "ch.qos.logback:logback-classic:1.3.14"
@@ -1337,9 +1369,9 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-blockhound-tests.test.mvnDeps": [
+    "io.projectreactor.tools:blockhound:1.0.13.RELEASE",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
-    "io.projectreactor.tools:blockhound:1.0.13.RELEASE",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1350,19 +1382,19 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-native-epoll.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
     "io.github.artsok:rerunner-jupiter:2.1.6",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
   "transport-native-io_uring.mvnDeps": [],
   "transport-native-io_uring.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
     "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1370,9 +1402,9 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-native-kqueue.test.mvnDeps": [
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1394,10 +1426,10 @@ Module dependencies of varhandle-stub:
   ],
   "transport-sctp.mvnDeps": [],
   "transport-sctp.test.mvnDeps": [
-    "org.junit.jupiter:junit-jupiter-api:5.12.1",
-    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.reflections:reflections:0.10.2",
     "com.google.code.gson:gson:2.8.9",
+    "org.junit.jupiter:junit-jupiter-api:5.12.1",
+    "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1405,9 +1437,9 @@ Module dependencies of varhandle-stub:
     "com.barchart.udt:barchart-udt-bundle:2.3.0"
   ],
   "transport-udt.test.mvnDeps": [
+    "com.google.caliper:caliper:0.5-rc1",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
-    "com.google.caliper:caliper:0.5-rc1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
     "org.assertj:assertj-core:3.18.0"
   ],
@@ -1518,6 +1550,7 @@ Module dependencies of varhandle-stub:
   "testsuite-native-image-client.compileMvnDeps": [],
   "testsuite-native-image-client-runtime-init.compileMvnDeps": [],
   "testsuite-osgi.compileMvnDeps": [],
+  "testsuite-osgi.test.compileMvnDeps": [],
   "testsuite-shading.compileMvnDeps": [],
   "testsuite-shading.test.compileMvnDeps": [],
   "transport.compileMvnDeps": [],
@@ -1548,8 +1581,8 @@ Module dependencies of varhandle-stub:
   "bom.runMvnDeps": [],
   "buffer.runMvnDeps": [],
   "buffer.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:",
-    "org.graalvm.nativeimage:svm:19.3.6"
+    "org.graalvm.nativeimage:svm:19.3.6",
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec.runMvnDeps": [],
   "codec-base.runMvnDeps": [],
@@ -1579,9 +1612,9 @@ Module dependencies of varhandle-stub:
   ],
   "codec-http3.runMvnDeps": [],
   "codec-http3.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:",
     "org.jetbrains:annotations:26.0.2",
-    "com.google.code.findbugs:jsr305:3.0.2"
+    "com.google.code.findbugs:jsr305:3.0.2",
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-marshalling.runMvnDeps": [],
   "codec-marshalling.test.runMvnDeps": [
@@ -1597,8 +1630,8 @@ Module dependencies of varhandle-stub:
   ],
   "codec-native-quic.runMvnDeps": [],
   "codec-native-quic.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:",
-    "org.jetbrains:annotations:26.0.2"
+    "org.jetbrains:annotations:26.0.2",
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-protobuf.runMvnDeps": [],
   "codec-protobuf.test.runMvnDeps": [
@@ -1626,10 +1659,10 @@ Module dependencies of varhandle-stub:
   ],
   "common.runMvnDeps": [],
   "common.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:",
     "org.graalvm.nativeimage:svm:19.3.6",
     "org.jboss:jdk-misc:3.Final",
-    "org.jetbrains:annotations:26.0.2"
+    "org.jetbrains:annotations:26.0.2",
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "dev-tools.runMvnDeps": [],
   "example.runMvnDeps": [
@@ -1649,8 +1682,8 @@ Module dependencies of varhandle-stub:
     "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
   ],
   "handler.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:",
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "handler-proxy.runMvnDeps": [],
   "handler-proxy.test.runMvnDeps": [
@@ -1658,8 +1691,8 @@ Module dependencies of varhandle-stub:
   ],
   "handler-ssl-ocsp.runMvnDeps": [],
   "handler-ssl-ocsp.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:",
-    "org.bouncycastle:bcpkix-jdk18on:1.80"
+    "org.bouncycastle:bcpkix-jdk18on:1.80",
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "jfr-stub.runMvnDeps": [],
   "microbench.runMvnDeps": [
@@ -1703,6 +1736,7 @@ Module dependencies of varhandle-stub:
   "testsuite-native-image-client.runMvnDeps": [],
   "testsuite-native-image-client-runtime-init.runMvnDeps": [],
   "testsuite-osgi.runMvnDeps": [],
+  "testsuite-osgi.test.runMvnDeps": [],
   "testsuite-shading.runMvnDeps": [],
   "testsuite-shading.test.runMvnDeps": [
     "org.junit.platform:junit-platform-launcher:"
@@ -1715,8 +1749,8 @@ Module dependencies of varhandle-stub:
     "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
   ],
   "transport-blockhound-tests.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:",
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "transport-classes-epoll.runMvnDeps": [],
   "transport-classes-io_uring.runMvnDeps": [],
@@ -1880,6 +1914,7 @@ Module dependencies of varhandle-stub:
   "testsuite-native-image-client.bomMvnDeps": [],
   "testsuite-native-image-client-runtime-init.bomMvnDeps": [],
   "testsuite-osgi.bomMvnDeps": [],
+  "testsuite-osgi.test.bomMvnDeps": [],
   "testsuite-shading.bomMvnDeps": [],
   "testsuite-shading.test.bomMvnDeps": [
     "org.junit:junit-bom:5.12.1"
@@ -2211,6 +2246,10 @@ Module dependencies of varhandle-stub:
     "8"
   ],
   "testsuite-osgi.javacOptions": [
+    "--release",
+    "8"
+  ],
+  "testsuite-osgi.test.javacOptions": [
     "--release",
     "8"
   ],
@@ -3194,6 +3233,7 @@ Module dependencies of varhandle-stub:
   "resolver-dns-native-macos.test.testParallelism": false,
   "testsuite-jpms.test.testParallelism": false,
   "testsuite-native.test.testParallelism": false,
+  "testsuite-osgi.test.testParallelism": false,
   "testsuite-shading.test.testParallelism": false,
   "transport.test.testParallelism": false,
   "transport-blockhound-tests.test.testParallelism": false,
@@ -3233,6 +3273,7 @@ Module dependencies of varhandle-stub:
   "resolver-dns-native-macos.test.testSandboxWorkingDir": false,
   "testsuite-jpms.test.testSandboxWorkingDir": false,
   "testsuite-native.test.testSandboxWorkingDir": false,
+  "testsuite-osgi.test.testSandboxWorkingDir": false,
   "testsuite-shading.test.testSandboxWorkingDir": false,
   "transport.test.testSandboxWorkingDir": false,
   "transport-blockhound-tests.test.testSandboxWorkingDir": false,

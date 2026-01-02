@@ -15,16 +15,24 @@ Mill task graphs are primarily built using methods and macros defined on
 The following table might help you make sense of the small collection of
 different Task types:
 
-[cols="<,<,<,<,<,<,<"]
+[cols="<,^,^,^,^,^,^,^"]
 |===
-| | Simple Task |Command |Source/Input |Persistent Task |Worker|Anonymous Task
+|
+| xref:#_tasks[Simple Task]
+| xref:#_commands[Command]
+| xref:#_sources[Source]/xref:#_inputs[Input]
+| xref:#_persistent_tasks[Persistent Task]
+| xref:#_workers[Worker]
+| xref:#_uncached_tasks[Uncached Task]
+| xref:#_anonymous_tasks[Anonymous Task]
 
-|Cached to Disk |X | | |X | |
-|JSON Writable |X |X |X|X | |
-|JSON Readable |X | | |X | |
-|CLI Runnable |X |X | |X | |
-|Takes Arguments | |X | | | | X
-|Cached In-Memory | | | | |X |
+| Cached to Disk   | X |   |   | X |   |   |
+| JSON Writable    | X | X | X | X |   | X |
+| JSON Readable    | X |   |   | X |   |   |
+| CLI Runnable     | X | X |   | X |   | X |
+| Takes Arguments  |   | X |   |   |   |   | X
+| Cached In-Memory |   |   |   |   | X |   |
+| Can depend on tasks | X | X |   | X | X | X | X
 |===
 
 include::partial$example/fundamentals/tasks/1-task-graph.adoc[]
@@ -47,6 +55,37 @@ include::partial$example/fundamentals/tasks/5-persistent-tasks.adoc[]
 === Workers
 
 include::partial$example/fundamentals/tasks/6-workers.adoc[]
+
+=== Uncached Tasks
+
+You can define unached tasks with the `Task.Uncached {...}` syntax.
+Uncached tasks are only required in some limited use cases.
+You typically should be able to use other task types that are cached.
+
+Uncached tasks (like commands) will never be read from the cache, but always re-evaluate their result.
+They don't trigger rebuild when you run Mill with xref:cli/flags.adoc#_watch_w[`--watch`] and don't actively participate in xref:large/selective-execution.adoc[selective executions].
+
+
+// If you will, you can think of them as a special kind of commands, that don't accept parameters but are suitable to have downstream dependencies.
+
+Uncached tasks are useful to wrap build logic that interacts with external tools or services  and in general all kind ob build results that don't reside in a Mill-controlled cache location. For example: building and registering a container image into a external registry, when it is not already present.
+
+[,scala]
+----
+def foo = Task.Uncached {
+  // this always runs
+}
+----
+
+Uncached tasks also support the xref:#_persistent_tasks[`persistent` flag], so you can implement some caching manually. But ideally, all cacheable build results you plan to use in your uncached task come from other cached tasks.
+
+[,scala]
+----
+def bar = Task.Uncached(persisent = true) {
+  // this always runs
+}
+----
+
 
 === Anonymous Tasks
 

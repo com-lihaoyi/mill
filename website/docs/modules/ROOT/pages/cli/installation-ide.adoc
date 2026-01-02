@@ -230,11 +230,6 @@ image::basic/IntellijApp.png[]
 
 image::basic/IntellijBuild.png[]
 
-If IntelliJ does not highlight the `.mill` files correctly, you can explicitly enable
-it by adding `*.mill` to the `Scala` file type:
-
-image::basic/IntellijFileTypeConfig.png[]
-
 If you make changes to your Mill `build.mill`, you can ask Intellij to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
 
@@ -512,7 +507,7 @@ Or find the latest unstable version here:
 
 * https://central.sonatype.com/artifact/com.lihaoyi/mill-dist
 
-You can update your `.mill-version` to to the unstable version and the bootstrap script
+You can update your `.mill-version` to the unstable version and the bootstrap script
 will download it for you to try it out in your project.
 
 

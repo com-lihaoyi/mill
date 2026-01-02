@@ -8,7 +8,7 @@
 //* Dependencies: Spring Web
 //
 // The structure of this project follows the MavenModule structure (i.e. the same structure
-// as generated from the initialzr tool).
+// as generated from the initializr tool).
 //
 // For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
 

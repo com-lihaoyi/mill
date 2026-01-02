@@ -30,7 +30,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         assert(res.err.contains("[error] ModuleDepResolveError.java:1:18"))
         assert(res.err.contains("//| moduleDeps: [doesntExist]"))
         assert(res.err.contains("                 ^"))
-        assert(res.err.contains("Unable to resolve module \"doesntExist\""))
+        assert(res.err.contains("Cannot resolve doesntExist"))
       }
       locally {
         val res = tester.eval("./InvalidTaskType.java")
@@ -103,6 +103,20 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         val res = tester.eval("not-script-not-valid-file.ext")
         assert(res.err.contains(
           "Cannot resolve not-script-not-valid-file.ext. Try `mill resolve _` to see what's available."
+        ))
+        assert(res.err.linesIterator.toList.length < 20)
+      }
+      locally {
+        val res = tester.eval("Recursive.scala")
+        assert(res.err.contains(
+          "Recursive moduleDeps detected: Recursive.scala -> Recursive2.scala -> Recursive3.scala -> Recursive.scala"
+        ))
+        assert(res.err.linesIterator.toList.length < 20)
+      }
+      locally {
+        val res = tester.eval("IndirectFailure0.scala")
+        assert(res.err.contains(
+          "Cannot resolve DoesntExist.scala. "
         ))
         assert(res.err.linesIterator.toList.length < 20)
       }

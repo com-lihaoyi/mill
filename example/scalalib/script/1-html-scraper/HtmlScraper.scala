@@ -9,7 +9,6 @@ def fetchLinks(title: String): Seq[String] = {
     .collect { case s"/wiki/$rest" => rest }
 }
 
-@main
 def main(startArticle: String, depth: Int) = {
   var seen = Set(startArticle)
   var current = Set(startArticle)
