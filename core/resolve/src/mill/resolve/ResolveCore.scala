@@ -168,7 +168,7 @@ private object ResolveCore {
 
             if (!taskExists) currentNotFoundResult
             else {
-              val superTasks = resolveSuperTasks(
+              resolveSuperTasks(
                 rootModule,
                 rootModulePrefix,
                 m.cls,
@@ -176,22 +176,20 @@ private object ResolveCore {
                 baseTaskName,
                 tail, // remaining segments for disambiguation (e.g., "ParentModule")
                 rootModule.moduleCtx.discover
-              )
-              if (superTasks.isEmpty) {
-                val taskPath = (current.taskSegments ++ Segments.labels(baseTaskName)).render
-                Error(mill.api.Result.Failure(
-                  s"Task $taskPath has no super tasks. " +
-                    s"Only overridden tasks have super tasks that can be invoked."
-                ))
-              } else if (superTasks.size > 1 && tail.isEmpty) {
-                val options = superTasks.map(t => t.superSuffix.get.getSimpleName).mkString(", ")
-                Error(
-                  mill.api.Result.Failure(s"Ambiguous super task reference. Available: $options")
-                )
-              } else {
-                // Super task resolution is complete - return directly without further recursion
-                // (tail was consumed for disambiguation)
-                Success(superTasks)
+              ) match{
+                case Nil =>
+                  val taskPath = (current.taskSegments ++ Segments.labels(baseTaskName)).render
+                  Error(mill.api.Result.Failure(
+                    s"Task $taskPath has no super tasks. " +
+                      s"Only overridden tasks have super tasks that can be invoked."
+                  ))
+
+                case Seq(single) => Success(Seq(single))
+                case multiple =>
+                  val options = multiple.map(t => t.superSuffix.get.getSimpleName).mkString(", ")
+                  Error(
+                    mill.api.Result.Failure(s"Ambiguous super task reference. Available: $options")
+                  )
               }
             }
 
@@ -200,6 +198,7 @@ private object ResolveCore {
               case "__" =>
                 val self =
                   Seq(Resolved.Module(rootModule, m.rootModulePrefix, m.taskSegments, m.cls))
+
                 val transitiveOrErr =
                   resolveTransitiveChildren(
                     rootModule,
