@@ -88,7 +88,7 @@ def mvnDeps = Seq(
   mvn"com.lihaoyi::upickle:2.0.0".withDottyCompat(scalaVersion()) // <1>
 )
 ----
-<1> This will result in a Scala 2.13 dependency `com.lihaoyi::upicke_2.13:2.0.0`
+<1> This will result in a Scala 2.13 dependency `com.lihaoyi::upickle_2.13:2.0.0`
 
 
 [NOTE]

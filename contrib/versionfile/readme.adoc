@@ -13,7 +13,7 @@ Add a `VersionFileModule` to the `build.mill` file:
 
 [source,scala]
 ----
-//| mvnDeps: ["com.lihaoyi::mill-contrib-versiofile:$MILL_VERSION"]
+//| mvnDeps: ["com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION"]
 package build
 
 import mill.contrib.versionfile.VersionFileModule

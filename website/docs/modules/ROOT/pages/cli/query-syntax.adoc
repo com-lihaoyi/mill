@@ -32,9 +32,9 @@ _Label segments_ are the components of a task path and have the same restriction
 They must start with a letter and may contain letters, numbers and a limited set of special characters `-` (dash), `_` (underscore).
 They are used to denote Mill modules, tasks, but in the case of xref:fundamentals/modules.adoc#_external_modules[external modules] their Scala package names.
 
-_Cross segments_ start with a label segment but contain additional square brackets (`[`, `]`]) and are used to denote cross module and their parameters.
+_Cross segments_ start with a label segment but contain additional square brackets (`[`, `]`) and are used to denote cross module and their parameters.
 
-NOTE: Segments can be surrounded by parentheses (`(`, `)`)).
+NOTE: Segments can be surrounded by parentheses (`(`, `)`).
 When combined with <<type-filters,qualified type filter>> which contain dots (`.`), the parentheses need to be used, to avoid the dots to being interpreted as path separators.
 
 ****
@@ -148,5 +148,5 @@ Whereas the `+` start a completely new selector path to which you can also provi
 <1> Runs `foo.run` with the parameter `hello`
 <2> Expands to `foo.run` and `bar.run` and runs both with the parameter `hello`.
 <3> Selects the `run` command of all Java modules, but not test modules, and runs them with the parameter `hello`.
-<4> Runs `fun.run` with the parameter `hello` and `bar.run` with the parameter `world`.
+<4> Runs `foo.run` with the parameter `hello` and `bar.run` with the parameter `world`.
 

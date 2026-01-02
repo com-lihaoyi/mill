@@ -146,7 +146,7 @@ import mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.5.1"
-  override def twirlFormats = super.twirlFormats() + Map("svg" -> "play.twirl.api.HtmlFormat")
+  override def twirlFormats = super.twirlFormats() ++ Map("svg" -> "play.twirl.api.HtmlFormat")
   def generatedSources = Task { Seq(compileTwirl().classes) }
 }
 ----

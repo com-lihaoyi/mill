@@ -44,6 +44,6 @@ include::partial$example/scalalib/basic/8-multi-module.adoc[]
 
 include::partial$example/scalalib/basic/9-programmable-compat.adoc[]
 
-== Realistic Java Example Project
+== Realistic Scala Example Project
 
 include::partial$example/scalalib/basic/10-realistic.adoc[]
