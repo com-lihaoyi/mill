@@ -210,11 +210,9 @@ object Resolve {
   ): Result[Task.Named[?]] = {
     val taskName = r.taskSegments.last.value
     r.superSuffix match {
-      case Some(parentClass) =>
-        // Super task - invoke the parent class method directly
-        instantiateSuperTask(p, parentClass, taskName, cache)
-      case None =>
-        // Regular task instantiation
+      // Super task - invoke the parent class method directly
+      case Some(parentClass) => instantiateSuperTask(p, parentClass, taskName, cache)
+      case None => // Regular task instantiation
         val definition = Reflect
           .reflect(
             p.getClass,
@@ -225,9 +223,7 @@ object Resolve {
           )
           .head
 
-        mill.api.ExecResult.catchWrapException(
-          definition.invoke(p).asInstanceOf[Task.Named[?]]
-        )
+        mill.api.ExecResult.catchWrapException(definition.invoke(p).asInstanceOf[Task.Named[?]])
     }
   }
 
