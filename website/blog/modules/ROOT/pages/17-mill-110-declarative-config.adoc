@@ -12,7 +12,7 @@ improve upon this pain point, allowing your project's to be configured via a
 compact `build.mill.yaml` file:
 
 ```yaml
-extends: [mill.javalib.JavaModule]
+extends: mill.javalib.JavaModule
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
 ```
