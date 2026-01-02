@@ -691,9 +691,7 @@ private object ResolveCore {
           None,
           current.taskSegments,
           cache = cache
-        ).toOption.get.map(
-          _.taskSegments.value.last
-        )
+        ).toOption.get.map(_.taskSegments.value.last)
 
       case _ => Set[Segment]()
     }
