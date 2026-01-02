@@ -112,6 +112,8 @@ private object ResolveCore {
     remainingQuery match {
       case Nil => Success(Seq(current))
       case head :: tail =>
+        lazy val currentNotFoundResult =
+          notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
         def recurse(searchModules: Seq[Resolved]): Result = {
           val (failures, successesLists) = searchModules
             .map { r =>
@@ -146,8 +148,7 @@ private object ResolveCore {
           else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
           else notFounds.size match {
             case 1 => notFounds.head
-            case _ =>
-              notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+            case _ => currentNotFoundResult
           }
 
         }
@@ -245,9 +246,7 @@ private object ResolveCore {
                   querySoFar,
                   seenModules,
                   cache
-                ).getOrElse(
-                  notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
-                )
+                ).getOrElse(currentNotFoundResult)
             }
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
@@ -291,7 +290,7 @@ private object ResolveCore {
                   )
               }
 
-            } else notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+            } else currentNotFoundResult
 
           // Handle super task resolution: when we have a NamedTask and the next segment is "super"
           case (Segment.Label("super"), t: Resolved.NamedTask) =>
@@ -315,21 +314,12 @@ private object ResolveCore {
                   cache
                 ) match {
                   case Some(result) => result
-                  case None =>
-                    notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+                  case None => currentNotFoundResult
                 }
-              case _ =>
-                notFoundResult(
-                  rootModule,
-                  rootModulePrefix,
-                  querySoFar,
-                  current,
-                  head,
-                  cache
-                )
+              case _ => currentNotFoundResult
             }
 
-          case _ => notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+          case _ => currentNotFoundResult
         }
     }
   }
