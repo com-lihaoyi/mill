@@ -176,7 +176,7 @@ private object ResolveCore {
                 baseTaskName,
                 tail, // remaining segments for disambiguation (e.g., "ParentModule")
                 rootModule.moduleCtx.discover
-              ) match{
+              ) match {
                 case Nil =>
                   val taskPath = (current.taskSegments ++ Segments.labels(baseTaskName)).render
                   Error(mill.api.Result.Failure(
