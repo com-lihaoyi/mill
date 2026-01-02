@@ -1,2 +1,2 @@
 extends: [JavaModule, pmd.PmdModule]
-pmdVersion: "7.15.0"
+pmdVersion: 7.15.0

@@ -52,7 +52,7 @@ include::partial$example/kotlinlib/module/10-dependency-injection.adoc[]
 
 include::partial$example/kotlinlib/module/15-jni.adoc[]
 
-== Integration Declarative and Programmatic Config
+== Integrating Declarative and Programmatic Config
 
 === Custom Module Traits
 

@@ -72,7 +72,7 @@ object `package` extends ScalaModule {
 // image::basic/autocomplete-override.png[autocomplete-override.png]
 //
 //
-// Note the use of `moduleDir`, `Task.dest`, and `PathRef` when preforming
+// Note the use of `moduleDir`, `Task.dest`, and `PathRef` when performing
 // various filesystem operations:
 //
 // 1. `moduleDir` refers to the base path of the module. For the root

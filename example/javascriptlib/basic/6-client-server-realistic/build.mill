@@ -28,7 +28,7 @@ object server extends TypeScriptModule {
 // This example demonstrates how to set up a simple React web app running on an Express JS server
 // implementing the popular Todo-MVC demo application. It includes a test suite
 // for both client and server modules.
-// Runninng `mill app.run` serves bundled static HTML files through the server.
+// Running `mill server.run` serves bundled static HTML files through the server.
 
 /** Usage
 
