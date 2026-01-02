@@ -118,7 +118,7 @@ object Resolve {
           .map(Some(_))
 
       case r: Resolved.Command =>
-        val instantiated = ResolveCore
+        ResolveCore
           .instantiateModule(rootModule, rootModulePrefix, r.taskSegments.init, cache)
           .flatMap { mod =>
             instantiateCommand(
@@ -130,7 +130,7 @@ object Resolve {
               allowPositionalCommandArgs
             )
           }
-        instantiated.map(Some(_))
+          .map(Some(_))
 
       case r: Resolved.Module =>
         ResolveCore.instantiateModule(
