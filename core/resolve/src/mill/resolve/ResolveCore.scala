@@ -697,15 +697,6 @@ private object ResolveCore {
    *
    * When a user types `foo.super` or `foo.super.ParentModule`, this function
    * resolves the super task(s) for task `foo`.
-   *
-   * @param rootModule       The root module
-   * @param rootModulePrefix Prefix for the root module
-   * @param moduleCls        The module class where the task is defined
-   * @param moduleSegments   The segments leading to the module
-   * @param baseTaskName     The base task name (e.g., "foo" from "foo.super")
-   * @param superSuffix      The suffix segments after "super" (e.g., ["ParentModule"])
-   * @param discover         The Discover instance for finding task declarations
-   * @return                 List of matching super tasks
    */
   def resolveSuperTasks(
       rootModule: RootModule0,
@@ -743,19 +734,20 @@ private object ResolveCore {
       }
 
       // Filter by the requested suffix if provided
-      val filteredTasks = if (superSuffix.isEmpty) {
+
+      val filteredTasks =
         // No suffix specified - return all super tasks if there's only one,
         // otherwise require disambiguation
-        superTasks
-      } else {
-        // Match the suffix against the super task segments
-        val suffixLabels = superSuffix.collect { case Segment.Label(l) => l }
-        superTasks.filter { case (_, segments) =>
-          // The super segments are like [Label("foo.super"), Label("Parent"), ...]
-          // Skip the first segment ("foo.super") and match the rest
-          val segmentLabels = segments.value.drop(1).collect { case Segment.Label(l) => l }
-          segmentLabels == suffixLabels
-        }
+        if (superSuffix.isEmpty) superTasks
+        else {
+          // Match the suffix against the super task segments
+          val suffixLabels = superSuffix.collect { case Segment.Label(l) => l }
+          superTasks.filter { case (_, segments) =>
+            // The super segments are like [Label("foo.super"), Label("Parent"), ...]
+            // Skip the first segment ("foo.super") and match the rest
+            val segmentLabels = segments.value.drop(1).collect { case Segment.Label(l) => l }
+            segmentLabels == suffixLabels
+          }
       }
 
       filteredTasks.map { case (parentCls, superSegments) =>
@@ -769,18 +761,6 @@ private object ResolveCore {
     }
   }
 
-  /**
-   * Attempt to resolve a super task when we encounter a "super" segment after a task name.
-   *
-   * @param rootModule       The root module
-   * @param rootModulePrefix Prefix for the root module
-   * @param module           The resolved module
-   * @param taskName         The task name (segment before "super")
-   * @param afterSuper       Segments after "super" (the disambiguation suffix)
-   * @param querySoFar       Query segments processed so far
-   * @param cache            Resolution cache
-   * @return                 Some(Result) if this looks like a super task query, None otherwise
-   */
   def tryResolveSuperTask(
       rootModule: RootModule0,
       rootModulePrefix: String,
@@ -797,9 +777,8 @@ private object ResolveCore {
       .reflect(module.cls, classOf[Task.Named[?]], _ == taskName, noParams = true, cache.getMethods)
       .nonEmpty
 
-    if (!taskExists) {
-      None
-    } else {
+    if (!taskExists) None
+    else {
       val superTasks = resolveSuperTasks(
         rootModule,
         rootModulePrefix,
@@ -810,12 +789,10 @@ private object ResolveCore {
         discover
       )
 
-      if (superTasks.isEmpty) {
-        // No matching super tasks found
-        None
-      } else if (superTasks.size == 1 || afterSuper.nonEmpty) {
-        Some(Success(superTasks))
-      } else {
+      // No matching super tasks found
+      if (superTasks.isEmpty) None
+      else if (superTasks.size == 1 || afterSuper.nonEmpty) Some(Success(superTasks))
+      else {
         // Multiple super tasks and no disambiguation - show error with options
         val options = superTasks.map(_.taskSegments.render).mkString(", ")
         Some(Error(mill.api.Result.Failure(
