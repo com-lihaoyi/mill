@@ -296,9 +296,30 @@ private object ResolveCore {
           // Handle super task resolution: when we have a NamedTask and the next segment is "super"
           case (Segment.Label("super"), t: Resolved.NamedTask) =>
             // Extract the task name from the NamedTask's segments
-            val taskName = t.taskSegments.value.last match {
-              case Segment.Label(name) => name
-              case _ => return notFoundResult(
+            t.taskSegments.value.last match {
+              case Segment.Label(taskName) =>
+
+                // Get the module that contains this task
+                val moduleSegments = t.taskSegments.init
+                val moduleResolved =
+                  Resolved.Module(rootModule, rootModulePrefix, moduleSegments, t.cls)
+
+                // Try to resolve as super task
+                tryResolveSuperTask(
+                  rootModule,
+                  rootModulePrefix,
+                  moduleResolved,
+                  taskName,
+                  tail, // remaining segments after "super" for disambiguation
+                  querySoFar,
+                  cache
+                ) match {
+                  case Some(result) => result
+                  case None =>
+                    notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+                }
+              case _ =>
+                notFoundResult(
                   rootModule,
                   rootModulePrefix,
                   querySoFar,
@@ -306,26 +327,6 @@ private object ResolveCore {
                   head,
                   cache
                 )
-            }
-
-            // Get the module that contains this task
-            val moduleSegments = t.taskSegments.init
-            val moduleResolved =
-              Resolved.Module(rootModule, rootModulePrefix, moduleSegments, t.cls)
-
-            // Try to resolve as super task
-            tryResolveSuperTask(
-              rootModule,
-              rootModulePrefix,
-              moduleResolved,
-              taskName,
-              tail, // remaining segments after "super" for disambiguation
-              querySoFar,
-              cache
-            ) match {
-              case Some(result) => result
-              case None =>
-                notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
             }
 
           case _ => notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
