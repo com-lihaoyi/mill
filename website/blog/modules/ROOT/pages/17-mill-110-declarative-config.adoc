@@ -177,7 +177,7 @@ a new declarative configuration format. That lets us turn the rather complicated
 `build.mill` above into a declarative `build.mill.yaml` file, such as that below:
 
 ```yaml
-extends: [mill.javalib.JavaModule]
+extends: mill.javalib.JavaModule
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
 ```
@@ -209,9 +209,9 @@ edge cases, we expect it will be relatively rare for users to hit YAML-related i
 
 While Mill's declarative build files are simpler than its programmable config files, they are
 by no means limited to toy projects: `build.mill.yaml` files support most of Mill's
-configuration overrides. For example, here is a more verbose example from the documentation for
-xref:mill::javalib/module-config.adoc#_declarative_configuration[] that demonstrates many of the common configuration
-keys a developer may want to set:
+configuration overrides. For example, here
+xref:mill::javalib/module-config.adoc#_declarative_configuration[a more verbose example] that
+demonstrates many of the common configuration keys a developer may want to set:
 
 ```yaml
 extends: [mill.javalib.JavaModule]
@@ -231,8 +231,8 @@ jvmId: 11
 # jvmId: temurin:11
 
 # Add an additional source folder and resource folder, in addition to the default one
-sources: [./src, ./custom-src]
-resources: [./resources, ./custom-resources]
+sources: [src/, custom-src/]
+resources: [resources/, custom-resources/]
 
 # Configure java compiler and runtime options and env vars
 javacOptions: [-deprecation]
@@ -273,12 +273,13 @@ are inspired by Gradle, one thing unique about Mill is how well integrated the t
 * Declarative `build.mill.yaml` files can inter-operate with programmable `build.mill` files
   via xref:mill::javalib/module-config.adoc#_custom_module_traits[custom module traits] and
   xref:mill::javalib/module-config.adoc#_programmable_moduledeps[depending on programmable modules],
-  so you can mix-and-match the two config styles depending on which is more appropriate for each module.
+  so you can mix-and-match the two config styles within a large project depending on which is more
+  appropriate for each module.
 
 * Setting `mvnDeps`, `repositories`, `mainClass`, `jvmId`, etc. means the same thing in both
-  styles. Although the syntax is different,
-  both declarative and programmable config styles used the same config keys with the same meaning, and the same
-  {mill-doc-url}/api/latest/mill.html[Mill API Reference] provides documentation for both.
+  styles. Although the syntax is different, the semantics are the same:
+  both declarative and programmable config styles used the same config keys with the same meaning,
+  documented by the same {mill-doc-url}/api/latest/mill.html[Mill API Reference].
 
 * Underneath the programmable and declarative configuration styles, it's still the same Mill
   build tool. That means concepts like xref:mill::depth/parallelism.adoc[parallelism],
@@ -327,7 +328,7 @@ has one more trick to further reduce the overhead of building and running a smal
 == Mill Single-File Scripts
 
 Mill 1.1.0 supports a new xref:mill::javalib/intro.adoc#_single_file_scripts[single-file script]
-format for Java, Scala, and Kotlin files. For example, this lets you take the `HtmlScraper.java`
+format for Java, Scala, and Kotlin files. This lets you take the `HtmlScraper.java`
 file above, add a `//|` build-header comment with the `mvnDeps` configuration it needs, and
 xref:mill::javalib/script.adoc#_html_web_scraper[run it directly self-contained within a single file]:
 
