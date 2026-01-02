@@ -298,12 +298,20 @@ private object ResolveCore {
             // Extract the task name from the NamedTask's segments
             val taskName = t.taskSegments.value.last match {
               case Segment.Label(name) => name
-              case _ => return notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+              case _ => return notFoundResult(
+                  rootModule,
+                  rootModulePrefix,
+                  querySoFar,
+                  current,
+                  head,
+                  cache
+                )
             }
 
             // Get the module that contains this task
             val moduleSegments = t.taskSegments.init
-            val moduleResolved = Resolved.Module(rootModule, rootModulePrefix, moduleSegments, t.cls)
+            val moduleResolved =
+              Resolved.Module(rootModule, rootModulePrefix, moduleSegments, t.cls)
 
             // Try to resolve as super task
             tryResolveSuperTask(
@@ -715,10 +723,9 @@ private object ResolveCore {
       discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(baseTaskName))
     }
 
-    if (declaring.size <= 1) {
-      // No overrides, no super tasks exist
-      Nil
-    } else {
+    // No overrides, no super tasks exist
+    if (declaring.size <= 1) Nil
+    else {
       // The last class in `declaring` is the final override (not a super task)
       // All others are potential super tasks
       val superClasses = declaring.init
@@ -748,7 +755,7 @@ private object ResolveCore {
             val segmentLabels = segments.value.drop(1).collect { case Segment.Label(l) => l }
             segmentLabels == suffixLabels
           }
-      }
+        }
 
       filteredTasks.map { case (parentCls, superSegments) =>
         Resolved.NamedTask(

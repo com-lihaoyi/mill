@@ -218,16 +218,13 @@ object Resolve {
   ): Result[Task.Named[?]] = {
     // Check if this is a super task by looking for ".super" in segments
     val superSegment = r.taskSegments.value.collectFirst {
-      case Segment.Label(l) if l.endsWith(".super") => l
+      case Segment.Label(s"$l.super") => l
     }
 
     superSegment match {
-      case Some(label) =>
-        // This is a super task - invoke the method on the parent class
-        val baseTaskName = label.stripSuffix(".super")
-        instantiateSuperTask(r, p, baseTaskName, cache)
-      case None =>
-        // Regular task instantiation
+      // This is a super task - invoke the method on the parent class
+      case Some(label) => instantiateSuperTask(r, p, label, cache)
+      case None => // Regular task instantiation
         val definition = Reflect
           .reflect(
             p.getClass,
@@ -244,12 +241,6 @@ object Resolve {
     }
   }
 
-  /**
-   * Instantiate a super task by invoking the method on the specific parent class.
-   *
-   * Uses MethodHandle.findSpecial to bypass virtual dispatch and call the
-   * parent class's method implementation directly.
-   */
   private def instantiateSuperTask(
       r: Resolved.NamedTask,
       p: Module,
