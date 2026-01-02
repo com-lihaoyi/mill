@@ -112,11 +112,10 @@ object Resolve {
         task: Resolved
     ) = task match {
       case r: Resolved.NamedTask =>
-        // taskSegments is ["module", "task"] - module is init, task is last
-        val instantiated = ResolveCore
+        ResolveCore
           .instantiateModule(rootModule, rootModulePrefix, r.taskSegments.init, cache)
           .flatMap(instantiateNamedTask(r, _, cache))
-        instantiated.map(Some(_))
+          .map(Some(_))
 
       case r: Resolved.Command =>
         val instantiated = ResolveCore
