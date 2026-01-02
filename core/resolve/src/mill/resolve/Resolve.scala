@@ -273,12 +273,7 @@ object Resolve {
       // bypassing virtual dispatch. Use the actual return type from the method.
       val lookup = MethodHandles.privateLookupIn(parentClass, MethodHandles.lookup())
       val methodType = MethodType.methodType(method.getReturnType)
-      val handle = lookup.findSpecial(
-        parentClass,
-        baseTaskName,
-        methodType,
-        p.getClass
-      )
+      val handle = lookup.findSpecial(parentClass, baseTaskName, methodType, p.getClass)
 
       handle.invoke(p).asInstanceOf[Task.Named[?]]
     }
