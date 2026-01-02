@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mill.api.*
-import mill.api.internal.{Reflect, Resolved, RootModule0}
+import mill.api.internal.{OverrideMapping, Reflect, Resolved, RootModule0}
 
 import java.lang.reflect.Method
 
@@ -292,6 +292,33 @@ private object ResolveCore {
               }
 
             } else notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+
+          // Handle super task resolution: when we have a NamedTask and the next segment is "super"
+          case (Segment.Label("super"), t: Resolved.NamedTask) =>
+            // Extract the task name from the NamedTask's segments
+            val taskName = t.taskSegments.value.last match {
+              case Segment.Label(name) => name
+              case _ => return notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+            }
+
+            // Get the module that contains this task
+            val moduleSegments = t.taskSegments.init
+            val moduleResolved = Resolved.Module(rootModule, rootModulePrefix, moduleSegments, t.cls)
+
+            // Try to resolve as super task
+            tryResolveSuperTask(
+              rootModule,
+              rootModulePrefix,
+              moduleResolved,
+              taskName,
+              tail, // remaining segments after "super" for disambiguation
+              querySoFar,
+              cache
+            ) match {
+              case Some(result) => result
+              case None =>
+                notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+            }
 
           case _ => notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
         }
@@ -663,5 +690,138 @@ private object ResolveCore {
     }
 
     NotFound(querySoFar, Set(current), next, possibleNexts.toSet)
+  }
+
+  /**
+   * Resolve super tasks for CLI invocation.
+   *
+   * When a user types `foo.super` or `foo.super.ParentModule`, this function
+   * resolves the super task(s) for task `foo`.
+   *
+   * @param rootModule       The root module
+   * @param rootModulePrefix Prefix for the root module
+   * @param moduleCls        The module class where the task is defined
+   * @param moduleSegments   The segments leading to the module
+   * @param baseTaskName     The base task name (e.g., "foo" from "foo.super")
+   * @param superSuffix      The suffix segments after "super" (e.g., ["ParentModule"])
+   * @param discover         The Discover instance for finding task declarations
+   * @return                 List of matching super tasks
+   */
+  def resolveSuperTasks(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      moduleCls: Class[?],
+      moduleSegments: Segments,
+      baseTaskName: String,
+      superSuffix: List[Segment],
+      discover: Discover
+  ): Seq[Resolved.NamedTask] = {
+    // Get the linearization of classes for this module
+    val linearized = OverrideMapping.computeLinearization(moduleCls)
+
+    // Find all classes that declare this task
+    val declaring = linearized.filter { cls =>
+      discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(baseTaskName))
+    }
+
+    if (declaring.size <= 1) {
+      // No overrides, no super tasks exist
+      Nil
+    } else {
+      // The last class in `declaring` is the final override (not a super task)
+      // All others are potential super tasks
+      val superClasses = declaring.init
+
+      // Compute super segments for each parent class
+      val superTasks = superClasses.map { parentCls =>
+        val superSegments = OverrideMapping.assignOverridenTaskSegments(
+          declaring.map(_.getName),
+          baseTaskName,
+          parentCls.getName
+        )
+        (parentCls, superSegments)
+      }
+
+      // Filter by the requested suffix if provided
+      val filteredTasks = if (superSuffix.isEmpty) {
+        // No suffix specified - return all super tasks if there's only one,
+        // otherwise require disambiguation
+        superTasks
+      } else {
+        // Match the suffix against the super task segments
+        val suffixLabels = superSuffix.collect { case Segment.Label(l) => l }
+        superTasks.filter { case (_, segments) =>
+          // The super segments are like [Label("foo.super"), Label("Parent"), ...]
+          // Skip the first segment ("foo.super") and match the rest
+          val segmentLabels = segments.value.drop(1).collect { case Segment.Label(l) => l }
+          segmentLabels == suffixLabels
+        }
+      }
+
+      filteredTasks.map { case (parentCls, superSegments) =>
+        Resolved.NamedTask(
+          rootModule,
+          rootModulePrefix,
+          moduleSegments ++ superSegments,
+          parentCls
+        )
+      }
+    }
+  }
+
+  /**
+   * Attempt to resolve a super task when we encounter a "super" segment after a task name.
+   *
+   * @param rootModule       The root module
+   * @param rootModulePrefix Prefix for the root module
+   * @param module           The resolved module
+   * @param taskName         The task name (segment before "super")
+   * @param afterSuper       Segments after "super" (the disambiguation suffix)
+   * @param querySoFar       Query segments processed so far
+   * @param cache            Resolution cache
+   * @return                 Some(Result) if this looks like a super task query, None otherwise
+   */
+  def tryResolveSuperTask(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      module: Resolved.Module,
+      taskName: String,
+      afterSuper: List[Segment],
+      querySoFar: Segments,
+      cache: Cache
+  ): Option[Result] = {
+    val discover = rootModule.moduleCtx.discover
+
+    // First verify that 'taskName' is actually a task on this module
+    val taskExists = Reflect
+      .reflect(module.cls, classOf[Task.Named[?]], _ == taskName, noParams = true, cache.getMethods)
+      .nonEmpty
+
+    if (!taskExists) {
+      None
+    } else {
+      val superTasks = resolveSuperTasks(
+        rootModule,
+        rootModulePrefix,
+        module.cls,
+        module.taskSegments,
+        taskName,
+        afterSuper,
+        discover
+      )
+
+      if (superTasks.isEmpty) {
+        // No matching super tasks found
+        None
+      } else if (superTasks.size == 1 || afterSuper.nonEmpty) {
+        Some(Success(superTasks))
+      } else {
+        // Multiple super tasks and no disambiguation - show error with options
+        val options = superTasks.map(_.taskSegments.render).mkString(", ")
+        Some(Error(mill.api.Result.Failure(
+          s"Ambiguous super task reference. Available super tasks: $options"
+        )))
+      }
+    }
   }
 }
