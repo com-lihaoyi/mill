@@ -251,7 +251,7 @@ without looking it up first.
 === Whither Declarative Builds?
 
 Although Maven is the first "declarative" build tool, in practice it has a lot of
-friction that has nothing to do with it's declarative nature, which gets in the
+friction that has nothing to do with its declarative nature, which gets in the
 way of the smooth user experience a declarative build tool should be able to provide.
 From installing Java and Maven to setting up the verbose `pom.xml` and the unusual
 command-line invocation syntax, none of this is rocket science. But it adds enough

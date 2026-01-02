@@ -74,7 +74,7 @@ In order to start the repl, you may have to specify a different available Ammoni
 .Example: Overriding `ammoniteVersion` to select a release compatible to the `scalaVersion`
 [source,scala,subs="attributes,verbatim"]
 ----
-import mill.*. scalalib._
+import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.6"

@@ -126,7 +126,7 @@ Email us with details on what you need and we can make an arrangement.
 === Community
 
 
-To engage Mill with the community, you can use the channels below:
+To engage with the Mill community, you can use the channels below:
 
 * https://github.com/com-lihaoyi/mill/discussions[Mill Github Discussions]
 * https://discord.com/invite/scala[Scala Discord], in the `TOOLING#mill` channel
