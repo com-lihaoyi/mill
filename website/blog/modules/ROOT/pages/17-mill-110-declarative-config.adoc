@@ -210,7 +210,7 @@ edge cases, we expect it will be relatively rare for users to hit YAML-related i
 While Mill's declarative build files are simpler than its programmable config files, they are
 by no means limited to toy projects: `build.mill.yaml` files support most of Mill's
 configuration overrides. For example, here is a more verbose example from the documentation for
-xref:mill::javalib/declarative.adoc[] that demonstrates many of the common configuration
+xref:mill::javalib/module-config.adoc#_declarative_configuration[] that demonstrates many of the common configuration
 keys a developer may want to set:
 
 ```yaml
@@ -244,9 +244,9 @@ These keys are all documented in
 {mill-doc-url}/api/latest/mill/javalib/JavaModule.html#mvnDeps-0[the API reference],
 along with every other configuration key that is available.
 Mill's declarative builds also support
-xref:mill::javalib/declarative.adoc#_unit_integration_testing[test suites],
+xref:mill::javalib/testing.adoc[test suites],
 xref:mill::javalib/intro.adoc#_multi_module_projects[multi-module projects],
-xref:mill::javalib/declarative.adoc#_packaging_publishing[packaging and publishing],
+xref:mill::javalib/packaging.adoc[packaging] and xref:mill::javalib/publishing.adoc[publishing],
 and other common build tool features. While declarative `build.mill.yaml` files are a lot
 more compact than their equivalent in Maven `pom.xml` or programmable `build.mill`, they
 are very much feature-complete enough to support most real-world use cases.
@@ -271,8 +271,8 @@ Although Mill's declarative builds are inspired by Maven, and Mill's programmabl
 are inspired by Gradle, one thing unique about Mill is how well integrated the two approaches are:
 
 * Declarative `build.mill.yaml` files can inter-operate with programmable `build.mill` files
-  via xref:mill::javalib/declarative.adoc#_custom_module_traits[custom module traits] and
-  xref:mill::javalib/declarative.adoc#_programmable_moduledeps[depending on programmable modules],
+  via xref:mill::javalib/module-config.adoc#_custom_module_traits[custom module traits] and
+  xref:mill::javalib/module-config.adoc#_programmable_moduledeps[depending on programmable modules],
   so you can mix-and-match the two config styles depending on which is more appropriate for each module.
 
 * Setting `mvnDeps`, `repositories`, `mainClass`, `jvmId`, etc. means the same thing in both
@@ -316,8 +316,8 @@ have it working across different environments and operating systems without need
 with JVM or build tool installations.
 
 Like the rest of Mill, its declarative configuration syntax works for
-all 3 major JVM languages: xref:mill::javalib/declarative.adoc[Java],
-xref:mill::scalalib/declarative.adoc[Scala], and xref:mill::kotlinlib/declarative.adoc[Kotlin].
+all 3 major JVM languages: xref:mill::javalib/module-config.adoc#_declarative_configuration[Java],
+xref:mill::scalalib/module-config.adoc#_declarative_configuration[Scala], and xref:mill::kotlinlib/module-config.adoc#_declarative_configuration[Kotlin].
 So anyone using a JVM language, or even multiple JVM languages, can use it to simplify their
 project setup and development workflows.
 
