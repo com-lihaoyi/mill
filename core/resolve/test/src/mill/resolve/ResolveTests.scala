@@ -371,7 +371,9 @@ object ResolveTests extends TestSuite {
         val check = new Checker(singleton)
         test("failsOnNonOverriddenTask") - check(
           "single.super",
-          Result.Failure("Cannot resolve single.super. single resolves to a Task with no children.")
+          Result.Failure(
+            "Task single has no super tasks. Only overridden tasks have super tasks that can be invoked."
+          )
         )
       }
     }
