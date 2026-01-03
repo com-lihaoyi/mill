@@ -50,8 +50,12 @@ object MillRpcClient {
         // we try to parse into `MillRpcServerToClient[A]` we will get an error if it's an `Ask`.
         wireTransport.readAndTryToParse[MillRpcServerToClient[ujson.Value]](logDebug) match {
           case None =>
+            val logDirMsg = wireTransport.logDir match {
+              case Some(dir) => s" Check logs in: $dir"
+              case None => s" (${wireTransport.name})"
+            }
             throw new IllegalStateException(
-              s"RPC wire has broken (${wireTransport.name}). The server probably crashed."
+              s"RPC wire broken, the worker probably crashed.$logDirMsg"
             )
           case Some(MillRpcServerToClient.Ask(dataJson)) =>
             val data = upickle.read[ServerToClient](dataJson)

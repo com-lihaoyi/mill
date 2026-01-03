@@ -82,7 +82,7 @@ class SubprocessZincApi(
       cacheKey,
       SubprocessZincApi.Initialize(compilerBridge.workspace, log)
     ) {
-      case SubprocessZincApi.Value(port, _, _, _) =>
+      case SubprocessZincApi.Value(port, daemonDir, _, _) =>
         Using.Manager { use =>
           val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
           val debugName =
@@ -99,7 +99,8 @@ class SubprocessZincApi(
                   debugName,
                   serverToClient,
                   clientToServer,
-                  writeSynchronizer = clientToServer
+                  writeSynchronizer = clientToServer,
+                  logDir = Some(daemonDir)
                 )
 
               val init =
