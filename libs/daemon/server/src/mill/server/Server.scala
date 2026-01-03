@@ -6,7 +6,7 @@ import mill.constants.{DaemonFiles, SocketUtil}
 import mill.server.Server.ConnectionData
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{BufferedInputStream, BufferedOutputStream}
+import java.io.{BufferedInputStream, BufferedOutputStream, ByteArrayOutputStream, PrintWriter, StringWriter}
 import java.net.{InetAddress, ServerSocket, Socket, SocketException}
 import java.nio.channels.ClosedByInterruptException
 import java.time.LocalDateTime
@@ -239,11 +239,9 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>
-            serverLog(
-              s"""connection handler for $clientSocket error: $e
-                 |connection handler stack trace: ${e.getStackTrace.mkString("\n")}
-                 |""".stripMargin
-            )
+            val sw = new StringWriter()
+            e.printStackTrace(new PrintWriter(sw))
+            serverLog(s"connection handler for $clientSocket error: $sw")
         } finally {
           done = true
           idle = true
