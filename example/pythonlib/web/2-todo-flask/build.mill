@@ -27,7 +27,7 @@ object todo extends PythonModule {
 // This example also utilizes **Mill** for managing `dependencies`, `builds`, and `tests`,
 // offering an efficient development workflow.
 
-// The app is ready to serve at `http://localhost:5001`.
+// The app is ready to serve at `http://localhost:5000`.
 
 /** Usage
 
@@ -56,7 +56,7 @@ OK
 
 > ./mill todo.runBackground
 
-> curl http://localhost:${PORT:-5001}
+> curl http://localhost:${PORT:-5000}
 ...What needs to be done...
 
 > ./mill clean todo.runBackground
