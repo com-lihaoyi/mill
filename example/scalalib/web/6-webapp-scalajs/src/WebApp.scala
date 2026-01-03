@@ -3,7 +3,8 @@ import scalatags.Text.all.*
 import scalatags.Text.tags2
 
 object WebApp extends cask.MainRoutes {
-  override def port = 8082
+  override def port = sys.env.getOrElse("PORT", "8082").toInt
+
   case class Todo(checked: Boolean, text: String)
 
   object Todo {

@@ -10,9 +10,10 @@ import org.jetbrains.exposed.sql.Database
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
 fun main(args: Array<String>) {
+    val port = System.getenv("PORT")?.toIntOrNull() ?: 8091
     val database = Database.connect("jdbc:h2:mem:regular;DB_CLOSE_DELAY=-1;", "org.h2.Driver")
     val todoItemRepository = TodoItemRepositoryImpl(database)
-    embeddedServer(Netty, port = 8091, host = "0.0.0.0") {
+    embeddedServer(Netty, port = port, host = "0.0.0.0") {
         app(todoItemRepository)
     }.start(wait = true)
 }

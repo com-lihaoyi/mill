@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request
 from dataclasses import dataclass
 from typing import List
@@ -93,4 +94,5 @@ def toggle_all(state):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    port = int(os.environ.get("PORT", 5001))
+    app.run(debug=True, port=port)

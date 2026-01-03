@@ -22,7 +22,7 @@
 
 > ./mill runBackground
 
-> curl http://localhost:8086
+> curl http://localhost:${PORT:-8086}
 ...<h1>Hello, World!</h1>...
 
 > ./mill clean runBackground

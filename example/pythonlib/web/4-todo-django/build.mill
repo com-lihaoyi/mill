@@ -51,9 +51,9 @@ test_toggle_todo_view (main.tests.TodoAppTests...) ... ok
 ...Ran 8 tests...
 ...OK...
 
-> ./mill todo.runBackground runserver 5003
+> ./mill todo.runBackground runserver ${PORT:-5003}
 
-> curl http://localhost:5003
+> curl http://localhost:${PORT:-5003}
 ...What needs to be done...
 
 > ./mill clean todo.runBackground

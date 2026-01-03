@@ -56,7 +56,7 @@ OK
 
 > ./mill todo.runBackground
 
-> curl http://localhost:5001
+> curl http://localhost:${PORT:-5001}
 ...What needs to be done...
 
 > ./mill clean todo.runBackground

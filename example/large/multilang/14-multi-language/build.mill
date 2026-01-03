@@ -89,10 +89,10 @@ OK
 
 > ./mill server.runBackground
 
-> curl http://localhost:8086
+> curl http://localhost:${PORT:-8086}
 ...<title>Sentiment Analysis Tool</title>...
 
-> curl -X POST http://localhost:8086/api/analysis -H "Content-Type: text/plain" --data "This is awesome!" # Make request to the analysis api
+> curl -X POST http://localhost:${PORT:-8086}/api/analysis -H "Content-Type: text/plain" --data "This is awesome!" # Make request to the analysis api
 Positive sentiment (polarity: 1.0)
 
 > ./mill clean server.runBackground

@@ -31,7 +31,7 @@ object `package` extends ScalaModule {
 
 > ./mill runBackground
 
-> curl http://localhost:8084
+> curl http://localhost:${PORT:-8084}
 ...What needs to be done...
 ...
 

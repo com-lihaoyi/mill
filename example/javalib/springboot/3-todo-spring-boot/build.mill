@@ -23,7 +23,7 @@
 
 > ./mill test.runBackground
 
-> curl http://localhost:8087
+> curl http://localhost:${PORT:-8087}
 ...<h1>todos</h1>...
 
 > ./mill clean runBackground

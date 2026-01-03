@@ -66,20 +66,20 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
 
 > ./mill native.nativeRunBackground
 
-> curl http://localhost:9099/hello
+> curl http://localhost:${PORT:-9099}/hello
 ...Hello, World!...
 
-> curl http://localhost:9099/hello?name=Mill
+> curl http://localhost:${PORT:-9099}/hello?name=Mill
 ...Hello, Mill!...
 
 > ./mill clean native.nativeRunBackground
 
 > ./mill prod.runBackground
 
-> curl http://localhost:9099/hello
+> curl http://localhost:${PORT:-9099}/hello
 ...Hello, World!...
 
-> curl http://localhost:9099/hello?name=Mill
+> curl http://localhost:${PORT:-9099}/hello?name=Mill
 ...Hello, Mill!...
 
 > ./mill clean prod.runBackground

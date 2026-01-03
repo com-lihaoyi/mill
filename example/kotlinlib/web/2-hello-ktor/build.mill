@@ -36,7 +36,7 @@ Test com.example.HelloKtorTest HelloKtorTest finished, took...
 
 > ./mill runBackground
 
-> curl http://localhost:8090
+> curl http://localhost:${PORT:-8090}
 ...<h1>Hello, World!</h1>...
 
 > ./mill clean runBackground

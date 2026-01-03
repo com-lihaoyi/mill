@@ -62,7 +62,7 @@ object `package` extends KotlinModule {
 
 > ./mill test.runBackground
 
-> curl http://localhost:8099
+> curl http://localhost:${PORT:-8099}
 ...<h1>todos</h1>...
 
 > ./mill clean runBackground

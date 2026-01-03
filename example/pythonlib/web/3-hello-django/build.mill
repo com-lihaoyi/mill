@@ -26,9 +26,9 @@ Ran 1 test...
 OK
 ...
 
-> ./mill foo.runBackground runserver 5002
+> ./mill foo.runBackground runserver ${PORT:-5002}
 
-> curl http://localhost:5002
+> curl http://localhost:${PORT:-5002}
 ...<h1>Hello, Mill!</h1>...
 
 > ./mill clean foo.runBackground
