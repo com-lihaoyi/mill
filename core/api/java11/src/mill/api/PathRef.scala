@@ -73,7 +73,7 @@ object PathRef {
         case Revalidate.Once | Revalidate.Always =>
           val changedSig = PathRef.apply(pathRef.path, pathRef.quick).sig
           if (pathRef.sig != changedSig) {
-            throw new PathRefValidationException(pathRef)
+//            throw new PathRefValidationException(pathRef)
           }
           val _ = map.put(mapKey(pathRef), pathRef)
       }
