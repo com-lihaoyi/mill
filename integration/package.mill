@@ -22,18 +22,21 @@ object `package` extends mill.Module {
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
 
+  case class SharedWorkerInfo(outPath: os.Path, port: Int)
+
   def sharedOutFolder = Task.Worker {
     val counter = new java.util.concurrent.atomic.AtomicInteger(0)
-    new mill.util.CachedFactory[Unit, os.Path] {
-      def setup(key: Unit): os.Path = {
-        val res = Task.dest / s"shared-${counter.getAndIncrement()}" / "out"
+    new mill.util.CachedFactory[Unit, SharedWorkerInfo] {
+      def setup(key: Unit): SharedWorkerInfo = {
+        val index = counter.getAndIncrement()
+        val res = Task.dest / s"shared-$index" / "out"
         os.remove.all(res)
         os.makeDir.all(res)
-        res
+        SharedWorkerInfo(res, 10000 + index)
       }
 
-      def teardown(key: Unit, value: os.Path): Unit = {
-        os.remove.all(value)
+      def teardown(key: Unit, value: SharedWorkerInfo): Unit = {
+        os.remove.all(value.outPath)
       }
 
       def maxCacheSize: Int = Task.ctx().jobs
@@ -58,7 +61,7 @@ object `package` extends mill.Module {
       def useSharedOut: Boolean
       override def enableBsp = false
       def testForked0(args: String*) = Task.Anon {
-        sharedOutFolder().withValue(()) { sharedOutFolder =>
+        sharedOutFolder().withValue(()) { workerInfo =>
           val testModuleUtil = new mill.javalib.TestModuleUtil(
             testUseArgsFile(),
             forkArgs(),
@@ -71,11 +74,12 @@ object `package` extends mill.Module {
             args,
             testForkGrouping(),
             jvmWorker().testrunnerEntrypointClasspath(),
-            allForkEnv() ++ Option.when(useSharedOut) {
-              "MILL_TEST_SHARED_OUTPUT_DIR" -> "1"
-            },
+            allForkEnv() ++ (
+              if (useSharedOut) Map("MILL_TEST_SHARED_OUTPUT_DIR" -> "1", "PORT" -> workerInfo.port.toString)
+              else Map.empty
+            ),
             testSandboxWorkingDir = !useSharedOut,
-            if (useSharedOut) sharedOutFolder else forkWorkingDir(),
+            if (useSharedOut) workerInfo.outPath else forkWorkingDir(),
             testReportXml(),
             javaHome().map(_.path),
             testParallelism(),
