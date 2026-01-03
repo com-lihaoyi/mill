@@ -1,5 +1,3 @@
 package build.nested
-
 import mill.*
-
 object `package` extends Module {}

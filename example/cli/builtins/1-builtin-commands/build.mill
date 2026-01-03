@@ -252,7 +252,7 @@ foo.compileClasspath
 
 */
 
-// NOTE: due to parallelism, the given order is only one possible toplogical
+// NOTE: due to parallelism, the given order is only one possible topological
 // order that the tasks will be started. Tasks may be started in different orders
 // depending on scheduling considerations, and may finish in a different order
 // due to differences in time taken to run
@@ -371,25 +371,28 @@ Run `mill init <Giter8 template>` to generate project from Giter8 template.
 ...
 scalalib/basic/3-simple
 ...
-scalalib/web/1-todo-webapp
-scalalib/web/2-webapp-cache-busting
-scalalib/web/3-todo-http4s
-scalalib/web/4-scalajs-module
-scalalib/web/5-webapp-scalajs
-scalalib/web/6-webapp-scalajs-shared
+scalalib/web/1-web-example
+scalalib/web/2-todo-webapp
+scalalib/web/3-webapp-cache-busting
+scalalib/web/4-todo-http4s
+scalalib/web/5-scalajs-module
+scalalib/web/6-webapp-scalajs
+scalalib/web/7-webapp-scalajs-shared
 ...
 javalib/basic/3-simple
 ...
 javalib/basic/10-realistic
 ...
-javalib/web/1-hello-jetty
-javalib/web/2-hello-micronaut
-javalib/web/3-todo-micronaut
+javalib/web/1-web-example
+javalib/web/2-hello-jetty
+javalib/web/3-hello-micronaut
+javalib/web/4-todo-micronaut
 kotlinlib/basic/3-simple
 ...
 kotlinlib/basic/10-realistic
 ...
-kotlinlib/web/1-hello-ktor
+kotlinlib/web/1-web-example
+kotlinlib/web/2-hello-ktor
 */
 
 // The `init` command generates a project based on a Mill example project or
@@ -401,7 +404,7 @@ kotlinlib/web/1-hello-ktor
 // into an empty folder and run `./mill init` to download and unpack one of the example
 // projects closest to what you want into the empty folder. Even though the example
 // project isn't going to be everything that you need, at least it'll get most of the
-// tedious boilerplate set up, so you can hit the group running working on the things
+// tedious boilerplate set up, so you can hit the ground running working on the things
 // that are unique to your particular project..
 //
 // `init` can also be used to initialize a Mill build configuration based on

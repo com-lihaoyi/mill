@@ -225,7 +225,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
 
   def scaladocJar(
       op: ZincOp.ScaladocJar,
-      compilerBridgeProvider: ZincCompilerBridgeProvider
+      processConfig: ZincWorker.ProcessConfig
   ): Boolean = {
     withScalaCompilers(
       scalaVersion = op.scalaVersion,
@@ -234,11 +234,15 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
       scalacPluginClasspath = op.scalacPluginClasspath,
       compilerBridgeOpt = op.compilerBridgeOpt,
       javacOptions = Nil,
-      compilerBridgeProvider = compilerBridgeProvider
+      compilerBridgeProvider = processConfig.compilerBridgeProvider
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
-      mill.util.Retry(count = 2) {
+      mill.util.Retry(
+        count = 2,
+        failWithFirstError = true,
+        logger = msg => processConfig.log.debug(msg)
+      ) {
         if (
           JvmWorkerUtil.isDotty(op.scalaVersion) || JvmWorkerUtil.isScala3Milestone(op.scalaVersion)
         ) {
@@ -575,7 +579,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
         ).asInstanceOf[op.Response]
 
       case msg: ZincOp.ScaladocJar =>
-        scaladocJar(msg, processConfig.compilerBridgeProvider).asInstanceOf[op.Response]
+        scaladocJar(msg, processConfig).asInstanceOf[op.Response]
 
       case msg: ZincOp.DiscoverTests =>
         mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]

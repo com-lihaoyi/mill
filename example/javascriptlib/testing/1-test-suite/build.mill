@@ -29,7 +29,7 @@ object qux extends TypeScriptModule {
 // For example, the module `bar` will have its `jest.config.ts` file live in `out/bar/test/compile.dest/`.
 //
 // It is important to note, that for most use cases you will never need
-// to define a custom test configurtion file.
+// to define a custom test configuration file.
 
 // For custom configurations:
 

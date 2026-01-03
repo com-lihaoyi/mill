@@ -31,7 +31,9 @@ case class Retry(
     backoffMultiplier: Double = 2.0,
     timeoutMillis: Long = -1,
     filter: (Int, Throwable) => Boolean = (_, _) => true,
-    logger: String => Unit = _ => ()
+    logger: String => Unit = _ => (),
+    @com.lihaoyi.unroll
+    failWithFirstError: Boolean = false
 ) {
 
   def apply[T](t: => T): T = {
@@ -55,7 +57,11 @@ case class Retry(
           logger(Retry.printException(e))
           logger(s"Attempt ${retryCount + 1} failed, waiting $currentBackoffMillis ms")
           Thread.sleep(currentBackoffMillis)
-          rec(retryCount + 1, (currentBackoffMillis * backoffMultiplier).toInt)
+          try {
+            rec(retryCount + 1, (currentBackoffMillis * backoffMultiplier).toInt)
+          } catch {
+            case _: Throwable if failWithFirstError => throw e
+          }
       }
     }
 

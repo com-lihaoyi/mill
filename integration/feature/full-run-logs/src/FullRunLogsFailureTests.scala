@@ -183,15 +183,15 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(R)java.lang.Exception(X): boom",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
           "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
-          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
-          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
-          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))",
+          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)390(X))",
+          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)375(X))",
+          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)462(X))",
           "(R)java.lang.RuntimeException(X): bang",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
           "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
-          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
-          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
-          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))"
+          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)390(X))",
+          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)375(X))",
+          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)462(X))"
         )
       )
     }

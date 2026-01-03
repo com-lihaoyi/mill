@@ -95,7 +95,7 @@ flags the Mill executable can take.
 NOTE: `.mill-opts` is for passing options to Mill itself, and `.mill-jvm-opts` is for passing
 JVM options to the JVM running Mill. If you want to pass JVM options to the project that Mill
 is building and running, see the section on
-xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags].
+xref:javalib/module-config.adoc#_declarative_configuration[Compilation and Execution Flags].
 
 
 == mill-jvm-version
@@ -140,8 +140,8 @@ include::partial$example/cli/header/4-jvm-index-version.adoc[]
 
 == mill-jvm-opts
 
-Mill supports `mill-jvm-opts` to set JVM-level flags
-It's possible to pass JVM options to the Mill launcher.To do this you can either set
+Mill supports `mill-jvm-opts` to set JVM-level flags.
+It's possible to pass JVM options to the Mill launcher. To do this you can either set
 the `JAVA_OPTS` environment variable, xref:cli/build-header.adoc[], or create a `.mill-jvm-opts` file in your project's
 root that contains JVM options one per line.
 

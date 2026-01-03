@@ -1,17 +1,18 @@
 package build.`multi-module`
-
+import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
+object `package` extends JavaModule, BomModule, PublishModule {
 
-object `package` extends MavenSamplesBaseModule {
-
-  def javacOptions = super.javacOptions() ++
-    Seq("-source", "1.6", "-target", "1.6")
-
-  def artifactName = "multi-module-parent"
-
-  def jvmId = "zulu:11"
+  def depManagement = Seq(
+    Deps.servletApi,
+    Deps.jspApi,
+    Deps.junitDep,
+    Deps.hamcrestCore,
+    Deps.hamcrestLibrary,
+    Deps.mockitoCore
+  )
 
   def pomPackagingType = "pom"
 
@@ -28,5 +29,7 @@ object `package` extends MavenSamplesBaseModule {
     ),
     Seq()
   )
+
+  def publishVersion = "1.0-SNAPSHOT"
 
 }

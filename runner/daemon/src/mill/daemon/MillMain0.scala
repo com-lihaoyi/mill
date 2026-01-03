@@ -170,7 +170,8 @@ object MillMain0 {
               val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
               val forceColorViaEnv = env.get("FORCE_COLOR").exists(_.nonEmpty)
               val colored = config.color.getOrElse(
-                (mainInteractive || forceColorViaEnv) && !noColorViaEnv
+                (mainInteractive || forceColorViaEnv) &&
+                  !(noColorViaEnv || config.bsp.value)
               )
               val colors =
                 if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
@@ -216,8 +217,9 @@ object MillMain0 {
               }
               val enableTicker = config.ticker
                 .orElse(config.enableTicker)
-                .orElse(Option.when(config.tabComplete.value)(false))
-                .orElse(Option.when(config.disableTicker.value)(false))
+                .orElse(Option.when(
+                  config.disableTicker.value || config.tabComplete.value || config.bsp.value
+                )(false))
                 .getOrElse(true)
 
               val (success, nextStateCache) = {
@@ -338,7 +340,7 @@ object MillMain0 {
                       val bootstrapped = runMillBootstrap(
                         skipSelectiveExecution = false,
                         prevState = Some(stateCache),
-                        tasksAndParams = Seq("console") ++ config.leftoverArgs.value,
+                        tasksAndParams = Seq("repl") ++ config.leftoverArgs.value,
                         streams = streams,
                         millActiveCommandMessage = "repl",
                         metaLevelOverride = Some(1)

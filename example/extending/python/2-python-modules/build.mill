@@ -38,7 +38,7 @@ trait PythonModule extends Module {
 }
 
 // Once the `trait PythonModule`, has been defined, we can re-use it in
-// three seperate objects below
+// three separate objects below
 
 object foo extends PythonModule {
   def mainFileName = "foo.py"

@@ -44,6 +44,8 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
               "mill-libs-androidlib_3-SNAPSHOT.jar",
               "mill-libs-daemon-client-SNAPSHOT.jar",
               "mill-libs-daemon-server_3-SNAPSHOT.jar",
+              "mill-libs-groovylib-api_3-SNAPSHOT.jar",
+              "mill-libs-groovylib_3-SNAPSHOT.jar",
               "mill-libs-javalib-api_3-SNAPSHOT.jar",
               "mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
               "mill-libs-javalib-testrunner_3-SNAPSHOT.jar",
@@ -63,7 +65,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
               "mill-libs-util-java11_3-SNAPSHOT.jar",
               "mill-libs-util_3-SNAPSHOT.jar",
               "mill-libs_3-SNAPSHOT.jar",
-              "mill-moduledefs_3-0.12.5-RC1.jar",
+              "mill-moduledefs_3-0.12.8.jar",
               "mill-runner-autooverride-api_3-SNAPSHOT.jar"
             )
           )

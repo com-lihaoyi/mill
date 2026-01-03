@@ -1,0 +1,6 @@
+extends: [ScalaModule]
+scalaVersion: 2.13.16
+
+compileMvnDeps: [com.lihaoyi:::acyclic:0.3.18]
+scalacOptions: [-P:acyclic:force]
+scalacPluginMvnDeps: [com.lihaoyi:::acyclic:0.3.18]

@@ -1,7 +1,7 @@
 // This example shows some of the common tasks you may want to override on a
 // `PythonModule`: specifying the `mainScript`, adding additional
 // sources/resources, generating sources, and setting typecheck/run options.
-// Also we have support for `forkenv` and  `pythonOptions` to allow user to
+// Also we have support for `forkEnv` and `pythonOptions` to allow user to
 // add variables for environment and options for python respectively.
 
 package build
@@ -46,7 +46,7 @@ object foo extends PythonModule {
 
 }
 
-// Note the use of `moduleDir`, `Task.dest`, and `PathRef` when preforming
+// Note the use of `moduleDir`, `Task.dest`, and `PathRef` when performing
 // various filesystem operations:
 //
 // 1. `moduleDir`: Base path of the module. For the root module, it's the repo root.

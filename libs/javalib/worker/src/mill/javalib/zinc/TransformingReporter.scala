@@ -30,13 +30,14 @@ private object TransformingReporter {
       mapper: xsbti.Position => xsbti.Position,
       workspaceRoot: os.Path
   ): xsbti.Problem = {
-    val pos0 = problem0.position()
+    val unMappedPos = problem0.position()
     val related0 = problem0.diagnosticRelatedInformation()
     val actions0 = problem0.actions()
-    val pos = mapper(pos0)
+    val pos = mapper(unMappedPos)
     val related = transformRelateds(related0, mapper)
     val actions = transformActions(actions0, mapper)
-    val rendered = dottyStyleMessage(color, problem0, pos, workspaceRoot)
+    val rendered =
+      dottyStyleMessage(color, problem0, pos = pos, unMappedPos = unMappedPos, workspaceRoot)
     InterfaceUtil.problem(
       cat = problem0.category(),
       pos = pos,
@@ -61,6 +62,7 @@ private object TransformingReporter {
       color: Boolean,
       problem0: xsbti.Problem,
       pos: xsbti.Position,
+      unMappedPos: xsbti.Position,
       workspaceRoot: os.Path
   ): String = {
 
@@ -100,10 +102,13 @@ private object TransformingReporter {
           .flatMap(_.linesIterator)
           .toSeq
 
-        // Just grab the first line from the dotty error code snippet, because dotty defaults to
-        // rendering entire expressions which can be arbitrarily large and spammy in the terminal
+        // Scrape the relevant line from the dotty error code snippet, because dotty defaults to
+        // rendering entire expressions which can be arbitrarily large and spammy in the terminal.
         val scraped = mill.api.internal.Util.scrapeColoredLineContent(
           renderedLines,
+          // Use the unmapped line to scrape the corresponding line from the error message,
+          // since the raw compiler error would not have gone through line mapping
+          intValue(unMappedPos.line(), -1),
           pos.lineContent()
         )
 
@@ -131,7 +136,15 @@ private object TransformingReporter {
 
         val pointerLength =
           if (space.nonEmpty && pointer0 >= 0 && endCol >= 0)
-            math.max(1, math.min(endCol - pointer0, lineContent.length - space.length))
+            math.max(
+              1,
+              math.min(
+                endCol - pointer0,
+                // Make sure to use the plaintext length of lineContent,
+                // since it may have color codes
+                fansi.Str(lineContent).length - space.length
+              )
+            )
           else 1
 
         mill.constants.Util.formatError(

@@ -42,7 +42,7 @@ object `endless-tunnel` extends mill.api.Module {
       Some("MillBuildTool")
     }
 
-    override def androidVirtualDeviceIdentifier: String = "cpp-test"
+    override def androidVirtualDevice = super.androidVirtualDevice().withName("cpp-test")
 
     override def androidCMakeExtraArgs: T[Seq[String]] =
       super.androidCMakeExtraArgs() ++ Seq("-DANDROID_STL=c++_static")

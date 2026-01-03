@@ -30,6 +30,10 @@ object TabCompleteTests extends TestSuite {
     trait QuxModule extends Cross.Module[Int] {
       def task3 = Task { 789 }
     }
+    object versioned extends Cross[VersionedModule]("2.12.20", "2.13.15", "3.5.0")
+    trait VersionedModule extends Cross.Module[String] {
+      def compile = Task { crossValue }
+    }
   }
   override def tests: Tests = Tests {
 
@@ -55,13 +59,33 @@ object TabCompleteTests extends TestSuite {
       test("empty-bash") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", ""),
-          HashSet("qux", "file2.txt", "out", "folder", "bar", "file1.txt", "task1", "foo")
+          HashSet(
+            "qux",
+            "versioned",
+            "file2.txt",
+            "out",
+            "folder",
+            "bar",
+            "file1.txt",
+            "task1",
+            "foo"
+          )
         )
       }
       test("empty-zsh") {
         assertGoldenLiteral(
           evalComplete("1", "./mill"),
-          HashSet("qux", "file2.txt", "out", "folder", "bar", "file1.txt", "task1", "foo")
+          HashSet(
+            "qux",
+            "versioned",
+            "file2.txt",
+            "out",
+            "folder",
+            "bar",
+            "file1.txt",
+            "task1",
+            "foo"
+          )
         )
       }
       test("task") {
@@ -201,13 +225,15 @@ object TabCompleteTests extends TestSuite {
       }
 
       test("cross2") {
+        // Without bracket, use new dot syntax
         assertGoldenLiteral(
           evalComplete("1", "./mill", "qux"),
-          Set("qux", "qux[12]", "qux[34]", "qux[56]")
+          Set("qux", "qux.12", "qux.34", "qux.56")
         )
       }
 
       test("crossPartial") {
+        // With bracket, keep bracket syntax
         assertGoldenLiteral(
           evalComplete("1", "./mill", "qux[1"),
           Set("qux[12]")
@@ -215,9 +241,18 @@ object TabCompleteTests extends TestSuite {
       }
 
       test("crossNested") {
+        // With bracket, keep bracket syntax
         assertGoldenLiteral(
           evalComplete("1", "./mill", "qux[12]"),
           Set("qux[12].task3")
+        )
+      }
+
+      test("crossNestedDotSyntax") {
+        // Without bracket, use new dot syntax
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "qux.12"),
+          Set("qux.12", "qux.12.task3")
         )
       }
 
@@ -245,7 +280,29 @@ object TabCompleteTests extends TestSuite {
           evalComplete("1", "./mill", "qux[12].task3"),
           Set("qux[12].task3")
         )
+      }
 
+      test("crossVersioned") {
+        // Version numbers with dots are converted to underscores in dot syntax
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "versioned"),
+          Set("versioned", "versioned.2_12_20", "versioned.2_13_15", "versioned.3_5_0")
+        )
+      }
+
+      test("crossVersionedNested") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "versioned.2_12_20"),
+          Set("versioned.2_12_20", "versioned.2_12_20.compile")
+        )
+      }
+
+      test("crossVersionedBracket") {
+        // With bracket, keep original syntax with dots
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "versioned[2"),
+          Set("versioned[2.12.20]", "versioned[2.13.15]")
+        )
       }
     }
     test("flags") {
@@ -267,7 +324,17 @@ object TabCompleteTests extends TestSuite {
       test("emptyAfterFlag") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "-v"),
-          HashSet("qux", "file2.txt", "out", "folder", "bar", "file1.txt", "task1", "foo")
+          HashSet(
+            "qux",
+            "versioned",
+            "file2.txt",
+            "out",
+            "folder",
+            "bar",
+            "file1.txt",
+            "task1",
+            "foo"
+          )
         )
 
       }

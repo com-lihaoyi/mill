@@ -10,7 +10,8 @@ class MillRpcWireTransport(
     val name: String,
     serverToClient: BufferedReader,
     clientToServer: PrintStream,
-    writeSynchronizer: AnyRef
+    writeSynchronizer: AnyRef,
+    val logDir: Option[os.Path] = None
 ) extends AutoCloseable {
   def read(): Option[String] = Option(serverToClient.readLine())
 

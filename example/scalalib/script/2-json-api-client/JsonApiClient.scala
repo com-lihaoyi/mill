@@ -15,7 +15,6 @@ def fetchLinks(title: String): Seq[String] = {
   } yield link("title").str
 }
 
-@main
 def main(startArticle: String, depth: Int) = {
   var seen = Set(startArticle)
   var current = Set(startArticle)

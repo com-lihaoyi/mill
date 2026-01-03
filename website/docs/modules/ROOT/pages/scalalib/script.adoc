@@ -28,34 +28,40 @@ This can be useful to interactively exercise and experiment with the code define
 your script.
 
 ```scala
-./mill -i Foo.scala:console
+./mill -i Foo.scala:repl
 ```
 
-== Custom Script Module Classes
 
-include::partial$example/scalalib/script/7-custom-class.adoc[]
+== Script moduleDeps
 
+include::partial$example/scalalib/script/7-script-deps.adoc[]
 
 == Relative and Absolute Script moduleDeps
 
-include::partial$example/scalalib/script/8-relative-imports.adoc[]
+include::partial$example/scalalib/script/8-relative-deps.adoc[]
 
 
 == Project `moduleDeps`
 
 include::partial$example/scalalib/script/9-programmable-module-deps.adoc[]
 
+
+== Custom Script Module Classes
+
+include::partial$example/scalalib/script/10-custom-class.adoc[]
+
+
 == Script Resources
 
-include::partial$example/scalalib/script/10-resources.adoc[]
+include::partial$example/scalalib/script/11-resources.adoc[]
 
 
 == Custom JVM Versions
 
-include::partial$example/scalalib/script/11-jvm-version.adoc[]
+include::partial$example/scalalib/script/12-jvm-version.adoc[]
 
 == Bundled Libraries
 
-include::partial$example/scalalib/script/12-raw.adoc[]
+include::partial$example/scalalib/script/13-raw.adoc[]
 
 include::partial$Script_Footer.adoc[]

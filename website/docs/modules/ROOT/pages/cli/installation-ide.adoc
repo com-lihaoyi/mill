@@ -110,7 +110,7 @@ crashes and errors.
 === Mill Native and JVM Executables
 
 The default Mill launcher configured above is a
-xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image],
+xref:javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image],
 that provides faster startup and is able to run even on machines without Java installed.
 Mill native executables are supported on the following OS/CPU combinations:
 
@@ -160,7 +160,7 @@ such as `customCommand` below:
 
 ```scala
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mainargs.arg
 object foo extends JavaModule {
   def customCommand(
@@ -229,11 +229,6 @@ as well as the code in the `build.mill`:
 image::basic/IntellijApp.png[]
 
 image::basic/IntellijBuild.png[]
-
-If IntelliJ does not highlight the `.mill` files correctly, you can explicitly enable
-it by adding `*.mill` to the `Scala` file type:
-
-image::basic/IntellijFileTypeConfig.png[]
 
 If you make changes to your Mill `build.mill`, you can ask Intellij to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
@@ -512,7 +507,7 @@ Or find the latest unstable version here:
 
 * https://central.sonatype.com/artifact/com.lihaoyi/mill-dist
 
-You can update your `.mill-version` to to the unstable version and the bootstrap script
+You can update your `.mill-version` to the unstable version and the bootstrap script
 will download it for you to try it out in your project.
 
 

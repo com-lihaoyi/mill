@@ -28,10 +28,13 @@
 //// SNIPPET:FILE
 /** See Also: Foo.scala */
 
-// In this example we use the `@mainargs.main` method from https://github.com/com-lihaoyi/mainargs[MainArgs],
-// one of the xref:scalalib/script.adoc#_bundled_libraries[Bundled Libraries] and is imported automatically
-// in scripts, but you can define an explicit `def main(args: Array[String]): Unit` or `@scala.main def main`
-// method if you prefer.
+// Mill Scala scripts are integrated with https://github.com/com-lihaoyi/mainargs[MainArgs], one
+// of the xref:scalalib/script.adoc#_bundled_libraries[Bundled Libraries], which automatically
+// detects top-level methods named `def main` in scripts and treats them as program entry points.
+// MainArgs allows you to add additional metadata with `@mainargs.arg` annotations on the
+// parameters, explicitly annotate your main methods with `@mainargs.main` to configure them,
+// or define explicit `def main(args: Array[String]): Unit` or `@scala.main def main`
+// methods if you prefer.
 //
 //// SNIPPET:END
 //
@@ -82,7 +85,7 @@ compiling 1 Scala source to...
 //// SNIPPET:END
 
 // {language} scripts support the same configuration keys as
-// xref:#_declarative_modules[] as part of their `//|` header comment, and support most
+// xref:#_declarative_configuration[] as part of their `//|` header comment, and support most
 // the tasks via the `:run` `:assembly` etc. command-line syntax shown above. You can list
 // these tasks via `./mill resolve` as shown below:
 //// SNIPPET:RESOLVE
@@ -137,4 +140,4 @@ Foo.scala:assembly
 // a xref:{language-small}lib/script.adoc#_custom_script_module_classes[Custom Script Module Class].
 //
 // For scripts that grow larger than a single file, you should convert them
-// to xref:#_declarative_modules[].
+// to xref:#_declarative_configuration[].

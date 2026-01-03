@@ -1,10 +1,10 @@
-// Native libraries are libraries written in C/C++  that are compiled to android code
+// Native libraries are libraries written in C/C++ that are compiled to Android code
 // and are used in the app. They are usually used for performance reasons or to use
 // libraries that are not available in Java/Kotlin.
 // This example shows how to use native libraries in the app.
 // The native library is a simple C++ library that returns a string "Hello from C++"
-// and is used in the app to show a toast with the string. In my example i used also
-// one of the core C/C++  libraires that can be used in the android and are already given ( <android/log.h> ).
+// and is used in the app to show a toast with the string. In this example I also used
+// one of the core C/C++ libraries that can be used in Android and are already provided ( <android/log.h> ).
 // There is a list of the core C/C++ libraries that can be used in the android here:
 // https://developer.android.com/ndk/reference
 
@@ -34,7 +34,7 @@ object app extends AndroidNativeAppModule { // <1>
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
-  override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidVirtualDevice = super.androidVirtualDevice().withName("java-test")
 
   def androidExternalNativeLibs = Task { // <2>
     Seq(
@@ -67,6 +67,8 @@ object app extends AndroidNativeAppModule { // <1>
 
 > ./mill show app.androidApk
 "...$MILL_OUT/app/androidApk.dest/app.apk"
+
+> ./mill show app.it.androidTestApk
 
 > ./mill show app.createAndroidVirtualDevice
 ...Name: java-test, DeviceId: medium_phone...
