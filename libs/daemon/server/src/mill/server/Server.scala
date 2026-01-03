@@ -6,7 +6,7 @@ import mill.constants.{DaemonFiles, SocketUtil}
 import mill.server.Server.ConnectionData
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{BufferedInputStream, BufferedOutputStream, ByteArrayOutputStream, PrintWriter, StringWriter}
+import java.io.{BufferedInputStream, BufferedOutputStream, PrintWriter, StringWriter}
 import java.net.{InetAddress, ServerSocket, Socket, SocketException}
 import java.nio.channels.ClosedByInterruptException
 import java.time.LocalDateTime

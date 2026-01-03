@@ -53,7 +53,8 @@ object MillRpcClient {
           case None =>
             val logDirMsg = wireTransport.logDir match {
               case Some(dir) =>
-                val workspaceRoot = sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd))
+                val workspaceRoot =
+                  sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd))
                 s" Check logs in: ${dir.relativeTo(workspaceRoot)}"
 
               case None => s" Connection ${wireTransport.name}"
