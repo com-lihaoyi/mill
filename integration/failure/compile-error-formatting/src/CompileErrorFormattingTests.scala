@@ -25,12 +25,12 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     integrationTest { tester =>
       locally {
-        val res = tester.eval("type-unchecked.compile")
+        val res = tester.eval("java-type-unchecked.compile")
         assert(!res.isSuccess)
         assertConsecutiveLines(
           res.err,
           Seq(
-            "[warn] type-unchecked/src/Foo.java:6:22",
+            "[warn] java-type-unchecked/src/Foo.java:6:22",
             "        return (T[]) obj;",
             "                     ^^^",
             "unchecked cast"
@@ -39,12 +39,12 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        val res = tester.eval("type-mismatch.compile")
+        val res = tester.eval("java-type-mismatch.compile")
         assert(!res.isSuccess)
         assertConsecutiveLines(
           res.err,
           Seq(
-            "[error] type-mismatch/src/Foo.java:5:17",
+            "[error] java-type-mismatch/src/Foo.java:5:17",
             "        int x = \"hello\";",
             "                ^^^^^^^",
             "incompatible types: java.lang.String cannot be converted to int"
@@ -53,12 +53,12 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        val res = tester.eval("type-method.compile")
+        val res = tester.eval("java-type-method.compile")
         assert(!res.isSuccess)
         assertConsecutiveLines(
           res.err,
           Seq(
-            "[error] type-method/src/Foo.java:6:10",
+            "[error] java-type-method/src/Foo.java:6:10",
             "        s.nonExistentMethod();",
             "         ^^^^^^^^^^^^^^^^^^",
             "cannot find symbol"
@@ -67,12 +67,12 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        val res = tester.eval("type-variable.compile")
+        val res = tester.eval("java-type-variable.compile")
         assert(!res.isSuccess)
         assertConsecutiveLines(
           res.err,
           Seq(
-            "[error] type-variable/src/Foo.java:5:17",
+            "[error] java-type-variable/src/Foo.java:5:17",
             "        int x = undefinedVariable + 1;",
             "                ^^^^^^^^^^^^^^^^^",
             "cannot find symbol"
@@ -82,12 +82,12 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
 
 
       locally {
-        val res = tester.eval("parse-semicolon.compile")
+        val res = tester.eval("java-parse-semicolon.compile")
         assert(!res.isSuccess)
         assertConsecutiveLines(
           res.err,
           Seq(
-            "[error] parse-semicolon/src/Foo.java:5:18",
+            "[error] java-parse-semicolon/src/Foo.java:5:18",
             "        int x = 1",
             "                 ^",
             "';' expected"
@@ -96,12 +96,12 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        val res = tester.eval("parse-string.compile")
+        val res = tester.eval("java-parse-string.compile")
         assert(!res.isSuccess)
         assertConsecutiveLines(
           res.err,
           Seq(
-            "[error] parse-string/src/Foo.java:5:20",
+            "[error] java-parse-string/src/Foo.java:5:20",
             "        String s = \"hello world",
             "                   ^",
             "unclosed string literal"
@@ -110,13 +110,13 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
       }
 
       locally {
-        val res = tester.eval("parse-toplevel.compile")
+        val res = tester.eval("java-parse-toplevel.compile")
         assert(!res.isSuccess)
         // This error doesn't have a caret - just file:line:col, source, empty, message
         assertConsecutiveLines(
           res.err,
           Seq(
-            "[error] parse-toplevel/src/Foo.java:3:0",
+            "[error] java-parse-toplevel/src/Foo.java:3:0",
             "int x = 1;",
             "",
             "unnamed class"
