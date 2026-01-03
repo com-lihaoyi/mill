@@ -4,7 +4,7 @@ import scalatags.Text.tags2
 import shared.{Shared, Todo}
 
 object WebApp extends cask.MainRoutes {
-  override def port = sys.env.getOrElse("PORT", "8083").toInt
+  override def port = sys.env.getOrElse("PORT", "8080").toInt
 
   var todos = Seq(
     Todo(true, "Get started with Cask"),
