@@ -59,7 +59,7 @@ object MillRpcClient {
               case None => s" Connection ${wireTransport.name}"
             }
             throw new IllegalStateException(
-              s"RPC wire broken, the worker probably crashed.$logDirMsg"
+              s"Worker wire broken, worker likely crashed.$logDirMsg"
             )
           case Some(MillRpcServerToClient.Ask(dataJson)) =>
             val data = upickle.read[ServerToClient](dataJson)
