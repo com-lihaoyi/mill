@@ -1,6 +1,7 @@
 package mill.rpc
 
 import mill.api.daemon.Logger
+import mill.constants.EnvVars
 import pprint.TPrint
 import upickle.{Reader, Writer}
 
@@ -51,8 +52,11 @@ object MillRpcClient {
         wireTransport.readAndTryToParse[MillRpcServerToClient[ujson.Value]](logDebug) match {
           case None =>
             val logDirMsg = wireTransport.logDir match {
-              case Some(dir) => s" Check logs in: $dir"
-              case None => s" (${wireTransport.name})"
+              case Some(dir) =>
+                val workspaceRoot = sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd))
+                s" Check logs in: ${dir.relativeTo(workspaceRoot)}"
+
+              case None => s" Connection ${wireTransport.name}"
             }
             throw new IllegalStateException(
               s"RPC wire broken, the worker probably crashed.$logDirMsg"
