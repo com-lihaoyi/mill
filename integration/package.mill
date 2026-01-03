@@ -75,7 +75,8 @@ object `package` extends mill.Module {
             testForkGrouping(),
             jvmWorker().testrunnerEntrypointClasspath(),
             allForkEnv() ++ (
-              if (useSharedOut) Map("MILL_TEST_SHARED_OUTPUT_DIR" -> "1", "PORT" -> workerInfo.port.toString)
+              if (useSharedOut)
+                Map("MILL_TEST_SHARED_OUTPUT_DIR" -> "1", "PORT" -> workerInfo.port.toString)
               else Map.empty
             ),
             testSandboxWorkingDir = !useSharedOut,
