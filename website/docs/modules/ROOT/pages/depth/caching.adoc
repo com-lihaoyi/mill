@@ -76,7 +76,7 @@ of downstream tasks having their caches invalidated.
 * xref:fundamentals/out-dir.adoc#_codesignatures_spanninginvalidationtree[codeSignatures spanningInvalidationTree]:
 this file contains information about tasks whose caches were invalidated due to
 __code changes in the `build.mill` or `package.mill` files__, and again shows a tree
-of invalidated method signatures organized into a tree using their call graph dependenceis.
+of invalidated method signatures organized into a tree using their call graph dependencies.
 This is most useful to figure out why a code change in your `.mill` files ended up
 changing some task's code signature, causing it to miss the cache and be re-computed
 

@@ -90,6 +90,8 @@ object ParseArgs {
   private def selector[_p: P]: P[(String, Segments)] = {
     def wildcard = P("__" | "_")
     def label = P(CharsWhileIn("a-zA-Z0-9_\\-")).!
+    // Match "foo.super" as a single label to support super task invocation
+    def labelWithSuper = P(label ~~ ".super").!
 
     def typeQualifier(simple: Boolean) = {
       val maxSegments = if (simple) 0 else Int.MaxValue
@@ -98,7 +100,8 @@ object ParseArgs {
 
     def typePattern(simple: Boolean) = P(wildcard ~~ (":" ~~ typeQualifier(simple)).rep(1)).!
 
-    def segment0(simple: Boolean) = P(typePattern(simple) | label).map(Segment.Label(_))
+    def segment0(simple: Boolean) =
+      P(typePattern(simple) | labelWithSuper | label).map(Segment.Label(_))
     def segment = P("(" ~ segment0(false) ~ ")" | segment0(true))
 
     def identCross = P(CharsWhileIn("a-zA-Z0-9_\\-.")).!

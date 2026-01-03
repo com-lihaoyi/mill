@@ -4,8 +4,7 @@
 
 This page illustrates usage of the `//| mvnDeps` syntax.
 `//| mvnDeps` lets you import JVM dependencies into your `build.mill`, so
-you can use arbitrary third-party libraries at build-time. This makes
-lets you perform computations at build-time rather than run-time,
+you can use arbitrary third-party libraries at build-time. This lets you perform computations at build-time rather than run-time,
 speeding up your application start up. Unlike most other build tools that
 require purpose-built plugins to extend them, Mill's `//| mvnDeps` can be used to pull
 in any JVM library on Maven Central to use in your custom tasks, with
@@ -29,8 +28,8 @@ include::partial$example/extending/imports/2-mvn-deps-scala.adoc[]
 Mill plugins are ordinary JVM libraries jars and are loaded as any other external dependency with
 the `//| mvnDeps` mechanism.
 
-There exist a large number of Mill plugins, Many of them are available on GitHub and via
-Maven Central.We also have a list of plugins, which is most likely not complete, but it
+There exist a large number of Mill plugins. Many of them are available on GitHub and via
+Maven Central. We also have a list of plugins, which is most likely not complete, but it
 might be a good start if you are looking for plugins: xref:Thirdparty_Plugins.adoc[].
 
 Some plugin contributions are also hosted in Mill's own git tree as xref:Contrib_Plugins.adoc[].

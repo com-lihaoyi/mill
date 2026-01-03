@@ -20,6 +20,39 @@ object ResolveTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  // Test module with task overrides for super task resolution
+  trait BaseModuleTrait extends Module {
+    def foo = Task { Seq("base") }
+  }
+
+  object superTaskModule extends TestRootModule with BaseModuleTrait {
+    override def foo = Task { super.foo() ++ Seq("override") }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  // Test module with nested module containing override
+  object nestedSuperTaskModule extends TestRootModule {
+    trait Inner extends Module {
+      def bar = Task { "inner" }
+    }
+    object nested extends Inner {
+      override def bar = Task { super.bar() + "-override" }
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  // Test module with multiple levels of overrides
+  trait TraitA extends Module {
+    def multi = Task { 1 }
+  }
+  trait TraitB extends TraitA {
+    override def multi = Task { super.multi() + 10 }
+  }
+  object multiLevelSuperTask extends TestRootModule with TraitB {
+    override def multi = Task { super.multi() + 100 }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   def isShortError(x: Result[?], s: String) =
     x.errorOpt.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
@@ -256,6 +289,93 @@ object ResolveTests extends TestSuite {
           "Cannot resolve nested.inner.doesntExist.alsoDoesntExist2. Try `mill resolve nested.inner._` to see what's available."
         )
       )
+    }
+
+    test("superTask") {
+      test("singleOverride") {
+        // Test resolving super task with single override
+        val check = new Checker(superTaskModule)
+
+        // The super task should be resolvable via foo.super.BaseModuleTrait
+        // Segments.render uses "." to join segments
+        test("resolveWithSuffix") - check.checkSeq0(
+          Seq("foo.super.BaseModuleTrait"),
+          { result =>
+            result.isInstanceOf[Result.Success[?]] &&
+            result.toOption.get.size == 1 &&
+            result.toOption.get.head.ctx.segments.render == "foo.super.BaseModuleTrait"
+          }
+        )
+
+        // Without suffix, should work since there's only one super task
+        test("resolveWithoutSuffix") - check.checkSeq0(
+          Seq("foo.super"),
+          { result =>
+            result.isInstanceOf[Result.Success[?]] &&
+            result.toOption.get.size == 1 &&
+            result.toOption.get.head.ctx.segments.render == "foo.super.BaseModuleTrait"
+          }
+        )
+      }
+
+      test("nestedModuleOverride") {
+        // Test resolving super task in nested module
+        val check = new Checker(nestedSuperTaskModule)
+
+        test("resolveNestedSuper") - check.checkSeq0(
+          Seq("nested.bar.super.Inner"),
+          { result =>
+            result.isInstanceOf[Result.Success[?]] &&
+            result.toOption.get.size == 1 &&
+            result.toOption.get.head.ctx.segments.render == "nested.bar.super.Inner"
+          }
+        )
+      }
+
+      test("multiLevelOverride") {
+        // Test resolving super tasks with multiple levels of overrides
+        val check = new Checker(multiLevelSuperTask)
+
+        // Should resolve to TraitA's version
+        test("resolveTraitA") - check.checkSeq0(
+          Seq("multi.super.TraitA"),
+          { result =>
+            result.isInstanceOf[Result.Success[?]] &&
+            result.toOption.get.size == 1 &&
+            result.toOption.get.head.ctx.segments.render == "multi.super.TraitA"
+          }
+        )
+
+        // Should resolve to TraitB's version
+        test("resolveTraitB") - check.checkSeq0(
+          Seq("multi.super.TraitB"),
+          { result =>
+            result.isInstanceOf[Result.Success[?]] &&
+            result.toOption.get.size == 1 &&
+            result.toOption.get.head.ctx.segments.render == "multi.super.TraitB"
+          }
+        )
+
+        // Without suffix should show ambiguous error since there are multiple super tasks
+        test("ambiguousWithoutSuffix") - check.checkSeq0(
+          Seq("multi.super"),
+          { result =>
+            result.isInstanceOf[Result.Failure] &&
+            result.errorOpt.exists(_.contains("Ambiguous super task reference"))
+          }
+        )
+      }
+
+      test("noSuperTask") {
+        // Test that resolving super on a non-overridden task fails
+        val check = new Checker(singleton)
+        test("failsOnNonOverriddenTask") - check(
+          "single.super",
+          Result.Failure(
+            "Task single has no super tasks. Only overridden tasks have super tasks that can be invoked."
+          )
+        )
+      }
     }
 
   }

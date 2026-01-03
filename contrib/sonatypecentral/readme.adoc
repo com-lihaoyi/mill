@@ -87,4 +87,3 @@ The `mill.contrib.sonatypecentral/publishAll` method takes the following argumen
 
 The `__.publishSonatypeCentral` command takes the `username` and `password` arguments, documented above.
 
-`
