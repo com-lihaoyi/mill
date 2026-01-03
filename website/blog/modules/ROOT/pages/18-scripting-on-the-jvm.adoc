@@ -1,4 +1,4 @@
-= Scripting on the JVM with Java, Scala, and Kotlin
+= Scripting on the JVM with Java, Kotlin, and Scala
 // tag::header[]
 :author: Li Haoyi
 :revdate: 24 September 2025
@@ -17,3 +17,32 @@ as any scripting language out there.
 
 // end::header[]
 
+== Challenges of Small-Scale Java Programs
+
+- Hard to install Java+Maven/Gradle
+- Configuring Maven/Gradle for a small script is tedious and annoying
+- Very verbose language for small scripts
+
+== Lightweight Build Tools
+
+- Mill is super easy to install
+- Very easy to configure for small projects and scripts
+- Still very verbose writing small scripts
+
+== Lightweight Languages
+
+- Kotlin is much more syntactically concise than Java
+- Much less code to write the same things overall
+
+== Lightweight Libraries
+
+- OS-Lib, Requests-Scala, MainArgs
+
+== Vertical Integration
+
+- Integration between Mill Scala Scripts and Mainargs makes it even cleaner
+
+== Future Work
+
+- Top-level statements
+- Collection & Data Structure Literals
