@@ -733,11 +733,16 @@ private object ResolveCore {
       val filteredClasses =
         if (superSuffixSegments.isEmpty) superClasses
         else {
-          // Match suffix against parent class simple names
+          // Match suffix against any unique suffix of the class name segments
+          // e.g., for class "mill.javalib.JavaModule", valid suffixes are:
+          // - "JavaModule"
+          // - "javalib.JavaModule"
+          // - "mill.javalib.JavaModule"
+          // Note: Inner classes use $ as separator, so we split on both . and $
           val suffixNames = superSuffixSegments.collect { case Segment.Label(l) => l }
           superClasses.filter { parentCls =>
-            // The suffix from OverrideMapping uses simple class names
-            suffixNames == List(parentCls.getSimpleName)
+            val classSegments = parentCls.getName.split("[.$]").toSeq
+            classSegments.endsWith(suffixNames)
           }
         }
 

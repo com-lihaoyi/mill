@@ -150,3 +150,7 @@ Whereas the `+` start a completely new selector path to which you can also provi
 <3> Selects the `run` command of all Java modules, but not test modules, and runs them with the parameter `hello`.
 <4> Runs `foo.run` with the parameter `hello` and `bar.run` with the parameter `world`.
 
+
+== `super` to select Overridden Tasks
+
+include::partial$example/cli/query/1-super.adoc[]
