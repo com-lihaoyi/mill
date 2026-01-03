@@ -1,0 +1,19 @@
+= Scripting on the JVM with Java, Scala, and Kotlin
+// tag::header[]
+:author: Li Haoyi
+:revdate: 24 September 2025
+
+_{author}, {revdate}_
+
+
+This article will explore use of JVM languages as scripting languages, replacing the Bash and
+Python scripts common throughout the industry. We will walk through examples of how the JVM's
+benefits of performance, compile-time safety, and vast library ecosystem are advantages over
+traditional script platforms, but also how language verbosity, build tool overhead, and lack
+of convenient libraries hampers the effort. Lastly we will demonstrate how script-focused
+tooling is able to smooth over some of those issues, simplifying build configuration and
+providing suitable libraries to make the JVM truly a world-class scripting environment as robust
+as any scripting language out there.
+
+// end::header[]
+
