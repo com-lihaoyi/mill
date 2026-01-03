@@ -39,7 +39,7 @@ object JvmWorkerMain {
       extends Server[Object, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
-        Locks.pid(daemonDir.toString),
+        Locks.forDirectory(daemonDir.toString),
         bufferSize = 4 * 1024
       )) {
     private val className = summon[TPrint[JvmWorkerTcpServer]].render(using TPrintColors.Colors)

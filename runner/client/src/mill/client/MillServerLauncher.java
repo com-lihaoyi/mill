@@ -57,7 +57,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
     Locks locks;
 
     if (memoryLock.isPresent()) locks = memoryLock.get();
-    else locks = Locks.pid(daemonDir.toString());
+    else locks = Locks.forDirectory(daemonDir.toString());
 
     log.accept("launchOrConnectToServer: " + locks);
 
