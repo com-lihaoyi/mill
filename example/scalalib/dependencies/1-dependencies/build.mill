@@ -40,7 +40,7 @@ Key: age, Value: 30
 
 > ./mill runMainBackground bar.Bar
 
-> curl http://localhost:8079
+> curl http://localhost:${PORT:-8080}
 <html><body>Hello World!</body></html>
 
 */

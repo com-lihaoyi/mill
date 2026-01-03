@@ -7,7 +7,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun main() {
-    embeddedServer(CIO, port = 8080) {
+    val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
+    embeddedServer(CIO, port = port) {
         routing {
             post("/reverse-string") {
                 val body = call.receiveText()

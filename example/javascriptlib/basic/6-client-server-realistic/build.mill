@@ -12,7 +12,7 @@ object server extends TypeScriptModule {
 
   def bundleExternal = super.bundleExternal() ++ Seq(ujson.Str("express"), ujson.Str("cors"))
 
-  def forkEnv = super.forkEnv() + ("PORT" -> "3001")
+  def forkEnv = super.forkEnv() + ("PORT" -> "3000")
 
   /** Bundle client as resource */
   def resources = Task {
