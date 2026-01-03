@@ -8,7 +8,6 @@ import mill.api.{
   ExternalModule,
   Module,
   Result,
-  Segment,
   Segments,
   SelectMode,
   Task
