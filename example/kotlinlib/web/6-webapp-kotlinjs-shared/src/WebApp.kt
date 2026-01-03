@@ -140,7 +140,7 @@ object WebApp {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val port = System.getenv("PORT")?.toIntOrNull() ?: 8093
+        val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
         embeddedServer(Netty, port = port, host = "0.0.0.0") {
             install(ContentNegotiation) {
                 json()

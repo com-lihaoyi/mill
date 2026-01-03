@@ -18,7 +18,7 @@ object WebApp extends IOApp.Simple {
   case class Todo(checked: Boolean, text: String)
 
   def run = mkService.toResource.flatMap { service =>
-    val port = Port.fromInt(sys.env.getOrElse("PORT", "8084").toInt).get
+    val port = Port.fromInt(sys.env.getOrElse("PORT", "8080").toInt).get
     EmberServerBuilder
       .default[IO]
       .withHttpApp(service)

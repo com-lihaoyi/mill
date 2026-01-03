@@ -10,7 +10,7 @@
 
 > ./mill runBackground
 
-> curl http://localhost:${PORT:-8085}
+> curl http://localhost:${PORT:-8080}
 ...<h1>Hello, World!</h1>...
 
 > ./mill clean runBackground

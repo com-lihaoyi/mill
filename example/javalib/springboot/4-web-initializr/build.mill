@@ -19,10 +19,10 @@
 
 > ./mill runBackground
 
-> curl http://localhost:${PORT:-8096}/hello
+> curl http://localhost:${PORT:-8080}/hello
 ...Hello, World!...
 
-> curl http://localhost:${PORT:-8096}/hello?name=Mill
+> curl http://localhost:${PORT:-8080}/hello?name=Mill
 ...Hello, Mill!...
 
 > ./mill clean runBackground

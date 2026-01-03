@@ -245,7 +245,7 @@ object WebApp {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val port = System.getenv("PORT")?.toIntOrNull() ?: 8092
+        val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
         embeddedServer(Netty, port = port, host = "0.0.0.0") {
             configureRoutes(this)
         }.start(wait = true)

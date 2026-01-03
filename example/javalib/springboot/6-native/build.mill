@@ -44,20 +44,20 @@ object `package` extends SpringBootModule, MavenModule {
 
 > ./mill native.nativeRunBackground
 
-> curl http://localhost:${PORT:-8099}/hello
+> curl http://localhost:${PORT:-8080}/hello
 ...Hello, World!...
 
-> curl http://localhost:${PORT:-8099}/hello?name=Mill
+> curl http://localhost:${PORT:-8080}/hello?name=Mill
 ...Hello, Mill!...
 
 > ./mill clean native.nativeRunBackground
 
 > ./mill prod.runBackground
 
-> curl http://localhost:${PORT:-8099}/hello
+> curl http://localhost:${PORT:-8080}/hello
 ...Hello, World!...
 
-> curl http://localhost:${PORT:-8099}/hello?name=Mill
+> curl http://localhost:${PORT:-8080}/hello?name=Mill
 ...Hello, Mill!...
 
 > ./mill clean prod.runBackground

@@ -92,7 +92,7 @@ trait MicronautModule extends MavenModule {
 
 > ./mill runBackground
 
-> curl http://localhost:${PORT:-8089}
+> curl http://localhost:${PORT:-8080}
  ...<h1>todos</h1>...
 
 > ./mill clean runBackground

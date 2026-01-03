@@ -19,7 +19,7 @@ public class HelloJetty extends AbstractHandler {
   }
 
   public static void main(String[] args) throws Exception {
-    int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8085"));
+    int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
     Server server = new Server(port);
     server.setHandler(new HelloJetty());
     server.start();
