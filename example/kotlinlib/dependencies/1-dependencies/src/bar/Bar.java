@@ -21,7 +21,8 @@ class BarServlet extends HttpServlet {
 
 public class Bar {
   public static void main(String[] args) throws Exception {
-    Server server = new Server(8079);
+    int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
+    Server server = new Server(port);
     ServletContextHandler context = new ServletContextHandler();
     context.setContextPath("/");
     server.setHandler(context);
