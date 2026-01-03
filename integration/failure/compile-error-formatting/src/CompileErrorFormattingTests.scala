@@ -6,7 +6,8 @@ import utest._
 
 object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
 
-  /** Check that a sequence of expected lines appears consecutively in the error output.
+  /**
+   * Check that a sequence of expected lines appears consecutively in the error output.
    * Each expected line must appear as a substring in a corresponding output line,
    * and they must appear in consecutive order. This verifies vertical alignment.
    */
@@ -18,7 +19,9 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
       }
     }
     if (!found) {
-      sys.error(s"Expected consecutive lines not found:\n${expected.mkString("\n")}\n\nIn output:\n$err")
+      sys.error(
+        s"Expected consecutive lines not found:\n${expected.mkString("\n")}\n\nIn output:\n$err"
+      )
     }
   }
 
@@ -79,7 +82,6 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
           )
         )
       }
-
 
       locally {
         val res = tester.eval("java-parse-semicolon.compile")
