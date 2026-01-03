@@ -10,7 +10,7 @@ import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
 import mill.javalib.worker.JvmWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker}
 import mill.javalib.worker.JvmWorkerRpcServer
-import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
+import mill.rpc.{MillRpcChannel, MillRpcClient}
 import mill.util.CachedFactoryBase
 
 import java.io.*
