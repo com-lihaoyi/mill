@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mill.api.*
-import mill.api.internal.{Reflect, Resolved, RootModule0}
+import mill.api.internal.{OverrideMapping, Reflect, Resolved, RootModule0}
 
 import java.lang.reflect.Method
 
@@ -112,6 +112,8 @@ private object ResolveCore {
     remainingQuery match {
       case Nil => Success(Seq(current))
       case head :: tail =>
+        lazy val currentNotFoundResult =
+          notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
         def recurse(searchModules: Seq[Resolved]): Result = {
           val (failures, successesLists) = searchModules
             .map { r =>
@@ -146,18 +148,57 @@ private object ResolveCore {
           else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
           else notFounds.size match {
             case 1 => notFounds.head
-            case _ =>
-              notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+            case _ => currentNotFoundResult
           }
 
         }
 
         (head, current) match {
+          // Handle super task resolution specially since it may consume tail for disambiguation
+          case (Segment.Label(s"$baseTaskName.super"), m: Resolved.Module) =>
+            val taskExists = Reflect
+              .reflect(
+                m.cls,
+                classOf[Task.Named[?]],
+                _ == baseTaskName,
+                noParams = true,
+                cache.getMethods
+              )
+              .nonEmpty
+
+            if (!taskExists) currentNotFoundResult
+            else {
+              resolveSuperTasks(
+                rootModule,
+                rootModulePrefix,
+                m.cls,
+                current.taskSegments,
+                baseTaskName,
+                tail, // remaining segments for disambiguation (e.g., "ParentModule")
+                rootModule.moduleCtx.discover
+              ) match {
+                case Nil =>
+                  val taskPath = (current.taskSegments ++ Segments.labels(baseTaskName)).render
+                  Error(mill.api.Result.Failure(
+                    s"Task $taskPath has no super tasks. " +
+                      s"Only overridden tasks have super tasks that can be invoked."
+                  ))
+
+                case Seq(single) => Success(Seq(single))
+                case multiple =>
+                  val options = multiple.map(t => t.superSuffix.get.getSimpleName).mkString(", ")
+                  Error(
+                    mill.api.Result.Failure(s"Ambiguous super task reference. Available: $options")
+                  )
+              }
+            }
+
           case (Segment.Label(singleLabel), m: Resolved.Module) =>
             val resOrErr: mill.api.Result[Seq[Resolved]] = singleLabel match {
               case "__" =>
                 val self =
                   Seq(Resolved.Module(rootModule, m.rootModulePrefix, m.taskSegments, m.cls))
+
                 val transitiveOrErr =
                   resolveTransitiveChildren(
                     rootModule,
@@ -245,9 +286,7 @@ private object ResolveCore {
                   querySoFar,
                   seenModules,
                   cache
-                ).getOrElse(
-                  notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
-                )
+                ).getOrElse(currentNotFoundResult)
             }
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
@@ -290,10 +329,9 @@ private object ResolveCore {
                       )
                   )
               }
+            } else currentNotFoundResult
 
-            } else notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
-
-          case _ => notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
+          case _ => currentNotFoundResult
         }
     }
   }
@@ -447,8 +485,8 @@ private object ResolveCore {
       direct.map {
         case (Resolved.Module(rootModule, rootModulePrefix, s, cls), _) =>
           Resolved.Module(rootModule, rootModulePrefix, segments ++ s, cls)
-        case (Resolved.NamedTask(rootModule, rootModulePrefix, s, enclosing), _) =>
-          Resolved.NamedTask(rootModule, rootModulePrefix, segments ++ s, enclosing)
+        case (Resolved.NamedTask(rootModule, rootModulePrefix, s, enclosing, superSuffix), _) =>
+          Resolved.NamedTask(rootModule, rootModulePrefix, segments ++ s, enclosing, superSuffix)
         case (Resolved.Command(rootModule, rootModulePrefix, s, enclosing), _) =>
           Resolved.Command(rootModule, rootModulePrefix, segments ++ s, enclosing)
       }
@@ -655,13 +693,69 @@ private object ResolveCore {
           None,
           current.taskSegments,
           cache = cache
-        ).toOption.get.map(
-          _.taskSegments.value.last
-        )
+        ).toOption.get.map(_.taskSegments.value.last)
 
       case _ => Set[Segment]()
     }
 
     NotFound(querySoFar, Set(current), next, possibleNexts.toSet)
   }
+
+  /**
+   * Resolve super tasks for CLI invocation.
+   *
+   * When a user types `foo.super` or `foo.super.ParentModule`, this function
+   * resolves the super task(s) for task `foo`.
+   */
+  def resolveSuperTasks(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      moduleCls: Class[?],
+      moduleSegments: Segments,
+      baseTaskName: String,
+      superSuffixSegments: List[Segment],
+      discover: Discover
+  ): Seq[Resolved.NamedTask] = {
+    val linearized = OverrideMapping.computeLinearization(moduleCls)
+
+    // Find all classes that declare this task
+    val declaring = linearized.filter { cls =>
+      discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(baseTaskName))
+    }
+
+    if (declaring.size <= 1) Nil // No overrides, no super tasks exist
+    else {
+      // The last class in `declaring` is the final override (not a super task)
+      // All others are potential super tasks
+      val superClasses = declaring.init
+
+      // Filter by the requested suffix if provided
+      val filteredClasses =
+        if (superSuffixSegments.isEmpty) superClasses
+        else {
+          // Match suffix against any unique suffix of the class name segments
+          // e.g., for class "mill.javalib.JavaModule", valid suffixes are:
+          // - "JavaModule"
+          // - "javalib.JavaModule"
+          // - "mill.javalib.JavaModule"
+          // Note: Inner classes use $ as separator, so we split on both . and $
+          val suffixNames = superSuffixSegments.collect { case Segment.Label(l) => l }
+          superClasses.filter { parentCls =>
+            val classSegments = parentCls.getName.split("[.$]").toSeq
+            classSegments.endsWith(suffixNames)
+          }
+        }
+
+      filteredClasses.map { parentCls =>
+        Resolved.NamedTask(
+          rootModule,
+          rootModulePrefix,
+          moduleSegments ++ Segments.labels(baseTaskName),
+          moduleCls,
+          superSuffix = Some(parentCls)
+        )
+      }
+    }
+  }
+
 }

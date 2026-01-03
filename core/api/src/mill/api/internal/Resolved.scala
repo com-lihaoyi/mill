@@ -49,6 +49,7 @@ private[mill] object Resolved {
       rootModule: RootModule0,
       rootModulePrefix: String,
       taskSegments: Segments,
-      cls: Class[?]
+      cls: Class[?],
+      superSuffix: Option[Class[?]] = None
   ) extends Resolved
 }
