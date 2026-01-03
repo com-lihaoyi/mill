@@ -1,11 +1,12 @@
-package mill.javalib.zinc
+package mill.javalib.worker
 
 import mill.api.JsonFormatters.*
 import mill.api.daemon.Logger
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.internal.*
-import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
-import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
+import mill.javalib.worker.JvmWorkerRpcServer.ReporterMode
+import mill.javalib.zinc.ZincWorker
+import mill.javalib.worker.JvmWorkerRpcServer
 import mill.rpc.*
 import mill.server.Server
 import org.apache.logging.log4j.core.util.NullOutputStream
@@ -14,18 +15,18 @@ import upickle.ReadWriter
 
 import java.io.PrintStream
 
-class ZincWorkerRpcServer(
+class JvmWorkerRpcServer(
     worker: ZincWorker,
     serverName: String,
     transport: MillRpcWireTransport,
     setIdle: Server.SetIdle,
     writeToLocalLog: String => Unit
 ) extends MillRpcServer[
-      ZincWorkerRpcServer.Initialize,
-      ZincWorkerRpcServer.Request,
-      ZincWorkerRpcServer.ServerToClient
+      JvmWorkerRpcServer.Initialize,
+      JvmWorkerRpcServer.Request,
+      JvmWorkerRpcServer.ServerToClient
     ](serverName, transport, writeToLocalLog) {
-  import ZincWorkerRpcServer.*
+  import JvmWorkerRpcServer.*
 
   override def initialize(
       initialize: Initialize,
@@ -33,7 +34,7 @@ class ZincWorkerRpcServer(
       clientStdout: RpcConsole,
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
-  ): MillRpcChannel[ZincWorkerRpcServer.Request] = setIdle.doWork {
+  ): MillRpcChannel[JvmWorkerRpcServer.Request] = setIdle.doWork {
     // This is an ugly hack. `ConsoleOut` is sealed, but we need to provide a way to send these logs to the Mill server
     // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
     //
@@ -49,11 +50,11 @@ class ZincWorkerRpcServer(
       case ReporterMode.NoReporter => None
       case r: ReporterMode.Reporter =>
         def send(msg: RpcProblemMessage) = serverToClient(ServerToClient.ReportProblem(msg))
-        Some(RpcCompileProblemReporter(r.maxErrors, send))
+        Some(mill.javalib.zinc.RpcCompileProblemReporter(r.maxErrors, send))
     }
 
-    new MillRpcChannel[ZincWorkerRpcServer.Request] {
-      override def apply(input: ZincWorkerRpcServer.Request): input.Response = {
+    new MillRpcChannel[JvmWorkerRpcServer.Request] {
+      override def apply(input: JvmWorkerRpcServer.Request): input.Response = {
         setIdle.doWork {
           worker.apply(
             op = input.op,
@@ -79,7 +80,7 @@ class ZincWorkerRpcServer(
   }
 }
 
-object ZincWorkerRpcServer {
+object JvmWorkerRpcServer {
 
   /**
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.

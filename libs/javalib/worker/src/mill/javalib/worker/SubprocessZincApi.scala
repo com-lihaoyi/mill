@@ -6,8 +6,9 @@ import mill.client.lock.Locks
 import mill.client.{LaunchedServer, ServerLauncher}
 import mill.javalib.api.internal.*
 import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
-import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
-import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
+import mill.javalib.worker.JvmWorkerRpcServer.ReporterMode
+import mill.javalib.zinc.{ZincApi, ZincWorker}
+import mill.javalib.worker.JvmWorkerRpcServer
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
 import mill.util.CachedFactoryBase
 
@@ -44,13 +45,13 @@ class SubprocessZincApi(
   /** Handles messages sent from the Zinc RPC server. */
   private def serverRpcToClientHandler(
       reporter: Option[CompileProblemReporter]
-  ): MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = {
+  ): MillRpcChannel[JvmWorkerRpcServer.ServerToClient] = {
     input =>
       input match {
-        case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
+        case msg: JvmWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
           compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization)
             .asInstanceOf[input.Response]
-        case msg: ZincWorkerRpcServer.ServerToClient.ReportProblem =>
+        case msg: JvmWorkerRpcServer.ServerToClient.ReportProblem =>
           val res =
             reporter match {
               case Some(reporter) => msg.problem match {
@@ -81,7 +82,7 @@ class SubprocessZincApi(
       cacheKey,
       SubprocessZincApi.Initialize(compilerBridge.workspace, log)
     ) {
-      case SubprocessZincApi.Value(port, _, _, _) =>
+      case SubprocessZincApi.Value(port, daemonDir, _, _) =>
         Using.Manager { use =>
           val socket = new java.net.Socket(java.net.InetAddress.getLoopbackAddress(), port)
           val debugName =
@@ -98,19 +99,20 @@ class SubprocessZincApi(
                   debugName,
                   serverToClient,
                   clientToServer,
-                  writeSynchronizer = clientToServer
+                  writeSynchronizer = clientToServer,
+                  logDir = Some(daemonDir)
                 )
 
               val init =
-                ZincWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
+                JvmWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
 
               val client = MillRpcClient.create[
-                ZincWorkerRpcServer.Initialize,
-                ZincWorkerRpcServer.Request,
-                ZincWorkerRpcServer.ServerToClient
+                JvmWorkerRpcServer.Initialize,
+                JvmWorkerRpcServer.Request,
+                JvmWorkerRpcServer.ServerToClient
               ](init, wireTransport, makeClientLogger())(serverRpcToClientHandler(reporter))
 
-              client.apply(ZincWorkerRpcServer.Request(
+              client.apply(JvmWorkerRpcServer.Request(
                 op,
                 reporter match {
                   case None => ReporterMode.NoReporter
