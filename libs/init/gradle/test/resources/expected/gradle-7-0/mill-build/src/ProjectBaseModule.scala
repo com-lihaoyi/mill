@@ -1,11 +1,12 @@
 package millbuild
 import mill.*
+import mill.api.opt.*
 import mill.javalib.*
 trait ProjectBaseModule extends MavenModule {
 
   def depManagement = Seq(Deps.commonsText)
 
-  def javacOptions = Seq("-source", "11", "-target", "11")
+  def javacOptions = Opts("-source", "11", "-target", "11")
 
   trait Tests extends MavenTests, TestModule.Junit5 {
 
@@ -21,7 +22,7 @@ trait ProjectBaseModule extends MavenModule {
 
     def bomMvnDeps = Seq(Deps.junitBom)
 
-    def javacOptions = Seq("-source", "11", "-target", "11")
+    def javacOptions = Opts("-source", "11", "-target", "11")
 
     def forkWorkingDir = moduleDir
 

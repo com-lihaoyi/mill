@@ -2,13 +2,14 @@
 //| mill-jvm-version: system
 package build
 import mill.*
+import mill.api.opt.*
 import mill.javalib.*
 import millbuild.*
 object `package` extends MavenModule {
 
   def mvnDeps = Seq(Deps.guava)
 
-  def javacOptions = Seq("-source", "11", "-target", "11")
+  def javacOptions = Opts("-source", "11", "-target", "11")
 
   def repositories = Seq("https://jcenter.bintray.com/")
 
@@ -16,7 +17,7 @@ object `package` extends MavenModule {
 
     def mvnDeps = Seq(Deps.testng)
 
-    def javacOptions = Seq("-source", "11", "-target", "11")
+    def javacOptions = Opts("-source", "11", "-target", "11")
 
     def forkWorkingDir = moduleDir
 

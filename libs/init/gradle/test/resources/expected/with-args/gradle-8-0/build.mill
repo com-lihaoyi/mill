@@ -2,6 +2,7 @@
 //| mill-jvm-version: system
 package build
 import mill.*
+import mill.api.opt.*
 import mill.javalib.*
 import mill.javalib.errorprone.ErrorProneModule
 object `package` extends Module {
@@ -14,7 +15,7 @@ object `package` extends Module {
 
     def depManagement = Seq(mvn"org.apache.commons:commons-text:1.9")
 
-    def javacOptions = Seq("-source", "17", "-target", "17")
+    def javacOptions = Opts("-source", "17", "-target", "17")
 
     object test extends MavenTests, TestModule.Junit5 {
 
@@ -24,7 +25,7 @@ object `package` extends Module {
 
       def bomMvnDeps = Seq(mvn"org.junit:junit-bom:5.9.1")
 
-      def javacOptions = Seq("-source", "17", "-target", "17")
+      def javacOptions = Opts("-source", "17", "-target", "17")
 
       def forkWorkingDir = moduleDir
 
@@ -39,7 +40,7 @@ object `package` extends Module {
 
     def depManagement = Seq(mvn"org.apache.commons:commons-text:1.9")
 
-    def javacOptions = Seq("-source", "17", "-target", "17")
+    def javacOptions = Opts("-source", "17", "-target", "17")
 
     def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 
@@ -54,7 +55,7 @@ object `package` extends Module {
 
       def bomMvnDeps = Seq(mvn"org.junit:junit-bom:5.9.1")
 
-      def javacOptions = Seq("-source", "17", "-target", "17")
+      def javacOptions = Opts("-source", "17", "-target", "17")
 
       def forkWorkingDir = moduleDir
 
@@ -79,7 +80,7 @@ object `package` extends Module {
 
     def depManagement = Seq(mvn"org.apache.commons:commons-text:1.9")
 
-    def javacOptions = Seq("-source", "17", "-target", "17")
+    def javacOptions = Opts("-source", "17", "-target", "17")
 
     def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 

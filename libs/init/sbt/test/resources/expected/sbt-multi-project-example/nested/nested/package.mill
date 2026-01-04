@@ -1,5 +1,6 @@
 package build.nested.nested
 import mill.*
+import mill.api.opt.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
@@ -8,7 +9,7 @@ object `package` extends ProjectBaseModule {
 
   def mvnDeps = Seq(Deps.nettyTransportNativeEpoll)
 
-  def scalacOptions = super.scalacOptions() ++ Seq("-encoding", "utf8")
+  def scalacOptions = super.scalacOptions() ++ Opts("-encoding", "utf8")
 
   def artifactName = "nested"
 
