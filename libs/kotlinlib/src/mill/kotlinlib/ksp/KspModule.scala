@@ -85,7 +85,8 @@ trait KspModule extends KotlinModule { outer =>
    */
   def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      kotlinSymbolProcessors()
+      kotlinSymbolProcessors(),
+      boms = allBomDeps()
     )
   }
 

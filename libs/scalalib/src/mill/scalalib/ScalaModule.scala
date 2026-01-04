@@ -427,10 +427,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def consoleScalacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
-  /**
-   * Opens up a Scala console with your module and all dependencies present,
-   * for you to test and operate your code interactively.
-   */
+  /** Use `repl` instead */
   def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
     Task.Command(exclusive = true) {
       if (!mill.constants.Util.hasConsole()) {
@@ -438,13 +435,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       } else {
         val useJavaCp = "-usejavacp"
 
+        // Workaround for https://github.com/scala/scala3/issues/20421
+        // Remove module-info.class from classpath entries to fix REPL autocomplete
+        val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
+          ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
+        }
+
         Jvm.callProcess(
           mainClass =
-            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion()))
-              "dotty.tools.repl.Main"
-            else
-              "scala.tools.nsc.MainGenericRunner",
-          classPath = runClasspath().map(_.path) ++ scalaConsoleClasspath().map(_.path),
+            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
+            else "scala.tools.nsc.MainGenericRunner",
+          classPath = classPath,
           jvmArgs = forkArgs().toStringSeq,
           env = allForkEnv().toStringMap,
           mainArgs =
@@ -512,30 +513,35 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     }
   }
 
-  /**
-   * Opens up an Ammonite Scala REPL with your module and all dependencies present,
-   * for you to test and operate your code interactively.
-   * Use [[ammoniteVersion]] to customize the Ammonite version to use.
-   */
-  def repl(replOptions: String*): Command[Unit] = Task.Command(exclusive = true) {
-    if (Task.log.streams.in == DummyInputStream) {
-      Task.fail("repl needs to be run with the -i/--interactive flag")
-    } else {
-      val mainClass = ammoniteMainClass()
-      Task.log.debug(s"Using ammonite main class: ${mainClass}")
-      Jvm.callProcess(
-        mainClass = mainClass,
-        classPath = ammoniteReplClasspath().map(_.path).toVector,
-        jvmArgs = forkArgs().toStringSeq,
-        env = allForkEnv().toStringMap,
-        mainArgs = replOptions,
-        cwd = forkWorkingDir(),
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
-      ()
-    }
+  /** Set to `true` to use Ammonite for the `repl` command rather than the builtin Scala REPL */
+  def ammoniteRepl = false
 
+  /**
+   * Opens up a Scala REPL with your module and all dependencies present,
+   * for you to test and operate your code interactively.
+   */
+  def repl(replOptions: String*): Command[Unit] = {
+    if (ammoniteRepl) {
+      Task.Command(exclusive = true) {
+        if (Task.log.streams.in == DummyInputStream) {
+          Task.fail("repl needs to be run with the -i/--interactive flag")
+        } else {
+          val mainClass = ammoniteMainClass()
+          Task.log.debug(s"Using ammonite main class: ${mainClass}")
+          Jvm.callProcess(
+            mainClass = mainClass,
+            classPath = ammoniteReplClasspath().map(_.path).toVector,
+            jvmArgs = forkArgs().toStringSeq,
+            env = allForkEnv().toStringMap,
+            mainArgs = replOptions,
+            cwd = forkWorkingDir(),
+            stdin = os.Inherit,
+            stdout = os.Inherit
+          )
+          ()
+        }
+      }
+    } else console(mill.api.Args(replOptions))
   }
 
   /**
@@ -714,5 +720,33 @@ object ScalaModule {
     override def scalacOptions: T[Opts] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Opts] =
       Task { super.mandatoryScalacOptions() }
+  }    
+    
+  /**
+   * Workaround for https://github.com/scala/scala3/issues/20421
+   * Strips module-info.class from a classpath entry (jar or directory) to fix
+   * Scala 3 REPL autocomplete issues with JPMS modules.
+   */
+  private def stripModuleInfo(dest: os.Path, path: os.Path): os.Path = {
+    // Use path hash to avoid collisions when multiple entries have the same filename
+    val uniqueDestPath = {
+      val hash = path.toString.hashCode.toHexString
+      dest / s"${path.baseName}-$hash-module-info-stripped-${path.ext}"
+    }
+
+    val moduleInfoClass = os.sub / "module-info.class"
+    if (os.isDir(path) && os.exists(path / moduleInfoClass)) {
+      os.copy(path, uniqueDestPath)
+      os.remove(uniqueDestPath / moduleInfoClass)
+      uniqueDestPath
+    } else if (
+      os.isFile(path) &&
+      path.ext == "jar" &&
+      os.unzip.list(path).contains(moduleInfoClass)
+    ) {
+      os.copy(path, uniqueDestPath)
+      Using.resource(os.zip.open(uniqueDestPath)) { fs => os.remove(fs / moduleInfoClass) }
+      uniqueDestPath
+    } else path
   }
 }

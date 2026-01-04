@@ -1,7 +1,5 @@
 package millbuild
-
 import mill.javalib.*
-
 object Deps {
 
   val osLib = mvn"com.lihaoyi::os-lib:0.11.5"

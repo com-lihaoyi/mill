@@ -1,36 +1,39 @@
 = Linting Java Projects
 :page-aliases: Linting_Java_Projects.adoc
 :page-aliases: Plugin_ErrorProne.adoc
-
-
+:language: Java
+:language-small: java
 
 This page will discuss common topics around enforcing the code quality of Java
 codebases using the Mill build tool
 
+== Basic Linting Configuration
+
+include::partial$example/javalib/linting/1-linting.adoc[]
 
 == Linting with ErrorProne
 
-include::partial$example/javalib/linting/1-error-prone.adoc[]
+include::partial$example/javalib/linting/2-error-prone.adoc[]
 
 == Linting with Checkstyle
 
-include::partial$example/javalib/linting/2-checkstyle.adoc[]
+include::partial$example/javalib/linting/3-checkstyle.adoc[]
 
 == Static analysis with PMD
 
-include::partial$example/javalib/linting/6-pmd.adoc[]
+include::partial$example/javalib/linting/7-pmd.adoc[]
 
 == AutoFormatting with Palantir Java Format
 
-include::partial$example/javalib/linting/3-palantirformat.adoc[]
+include::partial$example/javalib/linting/4-palantirformat.adoc[]
 
 == Auto-formatting with Spotless
 
-include::partial$example/javalib/linting/4-spotless.adoc[]
+include::partial$example/javalib/linting/5-spotless.adoc[]
 
 === Ratchet
 
-include::partial$example/javalib/linting/5-spotless-ratchet.adoc[]
+include::partial$example/javalib/linting/6-spotless-ratchet.adoc[]
 
 == Code Coverage with Jacoco
 

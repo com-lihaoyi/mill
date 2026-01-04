@@ -1,23 +1,29 @@
 package mill.main.gradle
 
 import mill.main.buildgen.*
-import mill.main.buildgen.ModuleConfig.*
+import mill.main.buildgen.ModuleSpec.*
+import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.*
-import org.gradle.api.artifacts.repositories.{ArtifactRepository, UrlArtifactRepository}
+import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.artifacts.repositories.UrlArtifactRepository
+import org.gradle.api.attributes.Category
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.*
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.api.{Project, Task}
-import org.gradle.tooling.provider.model.{ToolingModelBuilder, ToolingModelBuilderRegistry}
+import org.gradle.api.tasks.testing.Test
+import org.gradle.tooling.provider.model.ToolingModelBuilder
 
-import java.io.File
-import javax.inject.Inject
 import scala.jdk.CollectionConverters.*
 import scala.reflect.TypeTest
+import scala.util.Try
 
-class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends ToolingModelBuilder {
+class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, workspace: os.Path)
+    extends ToolingModelBuilder {
 
   def canBuild(modelName: String) = classOf[BuildModel].getName == modelName
 
@@ -33,172 +39,202 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
   private def toPackage(project0: Project): PackageSpec = {
     import project0.*
     val moduleDir = os.Path(getProjectDir)
-    val segments = moduleDir.subRelativeTo(workspace).segments
-
-    def isBom(dep: ExternalDependency) = isBomDep(dep.getGroup, dep.getName)
-    def configurations(names: Seq[String]) = getConfigurations.asScala
-      .filter(config => names.contains(config.getName))
-    def mvnDeps(configs: String*) = configurations(configs)
-      .flatMap(config =>
-        config.getDependencies.asScala.collect {
-          case dep: ExternalDependency if !isBom(dep) => toMvnDep(dep, config)
-        }
-      )
-      .toSeq
-    def bomMvnDeps(configs: String*) = configurations(configs)
-      .flatMap(config =>
-        config.getDependencies.asScala.collect {
-          case dep: ExternalDependency if isBom(dep) => toMvnDep(dep, config)
-        }
-      )
-      .toSeq
-    def moduleDeps(configs: String*) = configurations(configs)
-      .flatMap(_.getDependencies.asScala.collect {
-        case dep: ProjectDependency => toModuleDep(dep)
-      })
-      .filter(_.segments != segments)
-      .toSeq
-    def task[T](name: String)(using T: TypeTest[Task, T]) = getTasks.findByName(name) match {
-      case T(t) => Some(t)
-      case _ => None
-    }
-    def javacOptionsFromTask(task: JavaCompile) = {
-      val compatOptions = ctx.releaseVersion(task.getOptions).fold(
-        // When not configured explicitly, "-source" and "-target" default to the
-        // `languageVersion` of the Java toolchain.
-        Option(task.getSourceCompatibility).fold(Nil)(Seq("-source", _)) ++
-          Option(task.getTargetCompatibility).fold(Nil)(Seq("-target", _))
-      )(n => Seq("--release", n.toString))
-      compatOptions ++
-        Option(task.getOptions.getEncoding).fold(Nil)(Seq("-encoding", _)) ++
-        task.getOptions.getAllCompilerArgs.asScala.toSeq
-    }
-
-    val skipRepositories = Seq(
-      getRepositories.mavenCentral(),
-      getRepositories.mavenLocal(),
-      getRepositories.gradlePluginPortal()
-    ).collect(toRepositoryUrlString)
-    val mainCoursierModule = getRepositories.asScala.collect(toRepositoryUrlString)
-      .distinct.toSeq.diff(skipRepositories) match {
-      case Nil => None
-      case repositories => Some(CoursierModule(repositories = repositories))
-    }
-    val errorProneDeps = mvnDeps("errorprone")
-    val (mainErrorProneModule, mainJavacOptions) = ErrorProneModule.find(
-      task[JavaCompile]("compileJava").fold(Nil)(javacOptionsFromTask),
-      errorProneDeps
+    var mainModule = ModuleSpec(
+      name = moduleDir.last,
+      repositories = getRepositories.asScala.toSeq.collect(toRepositoryUrlString).distinct
+        .diff(Seq(
+          getRepositories.mavenCentral,
+          getRepositories.mavenLocal,
+          getRepositories.gradlePluginPortal
+        ).collect(toRepositoryUrlString))
     )
-    val javaPluginExtension = Option(getExtensions.findByType(classOf[JavaPluginExtension]))
-    val mainJavaHomeModule =
-      javaPluginExtension.flatMap(ext =>
-        JavaHomeModule.find(ctx.javaVersion(ext), mainJavacOptions)
+
+    if (getPluginManager.hasPlugin("java-platform")) {
+      val configs = getConfigurations.asScala.toSeq
+      val deps = configs.flatMap(_.getDependencies.asScala)
+      val constraints = configs.flatMap(_.getDependencyConstraints.asScala)
+      mainModule = mainModule.copy(
+        imports = "import mill.javalib.*" +: mainModule.imports,
+        supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
+        bomMvnDeps = deps.filter(isBom).collect(toMvnDep),
+        depManagement = constraints.collect(toMvnDep),
+        moduleDeps = constraints.collect(toModuleDep),
+        bomModuleDeps = deps.filter(isBom).collect(toModuleDep)
       )
-    val mavenPublication = Option(getExtensions.findByType(classOf[PublishingExtension]))
-      .flatMap(ext => ext.getPublications.withType(classOf[MavenPublication]).asScala.headOption)
-    val mainJavaModule = Option.when(getPluginManager.hasPlugin("java")) {
-      JavaModule(
+    } else if (getPluginManager.hasPlugin("java")) {
+      val configs = getConfigurations.asScala.toSeq
+      def deps(configNames: String*) = configs
+        .filter(config => configNames.contains(config.getName))
+        .flatMap(_.getDependencies.asScala)
+      def mvnDeps(configNames: String*) = deps(configNames*).filterNot(isBom).collect(toMvnDep)
+      def moduleDeps(configNames: String*) =
+        deps(configNames*).filterNot(isBom).collect(toModuleDep)
+      val (testConfigs, mainConfigs) = configs.partition(_.getName.startsWith("test"))
+      val mainBomDeps = mainConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
+      val mainConstraints = mainConfigs.flatMap(_.getDependencyConstraints.asScala)
+      def task[T](name: String)(using T: TypeTest[Task, T]) = getTasks.findByName(name) match {
+        case T(t) => Some(t)
+        case _ => None
+      }
+      val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
+      mainModule = mainModule.copy(
+        imports = "import mill.javalib.*" +: mainModule.imports,
+        supertypes = "MavenModule" +: mainModule.supertypes,
         mvnDeps = mvnDeps("implementation", "api"),
         compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
         runMvnDeps = mvnDeps("runtimeOnly"),
-        bomMvnDeps = bomMvnDeps("implementation", "api"),
+        bomMvnDeps = mainBomDeps.collect(toMvnDep),
+        depManagement = mainConstraints.collect(toMvnDep),
+        javacOptions = task[JavaCompile]("compileJava").fold(Nil)(javacOptions),
         moduleDeps = moduleDeps("implementation", "api"),
         compileModuleDeps = moduleDeps("compileOnly", "compileOnlyApi"),
         runModuleDeps = moduleDeps("runtimeOnly"),
-        javacOptions = mainJavacOptions,
-        artifactName = mavenPublication.fold(null)(_.getArtifactId)
-      )
-    }
-    val mainPublishModule = mavenPublication.map { pub =>
-      PublishModule(
-        pomPackagingType = PublishModule.pomPackagingTypeOverride(pub.getPom.getPackaging),
-        pomSettings = toPomSettings(pub.getPom, pub.getGroupId),
-        publishVersion = getVersion.toString
-      )
-    }
+        bomModuleDeps = mainBomDeps.collect(toModuleDep)
+      ).withErrorProneModule(mvnDeps("errorprone"))
 
-    val testModule = if (os.exists(moduleDir / "src/test")) {
-      TestModule.mixin(mvnDeps("testImplementation")).map { testModuleMixin =>
-        val (testErrorProneModule, testJavacOptions) = ErrorProneModule.find(
-          task[JavaCompile]("compileTestJava").fold(Nil)(javacOptionsFromTask),
-          errorProneDeps
-        )
-        val testJavaModule = JavaModule(
+      if (os.exists(moduleDir / "src/test")) {
+        val testMixin = ModuleSpec.testModuleMixin(configs.find(_.getName == "testRuntimeClasspath")
+          .fold(Nil)(_.getAllDependencies.asScala.toSeq.collect(toMvnDep)))
+        val testBomDeps = testConfigs.flatMap(_.getDependencies.asScala).filter(isBom)
+        val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
+        var testModule = ModuleSpec(
+          name = "test",
+          supertypes = Seq("MavenTests"),
+          mixins = testMixin.toSeq,
+          forkArgs = task[Test]("test").fold(Nil) { task =>
+            task.getSystemProperties.asScala.map {
+              case (k, v) => Opt(s"-D$k=$v")
+            }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
+          },
+          forkWorkingDir = Some(os.rel),
           mvnDeps = mvnDeps("testImplementation"),
           compileMvnDeps = mvnDeps("testCompileOnly"),
           runMvnDeps = mvnDeps("testRuntimeOnly"),
-          bomMvnDeps = bomMvnDeps("testImplementation"),
-          moduleDeps = moduleDeps("testImplementation"),
+          bomMvnDeps = testBomDeps.collect(toMvnDep),
+          depManagement = testConstraints.collect(toMvnDep),
+          javacOptions = task[JavaCompile]("compileTestJava").fold(Nil)(javacOptions),
+          moduleDeps = Values(
+            moduleDeps("testImplementation")
+              .diff(Seq(ModuleDep(moduleDir.subRelativeTo(workspace).segments))),
+            appendSuper = true
+          ),
           compileModuleDeps = moduleDeps("testCompileOnly"),
           runModuleDeps = moduleDeps("testRuntimeOnly"),
-          javacOptions = inheritedOptions(testJavacOptions, mainJavacOptions)
-        )
-        val testModule = TestModule(
-          testParallelism = "false",
-          testSandboxWorkingDir = "false"
-        )
-        val testConfigs = Seq(testJavaModule) ++ testErrorProneModule ++ Seq(testModule)
-        val testSupertypes = "MavenTests" +: testConfigs.collect {
-          case _: ErrorProneModule => "ErrorProneModule"
+          bomModuleDeps = testBomDeps.collect(toModuleDep),
+          testParallelism = Some(false),
+          testSandboxWorkingDir = Some(false),
+          testFramework = Option.when(testMixin.isEmpty)("")
+        ).withErrorProneModule(mainModule.errorProneDeps.base)
+        if (testMixin.contains("TestModule.Junit5")) {
+          testModule.mvnDeps.base.collectFirst {
+            case dep if dep.organization == "org.junit.jupiter" && dep.version.nonEmpty =>
+              val junitVersion = dep.version
+              testModule = testModule.withJupiterInterface(junitVersion)
+              val launcherDep = testModule.runMvnDeps.base.find(
+                _.is("org.junit.platform", "junit-platform-launcher")
+              )
+              if (launcherDep.forall(_.version.isEmpty)) {
+                if (launcherDep.isEmpty) {
+                  testModule = testModule.copy(runMvnDeps =
+                    testModule.runMvnDeps.base :+
+                      MvnDep("org.junit.platform", "junit-platform-launcher", "")
+                  )
+                }
+                testModule = testModule.copy(bomMvnDeps =
+                  testModule.bomMvnDeps.base.appended(
+                    MvnDep("org.junit", "junit-bom", junitVersion)
+                  ).distinct
+                )
+              }
+          }
         }
-        ModuleSpec(
-          name = "test",
-          supertypes = testSupertypes,
-          mixins = Seq(testModuleMixin),
-          configs = testConfigs
-        )
+        mainModule = mainModule.copy(children = Seq(testModule))
       }
-    } else None
+    }
 
-    val mainConfigs = Seq(
-      mainJavaModule,
-      mainErrorProneModule,
-      mainJavaHomeModule,
-      mainPublishModule,
-      mainCoursierModule
-    ).flatten
-    val mainModule = if (mainConfigs.isEmpty && testModule.isEmpty) ModuleSpec(moduleDir.last)
-    else {
-      val mainSupertypes = "MavenModule" +: mainConfigs.collect {
-        case _: PublishModule => "PublishModule"
-        case _: ErrorProneModule => "ErrorProneModule"
-      }
-      ModuleSpec(
-        name = moduleDir.last,
-        supertypes = mainSupertypes,
-        configs = mainConfigs,
-        nestedModules = testModule.toSeq
+    for {
+      pubExt <- Option(getExtensions.findByType(classOf[PublishingExtension]))
+      pub <- pubExt.getPublications.withType(classOf[MavenPublication]).asScala.headOption
+      pom = Option(pub.getPom)
+    } do {
+      mainModule = mainModule.copy(
+        imports = "import mill.javalib.*" +: "import mill.javalib.publish.*" +: mainModule.imports,
+        supertypes = mainModule.supertypes :+ "PublishModule",
+        artifactName = Option(pub.getArtifactId),
+        pomPackagingType = pom.flatMap(toPomPackagingType),
+        pomSettings = pom.map(toPomSettings(_, pub.getGroupId)),
+        publishVersion = Option(getVersion).map(_.toString)
       )
     }
 
-    PackageSpec(segments, mainModule)
+    PackageSpec(moduleDir.subRelativeTo(workspace), mainModule)
   }
 
   private val toRepositoryUrlString: PartialFunction[ArtifactRepository, String] = {
     case repo: UrlArtifactRepository => repo.getUrl.toURL.toExternalForm
   }
 
-  private def toMvnDep(dep: ExternalDependency, config: Configuration): MvnDep = {
-    import dep.*
-    val artifact = getArtifacts.asScala.headOption
-    MvnDep(
-      organization = getGroup,
-      name = getName,
-      version = Option(getVersion).orElse {
-        config.getAllDependencyConstraints.asScala.collectFirst {
-          case dc if dc.getGroup == getGroup || dc.getName == getName => dc.getVersion
-        }
-      },
-      classifier = artifact.flatMap(a => Option(a.getClassifier)),
-      `type` = artifact.flatMap(a => Option(a.getType)),
-      excludes = getExcludeRules.asScala.map(rule => rule.getGroup -> rule.getModule).toSeq
-    )
+  private val platform = objectFactory.named(classOf[Category], Category.REGULAR_PLATFORM)
+  private val enforcedPlatform = objectFactory.named(classOf[Category], Category.ENFORCED_PLATFORM)
+  private def isBom(dep: Dependency | DependencyConstraint) = dep match {
+    case dep: ModuleDependency =>
+      val category = dep.getAttributes.getAttribute(Category.CATEGORY_ATTRIBUTE)
+      category == platform || category == enforcedPlatform
+    case dep: DependencyConstraint =>
+      val category = dep.getAttributes.getAttribute(Category.CATEGORY_ATTRIBUTE)
+      category == platform || category == enforcedPlatform
+    case _ => false
   }
 
-  private def toModuleDep(dep: ProjectDependency): ModuleDep =
-    ModuleDep(
-      os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace).segments
-    )
+  private def toCoursierVersionConstraint(version: String) = version match {
+    case null => ""
+    case s"]${range}[" => s"($range)"
+    case s"]${range}" => s"($range"
+    case s"${range}[" => s"$range)"
+    case s => s
+  }
+  private val toMvnDep: PartialFunction[Dependency | DependencyConstraint, MvnDep] = {
+    case dep: ExternalDependency =>
+      import dep.*
+      val artifact = getArtifacts.asScala.headOption
+      MvnDep(
+        organization = getGroup,
+        name = getName,
+        version = toCoursierVersionConstraint(getVersion),
+        classifier = artifact.flatMap(a => Option(a.getClassifier)),
+        `type` = artifact.flatMap(_.getType match {
+          case null | "jar" | "pom" => None
+          case tpe => Some(tpe)
+        }),
+        excludes = getExcludeRules.asScala.map(rule => rule.getGroup -> rule.getModule).toSeq
+      )
+    case dep: DependencyConstraint if !dep.isInstanceOf[DefaultProjectDependencyConstraint] =>
+      import dep.*
+      MvnDep(
+        organization = getGroup,
+        name = getName,
+        version = toCoursierVersionConstraint(getVersion)
+      )
+  }
+
+  private val toModuleDep: PartialFunction[Dependency | DependencyConstraint, ModuleDep] = {
+    case dep: ProjectDependency =>
+      ModuleDep(os.Path(ctx.project(dep).getProjectDir).subRelativeTo(workspace).segments)
+    case dep: DefaultProjectDependencyConstraint =>
+      toModuleDep(dep.getProjectDependency)
+  }
+
+  private def javacOptions(task: JavaCompile) = {
+    ctx.releaseVersion(task.getOptions).fold(Seq(
+      Option(task.getSourceCompatibility).map(Opt("-source", _)),
+      Option(task.getTargetCompatibility).map(Opt("-target", _))
+    ).flatten)(n => Seq(Opt("--release", n.toString))) ++
+      Option(task.getOptions.getEncoding).map(Opt("-encoding", _)) ++
+      Opt.groups(task.getOptions.getAllCompilerArgs.asScala.toSeq)
+  }
+
+  private def toPomPackagingType(pom: MavenPom): Option[String] =
+    Try(pom.getPackaging).filter(_ != "jar").toOption
 
   private def toPomSettings(pom: MavenPom, groupId: String): PomSettings = {
     import pom.*
@@ -212,9 +248,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
       case _ => (Nil, VersionControl(), Nil)
     }
     PomSettings(
-      description = Option(getDescription.getOrNull),
-      organization = Option(groupId),
-      url = Option(getUrl.getOrNull),
+      description = getDescription.getOrElse(""),
+      organization = groupId,
+      url = getUrl.getOrElse(""),
       licenses = licenses,
       versionControl = versionControl,
       developers = developers
@@ -224,9 +260,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
   private def toLicense(license: MavenPomLicense): License = {
     import license.*
     License(
-      name = getName.getOrNull,
-      url = getUrl.getOrNull,
-      distribution = getDistribution.getOrNull
+      name = getName.getOrElse(""),
+      url = getUrl.getOrElse(""),
+      distribution = getDistribution.getOrElse("")
     )
   }
 
@@ -245,9 +281,9 @@ class BuildModelBuilder(ctx: GradleBuildCtx, workspace: os.Path) extends Tooling
   private def toDeveloper(developer: MavenPomDeveloper): Developer = {
     import developer.*
     Developer(
-      id = getId.getOrNull,
-      name = getName.getOrNull,
-      url = getUrl.getOrNull,
+      id = getId.getOrElse(""),
+      name = getName.getOrElse(""),
+      url = getUrl.getOrElse(""),
       organization = Option(getOrganization.getOrNull),
       organizationUrl = Option(getOrganizationUrl.getOrNull)
     )

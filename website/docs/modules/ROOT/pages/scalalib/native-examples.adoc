@@ -8,9 +8,9 @@ gtag('config', 'AW-16649289906');
 ++++
 
 
-This page contains examples of using Mill as a build tool for scala-native applications.
-It covers setting up a basic scala-native application that calls C function within it,
-as well as example of two modules with a scala-native application.
+This page contains examples of using Mill as a build tool for Scala Native applications.
+It covers setting up a basic Scala Native application that calls C functions within it,
+as well as an example of two modules with a Scala Native application.
 
 == Simple
 

@@ -1069,6 +1069,11 @@ trait JavaModule
    * Resolved dependencies
    */
   def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+    if (resolvedDepsWarnNonPlatform()) {
+      Dep.validatePlatformDeps(platformSuffix(), mvnDeps()).pipe(warn =>
+        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
+      )
+    }
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -1109,6 +1114,11 @@ trait JavaModule
   }
 
   def resolvedRunMvnDeps: T[Seq[PathRef]] = Task {
+    if (resolvedDepsWarnNonPlatform()) {
+      Dep.validatePlatformDeps(platformSuffix(), runMvnDeps()).pipe(warn =>
+        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
+      )
+    }
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -1130,6 +1140,14 @@ trait JavaModule
             )
         }
     )
+  }
+
+  /**
+   * If `true`, Mill reports a warning for non-platform dependencies used
+   * in a module with a [[platformSuffix]].
+   */
+  protected def resolvedDepsWarnNonPlatform: T[Boolean] = Task {
+    true
   }
 
   override def runClasspath: T[Seq[PathRef]] = Task {

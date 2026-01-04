@@ -33,7 +33,7 @@ object `package` extends SpringBootModule, MavenModule {
 //* Dependencies: Spring Web, GraalVM Native Support
 //
 // The structure of this project follows the MavenModule structure (i.e. the same structure
-// as generated from the initialzr tool).
+// as generated from the initializr tool).
 //
 // For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
 
@@ -44,20 +44,20 @@ object `package` extends SpringBootModule, MavenModule {
 
 > ./mill native.nativeRunBackground
 
-> curl http://localhost:8099/hello
+> curl http://localhost:${PORT:-8080}/hello
 ...Hello, World!...
 
-> curl http://localhost:8099/hello?name=Mill
+> curl http://localhost:${PORT:-8080}/hello?name=Mill
 ...Hello, Mill!...
 
 > ./mill clean native.nativeRunBackground
 
 > ./mill prod.runBackground
 
-> curl http://localhost:8099/hello
+> curl http://localhost:${PORT:-8080}/hello
 ...Hello, World!...
 
-> curl http://localhost:8099/hello?name=Mill
+> curl http://localhost:${PORT:-8080}/hello?name=Mill
 ...Hello, Mill!...
 
 > ./mill clean prod.runBackground

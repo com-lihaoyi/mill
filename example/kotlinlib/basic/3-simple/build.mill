@@ -1,7 +1,7 @@
 //// SNIPPET:DEPENDENCIES
 //
 // This example project uses two third-party dependencies - Clikt for CLI
-// argument parsing, Apache Commons Text for HTML escaping - and uses them to wrap a
+// argument parsing, Kotlinx-HTML for HTML escaping - and uses them to wrap a
 // given input string in HTML templates with proper escaping.
 // The `test/` submodule contains its own `mvnDeps`
 // for dependencies that are only used in the test suite.

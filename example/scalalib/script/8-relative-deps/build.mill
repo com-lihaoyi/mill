@@ -1,0 +1,33 @@
+// Mill single-file scripts can depend on each other via either relative or workspace-relative
+// `moduleDeps`. For example, given a `bar/Bar.{language-ext}` file such as below:
+
+//// SNIPPET:BAR
+/** See Also: bar/Bar.scala */
+//// SNIPPET:END
+
+// It can be depended upon via a `Bar.{language-ext}` dependency relative to its own enclosing folder
+// (in this case `bar/`), as shown below where it is imported from the `bar/BarTests.{language-ext}`
+// test suite in the same folder:
+
+//// SNIPPET:BARTESTS
+/** See Also: bar/BarTests.scala */
+//// SNIPPET:END
+
+// Or it can be depended upon via `//bar/Bar.{language-ext}` workspace-relative dependency
+// (with the `//` prefix), as shown below where it is imported from the `foo/Foo.{language-ext}`
+
+//// SNIPPET:FOO
+/** See Also: foo/Foo.scala */
+//// SNIPPET:END
+
+// This example can be exercised as follows:
+
+//// SNIPPET:USAGE
+/** Usage
+> ./mill bar/Bar.scala:compile
+> ./mill bar/BarTests.scala
+> ./mill foo/Foo.scala --text hello
+
+*/
+
+//// SNIPPET:END

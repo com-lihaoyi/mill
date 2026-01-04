@@ -1,6 +1,6 @@
 /** See Also: build.mill.yaml */
 
-// This example demonstrates how to configure mill for a Websocket server using Spring Ractive Web via
+// This example demonstrates how to configure mill for a Websocket server using Spring Reactive Web via
 // the initializr project,
 // using https://start.spring.io/[https://start.spring.io/] by choosing:
 //
@@ -9,7 +9,7 @@
 //* Dependencies: Spring Reactive Web
 //
 // The structure of this project follows the MavenModule structure (i.e. the same structure
-// as generated from the initialzr tool).
+// as generated from the initializr tool).
 //
 // For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
 

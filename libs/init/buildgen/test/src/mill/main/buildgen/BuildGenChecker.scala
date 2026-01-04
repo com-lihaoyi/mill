@@ -4,30 +4,29 @@ import mill.api.Discover
 import mill.init.Util
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.Jvm
 import mill.util.TokenReaders.*
 import mill.{PathRef, T}
 import utest.framework.TestPath
 
 import java.nio.file.FileSystems
 
-class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
+class BuildGenChecker(mainAssembly: os.Path, sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 
   def check(
-      generate: => Unit,
       sourceRel: os.SubPath,
       expectedRel: os.SubPath,
+      initArgs: Seq[String] = Nil,
       // pass true to update test data on disk
       updateSnapshots: Boolean = sys.env
         .getOrElse("UTEST_UPDATE_GOLDEN_TESTS", "0")
         .equals("1")
-  )(using
-      tp: TestPath
-  ): Boolean = {
-    // prep
+  )(using tp: TestPath): Boolean = {
     val testRoot = os.pwd / tp.value
     os.copy.over(sourceRoot / sourceRel, testRoot, createFolders = true, replaceExisting = true)
 
-    os.dynamicPwd.withValue(testRoot)(generate)
+    os.proc(Jvm.javaExe(None), "-jar", mainAssembly, initArgs)
+      .call(cwd = testRoot, stdout = os.Inherit)
 
     val buildFiles = Util.buildFiles(testRoot)
     object module extends TestRootModule with ScalafmtModule {
@@ -77,6 +76,12 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 }
 object BuildGenChecker {
 
-  def apply(sourceRoot: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))): BuildGenChecker =
-    new BuildGenChecker(sourceRoot, os.temp(Util.scalafmtConfig))
+  def apply(
+      mainAssembly: os.Path = os.Path(sys.env("TEST_MAIN_ASSEMBLY")),
+      sourceRoot: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+  ): BuildGenChecker = new BuildGenChecker(
+    mainAssembly = mainAssembly,
+    sourceRoot = sourceRoot,
+    scalafmtConfigFile = os.temp(Util.scalafmtConfig)
+  )
 }

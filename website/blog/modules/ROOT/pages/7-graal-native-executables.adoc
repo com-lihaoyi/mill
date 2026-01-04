@@ -80,7 +80,7 @@ To build `Foo.java` using Mill, we can use the following build configuration:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -123,7 +123,7 @@ above:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule with NativeImageModule {
   def mvnDeps = Seq(
@@ -167,7 +167,7 @@ $ out/foo/nativeImage.dest/native-executable --text "hello world"
 
 You can download this example below:
 
-* xref:mill:ROOT:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Building Native Image Binaries with Graal VM]
+* xref:mill:ROOT:javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[Building Native Image Binaries with Graal VM]
 
 You can also access the `native-image` tool directly from the Mill download folder,
 if you want to use it directly or view its `--help` documentation:

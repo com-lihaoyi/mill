@@ -14,7 +14,7 @@
 /** Usage
 > ./mill WebServer.scala:runBackground
 
-> curl -d 'helloworld' localhost:8080/reverse-string
+> curl -d 'helloworld' localhost:${PORT:-8080}/reverse-string
 dlrowolleh
 
 */

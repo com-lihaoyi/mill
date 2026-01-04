@@ -157,7 +157,7 @@ people are not and will never be build-tool experts or enthusiasts
 
 To that end, Mill's static typing gives it a big advantage here. It's IDE support
 is much better xref:comparisons/maven.adoc[compared to Maven] or
-xref:comparisons/maven.adoc[compared to Gradle], and that is largely due to the
+xref:comparisons/gradle.adoc[compared to Gradle], and that is largely due to the
 way Scala's static types give the IDE more to work with than more dynamic languages.
 And, while Scala's static typing won't catch every subtle bug, it does do a good job
 at catching the dumb bugs that non-experts will typically make when configuring their
@@ -274,7 +274,7 @@ Mill makes heavy use of Maven Central and the rest of the Java publishing infras
 Mill's own artifacts are all published on Maven Central, Mill builds can resolve any
 artifact from Maven Central to use in your build, and anyone can publish their own plugins
 to Maven Central for free. it is easy to
-xref:javalib/dependencies.adoc#_repository_config[configure alternate repositories],
+xref:javalib/dependencies.adoc#_repository_configuration[configure alternate repositories],
 and Mill provides a wealth of xref:fundamentals/library-deps.adoc[tools and techniques for
 working with JVM dependencies].
 

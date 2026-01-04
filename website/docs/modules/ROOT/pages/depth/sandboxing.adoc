@@ -33,5 +33,5 @@ on `os.*` read/write operations, we hope to minimize the cases where someone acc
 causes issues with their build by doing the wrong thing. The escape hatches of `BuildCtx.workspaceRoot`,
 `MILL_WORKSPACE_ROOT`, or `BuildCtx.withFilesystemCheckerDisabled` are provided to be used
 in cases you do need to do something unusual, but usage of them should be minimized if possible
-as they may result in `--watch` or `selective.test` not missing some implicit dependencies
+as they may result in `--watch` or `selective.test` missing some implicit dependencies
 between your tasks and source files on disk.

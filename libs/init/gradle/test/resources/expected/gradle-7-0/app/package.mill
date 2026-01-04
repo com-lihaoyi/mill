@@ -1,26 +1,12 @@
 package build.app
-
-import mill.api.*
-import mill.api.opt.*
+import mill.*
 import mill.javalib.*
 import millbuild.*
-
 object `package` extends ProjectBaseModule {
 
-  def mvnDeps = super.mvnDeps() ++ Seq(Deps.commonsText)
+  def moduleDeps = Seq(build.utilities)
 
-  def moduleDeps = super.moduleDeps ++ Seq(build.utilities)
+  def mvnDeps = Seq(mvn"org.apache.commons:commons-text")
 
-  object test extends MavenTests with TestModule.Junit5 {
-
-    def mvnDeps = super.mvnDeps() ++ Seq(Deps.junitJupiterApi)
-
-    def runMvnDeps = super.runMvnDeps() ++ Seq(Deps.junitJupiterEngine)
-
-    def testParallelism = false
-
-    def testSandboxWorkingDir = false
-
-  }
-
+  object test extends Tests {}
 }

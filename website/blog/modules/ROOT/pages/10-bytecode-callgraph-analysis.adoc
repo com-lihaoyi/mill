@@ -231,7 +231,7 @@ most build tools punt on the problem entirely:
    languages and serializing data to send it back and forth across the process boundary.
 
 All these approaches are problematic: (1) is maximally conservative and pessimistic,
-while (2) is maximally lasse-faire and optimistic, while (3) is workable but awkward.
+while (2) is maximally laissez-faire and optimistic, while (3) is workable but awkward.
 None of these approaches are fatal - people have lived with build tools working
 like this for decades - but we can do better.
 

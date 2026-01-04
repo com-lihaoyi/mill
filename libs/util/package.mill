@@ -55,6 +55,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     Deps.coursierVersions.exclude("*" -> "*"),
     Deps.coursierJvm.exclude("*" -> "*"),
     Deps.jline,
+    Deps.fastparse,
     Deps.mainargs,
     Deps.requests
   )

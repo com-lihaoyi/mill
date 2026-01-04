@@ -1,15 +1,11 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: system
 package build
-
-import mill.api.*
-import mill.api.opt.*
+import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
-
-object `package` extends MavenSamplesBaseModule {
-
-  def artifactName = "parent"
+object `package` extends PublishModule {
 
   def pomPackagingType = "pom"
 
@@ -21,5 +17,7 @@ object `package` extends MavenSamplesBaseModule {
     VersionControl(None, None, None, None),
     Seq()
   )
+
+  def publishVersion = "1.0-SNAPSHOT"
 
 }

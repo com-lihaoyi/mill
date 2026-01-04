@@ -16,7 +16,7 @@ object UtilTests extends TestSuite {
         BufferedValue.Obj(
           ArrayBuffer(
             (BufferedValue.Str("key1", 0), BufferedValue.Str("value1", 6)),
-            (BufferedValue.Str("key2", 13), BufferedValue.Num("123", -1, -1, 19))
+            (BufferedValue.Str("key2", 13), BufferedValue.Str("123", 19))
           ),
           jsonableKeys = true,
           index = 0

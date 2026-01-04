@@ -34,13 +34,13 @@ object ModuleTests extends TestSuite {
       nestedCrosses.cross.moduleDir.relativeTo(base) ==>
         os.sub / "cross"
 
-      nestedCrosses.cross("210").toString ==> "cross[210]"
+      nestedCrosses.cross("210").toString ==> "cross.210"
       nestedCrosses.cross("210").moduleSegments ==>
         Segments(List(Segment.Label("cross"), Segment.Cross(Seq("210"))))
       nestedCrosses.cross("210").moduleDir.relativeTo(base) ==>
         os.sub / "cross"
 
-      nestedCrosses.cross("210").cross2.toString ==> "cross[210].cross2"
+      nestedCrosses.cross("210").cross2.toString ==> "cross.210.cross2"
       nestedCrosses.cross("210").cross2.moduleSegments ==>
         Segments(List(Segment.Label("cross"), Segment.Cross(Seq("210")), Segment.Label("cross2")))
       nestedCrosses.cross("210").cross2.moduleDir.relativeTo(base) ==>
@@ -48,7 +48,7 @@ object ModuleTests extends TestSuite {
       nestedCrosses.cross("210").cross2.moduleDir.relativeTo(base) ==>
         os.sub / "cross" / "cross2"
 
-      nestedCrosses.cross("210").cross2("js").toString ==> "cross[210].cross2[js]"
+      nestedCrosses.cross("210").cross2("js").toString ==> "cross.210.cross2.js"
       nestedCrosses.cross("210").cross2("js").moduleSegments ==>
         Segments(List(
           Segment.Label("cross"),
