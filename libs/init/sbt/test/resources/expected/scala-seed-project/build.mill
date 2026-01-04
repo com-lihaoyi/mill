@@ -1,11 +1,13 @@
 //| mill-version: SNAPSHOT
 //| mill-jvm-version: system
 package build
+
 import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
 import millbuild.*
+
 object `package` extends PublishModule, SbtModule {
 
   def scalaVersion = "2.13.12"
@@ -32,4 +34,5 @@ object `package` extends PublishModule, SbtModule {
     def testSandboxWorkingDir = false
 
   }
+
 }
