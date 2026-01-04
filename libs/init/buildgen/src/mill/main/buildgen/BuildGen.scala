@@ -369,7 +369,12 @@ object BuildGen {
        |
        |${render("errorProneOptions", errorProneOptions, encodeString)}
        |
-       |${render("errorProneJavacEnableOptions", errorProneJavacEnableOptions, encodeOpt, collection = "Opts")}
+       |${render(
+        "errorProneJavacEnableOptions",
+        errorProneJavacEnableOptions,
+        encodeOpt,
+        collection = "Opts"
+      )}
        |
        |${render("artifactName", artifactName, encodeString)}
        |
