@@ -45,7 +45,7 @@ object `package` extends Module {
     def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 
     def errorProneJavacEnableOptions =
-      Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+      Opts("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
     object test extends MavenTests, ErrorProneModule, TestModule.Junit5 {
 
@@ -65,7 +65,7 @@ object `package` extends Module {
       def errorProneOptions = Seq("-XepCompilingTestOnlyCode")
 
       def errorProneJavacEnableOptions =
-        Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+        Opts("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
       def testParallelism = false
 
@@ -85,7 +85,7 @@ object `package` extends Module {
     def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 
     def errorProneJavacEnableOptions =
-      Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+      Opts("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
   }
 }

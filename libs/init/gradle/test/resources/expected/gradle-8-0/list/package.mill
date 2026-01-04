@@ -9,7 +9,7 @@ object `package` extends ProjectBaseModule, ErrorProneModule {
   def errorProneDeps = Seq(Deps.error_prone_core)
 
   def errorProneJavacEnableOptions =
-    Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+    Opts("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
   object test extends Tests, ErrorProneModule, TestModule.Junit5 {
 
@@ -18,7 +18,7 @@ object `package` extends ProjectBaseModule, ErrorProneModule {
     def errorProneOptions = Seq("-XepCompilingTestOnlyCode")
 
     def errorProneJavacEnableOptions =
-      Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+      Opts("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
   }
 }

@@ -14,7 +14,7 @@ object `package` extends MavenModule, ErrorProneModule, PublishModule {
 
   def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 
-  def errorProneJavacEnableOptions = Seq("-XDshould-stop=ifError=FLOW")
+  def errorProneJavacEnableOptions = Opts("-XDshould-stop=ifError=FLOW")
 
   def artifactName = "maven-3-9-11"
 
