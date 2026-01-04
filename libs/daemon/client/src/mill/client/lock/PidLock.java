@@ -53,6 +53,7 @@ public class PidLock extends Lock {
 
   /**
    * Attempts to acquire the lock without blocking.
+   * If the lock file exists but the holder is dead (stale lock), cleans it up and retries.
    *
    * @return a TryLocked where isLocked() returns true if the lock was acquired
    */
@@ -67,7 +68,23 @@ public class PidLock extends Lock {
           StandardOpenOption.WRITE);
       return new PidTryLocked(lockPath, true);
     } catch (java.nio.file.FileAlreadyExistsException e) {
-      // Lock is held by another process
+      // Lock file exists - check if it's stale
+      if (!isLockValid()) {
+        // Stale lock - clean it up and retry once
+        tryDeleteLockFile();
+        try {
+          Files.write(
+              lockPath,
+              lockContent.getBytes(StandardCharsets.UTF_8),
+              StandardOpenOption.CREATE_NEW,
+              StandardOpenOption.WRITE);
+          return new PidTryLocked(lockPath, true);
+        } catch (java.nio.file.FileAlreadyExistsException e2) {
+          // Another process grabbed it - that's fine
+          return new PidTryLocked(null, false);
+        }
+      }
+      // Lock is held by a living process
       return new PidTryLocked(null, false);
     }
   }
@@ -106,24 +123,17 @@ public class PidLock extends Lock {
   }
 
   /**
-   * Reads the raw content of the lock file.
-   */
-  private String readLockFileContent() {
-    try {
-      return Files.readString(lockPath, StandardCharsets.UTF_8).trim();
-    } catch (IOException e) {
-      return null;
-    }
-  }
-
-  /**
    * Reads and parses the lock file content.
    *
    * @return LockInfo containing PID and token, or null if parsing failed
    */
   private LockInfo readLockInfo() {
-    String content = readLockFileContent();
-    if (content == null) return null;
+    String content;
+    try {
+      content = Files.readString(lockPath, StandardCharsets.UTF_8).trim();
+    } catch (IOException e) {
+      return null;
+    }
 
     String[] parts = content.split(":");
     if (parts.length != 2) return null;
