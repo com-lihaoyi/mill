@@ -720,8 +720,8 @@ object ScalaModule {
     override def scalacOptions: T[Opts] = outer.scalacOptions()
     override def mandatoryScalacOptions: T[Opts] =
       Task { super.mandatoryScalacOptions() }
-  }    
-    
+  }
+
   /**
    * Workaround for https://github.com/scala/scala3/issues/20421
    * Strips module-info.class from a classpath entry (jar or directory) to fix
