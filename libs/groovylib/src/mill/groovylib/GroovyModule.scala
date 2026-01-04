@@ -206,7 +206,7 @@ trait GroovyModule extends JavaModule with GroovyModuleApi { outer =>
           javaSourceFiles = javaSourceFiles,
           compileCp = compileCp :+ compileGeneratedGroovyStubs(),
           javaHome = javaHome().map(_.path),
-          javacOptions = javacOptions(),
+          javacOptions = javacOptions().toStringSeq,
           compileProblemReporter = ctx.reporter(hashCode),
           reportOldProblems = zincReportCachedProblems()
         )

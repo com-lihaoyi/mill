@@ -1,6 +1,7 @@
 package mill.javalib
 
 import mill.*
+import mill.api.opt.*
 import mill.constants.{DaemonFiles, Util}
 import coursier.core.VariantSelector.ConfigurationBased
 import mainargs.Flag
@@ -38,7 +39,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
     val executeableName = "native-executable"
     val command = Seq.newBuilder[String]
       .+=(nativeImageTool().path.toString)
-      .++=(nativeImageOptions())
+      .++=(nativeImageOptions().toStringSeq)
       .+=("-cp")
       .+=(nativeImageClasspath().iterator.map(_.path).mkString(java.io.File.pathSeparator))
       .+=(finalMainClass())
@@ -104,10 +105,11 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   /**
    * Additional options for the `native-image` Tool.
    */
-  def nativeImageOptions: T[Seq[String]] = Task {
-    nativeMvnDepsMetadata().toSeq.flatMap(md =>
-      Seq("--configurations-path", (md.path / "META-INF").toString)
-    )
+  def nativeImageOptions: T[Opts] = Task {
+    nativeMvnDepsMetadata() match {
+      case Some(md) => Opts(OptGroup("--configurations-path", md.path / "META-INF"))
+      case _ => Opts()
+    }
   }
 
   /**

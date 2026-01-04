@@ -2,6 +2,7 @@
 //| mill-jvm-version: system
 package build
 import mill.*
+import mill.api.opt.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalajslib.ScalaJSModule
@@ -23,17 +24,17 @@ object `package` extends Module {
 
       def moduleKind = ModuleKind.NoModule
 
-      def scalacOptions = Seq("-deprecation") ++
+      def scalacOptions = Opts("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.20" => Opts(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
           case "2.13.14" =>
-            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-          case "3.7.1" => Seq("-Wunused")
-          case _       => Seq()
+            Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Opts("-Wunused")
+          case _       => Opts()
         })
 
       def artifactName = "dummy"
@@ -56,17 +57,17 @@ object `package` extends Module {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
-      def scalacOptions = Seq("-deprecation") ++
+      def scalacOptions = Opts("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.20" => Opts(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
           case "2.13.14" =>
-            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-          case "3.7.1" => Seq("-Wunused")
-          case _       => Seq()
+            Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Opts("-Wunused")
+          case _       => Opts()
         })
 
       def artifactName = "dummy"
@@ -92,17 +93,17 @@ object `package` extends Module {
 
       def scalaNativeVersion = "0.5.7"
 
-      def scalacOptions = Seq("-deprecation") ++
+      def scalacOptions = Opts("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.20" => Opts(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
           case "2.13.14" =>
-            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-          case "3.7.1" => Seq("-Wunused")
-          case _       => Seq()
+            Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Opts("-Wunused")
+          case _       => Opts()
         })
 
       def artifactName = "dummy"
@@ -133,17 +134,17 @@ object `package` extends Module {
 
       def moduleKind = ModuleKind.NoModule
 
-      def scalacOptions = Seq("-deprecation") ++
+      def scalacOptions = Opts("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.20" => Opts(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
           case "2.13.14" =>
-            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-          case "3.7.1" => Seq("-Wunused")
-          case _       => Seq()
+            Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Opts("-Wunused")
+          case _       => Opts()
         })
 
       def artifactName = "full"
@@ -168,17 +169,17 @@ object `package` extends Module {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
-      def scalacOptions = Seq("-deprecation") ++
+      def scalacOptions = Opts("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.20" => Opts(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
           case "2.13.14" =>
-            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-          case "3.7.1" => Seq("-Wunused")
-          case _       => Seq()
+            Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Opts("-Wunused")
+          case _       => Opts()
         })
 
       def artifactName = "full"
@@ -204,17 +205,17 @@ object `package` extends Module {
 
       def scalaNativeVersion = "0.5.7"
 
-      def scalacOptions = Seq("-deprecation") ++
+      def scalacOptions = Opts("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.20" => Opts(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
           case "2.13.14" =>
-            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-          case "3.7.1" => Seq("-Wunused")
-          case _       => Seq()
+            Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Opts("-Wunused")
+          case _       => Opts()
         })
 
       def artifactName = "full"
@@ -238,16 +239,17 @@ object `package` extends Module {
 
     def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
-    def scalacOptions = Seq("-deprecation") ++
+    def scalacOptions = Opts("-deprecation") ++
       (crossScalaVersion match {
-        case "2.12.20" => Seq(
+        case "2.12.20" => Opts(
             "-Xlint:_,-unused",
             "-Ywarn-numeric-widen",
             "-Ywarn-unused:_,-nowarn,-privates"
           )
-        case "2.13.14" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-        case "3.7.1"   => Seq("-Wunused")
-        case _         => Seq()
+        case "2.13.14" =>
+          Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+        case "3.7.1" => Opts("-Wunused")
+        case _       => Opts()
       })
 
     def artifactName = "jvmutil"
@@ -277,17 +279,17 @@ object `package` extends Module {
 
       def moduleKind = ModuleKind.NoModule
 
-      def scalacOptions = Seq("-deprecation") ++
+      def scalacOptions = Opts("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.20" => Opts(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
           case "2.13.14" =>
-            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-          case "3.7.1" => Seq("-Wunused")
-          case _       => Seq()
+            Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Opts("-Wunused")
+          case _       => Opts()
         })
 
       def artifactName = "pure"
@@ -319,17 +321,17 @@ object `package` extends Module {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
-      def scalacOptions = Seq("-deprecation") ++
+      def scalacOptions = Opts("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.20" => Opts(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
           case "2.13.14" =>
-            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-          case "3.7.1" => Seq("-Wunused")
-          case _       => Seq()
+            Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Opts("-Wunused")
+          case _       => Opts()
         })
 
       def artifactName = "pure"
@@ -364,17 +366,17 @@ object `package` extends Module {
 
       def scalaNativeVersion = "0.5.7"
 
-      def scalacOptions = Seq("-deprecation") ++
+      def scalacOptions = Opts("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.20" => Opts(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
           case "2.13.14" =>
-            Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
-          case "3.7.1" => Seq("-Wunused")
-          case _       => Seq()
+            Opts("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+          case "3.7.1" => Opts("-Wunused")
+          case _       => Opts()
         })
 
       def artifactName = "pure"

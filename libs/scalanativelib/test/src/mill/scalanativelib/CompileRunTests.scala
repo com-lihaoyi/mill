@@ -3,6 +3,7 @@ package mill.scalanativelib
 import mill._
 import mill.api.Discover
 import mill.api.ExecutionPaths
+import mill.api.opt.*
 import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
@@ -65,7 +66,7 @@ object CompileRunTests extends TestSuite {
 
     object inherited extends ScalaNativeModule {
       val (scala, scalaNative, _) = matrix.head
-      def scalacOptions = Seq("-deprecation")
+      def scalacOptions = Opts("-deprecation")
       def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaNativeVersion = scalaNative

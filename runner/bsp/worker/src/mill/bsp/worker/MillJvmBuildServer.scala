@@ -14,6 +14,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentResult
 }
 import mill.api.daemon.internal.{JavaModuleApi, RunModuleApi, TestModuleApi}
+import mill.api.opt.*
 import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 
@@ -57,23 +58,25 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             _,
             id,
             _,
-            (
-              _,
-              forkArgs,
-              forkWorkingDir,
-              forkEnv,
-              _,
-              Some(testEnvVars)
-            )
-          ) =>
+            res
+//            (
+//              _,
+//              forkArgs,
+//              forkWorkingDir,
+//              forkEnv,
+//              _,
+//              Some(testEnvVars)
+//            )
+          ) if res.testEnvVars.isDefined =>
+        val testEnvVars = res.testEnvVars.get
         val fullMainArgs: List[String] =
           List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
         val item = new JvmEnvironmentItem(
           id,
           testEnvVars.classpath.map(sanitizeUri).asJava,
-          forkArgs.asJava,
-          forkWorkingDir.toString(),
-          forkEnv.asJava
+          res.forkArgs.toStringSeq.asJava,
+          res.forkWorkingDir.toString(),
+          res.forkEnv.toStringMap.asJava
         )
         item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
           _,
@@ -107,9 +110,9 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val item = new JvmEnvironmentItem(
           id,
           classpath.asJava,
-          res.forkArgs.asJava,
+          res.forkArgs.toStringSeq.asJava,
           res.forkWorkingDir.toString(),
-          res.forkEnv.asJava
+          res.forkEnv.toStringMap.asJava
         )
 
         val classes = res.mainClass.toList ++ res.localMainClasses

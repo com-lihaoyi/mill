@@ -3,5 +3,6 @@
 //| mill-jvm-opts: ["-Xmx2g", "-XX:MaxMetaspaceSize=512m"]
 package build
 import mill.*
+import mill.api.opt.*
 import millbuild.*
 object `package` extends Module {}

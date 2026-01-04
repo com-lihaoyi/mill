@@ -1,6 +1,7 @@
 package build
 
 import mill.*
+import mill.api.opt.*
 import mill.kotlinlib.*
 import mill.javalib.spring.boot.SpringBootModule
 import mill.javalib.TestModule.{Junit4, Junit5}
@@ -13,7 +14,7 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
   override def kotlinVersion = "2.2.21"
   override def artifactName: T[String] = "spring-boot-native-demo"
 
-  override def kotlincOptions: T[Seq[String]] = super.kotlincOptions() ++ Seq(
+  override def kotlincOptions: T[Opts] = super.kotlincOptions() ++ Opts(
     "-jvm-target",
     "17",
     "-Xjsr305=strict",

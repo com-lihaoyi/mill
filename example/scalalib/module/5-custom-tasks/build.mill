@@ -11,6 +11,7 @@
 //// SNIPPET:BUILD
 package build
 import mill.*, scalalib.*
+import mill.api.opt.*
 
 object `package` extends ScalaModule {
   def scalaVersion = "3.7.1"
@@ -46,7 +47,7 @@ object `package` extends ScalaModule {
       .sum
   }
 
-  def forkArgs: T[Seq[String]] = Seq(s"-Dmy.line.count=${lineCount()}")
+  def forkArgs: T[Opts] = Opts(s"-Dmy.line.count=${lineCount()}")
 
   def printLineCount() = Task.Command { println(lineCount()) }
 }

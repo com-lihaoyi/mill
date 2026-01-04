@@ -1,13 +1,13 @@
 package mill.scalajslib
 
-import mill._
+import mill.*
 import mill.api.Discover
-import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
+import mill.api.opt.*
+import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, ScalacOptions, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
-
+import utest.*
 import mill.javalib.api.JvmWorkerUtil
 
 object CompileLinkTests extends TestSuite {
@@ -52,7 +52,7 @@ object CompileLinkTests extends TestSuite {
     }
     object inherited extends ScalaJSModule {
       val (scala, scalaJS) = matrix.head
-      def scalacOptions = Seq("-deprecation")
+      def scalacOptions = Opts(ScalacOptions.`-deprecation`)
       def scalaOrganization = "org.example"
       def scalaVersion = scala
       def scalaJSVersion = scalaJS

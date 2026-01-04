@@ -1,10 +1,11 @@
 package mill.scalajslib
 
-import mill._
+import mill.*
 import mill.api.ExecResult
+import mill.api.opt.Opts
 import mill.javalib.testrunner.TestResult
 import mill.testkit.UnitTester
-import utest._
+import utest.*
 
 object UtestTests extends TestSuite {
   import CompileLinkTests._
@@ -76,7 +77,7 @@ object UtestTests extends TestSuite {
         assert(testResult.value == expected)
       }
     test("test-scalacOptions") {
-      checkInheritedTasks(_.scalacOptions, Seq("-deprecation"))
+      checkInheritedTasks(_.scalacOptions, Opts("-deprecation"))
     }
     test("test-scalaOrganization") {
       checkInheritedTasks(_.scalaOrganization, "org.example")
