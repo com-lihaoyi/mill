@@ -21,6 +21,11 @@ class LineBufferingOutputStream(onLineComplete: ByteArrayOutputStream => Unit)
 
   def writeOutBuffer(): Unit = {
     if (buffer.size() > 0) {
+      // Strip ANSI navigation codes (like ESC[2K for clear line) that would interfere
+      // with Mill's line prefixing, while preserving color codes
+      val stripped = fansi.Str(buffer.toString, fansi.ErrorMode.Strip).render
+      buffer.reset()
+      buffer.write(stripped.getBytes)
       onLineComplete(buffer)
       buffer.reset()
     }
