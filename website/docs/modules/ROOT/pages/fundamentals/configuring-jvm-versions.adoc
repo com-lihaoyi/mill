@@ -1,20 +1,31 @@
 = Managing JVM Versions
 
 By default, Mill uses the same JVM that it itself is running on to compile/test/run
-Java/Scala/Kotlin modules, typically whatever `java` command you have available globally
-or what you have configured in your xref:cli/build-header.adoc[]. This page goes into
-more detail about downloading and using a custom Java home on a per-module basis.
+Java/Scala/Kotlin modules, defaulting to {default-mill-jvm-version} unless you have
+specified some other `mill-jvm-version` explicitly in your xref:cli/build-header.adoc[], or
+configured a `def jvmId` on individual modules. Mill manages these JVMs automatically for
+you, downloading and caching them on demand, so you generally never need to worry about
+installing a JVM globally when working with a Mill project.
 
+== Using Mill's Built-in JVM
+
+include::partial$example/fundamentals/javahome/1-builtin-jvm.adoc[]
+
+=== Customizing Mill's JVM Version
+
+include::partial$example/fundamentals/javahome/2-custom-builtin-jvm.adoc[]
+
+== Setting the JVM Version of a JavaModule
+
+include::partial$example/fundamentals/javahome/3-custom-module-jvms.adoc[]
+
+== Choosing a JVM Version
 
 Note that when publishing artifacts to Maven repositories, the JVM version used to build the
 artifacts will be the minimum version that downstream projects will need to use in order to
 use your artifacts.
 
 * For libraries is best to set your `mill-jvm-version` to the lowest version possible, e.g.
-  `mill-jvm-version: 17` in this example which is the lowest version supported by Mill.
+`mill-jvm-version: 17` in this example which is the lowest version supported by Mill.
 * For applications without downstream projects, using the highest available JVM version is
-  usually preferred to let your application take advantage of the latest JVM improvements
-
-
-include::partial$example/fundamentals/javahome/1-custom-jvms.adoc[]
-
+usually preferred to let your application take advantage of the latest JVM improvements

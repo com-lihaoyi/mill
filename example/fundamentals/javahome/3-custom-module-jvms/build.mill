@@ -1,39 +1,4 @@
 // :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
-// == Using Mill's Built-in Java Installation
-//
-// Mill comes bundled with a JDK that it uses for itself that also acts as the default JDK
-// for any modules you define, and you can also use this JDK yourself via the command
-// `./mill java`, `javac`, `javap`, `jps`, `jstack`, etc.:
-
-/** Usage
-
-> ./mill java -version
-openjdk version "21..." ...
-
-> ./mill javac -version
-javac 21...
-
-> ./mill javap -version
-21...
-
-> ./mill jps
-
-> ./mill jstack --help
-Usage:
-    jstack [-l][-e] <pid>
-
-*/
-
-// The bundled JDK configured via the
-// xref:cli/build-header.adoc#_mill_jvm_version[//| mill-jvm-version] key in your build header.
-// This is useful for two reasons:
-//
-// * It provides your project using `./mill` to have access to a JDK it can use, even if run in
-//   environments without a JDK installed
-// * It provides a JDK with a fixed version regardless of where your project is being run, ensuring
-//   it behaves consistently without the problems that too-new or too-old versions may bring
-//
-// == Setting the JVM version of a JavaModule
 //
 // Configuring custom JVMs is done by setting the `def jvmId`
 // of any `JavaModule`, `ScalaModule`, or `KotlinModule`
@@ -88,7 +53,7 @@ Foo running on Java 11.0.21
 */
 
 //
-// == Selecting JVM Index Versions
+// === Selecting JVM Index Versions
 //
 // By default, Mill comes bundled with a version of the JVM index that was published when
 // each version of Mill is released. This ensures that the JVM versions you pick are stable,
@@ -117,7 +82,7 @@ Bar running on Java 23.0.1
 
 */
 
-// == Explicit JVM Download URLs
+// === Explicit JVM Download URLs
 //
 // You can also pass in the JVM download URL explicitly. Note that if you do so, you need
 // to ensure yourself that you are downloading the appropriate JVM distribution for your
@@ -145,7 +110,7 @@ Qux running on Java 22.0.2
 
 */
 
-// == Locally-Installed JVMs
+// === Locally-Installed JVMs
 //
 // Lastly, you can point Mill at any JVM distribution installed locally on disk via:
 

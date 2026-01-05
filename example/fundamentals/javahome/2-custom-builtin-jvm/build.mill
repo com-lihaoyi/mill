@@ -1,0 +1,19 @@
+//| mill-jvm-version: 15
+
+//
+// The bundled JDK configured via the
+// xref:cli/build-header.adoc#_mill_jvm_version[//| mill-jvm-version] key in your build header.
+// This is useful for two reasons:
+//
+// * It provides your project using `./mill` to have access to a JDK it can use, even if run in
+//   environments without a JDK installed
+// * It provides a JDK with a fixed version regardless of where your project is being run, ensuring
+//   it behaves consistently without the problems that too-new or too-old versions may bring
+//
+
+/** Usage
+
+> ./mill java -version
+openjdk version "15..." ...
+
+*/
