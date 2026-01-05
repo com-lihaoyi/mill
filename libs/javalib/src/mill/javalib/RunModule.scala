@@ -46,10 +46,17 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * Includes [[forkEnv]] and the variables defined by Mill itself.
    */
   def allForkEnv: T[Map[String, String]] = Task {
-    forkEnv() ++ Map(
+    javaHomePathForkEnv() ++ forkEnv() ++ Map(
       EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
     )
   }
+
+  def javaHomePathForkEnv: T[Map[String, String]] = Map(
+    "PATH" ->
+      (javaHome().fold(os.Path(sys.props.get("java.home")))(_.path) / "bin") +
+      java.io.File.pathSeparator +
+      Task.env.apply("PATH")
+  )
 
   def forkWorkingDir: T[os.Path] = Task { BuildCtx.workspaceRoot }
 
