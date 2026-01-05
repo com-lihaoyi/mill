@@ -1,8 +1,10 @@
 package build.list
+
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
+
 object `package` extends ProjectBaseModule, PublishModule {
 
   def artifactName = "list"
@@ -31,4 +33,5 @@ object `package` extends ProjectBaseModule, PublishModule {
   def publishVersion = "unspecified"
 
   object test extends Tests {}
+
 }

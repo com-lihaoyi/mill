@@ -1,7 +1,8 @@
 package millbuild
-import mill.javalib.*
-object Deps {
 
+import mill.javalib.*
+
+object Deps {
   val HikariCP = mvn"com.zaxxer:HikariCP:6.3.3"
   val `ehcache#0` = mvn"org.ehcache:ehcache:3.10.9"
   val `ehcache#1` = mvn"org.ehcache:ehcache:3.10.9;classifier=jakarta"

@@ -1,9 +1,11 @@
 package build.`jvm-util`
+
 import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
 import millbuild.*
+
 object `package` extends Cross[JvmUtilModule]("2.12.20", "2.13.14", "3.7.1")
 trait JvmUtilModule extends PublishModule, CrossSbtModule {
 

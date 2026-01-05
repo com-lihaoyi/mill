@@ -1,9 +1,11 @@
 package build.nested.nested
+
 import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
 import millbuild.*
+
 object `package` extends ProjectBaseModule {
 
   def mvnDeps = Seq(Deps.nettyTransportNativeEpoll)

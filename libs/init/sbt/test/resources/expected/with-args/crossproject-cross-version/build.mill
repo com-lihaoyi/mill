@@ -1,6 +1,7 @@
 //| mill-version: SNAPSHOT
 //| mill-jvm-version: system
 package build
+
 import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
@@ -9,6 +10,7 @@ import mill.scalajslib.api.*
 import mill.scalalib.*
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.*
+
 object `package` extends Module {
 
   object dummy extends Module {
@@ -119,6 +121,7 @@ object `package` extends Module {
       def publishVersion = "0.1.0-SNAPSHOT"
 
     }
+
   }
 
   object full extends Module {
@@ -231,6 +234,7 @@ object `package` extends Module {
       def publishVersion = "0.1.0-SNAPSHOT"
 
     }
+
   }
 
   object `jvm-util` extends Cross[JvmUtilModule]("2.12.20", "2.13.14", "3.7.1")
@@ -312,6 +316,7 @@ object `package` extends Module {
         def testFramework = sys.error("no test framework")
 
       }
+
     }
 
     object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
@@ -354,6 +359,7 @@ object `package` extends Module {
         def testFramework = sys.error("no test framework")
 
       }
+
     }
 
     object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
@@ -399,6 +405,9 @@ object `package` extends Module {
         def testFramework = sys.error("no test framework")
 
       }
+
     }
+
   }
+
 }

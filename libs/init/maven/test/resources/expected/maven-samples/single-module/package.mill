@@ -1,8 +1,10 @@
 package build.`single-module`
+
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
+
 object `package` extends ProjectBaseModule {
 
   def mvnDeps = Seq(Deps.servletApi, Deps.jspApi)
@@ -24,4 +26,5 @@ object `package` extends ProjectBaseModule {
   )
 
   object test extends Tests {}
+
 }
