@@ -44,42 +44,41 @@ trait MainModule extends RootModule0, MainModuleApi {
    * to the specified version. Downloads the scripts from Maven Central and sets
    * executable permissions on the Unix script.
    *
-   * @param version The Mill version to update to (e.g., "0.12.5")
+   * @param version The Mill version to update to (e.g., "1.1.0")
    */
-  def updateMillVersion(
-      @mainargs.arg(positional = true) version: String
-  ): Command[Seq[PathRef]] = Task.Command(exclusive = true) {
-    val mavenRepoUrl = "https://repo1.maven.org/maven2"
-    val baseUrl = s"$mavenRepoUrl/com/lihaoyi/mill-dist/$version"
+  def updateMill(@mainargs.arg(positional = true) version: String): Command[Seq[PathRef]] =
+    Task.Command(exclusive = true) {
+      val mavenRepoUrl = "https://repo1.maven.org/maven2"
+      val baseUrl = s"$mavenRepoUrl/com/lihaoyi/mill-dist/$version"
 
-    val scripts = Seq(
-      (s"$baseUrl/mill-dist-$version-mill.sh", BuildCtx.workspaceRoot / "mill", true),
-      (s"$baseUrl/mill-dist-$version-mill.bat", BuildCtx.workspaceRoot / "mill.bat", false)
-    )
+      val scripts = Seq(
+        (s"$baseUrl/mill-dist-$version-mill.sh", BuildCtx.workspaceRoot / "mill", true),
+        (s"$baseUrl/mill-dist-$version-mill.bat", BuildCtx.workspaceRoot / "mill.bat", false)
+      )
 
-    Task.log.info(s"Downloading Mill $version bootstrap scripts...")
+      Task.log.info(s"Downloading Mill $version bootstrap scripts...")
 
-    val results = scripts.flatMap { case (url, path, setExecutable) =>
-      Task.log.info(s"Downloading $url")
-      val response = requests.get(url, check = false)
-      if (response.statusCode == 200) {
-        os.write.over(path, response.bytes)
-        if (setExecutable && !scala.util.Properties.isWin) os.perms.set(path, "rwxr-xr-x")
-        Task.log.info(s"Updated $path")
-        Some(PathRef(path))
+      val results = scripts.flatMap { case (url, path, setExecutable) =>
+        Task.log.info(s"Downloading $url")
+        val response = requests.get(url, check = false)
+        if (response.statusCode == 200) {
+          os.write.over(path, response.bytes)
+          if (setExecutable && !scala.util.Properties.isWin) os.perms.set(path, "rwxr-xr-x")
+          Task.log.info(s"Updated $path")
+          Some(PathRef(path))
+        } else {
+          Task.log.error(s"Failed to download $url: HTTP ${response.statusCode}")
+          None
+        }
+      }
+
+      if (results.isEmpty) {
+        Result.Failure(s"Failed to download Mill $version bootstrap scripts. Please check that version '$version' exists.")
       } else {
-        Task.log.error(s"Failed to download $url: HTTP ${response.statusCode}")
-        None
+        Task.log.info(s"Successfully updated Mill bootstrap scripts to version $version")
+        Result.Success(results)
       }
     }
-
-    if (results.isEmpty) {
-      Result.Failure(s"Failed to download Mill $version bootstrap scripts. Please check that version '$version' exists.")
-    } else {
-      Task.log.info(s"Successfully updated Mill bootstrap scripts to version $version")
-      Result.Success(results)
-    }
-  }
 
   /**
    * Resolves a mill query string and prints out the tasks it resolves to.
