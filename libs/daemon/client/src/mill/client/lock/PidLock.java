@@ -5,21 +5,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * A lock implementation that uses atomic file creation and PID + timestamp checking.
  * This works on filesystems that don't support file locking (e.g. Docker containers on macOS),
- * but at the cost of potential race conditions
+ * but at the cost of potential race conditions.
+ *
+ * The lock file contains "pid:startTime" which uniquely identifies a process even if
+ * PIDs are reused after a process dies.
  */
 public class PidLock extends Lock {
-
-  /**
-   * Random token unique to this process, used to detect same-process lock ownership.
-   * Generated once per JVM to ensure all PidLock instances in this process
-   * use the same token.
-   */
-  private static final long PROCESS_TOKEN = ThreadLocalRandom.current().nextLong();
 
   private static final long PROCESS_START_TIME =
       ProcessHandle.current().info().startInstant().get().toEpochMilli();
@@ -33,7 +28,7 @@ public class PidLock extends Lock {
   }
 
   private String createLockContent() {
-    return pid + ":" + PROCESS_TOKEN + ":" + PROCESS_START_TIME;
+    return pid + ":" + PROCESS_START_TIME;
   }
 
   @Override
@@ -113,9 +108,9 @@ public class PidLock extends Lock {
 
   /**
    * Reads and parses the lock file content.
-   * Supports both old format (pid:token) and new format (pid:token:timestamp).
+   * Format: "pid:startTime"
    *
-   * @return LockInfo containing PID, token, and timestamp, or null if parsing failed
+   * @return LockInfo containing PID and start timestamp, or null if parsing failed
    */
   private LockInfo readLockInfo() {
     String content;
@@ -130,10 +125,8 @@ public class PidLock extends Lock {
 
     try {
       long lockPid = Long.parseLong(parts[0]);
-      long token = Long.parseLong(parts[1]);
-      // Support old format without timestamp (treat as epoch 0, so any live process is valid)
-      long timestamp = parts.length >= 3 ? Long.parseLong(parts[2]) : 0L;
-      return new LockInfo(lockPid, token, timestamp);
+      long timestamp = Long.parseLong(parts[1]);
+      return new LockInfo(lockPid, timestamp);
     } catch (NumberFormatException e) {
       return null;
     }
@@ -152,12 +145,10 @@ public class PidLock extends Lock {
 
   private static class LockInfo {
     final long pid;
-    final long token;
     final long timestamp;
 
-    LockInfo(long pid, long token, long timestamp) {
+    LockInfo(long pid, long timestamp) {
       this.pid = pid;
-      this.token = token;
       this.timestamp = timestamp;
     }
   }
