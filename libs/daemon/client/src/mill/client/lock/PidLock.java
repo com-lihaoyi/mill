@@ -97,14 +97,6 @@ public class PidLock extends Lock {
 
   /**
    * Checks if the current lock file represents a valid (non-stale) lock.
-   * A lock is valid if:
-   * <ul>
-   *   <li>For our own process: the token matches our PROCESS_TOKEN</li>
-   *   <li>For other processes: the PID is alive AND the process started before
-   *       the lock was created (to detect PID reuse)</li>
-   * </ul>
-   *
-   * @return true if the lock is valid (held by a living process), false if stale
    */
   private boolean isLockValid() {
     LockInfo info = readLockInfo();
