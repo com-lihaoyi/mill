@@ -232,11 +232,17 @@ private object PromptLoggerUtil {
       (buf(i): @switch) match {
         case '\r' =>
           if (i + 1 < end && buf(i + 1) == '\n') {
+            // \r\n case: prepend before the \r\n sequence
             dest.write(buf, last, i - last)
             dest.write(prepended)
             last = i
             i += 2
           } else {
+            // Standalone \r: prepend before the \r to support progress output
+            // that uses \r to overwrite the current line
+            dest.write(buf, last, i - last)
+            dest.write(prepended)
+            last = i
             i += 1
           }
         case '\n' | '\t' =>

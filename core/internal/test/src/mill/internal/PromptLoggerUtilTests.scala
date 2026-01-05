@@ -467,5 +467,17 @@ object PromptLoggerUtilTests extends TestSuite {
       PromptLoggerUtil.streamToPrependNewlines(baos, input, input.length, "!!!".getBytes)
       baos.toByteArray ==> "Hello!!!\nworld!!!\r\nI!!!\tam!!!\tcow!!!\n".getBytes
     }
+    test("streamToPrependNewlinesStandaloneCarriageReturn") {
+      val baos = new ByteArrayOutputStream()
+      val input = "Hello\rworld\rprogress\r".getBytes
+      PromptLoggerUtil.streamToPrependNewlines(baos, input, input.length, "!!!".getBytes)
+      baos.toByteArray ==> "Hello!!!\rworld!!!\rprogress!!!\r".getBytes
+    }
+    test("streamToPrependNewlinesMixedLineEndings") {
+      val baos = new ByteArrayOutputStream()
+      val input = "line1\nline2\rline3\r\nline4\r".getBytes
+      PromptLoggerUtil.streamToPrependNewlines(baos, input, input.length, "!!!".getBytes)
+      baos.toByteArray ==> "line1!!!\nline2!!!\rline3!!!\r\nline4!!!\r".getBytes
+    }
   }
 }
