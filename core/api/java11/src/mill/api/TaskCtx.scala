@@ -51,7 +51,7 @@ object TaskCtx {
       val fork: TaskCtx.Fork.Api,
       val jobs: Int,
       val offline: Boolean,
-      val useFileLocks: Boolean
+      override val useFileLocks: Boolean
   ) extends TaskCtx {
     override def systemExitWithReason(reason: String, exitCode: Int): Nothing =
       _systemExitWithReason(reason, exitCode)
@@ -174,7 +174,7 @@ object TaskCtx {
   }
 
   trait UseFileLocks {
-    def useFileLocks: Boolean
+    def useFileLocks: Boolean = false
   }
 
   trait Fail {
