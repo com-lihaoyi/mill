@@ -10,19 +10,8 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * A lock implementation that uses atomic file creation and PID + timestamp checking.
- * This works on filesystems that don't support file locking (e.g., some
- * network filesystems, Docker containers on macOS).
- *
- * <p>The lock file contains: {@code pid:token:timestamp}
- * <ul>
- *   <li>pid - the process ID that holds the lock</li>
- *   <li>token - a random token unique to the JVM (for detecting same-process lock ownership)</li>
- *   <li>timestamp - epoch millis when the lock was created (for detecting PID reuse)</li>
- * </ul>
- *
- * <p>To detect PID reuse (where a new process gets the same PID as a dead one),
- * we compare the lock creation timestamp against the process's start time.
- * If the process started after the lock was created, the PID was reused and the lock is stale.
+ * This works on filesystems that don't support file locking (e.g. Docker containers on macOS),
+ * but at the cost of potential race conditions
  */
 public class PidLock extends Lock {
 
@@ -99,7 +88,7 @@ public class PidLock extends Lock {
 
   @Override
   public void close() throws Exception {
-    // Nothing to close for PidLock itself
+    tryDeleteLockFile();
   }
 
   @Override

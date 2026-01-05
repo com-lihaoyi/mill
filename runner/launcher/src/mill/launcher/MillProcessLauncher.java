@@ -63,12 +63,14 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode, String[] runnerClasspath)
+  static Process launchMillDaemon(
+      Path daemonDir, OutFolderMode outMode, String[] runnerClasspath, boolean useFileLocks)
       throws Exception {
     List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode, runnerClasspath));
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
     l.add(outMode.asString());
+    l.add(String.valueOf(useFileLocks));
 
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)

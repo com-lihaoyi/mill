@@ -50,37 +50,19 @@ public final class Locks implements AutoCloseable {
     return new Locks(new MemoryLock(), new MemoryLock());
   }
 
-  public static Locks forDirectory(String daemonDir) throws Exception {
-    // Always use PidLock. The supportsFileLocking() test only checks that a single
-    // process can acquire a lock, not that it provides mutual exclusion between
-    // processes. On some systems (Docker on macOS, certain NFS configurations),
-    // FileLock.tryLock() succeeds but doesn't actually prevent other processes
-    // from also acquiring the lock.
-    return pid(daemonDir);
+  public static Locks forDirectory(String daemonDir) {
+    return forDirectory(daemonDir, false);
   }
 
-  public static boolean supportsFileLocking(String daemonDir) {
-    Path testFile = Path.of(daemonDir, ".lock-test");
-    try {
-      Files.createDirectories(Path.of(daemonDir));
-      Files.deleteIfExists(testFile);
-      try (RandomAccessFile raf = new RandomAccessFile(testFile.toFile(), "rw");
-          FileChannel channel = raf.getChannel()) {
-        java.nio.channels.FileLock lock = channel.tryLock();
-        if (lock != null) {
-          lock.release();
-          return true;
-        }
-        return false;
-      }
-    } catch (Exception e) {
-      return false;
-    } finally {
+  public static Locks forDirectory(String daemonDir, boolean useFileLocks) {
+    if (useFileLocks) {
       try {
-        Files.deleteIfExists(testFile);
-      } catch (Exception ignored) {
+        return files(daemonDir);
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to create file locks", e);
       }
     }
+    return pid(daemonDir);
   }
 
   @Override

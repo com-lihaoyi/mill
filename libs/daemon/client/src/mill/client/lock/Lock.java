@@ -22,4 +22,20 @@ public abstract class Lock implements AutoCloseable {
   public static Lock memory() {
     return new MemoryLock();
   }
+
+
+  public static Lock forDirectory(String daemonDir) {
+    return forDirectory(daemonDir, false);
+  }
+
+  public static Lock forDirectory(String daemonDir, boolean useFileLocks) {
+    if (useFileLocks) {
+      try {
+        return new FileLock(daemonDir);
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to create file lock", e);
+      }
+    }
+    return new PidLock(daemonDir);
+  }
 }

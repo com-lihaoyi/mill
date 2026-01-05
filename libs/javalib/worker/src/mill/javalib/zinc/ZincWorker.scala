@@ -519,7 +519,7 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     // the compiler bridge inside a separate `ZincWorkerMain` subprocess
     val doubleLock = new DoubleLock(
       memoryLock,
-      new FileLock(
+      Lock.forDirectory(
         (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString
       )
     )
