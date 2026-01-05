@@ -281,29 +281,29 @@ object MillMain0 {
                             !config.noFilesystemChecker.value
                           ) {
                             BuildCtx.useFileLocks0.withValue(config.useFileLocks.value) {
-                            tailManager.withOutErr(logger.streams.out, logger.streams.err) {
-                              new MillBuildBootstrap(
-                                topLevelProjectRoot = BuildCtx.workspaceRoot,
-                                output = out,
-                                // In BSP server, we want to evaluate as many tasks as possible,
-                                // in order to give as many results as available in BSP responses
-                                keepGoing = bspMode || config.keepGoing.value,
-                                imports = config.imports,
-                                env = env ++ extraEnv,
-                                ec = ec,
-                                tasksAndParams = tasksAndParams,
-                                prevRunnerState = prevState.getOrElse(stateCache),
-                                logger = logger,
-                                requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
-                                allowPositionalCommandArgs = config.allowPositional.value,
-                                systemExit = systemExit,
-                                streams0 = streams,
-                                selectiveExecution = config.watch.value,
-                                offline = config.offline.value,
-                                reporter = reporter,
-                                enableTicker = enableTicker
-                              ).evaluate()
-                            }
+                              tailManager.withOutErr(logger.streams.out, logger.streams.err) {
+                                new MillBuildBootstrap(
+                                  topLevelProjectRoot = BuildCtx.workspaceRoot,
+                                  output = out,
+                                  // In BSP server, we want to evaluate as many tasks as possible,
+                                  // in order to give as many results as available in BSP responses
+                                  keepGoing = bspMode || config.keepGoing.value,
+                                  imports = config.imports,
+                                  env = env ++ extraEnv,
+                                  ec = ec,
+                                  tasksAndParams = tasksAndParams,
+                                  prevRunnerState = prevState.getOrElse(stateCache),
+                                  logger = logger,
+                                  requestedMetaLevel = config.metaLevel.orElse(metaLevelOverride),
+                                  allowPositionalCommandArgs = config.allowPositional.value,
+                                  systemExit = systemExit,
+                                  streams0 = streams,
+                                  selectiveExecution = config.watch.value,
+                                  offline = config.offline.value,
+                                  reporter = reporter,
+                                  enableTicker = enableTicker
+                                ).evaluate()
+                              }
                             }
                           }
                         }
