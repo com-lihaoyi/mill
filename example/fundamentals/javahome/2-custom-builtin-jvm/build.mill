@@ -1,4 +1,4 @@
-//| mill-jvm-version: 15
+//| mill-jvm-version: 19
 
 //
 // The bundled JDK configured via the
@@ -7,6 +7,6 @@
 /** Usage
 
 > ./mill java -version
-openjdk version "15..." ...
+openjdk version "19..." ...
 
 */

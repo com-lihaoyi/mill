@@ -1,5 +1,3 @@
-
-//
 // Mill comes bundled with a JDK (default `{default-mill-jvm-version}`) that it uses for itself that also acts as the default JDK
 // for any modules you define. You can use this JDK yourself via the builtin command
 // `./mill java`, `javac`, `javap`, `jps`, `jstack`, etc.:

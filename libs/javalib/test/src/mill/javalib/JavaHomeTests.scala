@@ -8,7 +8,7 @@ import utest.*
 
 object JavaHome11Tests extends JavaHomeTests("temurin:11.0.24", "11.", Seq[Byte](0, 0, 0, 55))
 object JavaHome17Tests extends JavaHomeTests("temurin:17.0.9", "17.", Seq[Byte](0, 0, 0, 61))
-trait JavaHomeTests(jvmVersion: String, expectedPrefix: String, expectedBytes: Seq[Byte])
+trait JavaHomeTests(jvmVersion0: String, expectedPrefix: String, expectedBytes: Seq[Byte])
     extends TestSuite {
 
   object HelloJavaJavaHome11Override extends TestRootModule {
