@@ -28,7 +28,7 @@ object MillDaemonMain0 {
               val possibleValues = OutFolderMode.values.map(_.asString).mkString(", ")
               Left(usage(s"\n\n<out-mode> must be one of $possibleValues but was '$outModeStr'"))
             case Success(outMode) =>
-              val useFileLocks = useFileLocksStr == "true"
+              val useFileLocks = useFileLocksStr.toBoolean
               Right(apply(os.Path(daemonDir), outMode, useFileLocks, rest))
           }
         case _ => Left(usage())
