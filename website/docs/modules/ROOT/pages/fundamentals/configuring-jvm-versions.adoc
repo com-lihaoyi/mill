@@ -1,7 +1,7 @@
 = Managing JVM Versions
 
 By default, Mill uses the same JVM that it itself is running on to compile/test/run
-Java/Scala/Kotlin modules, defaulting to {default-mill-jvm-version} unless you have
+Java/Scala/Kotlin modules, defaulting to `{default-mill-jvm-version}` unless you have
 specified some other `mill-jvm-version` explicitly in your xref:cli/build-header.adoc[], or
 configured a `def jvmId` on individual modules. Mill manages these JVMs automatically for
 you, downloading and caching them on demand, so you generally never need to worry about

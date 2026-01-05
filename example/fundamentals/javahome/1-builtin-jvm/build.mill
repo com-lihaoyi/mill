@@ -1,7 +1,7 @@
 
 //
-// Mill comes bundled with a JDK that it uses for itself that also acts as the default JDK
-// for any modules you define, and you can also use this JDK yourself via the command
+// Mill comes bundled with a JDK (default `{default-mill-jvm-version}`) that it uses for itself that also acts as the default JDK
+// for any modules you define. You can use this JDK yourself via the builtin command
 // `./mill java`, `javac`, `javap`, `jps`, `jstack`, etc.:
 
 /** Usage
@@ -25,10 +25,11 @@ Usage:
 
 // The bundled JDK configured via the
 // xref:cli/build-header.adoc#_mill_jvm_version[//| mill-jvm-version] key in your build header.
-// This is useful for two reasons:
+// This is useful for three reasons:
 //
 // * It provides your project using `./mill` to have access to a JDK it can use, even if run in
 //   environments without a JDK installed
 // * It provides a JDK with a fixed version regardless of where your project is being run, ensuring
 //   it behaves consistently without the problems that too-new or too-old versions may bring
-//
+// * It makes it super easy to try out different JVMs: just change the `//| mill-jvm-version`
+//   and all the downloading/caching/installation is handled automatically!
