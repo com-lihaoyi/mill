@@ -1,8 +1,10 @@
 package millbuild
+
 import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
+
 trait ProjectBaseModule extends PublishModule, SbtModule {
 
   def scalaVersion = "2.12.3"
@@ -35,4 +37,5 @@ trait ProjectBaseModule extends PublishModule, SbtModule {
     def testSandboxWorkingDir = false
 
   }
+
 }

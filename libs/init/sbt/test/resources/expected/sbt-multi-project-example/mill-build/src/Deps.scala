@@ -1,7 +1,8 @@
 package millbuild
-import mill.javalib.*
-object Deps {
 
+import mill.javalib.*
+
+object Deps {
   val akkaStream = mvn"com.typesafe.akka::akka-stream:2.5.6"
   val config = mvn"com.typesafe:config:1.3.1"
   val jclOverSlf4j = mvn"org.slf4j:jcl-over-slf4j:1.7.25"

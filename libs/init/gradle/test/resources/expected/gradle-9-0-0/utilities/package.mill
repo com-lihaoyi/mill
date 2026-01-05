@@ -1,8 +1,10 @@
 package build.utilities
+
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
+
 object `package` extends ProjectBaseModule, PublishModule {
 
   def moduleDeps = Seq(build.list)
