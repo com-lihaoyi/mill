@@ -137,7 +137,7 @@ class UnitTester(
     offline = offline,
     useFileLocks = false,
     enableTicker = false,
-    staticBuildOverrideFiles = Map(),
+    staticBuildOverrideFiles = Map()
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

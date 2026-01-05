@@ -21,7 +21,10 @@ import mill.constants.*;
 public class MillProcessLauncher {
 
   static int launchMillNoDaemon(
-      String[] args, OutFolderMode outMode, String[] runnerClasspath, String mainClass,
+      String[] args,
+      OutFolderMode outMode,
+      String[] runnerClasspath,
+      String mainClass,
       boolean useFileLocks)
       throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
