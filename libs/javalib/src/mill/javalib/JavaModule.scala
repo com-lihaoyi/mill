@@ -25,7 +25,7 @@ import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
-import mill.util.{JarManifest, Jvm}
+import mill.util.{JarManifest, JdkCommandsModule, Jvm}
 import os.Path
 
 import java.io.File
@@ -47,7 +47,10 @@ trait JavaModule
     with BspModule
     with SemanticDbJavaModule
     with AssemblyModule
+    with JdkCommandsModule
     with JavaModuleApi { outer =>
+
+  override def jdkCommandsJavaHome: Task[Option[PathRef]] = Task.Anon { javaHome() }
 
   private[mill] lazy val bspExt: ModuleRef[mill.javalib.bsp.BspJavaModule] = {
     ModuleRef(new BspJavaModule.Wrap(this) {}.internalBspJavaModule)
@@ -1291,41 +1294,6 @@ trait JavaModule
       )
       ()
     }
-  }
-
-  private def callJdkCommand(cmd: String, args: Seq[String], javaHome: Option[PathRef]): Unit = {
-    val cmd = Seq(Jvm.jdkTool(cmd, javaHome.map(_.path))) ++ args
-    os.call(cmd = cmd, cwd = forkWorkingDir(), stdin = os.Inherit, stdout = os.Inherit)
-  }
-
-  /** Runs the `java` command from this module's [[javaHome]] */
-  def java(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    callJdkCommand("java", args, javaHome())
-  }
-
-  /** Runs the `javac` command from this module's [[javaHome]] */
-  def javac(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    callJdkCommand("javac", args, javaHome())
-  }
-
-  /** Runs the `javap` command from this module's [[javaHome]] */
-  def javap(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    callJdkCommand("javap", args, javaHome())
-  }
-
-  /** Runs the `jstack` command from this module's [[javaHome]] */
-  def jstack(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    callJdkCommand("jstack", args, javaHome())
-  }
-
-  /** Runs the `jps` command from this module's [[javaHome]] */
-  def jps(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    callJdkCommand("jps", args, javaHome())
-  }
-
-  /** Runs the `jfr` command from this module's [[javaHome]] */
-  def jfr(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    callJdkCommand("jfr", args, javaHome())
   }
 
   def launcher: T[PathRef] = Task { launcher0() }
