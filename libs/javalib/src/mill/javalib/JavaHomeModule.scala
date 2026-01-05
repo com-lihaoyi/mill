@@ -15,7 +15,7 @@ trait JavaHomeModule extends CoursierModule {
 
   def jvmIndexVersion: T[String] = mill.javalib.api.Versions.coursierJvmIndexVersion
 
-  def useShortJvmPath(jvmId: String): Boolean =
+  def useShortJvmPath(jvmVersion: String): Boolean =
     scala.util.Properties.isWin && (jvmVersion.startsWith("graalvm") || jvmVersion.startsWith("liberica-nik"))
 
   /**
