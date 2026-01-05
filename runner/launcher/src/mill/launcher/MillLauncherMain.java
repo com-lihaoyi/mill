@@ -172,6 +172,6 @@ public class MillLauncherMain {
       System.err.println("Mill launcher failed. Could not write error log: " + writeEx);
       e.printStackTrace();
     }
-    System.err.println("Mill launcher failed. See " + errorFile.toAbsolutePath() + " for details.");
+    System.err.println("Mill launcher failed. See " + errorFile + " for details.");
   }
 }
