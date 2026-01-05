@@ -10,7 +10,12 @@ import scala.concurrent.duration.*
 import scala.util.{Failure, Properties, Success, Try}
 
 object MillDaemonMain0 {
-  case class Args(daemonDir: os.Path, outMode: OutFolderMode, useFileLocks: Boolean, rest: Seq[String])
+  case class Args(
+      daemonDir: os.Path,
+      outMode: OutFolderMode,
+      useFileLocks: Boolean,
+      rest: Seq[String]
+  )
   object Args {
     def apply(appName: String, args: Array[String]): Either[String, Args] = {
       def usage(extra: String = "") =

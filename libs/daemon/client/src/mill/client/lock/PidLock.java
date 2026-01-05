@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -21,7 +20,9 @@ public class PidLock extends Lock {
    * use the same token.
    */
   private static final long PROCESS_TOKEN = ThreadLocalRandom.current().nextLong();
-  private static final long PROCESS_START_TIME = ProcessHandle.current().info().startInstant().get().toEpochMilli();
+
+  private static final long PROCESS_START_TIME =
+      ProcessHandle.current().info().startInstant().get().toEpochMilli();
 
   private final Path lockPath;
   private final long pid;

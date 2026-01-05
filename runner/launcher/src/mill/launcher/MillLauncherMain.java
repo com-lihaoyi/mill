@@ -29,7 +29,13 @@ public class MillLauncherMain {
     var needParsedConfig = Arrays.stream(args)
         .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
     for (var token : Arrays.asList(
-        "--interactive", "--no-server", "--no-daemon", "--jshell", "--repl", "--bsp", "--help",
+        "--interactive",
+        "--no-server",
+        "--no-daemon",
+        "--jshell",
+        "--repl",
+        "--bsp",
+        "--help",
         "--use-file-locks")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
@@ -113,10 +119,11 @@ public class MillLauncherMain {
                 -1,
                 useFileLocksFinal) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-                System.out.println("initServer " + daemonDir + " " + locks.daemonLock + " " + locks.launcherLock);
-                return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath, useFileLocksFinal)
-                        .toHandle());
+                System.out.println(
+                    "initServer " + daemonDir + " " + locks.daemonLock + " " + locks.launcherLock);
+                return new LaunchedServer.OsProcess(MillProcessLauncher.launchMillDaemon(
+                        daemonDir, outMode, runnerClasspath, useFileLocksFinal)
+                    .toHandle());
               }
             };
 

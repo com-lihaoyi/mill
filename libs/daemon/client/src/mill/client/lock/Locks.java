@@ -1,9 +1,5 @@
 package mill.client.lock;
 
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import mill.constants.DaemonFiles;
 
 public final class Locks implements AutoCloseable {

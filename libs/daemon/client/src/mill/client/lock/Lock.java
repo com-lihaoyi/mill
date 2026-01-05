@@ -23,7 +23,6 @@ public abstract class Lock implements AutoCloseable {
     return new MemoryLock();
   }
 
-
   public static Lock forDirectory(String daemonDir) {
     return forDirectory(daemonDir, false);
   }
