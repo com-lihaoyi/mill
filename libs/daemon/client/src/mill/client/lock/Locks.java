@@ -46,19 +46,9 @@ public final class Locks implements AutoCloseable {
     return new Locks(new MemoryLock(), new MemoryLock());
   }
 
-  public static Locks forDirectory(String daemonDir) {
-    return forDirectory(daemonDir, false);
-  }
-
-  public static Locks forDirectory(String daemonDir, boolean useFileLocks) {
-    if (useFileLocks) {
-      try {
-        return files(daemonDir);
-      } catch (Exception e) {
-        throw new RuntimeException("Failed to create file locks", e);
-      }
-    }
-    return pid(daemonDir);
+  public static Locks forDirectory(String daemonDir, boolean useFileLocks) throws Exception {
+    if (useFileLocks) {return files(daemonDir);
+    else return pid(daemonDir);
   }
 
   @Override
