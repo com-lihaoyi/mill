@@ -182,7 +182,7 @@ trait VcsVersion extends Module {
             cmd = ("git", "diff", "HEAD"),
             cwd = vcsBasePath,
             stderr = os.Pipe
-          ).out.text().trim()).flatMap {
+          ).out.trim()).flatMap {
             case "" => None
             case s => Some(Integer.toHexString(s.hashCode))
           }
