@@ -46,7 +46,7 @@ trait MainModule extends RootModule0, MainModuleApi {
    *
    * @param version The Mill version to update to (e.g., "1.1.0")
    */
-  def updateMillVersion(@mainargs.arg(positional = true) version: String): Command[Seq[PathRef]] =
+  def updateMillScripts(@mainargs.arg(positional = true) version: String): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
       val mavenRepoUrl = "https://repo1.maven.org/maven2"
       val baseUrl = s"$mavenRepoUrl/com/lihaoyi/mill-dist/$version"
