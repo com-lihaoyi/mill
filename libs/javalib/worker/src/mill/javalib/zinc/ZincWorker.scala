@@ -27,8 +27,11 @@ import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
 
-/** @param jobs number of parallel jobs */
-class ZincWorker(jobs: Int) extends AutoCloseable { self =>
+/**
+ * @param jobs number of parallel jobs
+ * @param useFileLocks use file-based locking instead of PID-based locking
+ */
+class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, MemoryLock] = mutable.Map.empty
 
@@ -520,7 +523,8 @@ class ZincWorker(jobs: Int) extends AutoCloseable { self =>
     val doubleLock = new DoubleLock(
       memoryLock,
       Lock.forDirectory(
-        (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString
+        (compilerBridgeProvider.workspace / "compiler-bridge-locks" / scalaVersion).toString,
+        useFileLocks
       )
     )
     try {

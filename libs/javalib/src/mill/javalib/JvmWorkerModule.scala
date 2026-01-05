@@ -148,6 +148,10 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     mill.util.Jvm.createClassLoader(classpath().map(_.path), getClass.getClassLoader)
   }
 
+  def internalWorkerUseFileLocks = Task.Input{
+    mill.api.BuildCtx.useFileLocks
+  }
+  
   @internal def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
     val jobs = Task.ctx().jobs
 
@@ -166,6 +170,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       classPath = classpath().map(_.path),
       jobs = jobs,
       zincLogDebug = zincLogDebug(),
+      useFileLocks = internalWorkerUseFileLocks(),
       close0 = () => ()
     )
 

@@ -280,6 +280,7 @@ object MillMain0 {
                           mill.api.FilesystemCheckerEnabled.withValue(
                             !config.noFilesystemChecker.value
                           ) {
+                            BuildCtx.useFileLocks0.withValue(config.useFileLocks.value) {
                             tailManager.withOutErr(logger.streams.out, logger.streams.err) {
                               new MillBuildBootstrap(
                                 topLevelProjectRoot = BuildCtx.workspaceRoot,
@@ -302,6 +303,7 @@ object MillMain0 {
                                 reporter = reporter,
                                 enableTicker = enableTicker
                               ).evaluate()
+                            }
                             }
                           }
                         }

@@ -18,7 +18,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   import args.*
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
-  private val zincLocalWorker = ZincWorker(jobs = jobs)
+  private val zincLocalWorker = ZincWorker(jobs = jobs, useFileLocks = useFileLocks)
 
   override def apply(
       op: ZincOp,
@@ -97,7 +97,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
         val mainClass = "mill.javalib.worker.JvmWorkerMain"
-        val baseLocks = Locks.forDirectory(daemonDir.toString)
+        val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
@@ -125,7 +125,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           () => {
             val process = Jvm.spawnProcess(
               mainClass = mainClass,
-              mainArgs = Seq(daemonDir.toString, jobs.toString),
+              mainArgs = Seq(daemonDir.toString, jobs.toString, useFileLocks.toString),
               javaHome = key.javaHome,
               jvmArgs = key.runtimeOptions ++ suppressArgs,
               classPath = classPath
