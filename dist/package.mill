@@ -365,6 +365,9 @@ object `package` extends MillJavaModule with DistModule {
       "--no-fallback",
       "--enable-url-protocols=https",
       "-Os",
+      // Build for compatibility with older CPUs that lack AVX2 and other modern features
+      // https://github.com/com-lihaoyi/mill/issues/4630
+      "-march=compatibility",
       // Allow users to use authenticated proxies
       "-Djdk.http.auth.tunneling.disabledSchemes=",
       // Set UTF-8 encoding to fix Unicode character display issues on Windows
