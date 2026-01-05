@@ -429,7 +429,7 @@ object ResolveTests extends TestSuite {
         Seq("_"),
         result => {
           result.isInstanceOf[Result.Success[?]] &&
-          result.toOption.get.size == 2  // normalTask and renamedTaskImpl (renamed as renamedTask)
+          result.toOption.get.size == 2 // normalTask and renamedTaskImpl (renamed as renamedTask)
         },
         metadata => {
           metadata.isInstanceOf[Result.Success[?]] &&

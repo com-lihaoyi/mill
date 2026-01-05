@@ -54,8 +54,8 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   def javaHomePathForkEnv: T[Map[String, String]] = Map(
     "PATH" -> (
       (javaHome().fold(os.Path(sys.props("java.home")))(_.path) / "bin").toString +
-      java.io.File.pathSeparator +
-      Task.env.apply("PATH")
+        java.io.File.pathSeparator +
+        Task.env.apply("PATH")
     )
   )
 

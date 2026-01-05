@@ -13,8 +13,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface rename {
-    /**
-     * The new name to use on the command line (replaces the method name)
-     */
-    String value();
+  /**
+   * The new name to use on the command line (replaces the method name)
+   */
+  String value();
 }
