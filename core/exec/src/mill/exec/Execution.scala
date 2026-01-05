@@ -142,7 +142,9 @@ case class Execution(
 
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
-      def formatHeaderPrefix(keySuffix: String) = {
+      val keySuffix = s"/${indexToTerminal.size}"
+
+      def formatHeaderPrefix() = {
         val completedMsg = mill.api.internal.Util.leftPad(
           completedCount.get().toString,
           indexToTerminal.size.toString.length,
@@ -209,8 +211,6 @@ case class Execution(
                   '0'
                 )
 
-                val keySuffix = s"/${indexToTerminal.size}"
-
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
                   key0 = Seq(countMsg),
@@ -221,7 +221,7 @@ case class Execution(
 
                 if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
                 contextLogger.withPromptLine {
-                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(keySuffix))
+                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                   if (failed.get()) None
                   else {
@@ -260,7 +260,7 @@ case class Execution(
                     completedCount.incrementAndGet()
 
                     // Always show completed count in header after task finishes
-                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(keySuffix))
+                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                     if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                       failed.set(true)
@@ -313,6 +313,9 @@ case class Execution(
       val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
+
+      // Set final header showing success only if there are no failures
+      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix() + ", completed")
 
       logger.prompt.clearPromptStatuses()
 
