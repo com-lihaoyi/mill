@@ -22,6 +22,7 @@ trait JdkCommandsModule extends mill.api.Module {
    * Renamed to `java` on the command line.
    */
   @Task.rename("java")
+  @mainargs.main(name = "java")
   def javaRun(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Jvm.callJdkTool("java", args, jdkCommandsJavaHome().map(_.path))
   }
