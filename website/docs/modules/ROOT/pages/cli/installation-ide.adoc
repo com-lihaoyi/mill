@@ -450,12 +450,23 @@ at the top of the bootstrap script, or as a user environment variable.
 
 == Updating Mill
 
+The recommended way to manage your Mill version is to rely on the `DEFAULT_MILL_VERSION` defined
+in your `./mill` and `./mill.bat` bootstrap scripts. These can be updated via the builtin command
+`updateMillScripts`:
+
+```console
+> ./mill updateMillScripts 1.1.0
+```
+
+In general, managing your Mill version via your `./mill` bootstrap scripts is most reliable, as
+it ensures the bootstrap script and the Mill version you use are always in sync. However, Mill
+also provides other ways of overriding the Mill version used, which we will discuss below:
+
 === Overriding your Mill Version
 
-Typically, most Mill projects use a `mill-version` key in their xref:cli/build-header.adoc[] or
-a `.mill-version` file to configure what version
-to use. You can update the version specified in this file in order to change the version
-of Mill. The file path `.config/mill-version` is also supported. If neither is provided,
+Apart from the version defined in your bootstrap script, you
+can also override the Mill version via use a `mill-version` key in your xref:cli/build-header.adoc[]
+or a `.mill-version` file. The file path `.config/mill-version` is also supported. If neither is provided,
 the `./mill` bootstrap script will use the `DEFAULT_MILL_VERSION` it has built in.
 
 To choose a different Mill version on an ad-hoc basis, e.g. for experimentation, you can pass
@@ -475,6 +486,11 @@ or
 
 to override the Mill version manually. This takes precedence over the version
 specified in `./mill`, `.config/mill-version` or `.mill-version`
+
+In general, we recommend you manage your Mill version via your `./mill` bootstrap scripts and
+update it via `./mill updateMillScripts`. That is the most reliable approach, and avoids issues
+that may be caused by incompatibilities between your `./mill` script and the `mill-version`
+you override.
 
 
 === Automatic Mill updates
