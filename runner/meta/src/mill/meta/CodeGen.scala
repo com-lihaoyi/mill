@@ -54,7 +54,7 @@ object CodeGen {
         .collect {
           case path
               if path != scriptPath
-                && CGConst.nestedBuildFileNames.contains(path.last)
+                && CGConst.allNestedBuildFileNames.contains(path.last)
                 && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
@@ -224,7 +224,7 @@ object CodeGen {
       } else {
         breakable {
           val specialNames =
-            (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
+            (CGConst.allNestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
 
           val isBuildScript = specialNames(scriptPath.last)
 
@@ -237,6 +237,7 @@ object CodeGen {
           if (
             scriptFolderPath != projectRoot
             && CGConst.rootBuildFileNames.contains(scriptName)
+            && !CGConst.buildFileExtensions.asScala.exists(ext => scriptName == s"build.$ext")
           ) break()
 
           val scriptCode = allScriptCode(scriptPath)

@@ -36,6 +36,14 @@ public class CodeGenConstants {
   public static final List<String> buildFileExtensions = List.of("mill.yaml", "mill");
 
   /**
+   * All possible nested build file names, including both package.* and build.* variants
+   */
+  public static final List<String> allNestedBuildFileNames =
+      buildFileExtensions.stream()
+          .flatMap(ext -> java.util.stream.Stream.of("package." + ext, "build." + ext))
+          .collect(java.util.stream.Collectors.toList());
+
+  /**
    * The user-facing name for the root of the module tree.
    */
   public static final String rootModuleAlias = "build";
