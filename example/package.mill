@@ -71,8 +71,7 @@ object `package` extends Module {
     object basic extends Cross[ExampleCrossModule](build.listCross)
     object testing extends Cross[ExampleCrossModule](build.listCross)
     object module extends Cross[ExampleCrossModule](build.listCross)
-    object dependencies
-        extends Cross[ExampleCrossModule](build.listCross)
+    object dependencies extends Cross[ExampleCrossModule](build.listCross)
     object publishing extends Cross[ExampleCrossModule](build.listCross)
     object linting extends Cross[ExampleCrossModule](build.listCross)
   }
@@ -104,13 +103,13 @@ object `package` extends Module {
     object cross extends Cross[ExampleCrossModule](build.listCross)
     object `out-dir` extends Cross[ExampleCrossModule](build.listCross)
     object libraries extends Cross[ExampleCrossModule](build.listCross)
+    object javahome extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object depth extends Module {
-
     object sandbox extends Cross[ExampleCrossModule](build.listCross)
-    object javahome extends Cross[ExampleCrossModule](build.listCross)
   }
+
   object large extends Module {
 
     object selective extends Cross[ExampleCrossModule](build.listCross)

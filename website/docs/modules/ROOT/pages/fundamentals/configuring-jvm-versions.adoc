@@ -1,4 +1,4 @@
-= Configuring JVM Versions
+= Managing JVM Versions
 
 By default, Mill uses the same JVM that it itself is running on to compile/test/run
 Java/Scala/Kotlin modules, typically whatever `java` command you have available globally
@@ -16,5 +16,5 @@ use your artifacts.
   usually preferred to let your application take advantage of the latest JVM improvements
 
 
-include::partial$example/depth/javahome/1-custom-jvms.adoc[]
+include::partial$example/fundamentals/javahome/1-custom-jvms.adoc[]
 
