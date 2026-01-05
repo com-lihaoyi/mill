@@ -21,7 +21,11 @@ import mill.constants.*;
 public class MillProcessLauncher {
 
   static int launchMillNoDaemon(
-      String[] args, OutFolderMode outMode, String[] runnerClasspath, String mainClass)
+      String[] args,
+      OutFolderMode outMode,
+      String[] runnerClasspath,
+      String mainClass,
+      boolean useFileLocks)
       throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir = Paths.get(".")
@@ -38,6 +42,7 @@ public class MillProcessLauncher {
     l.add(mainClass);
     l.add(processDir.toAbsolutePath().toString());
     l.add(outMode.asString());
+    l.add(String.valueOf(useFileLocks));
     l.addAll(millOpts(outMode));
     l.addAll(Arrays.asList(args));
 
@@ -63,12 +68,14 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillDaemon(Path daemonDir, OutFolderMode outMode, String[] runnerClasspath)
+  static Process launchMillDaemon(
+      Path daemonDir, OutFolderMode outMode, String[] runnerClasspath, boolean useFileLocks)
       throws Exception {
     List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode, runnerClasspath));
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
     l.add(outMode.asString());
+    l.add(String.valueOf(useFileLocks));
 
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)

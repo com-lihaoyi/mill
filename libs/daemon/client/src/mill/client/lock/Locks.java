@@ -15,14 +15,40 @@ public final class Locks implements AutoCloseable {
     this.daemonLock = daemonLock;
   }
 
+  /**
+   * @deprecated Use {@link #forDirectory(String)} instead, which automatically
+   *             chooses between file-based and PID-based locking.
+   */
+  @Deprecated
   public static Locks files(String daemonDir) throws Exception {
     return new Locks(
         new FileLock(daemonDir + "/" + DaemonFiles.launcherLock),
         new FileLock(daemonDir + "/" + DaemonFiles.daemonLock));
   }
 
+  /**
+   * Creates locks using PID-based locking (atomic file creation + PID checking).
+   * This works on all filesystems, including those that don't support file locking
+   * (e.g., some network filesystems, Docker containers on macOS), at the cost
+   * of some potential race conditions
+   *
+   * @deprecated Use {@link #forDirectory(String)} instead, which automatically
+   *             chooses between file-based and PID-based locking.
+   */
+  @Deprecated
+  public static Locks pid(String daemonDir) {
+    return new Locks(
+        new PidLock(daemonDir + "/" + DaemonFiles.launcherLock),
+        new PidLock(daemonDir + "/" + DaemonFiles.daemonLock));
+  }
+
   public static Locks memory() {
     return new Locks(new MemoryLock(), new MemoryLock());
+  }
+
+  public static Locks forDirectory(String daemonDir, boolean useFileLocks) throws Exception {
+    if (useFileLocks) return files(daemonDir);
+    else return pid(daemonDir);
   }
 
   @Override

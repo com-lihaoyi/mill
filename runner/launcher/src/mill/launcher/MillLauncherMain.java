@@ -29,12 +29,20 @@ public class MillLauncherMain {
     var needParsedConfig = Arrays.stream(args)
         .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
     for (var token : Arrays.asList(
-        "--interactive", "--no-server", "--no-daemon", "--jshell", "--repl", "--bsp", "--help")) {
+        "--interactive",
+        "--no-server",
+        "--no-daemon",
+        "--jshell",
+        "--repl",
+        "--bsp",
+        "--help",
+        "--use-file-locks")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
     var runNoDaemon = false;
     var bspMode = false;
+    var useFileLocks = false;
 
     // Only use MillCliConfig and other Scala classes if we detect that a relevant flag
     // might have been passed, to avoid loading those classes on the common path for performance
@@ -42,6 +50,7 @@ public class MillLauncherMain {
       var config = MillCliConfig.parse(args).toOption();
       if (config.exists(c -> c.bsp().value())) bspMode = true;
       if (config.exists(c -> c.noDaemonEnabled() > 0)) runNoDaemon = true;
+      if (config.exists(c -> c.useFileLocks().value())) useFileLocks = true;
     }
 
     // Ensure that if we're running in BSP mode we don't start a daemon.
@@ -88,8 +97,8 @@ public class MillLauncherMain {
     if (runNoDaemon) {
       String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
       // start in no-server mode
-      int exitCode =
-          MillProcessLauncher.launchMillNoDaemon(args, outMode, runnerClasspath, mainClass);
+      int exitCode = MillProcessLauncher.launchMillNoDaemon(
+          args, outMode, runnerClasspath, mainClass, useFileLocks);
       System.exit(exitCode);
     } else {
       var logs = new java.util.ArrayList<String>();
@@ -100,17 +109,19 @@ public class MillLauncherMain {
         var formatter =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"));
         Consumer<String> log = (s) -> logs.add(formatter.format(Instant.now()) + " " + s);
+        final boolean useFileLocksFinal = useFileLocks;
         MillServerLauncher launcher =
             new MillServerLauncher(
                 new MillServerLauncher.Streams(System.in, System.out, System.err),
                 System.getenv(),
                 optsArgs.toArray(new String[0]),
                 Optional.empty(),
-                -1) {
+                -1,
+                useFileLocksFinal) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-                return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath)
-                        .toHandle());
+                return new LaunchedServer.OsProcess(MillProcessLauncher.launchMillDaemon(
+                        daemonDir, outMode, runnerClasspath, useFileLocksFinal)
+                    .toHandle());
               }
             };
 
