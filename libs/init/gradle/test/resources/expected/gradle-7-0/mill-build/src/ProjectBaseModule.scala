@@ -1,6 +1,8 @@
 package millbuild
+
 import mill.*
 import mill.javalib.*
+
 trait ProjectBaseModule extends MavenModule {
 
   def depManagement = Seq(Deps.commonsText)
@@ -30,4 +32,5 @@ trait ProjectBaseModule extends MavenModule {
     def testSandboxWorkingDir = false
 
   }
+
 }

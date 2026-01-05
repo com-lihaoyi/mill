@@ -109,7 +109,7 @@ or `./mill --help-advanced` for a list of advanced flags
 [,console]
 ----
 > mill --help-advanced
-Mill Build Tool, version 1.1.0-RC3-122-0af08c
+Mill Build Tool, version 1.1.0-RC3-142-7dca5f
 Usage: mill [options] task [task-options] [+ task ...]
 
 Advanced and internal command-line flags not intended for common usage. Use at your own risk!
@@ -126,6 +126,11 @@ Advanced Options:
   --no-server               Deprecated, use `--no-deamon` instead
   --no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to
                             evaluate tasks / commands.
+  --use-file-locks          Use traditional file-based locking instead of PID-based locking for the
+                            Mill daemon. This removes the chance of race conditions when claiming
+                            the lock after a crash, but may have issues on some filesystems that do
+                            not support lock (e.g. docker mounts on mac)
+
 ----
 
 == Notable Flags

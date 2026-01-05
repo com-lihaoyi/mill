@@ -16,7 +16,10 @@ trait IntegrationTesterBase {
     if (!propagateJavaHome) Map.empty
     else Map(
       "JAVA_HOME" -> sys.props("java.home"),
-      "PATH" -> s"$javaHomeBin${System.getProperty("path.separator")}${sys.env("PATH")}"
+      "PATH" -> sys.env.get("PATH") match{
+        case None => javaHomeBin
+        case Some(p) => s"$javaHomeBin${System.getProperty("path.separator")}${p}"
+      }
     )
   }
 
