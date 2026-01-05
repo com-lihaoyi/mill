@@ -1,4 +1,4 @@
-//| jvmId: 11.0.21
+//| jvmVersion: 11.0.21
 package foo
 
 fun main() {

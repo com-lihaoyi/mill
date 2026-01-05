@@ -7,4 +7,4 @@ nativeImageOptions:
   - "--no-fallback"
   - "-Os"
   - "--initialize-at-build-time=com.github.ajalt.mordant.internal.nativeimage.NativeImagePosixMppImpls"
-jvmId: graalvm-community:23.0.2
+jvmVersion: graalvm-community:23.0.2

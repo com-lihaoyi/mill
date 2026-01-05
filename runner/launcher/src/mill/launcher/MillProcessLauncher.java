@@ -15,6 +15,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.*;
 import java.util.stream.Stream;
+
+import mill.client.BuildInfo;
 import mill.client.ClientUtil;
 import mill.constants.*;
 
@@ -200,25 +202,25 @@ public class MillProcessLauncher {
   }
 
   static String javaHome(OutFolderMode outMode) throws Exception {
-    var jvmId = millJvmVersion(outMode);
+    var jvmVersion = millJvmVersion(outMode);
     var jvmIndexVersion = millJvmIndexVersion(outMode);
 
     String javaHome = null;
-    if (jvmId == null) {
-      jvmId = mill.client.BuildInfo.defaultJvmId;
+    if (jvmVersion == null) {
+      jvmVersion = BuildInfo.defaultJvmVersion;
     }
 
-    if (jvmId != null) {
-      final String jvmIdFinal = jvmId;
+    if (jvmVersion != null) {
+      final String jvmVersionFinal = jvmVersion;
       final String jvmIndexVersionFinal = jvmIndexVersion;
       // Include JVM index version in the cache key to invalidate cache when index version changes
-      String cacheKey = jvmIndexVersion != null ? jvmId + ":" + jvmIndexVersion : jvmId;
+      String cacheKey = jvmIndexVersion != null ? jvmVersion + ":" + jvmIndexVersion : jvmVersion;
       javaHome = cachedComputedValue0(
           outMode,
           "java-home",
           cacheKey,
           () -> new String[] {
-            CoursierClient.resolveJavaHome(jvmIdFinal, jvmIndexVersionFinal).getAbsolutePath()
+            CoursierClient.resolveJavaHome(jvmVersionFinal, jvmIndexVersionFinal).getAbsolutePath()
           },
           // Make sure we check to see if the saved java home exists before using
           // it, since it may have been since uninstalled, or the `out/` folder
@@ -226,7 +228,7 @@ public class MillProcessLauncher {
           arr -> Files.exists(Paths.get(arr[0])))[0];
     }
 
-    if (jvmId == "system") {
+    if (jvmVersion == "system") {
       if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
       if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
     }

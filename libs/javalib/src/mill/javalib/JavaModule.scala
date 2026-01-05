@@ -94,7 +94,7 @@ trait JavaModule
     override def javacOptions = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
-    def jvmId = outer.jvmId
+    def jvmVersion = outer.jvmVersion
 
     def jvmIndexVersion = outer.jvmIndexVersion
 
@@ -1622,7 +1622,7 @@ object JavaModule {
     override def javacOptions = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
-    def jvmId = outer.jvmId
+    def jvmVersion = outer.jvmVersion
 
     def jvmIndexVersion = outer.jvmIndexVersion
 

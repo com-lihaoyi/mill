@@ -1,6 +1,6 @@
 // Mill Single-File Scripts can be packaged into executable assemblies or Graal
 // native images for convenient distribution or deployment. Note that to create
-// Graal native image binaries, you need to define your `jvmId` to be a `graalvm`
+// Graal native image binaries, you need to define your `jvmVersion` to be a `graalvm`
 // version
 //
 //

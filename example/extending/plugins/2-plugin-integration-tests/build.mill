@@ -12,7 +12,7 @@ object myplugin extends ScalaModule, PublishModule {
 
   def scalaVersion = "3.7.4"
 
-  def jvmId = "11"
+  def jvmVersion = "11"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
   def platformSuffix = s"_mill1"

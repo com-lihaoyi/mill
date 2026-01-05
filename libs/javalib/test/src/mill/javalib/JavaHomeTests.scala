@@ -8,12 +8,12 @@ import utest.*
 
 object JavaHome11Tests extends JavaHomeTests("temurin:11.0.24", "11.", Seq[Byte](0, 0, 0, 55))
 object JavaHome17Tests extends JavaHomeTests("temurin:17.0.9", "17.", Seq[Byte](0, 0, 0, 61))
-trait JavaHomeTests(jvmId0: String, expectedPrefix: String, expectedBytes: Seq[Byte])
+trait JavaHomeTests(jvmVersion: String, expectedPrefix: String, expectedBytes: Seq[Byte])
     extends TestSuite {
 
   object HelloJavaJavaHome11Override extends TestRootModule {
     object core extends JavaModule {
-      def jvmId = jvmId0
+      def jvmVersion = jvmVersion0
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
