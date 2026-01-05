@@ -3,11 +3,6 @@ package mill.client.lock;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-/**
- * Represents the result of a tryLock() attempt on a PidLock.
- * If isLocked() returns true, the lock was successfully acquired
- * and release() must be called to release it.
- */
 class PidTryLocked implements TryLocked {
 
   private final Path lockPath;
