@@ -99,7 +99,18 @@ trait VcsVersion extends Module {
    *
    * @return A tuple of (the latest tag, the calculated version string)
    */
-  def vcsState: T[VcsVersion.State] = Task.Input { calcVcsState(Task.log) }
+  def vcsState: T[VcsVersion.State] = Task.Uncached {
+    calcVcsState(Task.log)
+  }
+
+  /**
+   * Alternative to [[vcsState]], if you need this task being an input task.
+   *
+   * This is only necessary, if you need a changed calculated version to trigger a rebuild in `--watch` mode.
+   */
+  def vcsStateInput: T[VcsVersion.State] = Task.Input {
+    calcVcsState(Task.log)
+  }
 
   def calcVcsState(logger: Logger): VcsVersion.State = {
     val curHeadRaw =
