@@ -9,6 +9,7 @@ import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
 
 import java.lang.System.lineSeparator
+import scala.collection.mutable
 
 object BuildGen {
 
@@ -65,7 +66,7 @@ object BuildGen {
 
   def withBaseModule(
       packages: Seq[PackageSpec],
-      baseWithTestHierarchy: (String, String)*
+      supertypeHierarchy: Seq[(String, String)]
   ): Option[(ModuleSpec, Seq[PackageSpec])] = {
     def parentValue[A](a: Value[A], b: Value[A]) = Value(
       if (a.base == b.base) a.base else None,
@@ -80,8 +81,8 @@ object BuildGen {
       },
       a.appendSuper && b.appendSuper
     )
-    def parentModule(name: String, hierarchy: Seq[String])(a: ModuleSpec, b: ModuleSpec) =
-      ModuleSpec(
+    def parentModule(name: String, hierarchy: Seq[String])(a: ModuleSpec, b: ModuleSpec) = {
+      var parent = ModuleSpec(
         name = name,
         imports = (a.imports ++ b.imports).distinct.filter(!_.startsWith("millbuild")),
         supertypes = {
@@ -93,7 +94,7 @@ object BuildGen {
             case (prefix, suffix) => prefix ++ (hierarchy.head +: suffix)
           }
         },
-        codeBlocks = a.codeBlocks.intersect(b.codeBlocks),
+        snippets = a.snippets.intersect(b.snippets),
         repositories = parentValues(a.repositories, b.repositories),
         forkArgs = parentValues(a.forkArgs, b.forkArgs),
         mandatoryMvnDeps = parentValues(a.mandatoryMvnDeps, b.mandatoryMvnDeps),
@@ -104,28 +105,56 @@ object BuildGen {
         depManagement = parentValues(a.depManagement, b.depManagement),
         javacOptions = parentValues(a.javacOptions, b.javacOptions),
         artifactName = parentValue(a.artifactName, b.artifactName),
-        pomPackagingType = parentValue(a.pomPackagingType, b.pomPackagingType),
-        pomParentProject = parentValue(a.pomParentProject, b.pomParentProject),
-        pomSettings = parentValue(a.pomSettings, b.pomSettings),
-        publishVersion = parentValue(a.publishVersion, b.publishVersion),
-        versionScheme = parentValue(a.versionScheme, b.versionScheme),
-        publishProperties = parentValues(a.publishProperties, b.publishProperties),
-        errorProneDeps = parentValues(a.errorProneDeps, b.errorProneDeps),
-        errorProneOptions = parentValues(a.errorProneOptions, b.errorProneOptions),
-        errorProneJavacEnableOptions =
-          parentValues(a.errorProneJavacEnableOptions, b.errorProneJavacEnableOptions),
         scalaVersion = parentValue(a.scalaVersion, b.scalaVersion),
         scalacOptions = parentValues(a.scalacOptions, b.scalacOptions),
         scalacPluginMvnDeps = parentValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
-        scalaJSVersion = parentValue(a.scalaJSVersion, b.scalaJSVersion),
-        moduleKind = parentValue(a.moduleKind, b.moduleKind),
-        scalaNativeVersion = parentValue(a.scalaNativeVersion, b.scalaNativeVersion),
-        testFramework = parentValue(a.testFramework, b.testFramework),
-        scalafixIvyDeps = parentValues(a.scalafixIvyDeps, b.scalafixIvyDeps),
-        scoverageVersion = parentValue(a.scoverageVersion, b.scoverageVersion),
-        branchCoverageMin = parentValue(a.branchCoverageMin, b.branchCoverageMin),
-        statementCoverageMin = parentValue(a.statementCoverageMin, b.statementCoverageMin)
+        testFramework = parentValue(a.testFramework, b.testFramework)
       )
+      val excludeTags = mutable.Buffer("ScalafixModule", "ScoverageModule")
+      parent.supertypes.foreach {
+        case "PublishModule" => parent = parent.copy(
+            pomPackagingType = parentValue(a.pomPackagingType, b.pomPackagingType),
+            pomParentProject = parentValue(a.pomParentProject, b.pomParentProject),
+            pomSettings = parentValue(a.pomSettings, b.pomSettings),
+            publishVersion = parentValue(a.publishVersion, b.publishVersion),
+            versionScheme = parentValue(a.versionScheme, b.versionScheme),
+            publishProperties = parentValues(a.publishProperties, b.publishProperties)
+          )
+        case "ErrorProneModule" => parent = parent.copy(
+            errorProneDeps = parentValues(a.errorProneDeps, b.errorProneDeps),
+            errorProneOptions = parentValues(a.errorProneOptions, b.errorProneOptions),
+            errorProneJavacEnableOptions =
+              parentValues(a.errorProneJavacEnableOptions, b.errorProneJavacEnableOptions)
+          )
+        case "JmhModule" => parent = parent.copy(
+            jmhCoreVersion = parentValue(a.jmhCoreVersion, b.jmhCoreVersion)
+          )
+        case "ScalaJSModule" => parent = parent.copy(
+            scalaJSVersion = parentValue(a.scalaJSVersion, b.scalaJSVersion),
+            moduleKind = parentValue(a.moduleKind, b.moduleKind)
+          )
+        case "ScalaNativeModule" => parent = parent.copy(
+            scalaNativeVersion = parentValue(a.scalaNativeVersion, b.scalaNativeVersion)
+          )
+        case "ScalafixModule" =>
+          excludeTags -= "ScalafixModule"
+          parent = parent.copy(scalafixIvyDeps = parentValues(a.scalafixIvyDeps, b.scalafixIvyDeps))
+        case "ScoverageModule" =>
+          excludeTags -= "ScoverageModule"
+          parent = parent.copy(
+            scoverageVersion = parentValue(a.scoverageVersion, b.scoverageVersion),
+            branchCoverageMin = parentValue(a.branchCoverageMin, b.branchCoverageMin),
+            statementCoverageMin = parentValue(a.statementCoverageMin, b.statementCoverageMin)
+          )
+        case _ =>
+      }
+      if (excludeTags.nonEmpty) {
+        parent = parent.copy(snippets =
+          parent.snippets.filter(code => !excludeTags.contains(code.tag))
+        )
+      }
+      parent
+    }
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
       if (a.base == parent.base) None else a.base,
       a.cross.diff(parent.cross)
@@ -145,7 +174,7 @@ object BuildGen {
           val (prefix, suffix) = a.supertypes.splitAt(a.supertypes.indexWhere(hierarchy.contains))
           (prefix ++ (parent.name +: suffix)).diff(parent.supertypes)
         },
-        codeBlocks = a.codeBlocks.diff(parent.codeBlocks),
+        snippets = a.snippets.diff(parent.snippets),
         repositories = extendValues(a.repositories, parent.repositories),
         forkArgs = extendValues(a.forkArgs, parent.forkArgs),
         mandatoryMvnDeps = extendValues(a.mandatoryMvnDeps, parent.mandatoryMvnDeps),
@@ -178,48 +207,40 @@ object BuildGen {
         branchCoverageMin = extendValue(a.branchCoverageMin, parent.branchCoverageMin),
         statementCoverageMin = extendValue(a.statementCoverageMin, parent.statementCoverageMin)
       )
-    val (baseHierarchy, testHierarchy) = baseWithTestHierarchy.unzip
+    val (baseHierarchy, testHierarchy) = supertypeHierarchy.unzip
     def canExtend(module: ModuleSpec) = module.supertypes.exists(baseHierarchy.contains)
     def isTestModule(module: ModuleSpec) = module.supertypes.exists(testHierarchy.contains)
     def recExtendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
       var module = a
-      var (tests, children) = module.children.partition(isTestModule)
       if (canExtend(module)) {
         module = module.copy(imports = "millbuild.*" +: module.imports)
         module = extendModule(module, parent, baseHierarchy)
-        if (parent.children.nonEmpty) {
-          tests = tests.map(extendModule(_, parent.children.head, testHierarchy))
-        }
       }
-      children = children.map(recExtendModule(_, parent))
-      module.copy(children = tests ++ children).withAlias()
+      val children = module.children.map { child =>
+        if (isTestModule(child)) extendModule(child, parent.children.head, testHierarchy)
+        else recExtendModule(child, parent)
+      }
+      module.copy(children = children).withAlias()
     }
 
     val extendingModules = packages.flatMap(_.module.tree).filter(canExtend)
     Option.when(extendingModules.length > 1) {
       var baseModule = extendingModules.reduce(parentModule("ProjectBaseModule", baseHierarchy))
       val testModule = extendingModules.flatMap(_.children.filter(isTestModule))
-        .reduceOption(parentModule("Tests", testHierarchy)).map { module =>
-          var supertypes = module.supertypes
-          var codeBlocks = module.codeBlocks
+        .reduceOption(parentModule("Tests", testHierarchy)).map { testModule =>
+          var supertypes = mutable.Buffer(testModule.supertypes*)
           val i = baseHierarchy.indexWhere(baseModule.supertypes.contains)
-          val j = testHierarchy.indexWhere(module.supertypes.contains)
+          val j = testHierarchy.indexWhere(testModule.supertypes.contains)
           if (i < j) {
-            supertypes = supertypes.updated(j, testHierarchy(i))
-          }
-          if (
-            supertypes.contains("ScalafixModule") &&
-            !baseModule.supertypes.contains("ScalafixModule")
-          ) {
-            codeBlocks = codeBlocks.filter(!_.contains("def scalafix"))
+            supertypes(j) = testHierarchy(i)
           }
           if (
             supertypes.contains("ScoverageTests") &&
             !baseModule.supertypes.contains("ScoverageModule")
           ) {
-            supertypes = supertypes.filter(_ != "ScoverageTests")
+            supertypes -= "ScoverageTests"
           }
-          module.copy(supertypes = supertypes, codeBlocks = codeBlocks)
+          testModule.copy(supertypes = supertypes.toSeq)
         }
       baseModule = baseModule.copy(children = testModule.toSeq).withAlias()
       val packages0 =
@@ -377,6 +398,8 @@ object BuildGen {
        |
        |${render("errorProneJavacEnableOptions", errorProneJavacEnableOptions, encodeOpt)}
        |
+       |${render("jmhCoreVersion", jmhCoreVersion, encodeString)}
+       |
        |${render("scalafixIvyDeps", scalafixIvyDeps, encodeMvnDep)}
        |
        |${render("scoverageVersion", scoverageVersion, encodeString)}
@@ -385,7 +408,7 @@ object BuildGen {
        |
        |${render("statementCoverageMin", statementCoverageMin, a => s"Some($a")}
        |
-       |${codeBlocks.mkString(lineSeparator * 2)}
+       |${snippets.map(_.body).mkString(lineSeparator * 2)}
        |
        |${render("artifactName", artifactName, encodeString)}
        |
@@ -412,10 +435,10 @@ object BuildGen {
       millJvmOpts: Seq[String],
       mvnDeps: Seq[String]
   ) = {
-    def seq[A](key: String, values: Seq[A]) = if (values.isEmpty) ""
+    def render[A](key: String, values: Seq[A]) = if (values.isEmpty) ""
     else values.mkString(s"//| $key:$lineSeparator//| - ", s"$lineSeparator//| - ", lineSeparator)
-    val millJvmOptsEntry = seq("mill-jvm-opts", millJvmOpts.map(encodeString))
-    val mvnDepsEntry = seq("mvnDeps", mvnDeps)
+    val millJvmOptsEntry = render("mill-jvm-opts", millJvmOpts.map(encodeString))
+    val mvnDepsEntry = render("mvnDeps", mvnDeps.sorted)
     s"""//| mill-version: $millVersion
        |//| mill-jvm-version: $millJvmVersion
        |$millJvmOptsEntry$mvnDepsEntry""".stripMargin

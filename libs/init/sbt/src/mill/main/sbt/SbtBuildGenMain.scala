@@ -98,12 +98,10 @@ object SbtBuildGenMain {
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
     val (baseModule, packages1) = Option.when(!noMeta.value)(BuildGen.withBaseModule(
       packages0,
-      "CrossSbtModule" -> "CrossSbtTests",
-      "CrossSbtPlatformModule" -> "CrossSbtPlatformTests"
+      Seq("CrossSbtModule" -> "CrossSbtTests", "CrossSbtPlatformModule" -> "CrossSbtPlatformTests")
     ).orElse(BuildGen.withBaseModule(
       packages0,
-      "SbtModule" -> "SbtTests",
-      "SbtPlatformModule" -> "SbtPlatformTests"
+      Seq("SbtModule" -> "SbtTests", "SbtPlatformModule" -> "SbtPlatformTests")
     ))).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
     val millJvmOpts = {
       val file = os.pwd / ".jvmopts"
@@ -113,12 +111,11 @@ object SbtBuildGenMain {
         .flatMap(_.split("\\s"))
       else Nil
     }
-    val mvnDeps = packages1.iterator.flatMap(_.module.tree).flatMap(_.supertypes)
-      .distinct
-      .collect {
-        case "ScalafixModule" => scalafixDep
-        case "ScoverageModule" => "com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION"
-      }.toSeq
+    val mvnDeps = packages.iterator.flatMap(_.module.tree).flatMap(_.supertypes).distinct.collect {
+      case "JmhModule" => "com.lihaoyi::mill-contrib-jmh:$MILL_VERSION"
+      case "ScoverageModule" => "com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION"
+      case "ScalafixModule" => scalafixDep
+    }.toSeq
     BuildGen.writeBuildFiles(
       packages1,
       merge.value,
@@ -145,7 +142,7 @@ object SbtBuildGenMain {
       imports = (a.imports ++ b.imports).distinct,
       supertypes = a.supertypes.intersect(b.supertypes),
       crossKeys = a.crossKeys ++ b.crossKeys,
-      codeBlocks = a.codeBlocks.intersect(b.codeBlocks),
+      snippets = a.snippets.intersect(b.snippets),
       repositories = combineValues(a.repositories, b.repositories),
       mvnDeps = combineValues(a.mvnDeps, b.mvnDeps),
       compileMvnDeps = combineValues(a.compileMvnDeps, b.compileMvnDeps),
@@ -164,6 +161,7 @@ object SbtBuildGenMain {
       publishVersion = combineValue(a.publishVersion, b.publishVersion),
       versionScheme = combineValue(a.versionScheme, b.versionScheme),
       publishProperties = combineValues(a.publishProperties, b.publishProperties),
+      jmhCoreVersion = combineValue(a.jmhCoreVersion, b.jmhCoreVersion),
       scalacOptions = combineValues(a.scalacOptions, b.scalacOptions),
       scalacPluginMvnDeps = combineValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
       scalaJSVersion = combineValue(a.scalaJSVersion, b.scalaJSVersion),
@@ -201,6 +199,7 @@ object SbtBuildGenMain {
       publishVersion = normalizeValue(a.publishVersion),
       versionScheme = normalizeValue(a.versionScheme),
       publishProperties = normalizeValues(a.publishProperties),
+      jmhCoreVersion = normalizeValue(a.jmhCoreVersion),
       scalacOptions = normalizeValues(a.scalacOptions),
       scalacPluginMvnDeps = normalizeValues(a.scalacPluginMvnDeps),
       scalaJSVersion = normalizeValue(a.scalaJSVersion),

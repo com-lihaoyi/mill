@@ -101,7 +101,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         var testModule = ModuleSpec(
           name = "test",
           supertypes = "MavenTests" +: testMixin.toSeq,
-          codeBlocks = Seq(
+          snippets = Seq(
             "def forkWorkingDir = moduleDir",
             "def testParallelism = false",
             "def testSandboxWorkingDir = false"
@@ -149,21 +149,64 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
               }
           }
         }
-        mainModule = mainModule.copy(children = Seq(testModule))
+        mainModule = mainModule.copy(children = mainModule.children :+ testModule)
       }
     }
 
     for {
       pubExt <- Option(getExtensions.findByType(classOf[PublishingExtension]))
       pub <- pubExt.getPublications.withType(classOf[MavenPublication]).asScala.headOption
-      pom = Option(pub.getPom)
+      pom <- Option(pub.getPom)
     } do {
       mainModule = mainModule.copy(
         imports = "mill.javalib.*" +: "mill.javalib.publish.*" +: mainModule.imports,
         supertypes = mainModule.supertypes :+ "PublishModule",
         artifactName = Option(pub.getArtifactId),
-        pomPackagingType = pom.flatMap(toPomPackagingType),
-        pomSettings = pom.map(toPomSettings(_, pub.getGroupId)),
+        pomPackagingType = Try(pom.getPackaging).filter(_ != "jar").toOption,
+        pomSettings = Option {
+          import pom.*
+          val (licenses, versionControl, developers) = pom match {
+            case pom: DefaultMavenPom =>
+              (
+                pom.getLicenses.asScala.map { license =>
+                  import license.*
+                  License(
+                    name = getName.getOrElse(""),
+                    url = getUrl.getOrElse(""),
+                    distribution = getDistribution.getOrElse("")
+                  )
+                }.toSeq,
+                Option(pom.getScm).fold(VersionControl()) { scm =>
+                  import scm.*
+                  VersionControl(
+                    browsableRepository = Option(getUrl.getOrNull),
+                    connection = Option(getConnection.getOrNull),
+                    developerConnection = Option(getDeveloperConnection.getOrNull),
+                    tag = Option(getTag.getOrNull)
+                  )
+                },
+                pom.getDevelopers.asScala.map { developer =>
+                  import developer.*
+                  Developer(
+                    id = getId.getOrElse(""),
+                    name = getName.getOrElse(""),
+                    url = getUrl.getOrElse(""),
+                    organization = Option(getOrganization.getOrNull),
+                    organizationUrl = Option(getOrganizationUrl.getOrNull)
+                  )
+                }.toSeq
+              )
+            case _ => (Nil, VersionControl(), Nil)
+          }
+          PomSettings(
+            description = getDescription.getOrElse(""),
+            organization = pub.getGroupId,
+            url = getUrl.getOrElse(""),
+            licenses = licenses,
+            versionControl = versionControl,
+            developers = developers
+          )
+        },
         publishVersion = Option(getVersion).map(_.toString)
       )
     }
@@ -232,61 +275,5 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
     ).flatten)(n => Seq(Opt("--release", n.toString))) ++
       Option(task.getOptions.getEncoding).map(Opt("-encoding", _)) ++
       Opt.groups(task.getOptions.getAllCompilerArgs.asScala.toSeq)
-  }
-
-  private def toPomPackagingType(pom: MavenPom): Option[String] =
-    Try(pom.getPackaging).filter(_ != "jar").toOption
-
-  private def toPomSettings(pom: MavenPom, groupId: String): PomSettings = {
-    import pom.*
-    val (licenses, versionControl, developers) = pom match {
-      case pom: DefaultMavenPom =>
-        (
-          pom.getLicenses.asScala.map(toLicense).toSeq,
-          toVersionControl(pom.getScm),
-          pom.getDevelopers.asScala.map(toDeveloper).toSeq
-        )
-      case _ => (Nil, VersionControl(), Nil)
-    }
-    PomSettings(
-      description = getDescription.getOrElse(""),
-      organization = groupId,
-      url = getUrl.getOrElse(""),
-      licenses = licenses,
-      versionControl = versionControl,
-      developers = developers
-    )
-  }
-
-  private def toLicense(license: MavenPomLicense): License = {
-    import license.*
-    License(
-      name = getName.getOrElse(""),
-      url = getUrl.getOrElse(""),
-      distribution = getDistribution.getOrElse("")
-    )
-  }
-
-  private def toVersionControl(scm: MavenPomScm): VersionControl = {
-    if (null == scm) VersionControl()
-    else
-      import scm.*
-      VersionControl(
-        browsableRepository = Option(getUrl.getOrNull),
-        connection = Option(getConnection.getOrNull),
-        developerConnection = Option(getDeveloperConnection.getOrNull),
-        tag = Option(getTag.getOrNull)
-      )
-  }
-
-  private def toDeveloper(developer: MavenPomDeveloper): Developer = {
-    import developer.*
-    Developer(
-      id = getId.getOrElse(""),
-      name = getName.getOrElse(""),
-      url = getUrl.getOrElse(""),
-      organization = Option(getOrganization.getOrNull),
-      organizationUrl = Option(getOrganizationUrl.getOrNull)
-    )
   }
 }

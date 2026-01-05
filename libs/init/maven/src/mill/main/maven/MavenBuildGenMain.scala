@@ -2,7 +2,7 @@ package mill.main.maven
 
 import mill.main.buildgen.*
 import mill.main.buildgen.ModuleSpec.*
-import org.apache.maven.model.{Developer as MvnDeveloper, License as MvnLicense, *}
+import org.apache.maven.model.{Developer as _, License as _, *}
 
 import scala.jdk.CollectionConverters.*
 
@@ -44,15 +44,15 @@ object MavenBuildGenMain {
           case repo if repo.getId != "central" => repo.getUrl
         }.toSeq
       )
-      val mainCodeBlocks = Seq.newBuilder[String]
+      val mainSnippets = Seq.newBuilder[Snippet]
 
       model.getPackaging match {
         case "pom" =>
           if (os.exists(moduleDir / "src/main/java")) {
-            mainCodeBlocks += "def sourcesFolders = Nil"
+            mainSnippets += "def sourcesFolders = Nil"
           }
           if (os.exists(moduleDir / "src/main/resources")) {
-            mainCodeBlocks += "def resources = Nil"
+            mainSnippets += "def resources = Nil"
           }
           if (Option(model.getDependencyManagement).exists(!_.getDependencies.isEmpty)) {
             val (bomDeps, deps) =
@@ -113,7 +113,7 @@ object MavenBuildGenMain {
             var testModule = ModuleSpec(
               name = "test",
               supertypes = "MavenTests" +: testMixin.toSeq,
-              codeBlocks = Seq(
+              snippets = Seq(
                 "def forkWorkingDir = moduleDir",
                 "def testParallelism = false",
                 "def testSandboxWorkingDir = false"
@@ -151,7 +151,7 @@ object MavenBuildGenMain {
                   }
               }
             }
-            mainModule = mainModule.copy(children = Seq(testModule))
+            mainModule = mainModule.copy(children = mainModule.children :+ testModule)
           }
       }
       if (!plugins.skipDeploy) {
@@ -159,15 +159,53 @@ object MavenBuildGenMain {
           imports = "mill.javalib.*" +: "mill.javalib.publish.*" +: mainModule.imports,
           supertypes = mainModule.supertypes :+ "PublishModule",
           pomPackagingType = Option(model.getPackaging).filter(_ != "jar"),
-          pomParentProject = toPomParentProject(model.getParent),
-          // Use raw model since the effective one returns derived values for URL fields.
-          pomSettings = Some(toPomSettings(result.getRawModel)),
+          pomParentProject = Option(model.getParent).map { parent =>
+            import parent.*
+            Artifact(getGroupId, getArtifactId, getVersion)
+          },
+          pomSettings = Some {
+            // Use raw model since the effective one returns derived values for URL fields.
+            val model = result.getRawModel
+            import model.*
+            PomSettings(
+              description = Option(getDescription).getOrElse(""),
+              organization = Option(getGroupId).getOrElse(""),
+              url = Option(getUrl).getOrElse(""),
+              licenses = getLicenses.asScala.map { license =>
+                import license.*
+                License(
+                  name = Option(getName).getOrElse(""),
+                  url = Option(getUrl).getOrElse(""),
+                  distribution = Option(getDistribution).getOrElse("")
+                )
+              }.toSeq,
+              versionControl = Option(getScm).fold(VersionControl()) { scm =>
+                import scm.*
+                VersionControl(
+                  browsableRepository = Option(getUrl),
+                  connection = Option(getConnection),
+                  developerConnection = Option(getDeveloperConnection),
+                  tag = Option(getTag)
+                )
+              },
+              developers = getDevelopers.asScala.map { developer =>
+                import developer.*
+                Developer(
+                  id = Option(getId).getOrElse(""),
+                  name = Option(getName).getOrElse(""),
+                  url = Option(getUrl).getOrElse(""),
+                  organization = Option(getOrganization),
+                  organizationUrl = Option(getOrganizationUrl)
+                )
+              }.toSeq
+            )
+          },
           publishVersion = Option(model.getVersion),
           publishProperties =
             if (publishProperties.value) model.getProperties.asScala.toSeq else Nil
         )
       }
-      mainModule = mainModule.copy(codeBlocks = mainCodeBlocks.result())
+      mainModule = mainModule.copy(snippets = mainSnippets.result()).withAlias()
 
       PackageSpec(moduleDir.subRelativeTo(os.pwd), mainModule)
     }
@@ -175,9 +213,10 @@ object MavenBuildGenMain {
 
     val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
-    val (baseModule, packages1) = Option.when(!noMeta.value)(
-      BuildGen.withBaseModule(packages0, "MavenModule" -> "MavenTests")
-    ).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
+    val (baseModule, packages1) = Option.when(!noMeta.value)(BuildGen.withBaseModule(
+      packages0,
+      Seq("MavenModule" -> "MavenTests")
+    )).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
     BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmId)
   }
 
@@ -196,58 +235,6 @@ object MavenBuildGenMain {
         case tpe => Some(tpe)
       },
       excludes = getExclusions.asScala.map(x => (x.getGroupId, x.getArtifactId)).toSeq
-    )
-  }
-
-  private def toPomParentProject(parent: Parent) = {
-    if (parent == null) None
-    else {
-      import parent.*
-      Some(Artifact(getGroupId, getArtifactId, getVersion))
-    }
-  }
-
-  private def toPomSettings(model: Model) = {
-    import model.*
-    PomSettings(
-      description = Option(getDescription).getOrElse(""),
-      organization = Option(getGroupId).getOrElse(""),
-      url = Option(getUrl).getOrElse(""),
-      licenses = getLicenses.asScala.map(toLicense).toSeq,
-      versionControl = toVersionControl(getScm),
-      developers = getDevelopers.asScala.map(toDeveloper).toSeq
-    )
-  }
-
-  private def toLicense(license: MvnLicense) = {
-    import license.*
-    License(
-      name = Option(getName).getOrElse(""),
-      url = Option(getUrl).getOrElse(""),
-      distribution = Option(getDistribution).getOrElse("")
-    )
-  }
-
-  private def toVersionControl(scm: Scm) = {
-    if (scm == null) VersionControl()
-    else
-      import scm.*
-      VersionControl(
-        browsableRepository = Option(getUrl),
-        connection = Option(getConnection),
-        developerConnection = Option(getDeveloperConnection),
-        tag = Option(getTag)
-      )
-  }
-
-  private def toDeveloper(developer: MvnDeveloper) = {
-    import developer.*
-    Developer(
-      id = Option(getId).getOrElse(""),
-      name = Option(getName).getOrElse(""),
-      url = Option(getUrl).getOrElse(""),
-      organization = Option(getOrganization),
-      organizationUrl = Option(getOrganizationUrl)
     )
   }
 

@@ -11,7 +11,7 @@ case class ModuleSpec(
     supertypes: Seq[String] = Nil,
     crossKeys: Seq[String] = Nil,
     alias: Option[String] = None,
-    codeBlocks: Seq[String] = Nil,
+    snippets: Seq[Snippet] = Nil,
     repositories: Values[String] = Nil,
     forkArgs: Values[Opt] = Values(),
     mandatoryMvnDeps: Values[MvnDep] = Values(),
@@ -35,17 +35,18 @@ case class ModuleSpec(
     errorProneDeps: Values[MvnDep] = Values(),
     errorProneOptions: Values[String] = Values(),
     errorProneJavacEnableOptions: Values[Opt] = Values(),
+    jmhCoreVersion: Value[String] = Value(),
     scalaVersion: Value[String] = Value(),
     scalacOptions: Values[Opt] = Values(),
     scalacPluginMvnDeps: Values[MvnDep] = Values(),
     scalaJSVersion: Value[String] = Value(),
     moduleKind: Value[String] = Value(),
     scalaNativeVersion: Value[String] = Value(),
-    testFramework: Value[String] = Value(),
     scalafixIvyDeps: Values[MvnDep] = Values(),
     scoverageVersion: Value[String] = Value(),
     branchCoverageMin: Value[Double] = Value(),
     statementCoverageMin: Value[Double] = Value(),
+    testFramework: Value[String] = Value(),
     children: Seq[ModuleSpec] = Nil
 ) {
 
@@ -60,8 +61,8 @@ case class ModuleSpec(
 
   def withAlias(alias: String = "outer"): ModuleSpec = copy(alias =
     if (
-      children.exists(_.codeBlocks.exists(_.contains(alias))) ||
-      codeBlocks.exists(_.contains("val scoverage"))
+      children.exists(_.snippets.exists(_.body.contains(alias))) ||
+      snippets.exists(_.tag == "ScoverageModule")
     ) Some(alias)
     else None
   )
@@ -82,6 +83,12 @@ case class ModuleSpec(
       )
     }
   }
+
+  def withJmhModule(jmhCoreVersion: Value[String]): ModuleSpec = copy(
+    imports = "mill.contrib.jmh.JmhModule" +: imports,
+    supertypes = supertypes :+ "JmhModule",
+    jmhCoreVersion = jmhCoreVersion
+  )
 
   def withJupiterInterface(junitVersion: String): ModuleSpec = {
     val Version = "(\\d+)\\.(\\d+).*".r
@@ -224,6 +231,11 @@ object ModuleSpec {
     implicit val rw: ReadWriter[PomSettings] = macroRW
   }
 
+  case class Snippet(body: String, tag: String)
+  object Snippet {
+    implicit val rw: ReadWriter[Snippet] = macroRW
+    implicit def untagged(code: String): Snippet = Snippet(code, "")
+  }
   case class Value[+A](base: Option[A] = None, cross: Seq[(String, A)] = Nil)
   object Value {
     implicit def rw[A: ReadWriter]: ReadWriter[Value[A]] = macroRW

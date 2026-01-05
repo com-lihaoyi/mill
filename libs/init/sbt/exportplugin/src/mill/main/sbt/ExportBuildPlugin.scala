@@ -4,6 +4,7 @@ import _root_.sbt.{Value => _, _}
 import mill.main.buildgen.{ModuleSpec, PackageSpec}
 import mill.main.buildgen.ModuleSpec._
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.util.Using
 
@@ -84,67 +85,35 @@ object ExportBuildPlugin extends AutoPlugin {
       val baseDir0 = crossProjectBaseDir.getOrElse(baseDir)
       val isCrossPlatform = crossProjectBaseDir.nonEmpty
       val isCrossVersion = Keys.crossScalaVersions.value.length > 1
-      def hasAutoPlugin(label: String) = project.autoPlugins.exists(_.label == label)
-      val isScalaJSModule = hasAutoPlugin("org.scalajs.sbtplugin.ScalaJSPlugin")
-      val isScalaNativeModule = hasAutoPlugin("scala.scalanative.sbtplugin.ScalaNativePlugin")
-      val hasMainSrcDirs = (Compile / Keys.unmanagedSourceDirectories).value.exists(_.exists())
-      val hasTestSrcDirs = (Test / Keys.unmanagedSourceDirectories).value.exists(_.exists())
-      val hasSrcDirs = hasMainSrcDirs || hasTestSrcDirs
 
-      // Values are duplicated by cross version for ease of processing when combining cross specs.
-      implicit def value[A](base: Option[A]): Value[A] = Value(
-        base,
-        base match {
-          case Some(a) if isCrossVersion => Seq(scalaVersion -> a)
-          case _ => Nil
-        }
-      )
-      implicit def values[A](base: Seq[A]): Values[A] = Values(
-        base = base,
-        cross = if (isCrossVersion && base.nonEmpty) Seq(scalaVersion -> base) else Nil
-      )
-      val mainCodeBlocks = Seq.newBuilder[String]
-      val moduleDir = toModuleDir(baseDir0)
-      val (mainRoot, mainName) = if (isBaseDirShared(project.id, project.base)) {
-        mainCodeBlocks += "def moduleDir = outerRoot.moduleDir"
-        val root = PackageSpec.root(moduleDir)
-        (Right(root.copy(module = root.module.copy(alias = Some("outerRoot")))), project.id)
-      } else if (isCrossPlatform) (Right(PackageSpec.root(moduleDir)), toModuleName(baseDir.last))
-      else (Left(moduleDir), baseDir.last)
-      var mainModule = ModuleSpec(
-        name = mainName,
-        imports = Seq("mill.scalalib.*"),
-        supertypes =
-          ((isCrossPlatform, isCrossVersion) match {
-            case (true, true) => "CrossSbtPlatformModule"
-            case (_, true) => "CrossSbtModule"
-            case (true, _) => "SbtPlatformModule"
-            case _ => "SbtModule"
-          }) +: (if (
-                   (Compile / Keys.unmanagedSourceDirectories).value.exists { dir =>
-                     val c = dir.name.last
-                     c == '+' || c == '-'
-                   }
-                 ) Seq("CrossScalaVersionRanges")
-                 else Nil),
-        crossKeys = if (isCrossVersion) Seq(scalaVersion) else Nil,
-        repositories = Keys.resolvers.value
-          .diff(Seq(Resolver.mavenCentral, Resolver.mavenLocal))
-          .collect {
-            case r: MavenRepository => r.root
-          }
-      )
-
-      def skipDep(dep: ModuleID) = {
-        import dep.{name, organization => org}
-        ((name.startsWith("scala-library") ||
-          name.startsWith("scala3-library")) && org == "org.scala-lang") ||
-        (name.startsWith("dotty") && org == "ch.epfl.lamp") ||
-        (isScalaJSModule && !name.startsWith("scalajs-dom") && org == "org.scala-js") ||
-        (isScalaNativeModule && org == "org.scala-native")
-      }
       val configDeps = Keys.libraryDependencies.value.collect {
         case dep if !skipDep(dep) => (dep, dep.configurations.getOrElse("compile").split(';').toSeq)
+      }
+      def toMvnDep(dep: ModuleID) = {
+        import ModuleSpec.{CrossVersion => CV}
+        import dep._
+        import librarymanagement.{For2_13Use3, For3Use2_13, Patch}
+        val artifact = explicitArtifacts.find(_.name == name)
+        MvnDep(
+          organization = organization,
+          name = name,
+          version = revision,
+          classifier = artifact.flatMap(_.classifier),
+          `type` = artifact.map(_.`type`),
+          excludes = exclusions.map(x => (x.organization, x.name)),
+          cross = crossVersion match {
+            case v: Binary => CV.Binary(platformed = v.prefix.nonEmpty)
+            case v: Full => CV.Full(platformed = v.prefix.nonEmpty)
+            case _: Patch => CV.Full(platformed = false)
+            case v: For2_13Use3 => if (scalaVersion.startsWith("2.13."))
+                CV.Constant("_3", platformed = v.prefix.nonEmpty)
+              else CV.Binary(platformed = v.prefix.nonEmpty)
+            case v: For3Use2_13 => if (scalaVersion.startsWith("3."))
+                CV.Constant("_2.13", platformed = v.prefix.nonEmpty)
+              else CV.Binary(platformed = v.prefix.nonEmpty)
+            case _ => CV.Constant("", platformed = false)
+          }
+        )
       }
       def mvnDeps(configs: String*) = configDeps.collect {
         case (dep, depConfigs) if configs.exists(depConfigs.contains) => toMvnDep(dep)
@@ -169,9 +138,48 @@ object ExportBuildPlugin extends AutoPlugin {
             }
           case _ => None
         }
+      def hasAutoPlugin(label: String) = project.autoPlugins.exists(_.label == label)
+      val isScalaNativeModule = hasAutoPlugin("scala.scalanative.sbtplugin.ScalaNativePlugin")
+      // Values are duplicated by cross version for ease of processing when combining cross specs.
+      implicit def value[A](base: Option[A]): Value[A] = Value(
+        base,
+        base match {
+          case Some(a) if isCrossVersion => Seq(scalaVersion -> a)
+          case _ => Nil
+        }
+      )
+      implicit def values[A](base: Seq[A]): Values[A] = Values(
+        base = base,
+        cross = if (isCrossVersion && base.nonEmpty) Seq(scalaVersion -> base) else Nil
+      )
 
-      mainModule = mainModule.copy(
-        mvnDeps = mvnDeps("compile"),
+      val mainSnippets = Seq.newBuilder[Snippet]
+      val moduleDir = toModuleDir(baseDir0)
+      val (mainRoot, mainName) = if (isBaseDirShared(project.id, project.base)) {
+        mainSnippets += "def moduleDir = outerRoot.moduleDir"
+        val root = PackageSpec.root(moduleDir)
+        (Right(root.copy(module = root.module.copy(alias = Some("outerRoot")))), project.id)
+      } else if (isCrossPlatform) (Right(PackageSpec.root(moduleDir)), toModuleName(baseDir.last))
+      else (Left(moduleDir), baseDir.last)
+      var mainModule = ModuleSpec(
+        name = mainName,
+        imports = Seq("mill.scalalib.*"),
+        supertypes =
+          ((isCrossPlatform, isCrossVersion) match {
+            case (true, true) => "CrossSbtPlatformModule"
+            case (_, true) => "CrossSbtModule"
+            case (true, _) => "SbtPlatformModule"
+            case _ => "SbtModule"
+          }) +: (Compile / Keys.unmanagedSourceDirectories).value.collectFirst {
+            case dir if Seq('+', '-').contains(dir.name.last) => "CrossScalaVersionRanges"
+          }.toSeq,
+        crossKeys = if (isCrossVersion) Seq(scalaVersion) else Nil,
+        repositories = Keys.resolvers.value
+          .diff(Seq(Resolver.mavenCentral, Resolver.mavenLocal))
+          .collect {
+            case r: MavenRepository => r.root
+          },
+        mvnDeps = mvnDeps("compile", "protobuf"),
         compileMvnDeps = mvnDeps("provided", "optional"),
         runMvnDeps = mvnDeps("runtime"),
         javacOptions = Opt.groups(Keys.javacOptions.value),
@@ -183,11 +191,13 @@ object ExportBuildPlugin extends AutoPlugin {
         runModuleDeps = moduleDeps(config => config == "runtime" || config.startsWith("runtime->")),
         artifactName = Some(Keys.moduleName.value),
         scalaVersion = if (isCrossVersion) None else Some(scalaVersion),
-        scalacOptions = Opt.groups(Keys.scalacOptions.value.filterNot(skipScalacOption)),
+        scalacOptions = Opt.groups(Keys.scalacOptions.value.filterNot(s =>
+          s.startsWith("-P") || s.startsWith("-Xplugin") || s.startsWith("-scalajs")
+        )),
         scalacPluginMvnDeps = mvnDeps("plugin->default(compile)")
       )
       if (crossProjectBaseDir.exists(dir => os.isDir(dir / "shared"))) {
-        mainCodeBlocks += "def sourcesRootFolders = super.sourcesRootFolders ++ Seq(\"shared\")"
+        mainSnippets += "def sourcesRootFolders = super.sourcesRootFolders ++ Seq(\"shared\")"
       }
 
       if (!(Keys.publish / Keys.skip).value && Keys.publishArtifact.value) {
@@ -195,7 +205,36 @@ object ExportBuildPlugin extends AutoPlugin {
           imports =
             "mill.javalib.PublishModule" +: "mill.javalib.publish.*" +: mainModule.imports,
           supertypes = mainModule.supertypes :+ "PublishModule",
-          pomSettings = Some(toPomSettings(Keys.projectInfo.value, Keys.organization.value)),
+          pomSettings = Some {
+            val moduleInfo = Keys.projectInfo.value
+            import moduleInfo._
+            PomSettings(
+              description = description,
+              organization = Keys.organization.value,
+              url = homepage.fold("")(_.toExternalForm),
+              licenses = licenses.map {
+                case (name, url) =>
+                  ModuleSpec.License(
+                    name = name,
+                    url = url.toExternalForm,
+                    // Hardcoded by sbt
+                    distribution = "repo"
+                  )
+              },
+              versionControl = scmInfo.fold(VersionControl()) { scmInfo =>
+                import scmInfo._
+                VersionControl(
+                  Some(browseUrl.toExternalForm),
+                  Some(connection),
+                  devConnection
+                )
+              },
+              developers = developers.map { developer =>
+                import developer._
+                ModuleSpec.Developer(id, name, url.toExternalForm)
+              }
+            )
+          },
           publishVersion = Some(Keys.version.value),
           versionScheme = Keys.versionScheme.value.collect {
             case "early-semver" => "VersionScheme.EarlySemVer"
@@ -205,8 +244,7 @@ object ExportBuildPlugin extends AutoPlugin {
           }
         )
       }
-
-      if (isScalaJSModule) {
+      if (hasAutoPlugin("org.scalajs.sbtplugin.ScalaJSPlugin")) {
         Keys.libraryDependencies.value.collectFirst {
           case dep
               if dep.organization == "org.scala-js" && dep.name.startsWith("scalajs-library") =>
@@ -232,54 +270,63 @@ object ExportBuildPlugin extends AutoPlugin {
             )
         }
       }
+      val hasScalafixPlugin = hasAutoPlugin("scalafix.sbt.ScalafixPlugin")
       val hasScalafmtPlugin = hasAutoPlugin("org.scalafmt.sbt.ScalafmtPlugin")
-      if (hasAutoPlugin("scalafix.sbt.ScalafixPlugin") && hasMainSrcDirs) {
-        mainModule = mainModule.copy(
-          imports = "com.goyeau.mill.scalafix.ScalafixModule" +: mainModule.imports,
-          supertypes = mainModule.supertypes :+ "ScalafixModule",
-          scalafixIvyDeps =
-            scalafixDependencies.get(structure.data).toSeq.flatMap(_.distinct.map(toMvnDep))
-        )
-        if (os.exists(os.pwd / ".scalafix.conf")) {
-          mainModule = mainModule.copy(imports = "mill.api.*" +: mainModule.imports)
-          mainCodeBlocks += "def scalafixConfig = Some(BuildCtx.workspaceRoot / \".scalafix.conf\")"
+      val hasTestUnmanagedSources = (Test / Keys.unmanagedSources).value.nonEmpty
+      if ((Compile / Keys.unmanagedSources).value.nonEmpty) {
+        if (hasAutoPlugin("pl.project13.scala.sbt.JmhPlugin")) {
+          Keys.libraryDependencies.value.collectFirst {
+            case dep if dep.organization == "org.openjdk.jmh" =>
+              mainModule = mainModule.withJmhModule(value(Some(dep.revision)))
+          }
+        }
+        if (hasScalafixPlugin) {
+          mainModule = withScalafixModule(
+            mainModule,
+            (Compile / scalafixDependencies).get(structure.data).getOrElse(Nil).distinct
+              .map(toMvnDep),
+            mainSnippets
+          )
+        }
+        if (hasScalafmtPlugin) {
+          mainModule = withScalafmtModule(mainModule)
+        }
+        if (hasAutoPlugin("scoverage.ScoverageSbtPlugin") && hasTestUnmanagedSources) {
+          val moduleIDAttrKey = AttributeKey[ModuleID]("moduleID")
+          structure.units.get(Keys.thisProjectRef.value.build).iterator
+            .flatMap(_.unit.plugins.pluginData.dependencyClasspath)
+            .flatMap(_.get(moduleIDAttrKey))
+            .collectFirst {
+              case dep if
+                    dep.name.startsWith("scalac-scoverage") &&
+                      dep.organization == "org.scoverage" =>
+                mainModule = mainModule.copy(
+                  imports = "mill.contrib.scoverage.ScoverageModule" +: mainModule.imports,
+                  supertypes = mainModule.supertypes :+ "ScoverageModule",
+                  scoverageVersion = Some(dep.revision),
+                  branchCoverageMin =
+                    coverageMinimumBranchTotal.get(structure.data).filter(_ != 0.0),
+                  statementCoverageMin =
+                    coverageMinimumStmtTotal.get(structure.data).filter(_ != 0.0)
+                )
+                if (isCrossPlatform) {
+                  mainSnippets += Snippet(
+                    """override lazy val scoverage = new ScoverageData {
+                      |  def platformSuffix = outer.platformSuffix()
+                      |}""".stripMargin,
+                    "ScoverageModule"
+                  )
+                }
+            }
         }
       }
-      if (hasScalafmtPlugin && hasMainSrcDirs) {
-        mainModule = mainModule.copy(
-          imports = "mill.scalalib.scalafmt.ScalafmtModule" +: mainModule.imports,
-          supertypes = mainModule.supertypes :+ "ScalafmtModule"
-        )
-      }
-      if (hasAutoPlugin("scoverage.ScoverageSbtPlugin") && hasSrcDirs) {
-        structure.units.get(Keys.thisProjectRef.value.build).iterator
-          .flatMap(_.unit.plugins.pluginData.dependencyClasspath)
-          .flatMap(_.metadata.entries.collectFirst {
-            case entry if entry.key.label == "moduleID" => entry.value
-          })
-          .collectFirst {
-            case dep: ModuleID if
-                  dep.name.startsWith("scalac-scoverage") && dep.organization == "org.scoverage" =>
-              mainModule = mainModule.copy(
-                imports = "mill.contrib.scoverage.ScoverageModule" +: mainModule.imports,
-                supertypes = mainModule.supertypes :+ "ScoverageModule",
-                scoverageVersion = Some(dep.revision),
-                branchCoverageMin = coverageMinimumBranchTotal.get(structure.data).filter(_ != 0.0),
-                statementCoverageMin = coverageMinimumStmtTotal.get(structure.data).filter(_ != 0.0)
-              )
-              mainCodeBlocks +=
-                """override lazy val scoverage = new ScoverageData {
-                  |  def platformSuffix = outer.platformSuffix()
-                  |}""".stripMargin
-          }
-      }
-      if (hasTestSrcDirs) {
+
+      if (hasTestUnmanagedSources) {
         val testMvnDeps = mvnDeps("test")
         val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
-        val testSupertypes = mainModule.supertypes.collect {
-          case "ScalafixModule" => "ScalafixModule"
-        } ++ (if (hasScalafmtPlugin) Seq("ScalafmtModule") else Nil) ++
-          mainModule.supertypes.collect {
+        var testModule = ModuleSpec(
+          name = "test",
+          supertypes = mainModule.supertypes.collect {
             case "CrossSbtPlatformModule" => "CrossSbtPlatformTests"
             case "CrossSbtModule" => "CrossSbtTests"
             case "SbtPlatformModule" => "SbtPlatformTests"
@@ -287,10 +334,7 @@ object ExportBuildPlugin extends AutoPlugin {
             case "ScalaJSModule" => "ScalaJSTests"
             case "ScalaNativeModule" => "ScalaNativeTests"
             case "ScoverageModule" => "ScoverageTests"
-          } ++ testMixin
-        var testModule = ModuleSpec(
-          name = "test",
-          supertypes = testSupertypes,
+          } ++ testMixin,
           mvnDeps = values(testMvnDeps).copy(appendSuper = isScalaNativeModule),
           compileMvnDeps = mainModule.compileMvnDeps,
           runMvnDeps = mainModule.compileMvnDeps.base ++ mainModule.runMvnDeps.base,
@@ -300,24 +344,35 @@ object ExportBuildPlugin extends AutoPlugin {
           ).copy(appendSuper = true),
           compileModuleDeps = mainModule.compileModuleDeps.base,
           runModuleDeps = mainModule.compileModuleDeps.base ++ mainModule.runModuleDeps.base,
-          testFramework =
-            if (testMixin.isEmpty) testFramework(testMvnDeps).orElse(Some("")) else None
+          testFramework = if (testMixin.isEmpty)
+            testMvnDeps.collectFirst {
+              case dep if dep.organization == "com.eed3si9n.verify" => "verify.runner.Framework"
+            }.orElse(Some(""))
+          else None
         )
-        val testCodeBlocks = Seq.newBuilder[String]
-        if (testSupertypes.contains("ScalafixModule")) {
-          testCodeBlocks += "def scalafixConfig = outer.scalafixConfig()"
-          if (mainModule.scalafixIvyDeps.base.nonEmpty) {
-            testCodeBlocks += "def scalafixIvyDeps = outer.scalafixIvyDeps()"
-          }
+        val testSnippets = Seq.newBuilder[Snippet]
+        if (hasScalafixPlugin) {
+          testModule = withScalafixModule(
+            testModule,
+            (Test / scalafixDependencies).get(structure.data).getOrElse(Nil).distinct.map(toMvnDep),
+            testSnippets,
+            isTest = true
+          )
         }
-        testCodeBlocks ++= Seq(
+        if (hasScalafmtPlugin) {
+          testModule = withScalafmtModule(testModule, isTest = true)
+        }
+        if ((Test / Keys.fork).value) {
+          testSnippets += "def forkWorkingDir = this.moduleDir"
+        }
+        testSnippets ++= Seq(
           "def testParallelism = false",
           "def testSandboxWorkingDir = false"
         )
-        testModule = testModule.copy(codeBlocks = testCodeBlocks.result())
-        mainModule = mainModule.copy(children = Seq(testModule)).withAlias()
+        testModule = testModule.copy(snippets = testSnippets.result())
+        mainModule = mainModule.copy(children = mainModule.children :+ testModule)
       }
-      mainModule = mainModule.copy(codeBlocks = mainCodeBlocks.result())
+      mainModule = mainModule.copy(snippets = mainSnippets.result()).withAlias()
 
       Using.resource(os.write.outputStream(outFile))(
         upickle.default.writeToOutputStream(SbtModuleSpec(mainRoot, mainModule), _)
@@ -325,11 +380,13 @@ object ExportBuildPlugin extends AutoPlugin {
     })
   }
 
-  private def skipScalacOption(s: String) =
-    s.startsWith("-P") || s.startsWith("-Xplugin") || s.startsWith("-scalajs")
-
-  private def testFramework(deps: Seq[MvnDep]) = deps.collectFirst {
-    case dep if dep.organization == "com.eed3si9n.verify" => "verify.runner.Framework"
+  def skipDep(dep: ModuleID) = {
+    import dep.{name, organization => org}
+    ((name.startsWith("scala-library") || name.startsWith("scala3-library"))
+      && org == "org.scala-lang") ||
+    (name.startsWith("dotty") && org == "ch.epfl.lamp") ||
+    (!name.startsWith("scalajs-dom") && org == "org.scala-js") ||
+    (org == "org.scala-native")
   }
 
   // Cleanup `CrossType.Pure` module names.
@@ -340,62 +397,34 @@ object ExportBuildPlugin extends AutoPlugin {
     case init :+ last => os.sub / os.SubPath(init :+ toModuleName(last))
   }
 
-  private def toMvnDep(dep: ModuleID) = {
-    import ModuleSpec.{CrossVersion => CV}
-    import dep._
-    import librarymanagement.{For2_13Use3, For3Use2_13, Patch}
-    val artifact = explicitArtifacts.find(_.name == name)
-    MvnDep(
-      organization = organization,
-      name = name,
-      version = revision,
-      classifier = artifact.flatMap(_.classifier),
-      `type` = artifact.map(_.`type`),
-      excludes = exclusions.map(x => (x.organization, x.name)),
-      cross = crossVersion match {
-        case v: Binary => CV.Binary(platformed = v.prefix.nonEmpty)
-        case v: Full => CV.Full(platformed = v.prefix.nonEmpty)
-        case _: Patch => CV.Full(platformed = false)
-        case v: For2_13Use3 => CV.Constant("_3", platformed = v.prefix.nonEmpty)
-        case v: For3Use2_13 => CV.Constant("_2.13", platformed = v.prefix.nonEmpty)
-        case _ => CV.Constant("", platformed = false)
-      }
+  private def withScalafixModule(
+      module: ModuleSpec,
+      scalafixIvyDeps: Values[MvnDep],
+      snippets: mutable.Builder[Snippet, Seq[Snippet]],
+      isTest: Boolean = false
+  ) = {
+    var module0 = module
+    module0 = module0.copy(
+      imports = "com.goyeau.mill.scalafix.ScalafixModule" +: module0.imports,
+      supertypes = if (isTest) "ScalafixModule" +: module0.supertypes
+      else module0.supertypes :+ "ScalafixModule",
+      scalafixIvyDeps = scalafixIvyDeps
     )
-  }
-
-  private def toPomSettings(moduleInfo: ModuleInfo, groupId: String) = {
-    import moduleInfo._
-    PomSettings(
-      description = description,
-      organization = groupId,
-      url = homepage.fold("")(_.toExternalForm),
-      licenses = licenses.map(toLicense),
-      versionControl = toVersionControl(scmInfo),
-      developers = developers.map(toDeveloper)
-    )
-  }
-
-  private def toLicense(license: (String, URL)) = {
-    val (name, url) = license
-    ModuleSpec.License(
-      name = name,
-      url = url.toExternalForm,
-      distribution = "repo" // hardcoded by sbt
-    )
-  }
-
-  private def toVersionControl(scmInfo: Option[ScmInfo]) =
-    scmInfo.fold(VersionControl()) { scmInfo =>
-      import scmInfo._
-      VersionControl(
-        Some(browseUrl.toExternalForm),
-        Some(connection),
-        devConnection
+    if (os.exists(os.pwd / ".scalafix.conf")) {
+      module0 = module0.copy(imports = "mill.api.*" +: module0.imports)
+      snippets += Snippet(
+        "def scalafixConfig = Some(BuildCtx.workspaceRoot / \".scalafix.conf\")",
+        "ScalafixModule"
       )
     }
+    module0
+  }
 
-  private def toDeveloper(developer: librarymanagement.Developer) = {
-    import developer._
-    ModuleSpec.Developer(id, name, url.toExternalForm)
+  private def withScalafmtModule(module: ModuleSpec, isTest: Boolean = false) = {
+    module.copy(
+      imports = "mill.scalalib.scalafmt.ScalafmtModule" +: module.imports,
+      supertypes = if (isTest) "ScalafmtModule" +: module.supertypes
+      else module.supertypes :+ "ScalafmtModule"
+    )
   }
 }

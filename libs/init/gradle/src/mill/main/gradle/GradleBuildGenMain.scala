@@ -63,9 +63,10 @@ object GradleBuildGenMain {
 
     val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
-    val (baseModule, packages1) = Option.when(!noMeta.value)(
-      BuildGen.withBaseModule(packages0, "MavenModule" -> "MavenTests")
-    ).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
+    val (baseModule, packages1) = Option.when(!noMeta.value)(BuildGen.withBaseModule(
+      packages0,
+      Seq("MavenModule" -> "MavenTests")
+    )).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
     val millJvmOpts = {
       val properties = new Properties()
       val file = os.pwd / "gradle/wrapper/gradle-wrapper.properties"
