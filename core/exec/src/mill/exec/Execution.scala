@@ -110,6 +110,7 @@ case class Execution(
     os.makeDir.all(outPath)
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
+    val completedCount = new AtomicInteger(0)
     val rootFailedCount = new AtomicInteger(0) // Track only root failures
     val planningLogger = new PrefixLogger(
       logger0 = baseLogger,
@@ -141,8 +142,14 @@ case class Execution(
 
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
-      def formatHeaderPrefix(countMsg: String, keySuffix: String) =
-        s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), logger.prompt.errorColor)}"
+      def formatHeaderPrefix(keySuffix: String) = {
+        val completedMsg = mill.api.internal.Util.leftPad(
+          completedCount.get().toString,
+          indexToTerminal.size.toString.length,
+          '0'
+        )
+        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), logger.prompt.errorColor)}"
+      }
 
       val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
       val downstreamEdges: Map[Task[?], Set[Task[?]]] =
@@ -214,7 +221,7 @@ case class Execution(
 
                 if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
                 contextLogger.withPromptLine {
-                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(keySuffix))
 
                   if (failed.get()) None
                   else {
@@ -250,9 +257,10 @@ case class Execution(
                     val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
                     rootFailedCount.addAndGet(newFailures)
+                    completedCount.incrementAndGet()
 
-                    // Always show failed count in header if there are failures
-                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                    // Always show completed count in header after task finishes
+                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(keySuffix))
 
                     if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                       failed.set(true)
