@@ -31,6 +31,7 @@ case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
+    useFileLocks: Boolean,
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean
 ) extends GroupExecution with AutoCloseable {
@@ -53,6 +54,7 @@ case class Execution(
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
+      useFileLocks: Boolean,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean
   ) = this(
@@ -73,6 +75,7 @@ case class Execution(
     exclusiveSystemStreams,
     getEvaluator,
     offline,
+    useFileLocks,
     staticBuildOverrideFiles,
     enableTicker
   )

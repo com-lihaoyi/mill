@@ -48,6 +48,7 @@ final class EvaluatorImpl(
   def env = execution.env
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
+  def useFileLocks: Boolean = execution.useFileLocks
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
@@ -292,7 +293,8 @@ final class EvaluatorImpl(
             throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
           fork = null,
           jobs = execution.effectiveThreadCount,
-          offline = offline
+          offline = offline,
+          useFileLocks = useFileLocks
         )
         val pretty = t.ctx0.fileName + ":" + t.ctx0.lineNum
         Seq(Watchable.Value(

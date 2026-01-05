@@ -24,15 +24,6 @@ object BuildCtx {
     DynamicVariable(sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd)))
 
   /**
-   * Whether to use file-based locking instead of PID-based locking.
-   * This is set via the `--use-file-locks` CLI flag.
-   */
-  def useFileLocks: Boolean = useFileLocks0.value
-
-  private[mill] val useFileLocks0: scala.util.DynamicVariable[Boolean] =
-    DynamicVariable(false)
-
-  /**
    * Disable Mill's filesystem read/write checker, which normally enforces best practices
    * about what code or tasks are able to read and write to what locations on disk.
    */
