@@ -62,8 +62,12 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // Seems like a false positive, since it will always get mixed into `RootModule0` which
     // provides the implementations
     ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.util.MainModule.moduleCtx"),
-    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.util.MainModule.moduleLinearized"),
-    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.util.MainModule.mill$api$Module$_setter_$moduleLinearized_=")
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.util.MainModule.moduleLinearized"
+    ),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.util.MainModule.mill$api$Module$_setter_$moduleLinearized_="
+    )
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions

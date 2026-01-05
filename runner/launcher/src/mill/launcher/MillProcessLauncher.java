@@ -15,7 +15,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.*;
 import java.util.stream.Stream;
-
 import mill.client.BuildInfo;
 import mill.client.ClientUtil;
 import mill.constants.*;
@@ -220,7 +219,8 @@ public class MillProcessLauncher {
           "java-home",
           cacheKey,
           () -> new String[] {
-            CoursierClient.resolveJavaHome(jvmVersionFinal, jvmIndexVersionFinal).getAbsolutePath()
+            CoursierClient.resolveJavaHome(jvmVersionFinal, jvmIndexVersionFinal)
+                .getAbsolutePath()
           },
           // Make sure we check to see if the saved java home exists before using
           // it, since it may have been since uninstalled, or the `out/` folder
