@@ -108,6 +108,7 @@ public class MillLauncherMain {
                 Optional.empty(),
                 -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
+                System.out.println("initServer " + daemonDir + " " + locks.daemonLock + " " + locks.launcherLock);
                 return new LaunchedServer.OsProcess(
                     MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath)
                         .toHandle());

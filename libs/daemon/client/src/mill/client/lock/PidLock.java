@@ -32,6 +32,7 @@ public class PidLock extends Lock {
    * use the same token.
    */
   private static final long PROCESS_TOKEN = ThreadLocalRandom.current().nextLong();
+  private static final long PROCESS_START_TIME = ProcessHandle.current().info().startInstant().get().toEpochMilli();
 
   private final Path lockPath;
   private final long pid;
@@ -42,7 +43,7 @@ public class PidLock extends Lock {
   }
 
   private String createLockContent() {
-    return pid + ":" + PROCESS_TOKEN + ":" + System.currentTimeMillis();
+    return pid + ":" + PROCESS_TOKEN + ":" + PROCESS_START_TIME;
   }
 
   @Override
@@ -70,34 +71,22 @@ public class PidLock extends Lock {
    */
   @Override
   public TryLocked tryLock() throws Exception {
-    // Try to create the lock file atomically
-    try {
-      Files.write(
-          lockPath,
-          createLockContent().getBytes(StandardCharsets.UTF_8),
-          StandardOpenOption.CREATE_NEW,
-          StandardOpenOption.WRITE);
-      return new PidTryLocked(lockPath, true);
-    } catch (java.nio.file.FileAlreadyExistsException e) {
-      // Lock file exists - check if it's stale
-      if (!isLockValid()) {
-        // Stale lock - clean it up and retry once
-        tryDeleteLockFile();
-        try {
-          Files.write(
-              lockPath,
-              createLockContent().getBytes(StandardCharsets.UTF_8),
-              StandardOpenOption.CREATE_NEW,
-              StandardOpenOption.WRITE);
-          return new PidTryLocked(lockPath, true);
-        } catch (java.nio.file.FileAlreadyExistsException e2) {
-          // Another process grabbed it - that's fine
-          return new PidTryLocked(null, false);
-        }
+    if (!isLockValid()) {
+      tryDeleteLockFile();
+      try {
+        Files.write(
+            lockPath,
+            createLockContent().getBytes(StandardCharsets.UTF_8),
+            StandardOpenOption.CREATE_NEW,
+            StandardOpenOption.WRITE);
+        return new PidTryLocked(lockPath, true);
+      } catch (java.nio.file.FileAlreadyExistsException e2) {
+        // Another process grabbed it - that's fine
+        return new PidTryLocked(null, false);
       }
-      // Lock is held by a living process
-      return new PidTryLocked(null, false);
     }
+    // Lock is held by a living process
+    return new PidTryLocked(null, false);
   }
 
   /**
@@ -131,15 +120,12 @@ public class PidLock extends Lock {
     LockInfo info = readLockInfo();
     if (info == null) return false; // Couldn't read lock info, treat as stale
 
-    // If it's our own lock, verify the token matches
-    if (info.pid == pid) return info.token == PROCESS_TOKEN;
-
-    // For other processes, check if they're alive and started before the lock was created
-    // If it started after, the old process is dead, PID was reused and this is a stale lock.
+    // Check if process is alive and started before the lock was created If it started
+    // after, the old process is dead, PID was reused and this is a stale lock.
     return ProcessHandle.of(info.pid)
         .filter(ProcessHandle::isAlive)
         .flatMap(ph -> ph.info().startInstant())
-        .map(startTime -> !startTime.isAfter(Instant.ofEpochMilli(info.timestamp)))
+        .map(startTime -> startTime.toEpochMilli() == info.timestamp)
         .orElse(false); // Process not found or no start time available = stale
   }
 

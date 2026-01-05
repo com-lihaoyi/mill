@@ -51,11 +51,12 @@ public final class Locks implements AutoCloseable {
   }
 
   public static Locks forDirectory(String daemonDir) throws Exception {
-    if (supportsFileLocking(daemonDir)) {
-      return files(daemonDir);
-    } else {
-      return pid(daemonDir);
-    }
+    // Always use PidLock. The supportsFileLocking() test only checks that a single
+    // process can acquire a lock, not that it provides mutual exclusion between
+    // processes. On some systems (Docker on macOS, certain NFS configurations),
+    // FileLock.tryLock() succeeds but doesn't actually prevent other processes
+    // from also acquiring the lock.
+    return pid(daemonDir);
   }
 
   public static boolean supportsFileLocking(String daemonDir) {
