@@ -142,15 +142,23 @@ public class MillLauncherMain {
         }
         System.exit(exitCode);
       } catch (Exception e) {
-        System.err.println("Mill launcher failed with unknown exception.");
-        System.err.println();
-
-        System.err.println("Exception:");
-        //noinspection CallToPrintStackTrace
-        e.printStackTrace();
-        System.err.println();
-        System.err.println("Logs:");
-        logs.forEach(System.err::println);
+        Path errorFile = Paths.get(outDir, "mill-launcher-error.log");
+        try (var writer = Files.newBufferedWriter(errorFile)) {
+          writer.write("Mill launcher failed with unknown exception.\n\n");
+          writer.write("Exception:\n");
+          var sw = new java.io.StringWriter();
+          e.printStackTrace(new java.io.PrintWriter(sw));
+          writer.write(sw.toString());
+          writer.write("\nLogs:\n");
+          for (String log : logs) {
+            writer.write(log + "\n");
+          }
+        } catch (Exception writeEx) {
+          // If we can't write to file, fall back to stderr
+          System.err.println("Mill launcher failed. Could not write error log: " + writeEx);
+          e.printStackTrace();
+        }
+        System.err.println("Mill launcher failed. See " + errorFile.toAbsolutePath() + " for details.");
         System.exit(1);
       }
     }
