@@ -73,7 +73,9 @@ trait MainModule extends RootModule0, MainModuleApi {
       }
 
       if (results.isEmpty) {
-        Result.Failure(s"Failed to download Mill $version bootstrap scripts. Please check that version '$version' exists.")
+        Result.Failure(
+          s"Failed to download Mill $version bootstrap scripts. Please check that version '$version' exists."
+        )
       } else {
         Task.log.info(s"Successfully updated Mill bootstrap scripts to version $version")
         Result.Success(results)
