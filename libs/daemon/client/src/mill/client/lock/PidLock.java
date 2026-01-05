@@ -36,9 +36,6 @@ public class PidLock extends Lock {
     return "PidLock{@" + Integer.toHexString(hashCode()) + ", path='" + lockPath + "'}";
   }
 
-  /**
-   * Attempts to acquire the lock, blocking until successful.
-   */
   @Override
   public Locked lock() throws Exception {
     while (true) {
@@ -48,12 +45,6 @@ public class PidLock extends Lock {
     }
   }
 
-  /**
-   * Attempts to acquire the lock without blocking.
-   * If the lock file exists but the holder is dead (stale lock), cleans it up and retries.
-   *
-   * @return a TryLocked where isLocked() returns true if the lock was acquired
-   */
   @Override
   public TryLocked tryLock() throws Exception {
     if (!isLockValid()) {
@@ -74,9 +65,6 @@ public class PidLock extends Lock {
     return new PidTryLocked(null, false);
   }
 
-  /**
-   * Returns true if the lock is available for taking (i.e., NOT held by another process).
-   */
   @Override
   public boolean probe() throws Exception {
     return !isLockValid();
@@ -90,9 +78,6 @@ public class PidLock extends Lock {
   @Override
   public void delete() throws Exception {}
 
-  /**
-   * Checks if the current lock file represents a valid (non-stale) lock.
-   */
   private boolean isLockValid() {
     LockInfo info = readLockInfo();
     if (info == null) return false; // Couldn't read lock info, treat as stale
@@ -106,12 +91,6 @@ public class PidLock extends Lock {
         .orElse(false); // Process not found or no start time available = stale
   }
 
-  /**
-   * Reads and parses the lock file content.
-   * Format: "pid:startTime"
-   *
-   * @return LockInfo containing PID and start timestamp, or null if parsing failed
-   */
   private LockInfo readLockInfo() {
     String content;
     try {
@@ -132,9 +111,6 @@ public class PidLock extends Lock {
     }
   }
 
-  /**
-   * Attempts to delete the lock file, ignoring errors.
-   */
   private void tryDeleteLockFile() {
     try {
       Files.deleteIfExists(lockPath);
