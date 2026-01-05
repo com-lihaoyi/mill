@@ -17,7 +17,11 @@ trait JdkCommandsModule extends mill.api.Module {
    */
   def jdkCommandsJavaHome: Task[Option[PathRef]] = Task.Anon { None }
 
-  /** Runs the `java` command from this module's [[jdkCommandsJavaHome]] */
+  /**
+   * Runs the `java` command from this module's [[jdkCommandsJavaHome]].
+   * Renamed to `java` on the command line.
+   */
+  @Task.rename("java")
   def javaRun(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Jvm.callJdkTool("java", args, jdkCommandsJavaHome().map(_.path))
   }
