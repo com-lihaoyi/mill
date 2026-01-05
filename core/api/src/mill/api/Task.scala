@@ -59,10 +59,6 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
 
 object Task {
 
-  /**
-   * Annotation to rename a task or command on the command line.
-   * Use `@Task.rename("newName")` to expose a method under a different CLI name.
-   */
   type rename = mill.api.rename
 
   /**
