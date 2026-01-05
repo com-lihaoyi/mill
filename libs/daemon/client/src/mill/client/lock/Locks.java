@@ -34,7 +34,8 @@ public final class Locks implements AutoCloseable {
   /**
    * Creates locks using PID-based locking (atomic file creation + PID checking).
    * This works on all filesystems, including those that don't support file locking
-   * (e.g., some network filesystems, Docker containers on macOS).
+   * (e.g., some network filesystems, Docker containers on macOS), at the cost
+   * of some potential race conditions
    *
    * @deprecated Use {@link #forDirectory(String)} instead, which automatically
    *             chooses between file-based and PID-based locking.
@@ -50,14 +51,6 @@ public final class Locks implements AutoCloseable {
     return new Locks(new MemoryLock(), new MemoryLock());
   }
 
-  /**
-   * Creates locks using the best available mechanism for the given directory.
-   * Tests if the filesystem supports file locking, and uses FileLock if it does,
-   * otherwise falls back to PidLock.
-   *
-   * @param daemonDir the directory where lock files will be created
-   * @return Locks using the appropriate locking mechanism
-   */
   public static Locks forDirectory(String daemonDir) throws Exception {
     if (supportsFileLocking(daemonDir)) {
       return files(daemonDir);
@@ -66,13 +59,6 @@ public final class Locks implements AutoCloseable {
     }
   }
 
-  /**
-   * Tests if the given directory's filesystem supports file locking.
-   * Creates a temporary test file and attempts to acquire a lock on it.
-   *
-   * @param daemonDir the directory to test
-   * @return true if file locking is supported, false otherwise
-   */
   public static boolean supportsFileLocking(String daemonDir) {
     Path testFile = Path.of(daemonDir, ".lock-test");
     try {

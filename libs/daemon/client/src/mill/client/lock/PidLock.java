@@ -5,20 +5,29 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * A lock implementation that uses atomic file creation and PID + random token checking.
+ * A lock implementation that uses atomic file creation and PID + timestamp checking.
  * This works on filesystems that don't support file locking (e.g., some
  * network filesystems, Docker containers on macOS).
  *
- * Creation of the lock file is atomic on most filesystems, and we use this atomic
- * to build a lock/mutex abstraction.
+ * <p>The lock file contains: {@code pid:token:timestamp}
+ * <ul>
+ *   <li>pid - the process ID that holds the lock</li>
+ *   <li>token - a random token unique to the JVM (for detecting same-process lock ownership)</li>
+ *   <li>timestamp - epoch millis when the lock was created (for detecting PID reuse)</li>
+ * </ul>
+ *
+ * <p>To detect PID reuse (where a new process gets the same PID as a dead one),
+ * we compare the lock creation timestamp against the process's start time.
+ * If the process started after the lock was created, the PID was reused and the lock is stale.
  */
 public class PidLock extends Lock {
 
   /**
-   * Random token unique to this process, used to detect PID reuse.
+   * Random token unique to this process, used to detect same-process lock ownership.
    * Generated once per JVM to ensure all PidLock instances in this process
    * use the same token.
    */
@@ -26,12 +35,14 @@ public class PidLock extends Lock {
 
   private final Path lockPath;
   private final long pid;
-  private final String lockContent;
 
   public PidLock(String path) {
     this.lockPath = Path.of(path);
     this.pid = ProcessHandle.current().pid();
-    this.lockContent = pid + ":" + PROCESS_TOKEN;
+  }
+
+  private String createLockContent() {
+    return pid + ":" + PROCESS_TOKEN + ":" + System.currentTimeMillis();
   }
 
   @Override
@@ -63,7 +74,7 @@ public class PidLock extends Lock {
     try {
       Files.write(
           lockPath,
-          lockContent.getBytes(StandardCharsets.UTF_8),
+          createLockContent().getBytes(StandardCharsets.UTF_8),
           StandardOpenOption.CREATE_NEW,
           StandardOpenOption.WRITE);
       return new PidTryLocked(lockPath, true);
@@ -75,7 +86,7 @@ public class PidLock extends Lock {
         try {
           Files.write(
               lockPath,
-              lockContent.getBytes(StandardCharsets.UTF_8),
+              createLockContent().getBytes(StandardCharsets.UTF_8),
               StandardOpenOption.CREATE_NEW,
               StandardOpenOption.WRITE);
           return new PidTryLocked(lockPath, true);
@@ -107,25 +118,36 @@ public class PidLock extends Lock {
 
   /**
    * Checks if the current lock file represents a valid (non-stale) lock.
-   * A lock is valid if the PID exists AND is alive. We also store a random token
-   * to detect PID reuse, but we can only verify our own token - for other processes,
-   * we just check if the PID is alive.
+   * A lock is valid if:
+   * <ul>
+   *   <li>For our own process: the token matches our PROCESS_TOKEN</li>
+   *   <li>For other processes: the PID is alive AND the process started before
+   *       the lock was created (to detect PID reuse)</li>
+   * </ul>
    *
    * @return true if the lock is valid (held by a living process), false if stale
    */
   private boolean isLockValid() {
     LockInfo info = readLockInfo();
     if (info == null) return false; // Couldn't read lock info, treat as stale
+
     // If it's our own lock, verify the token matches
-    else if (info.pid == pid) return info.token == PROCESS_TOKEN;
-    // For other processes, check if they're alive
-    else return ProcessHandle.of(info.pid).map(ProcessHandle::isAlive).orElse(false);
+    if (info.pid == pid) return info.token == PROCESS_TOKEN;
+
+    // For other processes, check if they're alive and started before the lock was created
+    // If it started after, the old process is dead, PID was reused and this is a stale lock.
+    return ProcessHandle.of(info.pid)
+        .filter(ProcessHandle::isAlive)
+        .flatMap(ph -> ph.info().startInstant())
+        .map(startTime -> !startTime.isAfter(Instant.ofEpochMilli(info.timestamp)))
+        .orElse(false); // Process not found or no start time available = stale
   }
 
   /**
    * Reads and parses the lock file content.
+   * Supports both old format (pid:token) and new format (pid:token:timestamp).
    *
-   * @return LockInfo containing PID and token, or null if parsing failed
+   * @return LockInfo containing PID, token, and timestamp, or null if parsing failed
    */
   private LockInfo readLockInfo() {
     String content;
@@ -136,10 +158,14 @@ public class PidLock extends Lock {
     }
 
     String[] parts = content.split(":");
-    if (parts.length != 2) return null;
+    if (parts.length < 2) return null;
 
     try {
-      return new LockInfo(Long.parseLong(parts[0]), Long.parseLong(parts[1]));
+      long lockPid = Long.parseLong(parts[0]);
+      long token = Long.parseLong(parts[1]);
+      // Support old format without timestamp (treat as epoch 0, so any live process is valid)
+      long timestamp = parts.length >= 3 ? Long.parseLong(parts[2]) : 0L;
+      return new LockInfo(lockPid, token, timestamp);
     } catch (NumberFormatException e) {
       return null;
     }
@@ -159,10 +185,12 @@ public class PidLock extends Lock {
   private static class LockInfo {
     final long pid;
     final long token;
+    final long timestamp;
 
-    LockInfo(long pid, long token) {
+    LockInfo(long pid, long token, long timestamp) {
       this.pid = pid;
       this.token = token;
+      this.timestamp = timestamp;
     }
   }
 }
