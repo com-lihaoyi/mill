@@ -119,7 +119,8 @@ trait ClientServerTestsBase extends TestSuite {
         env.asJava,
         args,
         Optional.of(locks),
-        forceFailureForTestingMillisDelay
+        forceFailureForTestingMillisDelay,
+        /*useFileLocks */ false
       ) {
         def initServer(daemonDir: Path, locks: Locks) = {
           nextServerId += 1
