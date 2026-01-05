@@ -1,4 +1,5 @@
 package millbuild
+
 import mill.*
 import mill.javalib.PublishModule
 import mill.javalib.publish.*
@@ -7,6 +8,7 @@ import mill.scalajslib.api.*
 import mill.scalalib.*
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.*
+
 trait ProjectBaseModule extends PublishModule, SbtPlatformModule {
 
   def mvnDeps = Seq(Deps.upickle)
@@ -24,4 +26,5 @@ trait ProjectBaseModule extends PublishModule, SbtPlatformModule {
     def testSandboxWorkingDir = false
 
   }
+
 }
