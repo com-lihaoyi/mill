@@ -47,7 +47,7 @@ public final class Locks implements AutoCloseable {
   }
 
   public static Locks forDirectory(String daemonDir, boolean useFileLocks) throws Exception {
-    if (useFileLocks) {return files(daemonDir);
+    if (useFileLocks) return files(daemonDir);
     else return pid(daemonDir);
   }
 
