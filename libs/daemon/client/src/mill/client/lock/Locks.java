@@ -4,7 +4,6 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import mill.constants.DaemonFiles;
 
 public final class Locks implements AutoCloseable {
@@ -65,7 +64,7 @@ public final class Locks implements AutoCloseable {
       Files.createDirectories(Path.of(daemonDir));
       Files.deleteIfExists(testFile);
       try (RandomAccessFile raf = new RandomAccessFile(testFile.toFile(), "rw");
-           FileChannel channel = raf.getChannel()) {
+          FileChannel channel = raf.getChannel()) {
         java.nio.channels.FileLock lock = channel.tryLock();
         if (lock != null) {
           lock.release();
