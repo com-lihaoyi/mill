@@ -107,6 +107,7 @@ trait GroupExecution {
     .toMap
 
   def offline: Boolean
+  def useFileLocks: Boolean
 
   lazy val constructorHashSignatures: Map[String, Seq[(String, Int)]] =
     CodeSigUtils.constructorHashSignatures(codeSignatures)
@@ -436,7 +437,8 @@ trait GroupExecution {
             _systemExitWithReason = systemExit,
             fork = executionContext,
             jobs = effectiveThreadCount,
-            offline = offline
+            offline = offline,
+            useFileLocks = useFileLocks
           )
 
           GroupExecution.wrap(

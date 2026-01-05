@@ -135,6 +135,7 @@ class UnitTester(
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
+    useFileLocks = false,
     enableTicker = false,
     staticBuildOverrideFiles = Map()
   )
