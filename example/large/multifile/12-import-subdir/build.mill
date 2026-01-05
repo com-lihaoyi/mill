@@ -1,0 +1,8 @@
+// build.mill
+// Imports the FooModule from the deps subdirectory
+package build
+
+import mill.*, scalalib.*
+
+trait BarModule extends build_.deps.foo.FooModule
+
