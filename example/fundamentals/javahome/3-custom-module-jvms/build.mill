@@ -37,7 +37,7 @@ Test foo.FooTest.testSimple finished...
 // JVM installed on the target host machine.
 //
 // For any module with a custom `jvmVersion`, you can also access `java` and other commands
-// on the module's JDK via `foo.java`, `foo.javap`, etc. This can be useful if you
+// on the module's JVM via `foo.java`, `foo.javap`, etc. This can be useful if you
 
 /** Usage
 

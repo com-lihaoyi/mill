@@ -1,5 +1,6 @@
-// Mill comes bundled with a JDK (default `{default-mill-jvm-version}`) that it uses for itself that also acts as the default JDK
-// for any modules you define. You can use this JDK yourself via the builtin command
+// Mill comes with a managed JVM (default `{default-mill-jvm-version}`) that it
+// uses for itself that also acts as the default JVM
+// for any modules you define. You can use this JVM yourself via the builtin command
 // `./mill java`, `javac`, `javap`, `jps`, `jstack`, etc.:
 
 /** Usage
@@ -20,3 +21,8 @@ Usage:
     jstack [-l][-e] <pid>
 
 */
+
+// For most dev workflows you don't need to use the JVM binaries yourself, as Mill automatically
+// uses the right one when you run `compile`, `run`, or `test`. However, it can sometimes be
+// handy to invoke these binaries manually for workflows outside of Mill, e.g. running `./mill jps`
+// or `./mill jstack` on a stuck process, and so Mill exposes them for you to use.
