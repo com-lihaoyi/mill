@@ -1,4 +1,4 @@
-extends: ScalaModule
+extends: [mill.scalalib.ScalaModule] # fully-qualified class name
 scalaVersion: 3.7.4
 mvnDeps:
 - com.lihaoyi::scalatags:0.13.1

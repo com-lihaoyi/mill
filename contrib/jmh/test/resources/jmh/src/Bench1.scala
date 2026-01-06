@@ -1,6 +1,6 @@
 package mill.contrib.jmh
 
-import org.openjdk.jmh.annotations.*
+import org.openjdk.jmh.annotations._
 
 object Bench1States {
 
@@ -20,7 +20,7 @@ object Bench1States {
 @BenchmarkMode(Array(Mode.All))
 class Bench1 {
 
-  import Bench1States.*
+  import Bench1States._
 
   @Benchmark
   def measureShared(state: BenchmarkState) = {
