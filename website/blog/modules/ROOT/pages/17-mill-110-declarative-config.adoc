@@ -417,7 +417,7 @@ https://ammonite.io/[Ammonite] and https://scala-cli.virtuslab.org/[Scala-CLI] f
 and https://blog.jetbrains.com/kotlin/2024/11/state-of-kotlin-scripting-2024/[Scripting for Kotlin],
 which all give you the ability to write single-files scripts in JVM languages.
 But Mill's single-file scripts are unique in how well they support the full set of build-tool
-functionality and integrate with larger projects:
+features and integrate with external tools and larger projects:
 
 1. Mill scripts support the
 {mill-doc-url}/api/latest/mill/javalib/JavaModule.html#mvnDeps-0[full range of configuration options]
@@ -440,9 +440,10 @@ like IntelliJ or VSCode, where other JVM script runners often only have partial 
 image::ScriptIDESupport.png[]
 
 Using Java to write small scripts isn't a new idea, with the ability to run `java Foo.java`
-from the command line introduced in Java 11, and more feature-rich tools like JBang. But Mill
-takes the idea several step further in polish and robustness, hopefully to a level where
-scripting on the JVM can be a truly viable workflow rather than just a tech demo.
+from the command line introduced in Java 11, and tools like JBang providing a more
+feature-rich experience. But Mill takes the idea several step further in polish and
+robustness, hopefully to a level where scripting on the JVM can be a truly viable workflow
+rather than just a tech demo.
 
 === Multi-Language JVM Scripting
 
@@ -546,8 +547,8 @@ complexity, JVM languages have never been the preferred choice for small program
 they are often used for large-scale enterprise systems.
 
 With the new declarative and single-file configuration styles in Mill 1.1.0, we hope to be
-able to change that. Mill's new declarative `build.mill.yaml` files
-take the best ideas from Maven, while streamlining installation, syntax, and command-line
+able to change that. Mill's new declarative `build.mill.yaml` files take the best ideas from
+Maven, while streamlining installation, configuration syntax, and command-line
 usage. Mill's single-file scripts take that a step further allowing any `.java`, `.scala`, or
 `.kt` file to be annotated and run without needing to set up a separate "project"
 or "build file".
@@ -561,10 +562,22 @@ for anyone using any JVM language to run your code conveniently and consistently
 If you have made it this far, we hope that some of the problems and challenges we have discussed
 in this article resonate with your own personal experience. If you are interested in trying out
 Mill's new declarative configuration syntax or single-file scripts, please check out the
-documentation linked below:
+documentation linked below for each JVM language:
 
-- xref:mill::javalib/intro.adoc#_declarative_module_config[Declarative Java Module Configuration]
-- xref:mill::javalib/intro.adoc#_single_file_scripts[Java Single-File Scripts]
+[cols="1,2,2"]
+|===
+| Java
+| xref:mill::javalib/intro.adoc#_declarative_configuration[Declarative Module Configuration]
+| xref:mill::javalib/intro.adoc#_single_file_scripts[Single-File Scripts]
+
+| Kotlin
+| xref:mill::kotlinlib/intro.adoc#_declarative_configuration[Declarative Module Configuration]
+| xref:mill::kotlinlib/intro.adoc#_single_file_scripts[Single-File Scripts]
+
+| Scala
+| xref:mill::scalalib/intro.adoc#_declarative_configuration[Declarative Module Configuration]
+| xref:mill::scalalib/intro.adoc#_single_file_scripts[Single-File Scripts]
+|===
 
 For anyone upgrading from an earlier version of Mill, please see the changelog with a more
 thorough listing of improvements and migration instructions:
