@@ -95,7 +95,7 @@ class BspEvaluators(
    * Find all input tasks (Task.Input, Task.Source, Task.Sources) at the roots of the task graph
    * by traversing upstream from the given tasks.
    */
-  private def findInputTasks(tasks: Seq[TaskApi[?]]): Seq[TaskApi[?]] = {
+  def findInputTasks(tasks: Seq[TaskApi[?]]): Seq[TaskApi[?]] = {
     val visited = collection.mutable.Set.empty[TaskApi[?]]
     val inputTasks = collection.mutable.ListBuffer.empty[TaskApi[?]]
     val queue = collection.mutable.Queue.empty[TaskApi[?]]
@@ -115,6 +115,19 @@ class BspEvaluators(
   }
 
   /**
+   * Extract os.Path values from input task results. Input tasks like Task.Sources return
+   * PathRef or Seq[PathRef] values.
+   */
+  def extractPathsFromResults(results: Seq[Any]): Seq[os.Path] = {
+    results.flatMap {
+      case pathRef: mill.api.PathRef => Seq(pathRef.path)
+      case pathRefs: Seq[?] =>
+        pathRefs.collect { case pr: mill.api.PathRef => pr.path }
+      case _ => Seq.empty
+    }
+  }
+
+  /**
    * Extract paths from input task results by traversing task graphs to find Task.Input roots,
    * evaluating only those inputs, and extracting PathRef values.
    */
@@ -128,18 +141,8 @@ class BspEvaluators(
       findInputTasks(tasks) match {
         case Nil => Seq.empty
         case inputTasks =>
-          ev.executeApi(inputTasks)
-            .values
-            .get
-            .flatMap {
-              case pathRef: mill.api.PathRef => Seq(pathRef.path.subRelativeTo(workspaceDir))
-              case pathRefs: Seq[?] =>
-                pathRefs.collect { case pr: mill.api.PathRef =>
-                  pr.path.subRelativeTo(workspaceDir)
-                }
-
-              case _ => Seq.empty
-            }
+          extractPathsFromResults(ev.executeApi(inputTasks).values.get)
+            .map(_.subRelativeTo(workspaceDir))
       }
     }
   }
