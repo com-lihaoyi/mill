@@ -31,36 +31,34 @@ class BspEvaluators(
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
 
-  private val transitiveDependencyModules0 = new ConcurrentHashMap[ModuleApi, Seq[ModuleApi]]
-  private val transitiveModulesEnableBsp0 =
-    new ConcurrentHashMap[ModuleApi, Option[Seq[BspModuleApi]]]
+  // Compute modules with BSP transitively disabled using single-pass topological traversal.
+  // A module is disabled if it has enableBsp=false OR any of its direct deps is disabled.
+  private lazy val disabledBspModules: Set[ModuleApi] = {
+    val allModules = evaluators.flatMap(ev => transitiveModules(ev.rootModule))
+    val moduleToIndex = allModules.zipWithIndex.toMap
+    val indexToModule = allModules.toIndexedSeq
 
-  // Compute all transitive dependency modules via moduleDeps + compileModuleDeps
-  private def transitiveDependencyModules(module: ModuleApi): Seq[ModuleApi] = {
-    if (!transitiveDependencyModules0.contains(module)) {
-      val directDependencies = module match {
-        case jm: JavaModuleApi => jm.recursiveModuleDeps ++ jm.compileModuleDepsChecked
+    val graph: IndexedSeq[Array[Int]] = indexToModule.map { m =>
+      val deps = m match {
+        case jm: JavaModuleApi => jm.moduleDepsChecked ++ jm.compileModuleDepsChecked
         case _ => Nil
       }
-      val value = Seq(module) ++ directDependencies.flatMap(transitiveDependencyModules)
-      transitiveDependencyModules0.putIfAbsent(module, value)
+      deps.flatMap(moduleToIndex.get).toArray
     }
 
-    transitiveDependencyModules0.get(module)
-  }
+    val disabled = collection.mutable.Set.empty[Int]
 
-  private def transitiveModulesEnableBsp(module: ModuleApi): Option[Seq[BspModuleApi]] = {
-    if (!transitiveModulesEnableBsp0.contains(module)) {
-      val disabledTransitiveModules = transitiveDependencyModules(module).collect {
-        case b: BspModuleApi if !b.enableBsp => b
+    // Module graph cannot have cycles so each SCC must be of size 1
+    for (Array(idx) <- mill.internal.Tarjans(graph).reverse){
+      val module = indexToModule(idx)
+      val isDirect = module match {
+        case bsp: BspModuleApi => !bsp.enableBsp
+        case _ => false
       }
-      val value =
-        if (disabledTransitiveModules.isEmpty) None
-        else Some(disabledTransitiveModules)
-      transitiveModulesEnableBsp0.putIfAbsent(module, value)
+      if (isDirect || graph(idx).exists(disabled.contains)) disabled.add(idx)
     }
 
-    transitiveModulesEnableBsp0.get(module)
+    disabled.iterator.map(indexToModule).toSet
   }
 
   private def moduleUri(rootModule: ModuleApi, module: ModuleApi) = Utils.sanitizeUri(
@@ -72,23 +70,9 @@ class BspEvaluators(
       eval <- evaluators
       bspModule <- transitiveModules(eval.rootModule).collect { case m: BspModuleApi => m }
       uri = moduleUri(eval.rootModule, bspModule)
-      if {
-        if (bspModule.enableBsp)
-          transitiveModulesEnableBsp(bspModule) match {
-            case Some(disabledTransitiveModules) =>
-              val uris = disabledTransitiveModules.map(moduleUri(eval.rootModule, _))
-              eval.baseLogger.warn(
-                s"BSP disabled for target $uri because of its dependencies ${uris.mkString(", ")}"
-              )
-              false
-            case None =>
-              true
-          }
-        else {
-          eval.baseLogger.info(s"BSP disabled for target $uri via BspModuleApi#enableBsp")
-          false
-        }
-      }
+      disabled = disabledBspModules.contains(bspModule)
+      _ = if (disabled) eval.baseLogger.info(s"BSP disabled for target $uri")
+      if !disabled
     } yield (new BuildTargetIdentifier(uri), (bspModule, eval))
 
   /**
