@@ -10,6 +10,7 @@ import mill.api.daemon.internal.{
   ModuleApi,
   TaskApi
 }
+import mill.api.daemon.internal.bsp.BspJavaModuleApi
 import mill.api.daemon.Watchable
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 
@@ -91,28 +92,59 @@ class BspEvaluators(
       }
     } yield (new BuildTargetIdentifier(uri), (bspModule, eval))
 
-  val nonScriptSources = evaluators.flatMap { ev =>
-    val bspSourceTasks: Seq[TaskApi[(sources: Seq[Path], generatedSources: Seq[Path])]] =
-      transitiveModules(ev.rootModule)
-        .collect { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetSources }
-    ev.executeApi(bspSourceTasks)
-      .values
-      .get
-      .flatMap { case (sources: Seq[Path], _: Seq[Path]) =>
-        sources.map(os.Path(_, workspaceDir).subRelativeTo(workspaceDir))
+  /**
+   * Find all input tasks (Task.Input, Task.Source, Task.Sources) at the roots of the task graph
+   * by traversing upstream from the given tasks.
+   */
+  private def findInputTasks(tasks: Seq[TaskApi[?]]): Seq[TaskApi[?]] = {
+    val visited = collection.mutable.Set.empty[TaskApi[?]]
+    val inputTasks = collection.mutable.ListBuffer.empty[TaskApi[?]]
+    val queue = collection.mutable.Queue.empty[TaskApi[?]]
+
+    tasks.foreach(queue.enqueue(_))
+
+    while (queue.nonEmpty) {
+      val current = queue.dequeue()
+      if (!visited.contains(current)) {
+        visited.add(current)
+        if (current.isInputTask) inputTasks += current
+        else current.inputsApi.foreach(queue.enqueue(_))
       }
+    }
+
+    inputTasks.toSeq
   }
-  val nonScriptResources = evaluators.flatMap { ev =>
-    val bspSourceTasks: Seq[TaskApi[Seq[Path]]] =
-      transitiveModules(ev.rootModule)
-        .collect { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetResources }
-    ev.executeApi(bspSourceTasks)
-      .values
-      .get
-      .flatMap { (resources: Seq[Path]) =>
-        resources.map(os.Path(_, workspaceDir).subRelativeTo(workspaceDir))
+
+  /**
+   * Extract paths from input task results by traversing task graphs to find Task.Input roots,
+   * evaluating only those inputs, and extracting PathRef values.
+   */
+  private def extractInputPaths(
+      taskSelector: BspJavaModuleApi => TaskApi[?]
+  ): Seq[os.SubPath] = {
+    evaluators.flatMap { ev =>
+      val tasks = transitiveModules(ev.rootModule)
+        .collect { case m: JavaModuleApi => taskSelector(m.bspJavaModule()) }
+
+      findInputTasks(tasks) match{
+        case Nil => Seq.empty
+        case inputTasks =>
+          ev.executeApi(inputTasks)
+            .values
+            .get
+            .flatMap {
+              case pathRef: mill.api.PathRef => Seq(pathRef.path.subRelativeTo(workspaceDir))
+              case pathRefs: Seq[?] =>
+                pathRefs.collect { case pr: mill.api.PathRef => pr.path.subRelativeTo(workspaceDir) }
+
+              case _ => Seq.empty
+            }
       }
+    }
   }
+
+  val nonScriptSources = extractInputPaths(_.bspBuildTargetSources)
+  val nonScriptResources = extractInputPaths(_.bspBuildTargetResources)
 
   val bspScriptIgnore: Seq[String] = {
     // look for this in the first meta-build frame, which would be the meta-build configured
