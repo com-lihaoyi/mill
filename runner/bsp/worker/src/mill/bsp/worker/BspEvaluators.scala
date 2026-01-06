@@ -49,7 +49,7 @@ class BspEvaluators(
     val disabled = collection.mutable.Set.empty[Int]
 
     // Module graph cannot have cycles so each SCC must be of size 1
-    for (Array(idx) <- mill.internal.Tarjans(graph).reverse){
+    for (Array(idx) <- mill.internal.Tarjans(graph).reverse) {
       val module = indexToModule(idx)
       val isDirect = module match {
         case bsp: BspModuleApi => !bsp.enableBsp
