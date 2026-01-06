@@ -10,7 +10,7 @@ object GenEclipseScalaTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("No project generation for Scala projects") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       val ret = eval("mill.eclipse/", check = true)
       assert(ret.exitCode == 0)

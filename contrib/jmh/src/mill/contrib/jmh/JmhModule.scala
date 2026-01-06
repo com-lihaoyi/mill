@@ -1,6 +1,6 @@
 package mill.contrib.jmh
 
-import mill._, javalib._
+import mill._, javalib.*
 import mill.util.Jvm
 
 /**
@@ -10,7 +10,7 @@ import mill.util.Jvm
  * {{{
  * //| mvnDeps: ["com.lihaoyi::mill-contrib-jmh:$MILL_VERSION"]
  *
- * import mill._, scalalib._
+ * import mill._, scalalib.*
  *
  * import contrib.jmh.JmhModule
  *

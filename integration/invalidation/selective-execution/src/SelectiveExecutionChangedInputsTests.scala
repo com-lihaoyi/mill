@@ -1,8 +1,8 @@
 package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
-import utest._
+import utest.*
 import utest.asserts.{RetryMax, RetryInterval}
 
 object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
@@ -10,7 +10,7 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
     test("changed-inputs") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       eval(
         ("selective.prepare", "{foo.fooCommand,bar.barCommand}"),
@@ -58,7 +58,7 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
     test("changed-inputs-generic") - integrationTest { tester =>
       // Make sure you can run `selective.prepare` on a broader set of tasks than
       // `selective.resolve` or `selective.run` and thingsstill work
-      import tester._
+      import tester.*
 
       // `selective.prepare` defaults to `__` if no selector is passed
       eval(("selective.prepare"), check = true)

@@ -2,12 +2,12 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object NoModulesInHelperFileTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("success") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val res = eval(("resolve", "_"))
       assert(res.isSuccess == false)
       assert(

@@ -1,6 +1,6 @@
 package build.runner.bsp
 
-import mill._
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import millbuild.*

@@ -193,8 +193,8 @@ object Util {
           import org.snakeyaml.engine.v2.composer.Composer
           import org.snakeyaml.engine.v2.parser.ParserImpl
           import org.snakeyaml.engine.v2.scanner.StreamReader
-          import org.snakeyaml.engine.v2.nodes._
-          import scala.jdk.CollectionConverters._
+          import org.snakeyaml.engine.v2.nodes.*
+          import scala.jdk.CollectionConverters.*
 
           val settings = LoadSettings.builder().build()
           val reader = new StreamReader(settings, headerData)

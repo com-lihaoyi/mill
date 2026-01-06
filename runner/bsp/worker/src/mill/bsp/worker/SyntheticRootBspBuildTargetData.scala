@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, SourceItem, SourceItemKind, S
 import mill.bsp.worker.Utils.{makeBuildTarget, sanitizeUri}
 import mill.api.daemon.internal.bsp.BspModuleApi.Tag
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import ch.epfl.scala.bsp4j.BuildTarget
 import mill.api.daemon.internal.bsp.BspBuildTarget
 

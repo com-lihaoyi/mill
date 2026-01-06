@@ -2,14 +2,14 @@ package mill.integration
 
 import coursier.cache.FileCache
 import mill.testkit.UtestIntegrationTestSuite
-import utest._
+import utest.*
 
 import java.io.File
 
 object CsEnvVarsTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("cache") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       def check(cacheOpt: Option[os.Path]): Unit = {
         val env = cacheOpt.toSeq.map { cache =>
@@ -33,7 +33,7 @@ object CsEnvVarsTests extends UtestIntegrationTestSuite {
     }
 
     test("mirrors") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       def check(mirrorFileOpt: Option[os.Path]): Unit = {
         val env = mirrorFileOpt.toSeq.map { file =>

@@ -3,7 +3,7 @@ package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
 import mill.testkit.IntegrationTester
 import scala.collection.Map
-import utest._
+import utest.*
 
 /**
  * Run through some common scenarios on a simple Mill build to ensure we don't leak

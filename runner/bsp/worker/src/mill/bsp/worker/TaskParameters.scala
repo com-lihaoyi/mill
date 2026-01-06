@@ -2,7 +2,7 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, CompileParams, RunParams, TestParams}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 /**
  * Common trait to represent BSP request parameters that

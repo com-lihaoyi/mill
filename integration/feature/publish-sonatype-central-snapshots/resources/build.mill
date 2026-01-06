@@ -1,6 +1,6 @@
 package build
 
-import mill._, scalalib._, publish._
+import mill._, scalalib._, publish.*
 
 object testProject extends ScalaModule with SonatypeCentralPublishModule {
   def scalaVersion = "3.3.6"

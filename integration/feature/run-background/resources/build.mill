@@ -1,4 +1,4 @@
-import mill._, javalib._
+import mill._, javalib.*
 import mainargs.arg
 object `package` extends JavaModule {
   def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] =

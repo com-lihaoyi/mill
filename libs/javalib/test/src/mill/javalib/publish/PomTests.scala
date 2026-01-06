@@ -1,7 +1,7 @@
 package mill.javalib.publish
 
-import utest._
-import mill._
+import utest.*
+import mill.*
 
 import scala.xml.{NodeSeq, XML}
 
