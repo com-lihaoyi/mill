@@ -113,6 +113,9 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
   /**
    * Prints out some dependency path from the `src` task to the `dest` task.
    *
+   * Both `src` and `dest` can resolve to multiple tasks (e.g. via glob patterns),
+   * and a path will be found from any task matching `src` to any task matching `dest`.
+   *
    * If there are multiple dependency paths between `src` and `dest`, the path
    * chosen is arbitrary.
    */
@@ -123,14 +126,18 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
       @mainargs.arg(positional = true) dest: String
   ): Command[List[String]] =
     Task.Command(exclusive = true) {
-      evaluator.resolveTasks(List(src, dest), SelectMode.Multi).flatMap {
-        case Seq(src1, dest1) =>
-          val queue = collection.mutable.Queue[List[Task[?]]](List(src1))
+      for {
+        srcTasks <- evaluator.resolveTasks(List(src), SelectMode.Multi)
+        destTasks <- evaluator.resolveTasks(List(dest), SelectMode.Multi)
+        result <- {
+          val destSet: Set[Task[?]] = destTasks.toSet
+          val queue = collection.mutable.Queue[List[Task[?]]](srcTasks.map(List(_))*)
           var found = Option.empty[List[Task[?]]]
           val seen = collection.mutable.Set.empty[Task[?]]
+          seen ++= srcTasks
           while (queue.nonEmpty && found.isEmpty) {
             val current = queue.dequeue()
-            if (current.head == dest1) found = Some(current)
+            if (destSet.contains(current.head)) found = Some(current)
             else {
               for {
                 next <- current.head.inputs
@@ -144,13 +151,12 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
           found match {
             case None => Task.fail(s"No path found between $src and $dest")
             case Some(list) =>
-              val labels = list.collect { case n: Task.Named[_] => n.ctx.segments.render }
+              val labels = list.collect { case n: Task.Named[_] => n.ctx.segments.render }.reverse
               labels.foreach(println)
-              labels
+              Result.Success(labels)
           }
-
-        case _ => ???
-      }
+        }
+      } yield result
     }
 
   /**
