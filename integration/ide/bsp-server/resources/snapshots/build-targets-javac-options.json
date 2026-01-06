@@ -176,6 +176,14 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/custom-src/ignored-because-custom-src.java"
+      },
+      "options": [],
+      "classpath": [],
+      "classDirectory": "file:///workspace/.bsp/mill-bsp-out/scripts/custom-src/ignored-because-custom-src.java/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "options": [],

@@ -311,6 +311,18 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/custom-src/ignored-because-custom-src.java"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/scripts/custom-src/ignored-because-custom-src.java",
+          "kind": 1,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "sources": [

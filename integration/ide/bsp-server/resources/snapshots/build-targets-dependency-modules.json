@@ -202,6 +202,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/custom-src/ignored-because-custom-src.java"
+      },
+      "modules": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "modules": [

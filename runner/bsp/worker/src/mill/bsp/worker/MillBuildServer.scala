@@ -358,9 +358,6 @@ private class MillBuildServer(
    * for the list of text documents and directories that are belong to a build
    * target. The sources response must not include sources that are external to the
    * workspace, see [[buildTargetDependencySources()]].
-   *
-   * This implementation uses input-tasks-only evaluation to avoid triggering
-   * expensive generated sources evaluation (which may depend on compilation).
    */
   override def buildTargetSources(sourcesParams: SourcesParams)
       : CompletableFuture[SourcesResult] = {
@@ -371,36 +368,23 @@ private class MillBuildServer(
       generated
     )
 
-    handlerEvaluators() { (state, logger) =>
-      val ids = state.filterNonSynthetic(sourcesParams.getTargets).asScala
-
-      // Group targets by evaluator
-      val targetsByEvaluator = ids.flatMap { id =>
-        state.bspModulesById.get(id).collect {
-          case (m: JavaModuleApi, ev) => (ev, id, m)
-        }
-      }.groupBy(_._1).view.mapValues(_.map(t => (t._2, t._3))).toMap
-
-      val sourceItems = targetsByEvaluator.toSeq.flatMap { case (ev, targets) =>
-        // For each target, find input tasks and evaluate them
-        targets.map { case (id, module) =>
-          val task = module.bspJavaModule().bspBuildTargetSources
-          val inputTasks = state.findInputTasks(Seq(task))
-
-          val sourcePaths = if (inputTasks.isEmpty) Seq.empty
-          else {
-            state.extractPathsFromResults(ev.executeApi(inputTasks).values.get)
-          }
-
-          new SourcesItem(
-            id,
-            sourcePaths.map(p => sourceItem(p, generated = false)).asJava
-          )
-        }
-      }
-
+    handlerTasksEvaluators(
+      targetIds = _ => sourcesParams.getTargets.asScala,
+      tasks = { case module: JavaModuleApi => module.bspJavaModule().bspBuildTargetSources },
+      requestDescription =
+        s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}",
+      originId = ""
+    ) {
+      case (_, _, id, _, result) => new SourcesItem(
+          id,
+          (
+            result.sources.map(p => sourceItem(os.Path(p), false)) ++
+              result.generatedSources.map(p => sourceItem(os.Path(p), true))
+          ).asJava
+        )
+    } { (sourceItems, state) =>
       new SourcesResult(
-        (sourceItems ++ state.syntheticRootBspBuildTarget.map(_.synthSources))
+        (sourceItems.asScala ++ state.syntheticRootBspBuildTarget.map(_.synthSources))
           .sortBy(_.getTarget.getUri)
           .asJava
       )
@@ -499,29 +483,19 @@ private class MillBuildServer(
     }
 
   override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
-    handlerEvaluators() { (state, _) =>
-      val ids = state.filterNonSynthetic(p.getTargets).asScala
+    handlerTasks(
+      targetIds = _ => p.getTargets.asScala,
+      tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetResources },
+      requestDescription = "Getting resources of {}",
+      originId = ""
+    ) {
+      case (_, _, id, _, resources) =>
+        val resourcesUrls =
+          resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
+        new ResourcesItem(id, resourcesUrls.asJava)
 
-      val targetsByEvaluator = ids.flatMap { id =>
-        state.bspModulesById.get(id).collect {
-          case (m: JavaModuleApi, ev) => (ev, id, m)
-        }
-      }.groupBy(_._1).view.mapValues(_.map(t => (t._2, t._3))).toMap
-
-      val resourceItems = targetsByEvaluator.toSeq.flatMap { case (ev, targets) =>
-        targets.map { case (id, module) =>
-          val task = module.bspJavaModule().bspBuildTargetResources
-          val inputTasks = state.findInputTasks(Seq(task))
-
-          val resourcePaths = if (inputTasks.isEmpty) Seq.empty
-          else state.extractPathsFromResults(ev.executeApi(inputTasks).values.get)
-
-          val resourcesUrls = resourcePaths.filter(os.exists).map(p => sanitizeUri(p.toNIO))
-          new ResourcesItem(id, resourcesUrls.asJava)
-        }
-      }
-
-      new ResourcesResult(resourceItems.sortBy(_.getTarget.getUri).asJava)
+    } { values =>
+      new ResourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
   // TODO: if the client wants to give compilation arguments and the module
