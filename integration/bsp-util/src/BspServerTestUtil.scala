@@ -61,6 +61,8 @@ object BspServerTestUtil {
           val (from, to) = if (inverse) (to0, from0) else (from0, to0)
           input0.replace(from, to)
       }.replaceAll("\"javaHome\": \"[^\"]+\"", "\"javaHome\": \"java-home\"")
+        .replaceAll("\"PATH\": \"[^\"]+\"", "\"PATH\": \"...\"")
+        .replaceAll("\"PATH(\\\\u003d|=)[^\"]+\"", "\"PATH=...\"")
 
     val jsonStr = normalizeLocalValues(
       gson.toJson(
