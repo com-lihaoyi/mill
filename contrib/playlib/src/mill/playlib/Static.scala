@@ -1,7 +1,7 @@
 package mill.playlib
 
 import java.net.URI
-import java.nio.file._
+import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 import java.util
 
@@ -69,7 +69,7 @@ trait Static extends ScalaModule {
   }
 
   private def extractWebJars(jars: Seq[PathRef], webJarBase: os.Path): Unit = {
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     val prefix = "/META-INF/resources/webjars/"
 
     jars.foreach { jarRef =>

@@ -1,5 +1,5 @@
 package build.foo
-import mill._
+import mill.*
 
 object before extends UnknownBeforeFooModule
 

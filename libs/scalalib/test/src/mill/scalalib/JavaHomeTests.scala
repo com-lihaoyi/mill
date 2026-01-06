@@ -14,10 +14,10 @@ object JavaHomeTests extends TestSuite {
   object JavaJdk11DoesntCompile extends TestRootModule {
 
     object javamodule extends JavaModule {
-      def jvmId = "temurin:11.0.25"
+      def jvmVersion = "temurin:11.0.25"
     }
     object scalamodule extends ScalaModule {
-      def jvmId = "temurin:11.0.25"
+      def jvmVersion = "temurin:11.0.25"
       def scalaVersion = "2.13.14"
     }
     lazy val millDiscover = Discover[this.type]
@@ -25,10 +25,10 @@ object JavaHomeTests extends TestSuite {
 
   object JavaJdk17Compiles extends TestRootModule {
     object javamodule extends JavaModule {
-      def jvmId = "temurin:17.0.13"
+      def jvmVersion = "temurin:17.0.13"
     }
     object scalamodule extends ScalaModule {
-      def jvmId = "temurin:17.0.13"
+      def jvmVersion = "temurin:17.0.13"
 
       def scalaVersion = "2.13.14"
     }

@@ -2,12 +2,12 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object CodeSigHelloTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("simple") - integrationTest { tester =>
-      import tester._
+      import tester.*
       // Make sure the simplest case where we have a single task calling a single helper
       // method is properly invalidated when either the task body, or the helper method's body
       // is changed, or something changed in the constructor

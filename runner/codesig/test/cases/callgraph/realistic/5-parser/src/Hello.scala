@@ -1,6 +1,6 @@
 package hello
 // Taken from https://github.com/handsonscala/handsonscala/blob/ebc0367144513fc181281a024f8071a6153be424/examples/19.1%20-%20Phrases/Phrases.sc
-import fastparse._, NoWhitespace._
+import fastparse._, NoWhitespace.*
 sealed trait Phrase
 class Word(s: String) extends Phrase
 class Pair(lhs: Phrase, rhs: Phrase) extends Phrase

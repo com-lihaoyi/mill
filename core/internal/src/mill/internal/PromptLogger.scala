@@ -230,6 +230,11 @@ class PromptLogger(
               incompleteLine = line.lastOption.exists(last => last != '\n' && last != '\r')
             }
 
+            // Strip non-color ansi codes so things like line clearing or cursor
+            // movement don't mess up Mill's log formatting in the terminal
+            def stripAnsi(s: Array[Byte]) =
+              fansi.Str(new String(s, "UTF-8"), fansi.ErrorMode.Strip).render.getBytes("UTF-8")
+
             if (!seenBefore) {
               lines match {
                 case Seq(firstLine, restLines*) =>
@@ -237,20 +242,22 @@ class PromptLogger(
                     longPrefix.length + 1 + firstLine.length <
                       termDimensions._1.getOrElse(defaultTermWidth)
 
-                  if (combineMessageAndLog) printPrefixed(infoColor(longPrefix), firstLine)
+                  if (combineMessageAndLog)
+                    printPrefixed(infoColor(longPrefix), stripAnsi(firstLine))
                   else {
                     logStream.print(infoColor(longPrefix))
                     logStream.print('\n')
-                    printPrefixed(infoColor(prefix), firstLine)
+                    printPrefixed(infoColor(prefix), stripAnsi(firstLine))
                   }
-                  restLines.foreach(printPrefixed(infoColor(prefix), _))
+
+                  restLines.foreach(l => printPrefixed(infoColor(prefix), stripAnsi(l)))
 
                 case Seq() =>
                   logStream.print(infoColor(longPrefix))
                   logStream.print("\n")
                   logStream.flush()
               }
-            } else lines.foreach(printPrefixed(infoColor(prefix), _))
+            } else lines.foreach(l => printPrefixed(infoColor(prefix), stripAnsi(l)))
           }
         }
       } else logStream.synchronized { logMsg.writeTo(logStream) }

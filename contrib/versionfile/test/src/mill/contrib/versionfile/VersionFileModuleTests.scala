@@ -3,7 +3,7 @@ package mill.contrib.versionfile
 import mill.Task
 import mill.testkit.{UnitTester, TestRootModule}
 import utest.{TestSuite, Tests, assert, test}
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 import mill.api.Discover
 object VersionFileModuleTests extends TestSuite {
 
@@ -47,7 +47,7 @@ object VersionFileModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
 
-    import Bump._
+    import Bump.*
 
     test("reading") {
 

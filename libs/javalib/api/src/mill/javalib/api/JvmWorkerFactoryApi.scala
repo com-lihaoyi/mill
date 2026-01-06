@@ -15,6 +15,7 @@ case class JvmWorkerArgs(
     classPath: Seq[os.Path],
     jobs: Int,
     zincLogDebug: Boolean,
+    useFileLocks: Boolean,
     close0: () => Unit
 )
 

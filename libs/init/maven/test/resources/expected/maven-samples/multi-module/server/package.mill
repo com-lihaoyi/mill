@@ -1,8 +1,10 @@
 package build.`multi-module`.server
+
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
+
 object `package` extends ProjectBaseModule {
 
   def depManagement = Seq(
@@ -30,4 +32,5 @@ object `package` extends ProjectBaseModule {
   )
 
   object test extends Tests {}
+
 }

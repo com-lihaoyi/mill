@@ -17,7 +17,7 @@ import org.flywaydb.core.api.output.{BaselineResult, CleanResult, MigrateOutput,
 import scala.annotation.nowarn
 
 trait FlywayModule extends JavaModule {
-  import FlywayModule._
+  import FlywayModule.*
 
   def flywayUrl: T[String]
   def flywayUser: T[String] = Task { "" }

@@ -4,10 +4,10 @@ import mill.api.ExecResult
 import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 import mill.api.Task.Simple
 import mill.T
-import mill.scalajslib.api._
+import mill.scalajslib.api.*
 
 object EsModuleRemapTests extends TestSuite {
   val remapTo = "https://cdn.jsdelivr.net/gh/stdlib-js/array-base-linspace@esm/index.mjs"

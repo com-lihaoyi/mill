@@ -1,5 +1,5 @@
 package build.b
-import mill._
+import mill.*
 
 def method() = {
   println("d")

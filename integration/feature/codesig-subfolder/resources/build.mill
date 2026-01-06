@@ -1,5 +1,5 @@
 package build
 
-import mill._
+import mill.*
 
 def foo = Task { println("running foo"); build.subfolder.helperFoo }

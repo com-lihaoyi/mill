@@ -1,6 +1,6 @@
 package build
 import scala.util.Properties
-import mill._
+import mill.*
 
 def inheritInterleaved = Task {
   for (i <- Range.inclusive(1, 9)) {

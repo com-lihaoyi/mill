@@ -1,7 +1,7 @@
 package mill.resolve
 
 import fastparse.NoWhitespace.noWhitespaceImplicit
-import fastparse._
+import fastparse.*
 
 import mill.api.Result
 

@@ -4,7 +4,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import mill.Task
 import mill.api.Result.Success
-import utest._
+import utest.*
 
 object CacherTests extends TestSuite {
   object Base extends Base {

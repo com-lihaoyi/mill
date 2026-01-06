@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object CodeSigJavaModuleTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
@@ -10,7 +10,7 @@ object CodeSigJavaModuleTests extends UtestIntegrationTestSuite {
       out.linesIterator.filter(!_.contains("[info]")).toSet
     }
     test("single") - integrationTest { tester =>
-      import tester._
+      import tester.*
       // Tests for fine-grained method-based invalidation within a single ScalaModule
 
       // Check normal behavior for initial run and subsequent fully-cached run
@@ -139,7 +139,7 @@ object CodeSigJavaModuleMultipleTests extends UtestIntegrationTestSuite {
       out.linesIterator.filter(!_.contains("[info]")).toSet
     }
     test("multiple") - integrationTest { tester =>
-      import tester._
+      import tester.*
       // Tests for fine-grained method-based invalidation between multiple ScalaModules,
       // some related and some not
 

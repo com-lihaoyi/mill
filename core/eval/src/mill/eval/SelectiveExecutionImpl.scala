@@ -228,7 +228,8 @@ object SelectiveExecutionImpl {
               throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
             fork = null,
             jobs = evaluator.effectiveThreadCount,
-            offline = evaluator.offline
+            offline = evaluator.offline,
+            useFileLocks = evaluator.useFileLocks
           )
 
           task -> task.evaluate(ctx).map(Val(_))

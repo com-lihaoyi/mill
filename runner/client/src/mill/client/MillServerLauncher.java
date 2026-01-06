@@ -23,17 +23,21 @@ public abstract class MillServerLauncher extends ServerLauncher {
 
   final int forceFailureForTestingMillisDelay;
 
+  final boolean useFileLocks;
+
   public MillServerLauncher(
       Streams streams,
       Map<String, String> env,
       String[] args,
       Optional<Locks> memoryLock,
-      int forceFailureForTestingMillisDelay) {
+      int forceFailureForTestingMillisDelay,
+      boolean useFileLocks) {
     this.streams = streams;
     this.env = env;
     this.args = args;
     this.memoryLock = memoryLock;
     this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;
+    this.useFileLocks = useFileLocks;
   }
 
   /**
@@ -55,11 +59,10 @@ public abstract class MillServerLauncher extends ServerLauncher {
         ClientUtil.getUserSetProperties());
 
     Locks locks;
-    if (memoryLock.isPresent()) {
-      locks = memoryLock.get();
-    } else {
-      locks = Locks.files(daemonDir.toString());
-    }
+
+    if (memoryLock.isPresent()) locks = memoryLock.get();
+    else locks = Locks.forDirectory(daemonDir.toString(), useFileLocks);
+
     log.accept("launchOrConnectToServer: " + locks);
 
     try (var launched = launchOrConnectToServer(

@@ -2,8 +2,8 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 import utest.asserts.{RetryInterval, RetryMax}
-import scala.concurrent.duration._
-import utest._
+import scala.concurrent.duration.*
+import utest.*
 
 // Make sure that changes in `build.mill.yaml` configs and related
 // sources properly trigger selective execution and cache invalidation

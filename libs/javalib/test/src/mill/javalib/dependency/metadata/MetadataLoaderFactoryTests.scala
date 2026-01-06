@@ -32,7 +32,7 @@ import coursier.core.{Classifier, Dependency, Module, Project, Repository, Artif
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.util.{EitherT, Monad}
-import utest._
+import utest.*
 
 object MetadataLoaderFactoryTests extends TestSuite {
 

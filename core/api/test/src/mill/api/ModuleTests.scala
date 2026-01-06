@@ -11,7 +11,7 @@ object ModuleTests extends TestSuite {
 
   val tests = Tests {
 
-    import TestGraphs._
+    import TestGraphs.*
 
     test("singleton") {
       singleton.toString ==> ""

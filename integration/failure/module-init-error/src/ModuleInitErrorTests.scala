@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object ModuleInitErrorTests extends UtestIntegrationTestSuite {
   def captureOutErr = true
@@ -44,7 +44,7 @@ object ModuleInitErrorTests extends UtestIntegrationTestSuite {
     test("tasks") - integrationTest { tester =>
       // If we specify a task in the root module, we are not
       // affected by the sub-modules failing to initialize
-      import tester._
+      import tester.*
       val res = eval("rootTask")
       assert(res.isSuccess == true)
       assert(res.out.contains("""Running rootTask"""))

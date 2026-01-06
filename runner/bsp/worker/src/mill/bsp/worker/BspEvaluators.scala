@@ -15,7 +15,7 @@ import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class BspEvaluators(
     workspaceDir: os.Path,

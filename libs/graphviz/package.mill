@@ -1,5 +1,5 @@
 package build.libs.graphviz
-import mill._
+import mill.*
 import millbuild.*
 
 object `package` extends MillPublishScalaModule {

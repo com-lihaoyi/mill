@@ -47,8 +47,8 @@ self-contained assembly jar.
 ----
 package foo
 
-import org.apache.spark.sql._
-import org.apache.spark.sql.functions._
+import org.apache.spark.sql.*
+import org.apache.spark.sql.functions.*
 
 object Foo {
   case class Transaction(id: Int, category: String, amount: Double)
@@ -70,7 +70,7 @@ object Foo {
 
     val resourcePath: String = args(0)
 
-    import spark.implicits._
+    import spark.implicits.*
 
     val df = spark.read
       .option("header", "true")

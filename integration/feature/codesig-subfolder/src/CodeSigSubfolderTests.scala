@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 // Basically a copy of CodeSigHelloTests, but split across two files
 // (build.mill and subfolder/package.mill) and with some extra assertions
@@ -13,7 +13,7 @@ import utest._
 object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("simple") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       // eager capture output so we see it in asserts
       case class EvalOuts(out: String, err: String)
@@ -98,7 +98,7 @@ object CodeSigSubfolderRenamedSameOrderTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
 
     test("subfolder-renames-same-order") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val cached4 = eval("foo")
       assert(cached4.out.contains("running foo"))
 
@@ -118,7 +118,7 @@ object CodeSigSubfolderRenamedSameOrderTests extends UtestIntegrationTestSuite {
 object CodeSigSubfolderRenamedReorderTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("subfolder-renames-reorder") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val cached4 = eval("foo")
       assert(cached4.out.contains("running foo"))
 

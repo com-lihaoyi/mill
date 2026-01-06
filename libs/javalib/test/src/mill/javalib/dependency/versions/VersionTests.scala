@@ -28,7 +28,7 @@
  */
 package mill.javalib.dependency.versions
 
-import utest._
+import utest.*
 import fastparse.Parsed
 
 import scala.util.chaining.scalaUtilChainingOps
@@ -75,7 +75,7 @@ object VersionTests extends TestSuite {
     }
 
     test("semverVersionsOrdering") {
-      import scala.Ordered._
+      import scala.Ordered.*
 
       val v = List(
         "invalid",

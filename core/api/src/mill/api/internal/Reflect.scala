@@ -22,6 +22,16 @@ private[mill] object Reflect {
     true
   }
 
+  /**
+   * Extracts the renamed name from a method's @rename annotation, if present.
+   */
+  private def getRenamedName(m: Method): Option[String] = {
+    m.getAnnotations.collectFirst {
+      case a if a.annotationType().getName == "mill.api.rename" =>
+        a.annotationType().getMethod("value").invoke(a).asInstanceOf[String]
+    }
+  }
+
   def getMethods(
       cls: Class[?],
       noParams: Boolean,
@@ -34,7 +44,9 @@ private[mill] object Reflect {
       if isLegalIdentifier(n) && (m.getModifiers & Modifier.STATIC) == 0
         && (!noParams || m.getParameterCount == 0) &&
         inner.isAssignableFrom(m.getReturnType)
-    } yield (m, n)
+      // Use renamed name if present, otherwise use the decoded method name
+      name = getRenamedName(m).filter(isLegalIdentifier).getOrElse(n)
+    } yield (m, name)
 
   private val classSeqOrdering =
     Ordering.Implicits.seqOrdering[Seq, Class[?]](using
@@ -48,9 +60,9 @@ private[mill] object Reflect {
       filter: String => Boolean,
       noParams: Boolean,
       getMethods: (Class[?], Boolean, Class[?]) => Array[(java.lang.reflect.Method, String)]
-  ): Array[java.lang.reflect.Method] = {
-    val arr: Array[java.lang.reflect.Method] = getMethods(outer, noParams, inner)
-      .collect { case (m, n) if filter(n) => m }
+  ): Array[(java.lang.reflect.Method, String)] = {
+    val arr: Array[(java.lang.reflect.Method, String)] = getMethods(outer, noParams, inner)
+      .collect { case (m, n) if filter(n) => (m, n) }
 
     // There can be multiple methods of the same name on a class if a sub-class
     // overrides a super-class method and narrows the return type.
@@ -66,7 +78,7 @@ private[mill] object Reflect {
     //
     // 3. A class can have multiple methods with same name/return-type if they
     //    differ in parameter types, so sort by those as well
-    arr.sortInPlaceWith((m1, m2) =>
+    arr.sortInPlaceWith { case ((m1, _), (m2, _)) =>
       if (m1.getName != m2.getName) m1.getName < m2.getName
       else if (m1.getDeclaringClass != m2.getDeclaringClass) {
         !m1.getDeclaringClass.isAssignableFrom(m2.getDeclaringClass)
@@ -75,9 +87,9 @@ private[mill] object Reflect {
       } else {
         classSeqOrdering.lt(m1.getParameterTypes.toSeq, m2.getParameterTypes.toSeq)
       }
-    )
+    }
 
-    arr.distinctBy(_.getName)
+    arr.distinctBy(_._2)
   }
 
   def reflectNestedObjects0[T: ClassTag](
@@ -93,7 +105,7 @@ private[mill] object Reflect {
       noParams = true,
       getMethods
     )
-      .map(m => (m.getName, m))
+      .map { case (m, name) => (name, m) }
 
     val companionClassOpt = outerCls.getName match {
       // This case only happens when the modules are nested within a top-level static `object`,

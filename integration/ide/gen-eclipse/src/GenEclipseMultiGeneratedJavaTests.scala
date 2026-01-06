@@ -1,7 +1,7 @@
 package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
-import GenEclipseUtils._
+import GenEclipseUtils.*
 import os.Path
 import utest.{Tests, test}
 
@@ -12,7 +12,7 @@ object GenEclipseMultiGeneratedJavaTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("Multi module project with generated sources") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       val ret = eval("mill.eclipse/", check = true)
       assert(ret.exitCode == 0)

@@ -1,13 +1,13 @@
 package mill.scalajslib
 
-import mill._
+import mill.*
 import mill.api.ExecResult
 import mill.javalib.testrunner.TestResult
 import mill.testkit.UnitTester
-import utest._
+import utest.*
 
 object UtestTests extends TestSuite {
-  import CompileLinkTests._
+  import CompileLinkTests.*
   def runTests(testTask: api.Task.Named[(msg: String, results: Seq[TestResult])])
       : Unit =
     UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>

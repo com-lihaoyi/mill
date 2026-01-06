@@ -17,8 +17,9 @@ import scala.util.Using
 object JvmWorkerMain {
   def main(args: Array[String]): Unit = SystemStreamsUtils.withTopLevelSystemStreamProxy {
     args match {
-      case Array(daemonDir, jobsStr) =>
-        val server = JvmWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt)
+      case Array(daemonDir, jobsStr, useFileLocksStr) =>
+        val useFileLocks = useFileLocksStr == "true"
+        val server = JvmWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt, useFileLocks)
         server.run()
         // Make sure we explicitly exit, so that even if there are some leaked threads
         // hanging around the process properly terminates rather than hanging
@@ -26,7 +27,7 @@ object JvmWorkerMain {
 
       case other =>
         Console.err.println(
-          s"""Usage: jvm-worker <daemonDir> <jobs>
+          s"""Usage: jvm-worker <daemonDir> <jobs> <useFileLocks>
              |
              |Given: ${other.mkString(" ")}
              |""".stripMargin
@@ -35,11 +36,11 @@ object JvmWorkerMain {
     }
   }
 
-  private class JvmWorkerTcpServer(daemonDir: os.Path, jobs: Int)
+  private class JvmWorkerTcpServer(daemonDir: os.Path, jobs: Int, useFileLocks: Boolean)
       extends Server[Object, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
-        Locks.files(daemonDir.toString),
+        Locks.forDirectory(daemonDir.toString, useFileLocks),
         bufferSize = 4 * 1024
       )) {
     private val className = summon[TPrint[JvmWorkerTcpServer]].render(using TPrintColors.Colors)
@@ -50,7 +51,7 @@ object JvmWorkerMain {
      * It is very important that the same instance is used in all connections as it contains the necessary caches
      * to make Scala compilation fast!
      */
-    private val worker = ZincWorker(jobs = jobs)
+    private val worker = ZincWorker(jobs = jobs, useFileLocks = useFileLocks)
 
     override def prepareConnection(
         connectionData: ConnectionData,
