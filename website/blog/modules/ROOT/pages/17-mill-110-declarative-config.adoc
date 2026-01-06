@@ -1,16 +1,17 @@
 = Simpler Declarative Java Project Setup with Mill 1.1.0
 // tag::header[]
 :author: Li Haoyi
-:revdate: 24 Dec 2025
+:revdate: 31 Jan 2026
 
 _{author}, {revdate}_
 
-Java and other JVM languages are often used for large enterprise codebases, but the friction
-of configuring their build tools means they are less often used for small programs or
-scripts. The new release of the Mill build tool v1.1.0 contains two features that try to
-improve upon this pain point, allowing your project's to be configured via a
+Java and other JVM languages like Kotlin or Scala are often used for large enterprise codebases,
+but the friction of configuring their build tools means they are less often used for small
+programs or scripts. The new release of the Mill build tool v1.1.0 contains two features
+that try to improve upon this pain point, allowing your project's to be configured via a
 compact `build.mill.yaml` file:
 
+.build.mill.yaml
 ```yaml
 extends: JavaModule
 mvnDeps:
@@ -19,7 +20,7 @@ mvnDeps:
 
 Or even together with the program code in a single-file with a `//|` build header comment:
 
-.`HtmlScraper.java`
+.HtmlScraper.java
 ```java
 //| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
@@ -51,9 +52,8 @@ making Java and other JVM languages the best way to write small-scale programs a
 To understand the pain points of running small Java programs, consider a developer
 that has written a single-file Java program they want to run:
 
-
+.HtmlScraper.java
 ```java
-// HtmlScraper.java
 import org.jsoup.Jsoup;
 import java.util.*;
 
@@ -103,68 +103,66 @@ such code can be surprisingly involved:
 1. Installing Java, which has https://news.ycombinator.com/item?id=46037261[a surprising number of intricacies]
 2. Installing Maven
 3. Writing out the `pom.xml` (can you write the POM for the above program without copy-paste cargo-culting from StackOverflow/Google/ChatGPT?)
-4. Running the program using Maven (can you remember the command-line invocation without looking it up?)
-
-None of these are _blockers_: after all we've been building and running Java programs for decades,
-in my case since Java 4 in 2004 (pre-generics!). The necessary config is in the
-xref:#_footnotes[footnotes], and I have no doubt most people would be able to get __something__
-working on their machine. But for someone trying to write a small program that can build and run
-reliably on their laptop, their colleagues' laptops, their CI machines and their production
-environment, these things can end up being surprisingly tricky.
-
-You could also run the program using the Mill build tool instead of Maven. But while
-Mill `build.mill` files are a lot more concise than Maven ``pom.xml``s, the amount of irrelevant
-things you have to do due to their programmable nature makes them still pretty involved:
-
-```scala
-// build.mill
-package build
-import mill.*, javalib.*
-object `package` extends JavaModule {
-  def moduleDeps = Seq(mvn"org.jsoup:jsoup:1.7.2")
-}
++
+.pom.xml
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example</groupId>
+  <artifactId>html-scraper</artifactId>
+  <version>1.0</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.17.2</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <mainClass>HtmlScraper</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
 ```
 
-``package`` declarations, ``import``s, ``object``s, ``def``s. These are all things that are
-necessary when you _actually need to program your build_, but just get in
-the way when a user just wants to run their small Java program with 1 third-party dependency.
+4. Running the program using Maven (can you remember the command-line invocation without looking it up?)
++
+```console
+> mvn exec:java -Dexec.args="Singapore 1"
+Hokkien
+Conscription_in_Singapore
+Malaysia_Agreement
+Government_of_Singapore
+...
+```
+
+None of these are _blockers_: after all we've been building and running Java programs
+for decades! There is no doubt most people would be able to get __something__ working
+on their machine. But for someone trying to write a small program that can build and
+run reliably on their laptop, their colleagues' laptops, their CI machines and their
+production environment, these things can end up being surprisingly tricky.
 
 In theory Java and the JVM is a great platform to write and run small programs: easy to learn,
 widely used, and a rich standard library and ecosystem of high-quality third-party libraries.
-But in practice this build-tool-setup friction means that people prefer to write their small
+But in practice, this build-tool-setup friction means that people prefer to write their small
 programs in Bash, Python, or Node.js rather than writing them in Java, Scala or Kotlin.
-
-
-== Declarative vs Programmable Builds
-
-The Mill build tool has traditionally had a
-xref:mill::javalib/intro.adoc#_programmable_module_config[programmable config syntax],
-similar to https://gradle.org/[Gradle]. This has made Mill a build tool traditionally
-most suitable for advanced use cases, as someone
-https://www.reddit.com/r/java/comments/1ea3zv4/comment/lekc0qf[wrote on Reddit]:
-
-> I'm relative new Mill and it is the most pleasant built tool for complex builds.
-> When your build starts to hurt because it does not fit into Maven well enough, the Mill
-> is a build tool worth evaluating.
-
-While there are benefits to programmable configuration, especially for advanced use cases where
-you do have custom build logic that needs programming, it comes at a cost: programmable
-configuration is inherently more complicated than declarative configuration. Many projects
-do not need the custom build logic that programmable configurable allows, and in such cases
-the added complexity is pure downside without benefit.
-
-Thus, for simple Java projects the only suitable build tool was
-Maven. Maven has its strength and weaknesses, but for simple
-Java programs you really had no other option: simple projects work best with declarative
-configuration, and Maven was the only declarative build tool in the JVM ecosystem.
-Mill 1.1.0 tries to change that.
 
 == Declarative Mill Builds
 
 The first step Mill 1.1.0 takes towards solving the friction of running small JVM programs is
-a new declarative configuration format. That lets us turn the rather complicated programmable
-`build.mill` above into a declarative `build.mill.yaml` file, such as that below:
+a new declarative configuration format. That lets us turn the verbose `pom.xml` above into
+the declarative `build.mill.yaml` file below:
 
+.build.mill.yaml
 ```yaml
 extends: JavaModule
 mvnDeps:
@@ -177,20 +175,12 @@ Which you can run via
 ./mill run <arg1> <arg2>
 ```
 
-Mill's declarative `build.mill.yaml` format is less flexible than the programmable `build.mill`
-config files, doesn't support xref:mill::javalib/intro.adoc#_custom_build_logic[Custom Build Logic],
-and only allows configuration of primitive types and basic collections. However, in exchange
-the declarative configuration is much simpler: no need to worry about `package` declarations,
-``import``s, `object` and `def` statements, etc. Like Maven, Mill follows the principle of
-__convention over configuration__: we extend the `mill.javalib.JavaModule` class which comes
-with a rich set of reasonable defaults, and we only need to  configure the things we want
-to do differently.
-
-Unlike a Maven `pom.xml`, Mill's `build.mill.yaml` files contain only the configuration you need,
-and nothing else. Compared to the equivalent Maven `pom.xml`, `build.gradle`, or programmable
-`build.mill` files, Mill's `build.mill.yaml` files are really lightweight, without Maven's reams
-of XML boilerplate or Gradle's complex Groovy/Kotlin syntax. This makes them easy
-to write, easy to read, and easy to maintain compared to other build tools.
+Compared to the equivalent Maven `pom.xml` or `build.gradle`, Mill's `build.mill.yaml` files are
+really lightweight, without Maven's reams of XML boilerplate or Gradle's complex Groovy/Kotlin
+syntax. `build.mill.yaml` files are as a result easier to write, easier to read, and easier to
+maintain compared to other build tools. This also demonstrates that Maven does not have a monopoly
+on the idea of _"declarative builds"_, and that it is possible to build upon the same ideas
+without being held back by Maven's quirks and idiosyncrasies.
 
 NOTE: `build.mill.yaml` files are written in https://yaml.org/spec/1.2.2/[YAML 1.2], parsed
 using the https://bitbucket.org/snakeyaml/snakeyaml-engine[SnakeYaml-Engine] library. This helps
@@ -209,34 +199,37 @@ Java project:
 
 1. Mill's xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[Bootstrap Scripts]
 automatically xref:16-zero-setup.adoc[download and cache the right Mill and JVM versions],
-so your program is guaranteed to build the same way regardless of whose laptop, CI, or
-production machine it may be running on. Anyone invoking the `./mill` bootstrap script
-automatically installs and caches the correct versions of Mill, `java`, `javac`, etc. to
-work with:
+so anyone invoking the `./mill` automatically gets  correct versions of Mill, `java`, `javac`,
+etc. to work with without needing any prior installation or setup:
++
+```console
+> ./mill -version
+1.1.0
 
+> ./mill java -version
+openjdk version "21..." ...
 
-   > ./mill -version
-   1.1.0
-
-   > ./mill java -version
-   openjdk version "21..." ...
-
-   > ./mill javac -version
-   javac 21...
+> ./mill javac -version
+javac 21...
+```
 
 2. Mill's declarative `build.mill.yaml` files are boilerplate-free, which makes them much easier
 to write, read, or maintain without relying on copy-paste cargo-culting from
 StackOverflow/Google/ChatGPT
-
-   extends: JavaModule
-   mvnDeps:
-   - org.jsoup:jsoup:1.7.2
++
+```yaml
+extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+```
 
 3. Mill's CLI syntax for running the code  follows the conventions
 established by other CLIs so anyone picking up Mill can use it without the indirection of
 learning Maven's unusual command-line conventions
-
-   ./mill run <arg1> <arg2>
++
+```console
+./mill run <arg1> <arg2>
+```
 
 This solves the 4 frictions we xref:#_the_challenge_of_small_java_programs[mentioned earlier]
 in this article, letting you set up a new JVM project easily with a tiny config file and
@@ -253,11 +246,12 @@ project setup and development workflows.
 === Non-Trivial Declarative Builds
 
 While Mill's declarative build files are simpler than its programmable config files, they are
-by no means limited to toy projects: `build.mill.yaml` files support most of Mill's
-configuration overrides. For example, here
+by no means limited to toy projects. `build.mill.yaml` files support most of Mill's
+configuration overrides, and below we have
 xref:mill::javalib/module-config.adoc#_declarative_configuration[a more verbose example] that
 demonstrates many of the common configuration keys a developer may want to set:
 
+.build.mill.yaml
 ```yaml
 extends: [mill.javalib.JavaModule] # fully-qualified module name
 mvnDeps:
@@ -287,59 +281,39 @@ forkEnv: { MY_CUSTOM_ENV: my-env-value }
 
 These keys are all documented in
 {mill-doc-url}/api/latest/mill/javalib/JavaModule.html#mvnDeps-0[the API reference],
-along with every other configuration key that is available.
-Mill's declarative builds also support
+and are the same keys that Mill's traditional programmable configuration style lets
+you override. Mill's declarative builds also support
 xref:mill::javalib/testing.adoc[test suites],
 xref:mill::javalib/intro.adoc#_multi_module_projects[multi-module projects],
 xref:mill::javalib/packaging.adoc[packaging] and xref:mill::javalib/publishing.adoc[publishing],
 and other common build tool features. While declarative `build.mill.yaml` files are a lot
-more compact than their equivalent in Maven `pom.xml` or programmable `build.mill`, they
-are very much feature-complete enough to support most real-world use cases.
+simpler and more compact than their equivalent in Maven `pom.xml` or programmable `build.gradle`,
+they support just about everything that Maven or Gradle supports, and are featureful enough
+to build most real-world projects.
+
+=== Simpler Declarative Builds
 
 We hope Mill's new declarative `build.mill.yaml` syntax can be a
 viable alternative to Maven for Java developers who prefer declarative builds, complementing
 Mill's existing programmable `build.mill` syntax:
 
-- For projects that just need basic key-value configuration, declarative `build.mill.yaml` config
-  is a great fit to keep things simple
+- For most projects that just need basic key-value configuration, Mill's declarative
+  `build.mill.yaml` files bring out the best parts of Maven's declarative config without
+  the verbosity and clunkiness
 
 - For projects that need custom build logic, programmable `build.mill` files can provide the
-  necessary flexibility to get what you need done
-
-Mill makes it easy to use both styles in the same project, so each can be used in the part of
-the project where is most suitable, and users can easily transition between the two styles
-as necessary.
-
-=== Integrating Programmable and Declarative Styles
-
-Although Mill's declarative builds are inspired by Maven, and Mill's programmable builds
-are inspired by Gradle, one thing unique about Mill is how well integrated the two approaches are:
-
-* Declarative `build.mill.yaml` files can inter-operate with programmable `build.mill` files
-  via xref:mill::javalib/module-config.adoc#_custom_module_traits[custom module traits] and
-  xref:mill::javalib/module-config.adoc#_programmable_moduledeps[depending on programmable modules],
-  so you can mix-and-match the two config styles within a large project depending on which is more
-  appropriate for each module.
-
-* Setting `mvnDeps`, `repositories`, `mainClass`, `jvmVersion`, etc. means the same thing in both
-  styles. Although the syntax is different, the semantics are the same:
-  both declarative and programmable config styles used the same config keys with the same meaning,
-  documented by the same {mill-doc-url}/api/latest/mill.html[Mill API Reference].
-
-* Underneath the programmable and declarative configuration styles, it's still the same Mill
-  build tool. That means concepts like xref:mill::depth/parallelism.adoc[parallelism],
-  xref:mill::depth/caching.adoc[caching], xref:mill::depth/sandboxing.adoc[sandboxing],
-  command-line invocations like `./mill inspect`, etc. all work the same way regardless of
-  which configuration style you are using.
+  necessary flexibility to get what you need done more easily than with Maven plugins, or
+  custom Gradle or SBT tasks
 
 Traditionally, you were locked into a declarative or programmable style when choosing between
 Maven or Gradle. This made it a big, irreversible decision, and the root of many "holy wars". In
 contrast, with Mill you can easily transition between declarative and programmable configuration
-styles as appropriate, letting you pick whatever makes sense at the moment knowing that you can
+styles as appropriate, even using both in different parts of the same project where appropriate.
+This lets you pick whatever style makes sense at the moment knowing that you can
 easily incorporate the other style later as necessary.
 
-However, needing to set up a separate "build file" is still a point of friction, and Mill 1.1.0
-has one more trick to further reduce the overhead of building and running a small Java program.
+Beyond simplifying your build file format and command-line interface, Mill 1.1.0 has one more
+trick to simplify working with small Java programs: doing away with build files all together!
 
 == Mill Single-File Scripts
 
@@ -348,6 +322,7 @@ format for Java, Scala, and Kotlin files. This lets you take the `HtmlScraper.ja
 file above, add a `//|` build-header comment with the `mvnDeps` configuration it needs, and
 xref:mill::javalib/script.adoc#_html_web_scraper[run it directly self-contained within a single file]:
 
+.HtmlScraper.java
 ```java
 //| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
@@ -399,6 +374,7 @@ Government_of_Singapore
 Another neat example is xref:mill::javalib/script.adoc#_web_server[running a Spring-Boot
 webserver, configured and implemented in a single file]:
 
+.WebServer.java
 ```java
 //| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]
 package example;
@@ -438,7 +414,8 @@ a viable way of writing code on the JVM.
 
 Mill single-file scripts are inspired by the https://www.jbang.dev/[JBang] project for Java,
 https://ammonite.io/[Ammonite] and https://scala-cli.virtuslab.org/[Scala-CLI] for Scala,
-and https://blog.jetbrains.com/kotlin/2024/11/state-of-kotlin-scripting-2024/[Scripting for Kotlin].
+and https://blog.jetbrains.com/kotlin/2024/11/state-of-kotlin-scripting-2024/[Scripting for Kotlin],
+which all give you the ability to write single-files scripts in JVM languages.
 But Mill's single-file scripts are unique in how well they support the full set of build-tool
 functionality and integrate with larger projects:
 
@@ -474,6 +451,7 @@ run scripts written in xref:mill::javalib/script.adoc[Java], xref:mill::scalalib
 or xref:mill::kotlinlib/script.adoc[Kotlin]. For example, here is a
 xref:mill::kotlinlib/script.adoc#_html_web_scraper[Kotlin version of the HtmlScraper]
 
+.HtmlScraper.kt
 ```kotlin
 //| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
@@ -519,6 +497,7 @@ Government_of_Singapore
 
 And here is a xref:mill::scalalib/script.adoc#_html_web_scraper[Scala version of the HtmlScraper]:
 
+.HtmlScraper.scala
 ```scala
 //| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
@@ -591,46 +570,3 @@ For anyone upgrading from an earlier version of Mill, please see the changelog w
 thorough listing of improvements and migration instructions:
 
 - https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110[Mill 1.1.0 Changelog]
-
-== Footnotes
-
-The Maven `pom.xml` necessary for building `HtmlScraper.java`
-```xml
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>example</groupId>
-  <artifactId>html-scraper</artifactId>
-  <version>1.0</version>
-  <dependencies>
-    <dependency>
-      <groupId>org.jsoup</groupId>
-      <artifactId>jsoup</artifactId>
-      <version>1.17.2</version>
-    </dependency>
-  </dependencies>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <mainClass>HtmlScraper</mainClass>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-</project>
-```
-
-The Maven command-line invocation necessary for running `HtmlScraper.java`
-
-```console
-> mvn exec:java -Dexec.args="Singapore 1"
-Hokkien
-Conscription_in_Singapore
-Malaysia_Agreement
-Government_of_Singapore
-...
-```
