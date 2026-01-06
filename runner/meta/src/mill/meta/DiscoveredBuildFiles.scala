@@ -7,6 +7,7 @@ import mill.constants.OutFiles.OutFiles.*
 import mill.api.daemon.internal.MillScalaParser
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
+import mill.internal.Util.backtickWrap
 
 /**
  * @param seenScripts Map of script paths to their processed content
@@ -53,17 +54,36 @@ object DiscoveredBuildFiles {
           case Right((prefix, pkgs, stmts)) =>
             val importSegments = pkgs.mkString(".")
 
-            val packageNameValidationPassed = importSegments.isEmpty || {
-              importSegments.split("\\.").forall { part =>
-                part.nonEmpty && (part.forall(c => c.isLetterOrDigit || c == '_') ||
-                  (part.startsWith("`") && part.endsWith("`") && part.length > 2))
-              }
+            val expectedImportSegments =
+              (Seq(rootModuleAlias) ++ (s / os.up).relativeTo(projectRoot).segments)
+                .map(backtickWrap)
+                .mkString(".")
+
+            val isRootFile = rootBuildFileNames.contains(s.last) && (s / os.up) == projectRoot
+            val isBuildFile = buildFileExtensions.asScala.exists(ext => s.last == s"build.$ext")
+
+            val packageDeclarationValid = (isRootFile, isBuildFile) match {
+              case (true, _) =>
+                importSegments == "" || expectedImportSegments == importSegments
+              case (_, true) =>
+                // Nested build.mill: relaxed validation (allow prefixes)
+                importSegments == "" ||
+                importSegments == "build" ||
+                expectedImportSegments.startsWith(importSegments + ".") ||
+                expectedImportSegments == importSegments
+              case _ =>
+                // Nested package.mill: strict validation
+                expectedImportSegments == importSegments
             }
 
-            if (!packageNameValidationPassed && !rootBuildFileNames.contains(s.last)) {
+            if (!packageDeclarationValid) {
+              val expectedImport =
+                if (expectedImportSegments.isEmpty) "<none>"
+                else s"\"package $expectedImportSegments\""
               errors.append(
-                s"Invalid package declaration \"package $importSegments\" in " +
-                  s"${s.relativeTo(topLevelProjectRoot)}: package name contains invalid characters"
+                s"Package declaration \"package $importSegments\" in " +
+                  s"${s.relativeTo(topLevelProjectRoot)} does not match " +
+                  s"folder structure. Expected: $expectedImport"
               )
             }
             seenScripts(s) = prefix + stmts.mkString
