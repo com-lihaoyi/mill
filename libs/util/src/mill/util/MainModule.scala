@@ -44,17 +44,43 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    * to the specified version. Downloads the scripts from Maven Central and sets
    * executable permissions on the Unix script.
    *
+   * You can also manually select the scripts to update, in which case only the specified script will be installed.
+   *
    * @param version The Mill version to update to (e.g., "1.1.0")
+   * @param shellScriptPath Override the location of the shell script, e.g "~/bin/mill".
+   * @param batScriptPath Override the location of the Windows batch script.
    */
-  def updateMillScripts(@mainargs.arg(positional = true) version: String): Command[Seq[PathRef]] =
+  def updateMillScripts(
+      @mainargs.arg(positional = true) version: String,
+      shellScriptPath: String = null,
+      batScriptPath: String = null
+  ): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
       val mavenRepoUrl = "https://repo1.maven.org/maven2"
       val baseUrl = s"$mavenRepoUrl/com/lihaoyi/mill-dist/$version"
 
+      val useDefaults = shellScriptPath == null && batScriptPath == null
+
       val scripts = Seq(
-        (s"$baseUrl/mill-dist-$version-mill.sh", BuildCtx.workspaceRoot / "mill", true),
-        (s"$baseUrl/mill-dist-$version-mill.bat", BuildCtx.workspaceRoot / "mill.bat", false)
-      )
+        Option(shellScriptPath)
+          .orElse(if (useDefaults) Some("mill") else None)
+          .map(path =>
+            (
+              s"$baseUrl/mill-dist-$version-mill.sh",
+              os.Path.expandUser(path, BuildCtx.workspaceRoot),
+              true
+            )
+          ).toSeq,
+        Option(batScriptPath)
+          .orElse(if (useDefaults) Some("mill.bat") else None)
+          .map(path =>
+            (
+              s"$baseUrl/mill-dist-$version-mill.bat",
+              os.Path.expandUser(path, BuildCtx.workspaceRoot),
+              false
+            )
+          ).toSeq
+      ).flatten
 
       Task.log.info(s"Downloading Mill $version bootstrap scripts...")
 
