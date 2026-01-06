@@ -152,7 +152,7 @@ object DiscoveredBuildFiles {
         .flatMap(os.list(_))
         .filter(p => buildFileExtensions.asScala.exists(ext => p.last.endsWith("." + ext)))
 
-      buildFiles ++ adjacentScripts
+      (buildFiles ++ adjacentScripts).distinct
     }
   }
 
