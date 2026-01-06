@@ -55,8 +55,8 @@ object ExecutionTests extends TestSuite {
       extends exec.Checker(module)
 
   val tests = Tests {
-    import TestGraphs._
-    import utest._
+    import TestGraphs.*
+    import utest.*
     test("single") {
       val checker = new Checker(singleton)
       checker(singleton.single, 123, Seq(singleton.single), extraEvaled = -1)
@@ -366,14 +366,14 @@ object ExecutionTests extends TestSuite {
 
     test("triangleTask") {
 
-      import triangleTask._
+      import triangleTask.*
       val checker = new Checker(triangleTask)
       checker(right, 3, Seq(left, right), extraEvaled = -1)
       checker(left, 1, Seq(), extraEvaled = -1)
 
     }
     test("multiTerminalGroup") {
-      import multiTerminalGroup._
+      import multiTerminalGroup.*
 
       val checker = new Checker(multiTerminalGroup)
       checker(right, 1, Seq(right), extraEvaled = -1)
@@ -382,7 +382,7 @@ object ExecutionTests extends TestSuite {
 
     test("multiTerminalBoundary") {
 
-      import multiTerminalBoundary._
+      import multiTerminalBoundary.*
 
       val checker = new Checker(multiTerminalBoundary)
       checker(task2, 4, Seq(right, left), extraEvaled = -1, secondRunNoOp = false)
@@ -409,7 +409,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
 
-      import nullTasks._
+      import nullTasks.*
       val checker = new Checker(nullTasks)
       checker(nullTask1, null, Seq(nullTask1), extraEvaled = -1)
       checker(nullTask1, null, Seq(), extraEvaled = -1)

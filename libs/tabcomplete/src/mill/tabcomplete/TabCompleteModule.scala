@@ -243,16 +243,20 @@ private object TabCompleteModule extends ExternalModule {
         (query, Some(unescaped))
     }
 
+    // Check if user is typing with bracket syntax
+    val useBracketSyntax = unescapedOpt.exists(u => u.contains("[") || u.contains(","))
+
     ev.resolveRaw(Seq(query), SelectMode.Multi).map { res =>
       val unescapedStr = unescapedOpt.getOrElse("")
       val filtered = res.flatMap { r =>
-        val rendered = r.fullSegments.render
+        val rendered = renderSegments(r.fullSegments, useBracketSyntax)
         Option.when(rendered.startsWith(unescapedStr))(rendered -> getDocs(r))
       }
       val moreFiltered = unescapedOpt match {
         case Some(u) if filtered.exists(_._1 == u) =>
           ev.resolveRaw(Seq(u + "._"), SelectMode.Multi) match {
-            case Result.Success(v) => v.map { res => res.fullSegments.render -> getDocs(res) }
+            case Result.Success(v) =>
+              v.map { res => renderSegments(res.fullSegments, useBracketSyntax) -> getDocs(res) }
             case _: Result.Failure => Nil
           }
 
@@ -261,6 +265,16 @@ private object TabCompleteModule extends ExternalModule {
 
       filtered ++ moreFiltered
     }.toOption.getOrElse(Nil)
+  }
+
+  /**
+   * Renders segments for tab completion. By default uses the new dot-delimited syntax
+   * for cross modules (e.g., `foo.2_12_20` instead of `foo[2.12.20]`), but uses bracket
+   * syntax if the user has already started typing with brackets.
+   */
+  def renderSegments(segments: mill.api.daemon.Segments, useBracketSyntax: Boolean): String = {
+    if (useBracketSyntax) segments.renderBracketSyntax
+    else segments.render
   }
 
   /**

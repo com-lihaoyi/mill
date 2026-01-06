@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 // Make sure script header changes are appropriately picked up: whether from success to
 // failure, failure to success, success to success, or failure to different kind of failure

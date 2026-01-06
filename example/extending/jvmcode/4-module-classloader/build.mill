@@ -1,6 +1,6 @@
 // This example demonstrates how to run your own Java code within a classloader
 // as part of your build. We run the `bar` module code built as part of the project
-// within an in-memory classloader via `Jvm.withClassloader`, which in this example
+// within an in-memory classloader via `Jvm.withClassLoader`, which in this example
 // serves as a code-generated to generated the `sources` of the `foo` module:
 
 package build

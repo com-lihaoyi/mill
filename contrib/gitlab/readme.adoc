@@ -18,8 +18,8 @@ Most trivial publish config is:
 //| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
 package build
 
-import mill._, scalalib._, mill.scalalib.publish._
-import mill.contrib.gitlab._
+import mill.*, scalalib.*, mill.scalalib.publish.*
+import mill.contrib.gitlab.*
 
 object lib extends ScalaModule with GitlabPublishModule {
   // PublishModule requirements:
@@ -90,7 +90,7 @@ If the original search order is too wide, or you would like to add places to loo
 
 package build
 // Personal, Env, Deploy etc types
-import mill.contrib.gitlab.GitlabTokenLookup._
+import mill.contrib.gitlab.GitlabTokenLookup.*
 
 override def tokenLookup: GitlabTokenLookup = new GitlabTokenLookup {
   // Just to add to default sequence set: super.tokenSearchOrder ++ Seq(...
@@ -162,10 +162,10 @@ Making mill to fetch package from gitlab package repository is simple:
 ----
 //| mvnDeps: ["com.lihaoyi::mill-contrib-gitlab:$MILL_VERSION"]
 
-import mill._, scalalib._, mill.scalalib.publish._
+import mill.*, scalalib.*, mill.scalalib.publish.*
 import coursier.MavenRepository
 import coursier.core.Authentication
-import mill.contrib.gitlab._
+import mill.contrib.gitlab.*
 
 // DON'T DO THIS
 def repositoriesTask = Task.Anon {

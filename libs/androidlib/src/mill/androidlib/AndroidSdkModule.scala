@@ -32,7 +32,7 @@ import scala.xml.XML
 @mill.api.experimental
 trait AndroidSdkModule extends Module {
 
-  import AndroidSdkModule._
+  import AndroidSdkModule.*
 
   // this has a format `repository2-%d`, where the last number is schema version. For the needs of this module it
   // is okay to stick with the particular version.

@@ -58,6 +58,7 @@ class MillBuildBootstrap(
     streams0: SystemStreams,
     selectiveExecution: Boolean,
     offline: Boolean,
+    useFileLocks: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
     enableTicker: Boolean
 ) { outer =>
@@ -225,7 +226,7 @@ class MillBuildBootstrap(
 
               val staticBuildOverrideFiles =
                 staticBuildOverrides0.toSeq ++
-                  nestedState.frames.lastOption.fold(Map())(_.buildOverrideFiles)
+                  nestedState.frames.headOption.fold(Map())(_.buildOverrideFiles)
 
               Using.resource(makeEvaluator(
                 topLevelProjectRoot,
@@ -239,6 +240,7 @@ class MillBuildBootstrap(
                 streams0,
                 selectiveExecution,
                 offline,
+                useFileLocks,
                 newWorkerCache,
                 nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
                 buildFileApi.rootModule,
@@ -451,6 +453,7 @@ object MillBuildBootstrap {
       streams0: SystemStreams,
       selectiveExecution: Boolean,
       offline: Boolean,
+      useFileLocks: Boolean,
       workerCache: Map[String, (Int, Val)],
       codeSignatures: Map[String, Int],
       rootModule: RootModuleApi,
@@ -498,6 +501,7 @@ object MillBuildBootstrap {
           streams0,
           () => evaluator,
           offline,
+          useFileLocks,
           staticBuildOverrideFiles,
           enableTicker
         )
@@ -581,7 +585,7 @@ object MillBuildBootstrap {
       selectiveExecution: Boolean,
       reporter: Int => Option[CompileProblemReporter]
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
-    import buildFileApi._
+    import buildFileApi.*
     evalWatchedValues.clear()
     val evalTaskResult = evaluator.evaluate(
       tasksAndParams,

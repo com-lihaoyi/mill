@@ -174,6 +174,12 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
 
   val items: List[Item] = {
     val seen = mutable.Map[Seq[String], Seq[Any]]()
+    // Track normalized segments (special chars replaced with a common char) for conflict detection
+    val seenNormalized = mutable.Map[Seq[String], (Seq[String], Seq[Any])]()
+
+    def normalizeSegments(segments: Seq[String]): Seq[String] =
+      segments.map(_.replace('.', '_').replace('/', '_').replace(':', '_'))
+
     for {
       factory <- factories.toList
       (crossSegments0, (crossValues0, (cls0, make))) <-
@@ -186,6 +192,21 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
             s"${ctx.fileName}: Cross module ${ctx.enclosing} contains colliding cross values: ${other} and ${crossValues0}"
           )
       }
+
+      // Check for conflicts between cross values that normalize to the same string
+      // (e.g., "foo_bar" vs "foo.bar" vs "foo/bar" vs "foo:bar")
+      val normalized = normalizeSegments(crossSegments0)
+      for {
+        (existingSegments, existingValues) <- seenNormalized.get(normalized)
+        if existingSegments != crossSegments0
+      } {
+        throw new mill.api.MillException(
+          s"${ctx.fileName}: Cross module ${ctx.enclosing} contains cross values that would be ambiguous " +
+            s"(., /, : are interchangeable with _ in the dot syntax): " +
+            s"${existingValues.mkString("[", ",", "]")} and ${crossValues0.mkString("[", ",", "]")}"
+        )
+      }
+      seenNormalized(normalized) = (crossSegments0, crossValues0)
       val module0 = new Lazy(() =>
         make(
           ctx

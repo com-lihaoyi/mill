@@ -129,6 +129,15 @@ case class MillCliConfig(
     )
     noFilesystemChecker: Flag = Flag(),
     @arg(
+      hidden = true,
+      doc = """
+        Use traditional file-based locking instead of PID-based locking for the Mill daemon.
+        This removes the chance of race conditions when claiming the lock after a crash, but
+        may have issues on some filesystems that do not support lock (e.g. docker mounts on mac)
+      """
+    )
+    useFileLocks: Flag = Flag(),
+    @arg(
       doc = """Runs Mill in tab-completion mode"""
     )
     tabComplete: Flag = Flag(),
@@ -186,7 +195,7 @@ Task cheat sheet:
   mill foo.bar.compile           # compile the module `foo.bar`
 
   mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
-  mill -i foo.console            # run the Scala console for the module `foo` (if it is a ScalaModule)
+  mill -i foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
 
   mill foo.__.test               # run tests in modules nested within `foo` (recursively)
   mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`

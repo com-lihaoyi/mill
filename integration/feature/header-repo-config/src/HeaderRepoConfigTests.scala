@@ -2,12 +2,12 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object HeaderRepoConfigTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val result = eval(("parseJson", "--json-string", """[1, 2, 3]"""))
       assert(result.isSuccess)
       assert(result.out ==

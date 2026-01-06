@@ -23,4 +23,6 @@ follow the `.gitignore` syntax, allowing:
 - `**` for wildcards across multiple path segments
 - `!` to negate an ignore line.
 
-This can be useful if your proj
+This can be useful if your project has Java, Scala, or Kotlin source files
+in non-traditional folder layouts that may cause issues when loaded into
+your IDE as scripts

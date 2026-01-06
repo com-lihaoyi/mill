@@ -1,6 +1,6 @@
 package mill.testkit
 
-import utest._
+import utest.*
 
 object ExampleTesterTests extends TestSuite {
 

@@ -236,6 +236,11 @@ object LocalSummary {
         bootstrapMethodHandle: Handle,
         bootstrapMethodArguments: Object*
     ): Unit = {
+      // Hash the invokedynamic name and descriptor to detect changes in the
+      // dynamic call site (e.g. makeConcatWithConstants for string concatenation)
+      hash(name.hashCode)
+      hash(descriptor.hashCode)
+
       for (bsmArg <- bootstrapMethodArguments) {
         bsmArg match {
           case handle: Handle =>
@@ -255,6 +260,15 @@ object LocalSummary {
                 st.Desc.read(handle.getDesc)
               )
             )
+          // Hash bootstrap method arguments (e.g. string templates for makeConcatWithConstants)
+          // to detect changes in string literals and other constants used in invokedynamic
+          case v: java.lang.String => hash(v.hashCode)
+          case v: java.lang.Integer => hash(v.hashCode)
+          case v: java.lang.Float => hash(v.hashCode)
+          case v: java.lang.Long => hash(v.hashCode)
+          case v: java.lang.Double => hash(v.hashCode)
+          case v: org.objectweb.asm.Type => hash(v.hashCode)
+          case v: org.objectweb.asm.ConstantDynamic => hash(v.hashCode)
           case _ =>
         }
       }

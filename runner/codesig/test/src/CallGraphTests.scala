@@ -1,7 +1,7 @@
 package mill.codesig
 
 import os.Path
-import utest._
+import utest.*
 import upickle.{read, write}
 import scala.collection.immutable.{SortedMap, SortedSet}
 
@@ -202,7 +202,7 @@ object CallGraphTests extends TestSuite {
    * are small so it's probably fine.
    */
   def simplifyCallGraph(codeSig: CallGraphAnalysis, skipped: Seq[String]) = {
-    import codeSig._
+    import codeSig.*
 
     def simplifiedCallGraph0[T](transform: PartialFunction[CallGraphAnalysis.Node, T])
         : Map[T, Set[T]] = {

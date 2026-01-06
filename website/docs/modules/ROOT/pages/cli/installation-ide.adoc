@@ -110,7 +110,7 @@ crashes and errors.
 === Mill Native and JVM Executables
 
 The default Mill launcher configured above is a
-xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image],
+xref:javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image],
 that provides faster startup and is able to run even on machines without Java installed.
 Mill native executables are supported on the following OS/CPU combinations:
 
@@ -160,7 +160,7 @@ such as `customCommand` below:
 
 ```scala
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mainargs.arg
 object foo extends JavaModule {
   def customCommand(
@@ -229,11 +229,6 @@ as well as the code in the `build.mill`:
 image::basic/IntellijApp.png[]
 
 image::basic/IntellijBuild.png[]
-
-If IntelliJ does not highlight the `.mill` files correctly, you can explicitly enable
-it by adding `*.mill` to the `Scala` file type:
-
-image::basic/IntellijFileTypeConfig.png[]
 
 If you make changes to your Mill `build.mill`, you can ask Intellij to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
@@ -455,12 +450,23 @@ at the top of the bootstrap script, or as a user environment variable.
 
 == Updating Mill
 
+The recommended way to manage your Mill version is to rely on the `DEFAULT_MILL_VERSION` defined
+in your `./mill` and `./mill.bat` bootstrap scripts. These can be updated via the builtin command
+`updateMillScripts`:
+
+```console
+> ./mill updateMillScripts 1.1.0
+```
+
+In general, managing your Mill version via your `./mill` bootstrap scripts is most reliable, as
+it ensures the bootstrap script and the Mill version you use are always in sync. However, Mill
+also provides other ways of overriding the Mill version used, which we will discuss below:
+
 === Overriding your Mill Version
 
-Typically, most Mill projects use a `mill-version` key in their xref:cli/build-header.adoc[] or
-a `.mill-version` file to configure what version
-to use. You can update the version specified in this file in order to change the version
-of Mill. The file path `.config/mill-version` is also supported. If neither is provided,
+Apart from the version defined in your bootstrap script, you
+can also override the Mill version via use a `mill-version` key in your xref:cli/build-header.adoc[]
+or a `.mill-version` file. The file path `.config/mill-version` is also supported. If neither is provided,
 the `./mill` bootstrap script will use the `DEFAULT_MILL_VERSION` it has built in.
 
 To choose a different Mill version on an ad-hoc basis, e.g. for experimentation, you can pass
@@ -480,6 +486,11 @@ or
 
 to override the Mill version manually. This takes precedence over the version
 specified in `./mill`, `.config/mill-version` or `.mill-version`
+
+In general, we recommend you manage your Mill version via your `./mill` bootstrap scripts and
+update it via `./mill updateMillScripts`. That is the most reliable approach, and avoids issues
+that may be caused by incompatibilities between your `./mill` script and the `mill-version`
+you override.
 
 
 === Automatic Mill updates
@@ -512,7 +523,7 @@ Or find the latest unstable version here:
 
 * https://central.sonatype.com/artifact/com.lihaoyi/mill-dist
 
-You can update your `.mill-version` to to the unstable version and the bootstrap script
+You can update your `.mill-version` to the unstable version and the bootstrap script
 will download it for you to try it out in your project.
 
 

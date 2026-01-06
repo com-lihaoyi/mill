@@ -1,0 +1,13 @@
+//// SNIPPET:BUILD4
+package build
+import mill.*, groovylib.*
+
+object `package` extends GroovyModule {
+
+  def groovyVersion = "5.0.3"
+
+  object test extends GroovyTests with TestModule.Spock {
+    def spockVersion = "2.4-groovy-5.0"
+    def jupiterVersion = "5.13.4"
+  }
+}

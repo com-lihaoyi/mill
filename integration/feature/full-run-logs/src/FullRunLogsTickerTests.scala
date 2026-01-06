@@ -51,7 +51,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "<digits>] compile compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
           "<digits>] run",
-          "74/<digits>] <dashes> run --text hello <dashes>"
+          ".../..., completed] <dashes> run --text hello <dashes>"
         )
       )
     }
@@ -84,7 +84,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "Hello C",
           "World C",
           "Exclusive C",
-          "4/<digits>] <dashes> exclusives.printingC <dashes>"
+          ".../..., completed] <dashes> exclusives.printingC <dashes>"
         )
       )
     }
@@ -109,7 +109,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X) MY INFO LOGS",
           "(B)<digits>](X) [(Y)warn(X)] MY WARN LOGS",
           "(B)<digits>](X) [(R)error(X)] MY ERROR LOGS",
-          "1/<digits>] <dashes> logging <dashes>"
+          ".../..., completed] <dashes> logging <dashes>"
         )
       )
       // Make sure the `.log` files on disk contain what we expect

@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object FatalErrorTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {

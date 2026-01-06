@@ -1,9 +1,9 @@
 //| mvnDeps:
 //| - com.lihaoyi::scalatags:0.13.1
 //| - com.atlassian.commonmark:commonmark:0.13.1
-import scalatags.Text.all._
+import scalatags.Text.all.*
 
-@main def main() = {
+def main() = {
   val postInfo = os
     .list(os.pwd / "post")
     .map { p =>

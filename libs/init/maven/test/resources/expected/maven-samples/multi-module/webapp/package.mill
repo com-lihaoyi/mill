@@ -1,22 +1,26 @@
 package build.`multi-module`.webapp
 
+import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
 import millbuild.*
 
-object `package` extends MavenSamplesBaseModule {
+object `package` extends ProjectBaseModule {
 
-  def compileMvnDeps = super.compileMvnDeps() ++
-    Seq(Deps.servletApi, Deps.jspApi)
+  def moduleDeps = Seq(build.`multi-module`.server)
 
-  def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
+  def compileMvnDeps = Seq(Deps.servletApi, Deps.jspApi)
 
-  def javacOptions = super.javacOptions() ++
-    Seq("-source", "1.6", "-target", "1.6")
+  def depManagement = Seq(
+    Deps.servletApi,
+    Deps.jspApi,
+    Deps.junitDep,
+    Deps.hamcrestCore,
+    Deps.hamcrestLibrary,
+    Deps.mockitoCore
+  )
 
   def artifactName = "webapp"
-
-  def jvmId = "zulu:11"
 
   def pomPackagingType = "war"
 

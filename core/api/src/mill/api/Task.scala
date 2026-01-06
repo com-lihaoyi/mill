@@ -59,6 +59,8 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
 
 object Task {
 
+  type rename = mill.api.rename
+
   /**
    * Returns the [[mill.api.TaskCtx]] that is available within this task
    */
@@ -190,6 +192,26 @@ object Task {
       inline ctx: ModuleCtx
   ): Simple[T] =
     ${ Macros.inputImpl[T]('value)('w, 'ctx) }
+
+  inline def Uncached[T](inline t: Result[T])(using
+      inline w: Writer[T],
+      inline ctx: ModuleCtx
+  ): Simple[T] =
+    ${ Macros.uncachedImpl[T]('t)('w, 'ctx, persistent = '{ false }) }
+
+  def Uncached(
+      @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      persistent: Boolean = false
+  ): UncachedFactory =
+    // Magnet pattern for the second param list in Task.Uncached(persistent = true) { ... }
+    new UncachedFactory(persistent)
+
+  class UncachedFactory private[mill] (val persistent: Boolean) {
+    inline def apply[T](inline t: Result[T])(using
+        inline w: Writer[T],
+        inline ctx: ModuleCtx
+    ): Simple[T] = ${ Macros.uncachedImpl[T]('t)('w, 'ctx, '{ persistent }) }
+  }
 
   /**
    * [[Command]]s are only [[Task.Named]]s defined using
@@ -388,7 +410,7 @@ object Task {
   ) extends Simple[T] {
     override def asSimple: Option[Simple[T]] = Some(this)
 
-    // FIXME: deprecated return type: Change to Option
+    // FIXME: deprecated return type: Change to Option (bin-compat)
     override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
   }
 
@@ -474,6 +496,17 @@ object Task {
     override def sideHash: Int = util.Random.nextInt()
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
+  }
+
+  class Uncached[T](
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
+      val ctx0: mill.api.ModuleCtx,
+      val writer: upickle.Writer[?],
+      val isPrivate: Option[Boolean],
+      override val persistent: Boolean
+  ) extends Simple[T] {
+    override def writerOpt: Option[Writer[?]] = Some(writer)
   }
 
   class Sources(
@@ -631,6 +664,31 @@ object Task {
         ( /*in*/ _, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
         value,
         allowTaskReferences = false
+      )
+      Cacher.impl0(expr)
+    }
+
+    def uncachedImpl[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
+        w: Expr[upickle.Writer[T]],
+        ctx: Expr[mill.api.ModuleCtx],
+        persistent: Expr[Boolean]
+    ): Expr[Simple[T]] = {
+      assertTaskShapeOwner("Task.Uncached", 0)
+      val expr = appImpl[Simple, T](
+        (in, ev) =>
+          '{
+            new Uncached[T](
+              $in,
+              $ev,
+              $ctx,
+              $w,
+              ${ taskIsPrivate() },
+              $persistent
+            )
+          },
+        t
       )
       Cacher.impl0(expr)
     }

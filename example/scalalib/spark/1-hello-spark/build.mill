@@ -18,7 +18,7 @@ object foo extends ScalaModule {
   }
 
 }
-// This examples demonstrates running spark using mill.
+// This example demonstrates running spark using mill.
 
 /** Usage
 

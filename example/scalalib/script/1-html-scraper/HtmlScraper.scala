@@ -1,6 +1,6 @@
 //| mvnDeps: [org.jsoup:jsoup:1.7.2]
-import org.jsoup._
-import scala.collection.JavaConverters._
+import org.jsoup.*
+import scala.collection.JavaConverters.*
 
 def fetchLinks(title: String): Seq[String] = {
   Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
@@ -9,7 +9,6 @@ def fetchLinks(title: String): Seq[String] = {
     .collect { case s"/wiki/$rest" => rest }
 }
 
-@main
 def main(startArticle: String, depth: Int) = {
   var seen = Set(startArticle)
   var current = Set(startArticle)

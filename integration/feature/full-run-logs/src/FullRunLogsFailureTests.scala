@@ -36,24 +36,24 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)54(Z)",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(X):(R)36(X):(R)54(X)",
           "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) String x = \"omg",
-          "(B)<digits>](X)                                                      (R)^(Z)",
+          "(B)<digits>](X)                                                      (R)^(X)",
           "(B)<digits>](X) unclosed string literal",
           "(B)<digits>](X) ",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)58(Z)",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(X):(R)36(X):(R)58(X)",
           "(B)<digits>](X) (Y)class(X) Bar { (B)/*comment*/(X) (Y)void(X) bar(){ (Y)final(X) String x = \"omg",
-          "(B)<digits>](X)                                                          (R)^(Z)",
+          "(B)<digits>](X)                                                          (R)^(X)",
           "(B)<digits>](X) '}' expected but eof found.",
           "(B)<digits>](X) ",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)2(Z):(R)54(Z)",
-          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): (M)String(Z) =  \"omg",
-          "(B)<digits>](X)                                                      (R)^(Z)",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(X):(R)2(X):(R)54(X)",
+          "(B)<digits>](X) (Y)class(X) (M)Bar(X) { (B)/*comment*/(X) (Y)def(X) (C)bar(X) = { (Y)val(X) (C)x(X): (M)String(X) =  \"omg",
+          "(B)<digits>](X)                                                      (R)^(X)",
           "(B)<digits>](X) unclosed string literal",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] three errors found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
+          ".../..., (R)1 failed(X), completed] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
         )
       )
@@ -77,15 +77,15 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         List(
           "<dashes> jar <dashes>",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(Z):(R)36(Z):(R)52(Z)",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(X):(R)36(X):(R)52(X)",
           "(B)<digits>](X) (Y)class(X) (C)Bar(X) { (B)/*comment*/(X) (Y)void(X) (C)bar(X)(){ (Y)final(X) java.lang.Strin (C)x(X) = (G)\"omg\"(X);}}",
-          "(B)<digits>](X)                                                    (R)^^^^^^(Z)",
+          "(B)<digits>](X)                                                    (R)^^^^^^(X)",
           "(B)<digits>](X) cannot find symbol",
           "(B)<digits>](X)   symbol:   class Strin",
           "(B)<digits>](X)   location: package java.lang",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
+          ".../..., (R)1 failed(X), completed] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile javac returned non-zero exit code"
         )
       )
@@ -103,14 +103,14 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         List(
           "<dashes> jar <dashes>",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
-          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(Z):(R)2(Z):(R)54(Z)",
-          "(B)<digits>](X) (Z)(Y)class(Z) (M)Bar(Z) { (B)/*comment*/(Z) (Y)def(Z) (C)bar(Z) = { (Y)val(Z) (C)x(Z): java.lang.(Y)Strig(Z) =  (G)\"omg\"(Z)}}",
-          "(B)<digits>](X)                                                      (R)^^^^^(Z)",
+          "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(X):(R)2(X):(R)54(X)",
+          "(B)<digits>](X) (Y)class(X) (M)Bar(X) { (B)/*comment*/(X) (Y)def(X) (C)bar(X) = { (Y)val(X) (C)x(X): java.lang.(Y)Strig(X) =  (G)\"omg\"(X)}}",
+          "(B)<digits>](X)                                                      (R)^^^^^(X)",
           "(B)<digits>](X) type Strig is not a member of java.lang - did you mean lang.String?",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] one error found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 failed(X)] <dashes> jar <dashes>",
+          ".../..., (R)1 failed(X), completed] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
         )
       )
@@ -134,7 +134,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] ",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] [error] compile task failed",
-          ".../..., 1 failed] <dashes> jar <dashes>",
+          ".../..., 1 failed, completed] <dashes> jar <dashes>",
           "build.mill-<digits>] [error] compile Compilation failed"
         )
       )
@@ -178,20 +178,20 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<dashes> exception <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
-          ".../..., (R)1 failed(X)] <dashes> exception <dashes>",
+          ".../..., (R)1 failed(X), completed] <dashes> exception <dashes>",
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
           "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
-          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
-          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
-          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))",
+          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)392(X))",
+          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)377(X))",
+          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)464(X))",
           "(R)java.lang.RuntimeException(X): bang",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
           "  (R)build_.package_.exception$$anonfun$1(X)((R)build.mill(X):(R)8(X))",
-          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)370(X))",
-          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)355(X))",
-          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)442(X))"
+          "  (R)mill.api.Task$Named.evaluate(X)((R)Task.scala(X):(R)392(X))",
+          "  (R)mill.api.Task$Named.evaluate$(X)((R)Task.scala(X):(R)377(X))",
+          "  (R)mill.api.Task$Command.evaluate(X)((R)Task.scala(X):(R)464(X))"
         )
       )
     }
@@ -228,7 +228,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
           "<digits>] ",
-          ".../..., 2 failed] <dashes> {brokenN,brokenN}.compile <dashes>",
+          ".../..., 2 failed, completed] <dashes> {brokenN,brokenN}.compile <dashes>",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code"
         )

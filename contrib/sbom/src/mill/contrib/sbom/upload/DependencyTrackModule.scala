@@ -2,7 +2,7 @@ package mill.contrib.sbom.upload
 
 import java.util.Base64
 import java.nio.charset.StandardCharsets
-import mill._
+import mill.*
 import mill.contrib.sbom.CycloneDXModule
 import upickle.default.{ReadWriter, macroRW}
 
@@ -12,7 +12,7 @@ object DependencyTrackModule {
   implicit val depTrackPayload: ReadWriter[Payload] = macroRW
 }
 trait DependencyTrackModule extends CycloneDXModule {
-  import DependencyTrackModule._
+  import DependencyTrackModule.*
 
   def depTrackUrl: T[String]
   def depTrackProjectID: T[String]

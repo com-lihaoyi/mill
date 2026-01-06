@@ -9,7 +9,7 @@ Customizing the meta-build gives you greater control over how exactly your
 and needs to contain a top-level module of type `MillBuildRootModule`.
 
 If you don't configure it explicitly, a built-in synthetic meta-build is used.
-Meta-builds are recursive, which means, it can itself have a nested meta-builds, and so on.
+Meta-builds are recursive, which means they can themselves have nested meta-builds, and so on.
 
 To run a task on a meta-build, you specify the `--meta-level` option to select
 the meta-build level.

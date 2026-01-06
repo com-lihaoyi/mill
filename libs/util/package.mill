@@ -1,8 +1,8 @@
 package build.libs.util
 
 // imports
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross

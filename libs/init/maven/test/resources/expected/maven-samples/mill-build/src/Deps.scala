@@ -3,7 +3,6 @@ package millbuild
 import mill.javalib.*
 
 object Deps {
-
   val hamcrestCore = mvn"org.hamcrest:hamcrest-core:1.2.1"
   val hamcrestLibrary = mvn"org.hamcrest:hamcrest-library:1.2.1"
   val jspApi = mvn"javax.servlet.jsp:jsp-api:2.2"

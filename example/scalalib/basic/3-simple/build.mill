@@ -9,6 +9,11 @@
 // - `build.mill.yaml` defines the configuration for the root module
 // - `test/package.mill.yaml` defines the submodule `test/` containing the test suites.
 //
+// NOTE: `build.mill.yaml` and `package.mill.yaml` files import `build.\*` and
+// `{language-small}lib.*` for convenience, allowing us to write `{language}Module`
+// and `TestModule` un-qualified in the example above. You can also refer to it fully-qualified via
+// `mill.{language-small}lib.{language}Module` and `mill.{language-small}lib.TestModule`.
+//
 //// SNIPPET:DEPENDENCIES
 //
 // This example project uses `mvnDeps` to include two third-party dependencies - MainArgs for
@@ -153,7 +158,7 @@ compiling 1 Scala source to...
 // [source,console]
 // ----
 // > ./mill -i console    # start a Scala console within your project
-// > ./mill -i test.console
+// > ./mill -i test.repl
 //
 // > ./mill -i repl       # start an Ammonite Scala REPL within your project
 // ----
@@ -180,5 +185,5 @@ compiling 1 Scala source to...
 // where you are just setting some configuration keys. This is discussed more in the documentation
 // for:
 //
-// * xref:{language-small}lib/declarative.adoc[Declarative {language} Modules]
+// * xref:{language-small}lib/module-config.adoc#_declarative_configuration[Declarative {language} Configuration]
 //

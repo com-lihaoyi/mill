@@ -30,6 +30,10 @@ object TabCompleteTests extends TestSuite {
     trait QuxModule extends Cross.Module[Int] {
       def task3 = Task { 789 }
     }
+    object versioned extends Cross[VersionedModule]("2.12.20", "2.13.15", "3.5.0")
+    trait VersionedModule extends Cross.Module[String] {
+      def compile = Task { crossValue }
+    }
   }
   override def tests: Tests = Tests {
 
@@ -55,13 +59,33 @@ object TabCompleteTests extends TestSuite {
       test("empty-bash") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", ""),
-          HashSet("qux", "file2.txt", "out", "folder", "bar", "file1.txt", "task1", "foo")
+          HashSet(
+            "qux",
+            "versioned",
+            "file2.txt",
+            "out",
+            "folder",
+            "bar",
+            "file1.txt",
+            "task1",
+            "foo"
+          )
         )
       }
       test("empty-zsh") {
         assertGoldenLiteral(
           evalComplete("1", "./mill"),
-          HashSet("qux", "file2.txt", "out", "folder", "bar", "file1.txt", "task1", "foo")
+          HashSet(
+            "qux",
+            "versioned",
+            "file2.txt",
+            "out",
+            "folder",
+            "bar",
+            "file1.txt",
+            "task1",
+            "foo"
+          )
         )
       }
       test("task") {
@@ -201,13 +225,15 @@ object TabCompleteTests extends TestSuite {
       }
 
       test("cross2") {
+        // Without bracket, use new dot syntax
         assertGoldenLiteral(
           evalComplete("1", "./mill", "qux"),
-          Set("qux", "qux[12]", "qux[34]", "qux[56]")
+          Set("qux", "qux.12", "qux.34", "qux.56")
         )
       }
 
       test("crossPartial") {
+        // With bracket, keep bracket syntax
         assertGoldenLiteral(
           evalComplete("1", "./mill", "qux[1"),
           Set("qux[12]")
@@ -215,9 +241,18 @@ object TabCompleteTests extends TestSuite {
       }
 
       test("crossNested") {
+        // With bracket, keep bracket syntax
         assertGoldenLiteral(
           evalComplete("1", "./mill", "qux[12]"),
           Set("qux[12].task3")
+        )
+      }
+
+      test("crossNestedDotSyntax") {
+        // Without bracket, use new dot syntax
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "qux.12"),
+          Set("qux.12", "qux.12.task3")
         )
       }
 
@@ -245,7 +280,29 @@ object TabCompleteTests extends TestSuite {
           evalComplete("1", "./mill", "qux[12].task3"),
           Set("qux[12].task3")
         )
+      }
 
+      test("crossVersioned") {
+        // Version numbers with dots are converted to underscores in dot syntax
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "versioned"),
+          Set("versioned", "versioned.2_12_20", "versioned.2_13_15", "versioned.3_5_0")
+        )
+      }
+
+      test("crossVersionedNested") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "versioned.2_12_20"),
+          Set("versioned.2_12_20", "versioned.2_12_20.compile")
+        )
+      }
+
+      test("crossVersionedBracket") {
+        // With bracket, keep original syntax with dots
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "versioned[2"),
+          Set("versioned[2.12.20]", "versioned[2.13.15]")
+        )
       }
     }
     test("flags") {
@@ -267,7 +324,17 @@ object TabCompleteTests extends TestSuite {
       test("emptyAfterFlag") {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "-v"),
-          HashSet("qux", "file2.txt", "out", "folder", "bar", "file1.txt", "task1", "foo")
+          HashSet(
+            "qux",
+            "versioned",
+            "file2.txt",
+            "out",
+            "folder",
+            "bar",
+            "file1.txt",
+            "task1",
+            "foo"
+          )
         )
 
       }
@@ -287,14 +354,17 @@ object TabCompleteTests extends TestSuite {
       test("long") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--"),
-          HashSet(
+          Set(
+            "--use-file-locks          Use traditional file-based locking instead of PID-based locking for the Mill daemon. This removes the chance of race conditions when claiming the lock after a crash, but may have issues on some filesystems that do not support lock (e.g. docker mounts on mac)",
             "--debug                   Show debug output on STDOUT",
             "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
             "--interactive             Run Mill in interactive mode, suitable for opening REPLs and taking user input. Identical to --no-daemon. Must be the first argument.",
             "--no-build-lock           Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory",
             "--tab-complete            Runs Mill in tab-completion mode",
             "--import                  <str> Additional ivy dependencies to load into mill, e.g. plugins.",
+            "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive or FORCE_COLOR environment variable is set, and NO_COLOR environment variable is not set",
             "--no-daemon               Run without a long-lived background daemon. Must be the first argument.",
+            "--ticker                  <bool> Enable or disable the ticker log, which provides information on running tasks and where each log line came from",
             "--allow-positional        Allows command args to be passed positionally without `--arg` by default",
             "--watch                   Watch and re-run the given tasks when when their inputs change.",
             "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
@@ -310,8 +380,6 @@ object TabCompleteTests extends TestSuite {
             "--meta-level              <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.",
             "--help                    Print this help message and exit.",
             "--jobs                    <str> The number of parallel threads. It can be an integer e.g. `5` meaning 5 threads, an expression e.g. `0.5C` meaning half as many threads as available cores, or `C-2` meaning 2 threads less than the number of cores. `1` disables parallelism and `0` (the default) uses 1 thread per core.",
-            "--ticker                  <bool> Enable or disable the ticker log, which provides information on running tasks and where each log line came from",
-            "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive or FORCE_COLOR environment variable is set, and NO_COLOR environment variable is not set",
             "--version                 Show mill version information and exit.",
             "--task                    <str> The name or a query of the tasks(s) you want to build.",
             "--help-advanced           Print a internal or advanced command flags not intended for common usage",

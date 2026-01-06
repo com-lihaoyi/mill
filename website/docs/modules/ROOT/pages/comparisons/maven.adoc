@@ -1,14 +1,14 @@
 = Comparing Mill vs Maven: Declarative Builds
 
 The xref:comparisons/maven.adoc[Maven] build tool is famous for pioneering the idea of
-_"Declarative Builds"_: that you should only need to specify what you your project needs,
+_"Declarative Builds"_: that you should only need to specify what your project needs,
 and the build tool should be able to get everything downloaded and cached and working on
 your behalf. However, although that is an excellent ideal to strive towards, in practice
 there are many ways where using Maven can be annoyingly tedious.
 
 This page discusses some of the key ways that the Mill build tool learns from Maven, and
 also how Mill tries to improve upon some of its rough edges. This lets Mill provide a user
-experience that improves upon when Maven can provide to developers, letting the simplicity
+experience that improves upon what Maven can provide to developers, letting the simplicity
 of _"Declarative Builds"_ really shine through.
 
 == Where Maven Falls Short
@@ -61,9 +61,9 @@ representative of the many small programs that get written in practice:
 - Someone trying to reproduce and minimize a bug in a library so that it can be reported
 
 This is a simple program that any programmer should be able to write without difficulty.
-In theory, there should be no reason that developers not to write small automation scripts
+In theory, there should be no reason for developers not to write small automation scripts
 and utilities in Java rather than Python or Bash: it's an easy widely-used language with
-an excellent runtime and a rich ecosystem has high-quality libraries (such as Jsoup above).
+an excellent runtime and a rich ecosystem with high-quality libraries (such as Jsoup above).
 But in practice, setting up your single-file Java program to actually be _run_ proves
 quite a hurdle. This article will discuss why.
 
@@ -195,7 +195,7 @@ https://maven.apache.org/tools/wrapper/maven-wrapper-plugin/usage.html[./mvnw bo
 as a best practice. Should you be using that instead? And if you do, you'd still find people
 using `mvn` rather than `./mvnw` out of muscle memory and getting confusing errors
 
-Similar to the challenges of xref:#_installing_java[], installing Maven _once_ isn't hard, but
+Similar to the challenges of xref:#_installing_java[], installing Maven __once__ isn't hard, but
 installing Maven consistently on your Mac laptop, or your colleague's Windows desktop, and
 on your Linux CI machines can be quite tricky! And trickier still is maintaining these
 installations as the different development environments inevitable evolve over time.
@@ -251,7 +251,7 @@ without looking it up first.
 === Whither Declarative Builds?
 
 Although Maven is the first "declarative" build tool, in practice it has a lot of
-friction that has nothing to do with it's declarative nature, which gets in the
+friction that has nothing to do with its declarative nature, which gets in the
 way of the smooth user experience a declarative build tool should be able to provide.
 From installing Java and Maven to setting up the verbose `pom.xml` and the unusual
 command-line invocation syntax, none of this is rocket science. But it adds enough
@@ -320,13 +320,13 @@ fiddling with setup commands.
 
 === Mill Build Configuration
 
-Mill's `build.mill.yaml` xref:javalib/intro.adoc#_declarative_module_config[declarative configuration
+Mill's `build.mill.yaml` xref:javalib/intro.adoc#_declarative_configuration[declarative configuration
 files] are much simpler than the Maven ``pom.xml``s you may be used to writing. For example, for
 the `HtmlScraper.java` file shown above, the minimal configuration file looks like this:
 
 `build.mill.yaml`
 ```yaml
-extends: [mill.javalib.JavaModule]
+extends: JavaModule
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
 ```
@@ -338,7 +338,7 @@ In this file,
 - The other keys such as `mvnDeps` tell us configuration on that module we want to override
 
 Mill follows Mavens principle of _Convention over Configuration_: although there are a lot
-of possible configuration options (`mvnDeps`, `moduleDeps`, `repositiries`,
+of possible configuration options (`mvnDeps`, `moduleDeps`, `repositories`,
 `javacOptions`, etc.) the  `build.mill.yaml` file only needs to contain
 the keys the user needs to customize. This greatly simplifies the common case where
 the user is mostly fine with the default configuration and avoids much of the

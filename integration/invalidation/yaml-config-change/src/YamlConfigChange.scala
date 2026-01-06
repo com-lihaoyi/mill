@@ -2,8 +2,8 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 import utest.asserts.{RetryInterval, RetryMax}
-import scala.concurrent.duration._
-import utest._
+import scala.concurrent.duration.*
+import utest.*
 
 // Make sure that changes in `build.mill.yaml` configs and related
 // sources properly trigger selective execution and cache invalidation
@@ -21,7 +21,7 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       assertEventually(spawned.out.text().contains("HELLO 1"))
 
       // Changes to the `build.mill.yaml` to set a custom source folder are picked up
-      tester.modifyFile(tester.workspacePath / "build.mill.yaml", _ + "\nsources: [./src-2]")
+      tester.modifyFile(tester.workspacePath / "build.mill.yaml", _ + "\nsources: [src-2/]")
       assertEventually(spawned.out.text().contains("Hello 2"))
 
       // Changes to files within the alternate source folder are picked up
@@ -31,7 +31,7 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       // Changes from one custom source folder to another are picked up
       tester.modifyFile(
         tester.workspacePath / "build.mill.yaml",
-        _.replace("[./src-2]", "[./src-3]")
+        _.replace("[src-2/]", "[src-3/]")
       )
       assertEventually(spawned.out.text().contains("Hello 3"))
     }

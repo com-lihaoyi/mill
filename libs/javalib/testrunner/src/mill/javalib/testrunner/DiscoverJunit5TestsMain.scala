@@ -41,7 +41,7 @@ import mill.api.daemon.internal.internal
       val itemClass =
         classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Item")
 
-      import scala.jdk.CollectionConverters._
+      import scala.jdk.CollectionConverters.*
       items.asScala.map { item =>
         itemClass.getMethod("getFullyQualifiedClassName").invoke(item).asInstanceOf[String]
       }.toSeq

@@ -6,7 +6,12 @@ Module dependencies of test:
   ],
   "test.repositories": []
 }
-"zulu:11"
+{
+  "mandatoryMvnDeps": [],
+  "test.mandatoryMvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.11.4"
+  ]
+}
 {
   "mvnDeps": [],
   "test.mvnDeps": [
@@ -21,11 +26,15 @@ Module dependencies of test:
 }
 {
   "runMvnDeps": [],
-  "test.runMvnDeps": []
+  "test.runMvnDeps": [
+    "org.junit.platform:junit-platform-launcher:"
+  ]
 }
 {
   "bomMvnDeps": [],
-  "test.bomMvnDeps": []
+  "test.bomMvnDeps": [
+    "org.junit:junit-bom:5.7.0"
+  ]
 }
 {
   "javacOptions": [
@@ -78,7 +87,6 @@ Module dependencies of test:
 "2.4.2"
 null
 {}
-
 
 
 

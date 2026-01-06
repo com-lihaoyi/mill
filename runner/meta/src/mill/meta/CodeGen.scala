@@ -92,7 +92,7 @@ object CodeGen {
         val parsedHeaderData = mill.internal.Util.parseHeaderData(scriptPath).get
 
         val prelude =
-          s"""|import MillMiscInfo._
+          s"""|import MillMiscInfo.*
               |import _root_.mill.util.TokenReaders.given
               |import _root_.mill.runner.autooverride.AutoOverride
               |""".stripMargin
@@ -142,7 +142,7 @@ object CodeGen {
         )
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
-          val extendsConfig = data.`extends`.value.map(_.value)
+          val extendsConfig = data.`extends`.value.value.map(_.value)
           val definitions = processDataRest(data)(
             onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
             onNestedObject = (k, nestedData) =>
@@ -162,7 +162,7 @@ object CodeGen {
                   .mkString(".")
 
                 rootModulePrefix match {
-                  case "" => s"build.$renderedSegments"
+                  case "" => renderedSegments
                   case s"$externalModulePrefix/" => s"$externalModulePrefix.$renderedSegments"
                 }
             }
@@ -206,6 +206,7 @@ object CodeGen {
           s"""package $pkg
              |import mill.*, scalalib.*, javalib.*, kotlinlib.*
              |$aliasImports
+             |import build.*
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
              |object package_ extends $newParent, package_ {
@@ -347,7 +348,7 @@ object CodeGen {
       siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
 
     val prelude =
-      s"""|import MillMiscInfo._
+      s"""|import MillMiscInfo.*
           |import _root_.mill.util.TokenReaders.given
           |import _root_.mill.api.JsonFormatters.given
           |""".stripMargin

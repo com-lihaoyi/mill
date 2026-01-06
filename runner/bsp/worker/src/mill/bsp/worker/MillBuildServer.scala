@@ -44,7 +44,7 @@ private class MillBuildServer(
     out: os.Path
 ) extends BuildServer with AutoCloseable {
 
-  import MillBuildServer._
+  import MillBuildServer.*
 
   def close(): Unit = {
     stopped = true

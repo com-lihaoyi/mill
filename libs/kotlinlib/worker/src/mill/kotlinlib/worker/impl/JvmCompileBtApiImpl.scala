@@ -62,7 +62,7 @@ class JvmCompileBtApiImpl() extends Compiler {
       strategyConfig,
       compilationConfig,
       KotlinInterop.toKotlinList(sourceFiles),
-      KotlinInterop.toKotlinList(args.toArray)
+      KotlinInterop.toKotlinList(sourceFiles.map(_.toString) ++ args.toArray)
     )
 
     val exitCode = compilationResult match {
@@ -72,8 +72,12 @@ class JvmCompileBtApiImpl() extends Compiler {
       case CompilationResult.COMPILER_INTERNAL_ERROR => ExitCode.INTERNAL_ERROR
     }
 
-    // Do we really need to call this (after each compilation)?
-    service.finishProjectCompilation(projectId)
+    // This seems to cause sporadic crashes, so just commenting it out for now.
+    // It seems it does global cleanup that may cause issues when there are
+    // multiple modules compiling in parallel, e.g. one module's cleanup may
+    // interfere with another and cause crashes https://github.com/com-lihaoyi/mill/issues/6427
+    //
+    // service.finishProjectCompilation(projectId)
 
     (exitCode.getCode(), exitCode.name())
   }

@@ -4,11 +4,11 @@ Module dependencies of clustered.ehcache-client:
   ehcache-xml.ehcache-xml-spi (compile)
 Module dependencies of clustered.ehcache-client.test:
   clustered.ehcache-client
-  clustered.test-utils
-  clustered.server.ehcache-service
-  ehcache-xml
   ehcache-transactions
   clustered.server.ehcache-entity
+  clustered.server.ehcache-service
+  clustered.test-utils
+  ehcache-xml
 Module dependencies of clustered.ehcache-clustered:
 Module dependencies of clustered.ehcache-common:
   ehcache-api
@@ -22,11 +22,11 @@ Module dependencies of clustered.ehcache-common-api.test:
 Module dependencies of clustered.integration-test:
 Module dependencies of clustered.integration-test.test:
   clustered.integration-test
-  ehcache-107
-  ehcache-impl
-  clustered.ehcache-common
   clustered.ehcache-client
+  clustered.ehcache-common
+  ehcache-impl
   ehcache-xml
+  ehcache-107
   ehcache-management
 Module dependencies of clustered.ops-tool:
 Module dependencies of clustered.ops-tool.test:
@@ -39,8 +39,8 @@ Module dependencies of clustered.server.ehcache-entity:
   clustered.ehcache-common
 Module dependencies of clustered.server.ehcache-entity.test:
   clustered.server.ehcache-entity
-  clustered.test-utils
   clustered.server.ehcache-service
+  clustered.test-utils
 Module dependencies of clustered.server.ehcache-service:
   clustered.ehcache-common
 Module dependencies of clustered.server.ehcache-service.test:
@@ -53,14 +53,13 @@ Module dependencies of clustered.server.ehcache-service-api.test:
 Module dependencies of clustered.test-utils:
   clustered.ehcache-common
 Module dependencies of core-spi-test:
-  ehcache-impl
-  ehcache-core
   spi-tester
+  ehcache-core
+  ehcache-impl
 Module dependencies of demos.00-NoCache:
   ehcache-impl
 Module dependencies of demos.01-CacheAside:
   ehcache-impl
-Module dependencies of docs:
 Module dependencies of ehcache:
 Module dependencies of ehcache-107:
   ehcache-xml
@@ -81,8 +80,8 @@ Module dependencies of ehcache-impl.test:
   ehcache-impl
   core-spi-test
 Module dependencies of ehcache-management:
-  ehcache-impl
   ehcache-core
+  ehcache-impl
   clustered.ehcache-client (compile)
   ehcache-xml.ehcache-xml-spi (compile)
 Module dependencies of ehcache-management.test:
@@ -164,9 +163,6 @@ Module dependencies of spi-tester:
   "demos.01-CacheAside.repositories": [
     "https://repo.terracotta.org/maven2"
   ],
-  "docs.repositories": [
-    "https://repo.terracotta.org/maven2"
-  ],
   "ehcache.repositories": [
     "https://repo.terracotta.org/maven2"
   ],
@@ -215,158 +211,214 @@ Module dependencies of spi-tester:
   ]
 }
 {
-  "clustered.ehcache-client.jvmId": "zulu:11",
-  "clustered.ehcache-clustered.jvmId": "",
-  "clustered.ehcache-common.jvmId": "zulu:11",
-  "clustered.ehcache-common-api.jvmId": "zulu:11",
-  "clustered.integration-test.jvmId": "zulu:11",
-  "clustered.ops-tool.jvmId": "zulu:11",
-  "clustered.osgi-test.jvmId": "zulu:11",
-  "clustered.server.ehcache-entity.jvmId": "zulu:11",
-  "clustered.server.ehcache-service.jvmId": "zulu:11",
-  "clustered.server.ehcache-service-api.jvmId": "zulu:11",
-  "clustered.test-utils.jvmId": "zulu:11",
-  "core-spi-test.jvmId": "zulu:11",
-  "demos.00-NoCache.jvmId": "zulu:11",
-  "demos.01-CacheAside.jvmId": "zulu:11",
-  "docs.jvmId": "",
-  "ehcache.jvmId": "",
-  "ehcache-107.jvmId": "zulu:11",
-  "ehcache-api.jvmId": "zulu:11",
-  "ehcache-core.jvmId": "zulu:11",
-  "ehcache-impl.jvmId": "zulu:11",
-  "ehcache-management.jvmId": "zulu:11",
-  "ehcache-transactions.jvmId": "zulu:11",
-  "ehcache-xml.ehcache-xml-spi.jvmId": "zulu:11",
-  "ehcache-xml.jvmId": "zulu:11",
-  "integration-test.jvmId": "zulu:11",
-  "osgi-test.jvmId": "zulu:11",
-  "spi-tester.jvmId": "zulu:11"
+  "clustered.ehcache-client.mandatoryMvnDeps": [],
+  "clustered.ehcache-client.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.ehcache-clustered.mandatoryMvnDeps": [],
+  "clustered.ehcache-common.mandatoryMvnDeps": [],
+  "clustered.ehcache-common.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.ehcache-common-api.mandatoryMvnDeps": [],
+  "clustered.ehcache-common-api.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.integration-test.mandatoryMvnDeps": [],
+  "clustered.integration-test.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.ops-tool.mandatoryMvnDeps": [],
+  "clustered.ops-tool.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.osgi-test.mandatoryMvnDeps": [],
+  "clustered.osgi-test.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.server.ehcache-entity.mandatoryMvnDeps": [],
+  "clustered.server.ehcache-entity.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.server.ehcache-service.mandatoryMvnDeps": [],
+  "clustered.server.ehcache-service.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.server.ehcache-service-api.mandatoryMvnDeps": [],
+  "clustered.server.ehcache-service-api.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "clustered.test-utils.mandatoryMvnDeps": [],
+  "core-spi-test.mandatoryMvnDeps": [],
+  "demos.00-NoCache.mandatoryMvnDeps": [],
+  "demos.01-CacheAside.mandatoryMvnDeps": [],
+  "ehcache.mandatoryMvnDeps": [],
+  "ehcache-107.mandatoryMvnDeps": [],
+  "ehcache-107.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-api.mandatoryMvnDeps": [],
+  "ehcache-api.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-core.mandatoryMvnDeps": [],
+  "ehcache-core.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-impl.mandatoryMvnDeps": [],
+  "ehcache-impl.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-management.mandatoryMvnDeps": [],
+  "ehcache-management.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-transactions.mandatoryMvnDeps": [],
+  "ehcache-transactions.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-xml.ehcache-xml-spi.mandatoryMvnDeps": [],
+  "ehcache-xml.ehcache-xml-spi.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "ehcache-xml.mandatoryMvnDeps": [],
+  "ehcache-xml.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "integration-test.mandatoryMvnDeps": [],
+  "integration-test.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "osgi-test.mandatoryMvnDeps": [],
+  "osgi-test.test.mandatoryMvnDeps": [
+    "com.github.sbt:junit-interface:0.13.2"
+  ],
+  "spi-tester.mandatoryMvnDeps": []
 }
 {
   "clustered.ehcache-client.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
     "org.terracotta:entity-client-api:1.8.2",
-    "org.terracotta.dynamic-config.entities:dynamic-config-topology-entity-client:5.9.16",
     "org.terracotta:runnel:5.9.16",
     "org.terracotta:lease-api:5.9.16",
+    "org.terracotta.dynamic-config.entities:dynamic-config-topology-entity-client:5.9.16",
     "org.terracotta:connection-api:1.8.2"
   ],
   "clustered.ehcache-client.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.terracotta.internal:common-spi:5.9.5",
-    "org.mockito:mockito-core:4.3.1",
-    "org.terracotta:passthrough-leased-connection-api:5.9.16",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:passthrough-server:1.8.4",
-    "org.codehaus.btm:btm:2.1.4;exclude=org.slf4j:slf4j-api",
-    "org.terracotta:statistics:2.1.2",
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.terracotta:client-message-tracker:5.9.16",
     "org.terracotta:entity-test-lib:1.8.4",
-    "org.terracotta:client-message-tracker:5.9.16"
+    "org.terracotta:passthrough-server:1.8.4",
+    "org.terracotta.internal:common-spi:5.9.5",
+    "org.terracotta:passthrough-leased-connection-api:5.9.16",
+    "org.codehaus.btm:btm:2.1.4;exclude=org.slf4j:slf4j-api",
+    "org.terracotta:statistics:2.1.2"
   ],
   "clustered.ehcache-clustered.mvnDeps": [],
   "clustered.ehcache-common.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
-    "org.terracotta:runnel:5.9.16",
-    "org.terracotta:entity-common-api:1.8.2"
+    "org.terracotta:entity-common-api:1.8.2",
+    "org.terracotta:runnel:5.9.16"
   ],
   "clustered.ehcache-common.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "clustered.ehcache-common-api.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
     "org.terracotta:entity-common-api:1.8.2"
   ],
   "clustered.ehcache-common-api.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "clustered.integration-test.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36"
   ],
   "clustered.integration-test.test.mvnDeps": [
-    "org.terracotta.management:nms-entity-client:5.9.16",
-    "org.hamcrest:hamcrest:2.2",
-    "org.terracotta.internal:client-runtime:5.9.5",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.terracotta:galvan-platform-support:5.9.16;exclude=org.terracotta:terracotta-utilities-port-chooser",
-    "javax.cache:cache-tests:1.1.0;exclude=junit:junit",
-    "org.terracotta:lease-api:5.9.16",
-    "org.mockito:mockito-core:4.3.1",
-    "org.terracotta.management:nms-agent-entity-client:5.9.16",
-    "javax.cache:cache-tests:1.1.0;classifier=tests;exclude=junit:junit",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "javax.cache:cache-api:1.1.0",
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
+    "org.terracotta.internal:client-runtime:5.9.5",
     "org.terracotta:runnel:5.9.16",
+    "org.terracotta:lease-api:5.9.16",
+    "javax.cache:cache-tests:1.1.0;exclude=junit:junit",
+    "javax.cache:cache-tests:1.1.0;classifier=tests;exclude=junit:junit",
+    "org.terracotta.management:nms-entity-client:5.9.16",
+    "org.terracotta.management:nms-agent-entity-client:5.9.16",
+    "com.fasterxml.jackson.core:jackson-databind:",
     "org.terracotta:terracotta-utilities-port-chooser:0.0.15",
-    "com.fasterxml.jackson.core:jackson-databind:"
+    "org.terracotta:galvan-platform-support:5.9.16;exclude=org.terracotta:terracotta-utilities-port-chooser",
+    "javax.cache:cache-api:1.1.0"
   ],
   "clustered.ops-tool.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
     "com.beust:jcommander:1.47"
   ],
   "clustered.ops-tool.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "clustered.osgi-test.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36"
   ],
   "clustered.osgi-test.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "clustered.server.ehcache-entity.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
-    "org.terracotta:offheap-store:2.5.3",
     "org.terracotta:runnel:5.9.16",
+    "org.terracotta:offheap-store:2.5.3",
     "org.terracotta:client-message-tracker:5.9.16"
   ],
   "clustered.server.ehcache-entity.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "clustered.server.ehcache-service.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
     "org.terracotta:offheap-store:2.5.3"
   ],
   "clustered.server.ehcache-service.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:passthrough-server:1.8.4",
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
     "org.terracotta:terracotta-utilities-test-tools:0.0.15",
     "org.terracotta.management:monitoring-service-api:5.9.16",
-    "org.mockito:mockito-core:4.3.1"
+    "org.terracotta:passthrough-server:1.8.4"
   ],
   "clustered.server.ehcache-service-api.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36"
   ],
   "clustered.server.ehcache-service-api.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "clustered.test-utils.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
@@ -375,8 +427,8 @@ Module dependencies of spi-tester:
   "core-spi-test.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
     "junit:junit:4.13.1",
-    "org.hamcrest:hamcrest-library:2.2",
-    "org.mockito:mockito-core:4.3.1"
+    "org.mockito:mockito-core:4.3.1",
+    "org.hamcrest:hamcrest-library:2.2"
   ],
   "demos.00-NoCache.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
@@ -386,111 +438,110 @@ Module dependencies of spi-tester:
     "org.slf4j:slf4j-api:1.7.36",
     "javax.servlet:javax.servlet-api:3.1.0"
   ],
-  "docs.mvnDeps": [],
   "ehcache.mvnDeps": [],
   "ehcache-107.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36"
   ],
   "ehcache-107.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "ehcache-api.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36"
   ],
   "ehcache-api.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "ehcache-core.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
     "org.terracotta:statistics:2.1.2"
   ],
   "ehcache-core.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "ehcache-impl.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
-    "org.terracotta:terracotta-utilities-tools:0.0.15",
+    "org.terracotta:offheap-store:2.5.3",
     "org.ehcache:sizeof:0.4.3",
-    "org.terracotta:offheap-store:2.5.3"
+    "org.terracotta:terracotta-utilities-tools:0.0.15"
   ],
   "ehcache-impl.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
     "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.ow2.asm:asm-commons:6.2",
-    "org.terracotta:statistics:2.1.2",
     "org.ow2.asm:asm:6.2",
-    "org.mockito:mockito-core:4.3.1"
+    "org.ow2.asm:asm-commons:6.2",
+    "org.terracotta:statistics:2.1.2"
   ],
   "ehcache-management.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
     "org.terracotta:statistics:2.1.2"
   ],
   "ehcache-management.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
     "org.terracotta:terracotta-utilities-test-tools:0.0.15",
     "org.terracotta.management:management-registry:5.9.16",
-    "org.mockito:mockito-core:4.3.1",
     "com.fasterxml.jackson.core:jackson-databind:"
   ],
   "ehcache-transactions.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36"
   ],
   "ehcache-transactions.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "ehcache-xml.ehcache-xml-spi.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36"
   ],
   "ehcache-xml.ehcache-xml-spi.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "ehcache-xml.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
     "javax.xml.bind:jaxb-api:[2.2,3)"
   ],
   "ehcache-xml.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "integration-test.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36"
   ],
   "integration-test.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
     "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.codehaus.btm:btm:2.1.4;exclude=org.slf4j:slf4j-api",
     "javax.cache:cache-api:1.1.0",
-    "org.terracotta:statistics:2.1.2",
-    "org.mockito:mockito-core:4.3.1"
+    "org.codehaus.btm:btm:2.1.4;exclude=org.slf4j:slf4j-api",
+    "org.terracotta:statistics:2.1.2"
   ],
   "osgi-test.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36",
@@ -498,11 +549,11 @@ Module dependencies of spi-tester:
     "org.apache.felix:org.apache.felix.framework:7.0.3"
   ],
   "osgi-test.test.mvnDeps": [
-    "org.hamcrest:hamcrest:2.2",
     "junit:junit:4.13.1",
     "org.assertj:assertj-core:3.22.0",
-    "org.terracotta:terracotta-utilities-test-tools:0.0.15",
-    "org.mockito:mockito-core:4.3.1"
+    "org.hamcrest:hamcrest:2.2",
+    "org.mockito:mockito-core:4.3.1",
+    "org.terracotta:terracotta-utilities-test-tools:0.0.15"
   ],
   "spi-tester.mvnDeps": [
     "org.slf4j:slf4j-api:1.7.36"
@@ -510,8 +561,8 @@ Module dependencies of spi-tester:
 }
 {
   "clustered.ehcache-client.compileMvnDeps": [
-    "org.osgi:org.osgi.service.component.annotations:1.3.0",
-    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+    "com.github.spotbugs:spotbugs-annotations:4.2.3",
+    "org.osgi:org.osgi.service.component.annotations:1.3.0"
   ],
   "clustered.ehcache-client.test.compileMvnDeps": [
     "com.github.spotbugs:spotbugs-annotations:4.2.3"
@@ -577,11 +628,10 @@ Module dependencies of spi-tester:
   "demos.01-CacheAside.compileMvnDeps": [
     "com.github.spotbugs:spotbugs-annotations:4.2.3"
   ],
-  "docs.compileMvnDeps": [],
   "ehcache.compileMvnDeps": [],
   "ehcache-107.compileMvnDeps": [
-    "org.osgi:org.osgi.service.component.annotations:1.3.0",
-    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+    "com.github.spotbugs:spotbugs-annotations:4.2.3",
+    "org.osgi:org.osgi.service.component.annotations:1.3.0"
   ],
   "ehcache-107.test.compileMvnDeps": [
     "com.github.spotbugs:spotbugs-annotations:4.2.3"
@@ -593,24 +643,24 @@ Module dependencies of spi-tester:
     "com.github.spotbugs:spotbugs-annotations:4.2.3"
   ],
   "ehcache-core.compileMvnDeps": [
-    "org.osgi:org.osgi.service.component.annotations:1.3.0",
     "com.github.spotbugs:spotbugs-annotations:4.2.3",
-    "org.osgi:osgi.core:6.0.0"
+    "org.osgi:osgi.core:6.0.0",
+    "org.osgi:org.osgi.service.component.annotations:1.3.0"
   ],
   "ehcache-core.test.compileMvnDeps": [
     "com.github.spotbugs:spotbugs-annotations:4.2.3"
   ],
   "ehcache-impl.compileMvnDeps": [
-    "org.osgi:org.osgi.service.component.annotations:1.3.0",
-    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+    "com.github.spotbugs:spotbugs-annotations:4.2.3",
+    "org.osgi:org.osgi.service.component.annotations:1.3.0"
   ],
   "ehcache-impl.test.compileMvnDeps": [
     "com.github.spotbugs:spotbugs-annotations:4.2.3"
   ],
   "ehcache-management.compileMvnDeps": [
+    "com.github.spotbugs:spotbugs-annotations:4.2.3",
     "org.terracotta:entity-client-api:1.8.2",
-    "org.terracotta.management:nms-agent-entity-client:5.9.16;exclude=org.terracotta:statistics",
-    "com.github.spotbugs:spotbugs-annotations:4.2.3"
+    "org.terracotta.management:nms-agent-entity-client:5.9.16;exclude=org.terracotta:statistics"
   ],
   "ehcache-management.test.compileMvnDeps": [
     "com.github.spotbugs:spotbugs-annotations:4.2.3"
@@ -690,14 +740,13 @@ Module dependencies of spi-tester:
   "clustered.test-utils.runMvnDeps": [],
   "core-spi-test.runMvnDeps": [],
   "demos.00-NoCache.runMvnDeps": [
-    "com.h2database:h2:1.4.196",
-    "ch.qos.logback:logback-classic:1.2.11"
+    "ch.qos.logback:logback-classic:1.2.11",
+    "com.h2database:h2:1.4.196"
   ],
   "demos.01-CacheAside.runMvnDeps": [
-    "com.h2database:h2:1.4.196",
-    "ch.qos.logback:logback-classic:1.2.11"
+    "ch.qos.logback:logback-classic:1.2.11",
+    "com.h2database:h2:1.4.196"
   ],
-  "docs.runMvnDeps": [],
   "ehcache.runMvnDeps": [],
   "ehcache-107.runMvnDeps": [],
   "ehcache-107.test.runMvnDeps": [
@@ -738,9 +787,9 @@ Module dependencies of spi-tester:
     "org.slf4j:slf4j-simple:1.7.36"
   ],
   "osgi-test.runMvnDeps": [
+    "org.ops4j.pax.exam:pax-exam-link-mvn:4.13.5;exclude=org.slf4j:slf4j-api",
     "org.ops4j.pax.url:pax-url-wrap:2.6.11;exclude=org.slf4j:slf4j-api",
-    "org.ops4j.pax.exam:pax-exam-container-native:4.13.5;exclude=org.slf4j:slf4j-api",
-    "org.ops4j.pax.exam:pax-exam-link-mvn:4.13.5;exclude=org.slf4j:slf4j-api"
+    "org.ops4j.pax.exam:pax-exam-container-native:4.13.5;exclude=org.slf4j:slf4j-api"
   ],
   "osgi-test.test.runMvnDeps": [
     "org.slf4j:slf4j-simple:1.7.36"
@@ -773,7 +822,6 @@ Module dependencies of spi-tester:
   "core-spi-test.bomMvnDeps": [],
   "demos.00-NoCache.bomMvnDeps": [],
   "demos.01-CacheAside.bomMvnDeps": [],
-  "docs.bomMvnDeps": [],
   "ehcache.bomMvnDeps": [],
   "ehcache-107.bomMvnDeps": [],
   "ehcache-107.test.bomMvnDeps": [],
@@ -1021,7 +1069,6 @@ Module dependencies of spi-tester:
     "-Werror",
     "-Xlint:all"
   ],
-  "docs.javacOptions": [],
   "ehcache.javacOptions": [],
   "ehcache-107.javacOptions": [
     "-source",
@@ -1692,7 +1739,6 @@ Module dependencies of spi-tester:
   "ehcache-xml.ehcache-xml-spi.publishProperties": {},
   "ehcache-xml.publishProperties": {}
 }
-
 
 
 

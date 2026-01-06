@@ -5,19 +5,32 @@ import org.objectweb.asm
 object AsmWorkerImpl {
 
   def generateSyntheticClasses(classesDir: java.nio.file.Path, mainMethods: Array[String]): Unit = {
+    // Find the *_MillScriptMain class name to forward to
+    val targetClassName = os.list(os.Path(classesDir))
+      .find(_.last.endsWith("_MillScriptMain$.class"))
+      .map(_.last.stripSuffix("$.class"))
+      .getOrElse("_MillScriptMain")
+
     mainMethods.foreach { methodName =>
-      generateSyntheticMainClass(os.Path(classesDir), methodName, mainMethods.size > 1)
+      generateSyntheticMainClass(
+        os.Path(classesDir),
+        methodName,
+        mainMethods.size > 1,
+        targetClassName
+      )
     }
   }
 
   def findMainArgsMethods(classesDir: java.nio.file.Path): Array[String] = {
     val mainMethods = collection.mutable.ArrayBuffer[String]()
 
-    // Look for _MillScriptMain$ class which contains the mainargs.Parser code
-    val millScriptMainClass = os.Path(classesDir) / "_MillScriptMain$.class"
+    // Look for *_MillScriptMain$ classes which contain the mainargs.Parser code
+    // The class name is prefixed with the script name (e.g., Multi_MillScriptMain$)
+    val millScriptMainClasses = os.list(os.Path(classesDir))
+      .filter(_.last.endsWith("_MillScriptMain$.class"))
 
-    if (os.exists(millScriptMainClass)) {
-      val reader = new asm.ClassReader(os.read.bytes(millScriptMainClass))
+    for (classFile <- millScriptMainClasses) {
+      val reader = new asm.ClassReader(os.read.bytes(classFile))
 
       val visitor = new asm.ClassVisitor(asm.Opcodes.ASM9) {
         override def visitMethod(
@@ -70,7 +83,8 @@ object AsmWorkerImpl {
   def generateSyntheticMainClass(
       classesDir: os.Path,
       methodName: String,
-      multiMain: Boolean
+      multiMain: Boolean,
+      targetClassName: String
   ): Unit = {
     val templateClassName = if (multiMain) "TemplateMultiMainClass" else "TemplateSingleMainClass"
     val templateBytes = os.read.bytes(
@@ -116,9 +130,9 @@ object AsmWorkerImpl {
               descriptor: String,
               isInterface: Boolean
           ): Unit = {
-            // Replace TemplateMainClass.main call with _MillScriptMain$.main
+            // Replace TemplateMainClass.main call with the actual *_MillScriptMain.main
             if (owner == s"mill/script/asm/$templateClassName" && name == "main") {
-              super.visitMethodInsn(opcode, "_MillScriptMain", name, descriptor, isInterface)
+              super.visitMethodInsn(opcode, targetClassName, name, descriptor, isInterface)
             } else {
               super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
             }

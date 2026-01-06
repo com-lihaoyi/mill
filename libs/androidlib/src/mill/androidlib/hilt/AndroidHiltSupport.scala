@@ -24,11 +24,6 @@ import mill.{T, Task}
 @mill.api.experimental
 trait AndroidHiltSupport extends KspModule, AndroidKotlinModule {
 
-  // Dagger does not work with the bt api
-  override def kotlincUseBtApi: T[Boolean] = Task {
-    false
-  }
-
   override def kspProcessorOptions: T[Map[String, String]] = Task {
     super.kspProcessorOptions() ++ Map(
       "dagger.fastInit" -> "enabled",
@@ -60,7 +55,8 @@ trait AndroidHiltSupport extends KspModule, AndroidKotlinModule {
 
   override def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
     kspDependencyResolver().classpath(
-      kotlinSymbolProcessors()
+      kotlinSymbolProcessors(),
+      boms = allBomDeps()
     )
   }
 

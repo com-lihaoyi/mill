@@ -2,7 +2,7 @@ package mill.main.gradle
 
 import mill.main.buildgen.*
 import mill.main.gradle.BuildInfo.exportpluginAssemblyResource
-import mill.util.{CoursierConfig, Jvm}
+import mill.util.Jvm
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import pprint.Util.literalize
@@ -11,72 +11,91 @@ import java.util.Properties
 import java.util.concurrent.TimeUnit
 import scala.util.Using
 
-/**
- * Application that imports a Gradle build to Mill.
- */
 object GradleBuildGenMain {
 
   def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 
-  @mainargs.main(doc = "Imports a Gradle build located in the current working directory.")
-  def runImport(
-      @mainargs.arg(doc = "merge generated build files")
+  @mainargs.main(doc = "Generates Mill build files that are derived from a Gradle build.")
+  def init(
+      @mainargs.arg(doc = "Coursier ID for the JVM to run Gradle")
+      gradleJvmId: String = "system",
+      @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
       @mainargs.arg(doc = "disable generating meta-build files")
       noMeta: mainargs.Flag,
-      @mainargs.arg(doc = "JDK to use to run the Gradle daemon")
-      // The JDK used to run the daemon may be used to configure certain settings.
-      gradleJvmId: String = "system"
+      @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
+      millJvmId: Option[String]
   ): Unit = {
     println("converting Gradle build")
 
-    val gradleWrapperProperties = {
-      val properties = new Properties()
-      val file = os.pwd / "gradle/wrapper/gradle-wrapper.properties"
-      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
-      properties
-    }
-    val gradleJvmArgs = Option(gradleWrapperProperties.getProperty("org.gradle.jvmargs"))
-      .fold(Nil)(_.trim.split("\\s").toSeq)
-
-    val gradleJavaHome =
-      Jvm.resolveJavaHome(id = gradleJvmId, config = CoursierConfig.default()).get
     val exportPluginJar = Using.resource(
-      GradleBuildGenMain.getClass.getResourceAsStream(exportpluginAssemblyResource)
+      getClass.getResourceAsStream(exportpluginAssemblyResource)
     )(os.temp(_, suffix = ".jar"))
-    val gradleConnector = GradleConnector.newConnector() match {
+    val initScript = os.temp(
+      s"""initscript {
+         |    dependencies {
+         |      classpath files(${literalize(exportPluginJar.toString)})
+         |    }
+         |}
+         |rootProject {
+         |    apply plugin: mill.main.gradle.BuildModelPlugin
+         |}
+         |""".stripMargin,
+      suffix = ".gradle"
+    )
+    val gradleConnector = GradleConnector.newConnector match {
       case conn: DefaultGradleConnector =>
         conn.daemonMaxIdleTime(1, TimeUnit.SECONDS)
         conn
       case conn => conn
     }
-    val packages =
-      try {
-        Using.resource(gradleConnector.forProjectDirectory(os.pwd.toIO).connect()) { connection =>
-          val initScript = os.temp(
-            s"""initscript {
-               |    dependencies {
-               |      classpath files(${literalize(exportPluginJar.toString())})
-               |    }
-               |}
-               |rootProject {
-               |    apply plugin: mill.main.gradle.BuildModelPlugin
-               |}
-               |""".stripMargin,
-            suffix = ".gradle"
-          )
-          val modelBuilder = connection.model(classOf[BuildModel])
-            .setJavaHome(gradleJavaHome.toIO)
+    var packages =
+      try Using.resource(gradleConnector.forProjectDirectory(os.pwd.toIO).connect) { connection =>
+          val model = connection.model(classOf[BuildModel])
             .addArguments("--init-script", initScript.toString)
-          println("connecting to Gradle daemon")
-          val model = modelBuilder.get
+            .setJavaHome(Jvm.resolveJavaHome(gradleJvmId).get.toIO)
+            .setStandardOutput(System.out).get
           upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
-      } finally gradleConnector.disconnect()
+      finally gradleConnector.disconnect()
+    packages = normalizeBuild(packages)
 
-    var build = BuildSpec.fill(packages).copy(millJvmOpts = gradleJvmArgs)
-    if (merge.value) build = build.merged
-    if (!noMeta.value) build = build.withDefaultMetaBuild
-    BuildWriter(build).writeFiles()
+    val (depNames, packages0) =
+      if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
+    val (baseModule, packages1) = Option.when(!noMeta.value)(BuildGen.withBaseModule(
+      packages0,
+      Seq("MavenModule"),
+      Seq("MavenTests")
+    )).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
+    val millJvmOpts = {
+      val properties = new Properties()
+      val file = os.pwd / "gradle/wrapper/gradle-wrapper.properties"
+      if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
+      val prop = properties.getProperty("org.gradle.jvmargs")
+      if (prop == null) Nil else prop.trim.split("\\s").toSeq
+    }
+    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmId, millJvmOpts)
+  }
+
+  private def normalizeBuild(packages: Seq[PackageSpec]) = {
+    val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
+    packages.map(pkg =>
+      pkg.copy(module = pkg.module.recMap { module =>
+        var module0 = module
+        if (module0.supertypes.contains("PublishModule")) {
+          val (bomModuleDeps, bomModuleRefs) = module0.bomModuleDeps.base.partition { dep =>
+            moduleLookup(dep.segments ++ dep.childSegment).supertypes.contains("PublishModule")
+          }
+          if (bomModuleRefs.nonEmpty) {
+            module0 = module0.copy(
+              bomMvnDeps = module0.bomMvnDeps.copy(appendRefs = bomModuleRefs),
+              depManagement = module0.depManagement.copy(appendRefs = bomModuleRefs),
+              bomModuleDeps = bomModuleDeps
+            )
+          }
+        }
+        module0
+      })
+    )
   }
 }

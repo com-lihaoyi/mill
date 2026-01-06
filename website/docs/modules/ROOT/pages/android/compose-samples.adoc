@@ -2,7 +2,7 @@
 :page-aliases: android_jetpack_compose.adoc
 
 
-This page provides an example of using Mill as a build tool against more real like examples, using the
+This page provides an example of using Mill as a build tool with more realistic examples, using the
 official https://github.com/android/compose-samples[compose samples]
 
 *Example Apps*

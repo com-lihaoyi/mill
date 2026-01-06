@@ -1,4 +1,4 @@
-import utest._
+import utest.*
 
 object ArgsParserTests extends TestSuite {
 

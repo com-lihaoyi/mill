@@ -19,6 +19,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MY_ENV_VAR": "my-value",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
@@ -51,6 +52,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/app/test/resources"
       },
@@ -69,6 +71,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
@@ -86,6 +89,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
@@ -102,6 +106,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
@@ -125,6 +130,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-java/test/resources"
       },
@@ -149,6 +155,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
@@ -166,6 +173,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
@@ -195,6 +203,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-scala/test/resources"
       },
@@ -218,6 +227,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
@@ -234,6 +244,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
@@ -245,16 +256,16 @@
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.6/pprint_3-0.9.6.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.6/os-lib_3-0.11.6.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.2-RC2/upickle_3-4.4.2-RC2.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.7/mainargs_3-0.7.7.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.8/mainargs_3-0.7.8.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/0.12.0/scalatags_3-0.12.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala3-version>/scala-library-<scala3-version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.1/fansi_3-0.5.1.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/0.11.5/os-zip-0.11.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/0.11.6/os-zip-0.11.6.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.4.2-RC2/ujson_3-4.4.2-RC2.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.2-RC2/upack_3-4.4.2-RC2.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.2-RC2/upickle-implicits_3-4.4.2-RC2.jar",
@@ -265,6 +276,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
@@ -291,6 +303,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
@@ -330,6 +343,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/scripts/folder2/FooTest.java/resources"
       },
@@ -352,6 +366,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
@@ -368,16 +383,16 @@
       "classpath": [
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/0.9.6/pprint_3-0.9.6.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.5/os-lib_3-0.11.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.11.6/os-lib_3-0.11.6.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/4.4.2-RC2/upickle_3-4.4.2-RC2.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/0.9.0/requests_3-0.9.0.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.7/mainargs_3-0.7.7.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/0.7.8/mainargs_3-0.7.8.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/0.12.0/scalatags_3-0.12.0.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala3-version>/scala-library-<scala3-version>.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.1/fansi_3-0.5.1.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.3-M5/sourcecode_3-0.4.3-M5.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.1/geny_3-1.1.1.jar",
-        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/0.11.5/os-zip-0.11.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/0.11.6/os-zip-0.11.6.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/4.4.2-RC2/ujson_3-4.4.2-RC2.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/4.4.2-RC2/upack_3-4.4.2-RC2.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/4.4.2-RC2/upickle-implicits_3-4.4.2-RC2.jar",
@@ -388,6 +403,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
@@ -407,6 +423,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []
@@ -424,6 +441,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": []

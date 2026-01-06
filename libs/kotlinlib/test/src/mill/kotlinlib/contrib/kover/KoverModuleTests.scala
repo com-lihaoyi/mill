@@ -1,7 +1,7 @@
 package mill.kotlinlib.kover
 
 import mill.api.Discover
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
 import mill.testkit.{TestRootModule, UnitTester}

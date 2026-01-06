@@ -1,6 +1,6 @@
 //| mill-jvm-version: 17
 
-// This example demonstrates a simple multi-langauge project,
+// This example demonstrates a simple multi-language project,
 // running a `spring boot webserver` serving a `react client` and interacting with a `python binary`
 // through the web-server api.
 
@@ -89,10 +89,10 @@ OK
 
 > ./mill server.runBackground
 
-> curl http://localhost:8086
+> curl http://localhost:${PORT:-8080}
 ...<title>Sentiment Analysis Tool</title>...
 
-> curl -X POST http://localhost:8086/api/analysis -H "Content-Type: text/plain" --data "This is awesome!" # Make request to the analysis api
+> curl -X POST http://localhost:${PORT:-8080}/api/analysis -H "Content-Type: text/plain" --data "This is awesome!" # Make request to the analysis api
 Positive sentiment (polarity: 1.0)
 
 > ./mill clean server.runBackground

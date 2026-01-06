@@ -61,7 +61,8 @@ object Util {
 
   def backtickWrap(s: String): String = s match {
     case s"`$_`" => s
-    case _ => if (encode(s) == s && !alphaKeywords.contains(s)) s
+    case _ =>
+      if (encode(s) == s && !alphaKeywords.contains(s) && Character.isJavaIdentifierStart(s.head)) s
       else "`" + s + "`"
   }
 
@@ -192,8 +193,8 @@ object Util {
           import org.snakeyaml.engine.v2.composer.Composer
           import org.snakeyaml.engine.v2.parser.ParserImpl
           import org.snakeyaml.engine.v2.scanner.StreamReader
-          import org.snakeyaml.engine.v2.nodes._
-          import scala.jdk.CollectionConverters._
+          import org.snakeyaml.engine.v2.nodes.*
+          import scala.jdk.CollectionConverters.*
 
           val settings = LoadSettings.builder().build()
           val reader = new StreamReader(settings, headerData)
@@ -207,18 +208,15 @@ object Util {
             try {
               node match {
                 case scalar: ScalarNode =>
-                  val value = scalar.getValue
-                  val tag = scalar.getTag.getValue
-                  tag match {
+                  // Parse all YAML scalars as strings. In general, the `upickle.Reader`s that
+                  // consume these events downstream all are able to handle strings elegantly,
+                  // and this avoids the loss of precision that may result if we try to emit
+                  // e.g. booleans using `visitTrue`/`visitFalse which would result in the
+                  // distinction between `true`/`True`/`TRUE` collapsing into just `true` even
+                  // if the final parse wants the actual string value.
+                  scalar.getTag.getValue match {
                     case "tag:yaml.org,2002:null" => v.visitNull(index)
-                    case "tag:yaml.org,2002:bool" =>
-                      if (value == "true") v.visitTrue(index)
-                      else v.visitFalse(index)
-                    case "tag:yaml.org,2002:int" =>
-                      v.visitFloat64StringParts(value, -1, -1, index)
-                    case "tag:yaml.org,2002:float" =>
-                      v.visitFloat64StringParts(value, -1, -1, index)
-                    case _ => v.visitString(value, index)
+                    case _ => v.visitString(scalar.getValue, index)
                   }
 
                 case mapping: MappingNode =>

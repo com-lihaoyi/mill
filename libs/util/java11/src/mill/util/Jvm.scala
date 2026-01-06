@@ -207,9 +207,38 @@ object Jvm {
 
   def jdkTool(toolName: String): String = jdkTool(toolName, None)
 
+  /**
+   * Calls a JDK tool with the given arguments, inheriting stdin/stdout.
+   */
+  def callJdkTool(toolName: String, args: Seq[String], javaHome: Option[os.Path]): Unit = {
+    val cmd = Seq(jdkTool(toolName, javaHome)) ++ args
+    os.call(cmd = cmd, stdin = os.Inherit, stdout = os.Inherit)
+  }
+
   def javaExe(javaHome: Option[os.Path]): String = jdkTool("java", javaHome)
 
   def javaExe: String = javaExe(None)
+
+  /**
+   * Detects the major version of a JVM by running `java -version`.
+   * Returns 0 if the version cannot be determined.
+   */
+  def getJavaMajorVersion(javaHome: Option[os.Path]): Int = {
+    try {
+      val javaExePath = javaExe(javaHome)
+      val result = os.proc(javaExePath, "-version").call(
+        stderr = os.Pipe,
+        check = false,
+        mergeErrIntoOut = true
+      )
+      val output = result.out.text()
+      // Parse version from output like: openjdk version "23.0.1" or "21.0.2" or "1.8.0_xxx"
+      val pattern = """version "(\d+)""".r
+      pattern.findFirstMatchIn(output).map(_.group(1).toInt).getOrElse(0)
+    } catch {
+      case _: Exception => 0
+    }
+  }
 
   /**
    * Creates a `java.net.URLClassLoader` with specified parameters

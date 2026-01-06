@@ -218,9 +218,12 @@ object PathRef {
         storeSerializedPaths(pr)
         pr
       case s =>
-        mill.api.BuildCtx.withFilesystemCheckerDisabled(
-          PathRef(os.Path(s, currentOverrideModulePath.value))
-        )
+        val path = s match {
+          case s"//$rest" => os.Path(rest, BuildCtx.workspaceRoot)
+          case _ => os.Path(s, currentOverrideModulePath.value)
+        }
+
+        mill.api.BuildCtx.withFilesystemCheckerDisabled(PathRef(path))
     }
   )
   private[mill] val currentOverrideModulePath = DynamicVariable[os.Path](null)

@@ -16,6 +16,8 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[MissingClassProblem]("mill.kotlinlib.ksp.GeneratedKSPSources$"),
     // private class
     ProblemFilter.exclude[Problem]("mill.api.internal.Resolved*"),
+    ProblemFilter.exclude[Problem]("mill.api.Cached*"),
+    ProblemFilter.exclude[Problem]("mill.api.SimpleTaskTokenReader*"),
     ProblemFilter.exclude[Problem]("mill.util.RequestId*"),
     ProblemFilter.exclude[Problem]("mill.util.Timed*"),
     ProblemFilter.exclude[Problem]("mill.javalib.bsp.BspRunModule*"),
@@ -50,6 +52,21 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // private method
     ProblemFilter.exclude[Problem](
       "mill.api.daemon.internal.ExecutionResultsApi.formatFailing"
+    ),
+    // Real breakage, but hopefully, it's not used by external plugins
+    // See https://github.com/com-lihaoyi/mill/pull/5747#issuecomment-3641324806 and following discussion
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.javalib.TestModule#Junit5.mill$javalib$TestModule$Junit5$$super$bomMvnDeps"
+    ),
+
+    // Seems like a false positive, since it will always get mixed into `RootModule0` which
+    // provides the implementations
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem]("mill.util.MainModule.moduleCtx"),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.util.MainModule.moduleLinearized"
+    ),
+    ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
+      "mill.util.MainModule.mill$api$Module$_setter_$moduleLinearized_="
     )
   )
 

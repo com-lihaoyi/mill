@@ -1,0 +1,6 @@
+//// SNIPPET:EXPLANATION
+//
+// * Pass flags to the Java compiler via `javacOptions`.
+//
+//// SNIPPET:END
+//// SNIPPET:FATAL_WARNINGS

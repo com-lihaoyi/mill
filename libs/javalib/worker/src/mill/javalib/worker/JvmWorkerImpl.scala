@@ -18,7 +18,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
   import args.*
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
-  private val zincLocalWorker = ZincWorker(jobs = jobs)
+  private val zincLocalWorker = ZincWorker(jobs = jobs, useFileLocks = useFileLocks)
 
   override def apply(
       op: ZincOp,
@@ -96,18 +96,27 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
-        val mainClass = "mill.javalib.zinc.ZincWorkerMain"
-        val fileLocks = Locks.files(daemonDir.toString)
+        val mainClass = "mill.javalib.worker.JvmWorkerMain"
+        val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
         val locks = {
           Locks(
             // File locks are non-reentrant, so we need to lock on the memory lock first.
             //
             // We can get multiple lock acquisitions when we compile several modules in parallel,
-            DoubleLock(memLockFor(daemonDir), fileLocks.launcherLock),
+            DoubleLock(memLockFor(daemonDir), baseLocks.launcherLock),
             // We never take the daemon lock, just check if it's already taken
-            fileLocks.daemonLock
+            baseLocks.daemonLock
           )
         }
+
+        val javaMajorVersion = Jvm.getJavaMajorVersion(key.javaHome)
+        val suppressArgs =
+          // Suppress Unsafe warnings on Java >=23, since we use Scala modules built in Scala-3.7 for
+          // compatibility with Java >=11, and Scala-3.7 generates such warnings spuriously
+          Option.when(javaMajorVersion >= 23) { "--sun-misc-unsafe-memory-access=allow" } ++
+            // Silence another benign warning, this one raised by a `com.swoval:file-tree-views`
+            // which is transitively used by Zinc for faster filesystem operations
+            Option.when(javaMajorVersion >= 16) { "--enable-native-access=ALL-UNNAMED" }
 
         val launched = ServerLauncher.launchOrConnectToServer(
           locks,
@@ -116,9 +125,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           () => {
             val process = Jvm.spawnProcess(
               mainClass = mainClass,
-              mainArgs = Seq(daemonDir.toString, jobs.toString),
+              mainArgs = Seq(daemonDir.toString, jobs.toString, useFileLocks.toString),
               javaHome = key.javaHome,
-              jvmArgs = key.runtimeOptions,
+              jvmArgs = key.runtimeOptions ++ suppressArgs,
               classPath = classPath
             )
             LaunchedServer.OsProcess(process.wrapped.toHandle)

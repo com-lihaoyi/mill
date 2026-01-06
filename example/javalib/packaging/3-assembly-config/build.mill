@@ -1,0 +1,20 @@
+//// SNIPPET:BUILD
+package build
+import mill.*, javalib.*
+import mill.javalib.Assembly.*
+
+object foo extends JavaModule {
+  def moduleDeps = Seq(bar)
+  def assemblyRules = Seq(
+    // all application.conf files will be concatenated into single file
+    Rule.Append("application.conf"),
+    // all *.conf files will be concatenated into single file
+    Rule.AppendPattern(".*\\.conf"),
+    // all *.temp files will be excluded from a final jar
+    Rule.ExcludePattern(".*\\.temp"),
+    // the `shapeless` package will be relocated under the `shade` package
+    Rule.Relocate("shapeless.**", "shade.shapeless.@1")
+  )
+}
+
+object bar extends JavaModule {}

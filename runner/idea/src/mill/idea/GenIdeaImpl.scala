@@ -23,7 +23,7 @@ import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet, Resolv
 import mill.util.BuildInfo
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 import os.SubPath
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class GenIdeaImpl(
     private val evaluators: Seq[EvaluatorApi]
@@ -31,7 +31,7 @@ class GenIdeaImpl(
   def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
-  import GenIdeaImpl._
+  import GenIdeaImpl.*
 
   private val workDir: os.Path = os.Path(evaluators.head.rootModule.moduleDirJava)
   private val ideaDir: os.Path = workDir / ".idea"
@@ -973,6 +973,6 @@ object GenIdeaImpl {
       }
   }
 
-  case class GenIdeaException(msg: String) extends RuntimeException
+  case class GenIdeaException(msg: String) extends RuntimeException(msg)
 
 }

@@ -1,41 +1,15 @@
-= Java Packaging & Publishing
+= Publishing Java Projects
 :page-aliases: Publishing_Java_Projects.adoc
+:language: Java
+:language-small: java
 
+This page will discuss common topics around publishing your Java projects for others to use.
 
+== Basic Publishing Configuration
 
-This page will discuss common topics around packaging and publishing your Java projects for others to use.
+include::partial$example/javalib/publishing/1-publishing.adoc[]
 
-== Building Executable Assemblies
-
-include::partial$example/javalib/publishing/1-assembly-config.adoc[]
-
-== Building `Repackage` Assemblies
-
-include::partial$example/javalib/publishing/9-repackage-config.adoc[]
-
-== Building Native Image Binaries with Graal VM
-
-include::partial$example/javalib/publishing/7-native-image.adoc[]
-
-
-For another example building a slightly less trivial project into a Graal native
-image, see below:
-
-include::partial$example/javalib/publishing/8-native-image-libs.adoc[]
-
-
-[#_java_app_and_bundles_using_jlink]
-== Java App and Bundles using `jlink`
-
-include::partial$example/javalib/publishing/5-jlink.adoc[]
-
-[#_java_installers_using_jpackage]
-== Java Installers using `jpackage`
-
-include::partial$example/javalib/publishing/6-jpackage.adoc[]
-
-
-== Publishing Locally
+== Programmatic Publishing Configuration
 
 include::partial$example/javalib/publishing/2-publish-module.adoc[]
 

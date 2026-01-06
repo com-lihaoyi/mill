@@ -1,0 +1,44 @@
+package build.libs.groovylib
+
+import mill.*
+import mill.contrib.buildinfo.BuildInfo
+import mill.scalalib.*
+import millbuild.*
+
+object `package` extends MillPublishScalaModule with BuildInfo {
+
+  def moduleDeps = Seq(build.libs.util, build.libs.javalib, build.libs.javalib.testrunner, api)
+  def localTestExtraModules: Seq[MillJavaModule] =
+    super.localTestExtraModules ++ Seq(worker)
+
+  override def testMvnDeps: T[Seq[Dep]] = super.testMvnDeps() ++ Seq(
+    Deps.asmTree
+  )
+
+  def buildInfoPackageName = "mill.groovylib"
+  def buildInfoObjectName = "Versions"
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("groovyVersion", Deps.groovyVersion_lowerBound, "Version of Groovy")
+  )
+
+  object api extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.core.api, build.libs.javalib.testrunner)
+
+    override def compileMvnDeps: T[Seq[Dep]] = Seq(
+      Deps.osLib
+    )
+  }
+
+  object worker extends MillPublishScalaModule {
+    override def compileModuleDeps = Seq(api)
+
+    def mandatoryMvnDeps = Seq.empty[Dep]
+
+    override def compileMvnDeps: T[Seq[Dep]] =
+      super.mandatoryMvnDeps() ++ Seq(
+        Deps.osLib,
+        Deps.groovyCompiler_lowerBound
+      )
+  }
+
+}

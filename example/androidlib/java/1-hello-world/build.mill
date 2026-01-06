@@ -35,7 +35,7 @@ object app extends AndroidAppModule {
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
-  override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidVirtualDevice = super.androidVirtualDevice().withName("java-test")
 
   object test extends AndroidAppTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"

@@ -85,7 +85,7 @@ object Module {
         (cls, noParams, inner) =>
           Reflect.getMethods(cls, noParams, inner, scala.reflect.NameTransformer.decode)
       )
-        .map(_.invoke(outer).asInstanceOf[T])
+        .map { case (m, _) => m.invoke(outer).asInstanceOf[T] }
         .toSeq
     }
 

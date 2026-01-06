@@ -113,7 +113,7 @@ def osProcTask = Task {
 
 // === Non-task `os.pwd` redirection
 //
-// Lastly, there is the possibily of calling `os.pwd` outside of a task. When outside of
+// Lastly, there is the possibility of calling `os.pwd` outside of a task. When outside of
 // a task there is no `.dest/` folder associated, so instead Mill will redirect `os.pwd`
 // towards an empty `sandbox/` folder in `out/mill-daemon/...`:
 

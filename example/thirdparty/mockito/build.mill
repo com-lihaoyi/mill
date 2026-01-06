@@ -38,7 +38,7 @@ object libraries {
 }
 
 trait MockitoModule extends MavenModule {
-  def jvmId = "temurin:11.0.24"
+  def jvmVersion = "temurin:11.0.24"
   def javacOptions = Seq("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
   def testMvnDeps: T[Seq[Dep]] = Seq()

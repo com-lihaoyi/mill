@@ -1,10 +1,10 @@
 package mill.scalajslib
 
 import mill.api.Discover
-import mill.scalajslib.api._
+import mill.scalajslib.api.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 object SmallModulesForTests extends TestSuite {
   object SmallModulesForModule extends TestRootModule with ScalaJSModule {

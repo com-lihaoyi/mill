@@ -1,4 +1,4 @@
-//| mill-version: 1.1.0-RC3-19-3730cf
+//| mill-version: 1.1.0-RC3-122-0af08c
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C", "-DMILL_ENABLE_STATIC_CHECKS=true"]
 
@@ -14,11 +14,11 @@ import coursier.maven.MavenRepository
 import coursier.VersionConstraint
 import mill.util.VcsVersion
 //import com.goyeau.mill.scalafix.ScalafixModule
-import mill._
+import mill.*
 import mill.util.Tasks
-import mill.scalalib._
+import mill.scalalib.*
 import mill.javalib.api.JvmWorkerUtil
-import mill.scalalib.publish._
+import mill.scalalib.publish.*
 import mill.api.SelectMode
 import mill.T
 import mill.api.Cross

@@ -45,7 +45,7 @@ everything from compiling the code to generating a signed APK for distribution.
 5. **Optimizing with zipalign**: The APK is optimized using `zipalign` to ensure better performance on Android devices.
 6. **Signing the APK**: Finally, the APK is signed with a digital signature, allowing it to be distributed and installed on Android devices.
 
-After creating Simple Android Application now let's focus on how to create Android App Bundle Using Mill Build Tool
+After creating a Simple Android Application, let's focus on how to create an Android App Bundle using the Mill Build Tool.
 
 == Android App Bundle
 
