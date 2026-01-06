@@ -14,7 +14,7 @@ const App = () => {
         setSentiment('neutral');
 
         try {
-            const response = await fetch('http://localhost:8086/api/analysis', {
+            const response = await fetch('http://localhost:8080/api/analysis', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/plain',

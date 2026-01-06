@@ -19,30 +19,385 @@ as any scripting language out there.
 
 == Challenges of Small-Scale Java Programs
 
-- Hard to install Java+Maven/Gradle
-- Configuring Maven/Gradle for a small script is tedious and annoying
-- Very verbose language for small scripts
+Writing small scripts in JVM languages such as Java, Kotlin or Scala is possible today,
+but it can be somewhat clunky and hard to do, and although there are ways to streamline
+the process they may not be immediately obvious. Consider this small Java program
+that someone may write
+
+.JsonApiClient.java
+```java
+import com.fasterxml.jackson.databind.*;
+import kong.unirest.Unirest;
+import picocli.CommandLine;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.concurrent.Callable;
+
+@CommandLine.Command(name = "Crawler", mixinStandardHelpOptions = true)
+public class JsonApiClient implements Callable<Integer> {
+
+  @CommandLine.Option(names = {"--start-article"}, required = true, description = "Starting title")
+  private String startArticle;
+
+  @CommandLine.Option(names = {"--depth"}, required = true, description = "Depth of crawl")
+  private int depth;
+
+  private static final ObjectMapper mapper = new ObjectMapper();
+
+  public static List<String> fetchLinks(String title) throws Exception {
+    var response = Unirest.get("https://en.wikipedia.org/w/api.php")
+      .queryString("action", "query")
+      .queryString("titles", title)
+      .queryString("prop", "links")
+      .queryString("format", "json")
+      .header("User-Agent", "WikiFetcherBot/1.0 (https://example.com; contact@example.com)")
+      .asString();
+
+    if (!response.isSuccess())
+      throw new IOException("Unexpected code " + response.getStatus());
+
+    var root = mapper.readTree(response.getBody());
+    var pages = root.path("query").path("pages");
+    var links = new ArrayList<String>();
+
+    for (var it = pages.elements(); it.hasNext();) {
+      var linkArr = it.next().get("links");
+      if (linkArr != null && linkArr.isArray()) {
+        for (var link : linkArr) {
+          var titleNode = link.get("title");
+          if (titleNode != null) links.add(titleNode.asText());
+        }
+      }
+    }
+    return links;
+  }
+
+  public Integer call() throws Exception {
+    var seen = new HashSet<>(Set.of(startArticle));
+    var current = new HashSet<>(Set.of(startArticle));
+
+    for (int i = 0; i < depth; i++) {
+      var next = new HashSet<String>();
+      for (var article : current) {
+        for (var link : fetchLinks(article)) {
+          if (!seen.contains(link)) next.add(link);
+        }
+      }
+      seen.addAll(next);
+      current = next;
+    }
+
+    try (var w = Files.newBufferedWriter(Paths.get("fetched.json"))) {
+      mapper.writerWithDefaultPrettyPrinter().writeValue(w, seen);
+    }
+    return 0;
+  }
+
+  public static void main(String[] args) {
+    System.exit(new CommandLine(new JsonApiClient()).execute(args));
+  }
+}
+```
+
+This program uses unirest-java and jackson-databind to fetch the links of a
+wikipedia page via the wikipedia API, which it then uses to perform
+a breadth-first traversal of the wikipedia article graph. While this example is a toy program,
+it is representative of the many kinds of small programs or scripts that people typically use
+scripting languages for: simple code gluing together various data sources and APIs and
+performing some computation based on them.
+
+While at a glance this doesn't look too bad, in practice it can be quite challenging to
+effectively use Java or other JVM languages to write scripts, for reasons I'll dive into
+below:
+
+
+=== Script Verbosity
+
+The first thing you may notice is: this program is pretty verbose! Although the Java
+language has gotten more concise over the years, with features like the `var` keyword
+that we make good use of in the script above, Java _libraries_ tend to still have a
+pretty verbose code style that makes the code using them verbose in turn. Thus while
+the code above seems _file_, it might not seem super elegant.
+
+=== Tricky to install Java and Maven
+
+The next thing you might deal with writing scripts is how to run them. Installing
+Java can be quite tricky, but once installed Java programs that
+do not have third-party dependencies can be run via `java Foo.java`. but our `HtmlScraper.java`
+file above has two dependencies on `jsoup` and `picocli` and so cannot be run that way.
+In practice, this means you need to install a build tool like Maven or Gradle as well.
+
+* Installing Java can be surprisingly tricky (https://news.ycombinator.com/item?id=46037261[link]),
+with a lot of subtle choices and decisions and ways things can go wrong. Installing Maven is
+usually more straightforward.
+
+* Installing Java and Maven on all environments your script may
+run on is more challenging: you need to ensure every laptop, CI work, or production machine has
+the same exact versions of Java and Maven installed.
+
+* Most difficult is maintaining this installation over time: as laptops get provisioned and
+retired, Java or Maven versions get upgrades, CI workers get cycled out, ensuring that every
+machine has the right version of Java and Maven installed at all times can be quite challenging.
+
+=== Configuring Maven is Tedious
+
+Once you have Java and Maven installed, you then need to configure Maven to build it. This
+script has two third-party dependencies, so the Maven config looks something like this:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>json-api-client</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.7.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.konghq</groupId>
+            <artifactId>unirest-java</artifactId>
+            <version>3.14.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <mainClass>JsonApiClient</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+While this Maven config isn't particularly complicated, it is quite a screenful of text we
+need to write or copy-paste from somewhere in order to get our small script running.
+
+=== Running Maven is Tedious
+
+Lastly, we need to run our script with Maven. The command to do so is as follows:
+
+```console
+> mvn compile exec:java -Dexec.args="-s Functional_programming -d 2"
+```
+
+
 
 == Lightweight Build Tools
 
-- Mill is super easy to install
-- Very easy to configure for small projects and scripts
-- Still very verbose writing small scripts
+The first thing we can do to simplify our script workflow is to use a lighter weight
+build tool such as JBang or Mill. These tools make it much easier to configure
+some third-party dependencies and compile/run a single file. For example, JBang
+lets you write `//DEPS` header comments and run it from the command line:
 
-== Lightweight Languages
+.JsonApiClient.java
+```java
+//DEPS info.picocli:picocli:4.7.6
+//DEPS com.konghq:unirest-java:3.14.5
+//DEPS com.fasterxml.jackson.core:jackson-databind:2.17.2
+import com.fasterxml.jackson.databind.*;
+import kong.unirest.Unirest;
+import picocli.CommandLine;
+...
+```
 
-- Kotlin is much more syntactically concise than Java
-- Much less code to write the same things overall
+```console
+> jbang HtmlScraper.java -s Functional_programming -d 2
+```
 
-== Lightweight Libraries
+The Mill build tool uses a similar syntax based on YAML:
 
-- OS-Lib, Requests-Scala, MainArgs
+.JsonApiClient.java
+```java
+//| mvnDeps:
+//| - info.picocli:picocli:4.7.6
+//| - com.konghq:unirest-java:3.14.5
+//| - com.fasterxml.jackson.core:jackson-databind:2.17.2
+import com.fasterxml.jackson.databind.*;
+import kong.unirest.Unirest;
+import picocli.CommandLine;
+...
+```
 
-== Vertical Integration
+```console
+> ./mill HtmlScraper.java -s Functional_programming -d 2
+```
 
-- Integration between Mill Scala Scripts and Mainargs makes it even cleaner
+Such lightweight JVM build tools make it much easier to run our small Java program:
 
-== Future Work
+* Both JBang and Mill make it super easy to configure dependencies and run scripts from
+  the command line by adding a header to the single-file Java program, solving the
+  xref:#_configuring_maven_is_tedious[Configuring Maven is Tedious] and xref:#_running_maven_is_tedious[Running Maven is Tedious]
+  problems above
+
+* Mill with it's `./mill` bootstrap script also solves xref:#_tricky_to_install_java_and_maven_[Tricky to install Java and Maven],
+  as `./mill` will automatically download & cache the JVM and build-tool installation and
+  ensure you are using the correct, cossitent version
+
+However, even if building and running small scripts written in Java is convenient, writing
+and maintaining the code itself can be a pain due to the verbosity of the Java language
+that makes even simple programs (such as that above) take pages and pages of code. But Java
+isn't the only language on the JVM!
+
+== Lightweight Languages in Kotlin
+
+One option here is to write the script in Kotlin. Kotlin is much more syntactically concise
+than Java, which means much less code to write the same things overall. A version of the
+`HtmlScraper.java` translated to Kotlin is shown below, using the Kotlin Clikt library
+rather than PicoCLI:
+
+.JsonApiClient.kt
+```scala
+//| mvnDeps:
+//| - com.github.ajalt.clikt:clikt:5.0.3
+//| - com.konghq:unirest-java:3.14.5
+//| - org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3
+
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.parameters.options.*
+import com.github.ajalt.clikt.parameters.types.int
+import kotlinx.serialization.json.*
+import kong.unirest.Unirest
+import java.nio.file.*
+
+fun fetchLinks(title: String): List<String> {
+    val response = Unirest.get("https://en.wikipedia.org/w/api.php")
+        .queryString("action", "query")
+        .queryString("titles", title)
+        .queryString("prop", "links")
+        .queryString("format", "json")
+        .header("User-Agent", "WikiFetcherBot/1.0 (https://example.com; contact@example.com)")
+        .asString()
+
+    if (!response.isSuccess) return emptyList()
+
+    val json = Json.parseToJsonElement(response.body).jsonObject
+    val pages = json["query"]?.jsonObject?.get("pages")?.jsonObject ?: return emptyList()
+    return pages.values.flatMap { page ->
+        page.jsonObject["links"]
+            ?.jsonArray
+            ?.mapNotNull { it.jsonObject["title"]?.jsonPrimitive?.content }
+            ?: emptyList()
+    }
+}
+
+class Crawler : CliktCommand(name = "wiki-fetcher") {
+    val startArticle by option(help = "Starting Wikipedia article").required()
+    val depth by option(help = "Depth of link traversal").int().required()
+
+    override fun run() {
+        var seen = mutableSetOf(startArticle)
+        var current = mutableSetOf(startArticle)
+
+        repeat(depth) {
+            val next = current.flatMap { fetchLinks(it) }.toSet()
+            current = (next - seen).toMutableSet()
+            seen += current
+        }
+
+        val jsonOut = Json { prettyPrint = true }
+            .encodeToString(JsonElement.serializer(), JsonArray(seen.map { JsonPrimitive(it) }))
+        Files.writeString(Paths.get("fetched.json"), jsonOut)
+    }
+}
+
+fun main(args: Array<String>) = Crawler().main(args)
+```
+
+```console
+> ./mill JsonApiClient.kt -s Functional_programming -d 2
+```
+
+The Kotlin program has about 1/3 fewer lines than the Java equivalent, and overall much less
+dense. Kotlin features like the properties used to define
+`val depth` and `val startArticle`, `?`, and `.mapNotNull` simplify the
+code substantially. This makes it possible to express the same program in a much less verbose syntax.
+
+== Lightweight Libraries in Scala
+
+The last step to simplify scripting on the JVM is to write the script in Scala.
+Scala is yet another JVM language, like Kotlin. But unlike Kotlin, Scala has
+many script-focused libraries such as OS-Lib, MainArgs, Requests-Scala, uPickle,
+or PPrint that make it very convenient to write small script-like programs
+in Scala. The above `HtmlScraper.kt` translated to an equivalent `HtmlScraper.scala`
+is shown below:
+
+.HtmlScraper.scala
+```scala
+def fetchLinks(title: String): Seq[String] = {
+  val resp = requests.get.stream(
+    "https://en.wikipedia.org/w/api.php",
+    params = Seq(
+      "action" -> "query",
+      "titles" -> title,
+      "prop" -> "links",
+      "format" -> "json"
+    )
+  )
+  for {
+    page <- ujson.read(resp)("query")("pages").obj.values.toSeq
+    links <- page.obj.get("links").toSeq
+    link <- links.arr
+  } yield link("title").str
+}
+
+def main(startArticle: String, depth: Int) = {
+  var seen = Set(startArticle)
+  var current = Set(startArticle)
+  for (i <- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+
+  pprint.log(seen)
+  os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4))
+}
+```
+
+```console
+> ./mill HtmlScraper.scala --start Functional_programming --depth 2
+```
+
+What is notable about `HtmlScraper.scala` is how much less _stuff_ there is to read:
+
+- The `requests.get`, `ujson.read`, and `os.write` APIs come from the Mill's bundled
+  libraries, which makes it super easy to interact with third-party services, parse
+  their responses, and deal with the filesystem
+
+- Rather than parsing arguments via annotations or a special class, which is how it's
+  done in PicoCLI or Clikt, `HtmlScraper.scala` uses MainArgs which lets you simply
+  define a `def main` method and turns the parameter list into the command-line parser
+
+By this point,
+
+== Conclusion
 
 - Top-level statements
 - Collection & Data Structure Literals

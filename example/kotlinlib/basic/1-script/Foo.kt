@@ -1,4 +1,4 @@
-//| jvmId: 11.0.28
+//| jvmVersion: 11.0.28
 //| mvnDeps:
 //| - com.github.ajalt.clikt:clikt:4.4.0
 //| - org.jetbrains.kotlinx:kotlinx-html:0.11.0

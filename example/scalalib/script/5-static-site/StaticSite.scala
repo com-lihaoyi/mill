@@ -1,7 +1,7 @@
 //| mvnDeps:
 //| - com.lihaoyi::scalatags:0.13.1
 //| - com.atlassian.commonmark:commonmark:0.13.1
-import scalatags.Text.all._
+import scalatags.Text.all.*
 
 def main() = {
   val postInfo = os

@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
+import mill._, scalalib._, scalajslib._, scalanativelib._, publish.*
 import mill.util.VcsVersion
 import mill.javalib.api.JvmWorkerUtil.isScala3
 
