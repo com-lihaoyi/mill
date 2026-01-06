@@ -1,6 +1,6 @@
 package mill.javascriptlib
 
-import mill._
+import mill.*
 import os.*
 
 trait RsWithServeModule extends ReactScriptsModule {

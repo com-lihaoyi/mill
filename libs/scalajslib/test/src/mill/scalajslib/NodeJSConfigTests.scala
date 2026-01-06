@@ -1,13 +1,13 @@
 package mill.scalajslib
 
-import mill._
+import mill.*
 import mill.api.Discover
 import mill.api.ExecutionPaths
 import mill.scalalib.{ScalaModule, TestModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
-import mill.scalajslib.api._
+import utest.*
+import mill.scalajslib.api.*
 
 import scala.util.Properties
 

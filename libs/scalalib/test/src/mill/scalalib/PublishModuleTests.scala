@@ -15,7 +15,7 @@ import mill.javalib.publish.{
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 import scala.jdk.CollectionConverters.*
 import scala.xml.NodeSeq
 import mill.javalib.internal

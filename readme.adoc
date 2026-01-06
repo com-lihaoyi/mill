@@ -51,7 +51,7 @@ Here is some quick example, so that you can imagine how it looks:
 [source,scala,subs="verbatim,attributes"]
 ----
 package build
-import mill._, javalib._
+import mill._, javalib.*
 
 object foo extends JavaModule {
   def mvnDeps = Seq(

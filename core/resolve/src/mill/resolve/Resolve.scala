@@ -211,7 +211,7 @@ object Resolve {
       // Super task - invoke the parent class method directly
       case Some(parentClass) => instantiateSuperTask(p, parentClass, taskName, cache)
       case None => // Regular task instantiation
-        val definition = Reflect
+        val (definition, _) = Reflect
           .reflect(
             p.getClass,
             classOf[Task.Named[?]],
@@ -235,7 +235,7 @@ object Resolve {
 
     mill.api.ExecResult.catchWrapException {
       // Find the method on the parent class to get its exact return type
-      val method = Reflect
+      val (method, _) = Reflect
         .reflect(
           parentClass,
           classOf[Task.Named[?]],

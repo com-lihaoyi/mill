@@ -1,12 +1,12 @@
 package mill.integration
 
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
-import utest._
+import utest.*
 
 object InspectTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val res = eval(("inspect", "core.test.mvnDeps"))
       assert(res.isSuccess == true)
 
@@ -149,6 +149,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    mill.javalib.OfflineSupportModule
           |    mill.javalib.SemanticDbJavaModule
           |    mill.javalib.AssemblyModule
+          |    mill.util.JdkCommandsModule
           |    mill.javalib.JavaModule
           |
           |Default Task: core.run
@@ -174,6 +175,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    mill.javalib.OfflineSupportModule
           |    mill.javalib.SemanticDbJavaModule
           |    mill.javalib.AssemblyModule
+          |    mill.util.JdkCommandsModule
           |    mill.javalib.JavaModule
           |
           |Module Dependencies:

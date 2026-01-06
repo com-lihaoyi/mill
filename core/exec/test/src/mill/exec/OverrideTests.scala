@@ -91,13 +91,13 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
   val tests = Tests {
-    import utest._
+    import utest.*
 
     test("overrideSuperTask") {
       // Make sure you can override tasks, call their supers, and have the
       // overridden task be allocated a spot within the overridden/ folder of
       // the main publicly-available task
-      import canOverrideSuper._
+      import canOverrideSuper.*
 
       val checker = new Checker(canOverrideSuper)
       checker(foo, Seq("base", "object"), Seq(foo), extraEvaled = -1)
@@ -117,7 +117,7 @@ object OverrideTests extends TestSuite {
       // Make sure you can override commands, call their supers, and have the
       // overridden command be allocated a spot within the super/ folder of
       // the main publicly-available command
-      import canOverrideSuper._
+      import canOverrideSuper.*
 
       val checker = new Checker(canOverrideSuper)
       val runCmd = cmd(1)
@@ -144,7 +144,7 @@ object OverrideTests extends TestSuite {
       // Make sure you can override commands, call their supers, and have the
       // overridden command be allocated a spot within the super/ folder of
       // the main publicly-available command
-      import StackableOverrides._
+      import StackableOverrides.*
 
       val checker = new Checker(StackableOverrides)
       checker(
@@ -211,7 +211,7 @@ object OverrideTests extends TestSuite {
     test("optionalOverride") {
       // Make sure that when a task is overriden, it always gets put in the same place on
       // disk regardless of whether or not the override is part of the current evaluation
-      import OptionalOverride._
+      import OptionalOverride.*
 
       val checker = new Checker(OptionalOverride)
       test {
@@ -232,7 +232,7 @@ object OverrideTests extends TestSuite {
     test("privateTasksInMixedTraits") {
       // Make sure we can have private cached tasks in different trait with the same name,
       // and caching still works when these traits are mixed together
-      import PrivateTasksInMixedTraits._
+      import PrivateTasksInMixedTraits.*
       val checker = new Checker(PrivateTasksInMixedTraits)
       checker(
         mod.bar,

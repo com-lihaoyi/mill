@@ -92,7 +92,7 @@ object CodeGen {
         val parsedHeaderData = mill.internal.Util.parseHeaderData(scriptPath).get
 
         val prelude =
-          s"""|import MillMiscInfo._
+          s"""|import MillMiscInfo.*
               |import _root_.mill.util.TokenReaders.given
               |import _root_.mill.runner.autooverride.AutoOverride
               |""".stripMargin
@@ -348,7 +348,7 @@ object CodeGen {
       siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
 
     val prelude =
-      s"""|import MillMiscInfo._
+      s"""|import MillMiscInfo.*
           |import _root_.mill.util.TokenReaders.given
           |import _root_.mill.api.JsonFormatters.given
           |""".stripMargin

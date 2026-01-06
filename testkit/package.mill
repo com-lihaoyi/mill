@@ -1,6 +1,6 @@
 package build.testkit
 
-import mill._
+import mill.*
 import millbuild.*
 import mill.api.BuildCtx
 

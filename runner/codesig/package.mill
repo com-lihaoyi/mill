@@ -1,6 +1,6 @@
 package build.runner.codesig
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import millbuild.*
 import mill.api.BuildCtx
 

@@ -1,6 +1,6 @@
 package build.libs.init
 
-import mill._
+import mill.*
 import mill.api.{BuildCtx, Cross, TaskCtx}
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.Assembly.Rule

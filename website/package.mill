@@ -1,11 +1,11 @@
 package build.website
 
-import org.jsoup._
+import org.jsoup.*
 import mill.util.{Jvm, Version}
-import mill._
-import scalalib._
+import mill.*
+import scalalib.*
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import millbuild.*
 import mill.api.BuildCtx
 
@@ -469,7 +469,7 @@ object `package` extends mill.Module {
     val pathToRemove = sourceDir.relativeTo(baseDir).toString()
     val replacePath = newSourceDir.relativeTo(baseDir).toString()
     //      println(s"Cleaning relative path '${pathToRemove}' ...")
-    import org.htmlcleaner._
+    import org.htmlcleaner.*
     val cleaner = new HtmlCleaner()
     var changed = false
     os.walk(dir).foreach { file =>

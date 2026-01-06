@@ -1,6 +1,6 @@
 package build.libs.scalanativelib
 // imports
-import mill._
+import mill.*
 import mill.T
 import mill.api.Cross
 import millbuild.*

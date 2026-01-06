@@ -1,8 +1,8 @@
 package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
-import utest._
+import utest.*
 import utest.asserts.{RetryMax, RetryInterval}
 
 object SelectiveExecutionTests extends UtestIntegrationTestSuite {
@@ -10,7 +10,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
     test("default-command") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       eval(("selective.prepare", "bar"), check = true)
 
@@ -29,7 +29,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
     test("failures") {
       test("missing-prepare") - integrationTest { tester =>
-        import tester._
+        import tester.*
 
         val cached = eval(
           ("selective.run", "{foo.fooCommand,bar.barCommand}"),
@@ -41,7 +41,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       }
     }
     test("renamed-tasks") - integrationTest { tester =>
-      import tester._
+      import tester.*
       eval(("selective.prepare", "{foo,bar}._"), check = true)
 
       modifyFile(workspacePath / "build.mill", _.replace("fooTask", "fooTaskRenamed"))
@@ -55,7 +55,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       )
     }
     test("overrideSuper") - integrationTest { tester =>
-      import tester._
+      import tester.*
       eval(("selective.prepare", "qux.quxCommand"), check = true)
 
       modifyFile(

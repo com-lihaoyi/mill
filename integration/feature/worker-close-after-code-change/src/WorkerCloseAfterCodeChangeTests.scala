@@ -2,12 +2,12 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object WorkerCloseAfterCodeChangeTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val result = eval(("show", "bar"))
       assert(result.isSuccess)
       assert(result.out == "123")

@@ -59,6 +59,8 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
 
 object Task {
 
+  type rename = mill.api.rename
+
   /**
    * Returns the [[mill.api.TaskCtx]] that is available within this task
    */

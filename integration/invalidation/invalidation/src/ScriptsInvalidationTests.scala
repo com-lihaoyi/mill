@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
 
-import utest._
+import utest.*
 
 object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
 
@@ -15,7 +15,7 @@ object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("should not invalidate tasks in different untouched sc files") - integrationTest {
       tester =>
-        import tester._
+        import tester.*
         // first run
         val result = runTask(tester, "task")
 
@@ -35,7 +35,7 @@ object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
     }
 
     test("should invalidate tasks if leaf file is changed") - integrationTest { tester =>
-      import tester._
+      import tester.*
       // first run
 
       val result = runTask(tester, "task")
@@ -56,7 +56,7 @@ object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
 
     }
     test("should handle submodules in scripts") - integrationTest { tester =>
-      import tester._
+      import tester.*
       // first run
       val result = runTask(tester, "module.task")
       val expected = Set("a", "d", "b", "c", "task")
@@ -76,7 +76,7 @@ object ScriptsInvalidationTests extends UtestIntegrationTestSuite {
     }
     test("should handle ammonite ^ imports") - retry(3) {
       integrationTest { tester =>
-        import tester._
+        import tester.*
 
         // first run
         val result = runTask(tester, "taskE")

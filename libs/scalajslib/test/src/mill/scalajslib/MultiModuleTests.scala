@@ -1,11 +1,11 @@
 package mill.scalajslib
 
-import mill._
+import mill.*
 import mill.api.Discover
 import mill.api.ExecutionPaths
-import mill.scalalib._
+import mill.scalalib.*
 import mill.testkit.{UnitTester, TestRootModule}
-import utest._
+import utest.*
 object MultiModuleTests extends TestSuite {
   val sourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "multi-module"
 

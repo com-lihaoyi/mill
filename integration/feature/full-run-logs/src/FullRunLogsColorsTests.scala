@@ -12,7 +12,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
   def tests: Tests = Tests {
 
     test("colors") - integrationTest { tester =>
-      import tester._
+      import tester.*
       // Make sure that running tests and tasks that print long multi-line colored output
       // doesn't accidentally truncate the output, mess up the colors, or be affected by
       // the chunking/buffering/flushing common when working with streams. Assert both `out`

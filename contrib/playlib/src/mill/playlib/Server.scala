@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.scalalib._
+import mill.scalalib.*
 import mill.Task
 
 private[playlib] trait Server extends ScalaModule with Version {

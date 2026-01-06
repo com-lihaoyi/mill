@@ -585,7 +585,7 @@ object MillBuildBootstrap {
       selectiveExecution: Boolean,
       reporter: Int => Option[CompileProblemReporter]
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
-    import buildFileApi._
+    import buildFileApi.*
     evalWatchedValues.clear()
     val evalTaskResult = evaluator.evaluate(
       tasksAndParams,

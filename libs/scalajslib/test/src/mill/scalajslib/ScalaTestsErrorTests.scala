@@ -3,7 +3,7 @@ package mill.scalajslib
 import mill.api.Discover
 import mill.scalalib.TestModule
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 object ScalaTestsErrorTests extends TestSuite {
   object ScalaTestsError extends TestRootModule {

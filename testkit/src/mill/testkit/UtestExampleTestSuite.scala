@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill.util.Retry
-import utest._
+import utest.*
 
 import java.util.concurrent.TimeoutException
 
