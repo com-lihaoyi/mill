@@ -1,12 +1,12 @@
 package mill.scalalib
 
-import zio.*
-import zio.test.*
-import zio.test.Assertion.*
+import zio._
+import zio.test._
+import zio.test.Assertion._
 
 import java.io.IOException
 
-import HelloWorld.*
+import HelloWorld._
 
 object HelloWorld {
   def sayHello: ZIO[Any, IOException, Unit] =

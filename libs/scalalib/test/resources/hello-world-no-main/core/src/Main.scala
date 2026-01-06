@@ -1,4 +1,4 @@
-import scala.collection.*
+import scala.collection._
 import java.nio.file.{Files, Paths}
 
 import Main.{args, greeting}

@@ -1,6 +1,6 @@
 package mill.javalib
 
-import utest.*
+import utest._
 
 object ClassLoaderTests extends TestSuite {
   val tests = Tests {
