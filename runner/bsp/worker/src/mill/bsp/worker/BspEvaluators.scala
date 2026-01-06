@@ -126,7 +126,7 @@ class BspEvaluators(
       val tasks = transitiveModules(ev.rootModule)
         .collect { case m: JavaModuleApi => taskSelector(m.bspJavaModule()) }
 
-      findInputTasks(tasks) match{
+      findInputTasks(tasks) match {
         case Nil => Seq.empty
         case inputTasks =>
           ev.executeApi(inputTasks)
@@ -135,7 +135,9 @@ class BspEvaluators(
             .flatMap {
               case pathRef: mill.api.PathRef => Seq(pathRef.path.subRelativeTo(workspaceDir))
               case pathRefs: Seq[?] =>
-                pathRefs.collect { case pr: mill.api.PathRef => pr.path.subRelativeTo(workspaceDir) }
+                pathRefs.collect { case pr: mill.api.PathRef =>
+                  pr.path.subRelativeTo(workspaceDir)
+                }
 
               case _ => Seq.empty
             }
