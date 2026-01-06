@@ -32,6 +32,8 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
    */
   val inputs: Seq[Task[?]]
 
+  override private[mill] def inputsApi: Seq[TaskApi[?]] = inputs
+
   /**
    * Evaluate this task
    */
@@ -496,6 +498,7 @@ object Task {
     override def sideHash: Int = util.Random.nextInt()
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
+    override private[mill] def isInputTask: Boolean = true
   }
 
   class Uncached[T](
