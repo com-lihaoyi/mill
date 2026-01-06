@@ -22,7 +22,7 @@ Here is a simple example:
 //| mvnDeps: ["com.lihaoyi::mill-contrib-proguard:$MILL_VERSION"]
 package build
 
-import contrib.proguard._
+import contrib.proguard.*
 
 object foo extends ScalaModule with Proguard {
   def scalaVersion = "2.13.16"

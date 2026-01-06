@@ -1,2 +1,2 @@
 extends: [KotlinModule, kotlinlib.detekt.DetektModule]
-kotlinVersion: "2.2.20"
+kotlinVersion: 2.2.20

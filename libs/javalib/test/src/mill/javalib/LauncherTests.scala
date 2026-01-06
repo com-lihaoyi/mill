@@ -9,7 +9,7 @@ object LauncherTests extends TestSuite {
 
   val customJavaVersion = "19.0.2"
   object HelloJava extends TestRootModule with JavaModule {
-    def jvmId = s"temurin:$customJavaVersion"
+    def jvmVersion = s"temurin:$customJavaVersion"
 
     def javacOptions = Seq("-target", "1.8", "-source", "1.8")
 

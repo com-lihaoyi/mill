@@ -17,7 +17,6 @@ at all to build your Java projects! You can checkout any codebase built with Mil
 Linux/Mac/Windows machine, build it without any prior setup using it's `./mill` bootstrap
 script, and Mill will automatically download and cache itself, any JVMs, and any third-party
 libraries and tools necessary. For example, the `+./mill __.compile+` below is all that is needed
-libraries and tools necessary. For example, the `+./mill __.compile+` below is all that is needed
 to compile all modules in a newly-checked-out Mill project on a clean machine, greatly
 simplifying building your project on diverse dev and CI environments:
 

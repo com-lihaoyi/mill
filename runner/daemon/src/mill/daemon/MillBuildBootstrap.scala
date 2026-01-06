@@ -58,6 +58,7 @@ class MillBuildBootstrap(
     streams0: SystemStreams,
     selectiveExecution: Boolean,
     offline: Boolean,
+    useFileLocks: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
     enableTicker: Boolean
 ) { outer =>
@@ -239,6 +240,7 @@ class MillBuildBootstrap(
                 streams0,
                 selectiveExecution,
                 offline,
+                useFileLocks,
                 newWorkerCache,
                 nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
                 buildFileApi.rootModule,
@@ -451,6 +453,7 @@ object MillBuildBootstrap {
       streams0: SystemStreams,
       selectiveExecution: Boolean,
       offline: Boolean,
+      useFileLocks: Boolean,
       workerCache: Map[String, (Int, Val)],
       codeSignatures: Map[String, Int],
       rootModule: RootModuleApi,
@@ -498,6 +501,7 @@ object MillBuildBootstrap {
           streams0,
           () => evaluator,
           offline,
+          useFileLocks,
           staticBuildOverrideFiles,
           enableTicker
         )

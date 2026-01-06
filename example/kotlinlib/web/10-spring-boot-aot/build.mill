@@ -34,7 +34,7 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
   object native extends KotlinModule, NativeSpringBootBuildModule {
     override def kotlinVersion = outer.kotlinVersion()
     override def kotlincOptions = super.kotlincOptions() ++ outer.kotlincOptions()
-    def jvmId = "graalvm-community:25.0.1"
+    def jvmVersion = "graalvm-community:25.0.1"
   }
 
   object test extends SpringBootTestsModule, KotlinTests, TestModule.Junit5 {
@@ -66,20 +66,20 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
 
 > ./mill native.nativeRunBackground
 
-> curl http://localhost:9099/hello
+> curl http://localhost:${PORT:-8080}/hello
 ...Hello, World!...
 
-> curl http://localhost:9099/hello?name=Mill
+> curl http://localhost:${PORT:-8080}/hello?name=Mill
 ...Hello, Mill!...
 
 > ./mill clean native.nativeRunBackground
 
 > ./mill prod.runBackground
 
-> curl http://localhost:9099/hello
+> curl http://localhost:${PORT:-8080}/hello
 ...Hello, World!...
 
-> curl http://localhost:9099/hello?name=Mill
+> curl http://localhost:${PORT:-8080}/hello?name=Mill
 ...Hello, Mill!...
 
 > ./mill clean prod.runBackground

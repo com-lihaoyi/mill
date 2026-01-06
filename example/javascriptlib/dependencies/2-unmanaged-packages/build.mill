@@ -16,7 +16,7 @@ object foo extends TypeScriptModule {
 // and how to import it from the package.json file inside the .tgz archive.
 
 // For more info on `package.json`, see: https://docs.npmjs.com/cli/v10/configuring-npm/package-json?v=true&utm_source=chatgpt.com
-// For more info on creating unmanaged dependecies, see: https://docs.npmjs.com/cli/v10/commands/npm-pack
+// For more info on creating unmanaged dependencies, see: https://docs.npmjs.com/cli/v10/commands/npm-pack
 
 /** Usage
 > ./mill foo.run e b k a l m o p

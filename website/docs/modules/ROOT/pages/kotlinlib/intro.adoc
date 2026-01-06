@@ -41,7 +41,7 @@ include::partial$example/kotlinlib/basic/8-multi-module.adoc[]
 
 include::partial$example/kotlinlib/basic/9-programmable-compat.adoc[]
 
-== Realistic Java Example Project
+== Realistic Kotlin Example Project
 
 include::partial$example/kotlinlib/basic/10-realistic.adoc[]
 

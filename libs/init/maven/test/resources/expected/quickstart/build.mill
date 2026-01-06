@@ -1,11 +1,13 @@
 //| mill-version: SNAPSHOT
 //| mill-jvm-version: system
 package build
+
 import mill.*
 import mill.javalib.*
 import mill.javalib.errorprone.ErrorProneModule
 import mill.javalib.publish.*
 import millbuild.*
+
 object `package` extends MavenModule, ErrorProneModule, PublishModule {
 
   def bomMvnDeps = Seq(Deps.junitBom)
@@ -44,4 +46,5 @@ object `package` extends MavenModule, ErrorProneModule, PublishModule {
     def testSandboxWorkingDir = false
 
   }
+
 }

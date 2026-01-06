@@ -299,6 +299,7 @@ object MillMain0 {
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
+                                useFileLocks = config.useFileLocks.value,
                                 reporter = reporter,
                                 enableTicker = enableTicker
                               ).evaluate()

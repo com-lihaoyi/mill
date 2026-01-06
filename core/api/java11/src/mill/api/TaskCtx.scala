@@ -20,6 +20,7 @@ trait TaskCtx extends TaskCtx.Dest
     with TaskCtx.Fork
     with TaskCtx.Jobs
     with TaskCtx.Offline
+    with TaskCtx.UseFileLocks
     with TaskCtx.Fail {
   def reporter: Int => Option[CompileProblemReporter]
 
@@ -49,7 +50,8 @@ object TaskCtx {
       _systemExitWithReason: (String, Int) => Nothing,
       val fork: TaskCtx.Fork.Api,
       val jobs: Int,
-      val offline: Boolean
+      val offline: Boolean,
+      override val useFileLocks: Boolean
   ) extends TaskCtx {
     override def systemExitWithReason(reason: String, exitCode: Int): Nothing =
       _systemExitWithReason(reason, exitCode)
@@ -169,6 +171,10 @@ object TaskCtx {
 
   trait Offline {
     def offline: Boolean
+  }
+
+  trait UseFileLocks {
+    def useFileLocks: Boolean = false
   }
 
   trait Fail {

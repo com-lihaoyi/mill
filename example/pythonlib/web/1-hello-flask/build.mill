@@ -31,7 +31,7 @@ OK
 
 > ./mill foo.runBackground
 
-> curl http://localhost:5000
+> curl http://localhost:${PORT:-5000}
 ...<h1>Hello, Mill!</h1>...
 
 > ./mill clean foo.runBackground

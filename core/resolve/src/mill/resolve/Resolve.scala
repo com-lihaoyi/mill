@@ -111,13 +111,13 @@ object Resolve {
         task: Resolved
     ) = task match {
       case r: Resolved.NamedTask =>
-        val instantiated = ResolveCore
+        ResolveCore
           .instantiateModule(rootModule, rootModulePrefix, r.taskSegments.init, cache)
           .flatMap(instantiateNamedTask(r, _, cache))
-        instantiated.map(Some(_))
+          .map(Some(_))
 
       case r: Resolved.Command =>
-        val instantiated = ResolveCore
+        ResolveCore
           .instantiateModule(rootModule, rootModulePrefix, r.taskSegments.init, cache)
           .flatMap { mod =>
             instantiateCommand(
@@ -129,7 +129,7 @@ object Resolve {
               allowPositionalCommandArgs
             )
           }
-        instantiated.map(Some(_))
+          .map(Some(_))
 
       case r: Resolved.Module =>
         ResolveCore.instantiateModule(
@@ -206,19 +206,58 @@ object Resolve {
       p: Module,
       cache: ResolveCore.Cache
   ): Result[Task.Named[?]] = {
-    val definition = Reflect
-      .reflect(
-        p.getClass,
-        classOf[Task.Named[?]],
-        _ == r.taskSegments.last.value,
-        true,
-        getMethods = cache.getMethods
-      )
-      .head
+    val taskName = r.taskSegments.last.value
+    r.superSuffix match {
+      // Super task - invoke the parent class method directly
+      case Some(parentClass) => instantiateSuperTask(p, parentClass, taskName, cache)
+      case None => // Regular task instantiation
+        val (definition, _) = Reflect
+          .reflect(
+            p.getClass,
+            classOf[Task.Named[?]],
+            _ == taskName,
+            true,
+            getMethods = cache.getMethods
+          )
+          .head
 
-    mill.api.ExecResult.catchWrapException(
-      definition.invoke(p).asInstanceOf[Task.Named[?]]
-    )
+        mill.api.ExecResult.catchWrapException(definition.invoke(p).asInstanceOf[Task.Named[?]])
+    }
+  }
+
+  private def instantiateSuperTask(
+      p: Module,
+      parentClass: Class[?],
+      taskName: String,
+      cache: ResolveCore.Cache
+  ): Result[Task.Named[?]] = {
+    import java.lang.invoke.{MethodHandles, MethodType}
+
+    mill.api.ExecResult.catchWrapException {
+      // Find the method on the parent class to get its exact return type
+      val (method, _) = Reflect
+        .reflect(
+          parentClass,
+          classOf[Task.Named[?]],
+          _ == taskName,
+          noParams = true,
+          getMethods = cache.getMethods
+        )
+        .headOption
+        .getOrElse(
+          throw new NoSuchMethodException(
+            s"Cannot find method $taskName on class ${parentClass.getName}"
+          )
+        )
+
+      // Use MethodHandle.findSpecial to invoke the parent class method directly,
+      // bypassing virtual dispatch
+      val lookup = MethodHandles.privateLookupIn(parentClass, MethodHandles.lookup())
+      val methodType = MethodType.methodType(method.getReturnType)
+      val handle = lookup.findSpecial(parentClass, taskName, methodType, p.getClass)
+
+      handle.invoke(p).asInstanceOf[Task.Named[?]]
+    }
   }
 
   private def instantiateCommand(

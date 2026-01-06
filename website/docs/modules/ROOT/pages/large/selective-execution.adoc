@@ -38,7 +38,7 @@ def myProjectVersion: T[String] = Task.Input {
   cause the filesystem signatures to change and thus spuriously trigger downstream tasks.
   e.g. you cannot run `selective.prepare` on a Windows machine and `selective.run` on Linux
 
-- *Filesystem permissions must be preserved before/after*. e.g. running `selective,run}`
+- *Filesystem permissions must be preserved before/after*. e.g. running `selective.run`
   on different Github Actions machines sharing artifacts can cause issues as
   `upload-artifact`/`download-artifact` https://github.com/actions/download-artifact#permission-loss[does not preserve filesystem permissions].
   If this is an issue, you can run `chmod -R . 777` before each of `selective.{prepare,run}`

@@ -1,4 +1,4 @@
-extends: [ScalaModule]
+extends: ScalaModule
 scalaVersion: 2.13.16
 mvnDeps:
 - com.lihaoyi::scalatags:0.13.1
@@ -11,9 +11,9 @@ repositories: [https://oss.sonatype.org/content/repositories/releases]
 mainClass: foo.Foo2
 
 # Pin a specific JVM version, supports >=11
-jvmId: 11
+jvmVersion: 11
 # Optionally specify the distribution: temurin, zulu, corretto, graalvm-community, etc.
-# jvmId: temurin:11
+# jvmVersion: temurin:11
 
 # Add an additional source folder and resource folder, in addition to the default one
 sources: [src/, custom-src/]

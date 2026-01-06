@@ -1,4 +1,4 @@
 extends: [ScalaModule, NativeImageModule]
-scalaVersion: "3.7.1"
-jvmId: "graalvm-community:17.0.7"
+scalaVersion: 3.7.1
+jvmVersion: graalvm-community:17.0.7
 nativeImageOptions: ["--no-fallback"]

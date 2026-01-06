@@ -1,9 +1,11 @@
 //| mill-version: SNAPSHOT
 //| mill-jvm-version: system
 package build
+
 import mill.*
 import mill.javalib.*
 import mill.javalib.errorprone.ErrorProneModule
+
 object `package` extends Module {
 
   object app extends MavenModule {
@@ -33,6 +35,7 @@ object `package` extends Module {
       def testSandboxWorkingDir = false
 
     }
+
   }
 
   object list extends MavenModule, ErrorProneModule {
@@ -71,6 +74,7 @@ object `package` extends Module {
       def testSandboxWorkingDir = false
 
     }
+
   }
 
   object utilities extends MavenModule, ErrorProneModule {
@@ -87,4 +91,5 @@ object `package` extends Module {
       Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
   }
+
 }

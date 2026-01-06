@@ -58,7 +58,7 @@ include::partial$example/fundamentals/tasks/6-workers.adoc[]
 
 === Uncached Tasks
 
-You can define unached tasks with the `Task.Uncached {...}` syntax.
+You can define uncached tasks with the `Task.Uncached {...}` syntax.
 Uncached tasks are only required in some limited use cases.
 You typically should be able to use other task types that are cached.
 
@@ -68,7 +68,7 @@ They don't trigger rebuild when you run Mill with xref:cli/flags.adoc#_watch_w[`
 
 // If you will, you can think of them as a special kind of commands, that don't accept parameters but are suitable to have downstream dependencies.
 
-Uncached tasks are useful to wrap build logic that interacts with external tools or services  and in general all kind ob build results that don't reside in a Mill-controlled cache location. For example: building and registering a container image into a external registry, when it is not already present.
+Uncached tasks are useful to wrap build logic that interacts with external tools or services and in general all kinds of build results that don't reside in a Mill-controlled cache location. For example: building and registering a container image into a external registry, when it is not already present.
 
 [,scala]
 ----
@@ -81,7 +81,7 @@ Uncached tasks also support the xref:#_persistent_tasks[`persistent` flag], so y
 
 [,scala]
 ----
-def bar = Task.Uncached(persisent = true) {
+def bar = Task.Uncached(persistent = true) {
   // this always runs
 }
 ----

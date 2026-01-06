@@ -1,8 +1,10 @@
-package mill.javalib.zinc
+package mill.javalib.worker
 
 import mill.api.SystemStreamsUtils
 import mill.api.daemon.{DummyInputStream, SystemStreams}
 import mill.client.lock.Locks
+import mill.javalib.zinc.ZincWorker
+import mill.javalib.worker.JvmWorkerRpcServer
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server
 import mill.server.Server.ConnectionData
@@ -12,11 +14,12 @@ import java.io.{BufferedReader, InputStreamReader, PrintStream}
 import scala.util.Using
 
 /** Entry point for the Zinc worker subprocess. */
-object ZincWorkerMain {
+object JvmWorkerMain {
   def main(args: Array[String]): Unit = SystemStreamsUtils.withTopLevelSystemStreamProxy {
     args match {
-      case Array(daemonDir, jobsStr) =>
-        val server = ZincWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt)
+      case Array(daemonDir, jobsStr, useFileLocksStr) =>
+        val useFileLocks = useFileLocksStr == "true"
+        val server = JvmWorkerTcpServer(os.Path(daemonDir), jobsStr.toInt, useFileLocks)
         server.run()
         // Make sure we explicitly exit, so that even if there are some leaked threads
         // hanging around the process properly terminates rather than hanging
@@ -24,7 +27,7 @@ object ZincWorkerMain {
 
       case other =>
         Console.err.println(
-          s"""Usage: zinc-worker <daemonDir> <jobs>
+          s"""Usage: jvm-worker <daemonDir> <jobs> <useFileLocks>
              |
              |Given: ${other.mkString(" ")}
              |""".stripMargin
@@ -33,14 +36,14 @@ object ZincWorkerMain {
     }
   }
 
-  private class ZincWorkerTcpServer(daemonDir: os.Path, jobs: Int)
+  private class JvmWorkerTcpServer(daemonDir: os.Path, jobs: Int, useFileLocks: Boolean)
       extends Server[Object, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
-        Locks.files(daemonDir.toString),
+        Locks.forDirectory(daemonDir.toString, useFileLocks),
         bufferSize = 4 * 1024
       )) {
-    private val className = summon[TPrint[ZincWorkerTcpServer]].render(using TPrintColors.Colors)
+    private val className = summon[TPrint[JvmWorkerTcpServer]].render(using TPrintColors.Colors)
 
     /**
      * Shared instance of the Zinc worker.
@@ -48,7 +51,7 @@ object ZincWorkerMain {
      * It is very important that the same instance is used in all connections as it contains the necessary caches
      * to make Scala compilation fast!
      */
-    private val worker = ZincWorker(jobs = jobs)
+    private val worker = ZincWorker(jobs = jobs, useFileLocks = useFileLocks)
 
     override def prepareConnection(
         connectionData: ConnectionData,
@@ -67,7 +70,7 @@ object ZincWorkerMain {
         val stdin = use(BufferedReader(InputStreamReader(connectionData.clientToServer)))
         val stdout = use(PrintStream(connectionData.serverToClient))
         val transport = MillRpcWireTransport(serverName, stdin, stdout, writeSynchronizer)
-        val server = ZincWorkerRpcServer(worker, serverName, transport, setIdle, serverLog)
+        val server = JvmWorkerRpcServer(worker, serverName, transport, setIdle, serverLog)
 
         // Make sure stdout and stderr is sent to the client
         SystemStreamsUtils.withStreams(SystemStreams(

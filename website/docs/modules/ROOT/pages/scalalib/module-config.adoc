@@ -74,7 +74,7 @@ In order to start the repl, you may have to specify a different available Ammoni
 .Example: Overriding `ammoniteVersion` to select a release compatible to the `scalaVersion`
 [source,scala,subs="attributes,verbatim"]
 ----
-import mill.*. scalalib._
+import mill.*, scalalib.*
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.6"
@@ -116,7 +116,7 @@ object foo extends ScalaModule {
 
 include::partial$example/scalalib/module/16-scala-nightlies.adoc[]
 
-== Integration Declarative and Programmatic Config
+== Integrating Declarative and Programmatic Config
 
 === Custom Module Traits
 

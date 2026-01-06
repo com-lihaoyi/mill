@@ -14,6 +14,7 @@ import mill.T
 import mill.api.Cross
 import mill.api.BuildCtx
 import mill.testkit.Chunk
+import java.util.concurrent.atomic.AtomicInteger
 
 object `package` extends Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
@@ -70,8 +71,7 @@ object `package` extends Module {
     object basic extends Cross[ExampleCrossModule](build.listCross)
     object testing extends Cross[ExampleCrossModule](build.listCross)
     object module extends Cross[ExampleCrossModule](build.listCross)
-    object dependencies
-        extends Cross[ExampleCrossModule](build.listCross)
+    object dependencies extends Cross[ExampleCrossModule](build.listCross)
     object publishing extends Cross[ExampleCrossModule](build.listCross)
     object linting extends Cross[ExampleCrossModule](build.listCross)
   }
@@ -93,6 +93,7 @@ object `package` extends Module {
   object cli extends Module {
     object builtins extends Cross[ExampleCrossModule](build.listCross)
     object header extends Cross[ExampleCrossModule](build.listCross)
+    object query extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object fundamentals extends Module {
@@ -102,13 +103,13 @@ object `package` extends Module {
     object cross extends Cross[ExampleCrossModule](build.listCross)
     object `out-dir` extends Cross[ExampleCrossModule](build.listCross)
     object libraries extends Cross[ExampleCrossModule](build.listCross)
+    object javahome extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object depth extends Module {
-
     object sandbox extends Cross[ExampleCrossModule](build.listCross)
-    object javahome extends Cross[ExampleCrossModule](build.listCross)
   }
+
   object large extends Module {
 
     object selective extends Cross[ExampleCrossModule](build.listCross)
@@ -220,6 +221,13 @@ object `package` extends Module {
     def lineTransform(line: String) = line
   }
 
+  /**
+   * Counter for assigning unique ports to example test modules.
+   * Each module claims a port by incrementing this counter.
+   * Ports start at 10000 to avoid conflicts with common ports.
+   */
+  private val portCounter = new AtomicInteger(10000)
+
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
 
     // disable scalafix because these example modules don't have sources causing it to misbehave
@@ -244,7 +252,14 @@ object `package` extends Module {
     def runClasspath = build.libs.util.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()
 
-    def forkEnv = Map("LANG" -> "C")
+    /**
+     * Unique port for this example test module.
+     * Each module claims a port by incrementing the shared counter.
+     * This ensures each example test gets a distinct port for parallel execution.
+     */
+    val testPort: Int = portCounter.getAndIncrement()
+
+    def forkEnv = Map("LANG" -> "C", "PORT" -> testPort.toString)
     def forkArgs: T[Seq[String]] = Task(List.empty[String])
 
     /**
@@ -262,61 +277,74 @@ object `package` extends Module {
         case Chunk.Yaml(lines) => lines.mkString("\n")
       }.mkString("\n")
       val withoutFrontMatter = parsed().dropWhile(_.isInstanceOf[Chunk.Yaml])
+      val hasScalaChunks = withoutFrontMatter.exists(_.isInstanceOf[Chunk.Scala])
       val exampleDashed = examplePath.segments.mkString("-")
       val download =
         s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
-      os.write(
-        Task.dest / "example.adoc",
-        withoutFrontMatter
-          .map {
-            case Chunk.See(path, lines) =>
-              // avoid .stripMargin, as the embedded content may contain the margin symbol
-              val lang = os.FilePath(path).ext match {
-                case "mill" => "scala"
-                case s => s
-              }
-              s"""
+      val renderedChunks = withoutFrontMatter
+        .map {
+          case Chunk.See(path, lines) =>
+            // avoid .stripMargin, as the embedded content may contain the margin symbol
+            val lang = os.FilePath(path).ext match {
+              case "mill" => "scala"
+              case s => s
+            }
+            s"""
 .$path ($download, {mill-example-url}/$examplePath/$path[browse])
 [source,$lang,subs="attributes,verbatim"]
 ----
 ${lines.mkString("\n")}
 ----"""
-            case Chunk.Scala(lines) =>
-              val title =
-                if (seenCode) ""
-                else {
-                  s".build.mill ($download, {mill-example-url}/$examplePath[browse])"
-                }
-              seenCode = true
-              // avoid .stripMargin, as the embedded content may contain the margin symbol
-              s"""
+          case Chunk.Scala(lines) =>
+            val title =
+              if (seenCode) ""
+              else {
+                s".build.mill ($download, {mill-example-url}/$examplePath[browse])"
+              }
+            seenCode = true
+            // avoid .stripMargin, as the embedded content may contain the margin symbol
+            s"""
 $title
 [source,scala,subs="attributes,verbatim"]
 ----
 
 ${
-                  if (seenFrontMatter) ""
-                  else {
-                    seenFrontMatter = true
-                    frontMatter
-                  }
+                if (seenFrontMatter) ""
+                else {
+                  seenFrontMatter = true
+                  frontMatter
                 }
+              }
 
 ${lines.mkString("\n")}
 ----
 """
-            case Chunk.Comment(lines) => lines.mkString("\n") + "\n"
-            case Chunk.Usage(lines) =>
-              // avoid .stripMargin, as the embedded content may contain the margin symbol
-              s"""
+          case Chunk.Comment(lines) => lines.mkString("\n") + "\n"
+          case Chunk.Usage(lines) =>
+            // avoid .stripMargin, as the embedded content may contain the margin symbol
+            s"""
 [source,console,subs="attributes,verbatim"]
 ----
 ${lines.mkString("\n")}
 ----"""
-            case Chunk.Yaml(_) => ""
-          }
-          .mkString("\n")
-      )
+          case Chunk.Yaml(_) => ""
+        }
+        .mkString("\n")
+
+      // If no Scala chunks exist but we have front matter, include it at the top
+      val finalContent = if (!hasScalaChunks && frontMatter.nonEmpty) {
+        s"""
+.build.mill ($download, {mill-example-url}/$examplePath[browse])
+[source,scala,subs="attributes,verbatim"]
+----
+$frontMatter
+----
+""" + renderedChunks
+      } else {
+        renderedChunks
+      }
+
+      os.write(Task.dest / "example.adoc", finalContent)
       PathRef(Task.dest / "example.adoc")
     }
   }

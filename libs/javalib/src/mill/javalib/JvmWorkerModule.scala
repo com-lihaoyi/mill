@@ -53,6 +53,9 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   /** Whether Zinc debug logging is enabled. */
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
+  /** Whether to use file-based locking instead of PID-based locking. */
+  def useFileLocks: T[Boolean] = Task.Input(Task.ctx().useFileLocks)
+
   def worker: Worker[JvmWorkerApi] = Task.Worker {
     // don't know why we have `worker` and `internalWorker`,
     // but we can't share the same instance, as we risk to run `close` on one,
@@ -149,11 +152,11 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   }
 
   @internal def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
-    val jobs = Task.ctx().jobs
+    val ctx = Task.ctx()
+    val jobs = ctx.jobs
 
     val cl = internalWorkerClassLoader()
 
-    val ctx = Task.ctx()
     val zincCompilerBridge = ZincCompilerBridgeProvider(
       workspace = ctx.dest,
       logInfo = ctx.log.info,
@@ -166,6 +169,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       classPath = classpath().map(_.path),
       jobs = jobs,
       zincLogDebug = zincLogDebug(),
+      useFileLocks = useFileLocks(),
       close0 = () => ()
     )
 

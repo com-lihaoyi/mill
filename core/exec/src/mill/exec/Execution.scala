@@ -31,6 +31,7 @@ case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
+    useFileLocks: Boolean,
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean
 ) extends GroupExecution with AutoCloseable {
@@ -53,6 +54,7 @@ case class Execution(
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
+      useFileLocks: Boolean,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean
   ) = this(
@@ -73,6 +75,7 @@ case class Execution(
     exclusiveSystemStreams,
     getEvaluator,
     offline,
+    useFileLocks,
     staticBuildOverrideFiles,
     enableTicker
   )
@@ -110,6 +113,7 @@ case class Execution(
     os.makeDir.all(outPath)
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
+    val completedCount = new AtomicInteger(0)
     val rootFailedCount = new AtomicInteger(0) // Track only root failures
     val planningLogger = new PrefixLogger(
       logger0 = baseLogger,
@@ -141,8 +145,16 @@ case class Execution(
 
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
-      def formatHeaderPrefix(countMsg: String, keySuffix: String) =
-        s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), logger.prompt.errorColor)}"
+      val keySuffix = s"/${indexToTerminal.size}"
+
+      def formatHeaderPrefix() = {
+        val completedMsg = mill.api.internal.Util.leftPad(
+          completedCount.get().toString,
+          indexToTerminal.size.toString.length,
+          '0'
+        )
+        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), logger.prompt.errorColor)}"
+      }
 
       val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
       val downstreamEdges: Map[Task[?], Set[Task[?]]] =
@@ -202,8 +214,6 @@ case class Execution(
                   '0'
                 )
 
-                val keySuffix = s"/${indexToTerminal.size}"
-
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
                   key0 = Seq(countMsg),
@@ -214,7 +224,7 @@ case class Execution(
 
                 if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
                 contextLogger.withPromptLine {
-                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                   if (failed.get()) None
                   else {
@@ -250,9 +260,10 @@ case class Execution(
                     val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
                     rootFailedCount.addAndGet(newFailures)
+                    completedCount.incrementAndGet()
 
-                    // Always show failed count in header if there are failures
-                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                    // Always show completed count in header after task finishes
+                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                     if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                       failed.set(true)
@@ -305,6 +316,9 @@ case class Execution(
       val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
+
+      // Set final header showing success only if there are no failures
+      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix() + ", completed")
 
       logger.prompt.clearPromptStatuses()
 

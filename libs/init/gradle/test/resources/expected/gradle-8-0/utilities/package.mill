@@ -1,8 +1,10 @@
 package build.utilities
+
 import mill.*
 import mill.javalib.*
 import mill.javalib.errorprone.ErrorProneModule
 import millbuild.*
+
 object `package` extends ProjectBaseModule, ErrorProneModule {
 
   def moduleDeps = Seq(build.list)

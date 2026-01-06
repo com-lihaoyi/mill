@@ -1,6 +1,6 @@
 // This example uses `NativeImageModule` to generate a native executable using https://www.graalvm.org/[Graal VM].
 // We recommend you xref:fundamentals/configuring-jvm-versions.adoc[configure a specific JDK version]
-// via a custom `JvmWorkerModule` overriding `def jvmId` (shown above), as not every JVM can build Graal native images.
+// via a custom `JvmWorkerModule` overriding `def jvmVersion` (shown above), as not every JVM can build Graal native images.
 
 /** See Also: build.mill.yaml */
 /** See Also: foo/package.mill.yaml */

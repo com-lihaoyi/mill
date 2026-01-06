@@ -47,7 +47,7 @@ include::partial$example/javalib/module/7-resources.adoc[]
 
 include::partial$example/javalib/module/15-jni.adoc[]
 
-== Integration Declarative and Programmatic Config
+== Integrating Declarative and Programmatic Config
 
 === Custom Module Traits
 

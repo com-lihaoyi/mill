@@ -1,7 +1,9 @@
 package millbuild
+
 import mill.*
 import mill.javalib.*
 import mill.javalib.publish.*
+
 trait ProjectBaseModule extends MavenModule, PublishModule {
 
   def javacOptions = Seq("-source", "1.6", "-target", "1.6")
@@ -24,4 +26,5 @@ trait ProjectBaseModule extends MavenModule, PublishModule {
     def testSandboxWorkingDir = false
 
   }
+
 }

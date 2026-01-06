@@ -1,0 +1,39 @@
+// Mill lets you invoke overridden tasks via `.super`, either alone (if there is only
+// one overridden task of that name) or with the class name to explicitly
+// select the overridden task on that specific class
+
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "3.7.4"
+}
+
+/** Usage
+
+> ./mill inspect foo.compile # Current `compile` task`
+foo.compile(ScalaModule.scala:...)
+
+> ./mill inspect foo.compile.super # shorthand for overridden `compile` task, if unambiguous
+foo.compile.super.javalib.JavaModule(JavaModule.scala:...)
+
+> # `compile` task on `mill.javalib.JavaModule`
+> ./mill inspect foo.compile.super.mill.javalib.JavaModule
+foo.compile.super.javalib.JavaModule(JavaModule.scala:...)
+
+*/
+
+// You can also select the task using a suffix of the class name segments, as long as it is
+// unambiguous and the module only has one super class with that suffix:
+
+/** Usage
+
+> # `compile` task on the class name ending with `.javalib.JavaModule`, which is unambiguous
+> ./mill inspect foo.compile.super.javalib.JavaModule
+foo.compile.super.javalib.JavaModule(JavaModule.scala:...)
+
+> # class name ending with just `.JavaModule` is also unambiguous
+> ./mill inspect foo.compile.super.JavaModule
+foo.compile.super.javalib.JavaModule(JavaModule.scala:...)
+
+*/

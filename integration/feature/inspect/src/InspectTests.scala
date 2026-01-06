@@ -149,6 +149,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    mill.javalib.OfflineSupportModule
           |    mill.javalib.SemanticDbJavaModule
           |    mill.javalib.AssemblyModule
+          |    mill.util.JdkCommandsModule
           |    mill.javalib.JavaModule
           |
           |Default Task: core.run
@@ -174,6 +175,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    mill.javalib.OfflineSupportModule
           |    mill.javalib.SemanticDbJavaModule
           |    mill.javalib.AssemblyModule
+          |    mill.util.JdkCommandsModule
           |    mill.javalib.JavaModule
           |
           |Module Dependencies:
