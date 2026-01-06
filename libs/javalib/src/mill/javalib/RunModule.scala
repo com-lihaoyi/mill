@@ -51,14 +51,14 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
     )
   }
 
-  def javaHomePathForkEnv: T[Map[String, String]] = Task{
-    val javaHomeBin = javaHome().fold(os.Path(sys.props("java.home")))(_.path) / "bin").toString
-    Map(
-      "PATH" -> (Task.env.get("PATH") match{
-        case Some(p) => s"$javaHomeBin${java.io.File.pathSeparator}$p"
-        case None => javaHomeBin
-      }
-    )
+  def javaHomePathForkEnv: T[Map[String, String]] = Task {
+    val javaHomeBin = (javaHome().fold(os.Path(sys.props("java.home")))(_.path) / "bin").toString
+    val newPath = Task.env.get("PATH") match {
+      case Some(p) => s"$javaHomeBin${java.io.File.pathSeparator}$p"
+      case None => javaHomeBin
+    }
+
+    Map("PATH" -> newPath)
   }
 
   def forkWorkingDir: T[os.Path] = Task { BuildCtx.workspaceRoot }
