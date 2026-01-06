@@ -14,7 +14,6 @@ import mill.api.daemon.internal.bsp.BspJavaModuleApi
 import mill.api.daemon.Watchable
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 
-import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.*
 
