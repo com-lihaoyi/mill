@@ -17,7 +17,13 @@ language out there.
 
 // end::header[]
 
-Consider this small Java program that someone may write:
+== An Example Java Single-file Script
+
+Consider this small Java program that someone may write.
+This program uses `unirest-java` and `jackson-databind` to fetch the links of a
+wikipedia page via the wikipedia API, which it then uses to perform
+a breadth-first traversal of the wikipedia article graph. The user provides the
+starting input via command-line articles parsed with `picocli`.
 
 .JsonApiClient.java
 ```java
@@ -32,8 +38,8 @@ import java.util.concurrent.Callable;
 @CommandLine.Command(name = "Crawler", mixinStandardHelpOptions = true)
 public class JsonApiClient implements Callable<Integer> {
 
-  @CommandLine.Option(names = {"--start-article"}, required = true, description = "Starting title")
-  private String startArticle;
+  @CommandLine.Option(names = {"--start"}, required = true, description = "Starting title")
+  private String start;
 
   @CommandLine.Option(names = {"--depth"}, required = true, description = "Depth of crawl")
   private int depth;
@@ -69,8 +75,8 @@ public class JsonApiClient implements Callable<Integer> {
   }
 
   public Integer call() throws Exception {
-    var seen = new HashSet<>(Set.of(startArticle));
-    var current = new HashSet<>(Set.of(startArticle));
+    var seen = new HashSet<>(Set.of(start));
+    var current = new HashSet<>(Set.of(start));
 
     for (int i = 0; i < depth; i++) {
       var next = new HashSet<String>();
@@ -95,10 +101,7 @@ public class JsonApiClient implements Callable<Integer> {
 }
 ```
 
-This program uses `unirest-java` and `jackson-databind` to fetch the links of a
-wikipedia page via the wikipedia API, which it then uses to perform
-a breadth-first traversal of the wikipedia article graph. The user provides the
-starting input via command-line articles parsed with `picocli`. While this example is a
+While this example is a
 toy program, it is representative of the many kinds of small programs or scripts that
 people typically use scripting languages for: simple code gluing together various
 data sources and APIs and performing some computation based on them.
@@ -174,7 +177,7 @@ with a lot of subtle choices and decisions and ways things can go wrong. Install
 usually more straightforward.
 
 * Installing Java and Maven on all environments your script may
-run on is more challenging: you need to ensure every laptop, CI work, or production machine has
+run on is more difficult: you need to ensure every laptop, CI work, or production machine has
 the same exact versions of Java and Maven installed.
 
 * Most difficult is maintaining this installation over time: as laptops get provisioned and
@@ -182,14 +185,14 @@ retired, Java or Maven versions get upgrades, CI workers get cycled out, ensurin
 machine has the right version of Java and Maven installed at all times can be quite challenging.
 
 Installing Java and Maven is not a blocker: many people have done it in many codebases over
-the past few decades. But it is certainly something that is a lot more fiddly than expected,
+the past few decades. But it is certainly something that can be a lot more fiddly than expected,
 especially when you have to ensure consistency over a fleet of heterogeneous machines and
 ensure it stays consistent over time.
 
 === Configuring Maven is Tedious
 
-Once you have Java and Maven installed, you then need to configure Maven to build it. This
-script has three third-party dependencies, so the Maven config looks something like this:
+Once you have Java and Maven installed, you then need to configure Maven to build it. The
+script above has three third-party dependencies, so the Maven config looks something like this:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -244,8 +247,8 @@ script has three third-party dependencies, so the Maven config looks something l
 
 While this Maven config isn't particularly complicated, it is quite a screenful of text we
 need to write or copy-paste from somewhere in order to get our small script running.
-Again, not a blocker, but again, just more fiddly stuff to set up and maintain just
-to write our single-file Java program.
+Again, not a blocker, but more fiddly stuff to set up and maintain just to write our
+single-file Java program.
 
 === Running Maven is Tedious
 
@@ -255,12 +258,28 @@ Lastly, we need to run our script with Maven. The command to do so is as follows
 > mvn compile exec:java -Dexec.args="--start Functional_programming --depth 2"
 ```
 
+The single-line command for running your Maven project has a whole bunch of footguns
+you need to avoid:
+
+- Remember to `compile` first, otherwise your compiled code may be out of date!
+- Remember to `exec:java` rather than just `exec`!
+- Remember to pass in arguments via `-Dexec.args` rather than passing them indirectly!
+- If your arguments themselves need to be quoted, remember to double-escape your nested quotes,
+  or triple-escape them if the arguments themselves contain quotes!
+
 This may seem nitpicky - and it is! - but it's just another papercut in making it
 annoying to run the `JsonApiClient.java` file we have already written.
 
+None of these issues with Maven or Java are fatal. We've all been writing and running
+Java programs for decades by now, in my case since Java 4 in 2004. But the sum-total
+of all these papercuts is that it's not pleasant to write small programs in Java.
+So small programs and scripts end up being written in Python or Javascript or Ruby,
+and even though in theory Java or Scala or Kotlin could work, in practice nobody uses them
+for scripting.
+
 == Improving the JVM Scripting Experience
 
-While there are many issues with scripting on the JVM, as we have just seen, these
+While there are many issues with scripting on the JVM, these
 issues are not insurmountable. Next we'll discuss some of the solutions and workarounds
 that can mitigate these problems, to provide the streamlined scripting experience that
 the JVM deserves
@@ -272,7 +291,7 @@ build tool such as https://www.jbang.dev/[JBang] or Mill. These tools make it mu
 easier to configure some third-party dependencies and compile/run a single file.
 For example, JBang lets you write
 https://www.jbang.dev/documentation/jbang/latest/script-directives.html[//DEPS header comments]
-and run it from the command line:
+and run the `.java` file directly from the command line:
 
 .JsonApiClient.java
 ```java
@@ -290,7 +309,8 @@ import picocli.CommandLine;
 ```
 
 The Mill build tool uses a similar
-xref:mill::javalib/intro.adoc#_single_file_scripts[YAML header syntax]:
+xref:mill::javalib/intro.adoc#_single_file_scripts[YAML header syntax] that looks a bit
+different but otherwise works basically the same way:
 
 .JsonApiClient.java
 ```java
@@ -315,15 +335,16 @@ Such lightweight build tools make it much easier to run our small Java program:
   xref:#_configuring_maven_is_tedious[Configuring Maven is Tedious] and xref:#_running_maven_is_tedious[Running Maven is Tedious]
   problems above
 
-* Mill with it's `./mill` bootstrap script also solves xref:#_tricky_to_install_java_and_maven_[Tricky to install Java and Maven],
+* Mill with it's `./mill` bootstrap script also solves
+  xref:#_tricky_to_install_java_and_maven_[Tricky to install Java and Maven] problem,
   as `./mill` will automatically download & cache the JVM and build-tool installation and
-  ensure you are using the correct, cossitent version
+  ensure you are using the correct, consistent version
 
 However, even if building and running small scripts written in Java is convenient, writing
 and maintaining the code itself can be a pain due to the verbosity of the Java language
 and libraries that makes even simple programs (such as that above) take pages and pages of code.
-While that may be fine for complicated application code, the verbosity of the Java language
-can get in the way of writing small scripts.
+While Java's verbosity may be fine - or even beneficial - for complicated application code,
+the same verbosity can get in the way of writing small scripts.
 
 But Java isn't the only language on the JVM!
 
@@ -331,8 +352,8 @@ But Java isn't the only language on the JVM!
 
 One option here is to write the script in Kotlin. Kotlin is much more syntactically concise
 than Java, which means much less code to write the same things overall. A version of the
-`HtmlScraper.java` translated to Kotlin is shown below, using the Kotlin Clikt library
-rather than PicoCLI:
+`HtmlScraper.java` translated to Kotlin is shown below, using the Kotlin
+https://ajalt.github.io/clikt/[Clikt] library rather than PicoCLI:
 
 .JsonApiClient.kt
 ```scala
@@ -340,7 +361,6 @@ rather than PicoCLI:
 //| - com.github.ajalt.clikt:clikt:5.0.3
 //| - com.konghq:unirest-java:3.14.5
 //| - org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3
-
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.options.*
@@ -394,7 +414,7 @@ fun main(args: Array<String>) = Crawler().main(args)
 ```
 
 ```console
-> ./mill JsonApiClient.kt -s Functional_programming -d 2
+> ./mill JsonApiClient.kt --start Functional_programming --depth 2
 ```
 
 The Kotlin program has about 1/3 fewer lines than the Java equivalent, and overall much less
@@ -408,9 +428,14 @@ Java, e.g. the excellent IDE support provided by editors such as IntelliJ:
 image::ScriptIDESupportKotlin.png[ScriptIDESupportKotlin.png]
 
 This makes using Kotlin a great way to streamline the scripting experience on the JVM.
-But there is one more step further that we can take:
+Although the example above uses Mill as the build tool, Kotlin also supports
+https://kotlinlang.org/docs/custom-script-deps-tutorial.html[its own scripting workflows],
+which are also used in Gradle and other projects.
 
-== Scala with Lightweight Libraries
+Although scripts in Kotlin are markedly nicer to write and read than scripts written
+in Java, there is one more step further that we can take:
+
+== Scala with its Lightweight Libraries
 
 The last step to simplify scripting on the JVM is to write the script in Scala.
 Scala is yet another JVM language, like Kotlin. But unlike Kotlin, Scala has
@@ -470,7 +495,11 @@ the `HtmlScraper.java`:
   done in PicoCLI or Clikt, `HtmlScraper.scala` uses MainArgs which lets you simply
   define a `def main` method and turns the parameter list into the command-line parser
 
-Although the Scala program is much shorter and more concise than the Java program
+In general, the Scala script we see above looks similar to any scripting language,
+with code that specifies clearly the logical steps of accessing the Wikipedia
+API and performing the breadth-first search, but without the verbose machinery
+necessary to implement that logic in Kotlin or Java.
+And although the Scala program is much shorter and more concise than the Java program
 we started with, overall it still has all the benefits of running on the JVM:
 
 - We can depend on any JVM library via `//| mvnDeps`. Although the Scala ecosystem
