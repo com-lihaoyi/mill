@@ -34,6 +34,18 @@ class BspLogger(
     }
     override def enableTicker = true
 
+    override private[mill] def setPromptLine(
+        key: Seq[String],
+        keySuffix: String,
+        message: String
+    ): Unit = {
+      if (message != "") beginChromeProfileEntry(message)
+    }
+
+    override private[mill] def removePromptLine(key: Seq[String], message: String): Unit = {
+      if (message != "") endChromeProfileEntry()
+    }
+
     override private[mill] def beginChromeProfileEntry(text: String): Unit = {
       chromeProfileLogger.logBegin(
         text,
