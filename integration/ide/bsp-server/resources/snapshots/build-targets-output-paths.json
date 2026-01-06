@@ -133,6 +133,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/scripts/custom-src/ignored-because-custom-src.java"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "outputPaths": []

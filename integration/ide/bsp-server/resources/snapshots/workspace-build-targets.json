@@ -585,6 +585,32 @@
     },
     {
       "id": {
+        "uri": "file:///workspace/scripts/custom-src/ignored-because-custom-src.java"
+      },
+      "displayName": "scripts/custom-src/ignored-because-custom-src.java:",
+      "baseDirectory": "file:///workspace/scripts/custom-src/ignored-because-custom-src.java",
+      "tags": [
+        "library",
+        "application"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": false,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "21.0.9"
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "displayName": "scripts/folder1/script.scala:",
