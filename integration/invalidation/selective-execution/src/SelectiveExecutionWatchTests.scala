@@ -1,8 +1,8 @@
 package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
-import utest._
+import utest.*
 import utest.asserts.{RetryMax, RetryInterval}
 
 object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
@@ -12,7 +12,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
 
     test("changed-inputs") - retry(1) {
       integrationTest { tester =>
-        import tester._
+        import tester.*
         val spawned = spawn(("--watch", "{foo.fooCommand,bar.barCommand}"))
 
         assertEventually {
@@ -48,7 +48,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
     }
     test("show-changed-inputs") - retry(1) {
       integrationTest { tester =>
-        import tester._
+        import tester.*
         val spawned = spawn(("--watch", "show", "{foo.fooCommand,bar.barCommand}"))
 
         assertEventually {
@@ -74,7 +74,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
 
     test("changed-code") - retry(1) {
       integrationTest { tester =>
-        import tester._
+        import tester.*
 
         val spawned = spawn(("--watch", "{foo.fooCommand,bar.barCommand}"))
 
@@ -110,7 +110,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
     // seeing no failures in the terminal really means there are no failures left
     test("rerun-failures") - retry(1) {
       integrationTest { tester =>
-        import tester._
+        import tester.*
 
         modifyFile(
           workspacePath / "build.mill",

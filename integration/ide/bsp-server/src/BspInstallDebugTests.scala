@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 import mill.bsp.Constants
-import utest._
+import utest.*
 
 object BspInstallDebugTests extends UtestIntegrationTestSuite {
   override protected def workspaceSourcePath: os.Path =
@@ -14,7 +14,7 @@ object BspInstallDebugTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
     def runTest(bspInstallOption: String) = integrationTest { tester =>
-      import tester._
+      import tester.*
       eval(bspInstallOption).isSuccess ==> true
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       assert(os.exists(jsonFile))

@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 /**
  * Make sure `build.mill` files, `package.mill` files, and helper files
@@ -12,7 +12,7 @@ import utest._
 object CrossFileReferencesTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
-      import tester._
+      import tester.*
       val res = eval(("show", "foo"))
       assert(res.out == "1337")
 

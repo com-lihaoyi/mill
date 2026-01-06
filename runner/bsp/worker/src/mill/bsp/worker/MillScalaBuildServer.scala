@@ -17,7 +17,7 @@ import mill.api.daemon.internal.{ScalaModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 
 import java.util.concurrent.CompletableFuture
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 

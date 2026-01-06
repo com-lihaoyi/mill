@@ -1,6 +1,6 @@
 package mill.pythonlib
 
-import mill._
+import mill.*
 import mill.api.Result
 import mill.constants.DaemonFiles
 import mill.util.Jvm

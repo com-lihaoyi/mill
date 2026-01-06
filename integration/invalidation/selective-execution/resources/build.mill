@@ -1,4 +1,4 @@
-import mill._
+import mill.*
 
 object foo extends Module {
   def fooTask = Task.Source("foo.txt")

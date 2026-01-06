@@ -1,4 +1,4 @@
-import mill._
+import mill.*
 import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet}
 import mill.api.PathRef
 import mill.scalalib.TestModule

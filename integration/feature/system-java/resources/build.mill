@@ -1,5 +1,5 @@
 package build
-import mill._
+import mill.*
 
 def printJavaVersion() = Task.Command {
   println(scala.util.Properties.javaVersion)

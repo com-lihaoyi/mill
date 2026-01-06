@@ -1,9 +1,9 @@
 package mill.integration
 
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
-import utest._
+import utest.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import utest.asserts.{RetryMax, RetryInterval}
 
 /**
@@ -15,7 +15,7 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
     integrationTest { tester =>
-      import tester._
+      import tester.*
 
       assert(!os.exists(workspacePath / "out/mill-daemon"))
       assert(!os.exists(workspacePath / "out/mill-no-daemon"))

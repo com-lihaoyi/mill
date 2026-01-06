@@ -1,4 +1,4 @@
 package build.sub
 
-import mill._
+import mill.*
 object `package` extends mill.Module

@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import sbt.testing._
+import sbt.testing.*
 
 class DoneMessageFailureFramework extends Framework {
   def fingerprints() = Array.empty

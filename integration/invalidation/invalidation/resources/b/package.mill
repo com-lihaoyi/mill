@@ -1,5 +1,5 @@
 package build.b
-import mill._
+import mill.*
 
 def input = Task {
   method()

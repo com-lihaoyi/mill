@@ -69,7 +69,7 @@ object JavaCompileJarTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
 
-      import Build._
+      import Build.*
 
       var evaluator = UnitTester(
         Build,

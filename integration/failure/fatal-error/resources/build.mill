@@ -1,5 +1,5 @@
 package build
-import mill._
+import mill.*
 
 def fatalException(msg: String) = {
   // Needs to be a fatal error according to scala.util.control.NonFatal,

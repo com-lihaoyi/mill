@@ -5,7 +5,7 @@ object Main extends App {
 
   println("multi2 can use pureconfig dependency")
 
-  import pureconfig._
+  import pureconfig.*
 
   implicit def hint[T]: ProductHint[T] = ProductHint[T](ConfigFieldMapping(CamelCase, KebabCase))
 }

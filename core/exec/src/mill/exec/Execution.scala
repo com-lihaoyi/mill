@@ -350,7 +350,7 @@ case class Execution(
 
       val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
-      import scala.collection.JavaConverters._
+      import scala.collection.JavaConverters.*
       Execution.Results(
         goals.toIndexedSeq.map(results(_).map(_._1)),
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,

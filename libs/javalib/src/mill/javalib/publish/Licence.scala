@@ -403,8 +403,8 @@ object License {
     "io.circe" %% "circe-parser"
   ).map(_ % circeVersion)
 
-  import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
-  import java.nio.file._
+  import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax.*
+  import java.nio.file.*
   import System.{lineSeparator => nl}
   case class License(
     reference: String,
