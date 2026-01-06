@@ -1,4 +1,4 @@
-//| jvmId: "graalvm-community:17"
+//| jvmVersion: "graalvm-community:17"
 //| nativeImageOptions: ["--no-fallback"]
 public class Bar {
   public static void main(String[] args) {

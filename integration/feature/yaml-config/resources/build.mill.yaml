@@ -1,4 +1,4 @@
-extends: [JavaModule]
+extends: JavaModule
 forkEnv:
   NULL1: null
   NULL2: Null

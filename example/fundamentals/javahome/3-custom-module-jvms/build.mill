@@ -1,10 +1,9 @@
 // :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
-// == Setting the JVM version of a JavaModule
 //
-// Configuring custom JVMs is done by setting the `def jvmId`
+// Configuring custom JVMs is done by setting the `def jvmVersion`
 // of any `JavaModule`, `ScalaModule`, or `KotlinModule`
 //
-// The `jvmId` string has the form:
+// The `jvmVersion` string has the form:
 //
 // ----
 // "{name}:{version}"
@@ -16,7 +15,7 @@ import mill.*, javalib.*
 import mill.api.ModuleRef
 
 object foo extends JavaModule {
-  def jvmId = "temurin:11.0.21"
+  def jvmVersion = "temurin:11.0.21"
 
   object test extends JavaTests, TestModule.Junit4
 }
@@ -32,12 +31,29 @@ Test foo.FooTest.testSimple finished...
 
 */
 
-// Selecting a custom JVM via `jvmId` means that JVM is used for
+// Selecting a custom JVM via `jvmVersion` means that JVM is used for
 // compiling, testing, and running that module via Mill. Note that `.assembly` is not
 // affected, as JVM assembly jars do not bundle a JVM and have to be run using a
 // JVM installed on the target host machine.
 //
-// == Selecting JVM Index Versions
+// For any module with a custom `jvmVersion`, you can also access `java` and other commands
+// on the module's JVM via `foo.java`, `foo.javap`, etc. This can be useful if you
+
+/** Usage
+
+> ./mill foo.java -version
+openjdk version "11..." ...
+
+> ./mill show foo.assembly
+".../out/foo/assembly.dest/out.jar"
+
+> ./mill foo.java -jar out/foo/assembly.dest/out.jar
+Foo running on Java 11.0.21
+
+*/
+
+//
+// === Selecting JVM Index Versions
 //
 // By default, Mill comes bundled with a version of the JVM index that was published when
 // each version of Mill is released. This ensures that the JVM versions you pick are stable,
@@ -55,7 +71,7 @@ import scalalib.*
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.16"
-  def jvmId = "temurin:23.0.1"
+  def jvmVersion = "temurin:23.0.1"
   def jvmIndexVersion = "latest.release"
 }
 
@@ -66,7 +82,7 @@ Bar running on Java 23.0.1
 
 */
 
-// == Explicit JVM Download URLs
+// === Explicit JVM Download URLs
 //
 // You can also pass in the JVM download URL explicitly. Note that if you do so, you need
 // to ensure yourself that you are downloading the appropriate JVM distribution for your
@@ -78,7 +94,7 @@ import kotlinlib.*
 
 object qux extends KotlinModule {
   def kotlinVersion = "2.0.20"
-  def jvmId =
+  def jvmVersion =
     if (sys.props("os.name") == "Mac OS X") {
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
     } else {
@@ -94,7 +110,7 @@ Qux running on Java 22.0.2
 
 */
 
-// == Locally-Installed JVMs
+// === Locally-Installed JVMs
 //
 // Lastly, you can point Mill at any JVM distribution installed locally on disk via:
 

@@ -21,7 +21,7 @@ abstract class MainRootModule()(using
  * [[mill.api.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends RootModule0, MainModuleApi {
+trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
 
   private lazy val bspExt = {
     import bsp.BspMainModule.given

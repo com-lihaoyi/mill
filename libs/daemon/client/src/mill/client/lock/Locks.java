@@ -16,7 +16,7 @@ public final class Locks implements AutoCloseable {
   }
 
   /**
-   * @deprecated Use {@link #forDirectory(String)} instead, which automatically
+   * @deprecated Use `forDirectory` instead, which automatically
    *             chooses between file-based and PID-based locking.
    */
   @Deprecated
@@ -32,7 +32,7 @@ public final class Locks implements AutoCloseable {
    * (e.g., some network filesystems, Docker containers on macOS), at the cost
    * of some potential race conditions
    *
-   * @deprecated Use {@link #forDirectory(String)} instead, which automatically
+   * @deprecated Use `forDirectory` instead, which automatically
    *             chooses between file-based and PID-based locking.
    */
   @Deprecated

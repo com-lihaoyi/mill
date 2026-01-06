@@ -18,7 +18,7 @@ import mill.javalib.graalvm.MetadataQuery
  * trait AppModule extends NativeImageModule {
  *   def jvmWorker = ModuleRef(JvmWorkerGraalvm)
  *
- *   def jvmId = "graalvm-community:23.0.1"
+ *   def jvmVersion = "graalvm-community:23.0.1"
  * }
  * }}}
  */

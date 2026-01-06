@@ -63,7 +63,7 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...
 //
 // * Adding custom `sources` and `resources` folders.
 //
-// * Pinning a specific Java runtime/compile version via `jvmId`
+// * Pinning a specific Java runtime/compile version via `jvmVersion`
 //
 // NOTE: Paths such as `custom-src/` or `custom-resources/` are relative to the
 // xref:fundamentals/modules.adoc#_moduledir[moduleDir] of the module being configured.
