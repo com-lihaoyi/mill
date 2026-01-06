@@ -38,6 +38,7 @@ class JsonArrayLogger[T: upickle.Writer](outPath: os.Path, indent: Int) {
               .mkString("\n")
 
             traceStream.print(indented)
+            traceStream.flush()
             true
           case None => false
         }
