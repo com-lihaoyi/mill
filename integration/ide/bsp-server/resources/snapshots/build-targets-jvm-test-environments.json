@@ -24,7 +24,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "/user-home/Library/Caches/Coursier/arc/https/cdn.azul.com/zulu/bin/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64.tar.gz/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64/zulu-21.jdk/Contents/Home/bin:/user-home/Library/Caches/Coursier/arc/https/cdn.azul.com/zulu/bin/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64.tar.gz/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64/zulu-21.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/user-home/Library/Application Support/JetBrains/Toolbox/scripts:/user-home/Library/Application Support/Coursier/bin",
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/app/test/resources"
       },
@@ -59,7 +59,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "/user-home/Library/Caches/Coursier/arc/https/cdn.azul.com/zulu/bin/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64.tar.gz/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64/zulu-21.jdk/Contents/Home/bin:/user-home/Library/Caches/Coursier/arc/https/cdn.azul.com/zulu/bin/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64.tar.gz/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64/zulu-21.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/user-home/Library/Application Support/JetBrains/Toolbox/scripts:/user-home/Library/Application Support/Coursier/bin",
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-java/test/resources"
       },
@@ -95,7 +95,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "/user-home/Library/Caches/Coursier/arc/https/cdn.azul.com/zulu/bin/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64.tar.gz/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64/zulu-21.jdk/Contents/Home/bin:/user-home/Library/Caches/Coursier/arc/https/cdn.azul.com/zulu/bin/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64.tar.gz/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64/zulu-21.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/user-home/Library/Application Support/JetBrains/Toolbox/scripts:/user-home/Library/Application Support/Coursier/bin",
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-scala/test/resources"
       },
@@ -141,7 +141,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "PATH": "/user-home/Library/Caches/Coursier/arc/https/cdn.azul.com/zulu/bin/zulu11.82.19-ca-jdk11.0.28-macosx_aarch64.tar.gz/zulu11.82.19-ca-jdk11.0.28-macosx_aarch64/bin:/user-home/Library/Caches/Coursier/arc/https/cdn.azul.com/zulu/bin/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64.tar.gz/zulu21.46.19-ca-jdk21.0.9-macosx_aarch64/zulu-21.jdk/Contents/Home/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/user-home/Library/Application Support/JetBrains/Toolbox/scripts:/user-home/Library/Application Support/Coursier/bin",
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/scripts/folder2/FooTest.java/resources"
       },
