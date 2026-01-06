@@ -8,13 +8,13 @@ import mill.api.daemon.internal.{
   JavaModuleApi,
   MillBuildRootModuleApi,
   ModuleApi,
+  PathRefApi,
   TaskApi
 }
 import mill.api.daemon.internal.bsp.BspJavaModuleApi
 import mill.api.daemon.Watchable
 import org.eclipse.jgit.ignore.{FastIgnoreRule, IgnoreNode}
 
-import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.*
 
 class BspEvaluators(
@@ -104,9 +104,8 @@ class BspEvaluators(
    */
   def extractPathsFromResults(results: Seq[Any]): Seq[os.Path] = {
     results.flatMap {
-      case pathRef: mill.api.PathRef => Seq(pathRef.path)
-      case pathRefs: Seq[?] =>
-        pathRefs.collect { case pr: mill.api.PathRef => pr.path }
+      case pathRef: PathRefApi => Seq(os.Path(pathRef.javaPath))
+      case pathRefs: Seq[?] => pathRefs.collect { case pr: PathRefApi => os.Path(pr.javaPath) }
       case _ => Seq.empty
     }
   }
@@ -116,22 +115,21 @@ class BspEvaluators(
    * evaluating only those inputs, and extracting PathRef values.
    */
   private def extractInputPaths(taskSelector: BspJavaModuleApi => TaskApi[?]): Seq[os.SubPath] = {
-    evaluators.flatMap { ev =>
-      val tasks = transitiveModules(ev.rootModule)
-        .collect { case m: JavaModuleApi => taskSelector(m.bspJavaModule()) }
+    evaluators
+      .flatMap { ev =>
+        val tasks = transitiveModules(ev.rootModule)
+          .collect { case m: JavaModuleApi => taskSelector(m.bspJavaModule()) }
 
-      findInputTasks(tasks) match {
-        case Nil => Seq.empty
-        case inputTasks =>
-          extractPathsFromResults(ev.executeApi(inputTasks).values.get)
-            .map(_.subRelativeTo(workspaceDir))
+        findInputTasks(tasks) match {
+          case Nil => Seq.empty
+          case inputTasks => extractPathsFromResults(ev.executeApi(inputTasks).values.get)
+        }
       }
-    }
+      .map(_.subRelativeTo(workspaceDir))
   }
 
   val nonScriptSources = extractInputPaths(_.bspBuildTargetSources)
   val nonScriptResources = extractInputPaths(_.bspBuildTargetResources)
-
   val bspScriptIgnore: Seq[String] = {
     // look for this in the first meta-build frame, which would be the meta-build configured
     // by a `//|` build header in the main `build.mill` file in the project root folder
