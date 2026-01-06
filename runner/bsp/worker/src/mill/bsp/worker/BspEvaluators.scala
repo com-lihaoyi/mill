@@ -115,9 +115,7 @@ class BspEvaluators(
    * Extract paths from input task results by traversing task graphs to find Task.Input roots,
    * evaluating only those inputs, and extracting PathRef values.
    */
-  private def extractInputPaths(
-      taskSelector: BspJavaModuleApi => TaskApi[?]
-  ): Seq[os.SubPath] = {
+  private def extractInputPaths(taskSelector: BspJavaModuleApi => TaskApi[?]): Seq[os.SubPath] = {
     evaluators.flatMap { ev =>
       val tasks = transitiveModules(ev.rootModule)
         .collect { case m: JavaModuleApi => taskSelector(m.bspJavaModule()) }
