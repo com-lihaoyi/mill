@@ -88,8 +88,6 @@ class MillBuildBootstrap(
       val prevFrameOpt = prevRunnerState.frames.lift(depth)
       val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
-      val requestedDepth = requestedMetaLevel.filter(_ >= 0).getOrElse(0)
-
       val currentRootContainsBuildFile = rootBuildFileNames.asScala.exists(rootBuildFileName =>
         os.exists(currentRoot / rootBuildFileName)
       )
@@ -164,6 +162,16 @@ class MillBuildBootstrap(
           state
         }
 
+      val totalMetaLevels = depth + nestedState.frames.size
+
+      // positive (0-based):  0 means workspace build,  1 means first meta-build, ...
+      // negative (1-based): -1 means bootstrap build, -2 means one level above, ...
+      val requestedDepth = requestedMetaLevel match {
+        case Some(l) if l >= 0 => l
+        case Some(l) if l < 0 => totalMetaLevels + 1 + l
+        case None => 0
+      }
+
       val classloaderChanged =
         prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
           nestedState.frames.headOption.flatMap(_.classLoaderOpt)
@@ -177,11 +185,11 @@ class MillBuildBootstrap(
 
       val res =
         if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
-        else if (depth == 0 && requestedDepth > nestedState.frames.size) {
+        else if (depth == 0 && (requestedDepth > nestedState.frames.size || requestedDepth < 0)) {
           // User has requested a frame depth, we actually don't have
           nestedState.add(errorOpt =
             Some(
-              s"Invalid selected meta-level ${requestedDepth}. Valid range: 0 .. ${nestedState.frames.size}"
+              s"Invalid selected meta-level ${requestedMetaLevel.getOrElse(0)}. Valid range: 0 .. ${nestedState.frames.size} (or -1 .. -${nestedState.frames.size + 1})"
             )
           )
         } else if (depth < requestedDepth) {
