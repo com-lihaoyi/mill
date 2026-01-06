@@ -7,7 +7,7 @@ import mill.Task
 import mill.api.Discover
 import mill.api.ExternalModule
 
-import utest._
+import utest.*
 
 object `package` extends ExternalModule.Alias(TestExternalModule)
 object TestExternalModule extends mill.api.ExternalModule with mill.api.DefaultTaskModule {

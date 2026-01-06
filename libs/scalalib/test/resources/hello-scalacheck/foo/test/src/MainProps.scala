@@ -1,4 +1,4 @@
-import org.scalacheck._
+import org.scalacheck.*
 
 object MainProps extends Properties("String") {
   import Prop.forAll

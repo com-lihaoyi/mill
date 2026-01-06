@@ -1,4 +1,4 @@
-import monocle.macros._
+import monocle.macros.*
 @Lenses case class Foo(bar: String)
 object Main extends App {
   println(Foo.bar.get(Foo("bar")))

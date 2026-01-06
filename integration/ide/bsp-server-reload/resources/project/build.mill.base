@@ -1,6 +1,6 @@
 package build
 
-import mill.scalalib._
+import mill.scalalib.*
 
 object thing extends ScalaModule {
   def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)

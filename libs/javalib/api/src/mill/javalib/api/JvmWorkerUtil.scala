@@ -134,7 +134,7 @@ object JvmWorkerUtil {
    * like `"1+"`, `"3-"`, `"3.0-"`, `"2+"`, `"2-"` and so on.
    */
   def versionRanges(version: String, allVersions: Seq[String]): Seq[String] = {
-    import scala.math.Ordering.Implicits._
+    import scala.math.Ordering.Implicits.*
     val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get).toSeq
     val all = allVersions.flatMap(
       _.split('.').inits

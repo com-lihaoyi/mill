@@ -1,7 +1,7 @@
 package mill.api
 
 import mill.api.TaskCtx.ImplicitStub
-import utest._
+import utest.*
 
 import scala.annotation.compileTimeOnly
 import scala.language.implicitConversions

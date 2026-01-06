@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 // Basic tests for errors in build.mill.yaml an package.mill.yaml files.
 object YamlConfigMiscTests extends UtestIntegrationTestSuite {

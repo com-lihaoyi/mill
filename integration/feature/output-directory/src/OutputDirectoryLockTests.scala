@@ -1,7 +1,7 @@
 package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
-import utest._
+import utest.*
 import utest.asserts.{RetryInterval, RetryMax}
 
 import scala.concurrent.duration.DurationInt
@@ -12,7 +12,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
   implicit val retryInterval: RetryInterval = RetryInterval(50.millis)
   def tests: Tests = Tests {
     test("basic") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val signalFile = workspacePath / "do-wait"
       // Kick off blocking task in background
       spawn(

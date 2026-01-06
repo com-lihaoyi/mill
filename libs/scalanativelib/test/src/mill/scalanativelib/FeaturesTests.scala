@@ -4,7 +4,7 @@ import mill.given
 import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 object FeaturesTests extends TestSuite {
   object Features extends TestRootModule with ScalaNativeModule {

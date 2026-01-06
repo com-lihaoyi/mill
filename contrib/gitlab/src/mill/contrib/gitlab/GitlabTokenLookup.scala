@@ -3,7 +3,7 @@ package mill.contrib.gitlab
 import scala.util.Try
 import mill.api.Result
 trait GitlabTokenLookup {
-  import GitlabTokenLookup._
+  import GitlabTokenLookup.*
 
   // Default search places for token
   def personalTokenEnv: String = "GITLAB_PERSONAL_ACCESS_TOKEN"

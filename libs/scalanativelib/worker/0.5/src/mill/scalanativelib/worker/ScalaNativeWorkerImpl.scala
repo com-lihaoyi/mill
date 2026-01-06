@@ -2,7 +2,7 @@ package mill.scalanativelib.worker
 
 import java.io.File
 
-import mill.scalanativelib.worker.api._
+import mill.scalanativelib.worker.api.*
 import scala.scalanative.util.Scope
 import scala.scalanative.build.{
   Build,

@@ -1,12 +1,12 @@
 package mill.scalajslib
 
-import mill._
+import mill.*
 import mill.api.Discover
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 import mill.javalib.api.JvmWorkerUtil
 

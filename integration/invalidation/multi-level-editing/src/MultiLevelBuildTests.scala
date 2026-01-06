@@ -143,7 +143,7 @@ object MultiLevelBuildTestsValidEdits extends MultiLevelBuildTests {
     savedServerId = ""
     test("validEdits") - retry(retryCount) {
       integrationTest { tester =>
-        import tester._
+        import tester.*
         runAssertSuccess(tester, "<h1>hello</h1><p>world</p><p>0.13.1</p>!")
         checkWatchedFiles(
           tester,
@@ -237,7 +237,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
     savedServerId = ""
     test("parseErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
-        import tester._
+        import tester.*
         def causeParseError(p: os.Path) =
           modifyFile(p, _.replace("extends", "extendx"))
 
@@ -304,7 +304,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
     savedServerId = ""
     test("compileErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
-        import tester._
+        import tester.*
         def causeassertCompileError(p: os.Path) =
           modifyFile(p, _ + "\nimport doesnt.exist")
 
@@ -368,7 +368,7 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
     savedServerId = ""
     test("runtimeErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
-        import tester._
+        import tester.*
         val runErrorSnippet =
           """{
             |override def runClasspath = Task {

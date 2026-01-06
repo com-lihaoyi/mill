@@ -3,8 +3,8 @@ package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
 import java.io.RandomAccessFile
 import utest.asserts.{RetryInterval, RetryMax}
-import scala.concurrent.duration._
-import utest._
+import scala.concurrent.duration.*
+import utest.*
 
 // Make sure that `runBackground` subprocesses properly outlive the execution
 // that created them, and outlive the Mill process whether terminated naturally
@@ -26,7 +26,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
 
   val tests: Tests = Tests {
     test("simple") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val lock = os.temp()
       val stop = os.temp()
       os.remove(stop)
@@ -42,7 +42,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
       // This test fails on Windows. We will need to look into it, but it also does not work on `main` branch, so it's
       // not a regression, thus we'll leave it for now.
       if (!scala.util.Properties.isWin) {
-        import tester._
+        import tester.*
         val lock1 = os.temp()
         val lock2 = os.temp()
         val stop = os.temp()
@@ -64,7 +64,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
     }
 
     test("clean") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val lock = os.temp()
       val stop = os.temp()
       os.remove(stop)

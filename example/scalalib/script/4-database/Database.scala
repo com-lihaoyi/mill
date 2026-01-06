@@ -3,7 +3,7 @@
 //| - com.lihaoyi::scalasql-namedtuples:0.2.3
 //| - org.xerial:sqlite-jdbc:3.43.0.0
 
-import scalasql.simple._, SqliteDialect._
+import scalasql.simple._, SqliteDialect.*
 import java.time.LocalDate
 
 case class Buyer(id: Int, name: String, dateOfBirth: LocalDate)

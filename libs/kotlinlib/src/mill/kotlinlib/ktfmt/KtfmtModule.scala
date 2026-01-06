@@ -1,6 +1,6 @@
 package mill.kotlinlib.ktfmt
 
-import mill._
+import mill.*
 import mill.api.{PathRef}
 import mill.api.{Discover, ExternalModule}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}

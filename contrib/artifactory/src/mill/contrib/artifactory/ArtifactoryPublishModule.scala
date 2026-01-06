@@ -1,8 +1,8 @@
 package mill.contrib.artifactory
 
-import mill._
+import mill.*
 import mill.api.Result
-import javalib._
+import javalib.*
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
 import mill.api.{ExternalModule, Task}
 

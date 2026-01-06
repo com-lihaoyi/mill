@@ -8,7 +8,7 @@ import mill.testkit.UnitTester
 import utest.*
 
 object TestingTests extends TestSuite {
-  import CompileRunTests._
+  import CompileRunTests.*
   def tests: Tests = Tests {
 
     def runTests(testTask: Task.Named[(msg: String, results: Seq[TestResult])])

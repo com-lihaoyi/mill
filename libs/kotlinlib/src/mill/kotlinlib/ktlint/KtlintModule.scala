@@ -1,7 +1,7 @@
 package mill.kotlinlib.ktlint
 
 import mainargs.arg
-import mill._
+import mill.*
 import mill.api.{PathRef}
 import mill.api.{Discover, ExternalModule}
 import mill.javalib.JavaModule

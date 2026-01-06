@@ -117,7 +117,7 @@ object VisualizeModule extends ExternalModule {
           val (tasks, transitiveTasks, sortedGroups, plan, dest) = in.take()
 
           val goalSet = transitiveTasks.toSet
-          import guru.nidi.graphviz.model.Factory._
+          import guru.nidi.graphviz.model.Factory.*
           val edgesIterator =
             for ((k, vs) <- sortedGroups.items())
               yield (
