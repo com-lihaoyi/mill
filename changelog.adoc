@@ -35,6 +35,10 @@ _Changes since {prev-version}:_
 * Ensure `must be defs defined in a Module class/trait/object body` error happens reliably
   for commands {link-pr}/6336[#6336]
 * Lock around info, warn, error, debug logs to avoid interleaving {link-pr}/6321[#6321]
+* Add a new task type `Task.Uncached` {link-pr}/6436[#6436]
+* `ScalaModule#repl` now spawns a default Scala REPL rather than an Ammonite REPL, unless
+  `def ammoniteRepl = true` is set {link-pr}/6455[#6455]
+* Allow un-prefixed dependencies in `--import` {link-pr}/6461[#6461]
 
 [#1-1-0-RC3]
 === 1.1.0-RC3
