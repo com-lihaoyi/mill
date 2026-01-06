@@ -517,6 +517,15 @@ image::ScriptIDESupportScala.png[ScriptIDESupportScala.png]
   to parallelize things using `scala.concurrent.Future` so your scripts can make
   full use of the multiple cores available on any modern computer.
 
+If you are interested in scripting and interested in the JVM, you should definitely give
+scripting with Mill in Scala on the JVM a try. The Mill build tool has builtin support
+for scripting in all 3 popular JVM languages -
+xref:mill::javalib/intro.adoc#_single_file_scripts[Java],
+xref:mill::kotlinlib/intro.adoc#_single_file_scripts[Kotlin],
+xref:mill::scalalib/intro.adoc#_single_file_scripts[Scala] - but the experience writing
+scripts in Scala is definitely a lot more streamlined than that of writing scripts in
+Kotlin or Java.
+
 == Conclusion
 
 In this article, we discussed how scripts can benefit
@@ -535,9 +544,9 @@ the solutions discussed above, other issues such as the JVM's slow startup
 time and large memory footprint remain as challenges
 
 Despite that, scripting on the JVM can definitely be a valuable tool in your
-toolbox. By writing scripts on the JVM, you can leverage all your existing
-JVM experience working in Java/Kotlin/Scala, benefit from the performant
-JVM runtime and rich JVM ecosystem of libraries, tools and IDEs. If this
-sounds appealing, do try out the `./mill` build tool and it's JVM scripting
-capabilities we mentioned above, and let us know in the Github discussions
-how it goes for you!
+toolbox. If you are interested in learning more about scripting in Java, Kotlin
+and Scala, check out the links to the documentation below:
+
+- xref:mill::javalib/intro.adoc#_single_file_scripts[Java Single-File Scripts],
+- xref:mill::kotlinlib/intro.adoc#_single_file_scripts[Kotlin Single-File Scripts],
+- xref:mill::scalalib/intro.adoc#_single_file_scripts[Scala Single-File Scripts]
