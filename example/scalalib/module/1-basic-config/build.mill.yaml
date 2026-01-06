@@ -1,5 +1,5 @@
 extends: ScalaModule
-scalaVersion: 2.13.16
+scalaVersion: 3.7.4
 mvnDeps:
 - com.lihaoyi::scalatags:0.13.1
 - com.lihaoyi::os-lib:0.11.4
