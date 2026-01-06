@@ -1,8 +1,8 @@
 package mill.integration
 import mill.testkit.UtestIntegrationTestSuite
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
-import utest._
+import utest.*
 import utest.asserts.{RetryMax, RetryInterval}
 
 object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
@@ -10,7 +10,7 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
     test("changed-code") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       // Check method body code changes correctly trigger downstream evaluation
       eval(

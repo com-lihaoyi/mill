@@ -6,7 +6,7 @@ import mill.kotlinlib.KotlinModule
 import mill.util.Tasks
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 object KtfmtModuleTests extends TestSuite {
 
   val kotlinVersion = "1.9.24"

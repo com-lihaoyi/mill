@@ -1,6 +1,6 @@
 package build.runner.launcher
 
-import mill._
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
 import millbuild.*
 

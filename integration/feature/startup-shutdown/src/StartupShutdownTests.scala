@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object StartupShutdownTests extends UtestIntegrationTestSuite {
   // Ensure that you can quickly cycle through startup and shutdown without failures.

@@ -1,4 +1,4 @@
-extends: [ScalaModule]
+extends: ScalaModule
 scalaVersion: 3.3.6
 
 # Configure scaladoc options

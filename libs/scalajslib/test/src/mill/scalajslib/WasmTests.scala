@@ -4,8 +4,8 @@ import mill.api.ExecResult
 import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
-import mill.scalajslib.api._
+import utest.*
+import mill.scalajslib.api.*
 import mill.T
 
 object WasmTests extends TestSuite {

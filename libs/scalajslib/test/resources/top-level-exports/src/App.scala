@@ -1,7 +1,7 @@
 package my.app
 
 import scala.collection.mutable
-import scala.scalajs.js.annotation._
+import scala.scalajs.js.annotation.*
 
 object AppA {
   @JSExportTopLevel(name = "start", moduleID = "a")

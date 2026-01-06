@@ -1,15 +1,15 @@
 package mill.scalajslib
 
-import mill._
+import mill.*
 import mill.api.ExecutionPaths
 import mill.testkit.UnitTester
-import utest._
+import utest.*
 
 import java.util.jar.JarFile
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object JarPublishRunTests extends TestSuite {
-  import CompileLinkTests._
+  import CompileLinkTests.*
 
   def tests: Tests = Tests {
     test("jar") {

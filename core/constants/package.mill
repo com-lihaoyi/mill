@@ -1,8 +1,8 @@
 package build.core.constants
 
-import mill._
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib._
+import mill.scalalib.*
 import millbuild.*
 
 /**

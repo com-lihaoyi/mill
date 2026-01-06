@@ -13,7 +13,7 @@ object `package` extends SpringBootModule, MavenModule {
   object prod extends SpringBootOptimisedBuildModule, MavenModule
 
   object native extends MavenModule, NativeSpringBootBuildModule {
-    def jvmId = "graalvm-community:23.0.1"
+    def jvmVersion = "graalvm-community:23.0.1"
   }
 
   def mvnDeps = Seq(mvn"org.springframework.boot:spring-boot-starter-web")

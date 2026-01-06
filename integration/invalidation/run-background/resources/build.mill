@@ -1,5 +1,5 @@
 package build
-import mill._, javalib._
+import mill._, javalib.*
 
 object foo extends JavaModule {
   def runBackgroundLogToConsole: Boolean = false

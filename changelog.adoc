@@ -128,7 +128,7 @@ For example, you can define a simple `JavaModule` an it's test submodule via:
 .`build.mill.yaml`
 [,yaml]
 ----
-extends: mill.javalib.JavaModule
+extends: JavaModule
 mvnDeps:
 - "net.sourceforge.argparse4j:argparse4j:0.9.0"
 - "org.thymeleaf:thymeleaf:3.1.1.RELEASE"
@@ -203,8 +203,8 @@ https://jsoup.org/[JSoup]:
 [,scala]
 ----
 //| mvnDeps: [org.jsoup:jsoup:1.7.2]
-import org.jsoup._
-import scala.collection.JavaConverters._
+import org.jsoup.*
+import scala.collection.JavaConverters.*
 
 def fetchLinks(title: String): Seq[String] = {
   Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")

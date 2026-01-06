@@ -127,7 +127,7 @@ object CrossVersionTests extends TestSuite {
 
   def init() = UnitTester(TestCases, null)
 
-  import TestCases._
+  import TestCases.*
 
   def check(
       mod: JavaModule,

@@ -20,7 +20,7 @@ object PlanTests extends TestSuite {
 
   val tests = Tests {
 
-    import TestGraphs._
+    import TestGraphs.*
 
     test("topoSortedTransitiveTasks") {
       def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]) = {
@@ -143,7 +143,7 @@ object PlanTests extends TestSuite {
       }
 
       test("separateGroups") {
-        import separateGroups._
+        import separateGroups.*
         val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
@@ -152,14 +152,14 @@ object PlanTests extends TestSuite {
         // Make sure the following graph ends up as a single group, since although
         // `right` depends on `left`, both of them depend on the un-cached `task`
         // which would force them both to re-compute every time `task` changes
-        import triangleTask._
+        import triangleTask.*
         val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
 
       test("multiTerminalGroup") {
         // Make sure the following graph ends up as two groups
-        import multiTerminalGroup._
+        import multiTerminalGroup.*
         val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
@@ -167,7 +167,7 @@ object PlanTests extends TestSuite {
       test("multiTerminalBoundary") {
         // Make sure the following graph ends up as three groups: one for
         // each cached task, and one for the downstream task we are running
-        import multiTerminalBoundary._
+        import multiTerminalBoundary.*
         val groupCount = countGroups(task2)
         assert(groupCount == 3)
       }

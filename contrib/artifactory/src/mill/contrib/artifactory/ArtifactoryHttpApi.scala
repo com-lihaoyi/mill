@@ -2,7 +2,7 @@ package mill.contrib.artifactory
 
 import java.util.Base64
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import requests.Session
 
 class ArtifactoryHttpApi(

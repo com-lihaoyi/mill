@@ -24,6 +24,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/app/test/resources"
       },
@@ -58,6 +59,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-java/test/resources"
       },
@@ -93,6 +95,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/hello-scala/test/resources"
       },
@@ -138,6 +141,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "PATH": "...",
         "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/scripts/folder2/FooTest.java/resources"
       },

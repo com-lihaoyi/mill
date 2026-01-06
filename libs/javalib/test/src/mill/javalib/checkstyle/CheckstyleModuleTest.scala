@@ -1,11 +1,11 @@
 package mill.javalib.checkstyle
 
-import mill._
+import mill.*
 import mainargs.Leftover
 import mill.api.Discover
 import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
-import utest._
+import utest.*
 
 object CheckstyleModuleTest extends TestSuite {
 

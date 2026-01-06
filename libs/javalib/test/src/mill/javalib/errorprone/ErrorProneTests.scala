@@ -6,7 +6,7 @@ import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import os.Path
 import utest.*
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 object ErrorProneTests extends TestSuite {
 
   object noErrorProne extends TestRootModule with JavaModule {

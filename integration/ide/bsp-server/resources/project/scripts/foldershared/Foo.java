@@ -1,4 +1,4 @@
-//| jvmId: 11.0.28
+//| jvmVersion: 11.0.28
 //| mvnDeps:
 //| - net.sourceforge.argparse4j:argparse4j:0.9.0
 //| - org.thymeleaf:thymeleaf:3.1.1.RELEASE

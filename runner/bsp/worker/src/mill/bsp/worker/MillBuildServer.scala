@@ -44,7 +44,7 @@ private class MillBuildServer(
     out: os.Path
 ) extends BuildServer with AutoCloseable {
 
-  import MillBuildServer._
+  import MillBuildServer.*
 
   def close(): Unit = {
     stopped = true
@@ -914,6 +914,7 @@ private class MillBuildServer(
         else {
 
           val start = System.currentTimeMillis()
+          baseLogger.prompt.beginChromeProfileEntry(prefix)
           logger.info(s"Entered $prefix")
 
           val res =
@@ -922,6 +923,7 @@ private class MillBuildServer(
               case t: Throwable => Failure(t)
             }
 
+          baseLogger.prompt.endChromeProfileEntry()
           logger.info(s"$prefix took ${System.currentTimeMillis() - start} msec")
 
           res match {
@@ -948,9 +950,12 @@ private class MillBuildServer(
     val logger = createLogger()
     val start = System.currentTimeMillis()
     val prefix = name.value
+    baseLogger.prompt.beginChromeProfileEntry(prefix)
     logger.info(s"Entered $prefix")
-    def logTiming() =
+    def logTiming() = {
+      baseLogger.prompt.endChromeProfileEntry()
       logger.info(s"$prefix took ${System.currentTimeMillis() - start} msec")
+    }
 
     val future = new CompletableFuture[V]
     try {

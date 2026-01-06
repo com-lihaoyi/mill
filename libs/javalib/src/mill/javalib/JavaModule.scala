@@ -25,7 +25,7 @@ import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
-import mill.util.{JarManifest, Jvm}
+import mill.util.{JarManifest, JdkCommandsModule, Jvm}
 import os.Path
 
 import java.io.File
@@ -47,7 +47,10 @@ trait JavaModule
     with BspModule
     with SemanticDbJavaModule
     with AssemblyModule
+    with JdkCommandsModule
     with JavaModuleApi { outer =>
+
+  override def jdkCommandsJavaHome: Task[Option[PathRef]] = Task.Anon { javaHome() }
 
   private[mill] lazy val bspExt: ModuleRef[mill.javalib.bsp.BspJavaModule] = {
     ModuleRef(new BspJavaModule.Wrap(this) {}.internalBspJavaModule)
@@ -93,6 +96,7 @@ trait JavaModule
 
     def jvmId = outer.jvmId
 
+    def jvmVersion = outer.jvmVersion
     def jvmIndexVersion = outer.jvmIndexVersion
 
     /**
@@ -1620,6 +1624,7 @@ object JavaModule {
     override def jvmWorker = outer.jvmWorker
 
     def jvmId = outer.jvmId
+    def jvmVersion = outer.jvmVersion
 
     def jvmIndexVersion = outer.jvmIndexVersion
 

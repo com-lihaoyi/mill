@@ -611,11 +611,16 @@ object MillMain0 {
   def getBspLogger(
       streams: SystemStreams,
       config: MillCliConfig
-  ): Logger =
+  ): Logger = {
+    val outFolder = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
+    val chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
+      outFolder / OutFiles.millChromeProfile
+    )
     new PrefixLogger(
-      new BspLogger(streams, Seq("bsp"), debugEnabled = config.debugLog.value),
+      new BspLogger(streams, Seq("bsp"), debugEnabled = config.debugLog.value, chromeProfileLogger),
       Nil
     )
+  }
 
   /**
    * Determine, whether we need a `build.mill` or not.

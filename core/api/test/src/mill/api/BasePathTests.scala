@@ -2,7 +2,7 @@ package mill.api
 
 import mill.api.TestGraphs
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 object BasePathTests extends TestSuite {
 

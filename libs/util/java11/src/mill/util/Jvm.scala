@@ -207,6 +207,14 @@ object Jvm {
 
   def jdkTool(toolName: String): String = jdkTool(toolName, None)
 
+  /**
+   * Calls a JDK tool with the given arguments, inheriting stdin/stdout.
+   */
+  def callJdkTool(toolName: String, args: Seq[String], javaHome: Option[os.Path]): Unit = {
+    val cmd = Seq(jdkTool(toolName, javaHome)) ++ args
+    os.call(cmd = cmd, stdin = os.Inherit, stdout = os.Inherit)
+  }
+
   def javaExe(javaHome: Option[os.Path]): String = jdkTool("java", javaHome)
 
   def javaExe: String = javaExe(None)

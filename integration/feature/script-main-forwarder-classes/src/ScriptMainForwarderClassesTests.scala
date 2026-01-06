@@ -1,7 +1,7 @@
 package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
-import utest._
+import utest.*
 
 // Make sure that for scripts with multiple `@main` methods (aliased to `@mainargs.main`),
 // we generate synthetic main classes for each one following the name of the class that we
@@ -10,7 +10,7 @@ import utest._
 object ScriptMainForwarderClassesTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
-      import tester._
+      import tester.*
       // When using `run`, we ignore the synthetic main classes when picking a main method,
       // so in this case we run the default `_MillScriptMain` method which delegates
       // to the relevant method internally based on the first token

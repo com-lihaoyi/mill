@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.constants.Util
 import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
-import utest._
+import utest.*
 
 /**
  * Test to make sure that `--watch` works in the following cases:

@@ -1,6 +1,6 @@
 //| mvnDeps: [com.lihaoyi::scalatags:0.12.0]
 package build
-import scalatags.Text.all._
+import scalatags.Text.all.*
 
 def main(args: Array[String]): Unit = {
   println(

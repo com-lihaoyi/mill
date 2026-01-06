@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._
+import mill._, scalalib.*
 
 object `package` extends SbtModule {
   def scalaVersion = "2.12.19"
