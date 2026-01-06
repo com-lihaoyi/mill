@@ -38,10 +38,9 @@ public class CodeGenConstants {
   /**
    * All possible nested build file names, including both package.* and build.* variants
    */
-  public static final List<String> allNestedBuildFileNames =
-      buildFileExtensions.stream()
-          .flatMap(ext -> java.util.stream.Stream.of("package." + ext, "build." + ext))
-          .collect(java.util.stream.Collectors.toList());
+  public static final List<String> allNestedBuildFileNames = buildFileExtensions.stream()
+      .flatMap(ext -> java.util.stream.Stream.of("package." + ext, "build." + ext))
+      .collect(java.util.stream.Collectors.toList());
 
   /**
    * The user-facing name for the root of the module tree.

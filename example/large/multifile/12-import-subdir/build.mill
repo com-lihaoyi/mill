@@ -5,4 +5,3 @@ package build
 import mill.*, scalalib.*
 
 trait BarModule extends build_.deps.foo.FooModule
-
