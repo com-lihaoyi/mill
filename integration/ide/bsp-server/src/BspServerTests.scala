@@ -355,7 +355,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "mill-build" -> ArraySeq("build.mill.semanticdb"),
               "scripts/custom-src/ignored-because-custom-src.java" -> ArraySeq(),
               "lib" -> ArraySeq(),
-              "scripts/foldershared/Foo.java" -> ArraySeq("scripts/foldershared/Foo.java.semanticdb"),
+              "scripts/foldershared/Foo.java" -> ArraySeq(
+                "scripts/foldershared/Foo.java.semanticdb"
+              ),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> ArraySeq(),
               "sourcesNeedCompile" -> ArraySeq(),
