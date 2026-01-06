@@ -36,8 +36,9 @@ Test foo.FooTest.testSimple finished...
 // affected, as JVM assembly jars do not bundle a JVM and have to be run using a
 // JVM installed on the target host machine.
 //
-// For any module with a custom `jvmVersion`, you can also access `java` and other commands
-// on the module's JVM via `foo.java`, `foo.javap`, etc. This can be useful if you
+// For any module `foo` with a custom `jvmVersion`, you can also access `java` and other commands
+// on the module's JVM via `foo.java`, `foo.javap`, etc. For example, can be useful if you want to
+// test a module's assembly jar using the same `java` version with which it was built:
 
 /** Usage
 
