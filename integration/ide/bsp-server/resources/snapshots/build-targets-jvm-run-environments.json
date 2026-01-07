@@ -251,21 +251,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/scripts/custom-src/ignored-because-custom-src.java"
-      },
-      "classpath": [
-        "file:///workspace/.bsp/mill-bsp-out/scripts/custom-src/ignored-because-custom-src.java/compile.dest/classes"
-      ],
-      "jvmOptions": [],
-      "workingDirectory": "/workspace",
-      "environmentVariables": {
-        "PATH": "...",
-        "MILL_WORKSPACE_ROOT": "/workspace"
-      },
-      "mainClasses": []
-    },
-    {
-      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "classpath": [

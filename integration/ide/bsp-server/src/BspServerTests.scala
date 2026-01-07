@@ -340,6 +340,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
               "scripts/folder2/FooTest.java" -> ArraySeq("scripts/folder2/FooTest.java.semanticdb"),
+              "mill-build" -> ArraySeq("build.mill.semanticdb"),
               "hello-kotlin" -> ArraySeq(),
               "hello-java" -> ArraySeq(),
               "hello-java/test" -> ArraySeq("hello-java/test/src/HelloJavaTest.java.semanticdb"),
@@ -354,12 +355,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "diag/many" -> List(),
               "diag" -> ArraySeq("diag/src/DiagCheck.scala.semanticdb"),
               "delayed" -> List(),
-              "mill-build" -> ArraySeq("build.mill.semanticdb"),
-              "scripts/custom-src/ignored-because-custom-src.java" -> ArraySeq(),
               "lib" -> ArraySeq(),
-              "scripts/foldershared/Foo.java" -> ArraySeq(
-                "scripts/foldershared/Foo.java.semanticdb"
-              ),
+              "scripts/foldershared/Foo.java" -> ArraySeq("scripts/foldershared/Foo.java.semanticdb"),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> ArraySeq(),
               "sourcesNeedCompile" -> ArraySeq(),

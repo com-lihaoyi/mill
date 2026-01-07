@@ -98,12 +98,6 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/scripts/custom-src/ignored-because-custom-src.java"
-      },
-      "resources": []
-    },
-    {
-      "target": {
         "uri": "file:///workspace/scripts/folder1/script.scala"
       },
       "resources": []
