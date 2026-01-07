@@ -530,26 +530,30 @@ object ResolveTests extends TestSuite {
       // Calling private methods directly fails
       test("privNotResolvable") - check.checkSeq0(
         Seq("priv"),
-        result => result.isInstanceOf[Result.Failure] &&
-          result.errorOpt.exists(_.contains("Cannot resolve priv"))
+        result =>
+          result.isInstanceOf[Result.Failure] &&
+            result.errorOpt.exists(_.contains("Cannot resolve priv"))
       )
 
       test("bazNotResolvable") - check.checkSeq0(
         Seq("baz"),
-        result => result.isInstanceOf[Result.Failure] &&
-          result.errorOpt.exists(_.contains("Cannot resolve baz"))
+        result =>
+          result.isInstanceOf[Result.Failure] &&
+            result.errorOpt.exists(_.contains("Cannot resolve baz"))
       )
 
       test("quxBazNotResolvable") - check.checkSeq0(
         Seq("qux.baz"),
-        result => result.isInstanceOf[Result.Failure] &&
-          result.errorOpt.exists(_.contains("Cannot resolve qux.baz"))
+        result =>
+          result.isInstanceOf[Result.Failure] &&
+            result.errorOpt.exists(_.contains("Cannot resolve qux.baz"))
       )
 
       test("clsBazNotResolvable") - check.checkSeq0(
         Seq("cls.baz"),
-        result => result.isInstanceOf[Result.Failure] &&
-          result.errorOpt.exists(_.contains("Cannot resolve cls.baz"))
+        result =>
+          result.isInstanceOf[Result.Failure] &&
+            result.errorOpt.exists(_.contains("Cannot resolve cls.baz"))
       )
     }
 

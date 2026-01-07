@@ -231,9 +231,9 @@ object ErrorTests extends TestSuite {
     // https://github.com/com-lihaoyi/mill/issues/XXX
     object CrossModuleCollisions extends TestRootModule {
       object foo extends Cross[Foo](
-        (Seq("a", "b"), Seq("c")),
-        (Seq("a"), Seq("b", "c"))
-      )
+            (Seq("a", "b"), Seq("c")),
+            (Seq("a"), Seq("b", "c"))
+          )
       trait Foo extends Cross.Module2[Seq[String], Seq[String]]
 
       lazy val millDiscover = Discover[this.type]
