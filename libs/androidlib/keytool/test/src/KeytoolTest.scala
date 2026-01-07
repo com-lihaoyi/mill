@@ -8,7 +8,7 @@ object KeytoolTest extends TestSuite {
   def tests: Tests = Tests {
     test("create and save empty keystore") {
       val filename = "keystore_empty.test"
-      val password = "password"
+password = os.environ.get("PASSWORD")
       Keystore.saveEmptyKeystore(filename, password)
       val output = getKeytoolOutput("-list", "-keystore", filename, "-storepass", password)
       removeFile(filename)
@@ -16,7 +16,7 @@ object KeytoolTest extends TestSuite {
     }
     test("create a keystore and add a key pair") {
       val filename = "keystore_add_key.test"
-      val password = "password"
+password = os.environ.get("PASSWORD")
       val keyPair = RSAKeyGen.generateKeyPair(2048)
       val ks = Keystore.createKeystore()
       Keystore.addKeyPair(ks, "mykey", keyPair, "CN=TEST", password)
@@ -30,7 +30,7 @@ object KeytoolTest extends TestSuite {
     }
     test("load keystore and verify key pair") {
       val filename = "keystore_load_key.test"
-      val password = "password"
+password = os.environ.get("PASSWORD")
       val keyPair = RSAKeyGen.generateKeyPair(2048)
       val ks = Keystore.createKeystore()
       Keystore.addKeyPair(ks, "mykey", keyPair, "CN=TEST", password)
