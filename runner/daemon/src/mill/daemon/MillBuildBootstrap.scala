@@ -196,17 +196,17 @@ class MillBuildBootstrap(
           // We already evaluated on a deeper level, hence we just need to make sure,
           // we return a proper structure with all already existing watch data
           val evalState = RunnerState.Frame(
-            newWorkerCache,
-            Seq.empty,
-            Seq.empty,
-            Map.empty,
-            None,
-            Nil,
+            workerCache = newWorkerCache,
+            evalWatched = Seq.empty,
+            moduleWatched = Seq.empty,
+            codeSignatures = Map.empty,
+            classLoaderOpt = None,
+            runClasspath = Nil,
             // We don't want to evaluate anything in this depth (and above), so we just skip creating an evaluator,
             // mainly because we didn't even construct (compile) its classpath
-            None,
-            None,
-            Map()
+            compileOutput = None,
+            evaluator = None,
+            buildOverrideFiles = Map()
           )
           nestedState.add(frame = evalState, errorOpt = None)
         } else {
@@ -237,25 +237,25 @@ class MillBuildBootstrap(
                   nestedState.frames.headOption.fold(Map())(_.buildOverrideFiles)
 
               Using.resource(makeEvaluator(
-                topLevelProjectRoot,
-                output,
-                keepGoing,
-                env,
-                logger,
-                ec,
-                allowPositionalCommandArgs,
-                systemExit,
-                streams0,
-                selectiveExecution,
-                offline,
-                useFileLocks,
-                newWorkerCache,
-                nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
-                buildFileApi.rootModule,
+                projectRoot = topLevelProjectRoot,
+                output = output,
+                keepGoing = keepGoing,
+                env = env,
+                logger = logger,
+                ec = ec,
+                allowPositionalCommandArgs = allowPositionalCommandArgs,
+                systemExit = systemExit,
+                streams0 = streams0,
+                selectiveExecution = selectiveExecution,
+                offline = offline,
+                useFileLocks = useFileLocks,
+                workerCache = newWorkerCache,
+                codeSignatures = nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+                rootModule = buildFileApi.rootModule,
                 // We want to use the grandparent buildHash, rather than the parent
                 // buildHash, because the parent build changes are instead detected
                 // by analyzing the scriptImportGraph in a more fine-grained manner.
-                nestedState
+                millClassloaderSigHash = nestedState
                   .frames
                   .dropRight(1)
                   .headOption
@@ -263,13 +263,13 @@ class MillBuildBootstrap(
                   .getOrElse(millBootClasspathPathRefs)
                   .map(p => (os.Path(p.javaPath), p.sig))
                   .hashCode(),
-                nestedState
+                millClassloaderIdentityHash = nestedState
                   .frames
                   .headOption
                   .flatMap(_.classLoaderOpt)
                   .map(_.hashCode())
                   .getOrElse(0),
-                depth,
+                depth = depth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
                 staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
@@ -322,15 +322,15 @@ class MillBuildBootstrap(
     ) match {
       case (f: Result.Failure, evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
-          evaluator.workerCache.toMap,
-          evalWatches,
-          moduleWatches,
-          Map.empty,
-          None,
-          Nil,
-          None,
-          Option(evaluator),
-          Map()
+          workerCache = evaluator.workerCache.toMap,
+          evalWatched = evalWatches,
+          moduleWatched = moduleWatches,
+          codeSignatures = Map.empty,
+          classLoaderOpt = None,
+          runClasspath = Nil,
+          compileOutput = None,
+          evaluator = Option(evaluator),
+          buildOverrideFiles = Map()
         )
 
         nestedState.add(
@@ -385,15 +385,15 @@ class MillBuildBootstrap(
         }
 
         val evalState = RunnerState.Frame(
-          evaluator.workerCache.toMap,
-          evalWatches,
-          moduleWatches,
-          codeSignatures,
-          Some(classLoader),
-          runClasspath,
-          Some(compileClasses),
-          Option(evaluator),
-          buildOverrideFiles
+          workerCache = evaluator.workerCache.toMap,
+          evalWatched = evalWatches,
+          moduleWatched = moduleWatches,
+          codeSignatures = codeSignatures,
+          classLoaderOpt = Some(classLoader),
+          runClasspath = runClasspath,
+          compileOutput = Some(compileClasses),
+          evaluator = Option(evaluator),
+          buildOverrideFiles = buildOverrideFiles
         )
 
         nestedState.add(frame = evalState)
@@ -416,23 +416,23 @@ class MillBuildBootstrap(
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) = evaluateWithWatches(
-      buildFileApi,
-      evaluator,
-      tasksAndParams,
-      selectiveExecution,
+      buildFileApi = buildFileApi,
+      evaluator = evaluator,
+      tasksAndParams = tasksAndParams,
+      selectiveExecution = selectiveExecution,
       reporter = reporter(evaluator)
     )
 
     val evalState = RunnerState.Frame(
-      evaluator.workerCache.toMap,
-      evalWatched,
-      moduleWatches,
-      Map.empty,
-      None,
-      Nil,
-      None,
-      Option(evaluator),
-      Map()
+      workerCache = evaluator.workerCache.toMap,
+      evalWatched = evalWatched,
+      moduleWatched = moduleWatches,
+      codeSignatures = Map.empty,
+      classLoaderOpt = None,
+      runClasspath = Nil,
+      compileOutput = None,
+      evaluator = Option(evaluator),
+      buildOverrideFiles = Map()
     )
 
     nestedState.add(
