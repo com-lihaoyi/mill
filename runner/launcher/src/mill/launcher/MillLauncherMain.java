@@ -35,6 +35,7 @@ public class MillLauncherMain {
         "--jshell",
         "--repl",
         "--bsp",
+        "--bsp-install",
         "--help",
         "--use-file-locks")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
@@ -48,7 +49,8 @@ public class MillLauncherMain {
     // might have been passed, to avoid loading those classes on the common path for performance
     if (needParsedConfig) {
       var config = MillCliConfig.parse(args).toOption();
-      if (config.exists(c -> c.bsp().value())) bspMode = true;
+      // Use BSP output directory for both --bsp (server mode) and --bsp-install (setup)
+      if (config.exists(c -> c.bsp().value() || c.bspInstall().value())) bspMode = true;
       if (config.exists(c -> c.noDaemonEnabled() > 0)) runNoDaemon = true;
       if (config.exists(c -> c.useFileLocks().value())) useFileLocks = true;
     }

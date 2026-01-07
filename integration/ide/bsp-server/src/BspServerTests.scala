@@ -364,6 +364,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
           )
         }
       }
+
+      // Verify that no `out/` folder was created - all BSP operations should use .bsp/mill-bsp-out/
+      assert(!os.exists(workspacePath / "out"))
     }
 
     test("logging") - integrationTest { tester =>
