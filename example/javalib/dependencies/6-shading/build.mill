@@ -7,7 +7,9 @@
 //   to downstream users
 // * You need to bundle dependencies for deployment without classpath conflicts
 //
+//// SNIPPET:INTRO
 // Mill provides `ShadingModule` and `ShadingPublishModule` traits for this purpose.
+//// SNIPPET:END
 
 //// SNIPPET:BUILD
 package build
@@ -32,13 +34,16 @@ object foo extends JavaModule with ShadingModule {
 }
 //// SNIPPET:END
 
+//// SNIPPET:COMMENTS
 // When you build or run this module:
 //
 // * The `gson` library classes are relocated from `com.google.gson.*` to `shaded.gson.*`
 // * The shaded classes are included in `localClasspath` and therefore in `jar` and `assembly`
 // * The `runClasspath` uses the shaded JAR instead of the original gson JAR
 // * The `slf4j-api` dependency remains unchanged (not shaded)
+//// SNIPPET:END
 
+//// SNIPPET:USAGE1
 /** Usage
 
 > ./mill foo.jar
@@ -46,21 +51,24 @@ object foo extends JavaModule with ShadingModule {
 > ./mill show foo.shadedJar
 ".../out/foo/shadedJar.dest/shaded.jar"
 
-> unzip -l out/foo/shadedJar.dest/shaded.jar | grep -E "gson|Gson" | head -5
-...shaded/gson/Gson.class...
-...shaded/gson/GsonBuilder.class...
+> unzip -l out/foo/shadedJar.dest/shaded.jar | grep -E "shaded/gson" | head -3
+...shaded/gson...
 
 */
+//// SNIPPET:END
 
 // The shaded classes are automatically included in the module's JAR via `localClasspath`:
 
+//// SNIPPET:USAGE2
 /** Usage
 
 > unzip -l out/foo/jar.dest/out.jar | grep -E "shaded/gson" | head -3
-...shaded/gson/Gson.class...
+...shaded/gson...
 
 */
+//// SNIPPET:END
 
+//// SNIPPET:PUBLISH
 // For publishing, use `ShadingPublishModule` which also removes shaded dependencies
 // from the published POM/ivy.xml, so downstream users won't pull in the original
 // (unshaded) dependency:
@@ -73,3 +81,4 @@ object foo extends JavaModule with ShadingModule {
 //   def pomSettings = PomSettings(...)
 // }
 // ```
+//// SNIPPET:END

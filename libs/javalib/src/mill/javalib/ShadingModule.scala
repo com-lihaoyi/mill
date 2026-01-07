@@ -120,6 +120,21 @@ trait ShadingModule extends JavaModule {
   }
 
   /**
+   * Compile classpath with shaded dependencies replaced by the shaded JAR.
+   *
+   * This allows source code to import and use the relocated package names
+   * (e.g., `import shaded.gson.Gson` instead of `import com.google.gson.Gson`).
+   */
+  override def compileClasspath: T[Seq[PathRef]] = Task {
+    if (shadedMvnDeps().isEmpty) super.compileClasspath()
+    else {
+      val shadedPaths = resolvedShadedDeps().map(_.path).toSet
+      val filteredClasspath = super.compileClasspath().filterNot(p => shadedPaths.contains(p.path))
+      filteredClasspath ++ Seq(shadedJar())
+    }
+  }
+
+  /**
    * Runtime classpath with shaded dependencies replaced by the shaded JAR.
    *
    * The original (unshaded) dependency JARs are removed from the classpath
@@ -156,5 +171,30 @@ trait ShadingModule extends JavaModule {
   override def localClasspath: T[Seq[PathRef]] = Task {
     if (shadedMvnDeps().isEmpty) super.localClasspath()
     else super.localClasspath() ++ Seq(shadedJar())
+  }
+
+  /**
+   * The module's JAR with shaded classes properly merged.
+   *
+   * Overrides the default `jar` to use Assembly.create which properly extracts
+   * and merges JAR contents, rather than Jvm.createJar which treats JARs as opaque files.
+   */
+  override def jar: T[PathRef] = Task {
+    if (shadedMvnDeps().isEmpty) {
+      // No shading, use default behavior
+      val jarPath = Task.dest / "out.jar"
+      Jvm.createJar(jarPath, super.localClasspath().map(_.path).filter(os.exists), manifest())
+      PathRef(jarPath)
+    } else {
+      // Use Assembly.create to properly merge shaded JAR contents
+      val created = Assembly.create(
+        destJar = Task.dest / "out.jar",
+        inputPaths = super.localClasspath().map(_.path).filter(os.exists) ++ Seq(shadedJar().path),
+        manifest = manifest(),
+        assemblyRules = Assembly.defaultRules,
+        shader = AssemblyModule.jarjarabramsWorker()
+      )
+      created.pathRef
+    }
   }
 }
