@@ -45,10 +45,10 @@ private[worker] object ScriptModuleDiscovery {
     // Helper function to recursively check if a path should be ignored
     def isPathIgnored(relativePath: String, isDirectory: Boolean): Option[String] = {
       val relativePath2 = os.SubPath(relativePath)
-      def insideModuleSources = (
-        nonScriptSources.find(relativePath2.startsWith(_)) orElse
-          nonScriptResources.find(relativePath2.startsWith(_))
-      ).map("Inside module source folder " + _)
+      def insideModuleSources = nonScriptSources
+        .find(relativePath2.startsWith(_))
+        .orElse(nonScriptResources.find(relativePath2.startsWith(_)))
+        .map("Inside module source folder " + _)
 
       ignoreNode.isIgnored(relativePath, isDirectory) match {
         case IgnoreNode.MatchResult.IGNORED => Some("Ignored due to `bspScriptIgnore`")
@@ -58,9 +58,8 @@ private[worker] object ScriptModuleDiscovery {
           val parentPath = relativePath.split('/').dropRight(1).mkString("/")
           if (parentPath.isEmpty) None // root level, not ignored by default
           // if this is inside a module's sources, ignore it
-          else insideModuleSources.orElse {
-            isPathIgnored(parentPath, true) // recursively check parent
-          }
+          else insideModuleSources.orElse(isPathIgnored(parentPath, true)) // recursively check parent
+
         case _ => insideModuleSources
       }
     }
