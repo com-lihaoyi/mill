@@ -6,7 +6,7 @@ import com.google.gson.JsonObject
 import mill.api.*
 import mill.api.Segment.Label
 import mill.bsp.Constants
-import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
+import mill.bsp.worker.Utils.{combineStatusCodes, groupList, jvmBuildTarget, makeBuildTarget, outputPaths, sanitizeUri}
 import mill.client.lock.Lock
 import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
@@ -15,7 +15,6 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.{CompletableFuture, ConcurrentHashMap, LinkedBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
-import scala.collection.mutable
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.Duration
 import scala.jdk.CollectionConverters.*
@@ -46,10 +45,9 @@ private class MillBuildServer(
 
   import MillBuildServer.*
 
-  def close(): Unit = {
-    stopped = true
-    evaluatorRequestsThread.interrupt()
-  }
+  // ==========================================================================
+  // Session State
+  // ==========================================================================
 
   class SessionInfo(
       val clientType: BspClientType,
@@ -76,6 +74,15 @@ private class MillBuildServer(
   private val requestCount = new AtomicInteger
 
   def initialized = sessionInfo != null
+
+  // ==========================================================================
+  // Lifecycle Management
+  // ==========================================================================
+
+  def close(): Unit = {
+    stopped = true
+    evaluatorRequestsThread.interrupt()
+  }
 
   /**
    * Updates the BSP server evaluators.
@@ -153,50 +160,11 @@ private class MillBuildServer(
       // not the first call to updateEvaluators, and we have a client:
       // compute which targets were added / updated / removed, and
       // send a buildTarget/didChange notification to the client
-
-      val newTargetIds = evaluators0.bspModulesIdList.map {
-        case (id, (_, ev)) =>
-          id -> ev
-      }
-
+      val newTargetIds = evaluators0.bspModulesIdList.map { case (id, (_, ev)) => id -> ev }
       val previousTargetIds = previousEvaluatorsOpt.map(_.bspModulesIdList).getOrElse(Nil).map {
-        case (id, (_, ev)) =>
-          id -> ev
+        case (id, (_, ev)) => id -> ev
       }
-
-      val createdAndModifiedEvents = {
-        val previousTargetIdsMap = previousTargetIds.toMap
-        newTargetIds.flatMap {
-          case (id, ev) =>
-            previousTargetIdsMap.get(id) match {
-              case None =>
-                val event = new bsp4j.BuildTargetEvent(id)
-                event.setKind(bsp4j.BuildTargetEventKind.CREATED)
-                Seq(event)
-              case Some(`ev`) =>
-                Nil
-              case Some(_) =>
-                val event = new bsp4j.BuildTargetEvent(id)
-                event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
-                Seq(event)
-            }
-        }
-      }
-
-      val deletedEvents = {
-        val newTargetIdsMap = newTargetIds.toMap
-        previousTargetIds.collect {
-          case (id, _) if !newTargetIdsMap.contains(id) =>
-            val event = new bsp4j.BuildTargetEvent(id)
-            event.setKind(bsp4j.BuildTargetEventKind.DELETED)
-            event
-        }
-      }
-
-      val allEvents = deletedEvents ++ createdAndModifiedEvents
-
-      if (allEvents.nonEmpty)
-        client.onBuildTargetDidChange(new bsp4j.DidChangeBuildTarget(allEvents.asJava))
+      BspChangeNotifier.notifyChanges(client, previousTargetIds, newTargetIds)
     }
   }
 
@@ -207,6 +175,10 @@ private class MillBuildServer(
   }
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
+
+  // ==========================================================================
+  // BSP Protocol - Lifecycle
+  // ==========================================================================
 
   override def buildInitialize(request: InitializeBuildParams)
       : CompletableFuture[InitializeBuildResult] =
@@ -298,6 +270,10 @@ private class MillBuildServer(
     onShutdown()
   }
 
+  // ==========================================================================
+  // BSP Protocol - Build Target Queries
+  // ==========================================================================
+
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
     handlerTasksEvaluators(
       targetIds = _.bspModulesIdList.map(_._1),
@@ -321,8 +297,8 @@ private class MillBuildServer(
             bsp4j.ScalaPlatform.forValue(d.platform.number),
             d.jars.asJava
           )
-          for (jvmBuildTarget <- d.jvmBuildTarget)
-            target.setJvmBuildTarget(MillBuildServer.jvmBuildTarget(jvmBuildTarget))
+          for (jbt <- d.jvmBuildTarget)
+            target.setJvmBuildTarget(jvmBuildTarget(jbt))
           Some((dataKind, target))
 
         case Some((dataKind, d: JvmBuildTarget)) =>
@@ -498,13 +474,16 @@ private class MillBuildServer(
       new ResourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
 
+  // ==========================================================================
+  // BSP Protocol - Build Target Operations
+  // ==========================================================================
+
   // TODO: if the client wants to give compilation arguments and the module
   // already has some from the build file, what to do?
   override def buildTargetCompile(p: CompileParams): CompletableFuture[CompileResult] =
     handlerEvaluators() { (state, logger) =>
       p.setTargets(state.filterNonSynthetic(p.getTargets))
-      val params = TaskParameters.fromCompileParams(p)
-      val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).collect {
+      val compileTasksEvs = p.getTargets.asScala.distinct.map(state.bspModulesById).collect {
         case (m: SemanticDbJavaModuleApi, ev) if sessionInfo.clientWantsSemanticDb =>
           ((m, m.bspBuildTargetCompileSemanticDb), ev)
         case (m: JavaModuleApi, ev) => (
@@ -530,7 +509,7 @@ private class MillBuildServer(
           evaluate(
             ev,
             s"Compiling ${ts.map(_._1.bspDisplayName).mkString(", ")}",
-            ts.map(_._2),
+            ts.map(_._2).toSeq,
             logger,
             getReporter,
             TestReporter.DummyTestReporter,
@@ -583,12 +562,11 @@ private class MillBuildServer(
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
     handlerEvaluators() { (state, logger) =>
-      val params = TaskParameters.fromRunParams(runParams)
-      val (runModule, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
+      val (runModule, ev) = Seq(runParams.getTarget).map(state.bspModulesById).collectFirst {
         case (m: RunModuleApi, ev) => (m, ev)
       }.get
 
-      val args = params.getArguments.getOrElse(Seq.empty[String])
+      val args = Option(runParams.getArguments).map(_.asScala.toSeq).getOrElse(Seq.empty[String])
       val runTask = runModule.bspRunModule().bspRun(args)
       val runResult = evaluate(
         ev,
@@ -601,10 +579,7 @@ private class MillBuildServer(
         case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
       }
-      params.getOriginId match {
-        case Some(id) => response.setOriginId(id)
-        case None =>
-      }
+      Option(runParams.getOriginId).foreach(response.setOriginId)
 
       response
     }
@@ -612,50 +587,23 @@ private class MillBuildServer(
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] =
     handlerEvaluators() { (state, logger) =>
       testParams.setTargets(state.filterNonSynthetic(testParams.getTargets))
-      val millBuildTargetIds = state
-        .rootModules
+      val millBuildTargetIds = state.rootModules
         .map { case m: BspModuleApi => state.bspIdByModule(m) }
         .toSet
 
-      val params = TaskParameters.fromTestParams(testParams)
-      val argsMap =
-        try {
-          val scalaTestParams = testParams.getData.asInstanceOf[JsonObject]
-          (for (testItem <- scalaTestParams.get("testClasses").getAsJsonArray.asScala)
-            yield (
-              testItem.getAsJsonObject.get("target").getAsJsonObject.get("uri").getAsString,
-              testItem.getAsJsonObject.get("classes").getAsJsonArray.asScala.map(elem =>
-                elem.getAsString
-              ).toSeq
-            )).toMap
-        } catch {
-          case _: Exception =>
-            (for (targetId <- testParams.getTargets.asScala)
-              yield (targetId.getUri, Seq.empty[String])).toMap
-        }
+      val argsMap = parseTestClassArgs(testParams)
 
       val overallStatusCode = testParams.getTargets.asScala
         .filter(millBuildTargetIds.contains)
-        .foldLeft(StatusCode.OK) { (overallStatusCode, targetId) =>
+        .foldLeft(StatusCode.OK) { (accStatus, targetId) =>
           state.bspModulesById(targetId) match {
             case (testModule: TestModuleApi, ev) =>
               val testTask = testModule.testLocal(argsMap(targetId.getUri)*)
+              val taskId = new TaskId(testTask.hashCode().toString)
 
-              // notifying the client that the testing of this build target started
-              val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
-              taskStartParams.setEventTime(System.currentTimeMillis())
-              taskStartParams.setMessage("Testing target: " + targetId)
-              taskStartParams.setDataKind(TaskStartDataKind.TEST_TASK)
-              taskStartParams.setData(new TestTask(targetId))
-              client.onBuildTaskStart(taskStartParams)
+              notifyTestStart(targetId, taskId)
 
-              val testReporter =
-                new BspTestReporter(
-                  client,
-                  targetId,
-                  new TaskId(testTask.hashCode().toString)
-                )
-
+              val testReporter = new BspTestReporter(client, targetId, taskId)
               val results = evaluate(
                 ev,
                 s"Running tests for ${testModule.bspDisplayName}",
@@ -670,35 +618,22 @@ private class MillBuildServer(
               )
               val statusCode = Utils.getStatusCode(Seq(results))
 
-              // Notifying the client that the testing of this build target ended
-              val taskFinishParams =
-                new TaskFinishParams(new TaskId(testTask.hashCode().toString), statusCode)
-              taskFinishParams.setEventTime(System.currentTimeMillis())
-              taskFinishParams.setMessage(
-                s"Finished testing target${testModule.bspBuildTarget.displayName}"
+              notifyTestFinish(
+                taskId,
+                statusCode,
+                testModule.bspBuildTarget.displayName,
+                testReporter.getTestReport
               )
-              taskFinishParams.setDataKind(TaskFinishDataKind.TEST_REPORT)
-              taskFinishParams.setData(testReporter.getTestReport)
-              client.onBuildTaskFinish(taskFinishParams)
 
-              (statusCode, overallStatusCode) match {
-                case (StatusCode.ERROR, _) | (_, StatusCode.ERROR) => StatusCode.ERROR
-                case (StatusCode.CANCELLED, _) => StatusCode.CANCELLED
-                case (StatusCode.OK, _) => StatusCode.OK
-              }
+              combineStatusCodes(statusCode, accStatus)
 
-            case _ => overallStatusCode
+            case _ => accStatus
           }
         }
 
       val testResult = new TestResult(overallStatusCode)
-      params.getOriginId match {
-        case None => testResult
-        case Some(id) =>
-          // TODO: Add the messages from mill to the data field?
-          testResult.setOriginId(id)
-          testResult
-      }
+      Option(testParams.getOriginId).foreach(testResult.setOriginId)
+      testResult
     }
 
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
@@ -754,6 +689,10 @@ private class MillBuildServer(
       debugParams.setTargets(state.filterNonSynthetic(debugParams.getTargets))
       throw new NotImplementedError("debugSessionStart endpoint is not implemented")
     }
+
+  // ==========================================================================
+  // Request Handling Infrastructure
+  // ==========================================================================
 
   /**
    * @params tasks A partial function
@@ -851,44 +790,56 @@ private class MillBuildServer(
 
   private val queue = new LinkedBlockingQueue[(BspEvaluators => Unit, Logger, String)]
   private var stopped = false
+
+  /**
+   * Background thread that processes BSP requests sequentially.
+   *
+   * The thread:
+   * 1. Polls requests from the queue (with 1 second timeout)
+   * 2. Waits for evaluators to become available
+   * 3. Acquires the output lock to prevent concurrent builds
+   * 4. Checks if watched files have changed (triggers reload if so)
+   * 5. Executes the request handler
+   */
   private val evaluatorRequestsThread: Thread =
-    // Make this a daemon thread so if the main thread exits this doesn't keep the process alive
     mill.api.daemon.StartThread("mill-bsp-evaluator", daemon = true) {
       try {
-        var elemOpt = Option.empty[(BspEvaluators => Unit, Logger, String)]
+        var pendingRequest = Option.empty[(BspEvaluators => Unit, Logger, String)]
         while (!stopped) {
-          if (elemOpt.isEmpty)
-            elemOpt = Option(queue.poll(1L, TimeUnit.SECONDS))
-          for ((block, logger, name) <- elemOpt) {
+          if (pendingRequest.isEmpty)
+            pendingRequest = Option(queue.poll(1L, TimeUnit.SECONDS))
+
+          for ((handler, logger, requestName) <- pendingRequest) {
             Await.result(bspEvaluators.future, Duration.Inf)
             MillDaemonServer.withOutLock(
               noBuildLock = false,
               noWaitForBuildLock = false,
               out = out,
-              millActiveCommandMessage = s"IDE:$name",
+              millActiveCommandMessage = s"IDE:$requestName",
               streams = logger.streams,
               outLock = outLock,
               setIdle = _ => ()
             ) {
-              for (evaluator <- bspEvaluatorsOpt())
+              for (evaluator <- bspEvaluatorsOpt()) {
                 if (evaluator.watched.forall(WatchSig.haveNotChanged)) {
-                  elemOpt = None
-                  try block(evaluator)
+                  pendingRequest = None
+                  try handler(evaluator)
                   catch {
                     case t: Throwable =>
                       logger.error(s"Could not process request: $t")
                       t.printStackTrace(logger.streams.err)
                   }
                 } else {
+                  // Build files changed - trigger workspace reload
                   resetEvaluator()
                   sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
                 }
+              }
             }
           }
         }
       } catch {
-        case _: InterruptedException =>
-        // ignored, normal exit
+        case _: InterruptedException => // Normal exit when server shuts down
       }
     }
 
@@ -998,6 +949,53 @@ private class MillBuildServer(
     )
   }
 
+  // ==========================================================================
+  // Internal Helpers
+  // ==========================================================================
+
+  /**
+   * Parses test class arguments from TestParams.
+   * Returns a map from target URI to list of test classes to run.
+   */
+  private def parseTestClassArgs(testParams: TestParams): Map[String, Seq[String]] =
+    try {
+      val scalaTestParams = testParams.getData.asInstanceOf[JsonObject]
+      scalaTestParams.get("testClasses").getAsJsonArray.asScala.map { testItem =>
+        val obj = testItem.getAsJsonObject
+        val uri = obj.get("target").getAsJsonObject.get("uri").getAsString
+        val classes = obj.get("classes").getAsJsonArray.asScala.map(_.getAsString).toSeq
+        uri -> classes
+      }.toMap
+    } catch {
+      case _: Exception =>
+        testParams.getTargets.asScala.map(id => id.getUri -> Seq.empty[String]).toMap
+    }
+
+  /** Sends a task start notification for a test target */
+  private def notifyTestStart(targetId: BuildTargetIdentifier, taskId: TaskId): Unit = {
+    val params = new TaskStartParams(taskId)
+    params.setEventTime(System.currentTimeMillis())
+    params.setMessage(s"Testing target: $targetId")
+    params.setDataKind(TaskStartDataKind.TEST_TASK)
+    params.setData(new TestTask(targetId))
+    client.onBuildTaskStart(params)
+  }
+
+  /** Sends a task finish notification for a test target */
+  private def notifyTestFinish(
+      taskId: TaskId,
+      statusCode: StatusCode,
+      displayName: Option[String],
+      testReport: TestReport
+  ): Unit = {
+    val params = new TaskFinishParams(taskId, statusCode)
+    params.setEventTime(System.currentTimeMillis())
+    params.setMessage(s"Finished testing target${displayName.getOrElse("")}")
+    params.setDataKind(TaskFinishDataKind.TEST_REPORT)
+    params.setData(testReport)
+    client.onBuildTaskFinish(params)
+  }
+
   private def evaluatorErrorOpt(result: EvaluatorApi.Result[Any]): Option[String] =
     result.values.toEither.left.toOption
 
@@ -1061,38 +1059,6 @@ private class MillBuildServer(
 }
 
 private object MillBuildServer {
-
-  /**
-   * Same as Iterable.groupMap, but returns a sequence instead of a map, and preserves
-   * the order of appearance of the keys from the input sequence
-   */
-  private def groupList[A, K, B](seq: collection.Seq[A])(key: A => K)(f: A => B)
-      : Seq[(K, Seq[B])] = {
-    val map = new mutable.HashMap[K, mutable.ListBuffer[B]]
-    val list = new mutable.ListBuffer[(K, mutable.ListBuffer[B])]
-    for (a <- seq) {
-      val k = key(a)
-      val b = f(a)
-      val l = map.getOrElseUpdate(
-        k, {
-          val buf = mutable.ListBuffer[B]()
-          list.append((k, buf))
-          buf
-        }
-      )
-      l.append(b)
-    }
-    list
-      .iterator
-      .map { case (k, l) => (k, l.result()) }
-      .toList
-  }
-
-  def jvmBuildTarget(d: JvmBuildTarget): bsp4j.JvmBuildTarget =
-    new bsp4j.JvmBuildTarget().tap { it =>
-      d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
-      d.javaVersion.foreach(jv => it.setJavaVersion(jv))
-    }
 
   def enclosingRequestName(using enclosing: sourcecode.Enclosing): String = {
     // enclosing.value typically looks like "mill.bsp.worker.MillBuildServer#buildTargetCompile logger"

@@ -1,5 +1,6 @@
 package mill.bsp.worker
 
+import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{
   BuildClient,
   BuildTarget,
@@ -12,10 +13,11 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.api.ExecResult.{Skipped, Success}
 import mill.api.daemon.internal.{ExecutionResultsApi, TaskApi}
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, JvmBuildTarget}
 
+import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
 object Utils {
 
@@ -118,6 +120,47 @@ object Utils {
       case Skipped => StatusCode.CANCELLED
       case _ => StatusCode.ERROR
     }
+  }
+
+  /**
+   * Same as Iterable.groupMap, but returns a sequence instead of a map, and preserves
+   * the order of appearance of the keys from the input sequence
+   */
+  def groupList[A, K, B](seq: collection.Seq[A])(key: A => K)(f: A => B): Seq[(K, Seq[B])] = {
+    val map = new mutable.HashMap[K, mutable.ListBuffer[B]]
+    val list = new mutable.ListBuffer[(K, mutable.ListBuffer[B])]
+    for (a <- seq) {
+      val k = key(a)
+      val b = f(a)
+      val l = map.getOrElseUpdate(
+        k, {
+          val buf = mutable.ListBuffer[B]()
+          list.append((k, buf))
+          buf
+        }
+      )
+      l.append(b)
+    }
+    list
+      .iterator
+      .map { case (k, l) => (k, l.result()) }
+      .toList
+  }
+
+  def jvmBuildTarget(d: JvmBuildTarget): bsp4j.JvmBuildTarget =
+    new bsp4j.JvmBuildTarget().tap { it =>
+      d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
+      d.javaVersion.foreach(jv => it.setJavaVersion(jv))
+    }
+
+  /**
+   * Combines two status codes, returning the most severe.
+   * ERROR > CANCELLED > OK
+   */
+  def combineStatusCodes(a: StatusCode, b: StatusCode): StatusCode = (a, b) match {
+    case (StatusCode.ERROR, _) | (_, StatusCode.ERROR) => StatusCode.ERROR
+    case (StatusCode.CANCELLED, _) | (_, StatusCode.CANCELLED) => StatusCode.CANCELLED
+    case _ => StatusCode.OK
   }
 
 }
