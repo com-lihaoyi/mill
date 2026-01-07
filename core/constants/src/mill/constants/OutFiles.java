@@ -43,7 +43,7 @@ public class OutFiles {
      * Default hard-coded value for the Mill `out/` folder path in BSP server mode.
      * To get the effective out dir, use {@link #outFor}.
      */
-    public final String defaultBspOut = ".bsp/mill-bsp-out";
+    public final String defaultBspOut = ".bsp/out";
 
     /**
      * Effective path of the Mill `out/` folder.
