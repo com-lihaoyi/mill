@@ -1,40 +1,22 @@
+= Developer Documentation
 
-== Developer Documentation
-
-This page is developer-documentation targeted at people who wish to work
-on Mill's own codebase. The developer docs assume you have read through the user-facing
-documentation linked above. It's also worth spending a few minutes reading the following
-blog posts to get a sense of Mill's design & motivation:
-
-
-
-Mill is built using Mill. To begin, you just need a JVM installed, and the
-`./mill` script will be sufficient to bootstrap the project.
-
-== IntelliJ Setup
-
-If you are using IntelliJ IDEA to edit Mill's Scala code, IntelliJ's built in BSP support should
-be sufficient to load the Mill project, but you need to set up the file association from
-`*.mill` as Scala source files manually in the following settings:
-
-* `Settings` / `Editor` / `File Types` / `Scala`, add the pattern `*.mill`
+Mill is built using Mill. The `./mill` script will be sufficient to bootstrap the project.
 
 == Manual & Automated Testing
 
-The following table contains the main ways you can test the code in
-`com-lihaoyi/mill`, via manual testing or automated tests:
+Ways you can run manual testing or automated tests using `./mill`:
 
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
 | In-Process Tests | `core.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process Tests| `example.\\__.packaged.daemon`, `integration.__.packaged.daemon` | `dist.run` | `test-mill-dev.sh`
+| Sub-Process Tests| `integration.ide.bsp-server`, `example.javalib.basic._` | `dist.run` | `test-mill-dev.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
 |===
 
 In general, `println` or `pprint.log` should work in most places and be sufficient for
 instrumenting and debugging the Mill codebase. In the occasional spot where `println`
 doesn't work you can use `mill.constants.DebugLog.println`/`mill.api.Debug` which writes
-to a file `~/mill-debug-log.txt` in your home folder. `DebugLog` is useful for scenarios
+to a file `~/mill-debug-log.txt` in your home folder. `DebugLog`/`Debug` is useful for scenarios
 like debugging Mill's terminal UI (where `println` would mess things up) or subprocesses
 (where stdout/stderr may get captured or used and cannot be used to display your own
 debug statements).
@@ -129,7 +111,7 @@ You can reproduce these tests manually using `dist.installLocal`:
 You can also use `dist.native.installLocal` for a Graal Native Image executable,
 which is slower to create but faster to start than the default executable assembly.
 
-There are two six of these tests, `.{local,assembly,native}.{daemon,fork}`.
+There are six of these tests, `.{packaged,shared,native}.{daemon,nodaemon}`.
 
 The first label specifies how the Mill code is packaged before testing
 
@@ -222,7 +204,7 @@ To run all autofixes and autoformatters:
 
 [source,console]
 ----
-> ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/scalafmt + mill.kotlinlib.ktlint.KtlintModule/
+> ./mill __.fix + mill.javalib.palantirformat/ + mill.scalalib.scalafmt/ + mill.kotlinlib.ktlint/
 ----
 
 These are run automatically on pull requests, so feel free to `pull` down the changes if you want
