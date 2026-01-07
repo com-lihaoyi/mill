@@ -113,7 +113,7 @@ object app extends AndroidAppModule {
 > ./mill show app.createAndroidVirtualDevice
 ...Name: java-test, DeviceId: medium_phone...
 
-> ./mill show app.startAndroidEmulator
+> ./mill show app.androidEmulator
 
 > ./mill show app.adbDevices
 ...emulator-5554...device...
@@ -146,7 +146,7 @@ object app extends AndroidAppModule {
       </testsuites>
 ...
 
-> ./mill show app.stopAndroidEmulator
+> ./mill clean app.androidEmulator
 
 > ./mill show app.deleteAndroidVirtualDevice
 
@@ -155,7 +155,7 @@ object app extends AndroidAppModule {
 // The android tests (existing typically in androidTest directory, aka instrumented tests)
 // typically run on an android device.
 // The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
-// and the startAndroidEmulator command starts the AVD. The it task runs the android tests
-// against the available AVD. The stopAndroidEmulator command stops the AVD and the
+// and the androidEmulator command starts the AVD. The it task runs the android tests
+// against the available AVD. The "clean androidEmulator" command stops the AVD and the
 // destroyAndroidVirtualDevice command destroys the AVD.
 // The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.

@@ -78,13 +78,13 @@ If you want to exclude the default arguments provided by Mill, you can set the `
 [source,console]
 ----
 # Run with default arguments
-> ./mill app.startAndroidEmulator
+> ./mill app.androidEmulator
 
 # Run with additional arguments
-> ./mill app.startAndroidEmulator -noaudio
+> ./mill app.androidEmulator -noaudio
 
 # Exclude default arguments
-> ./mill app.startAndroidEmulator --excludeDefaultArgs -avd test_avd
+> ./mill app.androidEmulator --excludeDefaultArgs -avd test_avd
 ----
 
 [CAUTION]
@@ -102,7 +102,7 @@ This will install apk built by the `app.androidApk` command.
 === Stop the emulator
 [source,console]
 ----
-> ./mill app.stopAndroidEmulator
+> ./mill clean app.androidEmulator
 ----
 
 === Delete the AVD

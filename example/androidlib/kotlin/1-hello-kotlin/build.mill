@@ -125,7 +125,7 @@ object app extends AndroidAppKotlinModule {
 
 > ./mill app.createAndroidVirtualDevice
 
-> ./mill show app.startAndroidEmulator
+> ./mill show app.androidEmulator
 
 > ./mill show app.adbDevices
 ...emulator-5556...device...
@@ -158,7 +158,7 @@ object app extends AndroidAppKotlinModule {
       </testsuites>
 ...
 
-> ./mill show app.stopAndroidEmulator
+> ./mill clean app.androidEmulator
 
 > ./mill show app.deleteAndroidVirtualDevice
 
@@ -167,7 +167,7 @@ object app extends AndroidAppKotlinModule {
 // The android tests (existing typically in androidTest directory, aka instrumented tests)
 // typically run on an android device.
 // The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
-// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
-// against the available AVD. The stopAndroidEmulator command stops the AVD and the
+// and the androidEmulator command starts the AVD. The it task runs the integration tests
+// against the available AVD. The "clean androidEmulator" command stops the AVD and the
 // destroyAndroidVirtualDevice command destroys the AVD.
 // The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.

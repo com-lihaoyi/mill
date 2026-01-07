@@ -69,7 +69,7 @@ object app extends AndroidAppKotlinModule {
 > ./mill show app.createAndroidVirtualDevice
 ...Name: kotlin-test, DeviceId: medium_phone...
 
-> ./mill show app.startAndroidEmulator
+> ./mill show app.androidEmulator
 
 > ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
@@ -85,7 +85,7 @@ object app extends AndroidAppKotlinModule {
   "Complete"
 ]
 
-> ./mill show app.stopAndroidEmulator
+> ./mill clean app.androidEmulator
 
 > ./mill show app.deleteAndroidVirtualDevice
 

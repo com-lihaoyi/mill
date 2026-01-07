@@ -221,7 +221,7 @@ Start the emulator and run the app
 [source,console]
 ----
 > ./mill show app.createAndroidVirtualDevice
-> ./mill show app.startAndroidEmulator
+> ./mill show app.androidEmulator
 > ./mill show app.androidInstall
 > ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
 ----

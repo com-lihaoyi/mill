@@ -339,7 +339,7 @@ object Jetchat extends mill.api.Module {
 > ./mill show JetNews.app.createAndroidVirtualDevice
 ...Name: mill_avd_android-35_x86_64_medium_phone, DeviceId: medium_phone...
 
-> ./mill show JetNews.app.startAndroidEmulator
+> ./mill show JetNews.app.androidEmulator
 
 > ./mill show JetNews.app.androidInstall
 ...All files should be loaded. Notifying the device...
@@ -386,7 +386,7 @@ object Jetchat extends mill.api.Module {
   ]
 }
 
-> ./mill show JetNews.app.stopAndroidEmulator
+> ./mill clean JetNews.app.androidEmulator
 
 > ./mill show JetNews.app.deleteAndroidVirtualDevice
 

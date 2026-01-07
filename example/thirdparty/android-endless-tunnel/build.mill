@@ -58,7 +58,7 @@ object `endless-tunnel` extends mill.api.Module {
 > ./mill show endless-tunnel.app.createAndroidVirtualDevice
 ...Name: cpp-test, DeviceId: medium_phone...
 
-> ./mill show endless-tunnel.app.startAndroidEmulator
+> ./mill show endless-tunnel.app.androidEmulator
 
 > ./mill show endless-tunnel.app.androidInstall
 ...All files should be loaded. Notifying the device...
@@ -74,7 +74,7 @@ object `endless-tunnel` extends mill.api.Module {
   "Complete"
 ]
 
-> ./mill show endless-tunnel.app.stopAndroidEmulator
+> ./mill clean endless-tunnel.app.androidEmulator
 
 > ./mill show endless-tunnel.app.deleteAndroidVirtualDevice
 
