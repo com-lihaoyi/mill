@@ -19,7 +19,7 @@ import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters.*
 
-private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
+private trait MillBspScalaEndpoints extends ScalaBuildServer with MillBspEndpoints0{
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =
@@ -91,10 +91,6 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         val item = new ScalaTestClassesItem(id, classes.asJava)
         item.setFramework(frameworkName)
         item
-
-      case (_, _, id, _, _) =>
-        // Not a test module, so no test classes
-        new ScalaTestClassesItem(id, Seq.empty[String].asJava)
     } {
       new ScalaTestClassesResult(_)
     }

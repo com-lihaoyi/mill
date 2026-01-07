@@ -12,7 +12,7 @@ import ch.epfl.scala.bsp4j.{
   TaskId
 }
 import mill.api.ExecResult.{Skipped, Success}
-import mill.api.daemon.internal.{ExecutionResultsApi, TaskApi}
+import mill.api.daemon.internal.{ExecutionResultsApi, EvaluatorApi, JavaModuleApi, ModuleApi, PathRefApi, TaskApi}
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, JvmBuildTarget}
 
 import scala.collection.mutable
@@ -161,6 +161,90 @@ object Utils {
     case (StatusCode.ERROR, _) | (_, StatusCode.ERROR) => StatusCode.ERROR
     case (StatusCode.CANCELLED, _) | (_, StatusCode.CANCELLED) => StatusCode.CANCELLED
     case _ => StatusCode.OK
+  }
+
+  // ===========================================================================
+  // Task Graph Utilities
+  // ===========================================================================
+
+  /**
+   * Find all input tasks (Task.Input, Task.Source, Task.Sources) at the roots of the task graph
+   * by traversing upstream from the given tasks.
+   */
+  def findInputTasks(tasks: Seq[TaskApi[?]]): Seq[TaskApi[?]] = {
+    val visited = collection.mutable.Set.empty[TaskApi[?]]
+    val inputTasks = collection.mutable.ListBuffer.empty[TaskApi[?]]
+    val queue = collection.mutable.Queue.empty[TaskApi[?]]
+
+    tasks.foreach(queue.enqueue(_))
+
+    while (queue.nonEmpty) {
+      val current = queue.dequeue()
+      if (!visited.contains(current)) {
+        visited.add(current)
+        if (current.isInputTask) inputTasks += current
+        else current.inputsApi.foreach(queue.enqueue(_))
+      }
+    }
+
+    inputTasks.toSeq
+  }
+
+  /**
+   * Extract os.Path values from input task results. Input tasks like Task.Sources return
+   * PathRef or Seq[PathRef] values.
+   */
+  def extractPathsFromResults(results: Seq[Any]): Seq[os.Path] = {
+    results.flatMap {
+      case pathRef: PathRefApi => Seq(os.Path(pathRef.javaPath))
+      case pathRefs: Seq[?] => pathRefs.collect { case pr: PathRefApi => os.Path(pr.javaPath) }
+      case _ => Seq.empty
+    }
+  }
+
+  // ===========================================================================
+  // Module Graph Utilities
+  // ===========================================================================
+
+  /**
+   * Compute all transitive modules from module children via moduleDirectChildren
+   */
+  def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
+    Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
+  }
+
+  /**
+   * Compute modules with BSP transitively disabled using single-pass topological traversal.
+   * A module is disabled if it has enableBsp=false OR any of its direct deps is disabled.
+   */
+  def computeDisabledBspModules(evaluators: Seq[EvaluatorApi]): Set[ModuleApi] = {
+    import mill.api.daemon.internal.bsp.BspModuleApi
+
+    val allModules = evaluators.flatMap(ev => transitiveModules(ev.rootModule))
+    val moduleToIndex = allModules.zipWithIndex.toMap
+    val indexToModule = allModules.toIndexedSeq
+
+    val graph: IndexedSeq[Array[Int]] = indexToModule.map { m =>
+      val deps = m match {
+        case jm: JavaModuleApi => jm.moduleDepsChecked ++ jm.compileModuleDepsChecked
+        case _ => Nil
+      }
+      deps.flatMap(moduleToIndex.get).toArray
+    }
+
+    val disabled = collection.mutable.Set.empty[Int]
+
+    // Module graph cannot have cycles so each SCC must be of size 1
+    for (Array(idx) <- mill.internal.Tarjans(graph).reverse) {
+      val module = indexToModule(idx)
+      val isDirect = module match {
+        case bsp: BspModuleApi => !bsp.enableBsp
+        case _ => false
+      }
+      if (isDirect || graph(idx).exists(disabled.contains)) disabled.add(idx)
+    }
+
+    disabled.iterator.map(indexToModule).toSet
   }
 
 }

@@ -6,7 +6,13 @@ import com.google.gson.JsonObject
 import mill.api.*
 import mill.api.Segment.Label
 import mill.bsp.Constants
-import mill.bsp.worker.Utils.{combineStatusCodes, jvmBuildTarget, makeBuildTarget, outputPaths, sanitizeUri}
+import mill.bsp.worker.Utils.{
+  combineStatusCodes,
+  jvmBuildTarget,
+  makeBuildTarget,
+  outputPaths,
+  sanitizeUri
+}
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters.*
@@ -25,69 +31,11 @@ import mill.api.daemon.internal.*
  * This trait is mixed into MillBuildServer to separate the API endpoints
  * from the server infrastructure code.
  */
-trait MillBspEndpoints extends BuildServer {
+trait MillBspEndpoints extends BuildServer with MillBspEndpoints0 {
 
   // ==========================================================================
   // Abstract members provided by MillBuildServer
   // ==========================================================================
-
-  protected def topLevelProjectRoot: os.Path
-  protected def bspVersion: String
-  protected def serverVersion: String
-  protected def serverName: String
-  protected def canReload: Boolean
-  protected def onShutdown: () => Unit
-  protected def baseLogger: Logger
-
-  protected def client: BuildClient
-  protected def sessionInfo: MillBspEndpoints.SessionInfo
-  protected def sessionInfo_=(info: MillBspEndpoints.SessionInfo): Unit
-  protected[worker] def sessionResult: scala.concurrent.Promise[BspServerResult]
-  protected[worker] def sessionResult_=(p: scala.concurrent.Promise[BspServerResult]): Unit
-
-  protected def handlerRaw[V](block: Logger => V)(using
-      name: sourcecode.Name,
-      enclosing: sourcecode.Enclosing
-  ): CompletableFuture[V]
-
-  protected def handlerEvaluators[V](
-      checkInitialized: Boolean = true
-  )(block: (BspEvaluators, Logger) => V)(using
-      name: sourcecode.Name,
-      enclosing: sourcecode.Enclosing
-  ): CompletableFuture[V]
-
-  protected def handlerTasks[T, V, W](
-      targetIds: BspEvaluators => collection.Seq[BuildTargetIdentifier],
-      tasks: PartialFunction[BspModuleApi, TaskApi[W]],
-      requestDescription: String,
-      originId: String
-  )(block: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(
-      agg: java.util.List[T] => V
-  )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V]
-
-  protected def handlerTasksEvaluators[T, V, W](
-      targetIds: BspEvaluators => collection.Seq[BuildTargetIdentifier],
-      tasks: PartialFunction[BspModuleApi, TaskApi[W]],
-      requestDescription: String,
-      originId: String
-  )(block: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(
-      agg: (java.util.List[T], BspEvaluators) => V
-  )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V]
-
-  protected def createLogger()(using enclosing: sourcecode.Enclosing): Logger
-
-  protected def evaluate(
-      evaluator: EvaluatorApi,
-      requestDescription: String,
-      goals: Seq[TaskApi[?]],
-      logger: Logger,
-      reporter: Int => Option[CompileProblemReporter],
-      testReporter: TestReporter = TestReporter.DummyTestReporter,
-      errorOpt: EvaluatorApi.Result[Any] => Option[String] = evaluatorErrorOpt
-  ): ExecutionResultsApi
-
-  protected def evaluatorErrorOpt(result: EvaluatorApi.Result[Any]): Option[String]
 
   // ==========================================================================
   // BSP Protocol - Lifecycle
@@ -103,13 +51,6 @@ trait MillBspEndpoints extends BuildServer {
         case "IntelliJ-BSP" => BspClientType.IntellijBSP
         case other => BspClientType.Other(other)
       }
-      // Not sure why we need to set this early, but we do
-      sessionInfo = new MillBspEndpoints.SessionInfo(
-        clientType,
-        clientWantsSemanticDb = false,
-        enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
-      )
-      // TODO: scan BspModules and infer their capabilities
 
       val supportedLangs = Constants.languages.asJava
       val capabilities = new BuildServerCapabilities
@@ -121,7 +62,7 @@ trait MillBspEndpoints extends BuildServer {
       capabilities.setDependencyModulesProvider(true)
       capabilities.setDependencySourcesProvider(true)
       capabilities.setInverseSourcesProvider(true)
-      capabilities.setJvmCompileClasspathProvider(sessionInfo.enableJvmCompileClasspathProvider)
+      capabilities.setJvmCompileClasspathProvider(enableJvmCompileClasspathProvider)
       capabilities.setJvmRunEnvironmentProvider(true)
       capabilities.setJvmTestEnvironmentProvider(true)
       capabilities.setOutputPathsProvider(true)
@@ -380,7 +321,8 @@ trait MillBspEndpoints extends BuildServer {
       }
 
       val reporterMaker = Utils.getBspLoggedReporterPool(p.getOriginId, state.bspIdByModule, client)
-      val reporters = new java.util.concurrent.ConcurrentHashMap[Int, Option[BspCompileProblemReporter]]
+      val reporters =
+        new java.util.concurrent.ConcurrentHashMap[Int, Option[BspCompileProblemReporter]]
       val getReporter: Int => Option[CompileProblemReporter] = { id =>
         if (!reporters.contains(id))
           reporters.putIfAbsent(id, reporterMaker(id))

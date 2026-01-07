@@ -27,7 +27,7 @@ import scala.annotation.unused
  * This class contains the server infrastructure (state management, request handling,
  * threading). The actual BSP endpoint implementations are in the MillBspEndpoints trait.
  */
-private class MillBuildServer(
+private abstract class MillBuildServer(
     protected val topLevelProjectRoot: os.Path,
     protected val bspVersion: String,
     protected val serverVersion: String,
@@ -37,20 +37,13 @@ private class MillBuildServer(
     outLock: Lock,
     protected val baseLogger: Logger,
     out: os.Path
-) extends MillBspEndpoints with AutoCloseable {
+) extends AutoCloseable {
 
   import MillBuildServer.*
 
   // ==========================================================================
   // Session State
   // ==========================================================================
-
-  type SessionInfo = MillBspEndpoints.SessionInfo
-  protected def SessionInfo(
-      clientType: BspClientType,
-      clientWantsSemanticDb: Boolean,
-      enableJvmCompileClasspathProvider: Boolean
-  ): SessionInfo = new MillBspEndpoints.SessionInfo(clientType, clientWantsSemanticDb, enableJvmCompileClasspathProvider)
 
   // Mutable variables representing the lifecycle stages:
   protected var client: BuildClient = scala.compiletime.uninitialized

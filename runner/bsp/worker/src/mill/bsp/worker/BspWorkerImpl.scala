@@ -30,7 +30,7 @@ object BspWorkerImpl {
     try {
       val executor = createJsonrpcExecutor()
       lazy val millServer
-          : MillBuildServer & MillJvmBuildServer & MillJavaBuildServer & MillScalaBuildServer =
+          : MillBuildServer & MillBspJvmEndpoints & MillBspJavaEndpoints & MillBspScalaEndpoints =
         new MillBuildServer(
           topLevelProjectRoot = topLevelBuildRoot,
           bspVersion = Constants.bspProtocolVersion,
@@ -44,7 +44,10 @@ object BspWorkerImpl {
           outLock = outLock,
           baseLogger = baseLogger,
           out = out
-        ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
+        ) with MillBspJvmEndpoints 
+          with MillBspJavaEndpoints
+          with MillBspScalaEndpoints
+          with MillBspEndpoints
 
       lazy val launcher = new Launcher.Builder[BuildClient]()
         .setOutput(streams.out)

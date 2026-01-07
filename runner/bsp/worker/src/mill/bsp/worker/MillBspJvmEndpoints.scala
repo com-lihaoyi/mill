@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture
 
 import scala.jdk.CollectionConverters.*
 
-private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer =>
+private trait MillBspJvmEndpoints extends JvmBuildServer with MillBspEndpoints0{ 
 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {
@@ -58,28 +58,40 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             id,
             _,
             (
-              _,
+              classpath,
               forkArgs,
               forkWorkingDir,
               forkEnv,
               _,
-              Some(testEnvVars)
+              testEnvVarsOpt
             )
           ) =>
-        val fullMainArgs: List[String] =
-          List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
-        val item = new JvmEnvironmentItem(
-          id,
-          testEnvVars.classpath.map(sanitizeUri).asJava,
-          forkArgs.asJava,
-          forkWorkingDir.toString(),
-          forkEnv.asJava
-        )
-        item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
-          _,
-          fullMainArgs.asJava
-        )).asJava)
-        item
+        testEnvVarsOpt match {
+          case Some(testEnvVars) =>
+            val fullMainArgs: List[String] =
+              List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
+            val item = new JvmEnvironmentItem(
+              id,
+              testEnvVars.classpath.map(sanitizeUri).asJava,
+              forkArgs.asJava,
+              forkWorkingDir.toString(),
+              forkEnv.asJava
+            )
+            item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
+              _,
+              fullMainArgs.asJava
+            )).asJava)
+            item
+          case None =>
+            // Fallback when test environment vars are not available
+            new JvmEnvironmentItem(
+              id,
+              classpath.map(sanitizeUri).asJava,
+              forkArgs.asJava,
+              forkWorkingDir.toString(),
+              forkEnv.asJava
+            )
+        }
     } {
       agg
     }
