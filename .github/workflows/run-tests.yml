@@ -77,6 +77,14 @@ jobs:
         include:
 
           - java-version: 21
+            millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
+          - java-version: 21
+            millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib}.__.test'"
+          - java-version: 21
+            millargs: "'libs.{scalajslib,scalanativelib,kotlinlib}.__.test'"
+          - java-version: 21
+            millargs: "'libs.{scalajslib,scalanativelib}.__.test'"
+          - java-version: 21
             millargs: "'libs.scalajslib.__.test'"
 
 
