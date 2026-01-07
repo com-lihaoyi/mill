@@ -24,7 +24,7 @@ public class MillProcessLauncher {
   static int launchMillNoDaemon(
       String[] args,
       OutFolderMode outMode,
-  File outDir,
+      File outDir,
       String[] runnerClasspath,
       String mainClass,
       boolean useFileLocks)
@@ -72,7 +72,11 @@ public class MillProcessLauncher {
   }
 
   static Process launchMillDaemon(
-      Path daemonDir, OutFolderMode outMode, File outDir, String[] runnerClasspath, boolean useFileLocks)
+      Path daemonDir,
+      OutFolderMode outMode,
+      File outDir,
+      String[] runnerClasspath,
+      boolean useFileLocks)
       throws Exception {
     List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode, runnerClasspath));
     l.add("mill.daemon.MillDaemonMain");

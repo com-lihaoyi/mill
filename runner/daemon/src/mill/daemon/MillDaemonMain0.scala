@@ -58,13 +58,13 @@ object MillDaemonMain0 {
         val acceptTimeout =
           Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
 
-      val exitCode = new MillDaemonMain0(
-        daemonDir = args.daemonDir,
-        acceptTimeout = acceptTimeout,
-        Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
-        outMode = args.outMode,
-        outDir = args.outDir
-      ).run().getOrElse(0)
+        val exitCode = new MillDaemonMain0(
+          daemonDir = args.daemonDir,
+          acceptTimeout = acceptTimeout,
+          Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
+          outMode = args.outMode,
+          outDir = args.outDir
+        ).run().getOrElse(0)
 
         System.exit(exitCode)
       }
