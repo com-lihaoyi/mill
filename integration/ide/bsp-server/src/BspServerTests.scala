@@ -356,7 +356,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
               "diag" -> ArraySeq("diag/src/DiagCheck.scala.semanticdb"),
               "delayed" -> List(),
               "lib" -> ArraySeq(),
-              "scripts/foldershared/Foo.java" -> ArraySeq("scripts/foldershared/Foo.java.semanticdb"),
+              "scripts/foldershared/Foo.java" -> ArraySeq(
+                "scripts/foldershared/Foo.java.semanticdb"
+              ),
               "errored/compilation-error" -> List(),
               "scripts/foldershared/script.scala" -> ArraySeq(),
               "sourcesNeedCompile" -> ArraySeq(),
