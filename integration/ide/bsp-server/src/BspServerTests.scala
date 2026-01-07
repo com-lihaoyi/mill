@@ -15,6 +15,8 @@ import mill.integration.BspServerTestUtil.*
 import mill.javalib.testrunner.TestRunnerUtils
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
+// make generated golden lierals happy
+import scala.collection.immutable.Seq as ArraySeq
 
 object BspServerTests extends UtestIntegrationTestSuite {
   protected def snapshotsPath: os.Path =
