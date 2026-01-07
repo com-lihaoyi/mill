@@ -1058,15 +1058,7 @@ trait JavaModule
     compileResources() ++ unmanagedClasspath()
   }
 
-  /**
-   * Resolved dependencies
-   */
-  def resolvedMvnDeps: T[Seq[PathRef]] = Task {
-    if (resolvedDepsWarnNonPlatform()) {
-      Dep.validatePlatformDeps(platformSuffix(), mvnDeps()).pipe(warn =>
-        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
-      )
-    }
+  private def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -1075,6 +1067,7 @@ trait JavaModule
         ),
         BoundDep(coursierDependencyTask(), force = false)
       ),
+      sources = sources,
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
         Some { params =>
@@ -1089,6 +1082,30 @@ trait JavaModule
             )
         }
     )
+  }
+
+  /**
+   * Resolved dependencies
+   */
+  def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+    if (resolvedDepsWarnNonPlatform()) {
+      Dep.validatePlatformDeps(platformSuffix(), mvnDeps()).pipe(warn =>
+        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
+      )
+    }
+    resolvedMvnDeps0(sources = false)()
+  }
+
+  /**
+   * Resolved dependency sources, unpacked into a single directory. Useful to quickly
+   * look up the sources of the dependencies on your classpath so you can find the
+   * exact source code you are compiling and running against.
+   */
+  def resolvedMvnDepsSources: T[PathRef] = Task {
+    for (jar <- resolvedMvnDeps0(sources = true)()) {
+      os.unzip(jar.path, Task.dest)
+    }
+    PathRef(Task.dest)
   }
 
   override def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
