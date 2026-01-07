@@ -101,7 +101,9 @@ private[worker] object ScriptModuleDiscovery {
       case (scriptPath: java.nio.file.Path, mill.api.Result.Success(module: BspModuleApi)) =>
         Some((new BuildTargetIdentifier(Utils.sanitizeUri(scriptPath)), (module, eval)))
       case (scriptPath: java.nio.file.Path, f: mill.api.Result.Failure) =>
-        debug(() => s"Failed to instantiate script module for BSP: $scriptPath failed with ${f.error}")
+        debug(() =>
+          s"Failed to instantiate script module for BSP: $scriptPath failed with ${f.error}"
+        )
         None
     }
   }

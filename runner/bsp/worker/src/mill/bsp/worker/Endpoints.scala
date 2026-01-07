@@ -31,7 +31,7 @@ import mill.api.daemon.internal.*
  * This trait is mixed into MillBuildServer to separate the API endpoints
  * from the server infrastructure code.
  */
-trait MillBspEndpoints extends BuildServer with MillBspEndpoints0 {
+trait MillBspEndpoints extends BuildServer with EndpointsApi {
 
   // ==========================================================================
   // Abstract members provided by MillBuildServer
@@ -46,10 +46,11 @@ trait MillBspEndpoints extends BuildServer with MillBspEndpoints0 {
     handlerRaw { logger =>
 
       val clientCapabilities = request.getCapabilities()
-      val enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
+      val enableJvmCompileClasspathProvider =
+        Option(clientCapabilities.getJvmCompileClasspathReceiver).exists(_.booleanValue())
       val clientType = request.getDisplayName match {
-        case "IntelliJ-BSP" => BspClientType.IntellijBSP
-        case other => BspClientType.Other(other)
+        case "IntelliJ-BSP" => ClientType.IntellijBSP
+        case other => ClientType.Other(other)
       }
 
       val supportedLangs = Constants.languages.asJava
@@ -572,7 +573,7 @@ trait MillBspEndpoints extends BuildServer with MillBspEndpoints0 {
 
 object MillBspEndpoints {
   class SessionInfo(
-      val clientType: BspClientType,
+      val clientType: ClientType,
       val clientWantsSemanticDb: Boolean,
       /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
       val enableJvmCompileClasspathProvider: Boolean

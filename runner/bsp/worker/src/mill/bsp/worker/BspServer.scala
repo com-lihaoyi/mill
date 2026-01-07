@@ -37,7 +37,7 @@ private abstract class MillBuildServer(
     outLock: Lock,
     protected val baseLogger: Logger,
     out: os.Path
-) extends AutoCloseable {
+) extends EndpointsApi with AutoCloseable {
 
   import MillBuildServer.*
 
@@ -101,7 +101,7 @@ private abstract class MillBuildServer(
       val previousTargetIds = previousEvaluatorsOpt.map(_.bspModulesIdList).getOrElse(Nil).map {
         case (id, (_, ev)) => id -> ev
       }
-      BspChangeNotifier.notifyChanges(client, previousTargetIds, newTargetIds)
+      ChangeNotifier.notifyChanges(client, previousTargetIds, newTargetIds)
     }
   }
 
@@ -317,7 +317,7 @@ private abstract class MillBuildServer(
   protected def createLogger()(using enclosing: sourcecode.Enclosing): Logger = {
     val requestCount0 = requestCount.incrementAndGet()
     val name = enclosingRequestName
-    new MillBspLogger(
+    new BspLogger(
       client,
       requestCount0,
       new PrefixLogger(

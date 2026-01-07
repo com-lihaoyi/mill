@@ -13,9 +13,8 @@ import ch.epfl.scala.bsp4j.{
 import mill.api.daemon.internal.JavaModuleApi
 import mill.bsp.worker.Utils.sanitizeUri
 
-private trait MillBspJavaEndpoints extends JavaBuildServer with MillBspEndpoints0{
+private trait EndpointsJava extends JavaBuildServer with EndpointsApi {
 
-  
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
     handlerTasks(

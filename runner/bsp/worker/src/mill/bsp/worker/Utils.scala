@@ -12,7 +12,14 @@ import ch.epfl.scala.bsp4j.{
   TaskId
 }
 import mill.api.ExecResult.{Skipped, Success}
-import mill.api.daemon.internal.{ExecutionResultsApi, EvaluatorApi, JavaModuleApi, ModuleApi, PathRefApi, TaskApi}
+import mill.api.daemon.internal.{
+  ExecutionResultsApi,
+  EvaluatorApi,
+  JavaModuleApi,
+  ModuleApi,
+  PathRefApi,
+  TaskApi
+}
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, JvmBuildTarget}
 
 import scala.collection.mutable

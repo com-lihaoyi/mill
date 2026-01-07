@@ -78,13 +78,15 @@ class BspEvaluators(
 
   lazy val bspModulesIdList: Seq[(BuildTargetIdentifier, (BspModuleApi, EvaluatorApi))] = {
     val scriptModules = evaluators.headOption
-      .map(eval => ScriptModuleDiscovery.discover(
-        eval,
-        bspScriptIgnore,
-        nonScriptSources,
-        nonScriptResources,
-        debug
-      ))
+      .map(eval =>
+        ScriptModuleDiscovery.discover(
+          eval,
+          bspScriptIgnore,
+          nonScriptSources,
+          nonScriptResources,
+          debug
+        )
+      )
       .getOrElse(Seq.empty)
 
     bspModulesIdList0 ++ scriptModules

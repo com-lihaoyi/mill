@@ -19,7 +19,7 @@ import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters.*
 
-private trait MillBspScalaEndpoints extends ScalaBuildServer with MillBspEndpoints0{
+private trait EndpointsScala extends ScalaBuildServer with EndpointsApi {
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
       : CompletableFuture[ScalacOptionsResult] =

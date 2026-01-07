@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture
 
 import scala.jdk.CollectionConverters.*
 
-private trait MillBspJvmEndpoints extends JvmBuildServer with MillBspEndpoints0{ 
+private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {

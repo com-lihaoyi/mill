@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters.*
  * Handles sending buildTarget/didChange notifications to the BSP client
  * when build targets are created, modified, or deleted.
  */
-private[worker] object BspChangeNotifier {
+private[worker] object ChangeNotifier {
 
   /**
    * Computes the difference between previous and current build targets and sends
