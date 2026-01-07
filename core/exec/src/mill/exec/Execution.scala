@@ -36,7 +36,7 @@ case class Execution(
     enableTicker: Boolean
 ) extends GroupExecution with AutoCloseable {
 
-  // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
+  // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(
       baseLogger: Logger,
       workspace: java.nio.file.Path,
@@ -58,26 +58,26 @@ case class Execution(
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean
   ) = this(
-    baseLogger,
-    new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
-    os.Path(workspace),
-    os.Path(outPath),
-    os.Path(externalOutPath),
-    rootModule,
-    classLoaderSigHash,
-    classLoaderIdentityHash,
-    workerCache,
-    env,
-    failFast,
-    ec,
-    codeSignatures,
-    systemExit,
-    exclusiveSystemStreams,
-    getEvaluator,
-    offline,
-    useFileLocks,
-    staticBuildOverrideFiles,
-    enableTicker
+    baseLogger = baseLogger,
+    profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
+    workspace = os.Path(workspace),
+    outPath = os.Path(outPath),
+    externalOutPath = os.Path(externalOutPath),
+    rootModule = rootModule,
+    classLoaderSigHash = classLoaderSigHash,
+    classLoaderIdentityHash = classLoaderIdentityHash,
+    workerCache = workerCache,
+    env = env,
+    failFast = failFast,
+    ec = ec,
+    codeSignatures = codeSignatures,
+    systemExit = systemExit,
+    exclusiveSystemStreams = exclusiveSystemStreams,
+    getEvaluator = getEvaluator,
+    offline = offline,
+    useFileLocks = useFileLocks,
+    staticBuildOverrideFiles = staticBuildOverrideFiles,
+    enableTicker = enableTicker
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
