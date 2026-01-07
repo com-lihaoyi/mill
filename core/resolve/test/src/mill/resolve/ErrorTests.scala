@@ -226,6 +226,18 @@ object ErrorTests extends TestSuite {
 
       lazy val millDiscover = Discover[this.type]
     }
+
+    // Regress test for cross values that produce the same cross segments
+    // https://github.com/com-lihaoyi/mill/issues/XXX
+    object CrossModuleCollisions extends TestRootModule {
+      object foo extends Cross[Foo](
+        (Seq("a", "b"), Seq("c")),
+        (Seq("a"), Seq("b", "c"))
+      )
+      trait Foo extends Cross.Module2[Seq[String], Seq[String]]
+
+      lazy val millDiscover = Discover[this.type]
+    }
   }
 
   def isShortError(x: Result[?], s: String) = {
@@ -558,6 +570,15 @@ object ErrorTests extends TestSuite {
           isShortError(_, "would be ambiguous")
         )
       }
+    }
+    test("crossModuleCollisions") {
+      val check = new Checker(CrossModuleCollisions)
+      // Cross values (Seq("a", "b"), Seq("c")) and (Seq("a"), Seq("b", "c"))
+      // produce the same cross segments [a,b,c], which is a collision
+      test - check.checkSeq0(
+        Seq("foo._"),
+        isShortError(_, "contains colliding cross values")
+      )
     }
   }
 }
