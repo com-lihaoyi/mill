@@ -1,7 +1,7 @@
 package mill.testkit
 import java.util.ArrayList
 import java.util.List
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object BashTokenizer {
   def tokenize(string: CharSequence): Seq[String] = {

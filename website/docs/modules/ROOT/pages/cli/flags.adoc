@@ -29,7 +29,7 @@ To see a cheat sheet of all the command line flags that Mill supports, you can u
 .Output of `mill --help`
 [,console]
 ----
-Mill Build Tool, version 1.1.0-RC3-122-0af08c
+Mill Build Tool, version 1.1.0-RC3-163-c8ae7c
 Usage: mill [options] task [task-options] [+ task ...]
 
 Task cheat sheet:
@@ -80,7 +80,8 @@ Options:
   -k --keep-going          Continue build, even after build failures.
   --meta-level <int>       Select a meta-level to run the given tasks. Level 0 is the main project
                            in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`,
-                           etc.
+                           etc. If negative, -1 means the deepest meta-build (boostrap build), -2
+                           the second deepest meta-build, etc.
   --no-daemon              Run without a long-lived background daemon. Must be the first argument.
   --no-filesystem-checker  Globally disables the checks that prevent you from reading and writing to
                            disallowed files or folders during evaluation. Useful as an escape hatch
@@ -109,7 +110,7 @@ or `./mill --help-advanced` for a list of advanced flags
 [,console]
 ----
 > mill --help-advanced
-Mill Build Tool, version 1.1.0-RC3-122-0af08c
+Mill Build Tool, version 1.1.0-RC3-142-7dca5f
 Usage: mill [options] task [task-options] [+ task ...]
 
 Advanced and internal command-line flags not intended for common usage. Use at your own risk!
@@ -126,6 +127,11 @@ Advanced Options:
   --no-server               Deprecated, use `--no-deamon` instead
   --no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to
                             evaluate tasks / commands.
+  --use-file-locks          Use traditional file-based locking instead of PID-based locking for the
+                            Mill daemon. This removes the chance of race conditions when claiming
+                            the lock after a crash, but may have issues on some filesystems that do
+                            not support lock (e.g. docker mounts on mac)
+
 ----
 
 == Notable Flags

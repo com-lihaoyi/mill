@@ -1,4 +1,4 @@
-extends: [ScalaModule]
+extends: ScalaModule
 scalaVersionn: []
 mvnDeps:
   - com.lihaoyi::scalatags:0.13.1

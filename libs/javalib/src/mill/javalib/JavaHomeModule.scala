@@ -9,12 +9,16 @@ import mill.api.{PathRef, Task}
 // TODO: extend OfflineSupportModule once we can break bin-compat
 trait JavaHomeModule extends CoursierModule {
 
+  @deprecated("Please use `jvmVersion` instead")
   def jvmId: T[String] = ""
+  def jvmVersion: T[String] = jvmId()
 
   def jvmIndexVersion: T[String] = mill.javalib.api.Versions.coursierJvmIndexVersion
 
-  def useShortJvmPath(jvmId: String): Boolean =
-    scala.util.Properties.isWin && (jvmId.startsWith("graalvm") || jvmId.startsWith("liberica-nik"))
+  def useShortJvmPath(jvmVersion: String): Boolean =
+    scala.util.Properties.isWin && (jvmVersion.startsWith("graalvm") || jvmVersion.startsWith(
+      "liberica-nik"
+    ))
 
   /**
    * Optional custom Java Home for the JvmWorker to use
@@ -23,7 +27,7 @@ trait JavaHomeModule extends CoursierModule {
    * the current mill instance.
    */
   def javaHome: T[Option[PathRef]] = Task {
-    Option(jvmId()).filter(_ != "").map { id =>
+    Option(jvmVersion()).filter(_ != "").map { id =>
       val path = mill.util.Jvm.resolveJavaHome(
         id = id,
         coursierCacheCustomizer = coursierCacheCustomizer(),

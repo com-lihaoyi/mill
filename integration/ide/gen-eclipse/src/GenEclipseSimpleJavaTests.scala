@@ -1,7 +1,7 @@
 package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
-import GenEclipseUtils._
+import GenEclipseUtils.*
 import os.Path
 import utest.{Tests, test}
 
@@ -11,7 +11,7 @@ object GenEclipseSimpleJavaTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("Simple Java, Junit4 project") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       val ret = eval("mill.eclipse/", check = true)
       assert(ret.exitCode == 0)

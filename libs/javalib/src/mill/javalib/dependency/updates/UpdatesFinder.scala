@@ -28,13 +28,13 @@
  */
 package mill.javalib.dependency.updates
 
-import mill.javalib.dependency.versions._
+import mill.javalib.dependency.versions.*
 
 import scala.collection.SortedSet
 
 private[dependency] object UpdatesFinder {
 
-  import scala.Ordered._
+  import scala.Ordered.*
 
   def findUpdates(
       dependencyVersions: ModuleDependenciesVersions,

@@ -2,8 +2,8 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 import scala.concurrent.duration.*
-import utest._
-import utest.asserts._
+import utest.*
+import utest.asserts.*
 
 object ConcurrentInterruptShutdownTests extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax((if (sys.env.contains("CI")) 120000 else 15000).millis)

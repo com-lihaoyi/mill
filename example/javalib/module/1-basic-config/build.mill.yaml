@@ -1,4 +1,4 @@
-extends: [JavaModule]
+extends: [mill.javalib.JavaModule] # fully-qualified class name
 mvnDeps:
 - org.thymeleaf:thymeleaf:3.1.1.RELEASE
 - org.slf4j:slf4j-nop:2.0.7
@@ -10,9 +10,9 @@ repositories: [https://oss.sonatype.org/content/repositories/releases]
 mainClass: foo.Foo2
 
 # Pin a specific JVM version, supports >=11
-jvmId: 11
+jvmVersion: 11
 # Optionally specify the distribution: temurin, zulu, corretto, graalvm-community, etc.
-# jvmId: temurin:11
+# jvmVersion: temurin:11
 
 # Add an additional source folder and resource folder, in addition to the default one
 sources: [src/, custom-src/]

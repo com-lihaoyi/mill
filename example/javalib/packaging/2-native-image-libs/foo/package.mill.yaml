@@ -7,4 +7,4 @@ nativeImageOptions:
   - "--no-fallback"
   - "-H:IncludeResourceBundles=net.sourceforge.argparse4j.internal.ArgumentParserImpl"
   - "-Os"
-jvmId: graalvm-community:23.0.1
+jvmVersion: graalvm-community:23.0.1

@@ -21,7 +21,7 @@ abstract class MainRootModule()(using
  * [[mill.api.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends RootModule0, MainModuleApi {
+trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
 
   private lazy val bspExt = {
     import bsp.BspMainModule.given
@@ -38,6 +38,75 @@ trait MainModule extends RootModule0, MainModuleApi {
     println(res)
     res
   }
+
+  /**
+   * Update the Mill bootstrap scripts (`./mill` and `./mill.bat`) in the project
+   * to the specified version. Downloads the scripts from Maven Central and sets
+   * executable permissions on the Unix script.
+   *
+   * You can also manually select the scripts to update, in which case only the specified script will be installed.
+   *
+   * @param version The Mill version to update to (e.g., "1.1.0")
+   * @param shellScriptPath Override the location of the shell script, e.g "~/bin/mill".
+   * @param batScriptPath Override the location of the Windows batch script.
+   */
+  def updateMillScripts(
+      @mainargs.arg(positional = true) version: String,
+      shellScriptPath: String = null,
+      batScriptPath: String = null
+  ): Command[Seq[PathRef]] =
+    Task.Command(exclusive = true) {
+      val mavenRepoUrl = "https://repo1.maven.org/maven2"
+      val baseUrl = s"$mavenRepoUrl/com/lihaoyi/mill-dist/$version"
+
+      val useDefaults = shellScriptPath == null && batScriptPath == null
+
+      val scripts = Seq(
+        Option(shellScriptPath)
+          .orElse(if (useDefaults) Some("mill") else None)
+          .map(path =>
+            (
+              s"$baseUrl/mill-dist-$version-mill.sh",
+              os.Path.expandUser(path, BuildCtx.workspaceRoot),
+              true
+            )
+          ).toSeq,
+        Option(batScriptPath)
+          .orElse(if (useDefaults) Some("mill.bat") else None)
+          .map(path =>
+            (
+              s"$baseUrl/mill-dist-$version-mill.bat",
+              os.Path.expandUser(path, BuildCtx.workspaceRoot),
+              false
+            )
+          ).toSeq
+      ).flatten
+
+      Task.log.info(s"Downloading Mill $version bootstrap scripts...")
+
+      val results = scripts.flatMap { case (url, path, setExecutable) =>
+        Task.log.info(s"Downloading $url")
+        val response = requests.get(url, check = false)
+        if (response.statusCode == 200) {
+          os.write.over(path, response.bytes)
+          if (setExecutable && !scala.util.Properties.isWin) os.perms.set(path, "rwxr-xr-x")
+          Task.log.info(s"Updated $path")
+          Some(PathRef(path))
+        } else {
+          Task.log.error(s"Failed to download $url: HTTP ${response.statusCode}")
+          None
+        }
+      }
+
+      if (results.isEmpty) {
+        Result.Failure(
+          s"Failed to download Mill $version bootstrap scripts. Please check that version '$version' exists."
+        )
+      } else {
+        Task.log.info(s"Successfully updated Mill bootstrap scripts to version $version")
+        Result.Success(results)
+      }
+    }
 
   /**
    * Resolves a mill query string and prints out the tasks it resolves to.
@@ -70,6 +139,9 @@ trait MainModule extends RootModule0, MainModuleApi {
   /**
    * Prints out some dependency path from the `src` task to the `dest` task.
    *
+   * Both `src` and `dest` can resolve to multiple tasks (e.g. via glob patterns),
+   * and a path will be found from any task matching `src` to any task matching `dest`.
+   *
    * If there are multiple dependency paths between `src` and `dest`, the path
    * chosen is arbitrary.
    */
@@ -80,14 +152,18 @@ trait MainModule extends RootModule0, MainModuleApi {
       @mainargs.arg(positional = true) dest: String
   ): Command[List[String]] =
     Task.Command(exclusive = true) {
-      evaluator.resolveTasks(List(src, dest), SelectMode.Multi).flatMap {
-        case Seq(src1, dest1) =>
-          val queue = collection.mutable.Queue[List[Task[?]]](List(src1))
+      for {
+        srcTasks <- evaluator.resolveTasks(List(src), SelectMode.Multi)
+        destTasks <- evaluator.resolveTasks(List(dest), SelectMode.Multi)
+        result <- {
+          val destSet: Set[Task[?]] = destTasks.toSet
+          val queue = collection.mutable.Queue[List[Task[?]]](srcTasks.map(List(_))*)
           var found = Option.empty[List[Task[?]]]
           val seen = collection.mutable.Set.empty[Task[?]]
+          seen ++= srcTasks
           while (queue.nonEmpty && found.isEmpty) {
             val current = queue.dequeue()
-            if (current.head == dest1) found = Some(current)
+            if (destSet.contains(current.head)) found = Some(current)
             else {
               for {
                 next <- current.head.inputs
@@ -101,13 +177,12 @@ trait MainModule extends RootModule0, MainModuleApi {
           found match {
             case None => Task.fail(s"No path found between $src and $dest")
             case Some(list) =>
-              val labels = list.collect { case n: Task.Named[_] => n.ctx.segments.render }
+              val labels = list.collect { case n: Task.Named[_] => n.ctx.segments.render }.reverse
               labels.foreach(println)
-              labels
+              Result.Success(labels)
           }
-
-        case _ => ???
-      }
+        }
+      } yield result
     }
 
   /**

@@ -1,1 +1,1 @@
-extends: [JavaModule]
+extends: JavaModule

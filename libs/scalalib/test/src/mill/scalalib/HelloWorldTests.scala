@@ -90,7 +90,7 @@ object HelloWorldTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
-    import java.util.jar.Attributes._
+    import java.util.jar.Attributes.*
     val attrs = jar.getManifest.getMainAttributes.asScala
     attrs.get(Name.MAIN_CLASS).map(_.asInstanceOf[String])
   }

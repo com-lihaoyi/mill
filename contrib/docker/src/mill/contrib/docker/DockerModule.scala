@@ -4,7 +4,7 @@ package contrib.docker
 import mill.javalib.JavaModule
 import os.Shellable.IterableShellable
 
-import scala.collection.immutable._
+import scala.collection.immutable.*
 
 trait DockerModule { outer: JavaModule =>
 

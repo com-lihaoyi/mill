@@ -1,6 +1,6 @@
 package mill.javalib
 
-import mill._
+import mill.*
 import os.Path
 
 /**

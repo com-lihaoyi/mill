@@ -1,6 +1,6 @@
 package build
 
-import mill._
+import mill.*
 
 // testing a simple Java module
 object `hello-java` extends scalalib.JavaModule
@@ -18,7 +18,7 @@ object `hello-kotlin` extends kotlinlib.KotlinModule {
 // testing a two-module setup, with one module depending on the other,
 // involving mvnDeps, but also compile-time only and runtime only dependencies
 object lib extends scalalib.JavaModule {
-  import scalalib._
+  import scalalib.*
   def compileMvnDeps = Seq(
     mvn"junit:junit:4.13.2"
   )
@@ -28,7 +28,7 @@ object lib extends scalalib.JavaModule {
 }
 
 object app extends scalalib.JavaModule {
-  import scalalib._
+  import scalalib.*
   def moduleDeps = Seq(lib)
   def mvnDeps = Seq(
     mvn"ch.qos.logback:logback-core:1.5.15"
@@ -43,7 +43,7 @@ def countClassLoaders() = Task.Command {
 }
 
 def countThreads() = Task.Command {
-  import collection.JavaConverters._
+  import collection.JavaConverters.*
   Thread
     .getAllStackTraces
     .keySet

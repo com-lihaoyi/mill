@@ -4,9 +4,9 @@ package build
 
 // Reproduction of issue https://github.com/com-lihaoyi/mill/issues/2579
 
-import mill._
+import mill.*
 import mill.contrib.scoverage.ScoverageModule
-import mill.scalalib._
+import mill.scalalib.*
 
 object Deps {
   val millVersion = "0.11.0"

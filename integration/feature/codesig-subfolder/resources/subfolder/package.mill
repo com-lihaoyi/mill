@@ -1,5 +1,5 @@
 package build.subfolder
-import mill._
+import mill.*
 
 val valueFoo = 0
 val valueFooUsedInBar = 0

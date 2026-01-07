@@ -9,20 +9,27 @@ import scala.concurrent.duration.*
 import scala.util.{Failure, Properties, Success, Try}
 
 object MillDaemonMain0 {
-  case class Args(daemonDir: os.Path, outMode: OutFolderMode, outDir: os.Path, rest: Seq[String])
+  case class Args(
+      daemonDir: os.Path,
+      outMode: OutFolderMode,
+      outDir: os.Path,
+      useFileLocks: Boolean,
+      rest: Seq[String]
+  )
   object Args {
     def apply(appName: String, args: Array[String]): Either[String, Args] = {
       def usage(extra: String = "") =
-        s"usage: $appName <daemon-dir> <out-mode> <out-dir> <mill-args>$extra"
+        s"usage: $appName <daemon-dir> <out-mode> <out-dir> <use-file-locks> <mill-args>$extra"
 
       args match {
-        case Array(daemonDir, outModeStr, outDir, rest*) =>
+        case Array(daemonDir, outModeStr, outDir, useFileLocksStr, rest*) =>
           Try(OutFolderMode.fromString(outModeStr)) match {
             case Failure(_) =>
               val possibleValues = OutFolderMode.values.map(_.asString).mkString(", ")
               Left(usage(s"\n\n<out-mode> must be one of $possibleValues but was '$outModeStr'"))
             case Success(outMode) =>
-              Right(apply(os.Path(daemonDir), outMode, os.Path(outDir), rest))
+              val useFileLocks = useFileLocksStr.toBoolean
+              Right(apply(os.Path(daemonDir), outMode, os.Path(outDir), useFileLocks, rest))
           }
         case _ => Left(usage())
       }
@@ -51,13 +58,13 @@ object MillDaemonMain0 {
         val acceptTimeout =
           Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
 
-        val exitCode = new MillDaemonMain0(
-          daemonDir = args.daemonDir,
-          acceptTimeout = acceptTimeout,
-          Locks.files(args.daemonDir.toString),
-          outMode = args.outMode,
-          outDir = args.outDir
-        ).run().getOrElse(0)
+      val exitCode = new MillDaemonMain0(
+        daemonDir = args.daemonDir,
+        acceptTimeout = acceptTimeout,
+        Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
+        outMode = args.outMode,
+        outDir = args.outDir
+      ).run().getOrElse(0)
 
         System.exit(exitCode)
       }

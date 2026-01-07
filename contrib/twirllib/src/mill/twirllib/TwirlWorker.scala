@@ -7,7 +7,7 @@ import java.net.URLClassLoader
 import mill.api.PathRef
 import mill.javalib.api.CompilationResult
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.io.Codec
 import scala.util.matching.Regex
 

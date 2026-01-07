@@ -15,13 +15,19 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.*;
 import java.util.stream.Stream;
+import mill.client.BuildInfo;
 import mill.client.ClientUtil;
 import mill.constants.*;
 
 public class MillProcessLauncher {
 
   static int launchMillNoDaemon(
-      String[] args, OutFolderMode outMode, File outDir, String[] runnerClasspath, String mainClass)
+      String[] args,
+      OutFolderMode outMode,
+  File outDir,
+      String[] runnerClasspath,
+      String mainClass,
+      boolean useFileLocks)
       throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir = Paths.get(".")
@@ -39,6 +45,7 @@ public class MillProcessLauncher {
     l.add(processDir.toAbsolutePath().toString());
     l.add(outMode.asString());
     l.add(outDir.toString());
+    l.add(String.valueOf(useFileLocks));
     l.addAll(millOpts(outMode));
     l.addAll(Arrays.asList(args));
 
@@ -65,13 +72,14 @@ public class MillProcessLauncher {
   }
 
   static Process launchMillDaemon(
-      Path daemonDir, OutFolderMode outMode, File outDir, String[] runnerClasspath)
+      Path daemonDir, OutFolderMode outMode, File outDir, String[] runnerClasspath, boolean useFileLocks)
       throws Exception {
     List<String> l = new ArrayList<>(millLaunchJvmCommand(outMode, runnerClasspath));
     l.add("mill.daemon.MillDaemonMain");
     l.add(daemonDir.toFile().getCanonicalPath());
     l.add(outMode.asString());
     l.add(outDir.toString());
+    l.add(String.valueOf(useFileLocks));
 
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)
@@ -196,25 +204,26 @@ public class MillProcessLauncher {
   }
 
   static String javaHome(OutFolderMode outMode) throws Exception {
-    var jvmId = millJvmVersion(outMode);
+    var jvmVersion = millJvmVersion(outMode);
     var jvmIndexVersion = millJvmIndexVersion(outMode);
 
     String javaHome = null;
-    if (jvmId == null) {
-      jvmId = mill.client.BuildInfo.defaultJvmId;
+    if (jvmVersion == null) {
+      jvmVersion = BuildInfo.defaultJvmVersion;
     }
 
-    if (jvmId != null) {
-      final String jvmIdFinal = jvmId;
+    if (jvmVersion != null) {
+      final String jvmVersionFinal = jvmVersion;
       final String jvmIndexVersionFinal = jvmIndexVersion;
       // Include JVM index version in the cache key to invalidate cache when index version changes
-      String cacheKey = jvmIndexVersion != null ? jvmId + ":" + jvmIndexVersion : jvmId;
+      String cacheKey = jvmIndexVersion != null ? jvmVersion + ":" + jvmIndexVersion : jvmVersion;
       javaHome = cachedComputedValue0(
           outMode,
           "java-home",
           cacheKey,
           () -> new String[] {
-            CoursierClient.resolveJavaHome(jvmIdFinal, jvmIndexVersionFinal).getAbsolutePath()
+            CoursierClient.resolveJavaHome(jvmVersionFinal, jvmIndexVersionFinal)
+                .getAbsolutePath()
           },
           // Make sure we check to see if the saved java home exists before using
           // it, since it may have been since uninstalled, or the `out/` folder
@@ -222,7 +231,7 @@ public class MillProcessLauncher {
           arr -> Files.exists(Paths.get(arr[0])))[0];
     }
 
-    if (jvmId == "system") {
+    if (jvmVersion == "system") {
       if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
       if (javaHome == null || javaHome.isEmpty()) javaHome = System.getenv("JAVA_HOME");
     }
@@ -260,6 +269,8 @@ public class MillProcessLauncher {
 
     // Set UTF-8 encoding to fix Unicode character display issues on Windows
     vmOptions.add("-Dfile.encoding=UTF-8");
+    vmOptions.add("-Dsun.stdout.encoding=UTF-8");
+    vmOptions.add("-Dsun.stderr.encoding=UTF-8");
 
     // extra opts
     vmOptions.addAll(millJvmOpts(outMode));

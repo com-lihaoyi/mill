@@ -78,7 +78,8 @@ case class MillCliConfig(
     @arg(
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
-           level 1 the first meta-build in `mill-build/build.mill`, etc."""
+           level 1 the first meta-build in `mill-build/build.mill`, etc.
+           If negative, -1 means the deepest meta-build (boostrap build), -2 the second deepest meta-build, etc."""
     )
     metaLevel: Option[Int] = None,
 
@@ -128,6 +129,15 @@ case class MillCliConfig(
       """
     )
     noFilesystemChecker: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc = """
+        Use traditional file-based locking instead of PID-based locking for the Mill daemon.
+        This removes the chance of race conditions when claiming the lock after a crash, but
+        may have issues on some filesystems that do not support lock (e.g. docker mounts on mac)
+      """
+    )
+    useFileLocks: Flag = Flag(),
     @arg(
       doc = """Runs Mill in tab-completion mode"""
     )

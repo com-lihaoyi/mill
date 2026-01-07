@@ -2,7 +2,7 @@ package mill.api
 
 import mill.api.TestGraphs
 import Task.Simple
-import utest._
+import utest.*
 
 object DiscoverTests extends TestSuite {
   val tests = Tests {

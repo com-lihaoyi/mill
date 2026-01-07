@@ -1,6 +1,6 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j._
+import ch.epfl.scala.bsp4j.*
 import mill.api.Logger
 import mill.api.ProxyLogger
 
@@ -17,7 +17,7 @@ import mill.api.ProxyLogger
  * @param logger the logger to which the messages received by this
  *               MillBspLogger are being redirected
  */
-private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
+private class BspLogger(client: BuildClient, taskId: Int, logger: Logger)
     extends ProxyLogger(logger)
     with Logger {
 

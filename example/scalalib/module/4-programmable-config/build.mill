@@ -9,7 +9,7 @@ package build
 import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "3.7.4"
 
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
@@ -122,11 +122,9 @@ my.custom.property: my-prop-value
 
 /** Usage
 
-> sed -i.bak 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
+> sed -i.bak 's/Foo2 {/Foo2 { println(Array("hello"): Seq[String])/g' custom-src/Foo2.scala
 
 > ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
-error: object Foo2 { println(this + "hello")
-error:                       ^
-error: ...Implicit injection of + is deprecated. Convert to String to call +...
+error: method copyArrayToImmutableIndexedSeq in class LowPriorityImplicits2 is deprecated since 2.13.0...
 
 */

@@ -1,6 +1,6 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j._
+import ch.epfl.scala.bsp4j.*
 import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.daemon.internal.{CompileProblemReporter, Problem}
 

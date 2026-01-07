@@ -1,6 +1,6 @@
 package mill.javalib.api
 
-import utest._
+import utest.*
 
 object JvmWorkerUtilTests extends TestSuite {
   val tests = Tests {

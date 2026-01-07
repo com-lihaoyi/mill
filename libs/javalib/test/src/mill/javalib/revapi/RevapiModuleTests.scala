@@ -7,7 +7,7 @@ import mill.javalib.publish.{PomSettings, VersionControl}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.{T, Task}
 import utest.*
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 
 object RevapiModuleTests extends TestSuite {
 

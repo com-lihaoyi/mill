@@ -6,7 +6,7 @@ import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MappedRoots, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
-import mill.constants.DaemonFiles
+import mill.constants.{DaemonFiles, OutFolderMode}
 import mill.constants.OutFiles.OutFiles
 import mill.api.BuildCtx
 import mill.internal.{
@@ -161,11 +161,6 @@ object MillMain0 {
               )
               (false, RunnerState.empty)
 
-            // Check non-negative --meta-level option
-            case Result.Success(config) if config.metaLevel.exists(_ < 0) =>
-              streams.err.println("--meta-level cannot be negative")
-              (false, RunnerState.empty)
-
             case Result.Success(config) =>
               val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
               val forceColorViaEnv = env.get("FORCE_COLOR").exists(_.nonEmpty)
@@ -300,6 +295,7 @@ object MillMain0 {
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
                                 offline = config.offline.value,
+                                useFileLocks = config.useFileLocks.value,
                                 reporter = reporter,
                                 enableTicker = enableTicker
                               ).evaluate()
@@ -613,11 +609,16 @@ object MillMain0 {
   def getBspLogger(
       streams: SystemStreams,
       config: MillCliConfig
-  ): Logger =
+  ): Logger = {
+    val outFolder = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
+    val chromeProfileLogger = new JsonArrayLogger.ChromeProfile(
+      outFolder / OutFiles.millChromeProfile
+    )
     new PrefixLogger(
-      new BspLogger(streams, Seq("bsp"), debugEnabled = config.debugLog.value),
+      new BspLogger(streams, Seq("bsp"), debugEnabled = config.debugLog.value, chromeProfileLogger),
       Nil
     )
+  }
 
   /**
    * Determine, whether we need a `build.mill` or not.

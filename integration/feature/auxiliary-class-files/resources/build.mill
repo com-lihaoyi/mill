@@ -1,9 +1,9 @@
 package build
 // Issue https://github.com/com-lihaoyi/mill/issues/3068
-import mill._
-import mill.scalalib._
-import mill.scalajslib._
-import mill.scalanativelib._
+import mill.*
+import mill.scalalib.*
+import mill.scalajslib.*
+import mill.scalanativelib.*
 
 object app extends Module {
   trait Common extends ScalaModule {

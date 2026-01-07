@@ -34,7 +34,7 @@ object `package` extends SpringBootModule, KotlinModule { outer =>
   object native extends KotlinModule, NativeSpringBootBuildModule {
     override def kotlinVersion = outer.kotlinVersion()
     override def kotlincOptions = super.kotlincOptions() ++ outer.kotlincOptions()
-    def jvmId = "graalvm-community:25.0.1"
+    def jvmVersion = "graalvm-community:25.0.1"
   }
 
   object test extends SpringBootTestsModule, KotlinTests, TestModule.Junit5 {

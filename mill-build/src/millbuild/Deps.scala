@@ -83,11 +83,11 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.20"
   val ammoniteVersion = "3.0.4"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.9"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.9.1"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
-  val coursierVersion = "2.1.25-M22"
+  val coursierVersion = "2.1.25-M23"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -187,12 +187,12 @@ object Deps {
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
-  val upickle = mvn"com.lihaoyi::upickle:4.4.2-RC2"
-  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.4.2-RC2"
+  val upickle = mvn"com.lihaoyi::upickle:4.4.2"
+  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
-  val zinc = mvn"org.scala-sbt::zinc:2.0.0-M10"
+  val zinc = mvn"org.scala-sbt::zinc:2.0.0-M11"
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
   // https://github.com/google/gson/releases/tag/gson-parent-2.13.2

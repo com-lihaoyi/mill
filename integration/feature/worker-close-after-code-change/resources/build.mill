@@ -1,6 +1,6 @@
 package build
 
-import mill._
+import mill.*
 class Foo extends AutoCloseable {
   def x = 123
   class Late

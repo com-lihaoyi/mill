@@ -2,12 +2,12 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object YamlHeaderPackageTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
-      import tester._
+      import tester.*
       val res = eval("version")
 
       assert(res.isSuccess == false)

@@ -1,12 +1,12 @@
 package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
-import utest._
+import utest.*
 
 object ThreadLocalsTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("cache") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       eval("demo.demoCrash")
       val res = eval("demo.demoCrash", env = Map("WORKER_ENV" -> "1"))

@@ -53,6 +53,22 @@ object ResolveTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  // Test module with @Task.rename annotation
+  object renameModule extends TestRootModule {
+    def normalTask = Task { "normal" }
+
+    // This task is named `renamedTaskImpl` in code but exposed as `renamedTask` on CLI
+    @Task.rename("renamedTask")
+    def renamedTaskImpl = Task { "renamed" }
+
+    object nested extends Module {
+      @Task.rename("shortName")
+      def veryLongTaskName = Task { "nested-renamed" }
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
   def isShortError(x: Result[?], s: String) =
     x.errorOpt.exists(_.contains(s)) &&
       // Make sure the stack traces are truncated and short-ish, and do not
@@ -376,6 +392,51 @@ object ResolveTests extends TestSuite {
           )
         )
       }
+    }
+
+    test("rename") {
+      val check = new Checker(renameModule)
+
+      test("normalTaskStillWorks") - check(
+        "normalTask",
+        Result.Success(Set(_.normalTask)),
+        Set("normalTask")
+      )
+
+      test("renamedTaskResolvesViaNewName") - check(
+        "renamedTask",
+        Result.Success(Set(_.renamedTaskImpl)),
+        Set("renamedTask")
+      )
+
+      test("originalNameNotResolvable") - check.checkSeq0(
+        Seq("renamedTaskImpl"),
+        result => result.isInstanceOf[Result.Failure]
+      )
+
+      test("nestedRenameWorks") - check(
+        "nested.shortName",
+        Result.Success(Set(_.nested.veryLongTaskName)),
+        Set("nested.shortName")
+      )
+
+      test("nestedOriginalNameNotResolvable") - check.checkSeq0(
+        Seq("nested.veryLongTaskName"),
+        result => result.isInstanceOf[Result.Failure]
+      )
+
+      test("wildcardIncludesRenamedTasks") - check.checkSeq0(
+        Seq("_"),
+        result => {
+          result.isInstanceOf[Result.Success[?]] &&
+          result.toOption.get.size == 2 // normalTask and renamedTaskImpl (renamed as renamedTask)
+        },
+        metadata => {
+          metadata.isInstanceOf[Result.Success[?]] &&
+          metadata.toOption.get.toSet.contains("renamedTask") &&
+          metadata.toOption.get.toSet.contains("normalTask")
+        }
+      )
     }
 
   }

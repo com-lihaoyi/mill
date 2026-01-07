@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
 import mill.api.daemon.internal.JavaModuleApi
 import mill.bsp.worker.Utils.sanitizeUri
 
-private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
+private trait EndpointsJava extends JavaBuildServer with EndpointsApi {
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
       : CompletableFuture[JavacOptionsResult] =
@@ -29,17 +29,16 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       },
       requestDescription = "Getting javac options of {}",
       originId = ""
-    ) {
-      case (ev, _, id, _, f) =>
-        val res = f(ev)
-        new JavacOptionsItem(
-          id,
-          res.javacOptions.asJava,
-          res.classpath.asJava,
-          sanitizeUri(res.classesPath)
-        )
+    ) { ctx =>
+      val res = ctx.value(ctx.evaluator)
+      new JavacOptionsItem(
+        ctx.id,
+        res.javacOptions.asJava,
+        res.classpath.asJava,
+        sanitizeUri(res.classesPath)
+      )
 
-    } {
-      new JavacOptionsResult(_)
+    } { (values, _) =>
+      new JavacOptionsResult(values)
     }
 }
