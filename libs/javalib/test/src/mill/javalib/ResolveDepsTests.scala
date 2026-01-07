@@ -122,6 +122,12 @@ object ResolveDepsTests extends TestSuite {
       }
     }
 
+    object sources extends JavaModule {
+      def mvnDeps = Seq(
+        mvn"com.lihaoyi:geny_2.13:1.0.0"
+      )
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -304,6 +310,22 @@ object ResolveDepsTests extends TestSuite {
         val dependsOnForcedAndNonForcedClassPathFileNames =
           resolvedClassPathFileNames(TestCase.forceVersion.dependsOnForcedAndNonForced)
         assert(dependsOnForcedAndNonForcedClassPathFileNames == expectedClassPathFileNames("4.6.1"))
+      }
+    }
+
+    test("resolvedMvnDepsSources") {
+      UnitTester(TestCase, null).scoped { eval =>
+        val Right(result) = eval(TestCase.sources.resolvedMvnDepsSources): @unchecked
+        val sourcesDir = result.value.path
+
+        // Check that the sources directory exists and contains unpacked source files
+        assert(os.exists(sourcesDir))
+        assert(os.isDir(sourcesDir))
+
+        // Check that geny source files are unpacked (geny has a Geny.scala file)
+        val scalaFiles = os.walk(sourcesDir).filter(_.ext == "scala")
+        assert(scalaFiles.nonEmpty)
+        assert(scalaFiles.exists(_.last == "Geny.scala"))
       }
     }
   }
