@@ -1,4 +1,4 @@
-import org.scalatest.*
+import org.scalatest._
 
 class MainSpec extends FlatSpec with Matchers {
 
