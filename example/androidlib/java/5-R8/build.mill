@@ -49,8 +49,6 @@ object app extends AndroidR8AppModule { // <2>
     "proguard-rules.pro"
   )
 
-  override def androidEmulatorPort: String = "5556"
-
   // Unit tests for the application
   object test extends AndroidAppTests, TestModule.Junit4 {
     def mvnDeps = Seq(mvn"junit:junit:4.13.2")
