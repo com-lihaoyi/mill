@@ -1,6 +1,5 @@
 # Uncommment this to replace the rest of the file when you want to debug stuff in CI
 
-
 #name: Run Debug
 #
 #on:
