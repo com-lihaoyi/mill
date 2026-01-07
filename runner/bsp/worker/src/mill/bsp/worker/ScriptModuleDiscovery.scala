@@ -58,7 +58,8 @@ private[worker] object ScriptModuleDiscovery {
           val parentPath = relativePath.split('/').dropRight(1).mkString("/")
           if (parentPath.isEmpty) None // root level, not ignored by default
           // if this is inside a module's sources, ignore it
-          else insideModuleSources.orElse(isPathIgnored(parentPath, true)) // recursively check parent
+          else
+            insideModuleSources.orElse(isPathIgnored(parentPath, true)) // recursively check parent
 
         case _ => insideModuleSources
       }
