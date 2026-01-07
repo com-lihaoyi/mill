@@ -1,7 +1,7 @@
 package mill.javalib
 
 import mill.*
-import mill.api.{Discover, PathRef}
+import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
