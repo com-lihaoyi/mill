@@ -46,7 +46,7 @@ Test foo.FooTest.testSimple finished...
 openjdk version "11..." ...
 
 > ./mill show foo.assembly
-".../out/foo/assembly.dest/out.jar"
+"...$MILL_OUT/foo/assembly.dest/out.jar"
 
 > ./mill foo.java -jar out/foo/assembly.dest/out.jar
 Foo running on Java 11.0.21
