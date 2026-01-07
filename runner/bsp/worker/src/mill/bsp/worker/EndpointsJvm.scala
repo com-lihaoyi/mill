@@ -51,49 +51,36 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       },
       requestDescription = "Getting JVM test environment of {}",
       originId = originId
-    ) {
-      case (
+    ) { ctx =>
+      val (classpath, forkArgs, forkWorkingDir, forkEnv, _, testEnvVarsOpt) = ctx.value
+      testEnvVarsOpt match {
+        case Some(testEnvVars) =>
+          val fullMainArgs: List[String] =
+            List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
+          val item = new JvmEnvironmentItem(
+            ctx.id,
+            testEnvVars.classpath.map(sanitizeUri).asJava,
+            forkArgs.asJava,
+            forkWorkingDir.toString(),
+            forkEnv.asJava
+          )
+          item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
             _,
-            _,
-            id,
-            _,
-            (
-              classpath,
-              forkArgs,
-              forkWorkingDir,
-              forkEnv,
-              _,
-              testEnvVarsOpt
-            )
-          ) =>
-        testEnvVarsOpt match {
-          case Some(testEnvVars) =>
-            val fullMainArgs: List[String] =
-              List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
-            val item = new JvmEnvironmentItem(
-              id,
-              testEnvVars.classpath.map(sanitizeUri).asJava,
-              forkArgs.asJava,
-              forkWorkingDir.toString(),
-              forkEnv.asJava
-            )
-            item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
-              _,
-              fullMainArgs.asJava
-            )).asJava)
-            item
-          case None =>
-            // Fallback when test environment vars are not available
-            new JvmEnvironmentItem(
-              id,
-              classpath.map(sanitizeUri).asJava,
-              forkArgs.asJava,
-              forkWorkingDir.toString(),
-              forkEnv.asJava
-            )
-        }
-    } {
-      agg
+            fullMainArgs.asJava
+          )).asJava)
+          item
+        case None =>
+          // Fallback when test environment vars are not available
+          new JvmEnvironmentItem(
+            ctx.id,
+            classpath.map(sanitizeUri).asJava,
+            forkArgs.asJava,
+            forkWorkingDir.toString(),
+            forkEnv.asJava
+          )
+      }
+    } { (values, _) =>
+      agg(values)
     }
   }
 
@@ -107,28 +94,21 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunEnvironment },
       requestDescription = "Getting JVM run environment of {}",
       originId = originId
-    ) {
-      case (
-            _,
-            _,
-            id,
-            _,
-            res
-          ) =>
-        val classpath = res.runClasspath.map(sanitizeUri)
-        val item = new JvmEnvironmentItem(
-          id,
-          classpath.asJava,
-          res.forkArgs.asJava,
-          res.forkWorkingDir.toString(),
-          res.forkEnv.asJava
-        )
+    ) { ctx =>
+      val classpath = ctx.value.runClasspath.map(sanitizeUri)
+      val item = new JvmEnvironmentItem(
+        ctx.id,
+        classpath.asJava,
+        ctx.value.forkArgs.asJava,
+        ctx.value.forkWorkingDir.toString(),
+        ctx.value.forkEnv.asJava
+      )
 
-        val classes = res.mainClass.toList ++ res.localMainClasses
-        item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
-        item
-    } {
-      agg
+      val classes = ctx.value.mainClass.toList ++ ctx.value.localMainClasses
+      item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
+      item
+    } { (values, _) =>
+      agg(values)
     }
   }
 
@@ -142,10 +122,9 @@ private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
       },
       requestDescription = "Getting JVM compile class path of {}",
       originId = ""
-    ) {
-      case (ev, _, id, _, compileClasspath) =>
-        new JvmCompileClasspathItem(id, compileClasspath(ev).asJava)
-    } {
-      new JvmCompileClasspathResult(_)
+    ) { ctx =>
+      new JvmCompileClasspathItem(ctx.id, ctx.value(ctx.evaluator).asJava)
+    } { (values, _) =>
+      new JvmCompileClasspathResult(values)
     }
 }

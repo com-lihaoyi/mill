@@ -138,19 +138,7 @@ private abstract class MillBuildServer(
       tasks: PartialFunction[BspModuleApi, TaskApi[W]],
       requestDescription: String,
       originId: String
-  )(block: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(
-      agg: java.util.List[T] => V
-  )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V] =
-    handlerTasksEvaluators[T, V, W](targetIds, tasks, requestDescription, originId)(block)((l, _) =>
-      agg(l)
-    )
-
-  protected def handlerTasksEvaluators[T, V, W](
-      targetIds: BspEvaluators => collection.Seq[BuildTargetIdentifier],
-      tasks: PartialFunction[BspModuleApi, TaskApi[W]],
-      requestDescription: String,
-      originId: String
-  )(block: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(
+  )(block: TaskContext[W] => T)(
       agg: (java.util.List[T], BspEvaluators) => V
   )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V] = {
     val prefix = name.value
@@ -192,7 +180,7 @@ private abstract class MillBuildServer(
         }
 
         resultsById.flatMap { case (id, m, values) =>
-          try Seq(block(ev, state, id, m, values))
+          try Seq(block(new TaskContext(id, m, values, ev, state)))
           catch {
             case NonFatal(e) =>
               logError(id, e.toString)

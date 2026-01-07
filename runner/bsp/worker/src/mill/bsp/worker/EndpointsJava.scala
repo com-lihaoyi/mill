@@ -29,17 +29,16 @@ private trait EndpointsJava extends JavaBuildServer with EndpointsApi {
       },
       requestDescription = "Getting javac options of {}",
       originId = ""
-    ) {
-      case (ev, _, id, _, f) =>
-        val res = f(ev)
-        new JavacOptionsItem(
-          id,
-          res.javacOptions.asJava,
-          res.classpath.asJava,
-          sanitizeUri(res.classesPath)
-        )
+    ) { ctx =>
+      val res = ctx.value(ctx.evaluator)
+      new JavacOptionsItem(
+        ctx.id,
+        res.javacOptions.asJava,
+        res.classpath.asJava,
+        sanitizeUri(res.classesPath)
+      )
 
-    } {
-      new JavacOptionsResult(_)
+    } { (values, _) =>
+      new JavacOptionsResult(values)
     }
 }

@@ -13,6 +13,18 @@ import mill.api.daemon.internal.bsp.{BspModuleApi, BspServerResult}
 
 import java.util.concurrent.CompletableFuture
 
+/**
+ * Context passed to handler blocks for each target being processed.
+ * Callers can access only the fields they need.
+ */
+class TaskContext[W](
+    val id: BuildTargetIdentifier,
+    val module: BspModuleApi,
+    val value: W,
+    val evaluator: EvaluatorApi,
+    val state: BspEvaluators
+)
+
 trait EndpointsApi {
 
   protected def topLevelProjectRoot: os.Path
@@ -46,16 +58,7 @@ trait EndpointsApi {
       tasks: PartialFunction[BspModuleApi, TaskApi[W]],
       requestDescription: String,
       originId: String
-  )(block: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(
-      agg: java.util.List[T] => V
-  )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V]
-
-  protected def handlerTasksEvaluators[T, V, W](
-      targetIds: BspEvaluators => collection.Seq[BuildTargetIdentifier],
-      tasks: PartialFunction[BspModuleApi, TaskApi[W]],
-      requestDescription: String,
-      originId: String
-  )(block: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(
+  )(block: TaskContext[W] => T)(
       agg: (java.util.List[T], BspEvaluators) => V
   )(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V]
 
