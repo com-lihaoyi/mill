@@ -1,0 +1,77 @@
+// Shading (also known as "relocation") allows you to include third-party dependencies
+// directly in your JAR with renamed packages. This is useful when:
+//
+// * You want to avoid version conflicts with other libraries using different versions
+//   of the same dependency
+// * You're building a library and don't want to expose your internal dependencies
+//   to downstream users
+// * You need to bundle dependencies for deployment without classpath conflicts
+//
+// Mill provides `ScalaShadingModule` and `ScalaShadingPublishModule` traits for Scala modules.
+
+//// SNIPPET:BUILD
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule with ScalaShadingModule {
+  def scalaVersion = "2.13.14"
+
+  // Regular dependencies - not shaded, listed in POM when publishing
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::os-lib:0.10.0"
+  )
+
+  // Dependencies to shade - these will be relocated and bundled into your JAR
+  def shadedMvnDeps = Seq(
+    mvn"com.lihaoyi::fansi:0.4.0"
+  )
+
+  // Relocation rules: (original package pattern -> relocated package pattern)
+  // The @1 is a backreference to the part matched by **
+  def shadeRelocations = Seq(
+    ("fansi.**", "shaded.fansi.@1")
+  )
+}
+//// SNIPPET:END
+
+// When you build or run this module:
+//
+// * The `fansi` library classes are relocated from `fansi.*` to `shaded.fansi.*`
+// * The shaded classes are included in `localClasspath` and therefore in `jar` and `assembly`
+// * The `runClasspath` uses the shaded JAR instead of the original fansi JAR
+// * The `os-lib` dependency remains unchanged (not shaded)
+
+/** Usage
+
+> ./mill foo.jar
+
+> ./mill show foo.shadedJar
+".../out/foo/shadedJar.dest/shaded.jar"
+
+> unzip -l out/foo/shadedJar.dest/shaded.jar | grep -E "shaded/fansi" | head -3
+...shaded/fansi/Str.class...
+
+*/
+
+// The shaded classes are automatically included in the module's JAR via `localClasspath`:
+
+/** Usage
+
+> unzip -l out/foo/jar.dest/out.jar | grep -E "shaded/fansi" | head -3
+...shaded/fansi/Str.class...
+
+*/
+
+// For publishing, use `ScalaShadingPublishModule` which also removes shaded dependencies
+// from the published POM/ivy.xml, so downstream users won't pull in the original
+// (unshaded) dependency:
+//
+// ```scala
+// object myLib extends ScalaModule with ScalaShadingPublishModule {
+//   def scalaVersion = "2.13.14"
+//   def shadedMvnDeps = Seq(mvn"com.lihaoyi::fansi:0.4.0")
+//   def shadeRelocations = Seq(("fansi.**", "mylib.shaded.fansi.@1"))
+//   def publishVersion = "1.0.0"
+//   def pomSettings = PomSettings(...)
+// }
+// ```

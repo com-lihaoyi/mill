@@ -1,0 +1,75 @@
+// Shading (also known as "relocation") allows you to include third-party dependencies
+// directly in your JAR with renamed packages. This is useful when:
+//
+// * You want to avoid version conflicts with other libraries using different versions
+//   of the same dependency
+// * You're building a library and don't want to expose your internal dependencies
+//   to downstream users
+// * You need to bundle dependencies for deployment without classpath conflicts
+//
+// Mill provides `ShadingModule` and `ShadingPublishModule` traits for this purpose.
+
+//// SNIPPET:BUILD
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule with ShadingModule {
+  // Regular dependencies - not shaded, listed in POM when publishing
+  def mvnDeps = Seq(
+    mvn"org.slf4j:slf4j-api:2.0.9"
+  )
+
+  // Dependencies to shade - these will be relocated and bundled into your JAR
+  def shadedMvnDeps = Seq(
+    mvn"com.google.code.gson:gson:2.10.1"
+  )
+
+  // Relocation rules: (original package pattern -> relocated package pattern)
+  // The @1 is a backreference to the part matched by **
+  def shadeRelocations = Seq(
+    ("com.google.gson.**", "shaded.gson.@1")
+  )
+}
+//// SNIPPET:END
+
+// When you build or run this module:
+//
+// * The `gson` library classes are relocated from `com.google.gson.*` to `shaded.gson.*`
+// * The shaded classes are included in `localClasspath` and therefore in `jar` and `assembly`
+// * The `runClasspath` uses the shaded JAR instead of the original gson JAR
+// * The `slf4j-api` dependency remains unchanged (not shaded)
+
+/** Usage
+
+> ./mill foo.jar
+
+> ./mill show foo.shadedJar
+".../out/foo/shadedJar.dest/shaded.jar"
+
+> unzip -l out/foo/shadedJar.dest/shaded.jar | grep -E "gson|Gson" | head -5
+...shaded/gson/Gson.class...
+...shaded/gson/GsonBuilder.class...
+
+*/
+
+// The shaded classes are automatically included in the module's JAR via `localClasspath`:
+
+/** Usage
+
+> unzip -l out/foo/jar.dest/out.jar | grep -E "shaded/gson" | head -3
+...shaded/gson/Gson.class...
+
+*/
+
+// For publishing, use `ShadingPublishModule` which also removes shaded dependencies
+// from the published POM/ivy.xml, so downstream users won't pull in the original
+// (unshaded) dependency:
+//
+// ```scala
+// object myLib extends JavaModule with ShadingPublishModule {
+//   def shadedMvnDeps = Seq(mvn"com.google.code.gson:gson:2.10.1")
+//   def shadeRelocations = Seq(("com.google.gson.**", "mylib.internal.gson.@1"))
+//   def publishVersion = "1.0.0"
+//   def pomSettings = PomSettings(...)
+// }
+// ```

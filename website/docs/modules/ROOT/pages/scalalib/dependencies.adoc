@@ -31,8 +31,9 @@ Mill has support for dependency management, see the
 xref:fundamentals/library-deps.adoc#_dependency_management[Dependency Management section]
 in xref:fundamentals/library-deps.adoc[].
 
+== Shading Dependencies
 
-
+include::partial$example/scalalib/dependencies/6-shading.adoc[]
 
 == Scala Dependencies In Detail
 
