@@ -15,6 +15,8 @@ import mill.integration.BspServerTestUtil.*
 import mill.javalib.testrunner.TestRunnerUtils
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
+// make generated golden lierals happy
+import scala.collection.immutable.Seq as ArraySeq
 
 object BspServerTests extends UtestIntegrationTestSuite {
   protected def snapshotsPath: os.Path =
@@ -337,29 +339,31 @@ object BspServerTests extends UtestIntegrationTestSuite {
           assertGoldenLiteral(
             semDbs.map { case (k, vs) => (k.toString, vs.map(_.toString)) },
             Map(
-              "scripts/folder2/FooTest.java" -> Seq("scripts/folder2/FooTest.java.semanticdb"),
-              "mill-build" -> Seq("build.mill.semanticdb"),
-              "hello-kotlin" -> Seq(),
-              "hello-java" -> Seq(),
-              "hello-java/test" -> Seq("hello-java/test/src/HelloJavaTest.java.semanticdb"),
-              "app" -> Seq("app/src/App.java.semanticdb"),
-              "hello-scala/test" -> Seq("hello-scala/test/src/HelloTest.scala.semanticdb"),
-              "scripts/folder1/script.scala" -> Seq(),
+              "scripts/folder2/FooTest.java" -> ArraySeq("scripts/folder2/FooTest.java.semanticdb"),
+              "mill-build" -> ArraySeq("build.mill.semanticdb"),
+              "hello-kotlin" -> ArraySeq(),
+              "hello-java" -> ArraySeq(),
+              "hello-java/test" -> ArraySeq("hello-java/test/src/HelloJavaTest.java.semanticdb"),
+              "app" -> ArraySeq("app/src/App.java.semanticdb"),
+              "hello-scala/test" -> ArraySeq("hello-scala/test/src/HelloTest.scala.semanticdb"),
+              "scripts/folder1/script.scala" -> ArraySeq(),
               "errored/exception" -> List(),
-              "scripts/ignored-folder-2/negated-not-ignored.java" -> Seq(),
-              "app/test" -> Seq(),
-              "hello-scala" -> Seq("hello-scala/src/Hello.scala.semanticdb"),
-              "scripts/folder2/Foo.java" -> Seq("scripts/folder2/Foo.java.semanticdb"),
+              "scripts/ignored-folder-2/negated-not-ignored.java" -> ArraySeq(),
+              "app/test" -> ArraySeq(),
+              "hello-scala" -> ArraySeq("hello-scala/src/Hello.scala.semanticdb"),
+              "scripts/folder2/Foo.java" -> ArraySeq("scripts/folder2/Foo.java.semanticdb"),
               "diag/many" -> List(),
-              "diag" -> Seq("diag/src/DiagCheck.scala.semanticdb"),
+              "diag" -> ArraySeq("diag/src/DiagCheck.scala.semanticdb"),
               "delayed" -> List(),
-              "lib" -> Seq(),
-              "scripts/foldershared/Foo.java" -> Seq("scripts/foldershared/Foo.java.semanticdb"),
+              "lib" -> ArraySeq(),
+              "scripts/foldershared/Foo.java" -> ArraySeq(
+                "scripts/foldershared/Foo.java.semanticdb"
+              ),
               "errored/compilation-error" -> List(),
-              "scripts/foldershared/script.scala" -> Seq(),
-              "sourcesNeedCompile" -> Seq(),
-              "scripts" -> Seq(),
-              "mill-build/mill-build" -> Seq("mill-build/build.mill.semanticdb")
+              "scripts/foldershared/script.scala" -> ArraySeq(),
+              "sourcesNeedCompile" -> ArraySeq(),
+              "scripts" -> ArraySeq(),
+              "mill-build/mill-build" -> ArraySeq("mill-build/build.mill.semanticdb")
             )
           )
         }

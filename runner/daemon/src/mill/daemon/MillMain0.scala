@@ -160,11 +160,6 @@ object MillMain0 {
               )
               (false, RunnerState.empty)
 
-            // Check non-negative --meta-level option
-            case Result.Success(config) if config.metaLevel.exists(_ < 0) =>
-              streams.err.println("--meta-level cannot be negative")
-              (false, RunnerState.empty)
-
             case Result.Success(config) =>
               val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
               val forceColorViaEnv = env.get("FORCE_COLOR").exists(_.nonEmpty)

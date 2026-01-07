@@ -78,7 +78,8 @@ case class MillCliConfig(
     @arg(
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
-           level 1 the first meta-build in `mill-build/build.mill`, etc."""
+           level 1 the first meta-build in `mill-build/build.mill`, etc.
+           If negative, -1 means the deepest meta-build (boostrap build), -2 the second deepest meta-build, etc."""
     )
     metaLevel: Option[Int] = None,
 
