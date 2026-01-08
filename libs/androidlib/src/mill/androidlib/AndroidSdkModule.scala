@@ -373,7 +373,7 @@ trait AndroidSdkModule extends Module {
    * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
   private def cmdlineTools: Task[CmdlineToolsComponents] = Task {
-    AndroidCmdlineToolsLock.synchronized {
+    androidSdkWorker().process { () =>
       val cmdlineToolsVersionShort = cmdlineToolsVersion()
       val basePath = sdkPath() / "cmdline-tools" / cmdlineToolsVersionShort
       val sdkmanagerPath = sdkManagerExePath(basePath)
@@ -423,7 +423,7 @@ trait AndroidSdkModule extends Module {
   }
 
   def androidSdkWorker: Task.Worker[AndroidSdkWorker] = Task.Worker {
-    new AndroidSdkWorker(androidMillHomeDir().path / ".sdkmanager.lock", 10)
+    new AndroidSdkWorker(androidMillHomeDir().path / ".sdkmanager.lock", 30)
   }
 
   /**
@@ -597,10 +597,6 @@ trait AndroidSdkModule extends Module {
     String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
 
 }
-
-private object AndroidSdkLock
-private object AndroidNdkLock
-private object AndroidCmdlineToolsLock
 
 object AndroidSdkModule {
 
