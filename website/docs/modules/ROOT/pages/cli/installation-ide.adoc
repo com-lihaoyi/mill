@@ -387,11 +387,15 @@ IDE fails to import your Mill project
 
 == Setting up Mill in CI
 
+=== CI Bootstrap Scripts
+
 Due to Mill's usage of xref:#_bootstrap_scripts[Bootstrap Scripts], you typically do not
 need to setup anything in your CI system to make Mill work. Any Mill project should be
 buildable via `./mill` on your CI machines without needing to first install Java, Mill,
 or other dependencies, and the `./mill` bootstrap script will download these dependencies
 as necessary.
+
+=== FORCE_COLOR
 
 One thing that you should set up manually is to enable a https://force-color.org/[FORCE_COLOR]
 environment variable in your CI system. For example, in Github Actions this can be configured
@@ -414,6 +418,38 @@ image::basic/ForceColor0.png[]
 **With FORCE_COLOR=1**
 
 image::basic/ForceColor1.png[]
+
+=== Re-using the `out/` Folder
+
+Mill caches its outputs locally in the xref:fundamentals/out-dir.adoc[out/ folder]. You
+can preserve this `out/` folder between CI workers, e.g. to allow a subsequent CI worker
+to use a previous worker's cached results, or to perform initial compilation on one worker
+then share the compiled output with downstream workers.
+
+For example, for Github Actions you may configure `out/` folder uploading via
+
+```yaml
+  - uses: actions/upload-artifact@v4
+    with:
+      name: build-out
+      path: out/
+```
+
+And downloading via
+
+```yaml
+  - uses: actions/download-artifact@v4
+    with:
+      name: build-out
+      path: out/
+```
+
+
+=== Github Actions Test Reports
+
+If you use Github Actions for CI, you can use https://github.com/mikepenz/action-junit-report in
+your pipeline to render the generated `test-report.xml` files nicely on Github. See
+https://github.com/com-lihaoyi/mill/pull/4218/files for an example integration
 
 == Using Mill without access to Maven Central
 
