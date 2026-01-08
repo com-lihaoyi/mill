@@ -243,11 +243,20 @@ trait AndroidModule extends JavaModule { outer =>
 
   /**
    * Gets all the android resources (typically in res/ directory)
-   * from the library dependencies using [[androidUnpackArchives]]
+   * from the library dependencies using [[androidUnpackRunArchives]]
    * @return
    */
   def androidLibraryResources: T[Seq[PathRef]] = Task {
     androidUnpackRunArchives().flatMap(_.androidResources.toSeq)
+  }
+
+  /**
+   * Gets all the android assets (typically in assets/ directory)
+   * from the library dependencies using [[androidUnpackRunArchives]]
+   * @return
+   */
+  def androidLibraryAssets: T[Seq[PathRef]] = Task {
+    androidUnpackRunArchives().flatMap(_.assets.toSeq)
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
@@ -435,6 +444,7 @@ trait AndroidModule extends JavaModule { outer =>
       val classesJar = pathOption(extractDir / "classes.jar")
       val proguardRules = pathOption(extractDir / "proguard.txt")
       val androidResources = pathOption(extractDir / "res")
+      val assets = pathOption(extractDir / "assets")
       val manifest = pathOption(extractDir / "AndroidManifest.xml")
       val lintJar = pathOption(extractDir / "lint.jar")
       val metaInf = pathOption(extractDir / "META-INF")
@@ -450,6 +460,7 @@ trait AndroidModule extends JavaModule { outer =>
         repackaged,
         proguardRules,
         androidResources,
+        assets,
         manifest,
         lintJar,
         metaInf,
@@ -771,7 +782,7 @@ trait AndroidModule extends JavaModule { outer =>
       resApkFile.toString,
       "-R",
       "@" + argFile.toString
-    )
+    ) ++ androidLibraryAssets().map(a => Seq("-A", a.path.toString())).flatten
 
     Task.log.info((aapt2Link ++ linkArgs).mkString(" "))
 
