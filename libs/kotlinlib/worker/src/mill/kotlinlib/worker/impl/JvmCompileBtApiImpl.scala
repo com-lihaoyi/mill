@@ -97,7 +97,13 @@ class JvmCompileBtApiImpl() extends Compiler {
       runningJobs.synchronized {
         runningJobs.remove(job)
       }
-      cleanup()
+      try {
+        cleanup()
+      } catch {
+        case NonFatal(e) =>
+        // need to catch any exceptions, since we are in a finally block
+        ctx.log.error(s"Caught an exception while cleaning up compiler resources: $e")
+      }
     }
   }
 
