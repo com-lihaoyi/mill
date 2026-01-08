@@ -213,7 +213,6 @@ object SelectiveExecutionImpl {
       val allBuildOverrides =
         evaluator.staticBuildOverrides ++
           transitiveNamed.flatMap(_.ctx.enclosingModule.moduleDynamicBuildOverrides)
-            .map { case (k, v) => k -> mill.api.internal.AppendLocated(v, append = false) }
 
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>

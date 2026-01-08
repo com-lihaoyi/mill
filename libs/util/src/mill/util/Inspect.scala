@@ -95,8 +95,7 @@ private[mill] object Inspect {
 
     def buildOverrideFor(task: Task.Named[?]) = evaluator.staticBuildOverrides
       .get(task.ctx.segments.render)
-      .orElse(task.ctx.enclosingModule.moduleDynamicBuildOverrides.get(task.ctx.segments.render)
-        .map(loc => mill.api.internal.AppendLocated(loc, append = false)))
+      .orElse(task.ctx.enclosingModule.moduleDynamicBuildOverrides.get(task.ctx.segments.render))
 
     def overrideFileName(task: Task.Named[?]): Option[String] = {
       buildOverrideFor(task).flatMap { appendLocated =>

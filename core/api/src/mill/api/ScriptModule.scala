@@ -24,20 +24,8 @@ trait ScriptModule extends ExternalModule {
     .headerData
     .rest
     .map { case (k, v) =>
-      import upickle.core.BufferedValue
       val newKey = (moduleSegments ++ mill.api.Segment.Label(k.value)).render
-      // Extract append flag from marker object if present
-      val (actualValue, append) = v match {
-        case obj: BufferedValue.Obj =>
-          val kvMap = obj.value0.collect { case (BufferedValue.Str(k, _), v) =>
-            k.toString -> v
-          }.toMap
-          (kvMap.get("__mill_append__"), kvMap.get("__mill_values__")) match {
-            case (Some(BufferedValue.True(_)), Some(values)) => (values, true)
-            case _ => (v, false)
-          }
-        case _ => (v, false)
-      }
+      val (actualValue, append) = internal.AppendLocated.unwrapAppendMarker(v)
       (newKey, internal.AppendLocated(internal.Located(scriptConfig.scriptFile, k.index, actualValue), append))
     }
 }

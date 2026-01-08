@@ -385,66 +385,61 @@ trait GroupExecution {
         // 3. Task only (no override): evaluate task with caching
         buildOverrideOpt match {
           case Some(appendLocated) if appendLocated.append =>
-            // Both: evaluate task with caching, then merge with YAML override
             val taskResults = evaluateTaskWithCaching()
 
-            // Get the task's evaluated value
-            val taskValue = taskResults.newResults.get(labelled).flatMap {
-              case ExecResult.Success((v, _)) => Some(v.value.asInstanceOf[Seq[Any]])
-              case _ => None
+            // Check if task evaluation failed - if so, propagate the failure
+            taskResults.newResults.get(labelled) match {
+              case Some(ExecResult.Success((v, _))) =>
+                val taskValue = v.value.asInstanceOf[Seq[Any]]
+                // Evaluate the YAML override and merge
+                evaluateBuildOverride(appendLocated, labelled) match {
+                  case Right(yamlValue) =>
+                    val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
+                      (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
+                    }
+
+                    GroupExecution.Results(
+                      newResults = Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
+                      newEvaluated = taskResults.newEvaluated,
+                      cached = taskResults.cached,
+                      inputsHash = inputsHash,
+                      previousInputsHash = taskResults.previousInputsHash,
+                      valueHashChanged = taskResults.valueHashChanged,
+                      serializedPaths = serializedPaths
+                    )
+                  case Left(e) =>
+                    val errorIndex = e.getCause match {
+                      case abort: upickle.core.AbortException => abort.index
+                      case _ => appendLocated.value.index
+                    }
+                    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                    GroupExecution.Results(
+                      newResults = Map(labelled -> ExecResult.Failure(
+                        msg,
+                        Some(Result.Failure(
+                          msg,
+                          path = appendLocated.path.toNIO,
+                          index = errorIndex
+                        ))
+                      )),
+                      newEvaluated = taskResults.newEvaluated,
+                      cached = taskResults.cached,
+                      inputsHash = inputsHash,
+                      previousInputsHash = taskResults.previousInputsHash,
+                      valueHashChanged = taskResults.valueHashChanged,
+                      serializedPaths = Nil
+                    )
+                }
+
+              // Task evaluation failed - propagate the failure
+              case _ => taskResults
             }
 
-            // Evaluate the YAML override and merge
-            evaluateBuildOverride(appendLocated, labelled) match {
-              case Right(yamlValue) =>
-                val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
-                  taskValue match {
-                    case Some(parent) =>
-                      (parent ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
-                    case None => yamlValue
-                  }
-                }
-                // Don't write cache here - the task evaluation already wrote its cache
-                GroupExecution.Results(
-                  newResults = Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
-                  newEvaluated = taskResults.newEvaluated,
-                  cached = taskResults.cached,
-                  inputsHash = inputsHash,
-                  previousInputsHash = taskResults.previousInputsHash,
-                  valueHashChanged = taskResults.valueHashChanged,
-                  serializedPaths = serializedPaths
-                )
-              case Left(e) =>
-                val errorIndex = e.getCause match {
-                  case abort: upickle.core.AbortException => abort.index
-                  case _ => appendLocated.value.index
-                }
-                val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
-                GroupExecution.Results(
-                  newResults = Map(labelled -> ExecResult.Failure(
-                    msg,
-                    Some(Result.Failure(
-                      msg,
-                      path = appendLocated.path.toNIO,
-                      index = errorIndex
-                    ))
-                  )),
-                  newEvaluated = taskResults.newEvaluated,
-                  cached = taskResults.cached,
-                  inputsHash = inputsHash,
-                  previousInputsHash = taskResults.previousInputsHash,
-                  valueHashChanged = taskResults.valueHashChanged,
-                  serializedPaths = Nil
-                )
-            }
+          // Build override only (no append)
+          case Some(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
 
-          case Some(appendLocated) =>
-            // Build override only (no append)
-            evaluateBuildOverrideOnly(appendLocated)
-
-          case None =>
-            // Task only (no build override)
-            evaluateTaskWithCaching()
+          // Task only (no build override)
+          case None => evaluateTaskWithCaching()
         }
       case _ =>
         val (newResults, newEvaluated) = executeGroup(
