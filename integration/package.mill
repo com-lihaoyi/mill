@@ -60,6 +60,10 @@ object `package` extends mill.Module {
       override def testClasspath: T[Seq[PathRef]] = IntegrationTestModule.this.testClasspath()
       def useSharedOut: Boolean
       override def enableBsp = false
+
+      def compile = Task { mill.javalib.api.CompilationResult(os.temp.dir() / "analysis", mill.api.PathRef(os.temp.dir())) }
+      def upstreamCompileOutput = Task { Seq.empty[mill.javalib.api.CompilationResult] }
+
       def testForked0(args: String*) = Task.Anon {
         sharedOutFolder().withValue(()) { workerInfo =>
           val testModuleUtil = new mill.javalib.TestModuleUtil(

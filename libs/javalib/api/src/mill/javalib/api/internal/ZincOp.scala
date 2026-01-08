@@ -73,4 +73,12 @@ object ZincOp {
   ) extends ZincOp {
     type Response = Seq[String]
   }
+
+  case class IdentifyImpactedTests(
+      upstreamCompileOutput: Seq[CompilationResult],
+      compileOutput: CompilationResult,
+      previousStamps: Map[String, String]
+  ) extends ZincOp {
+    type Response = Result[(Seq[String], Map[String, String])]
+  }
 }

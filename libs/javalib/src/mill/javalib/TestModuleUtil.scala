@@ -58,6 +58,11 @@ final class TestModuleUtil(
     .mkString(",")
 
   def runTests(): Result[(msg: String, results: Seq[TestResult])] = {
+    // Check for special "skip tests" marker from selective testing
+    if (selectors == Seq("mill.ImpactedTests.None")) {
+      return Result.Success(("No tests impacted by changes", Seq.empty[TestResult]))
+    }
+    
     val globFilter = TestRunnerUtils.globFilter(selectors)
 
     def doesNotMatchError = new Result.Exception(

@@ -15,6 +15,7 @@ import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Version
+import mill.javalib.api.CompilationResult
 
 import java.nio.file.Path
 
@@ -32,6 +33,9 @@ trait TestModule
     with TestModuleApi {
 
   override def defaultTask() = "testForked"
+
+  def compile: T[CompilationResult]
+  def upstreamCompileOutput: T[Seq[CompilationResult]]
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.
@@ -66,7 +70,7 @@ trait TestModule
     val discoveredTests = worker.apply(
       ZincOp.DiscoverTests(
         runClasspath().map(_.path),
-        testClasspath().map(_.path),
+        Seq(compile().classes.path),
         testFramework()
       ),
       javaHome().map(_.path)
@@ -121,7 +125,62 @@ trait TestModule
    * @see [[testForked()]]
    */
   def testCached: T[(msg: String, results: Seq[TestResult])] = Task {
-    testTask(testCachedArgs, Task.Anon { Seq.empty[String] })()
+    testTask(testCachedArgs, impactedTestClasses)()
+  }
+
+  /**
+   * Identifies test classes that are impacted by source changes since the last test run.
+   * Uses Zinc's analysis to track file stamps and dependency relationships.
+   * Returns empty Seq to run all tests on first run or if no previous state exists.
+   */
+  def impactedTestClasses: T[Seq[String]] = Task(persistent = true) {
+    // Use Task.dest for persistent storage of stamps
+    val stampsFile = Task.dest / "selective-stamps.json"
+    
+    // Read previous stamps if available
+    val prevStamps = if (os.exists(stampsFile)) {
+      try upickle.default.read[Map[String, String]](os.read(stampsFile))
+      catch { case _: Exception => Map.empty[String, String] }
+    } else {
+      Map.empty[String, String]
+    }
+
+    // Get compilation results
+    val testCompileResult = compile()
+
+    // Call the worker to identify impacted tests
+    val worker = jvmWorker().internalWorker()
+    val op = ZincOp.IdentifyImpactedTests(
+      upstreamCompileOutput(),
+      testCompileResult,
+      prevStamps
+    )
+    val result = worker.apply(op, javaHome().map(_.path))
+
+    result match {
+      case Result.Success((classes, newStamps)) =>
+        // Always save the new stamps
+        os.write.over(stampsFile, upickle.default.write(newStamps), createFolders = true)
+        
+        // Filter impacted classes to only include those that are actually discovered tests
+        val discovered = discoveredTestClasses()
+        val filteredClasses = classes.filter(discovered.contains)
+
+        // On first run (no previous stamps), run all tests
+        if (prevStamps.isEmpty) {
+          Task.log.info("No previous test stamps found, running all tests")
+          Seq.empty[String] // Empty means run all tests
+        } else if (filteredClasses.isEmpty) {
+          Task.log.info("No impacted test classes detected, skipping tests")
+          Seq("mill.ImpactedTests.None") // Special marker to skip tests
+        } else {
+          Task.log.info(s"Running ${filteredClasses.size} impacted test classes: ${filteredClasses.mkString(", ")}")
+          filteredClasses
+        }
+      case f: Result.Failure =>
+        Task.log.error(s"Failed to identify impacted tests: ${f.error}")
+        Seq.empty[String] // Run all tests on failure
+    }
   }
 
   /**
@@ -141,7 +200,7 @@ trait TestModule
    * When used in combination with [[testForkGrouping]], every JVM test running process
    * will guarantee to never claim tests from different test groups.
    */
-  def testParallelism: T[Boolean] = Task { true }
+  def testParallelism: T[Boolean] = Task { false }
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -210,7 +269,7 @@ trait TestModule
       )
 
       val argsFile = Task.dest / "testargs"
-      os.write(argsFile, upickle.write(testArgs))
+      os.write(argsFile, upickle.default.write(testArgs))
 
       val testRunnerClasspathArg =
         jvmWorker().scalalibClasspath()

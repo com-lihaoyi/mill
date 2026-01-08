@@ -97,8 +97,10 @@ trait DistModule extends Module {
     val nativeLauncherPathTask = launcherPathTask(build.dist.native.cacheBinarySuffix)
 
     Task.Command {
-      val Seq(jarLauncherPath, _*) =
-        installIvyLocalTask(jarLauncherPathTask, nativeLauncherPathTask)()
+      val jarLauncherPath =
+        installIvyLocalTask(
+          Seq(jarLauncherPathTask, nativeLauncherPathTask)*
+        )().head
       Task.log.streams.out.println(jarLauncherPath.path.toString())
       jarLauncherPath
     }
