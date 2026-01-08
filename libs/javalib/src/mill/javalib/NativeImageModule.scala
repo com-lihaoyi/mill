@@ -315,9 +315,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    * This task must be compatible with [[https://github.com/graalvm/native-build-tools/blob/54db68cfcc20ab6a43ccbf4e04130325210f5b3a/common/graalvm-reachability-metadata/src/main/java/org/graalvm/reachability/internal/DefaultArtifactQuery.java#L57]]
    */
   def nativeGraalVmQueryDeps: T[Set[String]] = this match {
-    case _: JavaModule => Task {
-        def artifactQueryGav(d: coursier.core.Dependency): String =
-          s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
+    case m: JavaModule => Task {
 
         def isValidGAVSection(value: String): Boolean = value.nonEmpty && !value.contains(':')
 
@@ -328,6 +326,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
             d.versionConstraint.asString
           ).forall(isValidGAVSection)
 
+        def artifactQueryGav(d: coursier.core.Dependency): String =
+          s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
+
         val depsMetadata = nativeResolvedRunDeps().map(_._1).toSet.groupBy(isValidGAV)
 
         val skippedDeps = depsMetadata.getOrElse(false, Set.empty)
@@ -335,9 +336,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
 
         skippedDeps.foreach {
           dep =>
-            Task.log.info(
-              s"Skipping dependency: ${artifactQueryGav(dep)} due to invalid GAV coordinates"
-            )
+            Task.log.info(s"Skipping dependency: ${dep.module.repr} due to invalid GAV coordinates")
         }
 
         validDeps.map(artifactQueryGav)
@@ -366,10 +365,5 @@ object NativeImageModule {
       version: String,
       overridesNativeConfig: Boolean,
       file: PathRef
-  ) derives upickle.ReadWriter
-
-  case class NativeRunDeps(
-      skipped: Seq[DependencyMetadata],
-      valid: Seq[DependencyMetadata]
   ) derives upickle.ReadWriter
 }
