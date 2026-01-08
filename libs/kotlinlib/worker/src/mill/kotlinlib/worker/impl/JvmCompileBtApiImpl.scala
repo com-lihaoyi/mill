@@ -1,19 +1,20 @@
 package mill.kotlinlib.worker.impl
 
 import mill.api.TaskCtx
+import org.jetbrains.kotlin.buildtools.api.jvm.ClasspathSnapshotBasedIncrementalCompilationApproachParameters
 import org.jetbrains.kotlin.buildtools.api.{
   CompilationResult,
   CompilationService,
   ProjectId,
   SourcesChanges
 }
-import org.jetbrains.kotlin.buildtools.api.jvm.ClasspathSnapshotBasedIncrementalCompilationApproachParameters
 import org.jetbrains.kotlin.cli.common.ExitCode
 
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import scala.util.chaining.given
 import scala.collection.mutable
+import scala.util.chaining.given
+import scala.util.control.NonFatal
 
 class JvmCompileBtApiImpl() extends Compiler {
 
@@ -101,8 +102,8 @@ class JvmCompileBtApiImpl() extends Compiler {
         cleanup()
       } catch {
         case NonFatal(e) =>
-        // need to catch any exceptions, since we are in a finally block
-        ctx.log.error(s"Caught an exception while cleaning up compiler resources: $e")
+          // need to catch any exceptions, since we are in a finally block
+          ctx.log.error(s"Caught an exception while cleaning up compiler resources: $e")
       }
     }
   }
@@ -126,6 +127,7 @@ class JvmCompileBtApiImpl() extends Compiler {
 
   override def close(): Unit = {
     cleanup()
+    compilationService = Option.empty
   }
 
 }
