@@ -86,7 +86,10 @@ case class MillCliConfig(
     metaLevel: Option[Int] = None,
 
     // ==================== ADVANCED CLI FLAGS ====================
-    @arg(hidden = true, doc = "Allows command args to be passed positionally without `--arg` by default")
+    @arg(
+      hidden = true,
+      doc = "Allows command args to be passed positionally without `--arg` by default"
+    )
     allowPositional: Flag = Flag(),
     @arg(
       hidden = true,

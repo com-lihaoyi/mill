@@ -7,9 +7,25 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{BuildCtx, DefaultTaskModule, MillException, ModuleRef, PathRef, Result, Segment, Task, TaskCtx}
+import mill.api.{
+  BuildCtx,
+  DefaultTaskModule,
+  MillException,
+  ModuleRef,
+  PathRef,
+  Result,
+  Segment,
+  Task,
+  TaskCtx
+}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
+import mill.api.daemon.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
@@ -1099,7 +1115,9 @@ trait JavaModule
       val jarName = jar.path.last.stripSuffix(".jar")
       os.unzip(jar.path, Task.dest / jarName)
     }
-    println(s"Unpacked sources of transitive third-party dependencies into ${Task.dest.relativeTo(BuildCtx.workspaceRoot)} for browsing")
+    println(
+      s"Unpacked sources of transitive third-party dependencies into ${Task.dest.relativeTo(BuildCtx.workspaceRoot)} for browsing"
+    )
     PathRef(Task.dest)
   }
 
