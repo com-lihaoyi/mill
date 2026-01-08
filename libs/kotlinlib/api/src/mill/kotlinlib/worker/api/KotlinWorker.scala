@@ -8,7 +8,7 @@ package mill.kotlinlib.worker.api
 import mill.api.TaskCtx
 import mill.api.daemon.Result
 
-trait KotlinWorker {
+trait KotlinWorker extends AutoCloseable {
 
   def compile(
       target: KotlinWorkerTarget,

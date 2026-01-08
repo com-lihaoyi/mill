@@ -13,7 +13,12 @@ import mill.util.ClassLoaderCachedFactory
 class KotlinWorkerManager()(using ctx: TaskCtx)
     extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 
-  def getValue(cl: ClassLoader) = KotlinWorkerManager.get(cl)
+  def getValue(cl: ClassLoader): KotlinWorker = KotlinWorkerManager.get(cl)
+
+  override def teardown(key: Seq[PathRef], value: KotlinWorker): Unit = {
+    value.close()
+    super.teardown(key, value)
+  }
 }
 
 object KotlinWorkerManager extends ExternalModule {
