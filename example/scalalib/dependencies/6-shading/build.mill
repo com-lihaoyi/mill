@@ -8,14 +8,15 @@
 // * You need to bundle dependencies for deployment without classpath conflicts
 //
 //// SNIPPET:INTRO
-// Mill provides `ScalaShadingModule` and `ScalaShadingPublishModule` traits for Scala modules.
+// Mill provides `ShadingModule` and `ShadingPublishModule` traits that work with both Java and Scala modules.
 //// SNIPPET:END
 
 //// SNIPPET:BUILD
 package build
 import mill.*, scalalib.*
+import mill.javalib.ShadingModule
 
-object foo extends ScalaModule with ScalaShadingModule {
+object foo extends ScalaModule with ShadingModule {
   def scalaVersion = "2.13.14"
 
   // Regular dependencies - not shaded, listed in POM when publishing
@@ -71,12 +72,14 @@ object foo extends ScalaModule with ScalaShadingModule {
 //// SNIPPET:END
 
 //// SNIPPET:PUBLISH
-// For publishing, use `ScalaShadingPublishModule` which also removes shaded dependencies
+// For publishing, use `ShadingPublishModule` which also removes shaded dependencies
 // from the published POM/ivy.xml, so downstream users won't pull in the original
 // (unshaded) dependency:
 //
 // ```scala
-// object myLib extends ScalaModule with ScalaShadingPublishModule {
+// import mill.javalib.ShadingPublishModule
+//
+// object myLib extends ScalaModule with ShadingPublishModule {
 //   def scalaVersion = "2.13.14"
 //   def shadedMvnDeps = Seq(mvn"com.lihaoyi::fansi:0.4.0")
 //   def shadeRelocations = Seq(("fansi.**", "mylib.shaded.fansi.@1"))

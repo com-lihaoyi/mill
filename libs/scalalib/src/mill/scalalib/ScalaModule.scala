@@ -745,16 +745,3 @@ object ScalaModule {
   }
 }
 
-/**
- * A Scala module with shading support for third-party dependencies.
- *
- * @see [[mill.javalib.ShadingModule]] for full documentation
- */
-trait ScalaShadingModule extends mill.javalib.ShadingModule with ScalaModule
-
-/**
- * A Scala module with both shading and publishing support.
- *
- * @see [[mill.javalib.ShadingPublishModule]] for full documentation
- */
-trait ScalaShadingPublishModule extends mill.javalib.ShadingPublishModule with ScalaModule
