@@ -187,6 +187,10 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       .asInstanceOf[GraalVMMetadataWorker]
   }
 
+  /**
+   * Computes the MetadataResults of the module's dependencies using
+   * [[nativeGraalVMReachabilityMetadataWorker]] .
+   */
   def nativeMetadataConfigurations: T[Set[MetadataResult]] = Task {
     nativeGraalVMReachabilityMetadataWorker().findConfigurations(
       nativeGraalVmMetadataQuery()
@@ -226,6 +230,11 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       }
   }
 
+  /**
+   * A list of native configs to exclude from the native image.
+   * Uses the [[nativeDependencyMetadata]] and honors the override flag specified in the
+   * reachability metadata fetched from [[nativeGraalVMReachabilityMetadata]]
+   */
   def nativeExcludedConfigJars: T[Seq[PathRef]] = Task {
     nativeDependencyMetadata().filter(_.overridesNativeConfig)
       .map(
@@ -233,6 +242,9 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       )
   }
 
+  /**
+   * Gets the runtime module dependencies for using against the reachability metadata.
+   */
   def nativeResolvedRunDeps: Task[Seq[(Dependency, File)]] = this match {
     case m: JavaModule => Task {
         val dep = m.coursierDependencyTask().withVariantSelector(
@@ -251,6 +263,11 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       Task(Seq.empty[(Dependency, File)])
   }
 
+  /**
+   * Combines the [[nativeMetadataConfigurations]] with the [[nativeResolvedRunDeps]]
+   * into a list of [[NativeImageModule.DependencyMetadata]] to make the strategy of
+   * picking or excluding native configuration files easier.
+   */
   def nativeDependencyMetadata: T[Seq[NativeImageModule.DependencyMetadata]] = this match {
     case _: JavaModule => Task {
 
@@ -278,6 +295,11 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       Task(Seq.empty[NativeImageModule.DependencyMetadata])
   }
 
+  /**
+   * Constructs the native image excluded config given a list of
+   * artifacts that these configs should be excluded from.
+   * To find more about the syntax see [[https://github.com/paketo-buildpacks/native-image/issues/196]]
+   */
   def nativeExcludedConfig: T[Seq[String]] = Task {
     nativeExcludedConfigJars()
       .distinct

@@ -32,17 +32,19 @@ object `package` extends MavenModule { outer =>
    */
   def aotConfigFile: T[PathRef] = Task {
     val file = Task.dest / "micronaut-aot.properties"
-    os.write(file,
+    os.write(
+      file,
       """
-         |logback.xml.to.java.enabled=true
-         |netty.properties.enabled=true
-         |deduce.environment.enabled=true
-         |serviceloading.native.enabled=false
-         |precompute.environment.properties.enabled=true
-         |sealed.property.source.enabled=true
-         |cached.environment.enabled=true
-         |graalvm.config.enabled=true
-      """.stripMargin)
+        |logback.xml.to.java.enabled=true
+        |netty.properties.enabled=true
+        |deduce.environment.enabled=true
+        |serviceloading.native.enabled=false
+        |precompute.environment.properties.enabled=true
+        |sealed.property.source.enabled=true
+        |cached.environment.enabled=true
+        |graalvm.config.enabled=true
+      """.stripMargin
+    )
     PathRef(file)
   }
 
@@ -54,11 +56,16 @@ object `package` extends MavenModule { outer =>
     val dest = Task.dest
 
     val args = Seq(
-      "--classpath", (runClasspath() ++ resolvedMicronautAotCli()).map(_.path).mkString(":"),
-      "--package", "hello.world",
-      "--runtime", "native",
-      "--config", aotConfigFile().path.toString,
-      "--output", dest.toString
+      "--classpath",
+      (runClasspath() ++ resolvedMicronautAotCli()).map(_.path).mkString(":"),
+      "--package",
+      "hello.world",
+      "--runtime",
+      "native",
+      "--config",
+      aotConfigFile().path.toString,
+      "--output",
+      dest.toString
     )
 
     Jvm.callProcess(
@@ -90,7 +97,7 @@ object `package` extends MavenModule { outer =>
     }
 
     def nettyDeps: T[Seq[Dep]] = Seq(
-      mvn"io.micronaut:micronaut-http-server-netty",
+      mvn"io.micronaut:micronaut-http-server-netty"
     )
 
     override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
@@ -113,10 +120,9 @@ object `package` extends MavenModule { outer =>
 
   def finalMainClass = "hello.world.Application"
 
-
   def annotationProcessorsMvnDeps = Seq(
     mvn"io.micronaut:micronaut-http-validation",
-    mvn"io.micronaut.serde:micronaut-serde-processor",
+    mvn"io.micronaut.serde:micronaut-serde-processor"
   )
 
   override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
