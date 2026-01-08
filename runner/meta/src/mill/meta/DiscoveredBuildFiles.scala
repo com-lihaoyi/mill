@@ -65,14 +65,12 @@ object DiscoveredBuildFiles {
             val packageDeclarationValid = (isRootFile, isBuildFile) match {
               case (true, _) =>
                 importSegments == "" || expectedImportSegments == importSegments
-              case (_, true) =>
-                // Nested build.mill: relaxed validation (allow prefixes)
-                importSegments == "" ||
-                importSegments == "build" ||
-                expectedImportSegments.startsWith(importSegments + ".") ||
-                expectedImportSegments == importSegments
               case _ =>
-                // Nested package.mill: strict validation
+                // Nested files: allow packages starting with "build" to support flexible naming
+                // in reusable submodules that work both standalone and when integrated
+                importSegments == "" ||
+                importSegments.startsWith("build") ||
+                expectedImportSegments.startsWith(importSegments + ".") ||
                 expectedImportSegments == importSegments
             }
 
