@@ -39,7 +39,7 @@ object GradleBuildGenTests extends TestSuite {
         assert(checker.check(
           sourceRel = "gradle-8-0",
           expectedRel = os.sub / "expected/with-args/gradle-8-0",
-          initArgs = Seq("--merge", "--no-meta", "--gradle-jvm-id", "17")
+          initArgs = Seq("--merge", "--gradle-jvm-id", "17")
         ))
       }
     }

@@ -1,0 +1,5 @@
+extends: MavenModule
+moduleDeps: [list]
+depManagement:
+- org.apache.commons:commons-text:1.9
+javacOptions: [-source, 11, -target, 11]

@@ -1,0 +1,14 @@
+extends: [MavenModule, PublishModule]
+moduleDeps: [list]
+depManagement:
+- org.apache.commons:commons-text:1.13.0
+javacOptions: [-source, 21, -target, 21]
+artifactName: utilities
+pomSettings:
+  organization: org.gradle.sample
+  url: http://www.example.com/library
+  licenses: ["The Apache License, Version 2.0"]
+  versionControl: http://example.com/my-library/
+  developers:
+  - {name: John Doe}
+publishVersion: unspecified
