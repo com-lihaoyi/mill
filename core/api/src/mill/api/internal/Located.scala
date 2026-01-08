@@ -12,9 +12,14 @@ case class AppendLocated[T](located: Located[T], append: Boolean) {
 object AppendLocated {
   import upickle.core.BufferedValue
 
+  /** Marker key indicating append mode in YAML `!append` tag wrapper objects */
+  val AppendMarkerKey = "__mill_append__"
+  /** Marker key containing the actual values in YAML `!append` tag wrapper objects */
+  val ValuesMarkerKey = "__mill_values__"
+
   /**
    * Extract append flag and actual value from a BufferedValue that may contain
-   * the `__mill_append__` marker object (produced by YAML `!append` tag parsing).
+   * the marker object (produced by YAML `!append` tag parsing).
    * Returns (actualValue, appendFlag).
    */
   def unwrapAppendMarker(v: BufferedValue): (BufferedValue, Boolean) = {
@@ -23,7 +28,7 @@ object AppendLocated {
         val kvMap = obj.value0.collect { case (BufferedValue.Str(k, _), v) =>
           k.toString -> v
         }.toMap
-        (kvMap.get("__mill_append__"), kvMap.get("__mill_values__")) match {
+        (kvMap.get(AppendMarkerKey), kvMap.get(ValuesMarkerKey)) match {
           case (Some(BufferedValue.True(_)), Some(values)) => (values, true)
           case _ => (v, false)
         }
