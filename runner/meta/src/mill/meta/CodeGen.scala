@@ -143,15 +143,8 @@ object CodeGen {
 
         def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
           val extendsConfig = data.`extends`.value.value.map(_.value)
-
-          // Check for cross module: look for "cross" key in rest
-          val crossVersionsOpt: Option[Seq[String]] = data.rest.collectFirst {
-            case (k, v) if k.value == "cross" =>
-              upickle.core.BufferedValue.transform(v, upickle.reader[Seq[String]])
-          }
-
           val definitions = processDataRest(data)(
-            onProperty = (k, _) => if (k == "cross") "" else "", // Properties will be auto-implemented by AutoOverride, skip "cross"
+            onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
             onNestedObject = (k, nestedData) =>
               renderTemplate(s"object $k", nestedData, path :+ k)
           ).filter(_.nonEmpty)
@@ -195,10 +188,6 @@ object CodeGen {
               s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[?]]"
             else " extends AutoOverride[_root_.mill.T[?]]"
 
-          // Helper to properly indent all lines of a multi-line string
-          def indentLines(s: String, indent: String): String =
-            s.linesIterator.mkString(indent, s"\n$indent", "")
-
           val allSnippets = Seq(
             moduleDepsSnippet,
             compileModuleDepsSnippet,
@@ -206,29 +195,10 @@ object CodeGen {
             "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
           ).filter(_.nonEmpty) ++ definitions
 
-          // Join snippets with proper indentation for ALL lines (including multi-line snippets)
-          val snippetsJoined = allSnippets.map(s => indentLines(s, "  ")).mkString("\n")
-
-          crossVersionsOpt match {
-            case Some(crossVersions) =>
-              // Generate Cross module structure
-              // object foo extends Cross[FooModule]("v1", "v2", ...)
-              // trait FooModule extends ... { ... }
-              val objectName = prefix.stripPrefix("object ").stripPrefix("trait ")
-              val traitName = objectName.capitalize + "Module"
-              val crossVersionsStr = crossVersions.map(v => literalize(v)).mkString(", ")
-              s"""object ${backtickWrap(objectName)} extends Cross[$traitName]($crossVersionsStr)
-                 |trait $traitName$extendsSnippet {
-                 |$snippetsJoined
-                 |}
-                 |""".stripMargin
-
-            case None =>
-              s"""$prefix$extendsSnippet {
-                 |$snippetsJoined
-                 |}
-                 |""".stripMargin
-          }
+          s"""$prefix$extendsSnippet {
+             |  ${allSnippets.mkString("\n  ")}
+             |}
+             |""".stripMargin
         }
 
         os.write.over(

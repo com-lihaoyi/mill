@@ -20,6 +20,8 @@ object SbtBuildGenMain {
       sbtArgs: mainargs.Leftover[String],
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
+      @mainargs.arg(doc = "disable generating meta-build files")
+      noMeta: mainargs.Flag,
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
       millJvmId: Option[String]
   ): Unit = {
@@ -93,6 +95,27 @@ object SbtBuildGenMain {
     }.toSeq
     packages = normalizeBuild(packages)
 
+    val (depNames, packages0) =
+      if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
+    val (baseModule, packages1) = Option.when(!noMeta.value)(
+      BuildGen.withBaseModule(
+        packages0,
+        Seq("CrossSbtPlatformModule"),
+        Seq("CrossSbtPlatformTests")
+      ).orElse(BuildGen.withBaseModule(
+        packages0,
+        Seq("CrossSbtModule", "CrossSbtPlatformModule"),
+        Seq("CrossSbtTests")
+      )).orElse(BuildGen.withBaseModule(
+        packages0,
+        Seq("SbtPlatformModule"),
+        Seq("SbtPlatformTests")
+      )).orElse(BuildGen.withBaseModule(
+        packages0,
+        Seq("SbtModule", "SbtPlatformModule"),
+        Seq("SbtTests")
+      ))
+    ).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
     val millJvmOpts = {
       val file = os.pwd / ".jvmopts"
       if (os.isFile(file)) os.read.lines(file)
@@ -101,7 +124,7 @@ object SbtBuildGenMain {
         .flatMap(_.split("\\s"))
       else Nil
     }
-    BuildGen.writeBuildFiles(packages, merge.value, millJvmVersion = millJvmId, millJvmOpts = millJvmOpts)
+    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmId, millJvmOpts)
   }
 
   private def toCrossModule(crossVersionModules: Seq[ModuleSpec]) = {
