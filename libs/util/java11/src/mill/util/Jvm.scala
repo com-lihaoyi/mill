@@ -202,7 +202,6 @@ object Jvm {
       )
       .filter(f => f.exists())
       .fold(toolName)(_.getAbsolutePath())
-
   }
 
   def jdkTool(toolName: String): String = jdkTool(toolName, None)
