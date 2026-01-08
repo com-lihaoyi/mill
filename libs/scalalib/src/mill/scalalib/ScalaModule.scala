@@ -744,4 +744,3 @@ object ScalaModule {
     } else path
   }
 }
-
