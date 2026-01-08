@@ -315,7 +315,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    * This task must be compatible with [[https://github.com/graalvm/native-build-tools/blob/54db68cfcc20ab6a43ccbf4e04130325210f5b3a/common/graalvm-reachability-metadata/src/main/java/org/graalvm/reachability/internal/DefaultArtifactQuery.java#L57]]
    */
   def nativeGraalVmQueryDeps: T[Set[String]] = this match {
-    case m: JavaModule => Task {
+    case _: JavaModule => Task {
 
         def isValidGAVSection(value: String): Boolean = value.nonEmpty && !value.contains(':')
 
