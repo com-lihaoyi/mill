@@ -19,7 +19,6 @@ import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
-import mill.client.lock.{Lock, TryLocked}
 import mill.javalib.testrunner.TestResult
 
 import scala.util.Properties.isWin
@@ -547,34 +546,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def sdkInstallSystemImage(): Command[String] = Task.Command {
     val image = androidVirtualDevice().systemImage
     Task.log.info(s"Downloading $image")
-    val lockFilePath = androidMillHomeDir().path / ".sdkmanager.lock"
-    val lockFile = Lock.file(lockFilePath.toString)
-    def acquireLock() = {
-      var attempts = 0
-      val maxAttempts = 10
-      var tryLock: TryLocked = lockFile.tryLock()
-      while (!tryLock.isLocked) {
-        tryLock.close()
-        attempts += 1
-        if (attempts > maxAttempts)
-          Task.fail(
-            s"Giving up waiting for sdkmanager. Please check if the process is slow or stuck or if the ${lockFilePath} is held by another process!"
-          )
-        Task.log.info(
-          s"Waiting for sdkmanager lock ($attempts/$maxAttempts)... Trying again in 5 seconds!"
-        )
-        Thread.sleep(5000)
-        tryLock = lockFile.tryLock()
-      }
-      tryLock
-    }
-    val installCall = scala.util.Using.resource(acquireLock()) { _ =>
+
+    val installCall = androidSdkModule().androidSdkWorker().process(() =>
       os.call((
         androidSdkModule().sdkManagerExe().path,
         "--install",
         image
       ))
-    }
+    )
 
     if (installCall.exitCode != 0) {
       Task.log.error(
@@ -765,15 +744,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Task.Sources(subPaths*)
   }
 
-  private def androidMillHomeDir: Task[PathRef] = Task.Anon {
-    val globalDebugFileLocation = os.home / ".mill-android"
-    if (!os.exists(globalDebugFileLocation))
-      os.makeDir(globalDebugFileLocation)
-    PathRef(globalDebugFileLocation)
-  }
-
   private def debugKeystoreFile: Task[PathRef] = Task.Anon {
-    PathRef(androidMillHomeDir().path / "mill-debug.jks")
+    PathRef(androidSdkModule().androidMillHomeDir().path / "mill-debug.jks")
   }
 
   private def keytoolModuleRef: ModuleRef[KeytoolModule] = ModuleRef(KeytoolModule)
@@ -785,7 +757,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   private def androidDebugKeystore: Task[PathRef] = Task.Anon {
     val debugKeystoreFilePath = debugKeystoreFile().path
-    os.makeDir.all(androidMillHomeDir().path)
+    os.makeDir.all(androidSdkModule().androidMillHomeDir().path)
     keytoolModuleRef().createKeystoreWithCertificate(
       Task.Anon(Seq(
         "--keystore",

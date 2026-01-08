@@ -415,6 +415,17 @@ trait AndroidSdkModule extends Module {
     cmdlineTools().sdkmanagerExe
   }
 
+  def androidMillHomeDir: Task[PathRef] = Task.Anon {
+    val globalDebugFileLocation = os.home / ".mill-android"
+    if (!os.exists(globalDebugFileLocation))
+      os.makeDir(globalDebugFileLocation)
+    PathRef(globalDebugFileLocation)
+  }
+
+  def androidSdkWorker: Task.Worker[AndroidSdkWorker] = Task.Worker {
+    new AndroidSdkWorker(androidMillHomeDir().path / ".sdkmanager.lock", 10)
+  }
+
   /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
    *
@@ -433,7 +444,7 @@ trait AndroidSdkModule extends Module {
     )
     // sdkmanager executable and state of the installed package is a shared resource, which can be accessed
     // from the different Android SDK modules.
-    AndroidSdkLock.synchronized {
+    androidSdkWorker().process { () =>
       val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath0, p))
       val packagesWithoutLicense = missingPackages
         .map(p => (p, isLicenseAccepted(sdkPath0, remoteReposInfo().path, p)))
@@ -501,7 +512,7 @@ trait AndroidSdkModule extends Module {
     val sdk = androidSdk()
     val sdkPath = sdk.sdkPath
 
-    AndroidNdkLock.synchronized {
+    androidSdkWorker().process { () =>
       os.call(
         Seq(
           cmdline.sdkmanagerExe.path.toString,
