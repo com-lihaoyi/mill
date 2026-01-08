@@ -101,7 +101,7 @@ object SbtBuildGenMain {
         .flatMap(_.split("\\s"))
       else Nil
     }
-    BuildGen.writeBuildFiles(packages, merge.value, millJvmId, millJvmOpts)
+    BuildGen.writeBuildFiles(packages, merge.value, millJvmVersion = millJvmId, millJvmOpts = millJvmOpts)
   }
 
   private def toCrossModule(crossVersionModules: Seq[ModuleSpec]) = {

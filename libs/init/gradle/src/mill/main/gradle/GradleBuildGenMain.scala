@@ -65,7 +65,7 @@ object GradleBuildGenMain {
       val prop = properties.getProperty("org.gradle.jvmargs")
       if (prop == null) Nil else prop.trim.split("\\s").toSeq
     }
-    BuildGen.writeBuildFiles(packages, merge.value, millJvmId, millJvmOpts)
+    BuildGenYaml.writeBuildFiles(packages, merge.value, millJvmId, millJvmOpts)
   }
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {

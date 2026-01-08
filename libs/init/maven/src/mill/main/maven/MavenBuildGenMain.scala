@@ -165,7 +165,7 @@ object MavenBuildGenMain {
     }
     packages = normalizeBuild(packages)
 
-    BuildGen.writeBuildFiles(packages, merge.value, millJvmId)
+    BuildGenYaml.writeBuildFiles(packages, merge.value, millJvmId)
   }
 
   private def isBom(dep: Dependency) = dep.getScope == "import" && dep.getType == "pom"
