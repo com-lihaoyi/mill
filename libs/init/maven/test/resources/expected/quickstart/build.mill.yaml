@@ -20,7 +20,7 @@ object test:
   - org.junit.jupiter:junit-jupiter-params:5.11.0
   runMvnDeps:
   - org.junit.platform:junit-platform-launcher
-  bomMvnDeps:
+  bomMvnDeps: !append
   - org.junit:junit-bom:5.11.0
   testParallelism: false
   testSandboxWorkingDir: false

@@ -1,4 +1,4 @@
-extends: [MavenModule, PublishModule]
+extends: millbuild.ProjectBaseModule
 depManagement:
 - javax.servlet:servlet-api:2.5
 - javax.servlet.jsp:jsp-api:2.2
@@ -6,18 +6,9 @@ depManagement:
 - org.hamcrest:hamcrest-core:1.2.1
 - org.hamcrest:hamcrest-library:1.2.1
 - org.mockito:mockito-core:1.8.5
-javacOptions: [-source, 1.6, -target, 1.6]
 artifactName: server
 pomSettings:
   description: Logic.
-publishVersion: 1.0-SNAPSHOT
 
 object test:
-  extends: [MavenTests, TestModule.Junit4]
-  mvnDeps:
-  - junit:junit-dep:4.10
-  - org.hamcrest:hamcrest-core:1.2.1
-  - org.hamcrest:hamcrest-library:1.2.1
-  - org.mockito:mockito-core:1.8.5
-  testParallelism: false
-  testSandboxWorkingDir: false
+  extends: ProjectBaseTests

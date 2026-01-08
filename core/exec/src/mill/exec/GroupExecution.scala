@@ -42,8 +42,24 @@ trait GroupExecution {
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
 
-  import mill.api.internal.Located
-  val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
+  import mill.api.internal.{Located, AppendLocated}
+
+  /** Extract append flag and actual value from wrapper object if present */
+  private def unwrapAppendMarker(v: BufferedValue): (BufferedValue, Boolean) = {
+    v match {
+      case obj: BufferedValue.Obj =>
+        val kvMap = obj.value0.collect { case (BufferedValue.Str(k, _), v) =>
+          k.toString -> v
+        }.toMap
+        (kvMap.get("__mill_append__"), kvMap.get("__mill_values__")) match {
+          case (Some(BufferedValue.True(_)), Some(values)) => (values, true)
+          case _ => (v, false)
+        }
+      case _ => (v, false)
+    }
+  }
+
+  val staticBuildOverrides: Map[String, AppendLocated[BufferedValue]] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
       val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
@@ -51,7 +67,7 @@ trait GroupExecution {
       def rec(
           segments: Seq[String],
           bufValue: upickle.core.BufferedValue
-      ): Seq[(String, Located[BufferedValue])] = {
+      ): Seq[(String, AppendLocated[BufferedValue])] = {
         val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
         val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
           k.toString.split(" +") match {
@@ -60,7 +76,7 @@ trait GroupExecution {
           }
         }
 
-        val currentResults: Seq[(String, Located[BufferedValue])] =
+        val currentResults: Seq[(String, AppendLocated[BufferedValue])] =
           BufferedValue.transform(
             BufferedValue.Obj(
               rawKvs.map { case (k, i, v) => (BufferedValue.Str(k, i), v) }.to(mutable.ArrayBuffer),
@@ -71,11 +87,15 @@ trait GroupExecution {
           )
             .rest
             .map { case (k, v) =>
-              (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, v)
+              val (actualValue, append) = unwrapAppendMarker(v)
+              (segments ++ Seq(k.value)).mkString(".") -> AppendLocated(
+                Located(path, k.index, actualValue),
+                append
+              )
             }
             .toSeq
 
-        val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
+        val nestedResults: Seq[(String, AppendLocated[BufferedValue])] = nested.flatten.toSeq
 
         currentResults ++ nestedResults
       }
@@ -190,14 +210,16 @@ trait GroupExecution {
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
         staticBuildOverrides.get(labelled.ctx.segments.render)
-          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
+          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render).map(loc =>
+            AppendLocated(loc, append = false)
+          )) match {
 
-          case Some(jsonData) =>
-            lazy val originalText = os.read(jsonData.path)
+          case Some(appendLocated) =>
+            lazy val originalText = os.read(appendLocated.path)
             lazy val strippedText = originalText.replace("\n//|", "\n")
             lazy val lookupLineSuffix = fastparse
               .IndexedParserInput(strippedText)
-              .prettyIndex(jsonData.index)
+              .prettyIndex(appendLocated.index)
               .takeWhile(_ != ':') // split off column since it's not that useful
 
             val (execRes, serializedPaths) =
@@ -208,7 +230,7 @@ trait GroupExecution {
 
                 (
                   ExecResult.Failure(
-                    s"Build header config in ${jsonData.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
+                    s"Build header config in ${appendLocated.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
                       s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
                   ),
                   Nil
@@ -216,22 +238,60 @@ trait GroupExecution {
               } else {
                 // apply build override
                 try {
+                  // If !append tag is present, evaluate the task to get parent value
+                  val parentValue: Option[Seq[Any]] = if (appendLocated.append) {
+                    val taskInputValues = labelled.inputs
+                      .map(results(_))
+                      .collect { case ExecResult.Success((v, _)) => v }
+
+                    if (taskInputValues.length != labelled.inputs.length) None
+                    else {
+                      val (multiLogger, _) = resolveLogger(Some(paths).map(_.log), logger)
+                      val destCreator = new GroupExecution.DestCreator(Some(paths))
+                      val args = new mill.api.TaskCtx.Impl(
+                        args = taskInputValues.map(_.value).toIndexedSeq,
+                        dest0 = () => destCreator.makeDest(),
+                        log = multiLogger,
+                        env = env,
+                        reporter = zincProblemReporter,
+                        testReporter = testReporter,
+                        workspace = workspace,
+                        _systemExitWithReason = systemExit,
+                        fork = executionContext,
+                        jobs = effectiveThreadCount,
+                        offline = offline,
+                        useFileLocks = useFileLocks
+                      )
+                      labelled.evaluate(args) match {
+                        case Result.Success(v) => Some(v.asInstanceOf[Seq[Any]])
+                        case _ => None
+                      }
+                    }
+                  } else None
+
                   val (resultData, serializedPaths) = PathRef.withSerializedPaths {
                     PathRef.currentOverrideModulePath.withValue(
                       labelled.ctx.enclosingModule.moduleCtx.millSourcePath
                     ) {
-                      upickle.read[Any](interpolateEnvVarsInJson(jsonData.value))(
-                        using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-                      )
+                      val yamlValue =
+                        upickle.read[Any](interpolateEnvVarsInJson(appendLocated.value))(
+                          using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+                        )
+                      // Merge parent value with YAML value if !append was present
+                      parentValue match {
+                        case Some(parent) =>
+                          (parent ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
+                        case None => yamlValue
+                      }
                     }
                   }
 
                   // Write build header override JSON to meta `.json` file to support `show`
                   writeCacheJson(
                     paths.meta,
-                    upickle.core.BufferedValue.transform(jsonData.value, ujson.Value),
+                    upickle.core.BufferedValue.transform(appendLocated.value, ujson.Value),
                     resultData.##,
-                    inputsHash + jsonData.value.##
+                    inputsHash + appendLocated.value.##
                   )
 
                   (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
@@ -240,14 +300,18 @@ trait GroupExecution {
                     // Try to get more specific index from AbortException if available
                     val errorIndex = e.getCause match {
                       case abort: upickle.core.AbortException => abort.index
-                      case _ => jsonData.value.index
+                      case _ => appendLocated.value.index
                     }
 
                     val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
                     (
                       ExecResult.Failure(
                         s"Failed de-serializing config override: ${e.getCause.getMessage}",
-                        Some(Result.Failure(msg, path = jsonData.path.toNIO, index = errorIndex))
+                        Some(Result.Failure(
+                          msg,
+                          path = appendLocated.path.toNIO,
+                          index = errorIndex
+                        ))
                       ),
                       Nil
                     )

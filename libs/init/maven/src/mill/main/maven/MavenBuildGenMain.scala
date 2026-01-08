@@ -165,7 +165,12 @@ object MavenBuildGenMain {
     }
     packages = normalizeBuild(packages)
 
-    BuildGenYaml.writeBuildFiles(packages, merge.value, millJvmId)
+    val (baseModule, packages0) = BuildGen.withBaseModule(
+      packages,
+      Seq("MavenModule"),
+      Seq("MavenTests")
+    ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
+    BuildGenYaml.writeBuildFiles(packages0, merge.value, baseModule, millJvmId)
   }
 
   private def isBom(dep: Dependency) = dep.getScope == "import" && dep.getType == "pom"

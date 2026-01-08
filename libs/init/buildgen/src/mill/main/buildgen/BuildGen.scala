@@ -193,7 +193,7 @@ object BuildGen {
         .reduce(parentModule(_, _, "ProjectBaseModule", defaultSupertypes))
         .copy(children =
           extendingModules.flatMap(_.children.filter(isTestModule))
-            .reduceOption(parentModule(_, _, "Tests", defaultTestSupertypes)).toSeq
+            .reduceOption(parentModule(_, _, "ProjectBaseTests", defaultTestSupertypes)).toSeq
         )
       val packages0 =
         packages.map(pkg => pkg.copy(module = recExtendModule(pkg.module, baseModule)))

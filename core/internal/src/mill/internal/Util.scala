@@ -242,16 +242,45 @@ object Util {
                   objVisitor.visitEnd(index)
 
                 case sequence: SequenceNode =>
-                  val arrVisitor = v.visitArray(sequence.getValue.size(), index)
-                    .asInstanceOf[upickle.core.ArrVisitor[Any, J]]
-                  for (item <- sequence.getValue.asScala) {
-                    val itemResult = rec(item, arrVisitor.subVisitor)
-                    arrVisitor.visitValue(
-                      itemResult,
-                      item.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                    )
+                  // Check for !append tag - if present, wrap in marker object
+                  val hasAppendTag = sequence.getTag.getValue == "!append"
+                  if (hasAppendTag) {
+                    // Wrap array in object: {"__mill_append__": true, "__mill_values__": [...]}
+                    val objVisitor = v.visitObject(2, jsonableKeys = true, index)
+                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+
+                    // Add __mill_append__ key
+                    val appendKeyVisitor = objVisitor.visitKey(index)
+                    objVisitor.visitKeyValue(appendKeyVisitor.visitString("__mill_append__", index))
+                    objVisitor.visitValue(objVisitor.subVisitor.visitTrue(index), index)
+
+                    // Add __mill_values__ key with the actual array
+                    val valuesKeyVisitor = objVisitor.visitKey(index)
+                    objVisitor.visitKeyValue(valuesKeyVisitor.visitString("__mill_values__", index))
+                    val arrVisitor =
+                      objVisitor.subVisitor.visitArray(sequence.getValue.size(), index)
+                        .asInstanceOf[upickle.core.ArrVisitor[Any, Any]]
+                    for (item <- sequence.getValue.asScala) {
+                      val itemResult = rec(item, arrVisitor.subVisitor)
+                      arrVisitor.visitValue(
+                        itemResult,
+                        item.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                      )
+                    }
+                    objVisitor.visitValue(arrVisitor.visitEnd(index), index)
+                    objVisitor.visitEnd(index)
+                  } else {
+                    val arrVisitor = v.visitArray(sequence.getValue.size(), index)
+                      .asInstanceOf[upickle.core.ArrVisitor[Any, J]]
+                    for (item <- sequence.getValue.asScala) {
+                      val itemResult = rec(item, arrVisitor.subVisitor)
+                      arrVisitor.visitValue(
+                        itemResult,
+                        item.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                      )
+                    }
+                    arrVisitor.visitEnd(index)
                   }
-                  arrVisitor.visitEnd(index)
               }
             } catch {
               case e: upickle.core.Abort =>

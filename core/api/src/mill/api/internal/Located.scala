@@ -2,6 +2,13 @@ package mill.api.internal
 
 case class Located[T](path: os.Path, index: Int, value: T)
 
+/** Located with an additional flag indicating whether to append to super */
+case class AppendLocated[T](located: Located[T], append: Boolean) {
+  def path: os.Path = located.path
+  def index: Int = located.index
+  def value: T = located.value
+}
+
 object Located {
   class UpickleReader[T](path: os.Path)(implicit r: upickle.Reader[T])
       extends upickle.Reader[Located[T]] {

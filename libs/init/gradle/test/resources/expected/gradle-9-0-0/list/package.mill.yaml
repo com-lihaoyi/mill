@@ -1,7 +1,4 @@
-extends: [MavenModule, PublishModule]
-depManagement:
-- org.apache.commons:commons-text:1.13.0
-javacOptions: [-source, 21, -target, 21]
+extends: [millbuild.ProjectBaseModule, PublishModule]
 artifactName: list
 pomSettings:
   organization: org.gradle.sample
@@ -13,13 +10,4 @@ pomSettings:
 publishVersion: unspecified
 
 object test:
-  extends: [MavenTests, TestModule.Junit5]
-  mvnDeps:
-  - org.junit.jupiter:junit-jupiter:5.12.1
-  runMvnDeps:
-  - org.junit.platform:junit-platform-launcher
-  bomMvnDeps:
-  - org.junit:junit-bom:5.12.1
-  javacOptions: [-source, 21, -target, 21]
-  testParallelism: false
-  testSandboxWorkingDir: false
+  extends: ProjectBaseTests

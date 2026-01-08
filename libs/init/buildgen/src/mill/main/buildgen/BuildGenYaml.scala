@@ -7,10 +7,12 @@ import mill.main.buildgen.ModuleSpec.*
 object BuildGenYaml {
 
   private inline def lineSep = System.lineSeparator()
+  private inline def millBuild = os.sub / "mill-build"
 
   def writeBuildFiles(
       packages: Seq[PackageSpec],
       merge: Boolean = false,
+      baseModule: Option[ModuleSpec] = None,
       millJvmVersion: Option[String] = None,
       millJvmOpts: Seq[String] = Nil
   ): Unit = {
@@ -20,6 +22,21 @@ object BuildGenYaml {
     if (existingBuildFiles.nonEmpty) {
       println("removing existing build files ...")
       for (file <- existingBuildFiles) do os.remove(file)
+    }
+
+    // Generate base module Scala file if provided
+    for (module <- baseModule) do {
+      val file = os.sub / millBuild / os.SubPath(s"src/${module.name}.scala")
+      println(s"writing $file")
+      os.write(
+        os.pwd / file,
+        Seq(
+          "package millbuild",
+          renderImports(module),
+          renderBaseModule(module)
+        ).mkString(lineSep * 2),
+        createFolders = true
+      )
     }
 
     val rootPackage +: nestedPackages = packages0: @unchecked
@@ -37,6 +54,133 @@ object BuildGenYaml {
       val file = os.sub / pkg.dir / "package.mill.yaml"
       println(s"writing $file")
       os.write(os.pwd / file, renderYamlPackage(pkg, None, None, Nil))
+    }
+  }
+
+  private def renderImports(module: ModuleSpec): String = {
+    val imports = module.tree.flatMap(_.imports)
+    ("import mill.*" +: imports).distinct.sorted.mkString(lineSep)
+  }
+
+  private def renderBaseModule(module: ModuleSpec): String = {
+    import module.*
+    Seq(
+      s"trait $name ${renderExtendsClause(supertypes ++ mixins)} {",
+      "  " + renderScalaModuleBody(module),
+      "  " + children.sortBy(_.name).map(renderBaseModule).mkString(lineSep * 2),
+      "}"
+    ).mkString(lineSep * 2)
+  }
+
+  private def renderExtendsClause(supertypes: Seq[String]): String = {
+    if (supertypes.isEmpty) "extends Module"
+    else supertypes.mkString("extends ", ", ", "")
+  }
+
+  private def renderScalaModuleBody(module: ModuleSpec): String = {
+    import module.*
+    val lines = Seq.newBuilder[String]
+
+    renderScalaStringValues("def repositories", repositories).foreach(lines += _)
+    renderScalaOptValues("def forkArgs", forkArgs).foreach(lines += _)
+    forkWorkingDir.base.foreach(_ => lines += "def forkWorkingDir = moduleDir")
+    renderScalaMvnDepValues("def mandatoryMvnDeps", mandatoryMvnDeps).foreach(lines += _)
+    renderScalaMvnDepValues("def mvnDeps", mvnDeps).foreach(lines += _)
+    renderScalaMvnDepValues("def compileMvnDeps", compileMvnDeps).foreach(lines += _)
+    renderScalaMvnDepValues("def runMvnDeps", runMvnDeps).foreach(lines += _)
+    renderScalaMvnDepValues("def bomMvnDeps", bomMvnDeps).foreach(lines += _)
+    renderScalaMvnDepValues("def depManagement", depManagement).foreach(lines += _)
+    renderScalaOptValues("def javacOptions", javacOptions).foreach(lines += _)
+    renderScalaStringValues("def sources", sourcesFolders).foreach(lines += _)
+    renderScalaMvnDepValues("def errorProneDeps", errorProneDeps).foreach(lines += _)
+    renderScalaStringValues("def errorProneOptions", errorProneOptions).foreach(lines += _)
+    renderScalaOptValues(
+      "def errorProneJavacEnableOptions",
+      errorProneJavacEnableOptions
+    ).foreach(lines += _)
+    renderScalaOptValues("def scalacOptions", scalacOptions).foreach(lines += _)
+    renderScalaMvnDepValues("def scalacPluginMvnDeps", scalacPluginMvnDeps).foreach(lines += _)
+    testParallelism.base.foreach(v => lines += s"def testParallelism = $v")
+    testSandboxWorkingDir.base.foreach(v => lines += s"def testSandboxWorkingDir = $v")
+
+    lines.result().mkString(lineSep)
+  }
+
+  private def renderScalaStringValues(prefix: String, values: Values[String]): Option[String] = {
+    import values.*
+    val member = prefix.stripPrefix("def ")
+    val basePart = base match {
+      case Nil => None
+      case seq => Some(s"Seq(${seq.map(s => s""""$s"""").mkString(", ")})")
+    }
+    val crossPart = cross match {
+      case Nil => None
+      case seq =>
+        val cases = seq.map((k, v) =>
+          s"""case "$k" => Seq(${v.map(s => s""""$s"""").mkString(", ")})"""
+        ).mkString(lineSep)
+        Some(s"crossValue match {$lineSep$cases$lineSep}")
+    }
+    (basePart, crossPart) match {
+      case (None, None) => None
+      case (Some(b), None) if appendSuper => Some(s"$prefix = super.$member() ++ $b")
+      case (Some(b), None) => Some(s"$prefix = $b")
+      case (None, Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $c")
+      case (None, Some(c)) => Some(s"$prefix = $c")
+      case (Some(b), Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $b ++ $c")
+      case (Some(b), Some(c)) => Some(s"$prefix = $b ++ $c")
+    }
+  }
+
+  private def renderScalaMvnDepValues(prefix: String, values: Values[MvnDep]): Option[String] = {
+    import values.*
+    val member = prefix.stripPrefix("def ")
+    val basePart = base match {
+      case Nil => None
+      case seq => Some(s"Seq(${seq.map(_.toString).mkString(", ")})")
+    }
+    val crossPart = cross match {
+      case Nil => None
+      case seq =>
+        val cases = seq.map((k, v) =>
+          s"""case "$k" => Seq(${v.map(_.toString).mkString(", ")})"""
+        ).mkString(lineSep)
+        Some(s"crossValue match {$lineSep$cases$lineSep}")
+    }
+    (basePart, crossPart) match {
+      case (None, None) => None
+      case (Some(b), None) if appendSuper => Some(s"$prefix = super.$member() ++ $b")
+      case (Some(b), None) => Some(s"$prefix = $b")
+      case (None, Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $c")
+      case (None, Some(c)) => Some(s"$prefix = $c")
+      case (Some(b), Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $b ++ $c")
+      case (Some(b), Some(c)) => Some(s"$prefix = $b ++ $c")
+    }
+  }
+
+  private def renderScalaOptValues(prefix: String, values: Values[Opt]): Option[String] = {
+    import values.*
+    val member = prefix.stripPrefix("def ")
+    def encodeOpts(opts: Seq[Opt]): String =
+      opts.flatMap(_.group).map(s => s""""$s"""").mkString(", ")
+    val basePart = base match {
+      case Nil => None
+      case seq => Some(s"Seq(${encodeOpts(seq)})")
+    }
+    val crossPart = cross match {
+      case Nil => None
+      case seq =>
+        val cases = seq.map((k, v) => s"""case "$k" => Seq(${encodeOpts(v)})""").mkString(lineSep)
+        Some(s"crossValue match {$lineSep$cases$lineSep}")
+    }
+    (basePart, crossPart) match {
+      case (None, None) => None
+      case (Some(b), None) if appendSuper => Some(s"$prefix = super.$member() ++ $b")
+      case (Some(b), None) => Some(s"$prefix = $b")
+      case (None, Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $c")
+      case (None, Some(c)) => Some(s"$prefix = $c")
+      case (Some(b), Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $b ++ $c")
+      case (Some(b), Some(c)) => Some(s"$prefix = $b ++ $c")
     }
   }
 
@@ -91,7 +235,8 @@ object BuildGenYaml {
 
     // extends - add Module as base if there are children but no explicit supertypes
     val allSupertypes = supertypes ++ mixins
-    val effectiveSupertypes = if (allSupertypes.isEmpty && children.nonEmpty) Seq("Module") else allSupertypes
+    val effectiveSupertypes =
+      if (allSupertypes.isEmpty && children.nonEmpty) Seq("Module") else allSupertypes
     if (effectiveSupertypes.nonEmpty) {
       lines += renderYamlExtends(effectiveSupertypes)
     }
@@ -107,8 +252,10 @@ object BuildGenYaml {
 
     // mvnDeps (including mandatoryMvnDeps merged in)
     val allMvnDeps = mandatoryMvnDeps.base ++ mvnDeps.base
+    val mvnDepsAppendSuper = mandatoryMvnDeps.appendSuper || mvnDeps.appendSuper
     if (allMvnDeps.nonEmpty) {
-      lines += "mvnDeps:"
+      val appendTag = if (mvnDepsAppendSuper) " !append" else ""
+      lines += s"mvnDeps:$appendTag"
       for (dep <- allMvnDeps) lines += s"- ${renderYamlMvnDep(dep)}"
     }
     renderYamlMvnDepsList("compileMvnDeps", compileMvnDeps).foreach(lines += _)
@@ -143,7 +290,10 @@ object BuildGenYaml {
     // Error prone
     renderYamlMvnDepsList("errorProneDeps", errorProneDeps).foreach(lines += _)
     renderYamlStringListValuesPlain("errorProneOptions", errorProneOptions).foreach(lines += _)
-    renderYamlStringListValues("errorProneJavacEnableOptions", errorProneJavacEnableOptions).foreach(lines += _)
+    renderYamlStringListValues(
+      "errorProneJavacEnableOptions",
+      errorProneJavacEnableOptions
+    ).foreach(lines += _)
 
     // Publishing
     renderYamlStringValue("artifactName", artifactName).foreach(lines += _)
@@ -181,7 +331,8 @@ object BuildGenYaml {
   private val typesToQualify = Map(
     "ScalaJSModule" -> "mill.scalajslib.ScalaJSModule",
     "ScalaNativeModule" -> "mill.scalanativelib.ScalaNativeModule",
-    "ErrorProneModule" -> "mill.javalib.errorprone.ErrorProneModule"
+    "ErrorProneModule" -> "mill.javalib.errorprone.ErrorProneModule",
+    "ProjectBaseModule" -> "millbuild.ProjectBaseModule"
   )
 
   private def fullyQualifyType(typeName: String): String = {
@@ -192,6 +343,7 @@ object BuildGenYaml {
     values.mkString("[", ", ", "]")
 
   private def renderYamlModuleDeps(name: String, deps: Values[ModuleDep]): Option[String] = {
+    // moduleDeps is handled at compile time, so we just inline values without !append
     if (deps.base.isEmpty) None
     else {
       val depStrings = deps.base.map(renderYamlModuleDep)
@@ -227,7 +379,9 @@ object BuildGenYaml {
   private def renderYamlMvnDepsList(name: String, deps: Values[MvnDep]): Seq[String] = {
     if (deps.base.isEmpty) Nil
     else {
-      s"$name:" +: deps.base.map(dep => s"- ${renderYamlMvnDep(dep)}")
+      val appendTag = if (deps.appendSuper) " !append" else ""
+      val depLines = deps.base.map(dep => s"- ${renderYamlMvnDep(dep)}")
+      s"$name:$appendTag" +: depLines
     }
   }
 
@@ -240,16 +394,20 @@ object BuildGenYaml {
   }
 
   private def renderYamlStringListValues(name: String, values: Values[Opt]): Seq[String] = {
-    if (values.base.isEmpty) Nil
+    val flatOpts = values.base.flatMap(_.group)
+    if (flatOpts.isEmpty) Nil
     else {
-      val flatOpts = values.base.flatMap(_.group)
-      Seq(s"$name: ${renderYamlStringList(flatOpts)}")
+      val appendTag = if (values.appendSuper) "!append " else ""
+      Seq(s"$name: $appendTag${renderYamlStringList(flatOpts)}")
     }
   }
 
   private def renderYamlStringListValuesPlain(name: String, values: Values[String]): Seq[String] = {
     if (values.base.isEmpty) Nil
-    else Seq(s"$name: ${renderYamlStringList(values.base)}")
+    else {
+      val appendTag = if (values.appendSuper) "!append " else ""
+      Seq(s"$name: $appendTag${renderYamlStringList(values.base)}")
+    }
   }
 
   private def renderYamlSourcesList(name: String, values: Values[os.RelPath]): Seq[String] = {
@@ -263,7 +421,8 @@ object BuildGenYaml {
   private def renderYamlPomSettings(value: Value[PomSettings]): Seq[String] = {
     value.base.flatMap { pom =>
       val content = Seq.newBuilder[String]
-      if (pom.description.nonEmpty) content += s"  description: ${yamlEscapeString(pom.description)}"
+      if (pom.description.nonEmpty)
+        content += s"  description: ${yamlEscapeString(pom.description)}"
       if (pom.organization.nonEmpty) content += s"  organization: ${pom.organization}"
       if (pom.url.nonEmpty && !containsPlaceholder(pom.url)) content += s"  url: ${pom.url}"
       if (pom.licenses.nonEmpty) {
@@ -303,8 +462,10 @@ object BuildGenYaml {
 
   private def yamlEscapeString(s: String): String = {
     // Simple escaping for YAML strings - quote if contains special chars
-    if (s.contains(":") || s.contains("#") || s.contains("\"") || s.contains("'") ||
-        s.contains("\n") || s.startsWith(" ") || s.endsWith(" ") || s.contains(",")) {
+    if (
+      s.contains(":") || s.contains("#") || s.contains("\"") || s.contains("'") ||
+      s.contains("\n") || s.startsWith(" ") || s.endsWith(" ") || s.contains(",")
+    ) {
       "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
     } else {
       s
@@ -313,9 +474,11 @@ object BuildGenYaml {
 
   private def yamlEscapeStringInList(s: String): String = {
     // For list items, we need to quote strings containing commas, brackets, or other special chars
-    if (s.contains(",") || s.contains("[") || s.contains("]") || s.contains(":") ||
-        s.contains("#") || s.contains("\"") || s.contains("'") || s.contains("\n") ||
-        s.startsWith(" ") || s.endsWith(" ")) {
+    if (
+      s.contains(",") || s.contains("[") || s.contains("]") || s.contains(":") ||
+      s.contains("#") || s.contains("\"") || s.contains("'") || s.contains("\n") ||
+      s.startsWith(" ") || s.endsWith(" ")
+    ) {
       "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
     } else {
       s

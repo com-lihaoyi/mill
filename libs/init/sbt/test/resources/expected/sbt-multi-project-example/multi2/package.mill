@@ -43,6 +43,6 @@ object `package` extends ProjectBaseModule {
     Seq(Developer("johnd", "John Doe", "https://example.com/johnd", None, None))
   )
 
-  object test extends Tests {}
+  object test extends ProjectBaseTests {}
 
 }

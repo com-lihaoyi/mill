@@ -125,6 +125,7 @@ final class EvaluatorImpl(
 
   def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]): Seq[Result.Failure] = {
     val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
+      .map { case (k, v) => k -> mill.api.internal.AppendLocated(v, append = false) }
     val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
 
     allModules.flatMap { module =>

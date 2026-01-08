@@ -1,8 +1,5 @@
-extends: [MavenModule, PublishModule]
+extends: [millbuild.ProjectBaseModule, PublishModule]
 moduleDeps: [list]
-depManagement:
-- org.apache.commons:commons-text:1.13.0
-javacOptions: [-source, 21, -target, 21]
 artifactName: utilities
 pomSettings:
   organization: org.gradle.sample

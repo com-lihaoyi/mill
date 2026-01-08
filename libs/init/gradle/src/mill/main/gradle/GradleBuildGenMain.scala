@@ -58,6 +58,11 @@ object GradleBuildGenMain {
       finally gradleConnector.disconnect()
     packages = normalizeBuild(packages)
 
+    val (baseModule, packages0) = BuildGen.withBaseModule(
+      packages,
+      Seq("MavenModule"),
+      Seq("MavenTests")
+    ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     val millJvmOpts = {
       val properties = new Properties()
       val file = os.pwd / "gradle/wrapper/gradle-wrapper.properties"
@@ -65,7 +70,7 @@ object GradleBuildGenMain {
       val prop = properties.getProperty("org.gradle.jvmargs")
       if (prop == null) Nil else prop.trim.split("\\s").toSeq
     }
-    BuildGenYaml.writeBuildFiles(packages, merge.value, millJvmId, millJvmOpts)
+    BuildGenYaml.writeBuildFiles(packages0, merge.value, baseModule, millJvmId, millJvmOpts)
   }
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {
