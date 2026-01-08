@@ -44,6 +44,24 @@ trait GroupExecution {
 
   import mill.api.internal.{Located, AppendLocated}
 
+  /** Evaluate a build override YAML value and deserialize it */
+  private def evaluateBuildOverride(
+      appendLocated: AppendLocated[BufferedValue],
+      labelled: Task.Named[_]
+  ): Either[upickle.core.TraceVisitor.TraceException, Any] = {
+    try {
+      Right(PathRef.currentOverrideModulePath.withValue(
+        labelled.ctx.enclosingModule.moduleCtx.millSourcePath
+      ) {
+        upickle.read[Any](interpolateEnvVarsInJson(appendLocated.value))(
+          using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+        )
+      })
+    } catch {
+      case e: upickle.core.TraceVisitor.TraceException => Left(e)
+    }
+  }
+
   /** Extract append flag and actual value from wrapper object if present */
   private def unwrapAppendMarker(v: BufferedValue): (BufferedValue, Boolean) = {
     v match {
@@ -209,223 +227,240 @@ trait GroupExecution {
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
-        staticBuildOverrides.get(labelled.ctx.segments.render)
+        val buildOverrideOpt = staticBuildOverrides.get(labelled.ctx.segments.render)
           .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render).map(loc =>
             AppendLocated(loc, append = false)
-          )) match {
+          ))
 
-          case Some(appendLocated) =>
-            lazy val originalText = os.read(appendLocated.path)
-            lazy val strippedText = originalText.replace("\n//|", "\n")
-            lazy val lookupLineSuffix = fastparse
-              .IndexedParserInput(strippedText)
-              .prettyIndex(appendLocated.index)
-              .takeWhile(_ != ':') // split off column since it's not that useful
+        // Helper to evaluate the task with full caching support
+        def evaluateTaskWithCaching(): GroupExecution.Results = {
+          val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
-            val (execRes, serializedPaths) =
-              if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
-                // If the build override conflicts with a task defined in the mill-build/build.mill,
-                // it is probably a user error so fail loudly. In other scenarios, it may be an
-                // intentional override, but in this one case we can be reasonably sure it's a mistake
+          // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
+          val (multiLogger, fileLoggerOpt) = resolveLogger(Some(paths).map(_.log), logger)
+          val upToDateWorker = loadUpToDateWorker(
+            logger = logger,
+            inputsHash = inputsHash,
+            labelled = labelled,
+            forceDiscard = cached.isEmpty,
+            deps = deps,
+            paths = Some(paths),
+            upstreamPathRefs = upstreamPathRefs,
+            exclusive = exclusive,
+            multiLogger = multiLogger,
+            counterMsg = countMsg,
+            destCreator = new GroupExecution.DestCreator(Some(paths)),
+            terminal = terminal
+          )
 
-                (
-                  ExecResult.Failure(
-                    s"Build header config in ${appendLocated.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
-                      s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
-                  ),
-                  Nil
+          val cachedValueAndHash =
+            upToDateWorker.map(w => (w -> Nil, inputsHash))
+              .orElse(cached.flatMap { case (_, valOpt, valueHash) =>
+                valOpt.map((_, valueHash))
+              })
+
+          cachedValueAndHash match {
+            case Some(((v, serializedPaths), hashCode)) =>
+              val res = ExecResult.Success((v, hashCode))
+              val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
+                Map(labelled -> res)
+
+              GroupExecution.Results(
+                newResults = newResults,
+                newEvaluated = Nil,
+                cached = true,
+                inputsHash = inputsHash,
+                previousInputsHash = -1,
+                valueHashChanged = false,
+                serializedPaths = serializedPaths
+              )
+
+            case _ =>
+              // uncached
+              if (!labelled.persistent && os.exists(paths.dest)) {
+                logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
+                os.remove.all(paths.dest)
+              }
+
+              val (newResults, newEvaluated) =
+                executeGroup(
+                  group = group,
+                  results = results,
+                  inputsHash = inputsHash,
+                  paths = Some(paths),
+                  taskLabelOpt = Some(terminal.toString),
+                  counterMsg = countMsg,
+                  reporter = zincProblemReporter,
+                  testReporter = testReporter,
+                  logger = logger,
+                  executionContext = executionContext,
+                  exclusive = exclusive,
+                  deps = deps,
+                  upstreamPathRefs = upstreamPathRefs,
+                  terminal = labelled
                 )
-              } else {
-                // apply build override
-                try {
-                  // If !append tag is present, evaluate the task to get parent value
-                  val parentValue: Option[Seq[Any]] = if (appendLocated.append) {
-                    val taskInputValues = labelled.inputs
-                      .map(results(_))
-                      .collect { case ExecResult.Success((v, _)) => v }
 
-                    if (taskInputValues.length != labelled.inputs.length) None
-                    else {
-                      val (multiLogger, _) = resolveLogger(Some(paths).map(_.log), logger)
-                      val destCreator = new GroupExecution.DestCreator(Some(paths))
-                      val args = new mill.api.TaskCtx.Impl(
-                        args = taskInputValues.map(_.value).toIndexedSeq,
-                        dest0 = () => destCreator.makeDest(),
-                        log = multiLogger,
-                        env = env,
-                        reporter = zincProblemReporter,
-                        testReporter = testReporter,
-                        workspace = workspace,
-                        _systemExitWithReason = systemExit,
-                        fork = executionContext,
-                        jobs = effectiveThreadCount,
-                        offline = offline,
-                        useFileLocks = useFileLocks
-                      )
-                      labelled.evaluate(args) match {
-                        case Result.Success(v) => Some(v.asInstanceOf[Seq[Any]])
-                        case _ => None
-                      }
-                    }
-                  } else None
+              val (valueHash, serializedPaths) = newResults(labelled) match {
+                case ExecResult.Success((v, _)) =>
+                  val valueHash = getValueHash(v, terminal, inputsHash)
+                  val serializedPaths =
+                    handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                  (valueHash, serializedPaths)
 
-                  val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-                    PathRef.currentOverrideModulePath.withValue(
-                      labelled.ctx.enclosingModule.moduleCtx.millSourcePath
-                    ) {
-                      val yamlValue =
-                        upickle.read[Any](interpolateEnvVarsInJson(appendLocated.value))(
-                          using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-                        )
-                      // Merge parent value with YAML value if !append was present
-                      parentValue match {
-                        case Some(parent) =>
-                          (parent ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
-                        case None => yamlValue
-                      }
-                    }
-                  }
+                case _ =>
+                  // Wipe out any cached meta.json file that exists, so
+                  // a following run won't look at the cached metadata file and
+                  // assume it's associated with the possibly-borked state of the
+                  // destPath after an evaluation failure.
+                  os.remove.all(paths.meta)
+                  (0, Nil)
+              }
 
+              GroupExecution.Results(
+                newResults = newResults,
+                newEvaluated = newEvaluated.toSeq,
+                cached =
+                  if (
+                    labelled.isInstanceOf[Task.Input[?]] ||
+                    labelled.isInstanceOf[Task.Uncached[?]]
+                  ) null
+                  else false,
+                inputsHash = inputsHash,
+                previousInputsHash = cached.map(_._1).getOrElse(-1),
+                valueHashChanged = !cached.map(_._3).contains(valueHash),
+                serializedPaths = serializedPaths
+              )
+          }
+        }
+
+        // Helper to evaluate build override only (no task evaluation)
+        def evaluateBuildOverrideOnly(appendLocated: AppendLocated[BufferedValue])
+            : GroupExecution.Results = {
+          lazy val originalText = os.read(appendLocated.path)
+          lazy val strippedText = originalText.replace("\n//|", "\n")
+          lazy val lookupLineSuffix = fastparse
+            .IndexedParserInput(strippedText)
+            .prettyIndex(appendLocated.index)
+            .takeWhile(_ != ':')
+
+          val (execRes, serializedPaths) =
+            if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
+              (
+                ExecResult.Failure(
+                  s"Build header config in ${appendLocated.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
+                    s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
+                ),
+                Nil
+              )
+            } else {
+              evaluateBuildOverride(appendLocated, labelled) match {
+                case Right(yamlValue) =>
+                  val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
                   // Write build header override JSON to meta `.json` file to support `show`
                   writeCacheJson(
                     paths.meta,
                     upickle.core.BufferedValue.transform(appendLocated.value, ujson.Value),
-                    resultData.##,
+                    data.##,
                     inputsHash + appendLocated.value.##
                   )
-
-                  (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
-                } catch {
-                  case e: upickle.core.TraceVisitor.TraceException =>
-                    // Try to get more specific index from AbortException if available
-                    val errorIndex = e.getCause match {
-                      case abort: upickle.core.AbortException => abort.index
-                      case _ => appendLocated.value.index
-                    }
-
-                    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
-                    (
-                      ExecResult.Failure(
-                        s"Failed de-serializing config override: ${e.getCause.getMessage}",
-                        Some(Result.Failure(
-                          msg,
-                          path = appendLocated.path.toNIO,
-                          index = errorIndex
-                        ))
-                      ),
-                      Nil
-                    )
-                }
+                  (ExecResult.Success(Val(data), data.##), serializedPaths)
+                case Left(e) =>
+                  val errorIndex = e.getCause match {
+                    case abort: upickle.core.AbortException => abort.index
+                    case _ => appendLocated.value.index
+                  }
+                  val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                  (
+                    ExecResult.Failure(
+                      msg,
+                      Some(Result.Failure(
+                        msg,
+                        path = appendLocated.path.toNIO,
+                        index = errorIndex
+                      ))
+                    ),
+                    Nil
+                  )
               }
+            }
 
-            GroupExecution.Results(
-              newResults = Map(labelled -> execRes),
-              newEvaluated = Nil,
-              cached = true,
-              inputsHash = inputsHash,
-              previousInputsHash = -1,
-              valueHashChanged = false,
-              serializedPaths = serializedPaths
-            )
+          GroupExecution.Results(
+            newResults = Map(labelled -> execRes),
+            newEvaluated = Nil,
+            cached = true,
+            inputsHash = inputsHash,
+            previousInputsHash = -1,
+            valueHashChanged = false,
+            serializedPaths = serializedPaths
+          )
+        }
 
-          case None => // no build overrides
-            val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+        // Three-way conditional:
+        // 1. Build override only (!append): just evaluate YAML
+        // 2. Both (append): evaluate task with caching, evaluate YAML, merge
+        // 3. Task only (no override): evaluate task with caching
+        buildOverrideOpt match {
+          case Some(appendLocated) if appendLocated.append =>
+            // Both: evaluate task with caching, then merge with YAML override
+            val taskResults = evaluateTaskWithCaching()
 
-            // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
-            val (multiLogger, fileLoggerOpt) = resolveLogger(Some(paths).map(_.log), logger)
-            val upToDateWorker = loadUpToDateWorker(
-              logger = logger,
-              inputsHash = inputsHash,
-              labelled = labelled,
-              forceDiscard = cached.isEmpty,
-              deps = deps,
-              paths = Some(paths),
-              upstreamPathRefs = upstreamPathRefs,
-              exclusive = exclusive,
-              multiLogger = multiLogger,
-              counterMsg = countMsg,
-              destCreator = new GroupExecution.DestCreator(Some(paths)),
-              terminal = terminal
-            )
+            // Get the task's evaluated value
+            val taskValue = taskResults.newResults.get(labelled).flatMap {
+              case ExecResult.Success((v, _)) => Some(v.value.asInstanceOf[Seq[Any]])
+              case _ => None
+            }
 
-            val cachedValueAndHash =
-              upToDateWorker.map(w => (w -> Nil, inputsHash))
-                .orElse(cached.flatMap { case (_, valOpt, valueHash) =>
-                  valOpt.map((_, valueHash))
-                })
-
-            cachedValueAndHash match {
-              case Some(((v, serializedPaths), hashCode)) =>
-                val res = ExecResult.Success((v, hashCode))
-                val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
-                  Map(labelled -> res)
-
+            // Evaluate the YAML override and merge
+            evaluateBuildOverride(appendLocated, labelled) match {
+              case Right(yamlValue) =>
+                val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
+                  taskValue match {
+                    case Some(parent) =>
+                      (parent ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
+                    case None => yamlValue
+                  }
+                }
+                // Don't write cache here - the task evaluation already wrote its cache
                 GroupExecution.Results(
-                  newResults = newResults,
-                  newEvaluated = Nil,
-                  cached = true,
+                  newResults = Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
+                  newEvaluated = taskResults.newEvaluated,
+                  cached = taskResults.cached,
                   inputsHash = inputsHash,
-                  previousInputsHash = -1,
-                  valueHashChanged = false,
+                  previousInputsHash = taskResults.previousInputsHash,
+                  valueHashChanged = taskResults.valueHashChanged,
                   serializedPaths = serializedPaths
                 )
-
-              case _ =>
-                // uncached
-                if (!labelled.persistent && os.exists(paths.dest)) {
-                  logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
-                  os.remove.all(paths.dest)
+              case Left(e) =>
+                val errorIndex = e.getCause match {
+                  case abort: upickle.core.AbortException => abort.index
+                  case _ => appendLocated.value.index
                 }
-
-                val (newResults, newEvaluated) =
-                  executeGroup(
-                    group = group,
-                    results = results,
-                    inputsHash = inputsHash,
-                    paths = Some(paths),
-                    taskLabelOpt = Some(terminal.toString),
-                    counterMsg = countMsg,
-                    reporter = zincProblemReporter,
-                    testReporter = testReporter,
-                    logger = logger,
-                    executionContext = executionContext,
-                    exclusive = exclusive,
-                    deps = deps,
-                    upstreamPathRefs = upstreamPathRefs,
-                    terminal = labelled
-                  )
-
-                val (valueHash, serializedPaths) = newResults(labelled) match {
-                  case ExecResult.Success((v, _)) =>
-                    val valueHash = getValueHash(v, terminal, inputsHash)
-                    val serializedPaths =
-                      handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                    (valueHash, serializedPaths)
-
-                  case _ =>
-                    // Wipe out any cached meta.json file that exists, so
-                    // a following run won't look at the cached metadata file and
-                    // assume it's associated with the possibly-borked state of the
-                    // destPath after an evaluation failure.
-                    os.remove.all(paths.meta)
-                    (0, Nil)
-                }
-
+                val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
                 GroupExecution.Results(
-                  newResults = newResults,
-                  newEvaluated = newEvaluated.toSeq,
-                  cached =
-                    if (
-                      labelled.isInstanceOf[Task.Input[?]] ||
-                      labelled.isInstanceOf[Task.Uncached[?]]
-                    ) null
-                    else false,
+                  newResults = Map(labelled -> ExecResult.Failure(
+                    msg,
+                    Some(Result.Failure(
+                      msg,
+                      path = appendLocated.path.toNIO,
+                      index = errorIndex
+                    ))
+                  )),
+                  newEvaluated = taskResults.newEvaluated,
+                  cached = taskResults.cached,
                   inputsHash = inputsHash,
-                  previousInputsHash = cached.map(_._1).getOrElse(-1),
-                  valueHashChanged = !cached.map(_._3).contains(valueHash),
-                  serializedPaths = serializedPaths
+                  previousInputsHash = taskResults.previousInputsHash,
+                  valueHashChanged = taskResults.valueHashChanged,
+                  serializedPaths = Nil
                 )
             }
+
+          case Some(appendLocated) =>
+            // Build override only (no append)
+            evaluateBuildOverrideOnly(appendLocated)
+
+          case None =>
+            // Task only (no build override)
+            evaluateTaskWithCaching()
         }
       case _ =>
         val (newResults, newEvaluated) = executeGroup(
