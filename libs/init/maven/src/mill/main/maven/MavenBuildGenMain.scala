@@ -16,8 +16,6 @@ object MavenBuildGenMain {
       publishProperties: mainargs.Flag,
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
-      @mainargs.arg(doc = "disable generating meta-build files")
-      noMeta: mainargs.Flag,
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
       millJvmId: Option[String]
   ): Unit = {
@@ -167,14 +165,7 @@ object MavenBuildGenMain {
     }
     packages = normalizeBuild(packages)
 
-    val (depNames, packages0) =
-      if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
-    val (baseModule, packages1) = Option.when(!noMeta.value)(BuildGen.withBaseModule(
-      packages0,
-      Seq("MavenModule"),
-      Seq("MavenTests")
-    )).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
-    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmId)
+    BuildGen.writeBuildFiles(packages, merge.value, millJvmId)
   }
 
   private def isBom(dep: Dependency) = dep.getScope == "import" && dep.getType == "pom"
