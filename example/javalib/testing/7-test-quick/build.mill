@@ -1,3 +1,7 @@
+// Mill's `testQuick` command enables efficient, fine-grained selective test execution for JVM projects.
+// Between runs, Mill leverages its bytecode analysis to determine which test classes are potentially impacted by recent code changes,
+// and executes only those tests. If a test fails, it will continue to be executed on future runs until it passes, regardless of further code changes.
+
 //// SNIPPET:BUILD1
 package build
 import mill._, javalib._
@@ -11,7 +15,7 @@ object foo extends JavaModule {
       mvn"com.novocode:junit-interface:0.11" // sbt-compatible JUnit interface
     )
   }
-  // Ultilities for replacing text in files
+  // Utilities for replacing text in files
   def replaceBar(args: String*) = Task.Command {
     val relativePath = os.RelPath("../../../foo/src/Bar.java")
     val filePath = Task.dest() / relativePath
@@ -26,8 +30,55 @@ object foo extends JavaModule {
     val filePath = Task.dest() / relativePath
     os.write.over(filePath, os.read(filePath).replace(
       """assertEquals("Hi, " + name + "!", greeted);""",
-      """assertEquals("Ciao, " + name + "!", greeted);""",
+      """assertEquals("Ciao, " + name + "!", greeted);"""
     ))
   }
 }
 //// SNIPPET:END
+
+/** Usage
+> mill -j 1 foo.test.testQuick # First run executes all tests, resulting in 2 passed tests
+
+> cat out/foo/test/testQuick.dest/worker-0/result.log # Result log shows [2,0] indicating 2 passed tests, 0 failed
+[2,0]
+
+> mill -j 1 foo.test.testQuick # Second run skips all tests since no code changes were made
+
+> cat out/foo/test/testQuick.dest/worker-0/result.log # Result log shows [0,0] indicating no tests were executed
+[0,0]
+
+> mill -j 1 foo.replaceBar # Modify Bar.java to change greeting from "Hi" to "Ciao"
+
+> mill -j 1 foo.test.testQuick # Third run executes only FooTest2 which fails due to greeting mismatch
+error: ...
+
+> cat out/foo/test/testQuick.dest/worker-0/result.log # Result log shows [0,1] indicating 0 passed tests, 1 failed
+[0,1]
+
+> mill -j 1 foo.test.testQuick # Fourth run re-runs failing FooTest2 even without code changes
+error: ...
+
+> cat out/foo/test/testQuick.dest/worker-0/result.log # Result log shows [0,1] as test continues to fail
+[0,1]
+
+> mill -j 1 foo.replaceFooTest2 # Update test assertion to expect "Ciao" instead of "Hi"
+
+> mill -j 1 foo.test.testQuick # Fifth run executes FooTest2 which now passes
+
+> cat out/foo/test/testQuick.dest/worker-0/result.log # Result log shows [1,0] indicating the previously failing test now passes
+[1,0]
+*/
+
+// In this example, `testQuick` is used to demonstrate fine-grained, change-driven test execution within a module:
+//
+// - On the first invocation, `mill foo.test.testQuick` executes all test classes in the module and reports the results.
+// - If you invoke `testQuick` again without modifying any source files, Mill detects that there are no relevant changes
+// and skips test execution entirely.
+// - When you update a source file, Mill analyzes the bytecode and determines which test classes are potentially impacted by the change.
+// Only those affected tests are executed on the next run.
+// - If a test fails, it will continue to be executed on subsequent runs until it passes, regardless of whether further code changes are made.
+// - Once the failing test is fixed, and the test passes,
+// `testQuick` will again skip running tests unless new changes are detected.
+//
+// This approach allows you to focus on the tests that matter after each change, minimizing unnecessary test execution and reducing feedback time,
+// especially in large or monolithic projects.

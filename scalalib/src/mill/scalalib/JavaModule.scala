@@ -199,15 +199,25 @@ trait JavaModule
 
       val results = testModuleUtil.runTests()
 
+      // Get the set of discovered test classes for normalization
+      val discoveredClasses = testClasses.flatten.toSet
+
       val badTestClasses = (results match {
         case Result.Failure(_) =>
           // Consider all quick testing classes as failed
           quickTestClassLists.flatten
         case Result.Success((_, results)) =>
           // Get all test classes that failed
+          // Note: Some test frameworks (like JUnit 4 with junit-interface) report
+          // fullyQualifiedName as "class.method" (e.g., "foo.FooTest.test1"),
+          // while discoveredTestClasses returns just the class name (e.g., "foo.FooTest").
+          // We normalize by finding the discovered class that matches each result.
           results
             .filter(testResult => Set("Error", "Failure").contains(testResult.status))
             .map(_.fullyQualifiedName)
+            .flatMap { fqn =>
+              discoveredClasses.find(cls => fqn == cls || fqn.startsWith(cls + "."))
+            }
       }).distinct
       
       os.write.over(quicktestFailedClassesLog, upickle.default.write(badTestClasses))

@@ -1,0 +1,18 @@
+package build
+
+import mill._, javalib._
+
+object lib extends JavaModule
+
+object app extends JavaModule {
+  def moduleDeps = Seq(lib)
+
+  object test extends JavaTests {
+    def testFramework = "com.novocode.junit.JUnitFramework"
+    def mvnDeps = Seq(
+      mvn"junit:junit:4.13.2",
+      mvn"com.novocode:junit-interface:0.11"
+    )
+    def moduleDeps = Seq(app)
+  }
+}
