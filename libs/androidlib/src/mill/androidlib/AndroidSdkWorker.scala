@@ -11,13 +11,12 @@ import java.util.concurrent.Executors
 @mill.api.experimental
 class AndroidSdkWorker(androidSdkManagerLockFile: os.Path, maxAttempts: Int) extends AutoCloseable {
 
-  val workerThread = Executors.newSingleThreadExecutor()
+  private val workerThread = Executors.newSingleThreadExecutor()
 
-  val lock = Lock.file(androidSdkManagerLockFile.toString)
+  private val lock = Lock.file(androidSdkManagerLockFile.toString)
 
   private def acquireLock(using ctx: mill.api.TaskCtx): TryLocked = {
     var attempts = 0
-    val maxAttempts = 10
     var tryLock: TryLocked = lock.tryLock()
     while (!tryLock.isLocked) {
       tryLock.close()
@@ -39,5 +38,5 @@ class AndroidSdkWorker(androidSdkManagerLockFile: os.Path, maxAttempts: Int) ext
     workerThread.submit(() => scala.util.Using.resource(acquireLock)(_ => f())).get()
   }
 
-  override def close(): Unit = workerThread.close()
+  override def close(): Unit = workerThread.shutdown()
 }
