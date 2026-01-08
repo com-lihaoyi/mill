@@ -57,6 +57,10 @@ object foo extends ScalaModule with ShadingModule {
 > unzip -l out/foo/shadedJar.dest/shaded.jar | grep -E "shaded/fansi" | head -3
 ...shaded/fansi...
 
+> ./mill foo.run
+...shaded fansi...
+...Hello...World...
+
 */
 //// SNIPPET:END
 

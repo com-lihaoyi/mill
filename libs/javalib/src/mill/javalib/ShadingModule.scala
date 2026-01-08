@@ -47,8 +47,9 @@ trait ShadingModule extends JavaModule {
    * Package relocation rules for shaded dependencies.
    *
    * Each rule is a tuple of (fromPattern, toPattern) where:
-   * - `fromPattern` uses `**` to match any characters (e.g., `com.google.**`)
-   * - `toPattern` uses `@1` as a backreference to the matched portion
+   * - `fromPattern` uses `**` to match any characters including `.` (e.g., `com.google.**`)
+   * - `fromPattern` uses `*` to match a single package component (excluding `.`)
+   * - `toPattern` uses `@1`, `@2`, etc. as backreferences to matched wildcards (left to right)
    *
    * Example:
    * {{{
@@ -57,6 +58,10 @@ trait ShadingModule extends JavaModule {
    *   ("org.apache.commons.**", "myapp.shaded.commons.@1")
    * )
    * }}}
+   *
+   * Note: If [[shadedMvnDeps]] is non-empty but this is empty, dependencies will be
+   * bundled without relocation. A warning will be logged in this case since it rarely
+   * makes sense to bundle without relocating.
    */
   def shadeRelocations: T[Seq[(String, String)]] = Task { Seq.empty[(String, String)] }
 
@@ -94,17 +99,27 @@ trait ShadingModule extends JavaModule {
    *
    * This JAR includes:
    * - All classes from [[resolvedShadedDeps]]
-   * - Package names rewritten according to [[shadeRelocations]]
+   * - Package names rewritten according to [[shadeRelocations]] (if any)
    * - Resources from shaded dependencies
+   *
+   * If [[shadeRelocations]] is empty, dependencies are bundled without relocation.
    */
   def shadedJar: T[PathRef] = Task {
     if (shadedMvnDeps().isEmpty || resolvedShadedDeps().isEmpty) {
-      // Create empty JAR if no shaded deps
       val jar = Task.dest / "shaded.jar"
       Jvm.createJar(jar, Seq.empty, JarManifest.Empty)
       PathRef(jar)
     } else {
-      val relocateRules = shadeRelocations().map { case (from, to) =>
+      val relocations = shadeRelocations()
+      if (relocations.isEmpty) {
+        Task.log.error(
+          "shadedMvnDeps is non-empty but shadeRelocations is empty. " +
+            "Dependencies will be bundled without package relocation, which may cause classpath conflicts. " +
+            "Consider adding relocation rules, e.g.: def shadeRelocations = Seq((\"com.google.**\", \"shaded.google.@1\"))"
+        )
+      }
+
+      val relocateRules = relocations.map { case (from, to) =>
         Assembly.Rule.Relocate(from, to)
       }
 
@@ -122,8 +137,9 @@ trait ShadingModule extends JavaModule {
   /**
    * Compile classpath with shaded dependencies replaced by the shaded JAR.
    *
-   * This allows source code to import and use the relocated package names
-   * (e.g., `import shaded.gson.Gson` instead of `import com.google.gson.Gson`).
+   * Source code must use the relocated package names in imports
+   * (e.g., `import shaded.gson.Gson` instead of `import com.google.gson.Gson`)
+   * since the original packages will not exist at runtime.
    */
   override def compileClasspath: T[Seq[PathRef]] = Task {
     if (shadedMvnDeps().isEmpty) super.compileClasspath()

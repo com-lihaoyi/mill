@@ -54,6 +54,10 @@ object foo extends JavaModule with ShadingModule {
 > unzip -l out/foo/shadedJar.dest/shaded.jar | grep -E "shaded/gson" | head -3
 ...shaded/gson...
 
+> ./mill foo.run
+Serialized with shaded Gson:
+...Alice...
+
 */
 //// SNIPPET:END
 

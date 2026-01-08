@@ -2,6 +2,7 @@ package mill.javalib
 
 import mill.*
 import mill.api.Discover
+import mill.javalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
@@ -13,6 +14,7 @@ object ShadingModuleTests extends TestSuite {
 
   // Simple dependency for testing shading
   val gsonDep = Seq(mvn"com.google.code.gson:gson:2.10.1")
+  val slf4jDep = Seq(mvn"org.slf4j:slf4j-api:2.0.9")
 
   trait TestJavaModule extends JavaModule {
     def jvmId = "11"
@@ -31,7 +33,7 @@ object ShadingModuleTests extends TestSuite {
   object ShadingNoRelocationsModule extends TestRootModule {
     object core extends TestJavaModule with ShadingModule {
       override def shadedMvnDeps = gsonDep
-      // No relocations - should still bundle deps
+      // No relocations - should still bundle deps (with warning)
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -39,6 +41,26 @@ object ShadingModuleTests extends TestSuite {
   object NoShadingModule extends TestRootModule {
     object core extends TestJavaModule with ShadingModule {
       // No shaded deps - should behave like normal JavaModule
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object ShadingPublishTestModule extends TestRootModule {
+    object core extends TestJavaModule with ShadingPublishModule {
+      override def shadedMvnDeps = gsonDep
+      override def mvnDeps = slf4jDep
+      override def shadeRelocations = Seq(
+        ("com.google.gson.**", "shaded.gson.@1")
+      )
+      override def publishVersion = "1.0.0"
+      override def pomSettings = PomSettings(
+        description = "Test",
+        organization = "com.test",
+        url = "https://test.com",
+        licenses = Seq(License.MIT),
+        versionControl = VersionControl.github("test", "test"),
+        developers = Seq(Developer("test", "Test", "https://test.com"))
+      )
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -138,6 +160,57 @@ object ShadingModuleTests extends TestSuite {
           // Relocated classes SHOULD be in the jar
           assert(entries.contains("shaded/gson/Gson.class"))
         }
+      }
+    }
+
+    test("compileClasspath") {
+      test("excludesOriginalShadedDeps") - UnitTester(ShadingTestModule, null).scoped { eval =>
+        val Right(resolvedDeps) = eval.apply(ShadingTestModule.core.resolvedShadedDeps): @unchecked
+        val Right(compileCpResult) = eval.apply(ShadingTestModule.core.compileClasspath): @unchecked
+
+        val shadedDepPaths = resolvedDeps.value.map(_.path).toSet
+        val compileCpPaths = compileCpResult.value.map(_.path).toSet
+
+        // Original shaded dep paths should NOT be in compileClasspath
+        val intersection = shadedDepPaths.intersect(compileCpPaths)
+        assert(intersection.isEmpty)
+      }
+
+      test("includesShadedJar") - UnitTester(ShadingTestModule, null).scoped { eval =>
+        val Right(shadedJarResult) = eval.apply(ShadingTestModule.core.shadedJar): @unchecked
+        val Right(compileCpResult) = eval.apply(ShadingTestModule.core.compileClasspath): @unchecked
+
+        val shadedJarPath = shadedJarResult.value.path
+        val compileCpPaths = compileCpResult.value.map(_.path)
+
+        assert(compileCpPaths.contains(shadedJarPath))
+      }
+    }
+
+    test("noRelocations") {
+      test("bundlesWithoutRelocating") - UnitTester(ShadingNoRelocationsModule, null).scoped { eval =>
+        val Right(result) = eval.apply(ShadingNoRelocationsModule.core.shadedJar): @unchecked
+
+        Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+          val entries = jarEntries(jarFile)
+
+          // Original class names should be present (no relocation)
+          assert(entries.contains("com/google/gson/Gson.class"))
+          // Relocated names should NOT be present
+          assert(!entries.contains("shaded/gson/Gson.class"))
+        }
+      }
+    }
+
+    test("publishXmlDeps") {
+      test("excludesShadedDepsFromPom") - UnitTester(ShadingPublishTestModule, null).scoped { eval =>
+        val Right(result) = eval.apply(ShadingPublishTestModule.core.publishXmlDeps): @unchecked
+        val deps = result.value
+
+        // Shaded deps (gson) should NOT be in publishXmlDeps
+        assert(!deps.exists(d => d.artifact.group == "com.google.code.gson" && d.artifact.id == "gson"))
+        // Non-shaded deps (slf4j) SHOULD be present
+        assert(deps.exists(d => d.artifact.group == "org.slf4j" && d.artifact.id == "slf4j-api"))
       }
     }
   }

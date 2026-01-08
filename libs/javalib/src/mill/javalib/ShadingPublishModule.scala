@@ -7,7 +7,7 @@ import mill.javalib.publish.Dependency
  * A module trait that combines shading support with publishing capabilities.
  *
  * When publishing, this module:
- * - Includes shaded classes directly in the published JAR (via [[ShadingModule.localClasspath]])
+ * - Includes shaded classes directly in the published JAR
  * - Removes shaded dependencies from the POM/ivy.xml metadata
  *
  * This ensures that consumers of your published artifact:
@@ -31,8 +31,8 @@ import mill.javalib.publish.Dependency
  * }}}
  *
  * The shaded JAR contents are automatically included in the published JAR
- * because [[ShadingModule]] adds [[ShadingModule.shadedJar]] to [[localClasspath]],
- * which is used by the [[jar]] task.
+ * because [[ShadingModule]] overrides [[ShadingModule.jar]] to merge
+ * [[ShadingModule.shadedJar]] contents into the output JAR.
  */
 trait ShadingPublishModule extends ShadingModule with PublishModule {
 
