@@ -188,29 +188,33 @@ object ShadingModuleTests extends TestSuite {
     }
 
     test("noRelocations") {
-      test("bundlesWithoutRelocating") - UnitTester(ShadingNoRelocationsModule, null).scoped { eval =>
-        val Right(result) = eval.apply(ShadingNoRelocationsModule.core.shadedJar): @unchecked
+      test("bundlesWithoutRelocating") - UnitTester(ShadingNoRelocationsModule, null).scoped {
+        eval =>
+          val Right(result) = eval.apply(ShadingNoRelocationsModule.core.shadedJar): @unchecked
 
-        Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
-          val entries = jarEntries(jarFile)
+          Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
+            val entries = jarEntries(jarFile)
 
-          // Original class names should be present (no relocation)
-          assert(entries.contains("com/google/gson/Gson.class"))
-          // Relocated names should NOT be present
-          assert(!entries.contains("shaded/gson/Gson.class"))
-        }
+            // Original class names should be present (no relocation)
+            assert(entries.contains("com/google/gson/Gson.class"))
+            // Relocated names should NOT be present
+            assert(!entries.contains("shaded/gson/Gson.class"))
+          }
       }
     }
 
     test("publishXmlDeps") {
-      test("excludesShadedDepsFromPom") - UnitTester(ShadingPublishTestModule, null).scoped { eval =>
-        val Right(result) = eval.apply(ShadingPublishTestModule.core.publishXmlDeps): @unchecked
-        val deps = result.value
+      test("excludesShadedDepsFromPom") - UnitTester(ShadingPublishTestModule, null).scoped {
+        eval =>
+          val Right(result) = eval.apply(ShadingPublishTestModule.core.publishXmlDeps): @unchecked
+          val deps = result.value
 
-        // Shaded deps (gson) should NOT be in publishXmlDeps
-        assert(!deps.exists(d => d.artifact.group == "com.google.code.gson" && d.artifact.id == "gson"))
-        // Non-shaded deps (slf4j) SHOULD be present
-        assert(deps.exists(d => d.artifact.group == "org.slf4j" && d.artifact.id == "slf4j-api"))
+          // Shaded deps (gson) should NOT be in publishXmlDeps
+          assert(!deps.exists(d =>
+            d.artifact.group == "com.google.code.gson" && d.artifact.id == "gson"
+          ))
+          // Non-shaded deps (slf4j) SHOULD be present
+          assert(deps.exists(d => d.artifact.group == "org.slf4j" && d.artifact.id == "slf4j-api"))
       }
     }
   }
