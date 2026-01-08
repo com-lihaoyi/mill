@@ -186,6 +186,12 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       .asInstanceOf[GraalVMMetadataWorker]
   }
 
+  def nativeMetadataConfigurations: T[Seq[MetadataResult]] = Task {
+    nativeGraalVMReachabilityMetadataWorker().findConfigurations(
+      nativeGraalVmMetadataQuery()
+    )
+  }
+
   /**
    * Collects the metadata from [[nativeGraalVMReachabilityMetadata]]
    * for the dependencies defined in [[nativeGraalVmMetadataQuery]].
@@ -198,9 +204,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeMvnDepsMetadata: T[Option[PathRef]] = this match {
     case _: JavaModule => Task {
-        val paths = nativeGraalVMReachabilityMetadataWorker().findConfigurations(
-          nativeGraalVmMetadataQuery()
-        )
+        val paths = nativeMetadataConfigurations()
         val dest = Task.dest / "resources"
         nativeGraalVMReachabilityMetadataWorker().copyDirectoryConfiguration(paths, dest)
         Some(PathRef(dest))
@@ -243,6 +247,42 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       }
   }
 
+  def nativeExcludedConfigJars: T[Seq[PathRef]] = Task {
+
+  }
+
+  def nativeResolvedRunDeps = this match {
+    case m: JavaModule => Task {
+      val dep = m.coursierDependencyTask().withVariantSelector(
+        ConfigurationBased(coursier.core.Configuration.defaultRuntime)
+      )
+      val resolution =
+        m.millResolver().resolution(Seq(mill.javalib.BoundDep(dep, force = false)))
+
+      val deps = resolution.dependencies
+        .groupBy(isValidGAV)
+    }
+  }
+
+  def nativeExcludedConfigJars: T[Seq[PathRef]] = Task {
+    nativeExcludedConfigJars()
+      .flatMap(file =>
+        Seq("--exclude-config", //native image
+          s"\\Q${file.path.toString}\\E",
+          s"^/${containedNativeImageConfig}.*"
+        )
+      )
+  }
+
+  private def isValidGAVSection(value: String): Boolean = value.nonEmpty && !value.contains(':')
+
+  private def isValidGAV(d: coursier.core.Dependency): Boolean =
+    Seq(
+      d.module.organization.value,
+      d.module.name.value,
+      d.versionConstraint.asString
+    ).forall(isValidGAVSection)
+
   /**
    * The GAV coordinates of the dependencies to search for reachability metadata
    * in [[nativeGraalVMReachabilityMetadata]].
@@ -251,16 +291,6 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeGraalVmQueryDeps: T[Set[String]] = this match {
     case m: JavaModule => Task {
-
-        def isValidGAVSection(value: String): Boolean = value.nonEmpty && !value.contains(':')
-
-        def isValidGAV(d: coursier.core.Dependency): Boolean =
-          Seq(
-            d.module.organization.value,
-            d.module.name.value,
-            d.versionConstraint.asString
-          ).forall(isValidGAVSection)
-
         def artifactQueryGav(d: coursier.core.Dependency): String =
           s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
 
