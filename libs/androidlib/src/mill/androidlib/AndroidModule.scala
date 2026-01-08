@@ -242,6 +242,19 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
+   * Gets all the transitive android assets (typically in assets/ directory)
+   * from the [[transitiveModuleDeps]]
+   */
+  def androidTransitiveAssets: T[Seq[PathRef]] = Task {
+    Task.traverse(transitiveModuleDeps) {
+      case m: AndroidModule =>
+        m.androidAssets
+      case _ =>
+        Task.Anon(Seq.empty)
+    }().flatten.distinct
+  }
+
+  /**
    * Gets all the android resources (typically in res/ directory)
    * from the library dependencies using [[androidUnpackRunArchives]]
    * @return
@@ -328,6 +341,11 @@ trait AndroidModule extends JavaModule { outer =>
    * Android res folder
    */
   def androidResources: T[Seq[PathRef]] = Task.Sources("src/main/res")
+
+  /**
+   * Android assets folder
+   */
+  def androidAssets: T[Seq[PathRef]] = Task.Sources("src/main/assets")
 
   /**
    * Constructs the run classpath by extracting JARs from AAR files where
@@ -743,6 +761,8 @@ trait AndroidModule extends JavaModule { outer =>
     val argFile = Task.dest / "to-link.txt"
     os.write.over(argFile, filesToLink.map(_.toString()).mkString("\n"))
 
+    val allAssetsDirs = androidTransitiveAssets() ++ androidLibraryAssets()
+
     val javaRClassDir = Task.dest / "generatedSources/java"
     val apkDir = Task.dest / "apk"
     val proguard = Task.dest / "proguard"
@@ -782,7 +802,7 @@ trait AndroidModule extends JavaModule { outer =>
       resApkFile.toString,
       "-R",
       "@" + argFile.toString
-    ) ++ androidLibraryAssets().map(a => Seq("-A", a.path.toString())).flatten
+    ) ++ allAssetsDirs.flatMap(a => Seq("-A", a.path.toString()))
 
     Task.log.info((aapt2Link ++ linkArgs).mkString(" "))
 
