@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
-import mill.api.internal.Cached
+import mill.api.internal.{AppendLocated, Cached, Located}
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
 
@@ -42,8 +42,6 @@ trait GroupExecution {
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
 
-  import mill.api.internal.{Located, AppendLocated}
-
   /** Evaluate a build override YAML value and deserialize it */
   private def evaluateBuildOverride(
       appendLocated: AppendLocated[BufferedValue],
@@ -61,7 +59,6 @@ trait GroupExecution {
       case e: upickle.core.TraceVisitor.TraceException => Left(e)
     }
   }
-
 
   val staticBuildOverrides: Map[String, AppendLocated[BufferedValue]] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
