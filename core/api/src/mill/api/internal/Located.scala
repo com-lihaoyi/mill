@@ -9,6 +9,29 @@ case class AppendLocated[T](located: Located[T], append: Boolean) {
   def value: T = located.value
 }
 
+object AppendLocated {
+  import upickle.core.BufferedValue
+
+  /**
+   * Extract append flag and actual value from a BufferedValue that may contain
+   * the `__mill_append__` marker object (produced by YAML `!append` tag parsing).
+   * Returns (actualValue, appendFlag).
+   */
+  def unwrapAppendMarker(v: BufferedValue): (BufferedValue, Boolean) = {
+    v match {
+      case obj: BufferedValue.Obj =>
+        val kvMap = obj.value0.collect { case (BufferedValue.Str(k, _), v) =>
+          k.toString -> v
+        }.toMap
+        (kvMap.get("__mill_append__"), kvMap.get("__mill_values__")) match {
+          case (Some(BufferedValue.True(_)), Some(values)) => (values, true)
+          case _ => (v, false)
+        }
+      case _ => (v, false)
+    }
+  }
+}
+
 object Located {
   class UpickleReader[T](path: os.Path)(implicit r: upickle.Reader[T])
       extends upickle.Reader[Located[T]] {

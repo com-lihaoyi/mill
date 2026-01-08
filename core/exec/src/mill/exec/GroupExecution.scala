@@ -62,20 +62,6 @@ trait GroupExecution {
     }
   }
 
-  /** Extract append flag and actual value from wrapper object if present */
-  private def unwrapAppendMarker(v: BufferedValue): (BufferedValue, Boolean) = {
-    v match {
-      case obj: BufferedValue.Obj =>
-        val kvMap = obj.value0.collect { case (BufferedValue.Str(k, _), v) =>
-          k.toString -> v
-        }.toMap
-        (kvMap.get("__mill_append__"), kvMap.get("__mill_values__")) match {
-          case (Some(BufferedValue.True(_)), Some(values)) => (values, true)
-          case _ => (v, false)
-        }
-      case _ => (v, false)
-    }
-  }
 
   val staticBuildOverrides: Map[String, AppendLocated[BufferedValue]] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
@@ -105,7 +91,7 @@ trait GroupExecution {
           )
             .rest
             .map { case (k, v) =>
-              val (actualValue, append) = unwrapAppendMarker(v)
+              val (actualValue, append) = AppendLocated.unwrapAppendMarker(v)
               (segments ++ Seq(k.value)).mkString(".") -> AppendLocated(
                 Located(path, k.index, actualValue),
                 append
@@ -228,9 +214,7 @@ trait GroupExecution {
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
         val buildOverrideOpt = staticBuildOverrides.get(labelled.ctx.segments.render)
-          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render).map(loc =>
-            AppendLocated(loc, append = false)
-          ))
+          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render))
 
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
