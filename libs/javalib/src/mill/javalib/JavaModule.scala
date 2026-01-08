@@ -7,19 +7,12 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{MillException, Result}
+import mill.api.{BuildCtx, DefaultTaskModule, MillException, ModuleRef, PathRef, Result, Segment, Task, TaskCtx}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{
-  BspBuildTarget,
-  BspJavaModuleApi,
-  BspModuleApi,
-  BspUri,
-  JvmBuildTarget
-}
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
-import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
@@ -1101,10 +1094,12 @@ trait JavaModule
    * look up the sources of the dependencies on your classpath so you can find the
    * exact source code you are compiling and running against.
    */
-  def resolvedMvnDepsSources: T[PathRef] = Task {
+  def resolvedMvnSources: T[PathRef] = Task {
     for (jar <- resolvedMvnDeps0(sources = true)()) {
-      os.unzip(jar.path, Task.dest)
+      val jarName = jar.path.last.stripSuffix(".jar")
+      os.unzip(jar.path, Task.dest / jarName)
     }
+    println(s"Unpacked sources of transitive third-party dependencies into ${Task.dest.relativeTo(BuildCtx.workspaceRoot)} for browsing")
     PathRef(Task.dest)
   }
 

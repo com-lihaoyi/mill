@@ -313,7 +313,7 @@ object ResolveDepsTests extends TestSuite {
       }
     }
 
-    test("resolvedMvnDepsSources") {
+    test("resolvedMvnSources") {
       UnitTester(TestCase, null).scoped { eval =>
         // First check that regular resolvedMvnDeps works
         val Right(depsResult) = eval(TestCase.sources.resolvedMvnDeps): @unchecked
@@ -321,13 +321,18 @@ object ResolveDepsTests extends TestSuite {
         assert(deps.nonEmpty)
         assert(deps.exists(_.path.last.contains("geny")))
 
-        // Now check resolvedMvnDepsSources
-        val Right(result) = eval(TestCase.sources.resolvedMvnDepsSources): @unchecked
+        // Now check resolvedMvnSources
+        val Right(result) = eval(TestCase.sources.resolvedMvnSources): @unchecked
         val sourcesDir = result.value.path
 
         // Check that the sources directory exists and contains unpacked source files
         assert(os.exists(sourcesDir))
         assert(os.isDir(sourcesDir))
+
+        // Find the jar directory names for geny and scala-library
+        val jarDirs = os.list(sourcesDir).filter(os.isDir).map(_.last)
+        val genyJar = jarDirs.find(_.contains("geny")).get
+        val scalaLibJar = jarDirs.find(_.contains("scala-library")).get
 
         // Check that source files are unpacked
         val allFiles = os
@@ -337,24 +342,24 @@ object ResolveDepsTests extends TestSuite {
           .sorted
 
         val expected = Set(
-          "geny/ByteData.scala",
-          "geny/Bytes.scala",
-          "geny/Generator.scala",
-          "geny/Internal.scala",
-          "geny/Writable.scala",
-          "rootdoc.txt",
-          "scala/AnyVal.scala",
-          "scala/AnyValCompanion.scala",
-          "scala/App.scala",
-          "scala/Array.scala",
-          "scala/Boolean.scala",
-          "scala/Byte.scala",
-          "scala/Char.scala",
-          "scala/Console.scala",
-          "scala/DelayedInit.scala",
-          "scala/Double.scala",
-          "scala/DummyImplicit.scala",
-          "scala/Dynamic.scala"
+          s"$genyJar/geny/ByteData.scala",
+          s"$genyJar/geny/Bytes.scala",
+          s"$genyJar/geny/Generator.scala",
+          s"$genyJar/geny/Internal.scala",
+          s"$genyJar/geny/Writable.scala",
+          s"$scalaLibJar/rootdoc.txt",
+          s"$scalaLibJar/scala/AnyVal.scala",
+          s"$scalaLibJar/scala/AnyValCompanion.scala",
+          s"$scalaLibJar/scala/App.scala",
+          s"$scalaLibJar/scala/Array.scala",
+          s"$scalaLibJar/scala/Boolean.scala",
+          s"$scalaLibJar/scala/Byte.scala",
+          s"$scalaLibJar/scala/Char.scala",
+          s"$scalaLibJar/scala/Console.scala",
+          s"$scalaLibJar/scala/DelayedInit.scala",
+          s"$scalaLibJar/scala/Double.scala",
+          s"$scalaLibJar/scala/DummyImplicit.scala",
+          s"$scalaLibJar/scala/Dynamic.scala"
         )
 
         assert(expected.subsetOf(allFiles.toSet))
