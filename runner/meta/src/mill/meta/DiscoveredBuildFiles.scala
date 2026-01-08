@@ -105,19 +105,20 @@ object DiscoveredBuildFiles {
     // Check for conflicting build files in the same directory
     val scriptsByDir = walked.groupBy(_ / os.up)
     scriptsByDir.foreach { case (dir, files) =>
-      val hasBuildMill = files.exists(f => buildFileExtensions.asScala.exists(ext => f.last == s"build.$ext"))
+      val hasBuildMill =
+        files.exists(f => buildFileExtensions.asScala.exists(ext => f.last == s"build.$ext"))
       val hasPackageMill = files.exists(f => nestedBuildFileNames.contains(f.last))
 
       if (hasBuildMill && hasPackageMill) {
         val conflictingFiles = files.filter(f =>
           buildFileExtensions.asScala.exists(ext => f.last == s"build.$ext") ||
-          nestedBuildFileNames.contains(f.last)
+            nestedBuildFileNames.contains(f.last)
         ).map(_.last).mkString(", ")
 
         errors.append(
           s"Conflicting build files in ${dir.relativeTo(topLevelProjectRoot)}: $conflictingFiles. " +
-          s"A directory can contain either build.mill (for root/standalone projects) or " +
-          s"package.mill (for submodules), but not both."
+            s"A directory can contain either build.mill (for root/standalone projects) or " +
+            s"package.mill (for submodules), but not both."
         )
       }
     }
