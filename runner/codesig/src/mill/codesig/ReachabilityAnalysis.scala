@@ -40,7 +40,7 @@ class CallGraphAnalysis(
   lazy val methodCodeHashes: SortedMap[String, Int] =
     methods.map { case (k, vs) => (k.toString, vs.codeHash) }.to(SortedMap)
 
-  logger.mandatoryLog(methodCodeHashes)
+  if (logger != null) logger.mandatoryLog(methodCodeHashes)
 
   lazy val prettyCallGraph: SortedMap[String, Array[CallGraphAnalysis.Node]] = {
     indexGraphEdges.zip(indexToNodes).map { case (vs, k) =>
@@ -49,7 +49,7 @@ class CallGraphAnalysis(
       .to(SortedMap)
   }
 
-  logger.mandatoryLog(prettyCallGraph)
+  if (logger != null) logger.mandatoryLog(prettyCallGraph)
 
   def transitiveCallGraphValues[V: scala.reflect.ClassTag](
       nodeValues: Array[V],
@@ -78,8 +78,8 @@ class CallGraphAnalysis(
     .collect { case (CallGraphAnalysis.LocalDef(d), v) => (d.toString, v) }
     .to(SortedMap)
 
-  logger.mandatoryLog(transitiveCallGraphHashes0)
-  logger.log(transitiveCallGraphHashes)
+  if (logger != null) logger.mandatoryLog(transitiveCallGraphHashes0)
+  if (logger != null) logger.log(transitiveCallGraphHashes)
 
   lazy val spanningInvalidationTree: Obj = prevTransitiveCallGraphHashesOpt() match {
     case Some(prevTransitiveCallGraphHashes) =>
@@ -92,7 +92,27 @@ class CallGraphAnalysis(
     case None => ujson.Obj()
   }
 
-  logger.mandatoryLog(spanningInvalidationTree)
+  if (logger != null) logger.mandatoryLog(spanningInvalidationTree)
+
+  /**
+   * Calculate the set of class names that have changed based on the previous
+   * transitive call graph hashes. Used by testQuick to determine which test
+   * classes need to be re-run.
+   */
+  def calculateInvalidatedClassNames(
+      prevTransitiveCallGraphHashesOpt: Option[Map[String, Int]]
+  ): Set[String] = {
+    prevTransitiveCallGraphHashesOpt match {
+      case Some(prevTransitiveCallGraphHashes) =>
+        CallGraphAnalysis.invalidatedClassNames(
+          prevTransitiveCallGraphHashes,
+          transitiveCallGraphHashes0,
+          indexToNodes,
+          indexGraphEdges
+        )
+      case None => Set.empty
+    }
+  }
 }
 
 object CallGraphAnalysis {
@@ -139,6 +159,36 @@ object CallGraphAnalysis {
       SpanningForest.apply(reverseGraphEdges, nodesWithChangedHashes, false),
       k => indexToNodes(k).toString
     )
+  }
+
+  /**
+   * Calculate the set of class names that have changed based on the previous
+   * transitive call graph hashes. Used by testQuick to determine which test
+   * classes need to be re-run.
+   */
+  def invalidatedClassNames(
+      prevTransitiveCallGraphHashes: Map[String, Int],
+      transitiveCallGraphHashes0: Array[(CallGraphAnalysis.Node, Int)],
+      indexToNodes: Array[Node],
+      indexGraphEdges: Array[Array[Int]]
+  ): Set[String] = {
+    val transitiveCallGraphHashes0Map = transitiveCallGraphHashes0.toMap
+
+    indexGraphEdges
+      .indices
+      .flatMap { nodeIndex =>
+        indexToNodes(nodeIndex) match {
+          case LocalDef(methodDef) =>
+            // The key format must match transitiveCallGraphHashes which uses methodDef.toString
+            val key = methodDef.toString
+            val currentValue = transitiveCallGraphHashes0Map(indexToNodes(nodeIndex))
+            val prevValue = prevTransitiveCallGraphHashes.get(key)
+            if (!prevValue.contains(currentValue)) Some(methodDef.cls.name)
+            else None
+          case _ => None
+        }
+      }
+      .toSet
   }
 
   def indexGraphEdges(

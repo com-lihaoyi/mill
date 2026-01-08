@@ -15,6 +15,7 @@ import mill.constants.EnvVars
 import mill.javalib.api.internal.ZincOp
 import mill.javalib.testrunner.{Framework, TestArgs, TestResult, TestRunner, TestRunnerUtils}
 import mill.util.Version
+import mill.codesig.CodeSig
 
 import java.nio.file.Path
 
@@ -284,6 +285,138 @@ trait TestModule
         Task.testReporter
       )
       TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
+    }
+
+  /**
+   * Runs only the tests that are affected by code changes since the last successful
+   * `testQuick` run, plus any tests that failed in the previous run.
+   *
+   * This uses bytecode callgraph analysis to determine which test classes depend on
+   * changed source code, and only runs those tests. Failed tests are always re-run
+   * until they pass.
+   */
+  def testQuick(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+    Task.Command(exclusive = true, persistent = true) {
+      val combinedArgs = testArgsDefault() ++ args
+
+      // File paths for persistent state
+      val quickTestHashesPath = Task.dest / "transitiveCallGraphHashes0.json"
+      val quickTestFailedClassesPath = Task.dest / "quickTestFailedClasses.json"
+
+      // Load previous state
+      val prevTransitiveCallGraphHashes: Option[Map[String, Int]] =
+        if (os.exists(quickTestHashesPath))
+          Some(upickle.default.read[Map[String, Int]](os.read(quickTestHashesPath)))
+        else None
+
+      val prevFailedClasses: Set[String] =
+        if (os.exists(quickTestFailedClassesPath))
+          upickle.default.read[Set[String]](os.read(quickTestFailedClassesPath))
+        else Set.empty
+
+      // Compute call graph and find invalidated classes
+      // Include class files from both test module and dependencies (outer module)
+      val classFiles = runClasspath().flatMap { pathRef =>
+        if (os.isDir(pathRef.path))
+          os.walk(pathRef.path).filter(_.ext == "class")
+        else Seq.empty
+      }.distinct
+
+      val upstreamClasspathPaths = runClasspath().map(_.path)
+
+      val callGraphAnalysis = CodeSig.getCallGraphAnalysis(
+        classFiles,
+        upstreamClasspathPaths,
+        (_, _) => false
+      )
+
+      val invalidatedClasses = callGraphAnalysis.calculateInvalidatedClassNames(
+        prevTransitiveCallGraphHashes
+      )
+
+      // All discovered test classes
+      val allTestClasses = discoveredTestClasses()
+
+      // Filter to only affected classes
+      val affectedClasses = allTestClasses.filter { testClass =>
+        // Run if: no previous run OR class is invalidated OR class previously failed
+        prevTransitiveCallGraphHashes.isEmpty ||
+        invalidatedClasses.contains(testClass) ||
+        prevFailedClasses.contains(testClass)
+      }
+
+      if (affectedClasses.isEmpty) {
+        // Save current hashes (in case they changed but no tests affected)
+        os.write.over(
+          quickTestHashesPath,
+          upickle.default.write(callGraphAnalysis.transitiveCallGraphHashes.toMap)
+        )
+        Result.Success((msg = "No tests to run", results = Seq.empty[TestResult]))
+      } else {
+        // Run affected tests
+        val testClassLists = Seq(affectedClasses)
+
+        // Clean up test artifacts from previous runs (persistent destination)
+        // Keep only the state files for persistence
+        val keepFiles = Set("transitiveCallGraphHashes0.json", "quickTestFailedClasses.json")
+        os.list(Task.dest).filter(p => !keepFiles.contains(p.last)).foreach(os.remove.all)
+
+        val testModuleUtil = new TestModuleUtil(
+          testUseArgsFile(),
+          forkArgs(),
+          Seq.empty, // globSelectors - we handle filtering via testClassLists
+          jvmWorker().scalalibClasspath(),
+          resources(),
+          testFramework(),
+          runClasspath(),
+          testClasspath(),
+          combinedArgs,
+          testClassLists,
+          jvmWorker().testrunnerEntrypointClasspath(),
+          allForkEnv(),
+          testSandboxWorkingDir(),
+          forkWorkingDir(),
+          testReportXml(),
+          javaHome().map(_.path),
+          testParallelism(),
+          testLogLevel(),
+          propagateEnv(),
+          jvmWorker().internalWorker()
+        )
+
+        val results = testModuleUtil.runTests()
+
+        // Determine failed classes from results
+        val discoveredClassesSet = allTestClasses.toSet
+        val badTestClasses: Seq[String] = results match {
+          case _: Result.Failure =>
+            // On failure, assume all affected classes failed
+            affectedClasses
+          case Result.Success((_, testResults)) =>
+            testResults
+              .filter(testResult => Set("Error", "Failure").contains(testResult.status))
+              .map(_.fullyQualifiedName)
+              .flatMap { fqn =>
+                // JUnit 4 returns "class.method", we need to map to "class"
+                discoveredClassesSet.find(cls => fqn == cls || fqn.startsWith(cls + "."))
+              }
+              .distinct
+        }
+
+        // Save current hashes
+        os.write.over(
+          quickTestHashesPath,
+          upickle.default.write(callGraphAnalysis.transitiveCallGraphHashes.toMap)
+        )
+
+        // Save failed classes
+        os.write.over(
+          quickTestFailedClassesPath,
+          upickle.default.write(badTestClasses.toSet)
+        )
+
+        results
+      }
     }
 
   override def bspBuildTarget: BspBuildTarget = {
