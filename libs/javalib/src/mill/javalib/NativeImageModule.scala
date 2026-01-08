@@ -107,7 +107,14 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    */
   def nativeImageOptions: T[Seq[String]] = Task {
     val configurations =
-      nativeMetadataConfigurations().map(_.metadataLocation.toString).mkString(",")
+      nativeMetadataConfigurations()
+    if (configurations.isEmpty) {
+      Seq.empty[String]
+    } else {
+      val configurationFileDirectoriesValue =
+        configurations.map(_.metadataLocation.toString).mkString(",")
+      Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
+    }
     nativeExcludedConfig() ++ Seq(s"-H:ConfigurationFileDirectories=$configurations")
   }
 
@@ -248,7 +255,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   def nativeResolvedRunDeps: Task[Seq[(Dependency, File)]] = this match {
     case m: JavaModule => Task {
         val dep = m.coursierDependencyTask().withVariantSelector(
-          ConfigurationBased(coursier.core.Configuration.defaultRuntime)
+          ConfigurationBased(coursier.core.Configuration.runtime)
         )
 
         val resolution =
