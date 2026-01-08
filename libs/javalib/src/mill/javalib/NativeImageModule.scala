@@ -1,14 +1,15 @@
 package mill.javalib
 
-import mill.*
-import mill.constants.{DaemonFiles, Util}
+import coursier.core.Dependency
 import coursier.core.VariantSelector.ConfigurationBased
 import mainargs.Flag
-
-import scala.util.Properties
+import mill.*
 import mill.api.BuildCtx
-import mill.javalib.graalvm.GraalVMMetadataWorker
-import mill.javalib.graalvm.MetadataQuery
+import mill.constants.{DaemonFiles, Util}
+import mill.javalib.graalvm.{GraalVMMetadataWorker, MetadataQuery, MetadataResult}
+
+import java.io.File
+import scala.util.Properties
 
 /**
  * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].
@@ -98,16 +99,16 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    * The classpath to use to generate the native image. Defaults to [[runClasspath]].
    */
   def nativeImageClasspath: T[Seq[PathRef]] = Task {
-    runClasspath() ++ nativeMvnDepsMetadata().toSeq
+    runClasspath()
   }
 
   /**
    * Additional options for the `native-image` Tool.
    */
   def nativeImageOptions: T[Seq[String]] = Task {
-    nativeMvnDepsMetadata().filter(pr => os.exists(pr.path)).toSeq.flatMap(md =>
-      Seq("--configurations-path", (md.path / "META-INF").toString)
-    )
+    val configurations =
+      nativeMetadataConfigurations().map(_.metadataLocation.toString).mkString(",")
+    nativeExcludedConfig() ++ Seq(s"-H:ConfigurationFileDirectories=$configurations")
   }
 
   /**
@@ -186,32 +187,10 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       .asInstanceOf[GraalVMMetadataWorker]
   }
 
-  def nativeMetadataConfigurations: T[Seq[MetadataResult]] = Task {
+  def nativeMetadataConfigurations: T[Set[MetadataResult]] = Task {
     nativeGraalVMReachabilityMetadataWorker().findConfigurations(
       nativeGraalVmMetadataQuery()
     )
-  }
-
-  /**
-   * Collects the metadata from [[nativeGraalVMReachabilityMetadata]]
-   * for the dependencies defined in [[nativeGraalVmMetadataQuery]].
-   *
-   * The resulting path is compatible with the runClasspath expactations of the native
-   * image pointing to resources directory which contains a `META-INF/native-image/<group-id>/<artifact-id>`
-   * structure.
-   *
-   * For more information see also [[https://www.graalvm.org/latest/reference-manual/native-image/metadata/]]
-   */
-  def nativeMvnDepsMetadata: T[Option[PathRef]] = this match {
-    case _: JavaModule => Task {
-        val paths = nativeMetadataConfigurations()
-        val dest = Task.dest / "resources"
-        nativeGraalVMReachabilityMetadataWorker().copyDirectoryConfiguration(paths, dest)
-        Some(PathRef(dest))
-      }
-    case _ => Task {
-        None
-      }
   }
 
   /**
@@ -229,7 +208,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    *
    * For more information and implementation details go to [[https://github.com/graalvm/native-build-tools/blob/master/common/graalvm-reachability-metadata/src/main/java/org/graalvm/reachability/internal/FileSystemRepository.java]]
    */
-  def nativeGraalVmMetadataQuery: T[MetadataQuery] = this match {
+  def nativeGraalVmMetadataQuery: Task[MetadataQuery] = this match {
     case _: JavaModule => Task {
         val metadataPath = nativeGraalVMReachabilityMetadata().path
         MetadataQuery(
@@ -248,40 +227,66 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   }
 
   def nativeExcludedConfigJars: T[Seq[PathRef]] = Task {
-
+    nativeDependencyMetadata().filter(_.overridesNativeConfig)
+      .map(
+        _.file
+      )
   }
 
-  def nativeResolvedRunDeps = this match {
+  def nativeResolvedRunDeps: Task[Seq[(Dependency, File)]] = this match {
     case m: JavaModule => Task {
-      val dep = m.coursierDependencyTask().withVariantSelector(
-        ConfigurationBased(coursier.core.Configuration.defaultRuntime)
-      )
-      val resolution =
-        m.millResolver().resolution(Seq(mill.javalib.BoundDep(dep, force = false)))
-
-      val deps = resolution.dependencies
-        .groupBy(isValidGAV)
-    }
-  }
-
-  def nativeExcludedConfigJars: T[Seq[PathRef]] = Task {
-    nativeExcludedConfigJars()
-      .flatMap(file =>
-        Seq("--exclude-config", //native image
-          s"\\Q${file.path.toString}\\E",
-          s"^/${containedNativeImageConfig}.*"
+        val dep = m.coursierDependencyTask().withVariantSelector(
+          ConfigurationBased(coursier.core.Configuration.defaultRuntime)
         )
+
+        val resolution =
+          m.millResolver().artifacts(Seq(mill.javalib.BoundDep(dep, force = false)))
+
+        resolution.detailedArtifacts0.map {
+          case (dependency, _, _, file) =>
+            (dependency, file)
+        }
+      }
+    case _ =>
+      Task(Seq.empty[(Dependency, File)])
+  }
+
+  def nativeDependencyMetadata: T[Seq[NativeImageModule.DependencyMetadata]] = this match {
+    case _: JavaModule => Task {
+
+        val overrideDeps = nativeMetadataConfigurations().filter(_.isOverride)
+
+        def isReachabilityOverride(dependency: coursier.core.Dependency): Boolean = {
+          overrideDeps.exists(mr =>
+            mr.dependencyGroupId == dependency.module.organization.value &&
+              mr.dependencyArtifactId == dependency.module.name.value
+          )
+        }
+
+        nativeResolvedRunDeps().map {
+          case (dependency, file) =>
+            NativeImageModule.DependencyMetadata(
+              dependency.module.organization.value,
+              dependency.module.name.value,
+              dependency.versionConstraint.asString,
+              isReachabilityOverride(dependency),
+              PathRef(os.Path(file))
+            )
+        }
+      }
+    case _ =>
+      Task(Seq.empty[NativeImageModule.DependencyMetadata])
+  }
+
+  def nativeExcludedConfig: T[Seq[String]] = Task {
+    nativeExcludedConfigJars()
+      .distinct
+      .flatMap(file =>
+        Seq("--exclude-config", s"\\Q${file.path.toString}\\E", s"^/META-INF/native-image/.*")
       )
   }
 
-  private def isValidGAVSection(value: String): Boolean = value.nonEmpty && !value.contains(':')
-
-  private def isValidGAV(d: coursier.core.Dependency): Boolean =
-    Seq(
-      d.module.organization.value,
-      d.module.name.value,
-      d.versionConstraint.asString
-    ).forall(isValidGAVSection)
+  
 
   /**
    * The GAV coordinates of the dependencies to search for reachability metadata
@@ -290,24 +295,29 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
    * This task must be compatible with [[https://github.com/graalvm/native-build-tools/blob/54db68cfcc20ab6a43ccbf4e04130325210f5b3a/common/graalvm-reachability-metadata/src/main/java/org/graalvm/reachability/internal/DefaultArtifactQuery.java#L57]]
    */
   def nativeGraalVmQueryDeps: T[Set[String]] = this match {
-    case m: JavaModule => Task {
+    case _: JavaModule => Task {
         def artifactQueryGav(d: coursier.core.Dependency): String =
           s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
 
-        val dep = m.coursierDependencyTask().withVariantSelector(
-          ConfigurationBased(coursier.core.Configuration.defaultRuntime)
-        )
-        val resolution =
-          m.millResolver().resolution(Seq(mill.javalib.BoundDep(dep, force = false)))
-        val deps = resolution.dependencies
-          .groupBy(isValidGAV)
+        def isValidGAVSection(value: String): Boolean = value.nonEmpty && !value.contains(':')
 
-        val skippedDeps = deps.getOrElse(false, Set.empty)
-        val validDeps = deps.getOrElse(true, Set.empty)
+        def isValidGAV(d: coursier.core.Dependency): Boolean =
+          Seq(
+            d.module.organization.value,
+            d.module.name.value,
+            d.versionConstraint.asString
+          ).forall(isValidGAVSection)
+
+        val depsMetadata = nativeResolvedRunDeps().map(_._1).toSet.groupBy(isValidGAV)
+
+        val skippedDeps = depsMetadata.getOrElse(false, Set.empty)
+        val validDeps = depsMetadata.getOrElse(true, Set.empty)
 
         skippedDeps.foreach {
           dep =>
-            Task.log.info(s"Skipping dependency: ${dep.module.repr} due to invalid GAV coordinates")
+            Task.log.info(
+              s"Skipping dependency: ${artifactQueryGav(dep)} due to invalid GAV coordinates"
+            )
         }
 
         validDeps.map(artifactQueryGav)
@@ -327,5 +337,19 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
         jvmWorker().prepareOffline(all)()
     ).distinct
   }
+}
 
+object NativeImageModule {
+  case class DependencyMetadata(
+      groupId: String,
+      artifactId: String,
+      version: String,
+      overridesNativeConfig: Boolean,
+      file: PathRef
+  ) derives upickle.ReadWriter
+
+  case class NativeRunDeps(
+      skipped: Seq[DependencyMetadata],
+      valid: Seq[DependencyMetadata]
+  ) derives upickle.ReadWriter
 }
