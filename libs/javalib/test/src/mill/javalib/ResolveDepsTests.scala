@@ -315,6 +315,13 @@ object ResolveDepsTests extends TestSuite {
 
     test("resolvedMvnDepsSources") {
       UnitTester(TestCase, null).scoped { eval =>
+        // First check that regular resolvedMvnDeps works
+        val Right(depsResult) = eval(TestCase.sources.resolvedMvnDeps): @unchecked
+        val deps = depsResult.value
+        assert(deps.nonEmpty)
+        assert(deps.exists(_.path.last.contains("geny")))
+
+        // Now check resolvedMvnDepsSources
         val Right(result) = eval(TestCase.sources.resolvedMvnDepsSources): @unchecked
         val sourcesDir = result.value.path
 
@@ -322,10 +329,35 @@ object ResolveDepsTests extends TestSuite {
         assert(os.exists(sourcesDir))
         assert(os.isDir(sourcesDir))
 
-        // Check that geny source files are unpacked (geny has a Geny.scala file)
-        val scalaFiles = os.walk(sourcesDir).filter(_.ext == "scala")
-        assert(scalaFiles.nonEmpty)
-        assert(scalaFiles.exists(_.last == "Geny.scala"))
+        // Check that source files are unpacked
+        val allFiles = os
+          .walk(sourcesDir)
+          .filter(os.isFile)
+          .map(_.relativeTo(sourcesDir).toString)
+          .sorted
+
+        val expected = Set(
+          "geny/ByteData.scala",
+          "geny/Bytes.scala",
+          "geny/Generator.scala",
+          "geny/Internal.scala",
+          "geny/Writable.scala",
+          "rootdoc.txt",
+          "scala/AnyVal.scala",
+          "scala/AnyValCompanion.scala",
+          "scala/App.scala",
+          "scala/Array.scala",
+          "scala/Boolean.scala",
+          "scala/Byte.scala",
+          "scala/Char.scala",
+          "scala/Console.scala",
+          "scala/DelayedInit.scala",
+          "scala/Double.scala",
+          "scala/DummyImplicit.scala",
+          "scala/Dynamic.scala"
+        )
+
+        assert(expected.subsetOf(allFiles.toSet))
       }
     }
   }

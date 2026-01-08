@@ -1068,7 +1068,7 @@ trait JavaModule
         BoundDep(coursierDependencyTask(), force = false)
       ),
       sources = sources,
-      artifactTypes = Some(artifactTypes()),
+      artifactTypes = if (sources) None else Some(artifactTypes()),
       resolutionParamsMapOpt =
         Some { params =>
           params

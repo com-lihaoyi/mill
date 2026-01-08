@@ -20,13 +20,14 @@ trait JdkCommandsModule extends mill.api.Module {
 
   private def callJdk(toolName: String, javaHome: Option[PathRef], args: Seq[String]): Int = {
     os.call(
-        cmd = Seq(jdkTool(toolName, javaHome.map(_.path))) ++ args,
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        check = false
-      )
+      cmd = Seq(jdkTool(toolName, javaHome.map(_.path))) ++ args,
+      stdin = os.Inherit,
+      stdout = os.Inherit,
+      check = false
+    )
       .exitCode
   }
+
   /**
    * Runs the `java` command from this module's [[jdkCommandsJavaHome]].
    * Renamed to `java` on the command line.
