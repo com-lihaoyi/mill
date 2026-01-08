@@ -286,8 +286,6 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       )
   }
 
-  
-
   /**
    * The GAV coordinates of the dependencies to search for reachability metadata
    * in [[nativeGraalVMReachabilityMetadata]].
