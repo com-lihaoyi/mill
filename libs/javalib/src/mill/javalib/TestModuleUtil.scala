@@ -1,7 +1,6 @@
 package mill.javalib
 
-import mill.api.{PathRef, TaskCtx}
-import mill.api.Result
+import mill.api.{Logger, MappedRoots, PathRef, Result, TaskCtx}
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
 import mill.api.internal.Util
@@ -13,8 +12,6 @@ import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDateTime, ZoneId}
 import scala.xml.Elem
 import scala.collection.mutable
-import mill.api.Logger
-
 import java.util.concurrent.ConcurrentHashMap
 import mill.api.BuildCtx
 import mill.javalib.api.internal.ZincOp
@@ -136,7 +133,10 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    MappedRoots.withMapping(Seq()) {
+      // Don't use placeholders, so we only have local absolute paths
+      os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    }
 
     os.makeDir.all(sandbox)
 

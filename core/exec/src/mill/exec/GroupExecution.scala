@@ -158,7 +158,7 @@ trait GroupExecution {
       executionContext: mill.api.TaskCtx.Fork.Api,
       exclusive: Boolean,
       upstreamPathRefs: Seq[PathRef]
-  ): GroupExecution.Results = {
+  ): GroupExecution.Results = MappedRoots.withMillDefaults(outPath = outPath) {
 
     val inputsHash = {
       val externalInputsHash = MurmurHash3.orderedHash(
@@ -357,8 +357,8 @@ trait GroupExecution {
                     ) null
                     else false,
                   inputsHash = inputsHash,
-                  previousInputsHash = cached.map(_._1).getOrElse(-1),
-                  valueHashChanged = !cached.map(_._3).contains(valueHash),
+                  previousInputsHash = cached.map(_.inputsHash).getOrElse(-1),
+                  valueHashChanged = !cached.map(_.valueHash).contains(valueHash),
                   serializedPaths = serializedPaths
                 )
             }
@@ -569,7 +569,11 @@ trait GroupExecution {
       inputsHash: Int,
       labelled: Task.Named[?],
       paths: ExecutionPaths
-  ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
+  ): Option[(
+      inputsHash: Int,
+      valOpt: Option[(Val, Seq[PathRef])],
+      valueHash: Int
+  )] = {
     for {
       cached <-
         try Some(upickle.read[Cached](paths.meta.toIO, trace = false))
@@ -577,8 +581,8 @@ trait GroupExecution {
           case NonFatal(_) => None
         }
     } yield (
-      cached.inputsHash,
-      for {
+      inputsHash = cached.inputsHash,
+      valOpt = for {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
         (parsed, serializedPaths) <-
@@ -594,7 +598,7 @@ trait GroupExecution {
             case NonFatal(_) => None
           }
       } yield (Val(parsed), serializedPaths),
-      cached.valueHash
+      valueHash = cached.valueHash
     )
   }
 
@@ -734,7 +738,7 @@ object GroupExecution {
       classLoader: ClassLoader
   )(t: => T): T = {
     // Tasks must be allowed to write to upstream worker's dest folders, because
-    // the point of workers is to manualy manage long-lived state which includes
+    // the point of workers is to manually manage long-lived state which includes
     // state on disk.
     val validWriteDests =
       deps.collect { case n: Task.Worker[?] =>

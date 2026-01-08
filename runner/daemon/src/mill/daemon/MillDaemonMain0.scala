@@ -1,9 +1,8 @@
 package mill.daemon
 
-import mill.api.{BuildCtx, SystemStreams}
+import mill.api.{MappedRoots, SystemStreams}
 import mill.client.lock.Locks
 import mill.constants.OutFolderMode
-import mill.constants.OutFiles.OutFiles
 import mill.server.Server
 
 import scala.concurrent.duration.*
@@ -13,23 +12,24 @@ object MillDaemonMain0 {
   case class Args(
       daemonDir: os.Path,
       outMode: OutFolderMode,
+      outDir: os.Path,
       useFileLocks: Boolean,
       rest: Seq[String]
   )
   object Args {
     def apply(appName: String, args: Array[String]): Either[String, Args] = {
       def usage(extra: String = "") =
-        s"usage: $appName <daemon-dir> <out-mode> <use-file-locks> <mill-args>$extra"
+        s"usage: $appName <daemon-dir> <out-mode> <out-dir> <use-file-locks> <mill-args>$extra"
 
       args match {
-        case Array(daemonDir, outModeStr, useFileLocksStr, rest*) =>
+        case Array(daemonDir, outModeStr, outDir, useFileLocksStr, rest*) =>
           Try(OutFolderMode.fromString(outModeStr)) match {
             case Failure(_) =>
               val possibleValues = OutFolderMode.values.map(_.asString).mkString(", ")
               Left(usage(s"\n\n<out-mode> must be one of $possibleValues but was '$outModeStr'"))
             case Success(outMode) =>
               val useFileLocks = useFileLocksStr.toBoolean
-              Right(apply(os.Path(daemonDir), outMode, useFileLocks, rest))
+              Right(apply(os.Path(daemonDir), outMode, os.Path(outDir), useFileLocks, rest))
           }
         case _ => Left(usage())
       }
@@ -44,27 +44,30 @@ object MillDaemonMain0 {
     val args =
       Args(getClass.getName, args0).fold(err => throw IllegalArgumentException(err), identity)
 
-    // temporarily disabling FFM use by coursier, which has issues with the way
-    // Mill manages class loaders, throwing things like
-    // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
-    if (Properties.isWin) sys.props("coursier.windows.disable-ffm") = "true"
+    MappedRoots.withMillDefaults(outPath = args.outDir) {
+      // temporarily disabling FFM use by coursier, which has issues with the way
+      // Mill manages class loaders, throwing things like
+      // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
+      if (Properties.isWin) sys.props("coursier.windows.disable-ffm") = "true"
 
-    coursier.Resolve.proxySetup() // Take into account proxy-related Java properties
+      coursier.Resolve.proxySetup() // Take into account proxy-related Java properties
 
-    mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
-      Server.overrideSigIntHandling()
+      mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
+        Server.overrideSigIntHandling()
 
-      val acceptTimeout =
-        Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
+        val acceptTimeout =
+          Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
 
-      val exitCode = new MillDaemonMain0(
-        daemonDir = args.daemonDir,
-        acceptTimeout = acceptTimeout,
-        Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
-        outMode = args.outMode
-      ).run().getOrElse(0)
+        val exitCode = new MillDaemonMain0(
+          daemonDir = args.daemonDir,
+          acceptTimeout = acceptTimeout,
+          Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
+          outMode = args.outMode,
+          outDir = args.outDir
+        ).run().getOrElse(0)
 
-      System.exit(exitCode)
+        System.exit(exitCode)
+      }
     }
   }
 }
@@ -73,18 +76,18 @@ class MillDaemonMain0(
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,
-    outMode: OutFolderMode
+    outMode: OutFolderMode,
+    outDir: os.Path
 ) extends mill.server.MillDaemonServer[RunnerState](
-      daemonDir,
-      acceptTimeout,
-      locks
+      daemonDir = daemonDir,
+      acceptTimeout = acceptTimeout,
+      locks = locks,
+      outDir = outDir
     ) {
 
   def initialStateCache = RunnerState.empty
 
-  val outFolder: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
-
-  val outLock = MillMain0.doubleLock(outFolder)
+  val outLock = MillMain0.doubleLock(outDir)
 
   def main0(
       args: Array[String],
@@ -108,7 +111,8 @@ class MillDaemonMain0(
         initialSystemProperties = initialSystemProperties,
         systemExit = systemExit,
         daemonDir = daemonDir,
-        outLock = outLock
+        outLock = outLock,
+        outDir = outDir
       )
     catch MillMain0.handleMillException(streams.err, stateCache)
   }

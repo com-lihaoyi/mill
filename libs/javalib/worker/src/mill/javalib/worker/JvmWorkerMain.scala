@@ -1,11 +1,11 @@
 package mill.javalib.worker
 
-import mill.api.SystemStreamsUtils
 import mill.api.daemon.{DummyInputStream, SystemStreams}
+import mill.api.SystemStreamsUtils
 import mill.client.lock.Locks
+import mill.javalib.worker.NoMappedRootsMillRcpWireTransport
 import mill.javalib.zinc.ZincWorker
 import mill.javalib.worker.JvmWorkerRpcServer
-import mill.rpc.MillRpcWireTransport
 import mill.server.Server
 import mill.server.Server.ConnectionData
 import pprint.{TPrint, TPrintColors}
@@ -69,7 +69,8 @@ object JvmWorkerMain {
       Using.Manager { use =>
         val stdin = use(BufferedReader(InputStreamReader(connectionData.clientToServer)))
         val stdout = use(PrintStream(connectionData.serverToClient))
-        val transport = MillRpcWireTransport(serverName, stdin, stdout, writeSynchronizer)
+        val transport =
+          NoMappedRootsMillRcpWireTransport(serverName, stdin, stdout, writeSynchronizer)
         val server = JvmWorkerRpcServer(worker, serverName, transport, setIdle, serverLog)
 
         // Make sure stdout and stderr is sent to the client

@@ -147,8 +147,8 @@ Inputs:
 
 > ./mill show foo.compile
 {
-  "analysisFile": ".../out/foo/compile.dest/...",
-  "classes": ".../out/foo/compile.dest/classes"
+  "analysisFile": "...$MILL_OUT/foo/compile.dest/...",
+  "classes": "...$MILL_OUT/foo/compile.dest/classes"
 }
 */
 

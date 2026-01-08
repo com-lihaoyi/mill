@@ -1,4 +1,5 @@
 package mill.javalib.worker
+
 import mill.api.*
 import mill.api.daemon.*
 import mill.api.daemon.internal.CompileProblemReporter
@@ -9,7 +10,7 @@ import mill.javalib.api.internal.{RpcProblemMessage, ZincCompilerBridgeProvider}
 import mill.javalib.worker.JvmWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker}
 import mill.javalib.worker.JvmWorkerRpcServer
-import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
+import mill.rpc.{MillRpcChannel, MillRpcClient}
 import mill.util.CachedFactoryBase
 
 import java.io.*
@@ -94,14 +95,13 @@ class SubprocessZincApi(
             (in, out) => {
               val serverToClient = use(BufferedReader(InputStreamReader(in)))
               val clientToServer = use(PrintStream(out))
-              val wireTransport =
-                MillRpcWireTransport(
-                  debugName,
-                  serverToClient,
-                  clientToServer,
-                  writeSynchronizer = clientToServer,
-                  logDir = Some(daemonDir)
-                )
+              val wireTransport = NoMappedRootsMillRcpWireTransport(
+                name = debugName,
+                serverToClient = serverToClient,
+                clientToServer = clientToServer,
+                writeSynchronizer = clientToServer,
+                logDir = Some(daemonDir)
+              )
 
               val init =
                 JvmWorkerRpcServer.Initialize(compilerBridgeWorkspace = compilerBridge.workspace)
