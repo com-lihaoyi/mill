@@ -42,7 +42,8 @@ object app extends AndroidR8AppModule { // <2>
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
-  override def androidVirtualDevice = super.androidVirtualDevice().withName("java-test")
+  override def androidVirtualDevice = super.androidVirtualDevice().withName("java-r8-test")
+  override def androidEmulatorPort = "5560"
   override def androidIsDebug: T[Boolean] = Task { false }
 
   def androidProjectProguardFiles = Task.Sources(
@@ -90,7 +91,7 @@ object app extends AndroidR8AppModule { // <2>
 > ./mill show app.it.androidTestApk
 
 > ./mill show app.createAndroidVirtualDevice
-...Name: java-test, DeviceId: medium_phone...
+...Name: java-r8-test, DeviceId: medium_phone...
 
 > ./mill show app.startAndroidEmulator
 
