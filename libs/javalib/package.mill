@@ -121,6 +121,10 @@ object `package` extends MillStableScalaModule {
       BuildInfo.Value("pmdVersion", Deps.RuntimeDeps.pmdDist.version),
       BuildInfo.Value("comLihaoyiSourcecodeVersion", Deps.sourcecode.version)
     )
+    override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+      super.mimaBinaryIssueFilters() ++ Seq(
+        ProblemFilter.exclude[Problem]("mill.javalib.api.internal.ZincOp*")
+      )
   }
 
   object worker extends MillPublishScalaModule with BuildInfo with MillJava11ScalaModule {
