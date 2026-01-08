@@ -147,9 +147,6 @@ object `package` extends MavenModule { outer =>
 
 // This example demonstrates how to configure mill for a simple micronaut project.
 // It manually configures Micronaut's AOT and feeds the result into the native image process.
-//
-//
-// For more information visit https://spring.io/quickstart[https://spring.io/quickstart]
 
 /** Usage
 
