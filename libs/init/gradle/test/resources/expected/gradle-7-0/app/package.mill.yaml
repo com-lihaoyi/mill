@@ -1,7 +1,0 @@
-extends: millbuild.ProjectBaseModule
-moduleDeps: [utilities]
-mvnDeps:
-- org.apache.commons:commons-text
-
-object test:
-  extends: ProjectBaseTests
