@@ -163,7 +163,8 @@ trait DockerModule { outer: JavaModule =>
       val quotedEntryPointArgs = (Seq("java") ++ jvmOptions() ++ Seq("-jar", s"/" + jarName))
         .map(arg => s"\"$arg\"").mkString(", ")
 
-      val entryPointOverride = if (entrypoint() == "") quotedEntryPointArgs else s"\"${entrypoint()}\""
+      val entryPointOverride =
+        if (entrypoint() == "") quotedEntryPointArgs else s"\"${entrypoint()}\""
 
       s"""
          |FROM ${baseImage()}
