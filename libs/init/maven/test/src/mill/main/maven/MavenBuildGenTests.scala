@@ -25,7 +25,7 @@ object MavenBuildGenTests extends TestSuite {
       ))
     }
     test("with-args") {
-      val args = Seq("--publish-properties", "--merge")
+      val args = Seq("--publish-properties", "--merge", "--no-meta")
       test("maven-samples") {
         assert(checker.check(
           sourceRel = os.sub / "maven-samples",
