@@ -79,7 +79,7 @@ trait GroupExecution {
     )
   }
 
-  val staticBuildOverrides: Map[String, Located[Appendable[BufferedValue]]] =
+  val staticBuildOverrides: Map[String, Located[Appendable[BufferedValue]]] = {
     staticBuildOverrideFiles
       .flatMap { case (path0, rawText) =>
         val path = os.Path(path0)
@@ -151,6 +151,7 @@ trait GroupExecution {
         } else Nil
       }
       .toMap
+  }
 
   def offline: Boolean
   def useFileLocks: Boolean
