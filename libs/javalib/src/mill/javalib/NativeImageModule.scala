@@ -108,14 +108,14 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   def nativeImageOptions: T[Seq[String]] = Task {
     val configurations =
       nativeMetadataConfigurations()
-    if (configurations.isEmpty) {
+    val configurationDirectoriesArg = if (configurations.isEmpty) {
       Seq.empty[String]
     } else {
       val configurationFileDirectoriesValue =
         configurations.map(_.metadataLocation.toString).mkString(",")
       Seq(s"-H:ConfigurationFileDirectories=$configurationFileDirectoriesValue")
     }
-    nativeExcludedConfig() ++ Seq(s"-H:ConfigurationFileDirectories=$configurations")
+    nativeExcludedConfig() ++ configurationDirectoriesArg ++ nativeIncludedResourcesImageOptions()
   }
 
   /**
@@ -247,6 +247,46 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
       .map(
         _.file
       )
+  }
+
+  /**
+   * Generates a list of resource references to be passed to the native-image. These are the
+   * resources of the current module provided by [[JavaModule.resources]]. This function works only
+   * for [[JavaModule]] and subclasses.
+   * For more information see [[https://www.graalvm.org/22.1/reference-manual/native-image/Resources/]]
+   */
+  def nativeIncludedResources: T[Seq[String]] = this match {
+    case m: JavaModule =>
+      Task {
+        val resources = m.resources().filter(pr => os.exists(pr.path) && os.isDir(pr.path))
+        if (resources.isEmpty)
+          Seq.empty[String]
+        else {
+          resources.flatMap {
+            dirRef =>
+              val resourceFiles = os.walk(dirRef.path)
+              resourceFiles.map(_.subRelativeTo(dirRef.path)).map(_.toString)
+          }
+        }
+      }
+    case _ =>
+      Task {
+        Seq.empty[String]
+      }
+  }
+
+  /**
+   * Generates a native-image argument to include resources referenced
+   * in [[nativeIncludedResources]]
+   * @return
+   */
+  def nativeIncludedResourcesImageOptions: T[Seq[String]] = Task {
+    val resources = nativeIncludedResources()
+    if (resources.isEmpty)
+      Seq.empty[String]
+    else {
+      Seq(s"-H:IncludeResources=${resources.mkString("|")}")
+    }
   }
 
   /**

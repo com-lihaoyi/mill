@@ -1,4 +1,5 @@
 package build
+
 import mill.*
 import javalib.*
 import mill.api.{PathRef, Task}
@@ -7,7 +8,7 @@ import os.zip.ZipSource
 
 import java.util.jar.JarInputStream
 
-object `package` extends MavenModule { outer =>
+object `package` extends MavenModule, NativeImageModule { outer =>
 
   override def bomMvnDeps = Seq(
     mvn"io.micronaut.platform:micronaut-platform:4.10.3"
@@ -77,38 +78,22 @@ object `package` extends MavenModule { outer =>
     PathRef(dest)
   }
 
-  object native extends MavenModule, NativeImageModule {
+  override def nativeImageClasspath: Task.Simple[Seq[PathRef]] = Task {
+    val aotClasses = Seq(PathRef(outer.micronautProcessAOT().path / "classes"))
+    super.nativeImageClasspath() ++ aotClasses
+  }
 
-    def moduleDeps = Seq(outer)
+  def nettyDeps: T[Seq[Dep]] = Seq(
+    mvn"io.micronaut:micronaut-http-server-netty"
+  )
 
-    override def nativeUseLatestConfigWhenVersionIsUntested = true
-    override def moduleDir: os.Path = outer.moduleDir
-
-    def jvmVersion = outer.jvmVersion
-
-    override def resources: Task.Simple[Seq[PathRef]] = Task {
-      outer.resources()
-    }
-    override def forkArgs = super.forkArgs() ++ Seq("-Dspring.aot.enabled=true")
-
-    override def runClasspath: Task.Simple[Seq[PathRef]] = Task {
-      val aotClasses = Seq(PathRef(outer.micronautProcessAOT().path / "classes"))
-      super.runClasspath() ++ aotClasses
-    }
-
-    def nettyDeps: T[Seq[Dep]] = Seq(
-      mvn"io.micronaut:micronaut-http-server-netty"
+  override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
+    val configurationsPath = outer.micronautProcessAOT().path / "classes/META-INF"
+    super.nativeImageOptions() ++ Seq(
+      "--no-fallback",
+      "--configurations-path",
+      configurationsPath.toString
     )
-
-    override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
-      val configurationsPath = outer.micronautProcessAOT().path / "classes/META-INF"
-      super.nativeImageOptions() ++ Seq(
-        "--no-fallback",
-        "--configurations-path",
-        configurationsPath.toString
-      )
-    }
-
   }
 
   def mvnDeps = Seq(
@@ -150,11 +135,14 @@ object `package` extends MavenModule { outer =>
 
 /** Usage
 
-> ./mill show native.nativeImage
-...out/native/nativeImage.dest/native-executable...
+> ./mill show nativeImage
+...out/nativeImage.dest/native-executable...
 
-> ./mill native.nativeRunBackground
+> ./mill show nativeRunBackground
 
-> ./mill clean native.nativeRunBackground
+> curl http://localhost:${PORT:-9870}
+{"_links":{"self":[{"href":"/","templated":false}]},"_embedded":{"errors":[{"message":"Page Not Found"}]},"message":"Not Found"}
+
+> ./mill clean nativeRunBackground
 
 */
