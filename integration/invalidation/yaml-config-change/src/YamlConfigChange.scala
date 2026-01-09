@@ -42,7 +42,11 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       // Get baseline sources (should be default src/)
       val baseline = eval(("show", "sources"))
       assert(baseline.isSuccess)
-      assert(baseline.out.contains("\"src\"") || baseline.out.contains("/src\""))
+      assert(
+        baseline.out.contains("\"src\"") ||
+          baseline.out.contains("/src\"") ||
+          baseline.out.contains("\\src\"")
+      )
 
       // Set normal sources value (replaces default)
       modifyFile(workspacePath / "build.mill.yaml", _ + "\nsources: [src-2/]")
@@ -60,7 +64,11 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       assert(withAppend.isSuccess)
       // With !append, should have both default src/ and appended src-extra/
       assert(withAppend.out.contains("src-extra"))
-      assert(withAppend.out.contains("\"src\"") || withAppend.out.contains("/src\""))
+      assert(
+        withAppend.out.contains("\"src\"") ||
+          withAppend.out.contains("/src\"") ||
+          withAppend.out.contains("\\src\"")
+      )
 
       // Add another folder to the !append list
       modifyFile(
@@ -69,7 +77,11 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       )
       val withMoreAppend = eval(("show", "sources"))
       assert(withMoreAppend.isSuccess)
-      assert(withMoreAppend.out.contains("\"src\"") || withMoreAppend.out.contains("/src\""))
+      assert(
+        withMoreAppend.out.contains("\"src\"") ||
+          withMoreAppend.out.contains("/src\"") ||
+          withMoreAppend.out.contains("\\src\"")
+      )
       assert(withMoreAppend.out.contains("src-extra"))
       assert(withMoreAppend.out.contains("src-2"))
 
@@ -90,7 +102,11 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       )
       val backToDefault = eval(("show", "sources"))
       assert(backToDefault.isSuccess)
-      assert(backToDefault.out.contains("\"src\"") || backToDefault.out.contains("/src\""))
+      assert(
+        backToDefault.out.contains("\"src\"") ||
+          backToDefault.out.contains("/src\"") ||
+          backToDefault.out.contains("\\src\"")
+      )
     }
   }
 }

@@ -3,6 +3,11 @@ mvnDeps:
 - javax.servlet:servlet-api:2.5
 - javax.servlet.jsp:jsp-api:2.2
 artifactName: single-module-project
+pomSettings:
+  description: "Sample single module Maven project with a working, deployable site."
+  organization: com.example.maven-samples
+  url: http://www.example.com
+  versionControl: http://github.com/gabrielf/maven-samples
 
 object test:
   extends: ProjectBaseTests

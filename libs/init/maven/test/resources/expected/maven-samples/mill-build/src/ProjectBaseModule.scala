@@ -7,16 +7,6 @@ import mill.javalib.publish.*
 trait ProjectBaseModule extends MavenModule, PublishModule {
 
   def javacOptions = Seq("-source", "1.6", "-target", "1.6")
-  def pomSettings = Task {
-    PomSettings(
-      "Just a pom that makes it easy to build both projects at the same time.",
-      "com.example.maven-samples",
-      "",
-      Seq(),
-      VersionControl(None, None, None, None),
-      Seq()
-    )
-  }
 
   trait ProjectBaseTests extends MavenTests, TestModule.Junit4 {
 

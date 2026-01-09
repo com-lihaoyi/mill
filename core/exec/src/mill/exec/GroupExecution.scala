@@ -398,8 +398,10 @@ trait GroupExecution {
                     val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
                       (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
                     }
-                    // Write the merged result to disk cache so `show` can pick it up
-                    // Use inputsHash + yaml.## to avoid overwriting the original task cache
+                    // Write merged result to disk cache so `show` can read it.
+                    // Note: This overwrites the task cache, causing the task to re-execute
+                    // on subsequent runs even if task inputs haven't changed. This is a
+                    // trade-off to support `show` displaying the correct merged value.
                     labelled.writerOpt.foreach { w =>
                       val json =
                         upickle.writeJs(mergedData)(using w.asInstanceOf[upickle.Writer[Any]])
