@@ -7,6 +7,7 @@ object Located {
 
   /** Marker key indicating append mode in YAML `!append` tag wrapper objects */
   val AppendMarkerKey = "__mill_append__"
+
   /** Marker key containing the actual values in YAML `!append` tag wrapper objects */
   val ValuesMarkerKey = "__mill_values__"
 

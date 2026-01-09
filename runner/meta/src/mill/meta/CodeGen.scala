@@ -181,7 +181,8 @@ object CodeGen {
           }
 
           val moduleDepsSnippet = renderModuleDepsSnippet("moduleDeps", data.moduleDeps)
-          val compileModuleDepsSnippet = renderModuleDepsSnippet("compileModuleDeps", data.compileModuleDeps)
+          val compileModuleDepsSnippet =
+            renderModuleDepsSnippet("compileModuleDeps", data.compileModuleDeps)
           val runModuleDepsSnippet = renderModuleDepsSnippet("runModuleDeps", data.runModuleDeps)
 
           val extendsSnippet =

@@ -60,6 +60,25 @@ trait GroupExecution {
     }
   }
 
+  /** Create an ExecResult.Failure from a deserialization exception */
+  private def buildOverrideDeserializationError(
+      e: upickle.core.TraceVisitor.TraceException,
+      located: Located[BufferedValue]
+  ) = {
+    val errorIndex = e.getCause match {
+      case abort: upickle.core.AbortException => abort.index
+      case _ => located.value.index
+    }
+    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
+    (
+      ExecResult.Failure(
+        msg,
+        Some(Result.Failure(msg, path = located.path.toNIO, index = errorIndex))
+      ),
+      Nil
+    )
+  }
+
   val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
@@ -89,7 +108,12 @@ trait GroupExecution {
             .rest
             .map { case (k, v) =>
               val (actualValue, append) = Located.unwrapAppendMarker(v)
-              (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, actualValue, append)
+              (segments ++ Seq(k.value)).mkString(".") -> Located(
+                path,
+                k.index,
+                actualValue,
+                append
+              )
             }
             .toSeq
 
@@ -342,23 +366,7 @@ trait GroupExecution {
                     inputsHash + located.value.##
                   )
                   (ExecResult.Success(Val(data), data.##), serializedPaths)
-                case Left(e) =>
-                  val errorIndex = e.getCause match {
-                    case abort: upickle.core.AbortException => abort.index
-                    case _ => located.value.index
-                  }
-                  val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
-                  (
-                    ExecResult.Failure(
-                      msg,
-                      Some(Result.Failure(
-                        msg,
-                        path = located.path.toNIO,
-                        index = errorIndex
-                      ))
-                    ),
-                    Nil
-                  )
+                case Left(e) => buildOverrideDeserializationError(e, located)
               }
             }
 
@@ -393,7 +401,8 @@ trait GroupExecution {
                     }
 
                     GroupExecution.Results(
-                      newResults = Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
+                      newResults =
+                        Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
                       newEvaluated = taskResults.newEvaluated,
                       cached = taskResults.cached,
                       inputsHash = inputsHash,
@@ -402,20 +411,9 @@ trait GroupExecution {
                       serializedPaths = serializedPaths
                     )
                   case Left(e) =>
-                    val errorIndex = e.getCause match {
-                      case abort: upickle.core.AbortException => abort.index
-                      case _ => appendLocated.value.index
-                    }
-                    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
+                    val (failure, _) = buildOverrideDeserializationError(e, appendLocated)
                     GroupExecution.Results(
-                      newResults = Map(labelled -> ExecResult.Failure(
-                        msg,
-                        Some(Result.Failure(
-                          msg,
-                          path = appendLocated.path.toNIO,
-                          index = errorIndex
-                        ))
-                      )),
+                      newResults = Map(labelled -> failure),
                       newEvaluated = taskResults.newEvaluated,
                       cached = taskResults.cached,
                       inputsHash = inputsHash,

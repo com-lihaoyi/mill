@@ -106,19 +106,27 @@ object BuildGenYaml {
     lines.result().mkString(lineSep)
   }
 
-  private def renderScalaStringValues(prefix: String, values: Values[String]): Option[String] = {
+  /**
+   * Generic helper for rendering Scala value definitions with base/cross parts.
+   * @param prefix The definition prefix (e.g., "def repositories")
+   * @param values The Values container with base, cross, and appendSuper
+   * @param encode Function to encode a sequence of values to a comma-separated string
+   */
+  private def renderScalaValues[T](
+      prefix: String,
+      values: Values[T],
+      encode: Seq[T] => String
+  ): Option[String] = {
     import values.*
     val member = prefix.stripPrefix("def ")
     val basePart = base match {
       case Nil => None
-      case seq => Some(s"Seq(${seq.map(s => s""""$s"""").mkString(", ")})")
+      case seq => Some(s"Seq(${encode(seq)})")
     }
     val crossPart = cross match {
       case Nil => None
       case seq =>
-        val cases = seq.map((k, v) =>
-          s"""case "$k" => Seq(${v.map(s => s""""$s"""").mkString(", ")})"""
-        ).mkString(lineSep)
+        val cases = seq.map((k, v) => s"""case "$k" => Seq(${encode(v)})""").mkString(lineSep)
         Some(s"crossValue match {$lineSep$cases$lineSep}")
     }
     (basePart, crossPart) match {
@@ -132,57 +140,14 @@ object BuildGenYaml {
     }
   }
 
-  private def renderScalaMvnDepValues(prefix: String, values: Values[MvnDep]): Option[String] = {
-    import values.*
-    val member = prefix.stripPrefix("def ")
-    val basePart = base match {
-      case Nil => None
-      case seq => Some(s"Seq(${seq.map(_.toString).mkString(", ")})")
-    }
-    val crossPart = cross match {
-      case Nil => None
-      case seq =>
-        val cases = seq.map((k, v) =>
-          s"""case "$k" => Seq(${v.map(_.toString).mkString(", ")})"""
-        ).mkString(lineSep)
-        Some(s"crossValue match {$lineSep$cases$lineSep}")
-    }
-    (basePart, crossPart) match {
-      case (None, None) => None
-      case (Some(b), None) if appendSuper => Some(s"$prefix = super.$member() ++ $b")
-      case (Some(b), None) => Some(s"$prefix = $b")
-      case (None, Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $c")
-      case (None, Some(c)) => Some(s"$prefix = $c")
-      case (Some(b), Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $b ++ $c")
-      case (Some(b), Some(c)) => Some(s"$prefix = $b ++ $c")
-    }
-  }
+  private def renderScalaStringValues(prefix: String, values: Values[String]): Option[String] =
+    renderScalaValues(prefix, values, _.map(s => s""""$s"""").mkString(", "))
 
-  private def renderScalaOptValues(prefix: String, values: Values[Opt]): Option[String] = {
-    import values.*
-    val member = prefix.stripPrefix("def ")
-    def encodeOpts(opts: Seq[Opt]): String =
-      opts.flatMap(_.group).map(s => s""""$s"""").mkString(", ")
-    val basePart = base match {
-      case Nil => None
-      case seq => Some(s"Seq(${encodeOpts(seq)})")
-    }
-    val crossPart = cross match {
-      case Nil => None
-      case seq =>
-        val cases = seq.map((k, v) => s"""case "$k" => Seq(${encodeOpts(v)})""").mkString(lineSep)
-        Some(s"crossValue match {$lineSep$cases$lineSep}")
-    }
-    (basePart, crossPart) match {
-      case (None, None) => None
-      case (Some(b), None) if appendSuper => Some(s"$prefix = super.$member() ++ $b")
-      case (Some(b), None) => Some(s"$prefix = $b")
-      case (None, Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $c")
-      case (None, Some(c)) => Some(s"$prefix = $c")
-      case (Some(b), Some(c)) if appendSuper => Some(s"$prefix = super.$member() ++ $b ++ $c")
-      case (Some(b), Some(c)) => Some(s"$prefix = $b ++ $c")
-    }
-  }
+  private def renderScalaMvnDepValues(prefix: String, values: Values[MvnDep]): Option[String] =
+    renderScalaValues(prefix, values, _.map(_.toString).mkString(", "))
+
+  private def renderScalaOptValues(prefix: String, values: Values[Opt]): Option[String] =
+    renderScalaValues(prefix, values, _.flatMap(_.group).map(s => s""""$s"""").mkString(", "))
 
   private def fillPackages(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
     def recurse(dir: os.SubPath): Seq[PackageSpec] = {
