@@ -1,0 +1,93 @@
+mill-version: SNAPSHOT
+mill-jvm-version: system
+extends: PublishModule
+pomSettings:
+  description: Just a pom that makes it easy to build both projects at the same time.
+  organization: com.example.maven-samples
+publishVersion: 1.0-SNAPSHOT
+
+object multi-module:
+  extends: [JavaModule, BomModule, PublishModule]
+  depManagement:
+  - javax.servlet:servlet-api:2.5
+  - javax.servlet.jsp:jsp-api:2.2
+  - junit:junit-dep:4.10
+  - org.hamcrest:hamcrest-core:1.2.1
+  - org.hamcrest:hamcrest-library:1.2.1
+  - org.mockito:mockito-core:1.8.5
+  sources: []
+  resources: []
+  pomSettings:
+    description: "Sample multi module Maven project with a working, deployable site."
+    organization: com.example.maven-samples
+    url: http://www.example.com
+    versionControl: http://github.com/gabrielf/maven-samples
+  publishVersion: 1.0-SNAPSHOT
+  
+  object server:
+    extends: [MavenModule, PublishModule]
+    depManagement:
+    - javax.servlet:servlet-api:2.5
+    - javax.servlet.jsp:jsp-api:2.2
+    - junit:junit-dep:4.10
+    - org.hamcrest:hamcrest-core:1.2.1
+    - org.hamcrest:hamcrest-library:1.2.1
+    - org.mockito:mockito-core:1.8.5
+    javacOptions: [-source, 1.6, -target, 1.6]
+    artifactName: server
+    pomSettings:
+      description: Logic.
+    publishVersion: 1.0-SNAPSHOT
+    
+    object test:
+      extends: [MavenTests, TestModule.Junit4]
+      mvnDeps:
+      - junit:junit-dep:4.10
+      - org.hamcrest:hamcrest-core:1.2.1
+      - org.hamcrest:hamcrest-library:1.2.1
+      - org.mockito:mockito-core:1.8.5
+      testParallelism: false
+      testSandboxWorkingDir: false
+  
+  object webapp:
+    extends: [MavenModule, PublishModule]
+    moduleDeps: [multi-module.server]
+    compileMvnDeps:
+    - javax.servlet:servlet-api:2.5
+    - javax.servlet.jsp:jsp-api:2.2
+    depManagement:
+    - javax.servlet:servlet-api:2.5
+    - javax.servlet.jsp:jsp-api:2.2
+    - junit:junit-dep:4.10
+    - org.hamcrest:hamcrest-core:1.2.1
+    - org.hamcrest:hamcrest-library:1.2.1
+    - org.mockito:mockito-core:1.8.5
+    javacOptions: [-source, 1.6, -target, 1.6]
+    artifactName: webapp
+    pomSettings:
+      description: Webapp.
+    publishVersion: 1.0-SNAPSHOT
+
+object single-module:
+  extends: [MavenModule, PublishModule]
+  mvnDeps:
+  - javax.servlet:servlet-api:2.5
+  - javax.servlet.jsp:jsp-api:2.2
+  javacOptions: [-source, 1.6, -target, 1.6]
+  artifactName: single-module-project
+  pomSettings:
+    description: "Sample single module Maven project with a working, deployable site."
+    organization: com.example.maven-samples
+    url: http://www.example.com
+    versionControl: http://github.com/gabrielf/maven-samples
+  publishVersion: 1.0-SNAPSHOT
+  
+  object test:
+    extends: [MavenTests, TestModule.Junit4]
+    mvnDeps:
+    - junit:junit-dep:4.10
+    - org.hamcrest:hamcrest-core:1.2.1
+    - org.hamcrest:hamcrest-library:1.2.1
+    - org.mockito:mockito-core:1.8.5
+    testParallelism: false
+    testSandboxWorkingDir: false

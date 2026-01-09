@@ -1305,22 +1305,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1329,22 +1320,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1353,22 +1335,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1377,22 +1350,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1401,22 +1365,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1425,22 +1380,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1449,22 +1395,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1473,22 +1410,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1497,22 +1425,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1521,22 +1440,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1545,22 +1455,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1569,22 +1470,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1593,22 +1485,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1617,22 +1500,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1641,22 +1515,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   },
@@ -1665,22 +1530,13 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      {
-        "name": "The Apache Software License, Version 2.0",
-        "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-        "distribution": "repo"
-      }
+      "The Apache Software License, Version 2.0"
     ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/ehcache/ehcache3",
-      "connection": "scm:git:https://github.com/ehcache/ehcache3.git",
-      "developerConnection": "scm:git:git@github.com:ehcache/ehcache3.git"
-    },
+    "versionControl": "https://github.com/ehcache/ehcache3",
     "developers": [
       {
         "name": "Terracotta Engineers",
-        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc.",
-        "organizationUrl": "http://ehcache.org"
+        "organization": "Terracotta Inc., a wholly-owned subsidiary of Software AG USA, Inc."
       }
     ]
   }

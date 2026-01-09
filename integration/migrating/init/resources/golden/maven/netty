@@ -1061,7 +1061,7 @@ Module dependencies of varhandle-stub:
   "codec-http2.test.mvnDeps": [
     "org.mockito:mockito-core:3.6.28",
     "org.bouncycastle:bcpkix-jdk18on:1.80",
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final",
     "com.aayushatharva.brotli4j:native-linux-x86_64:1.16.0",
     "com.aayushatharva.brotli4j:native-linux-aarch64:1.16.0",
     "com.aayushatharva.brotli4j:native-linux-riscv64:1.16.0",
@@ -1192,7 +1192,7 @@ Module dependencies of varhandle-stub:
     "org.jctools:jctools-core:4.0.5",
     "org.slf4j:slf4j-api:2.0.13",
     "commons-logging:commons-logging:1.3.4",
-    "org.apache.logging.log4j:log4j-1.2-api:2.23.1;exclude=com.sun.jdmk:jmxtools;exclude=com.sun.jmx:jmxri;exclude=javax.jms:jms;exclude=javax.mail:mail",
+    "org.apache.logging.log4j:log4j-1.2-api:2.23.1;exclude=javax.mail:mail;exclude=javax.jms:jms;exclude=com.sun.jdmk:jmxtools;exclude=com.sun.jmx:jmxri",
     "org.apache.logging.log4j:log4j-api:2.23.1",
     "io.projectreactor.tools:blockhound:1.0.13.RELEASE"
   ],
@@ -1348,7 +1348,7 @@ Module dependencies of varhandle-stub:
     "org.ops4j.pax.exam:pax-exam-link-assembly:4.13.0"
   ],
   "testsuite-shading.mvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final"
   ],
   "testsuite-shading.test.mvnDeps": [
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
@@ -1382,7 +1382,7 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-native-epoll.test.mvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final",
     "io.github.artsok:rerunner-jupiter:2.1.6",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
@@ -1392,7 +1392,7 @@ Module dependencies of varhandle-stub:
   "transport-native-io_uring.mvnDeps": [],
   "transport-native-io_uring.test.mvnDeps": [
     "org.bouncycastle:bcpkix-jdk18on:1.80",
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
@@ -1402,7 +1402,7 @@ Module dependencies of varhandle-stub:
     "org.bouncycastle:bcpkix-jdk18on:1.80"
   ],
   "transport-native-kqueue.test.mvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final",
     "org.junit.jupiter:junit-jupiter-api:5.12.1",
     "org.junit.jupiter:junit-jupiter-engine:5.12.1",
     "org.junit.jupiter:junit-jupiter-params:5.12.1",
@@ -1582,91 +1582,91 @@ Module dependencies of varhandle-stub:
   "buffer.runMvnDeps": [],
   "buffer.test.runMvnDeps": [
     "org.graalvm.nativeimage:svm:19.3.6",
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec.runMvnDeps": [],
   "codec-base.runMvnDeps": [],
   "codec-base.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-classes-quic.runMvnDeps": [],
   "codec-compression.runMvnDeps": [],
   "codec-compression.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-dns.runMvnDeps": [],
   "codec-dns.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-haproxy.runMvnDeps": [],
   "codec-haproxy.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-http.runMvnDeps": [],
   "codec-http.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-http2.runMvnDeps": [],
   "codec-http2.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-http3.runMvnDeps": [],
   "codec-http3.test.runMvnDeps": [
     "org.jetbrains:annotations:26.0.2",
     "com.google.code.findbugs:jsr305:3.0.2",
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-marshalling.runMvnDeps": [],
   "codec-marshalling.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-memcache.runMvnDeps": [],
   "codec-memcache.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-mqtt.runMvnDeps": [],
   "codec-mqtt.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-native-quic.runMvnDeps": [],
   "codec-native-quic.test.runMvnDeps": [
     "org.jetbrains:annotations:26.0.2",
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-protobuf.runMvnDeps": [],
   "codec-protobuf.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-redis.runMvnDeps": [],
   "codec-redis.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-smtp.runMvnDeps": [],
   "codec-smtp.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-socks.runMvnDeps": [],
   "codec-socks.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-stomp.runMvnDeps": [],
   "codec-stomp.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "codec-xml.runMvnDeps": [],
   "codec-xml.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "common.runMvnDeps": [],
   "common.test.runMvnDeps": [
     "org.graalvm.nativeimage:svm:19.3.6",
     "org.jboss:jdk-misc:3.Final",
     "org.jetbrains:annotations:26.0.2",
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "dev-tools.runMvnDeps": [],
   "example.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final",
     "com.jcraft:jzlib:1.1.3",
     "ch.qos.logback:logback-classic:1.3.14",
     "com.aayushatharva.brotli4j:brotli4j:1.16.0",
@@ -1679,58 +1679,58 @@ Module dependencies of varhandle-stub:
     "com.aayushatharva.brotli4j:native-windows-x86_64:1.16.0"
   ],
   "handler.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final"
   ],
   "handler.test.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
-    "org.junit.platform:junit-platform-launcher:"
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final",
+    "org.junit.platform:junit-platform-launcher"
   ],
   "handler-proxy.runMvnDeps": [],
   "handler-proxy.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "handler-ssl-ocsp.runMvnDeps": [],
   "handler-ssl-ocsp.test.runMvnDeps": [
     "org.bouncycastle:bcpkix-jdk18on:1.80",
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "jfr-stub.runMvnDeps": [],
   "microbench.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final"
   ],
   "pkitesting.runMvnDeps": [],
   "pkitesting.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "resolver.runMvnDeps": [],
   "resolver.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "resolver-dns.runMvnDeps": [],
   "resolver-dns.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "resolver-dns-classes-macos.runMvnDeps": [],
   "resolver-dns-native-macos.runMvnDeps": [],
   "resolver-dns-native-macos.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "runMvnDeps": [],
   "testsuite.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final"
   ],
   "testsuite-autobahn.runMvnDeps": [],
   "testsuite-http2.runMvnDeps": [],
   "testsuite-jpms.runMvnDeps": [],
   "testsuite-jpms.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "testsuite-karaf.runMvnDeps": [
     "org.apache.karaf.features:framework:4.4.8;classifier=features;type=xml"
   ],
   "testsuite-native.runMvnDeps": [],
   "testsuite-native.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "testsuite-native-image.runMvnDeps": [],
   "testsuite-native-image-client.runMvnDeps": [],
@@ -1739,47 +1739,47 @@ Module dependencies of varhandle-stub:
   "testsuite-osgi.test.runMvnDeps": [],
   "testsuite-shading.runMvnDeps": [],
   "testsuite-shading.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "transport.runMvnDeps": [],
   "transport.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "transport-blockhound-tests.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}"
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final"
   ],
   "transport-blockhound-tests.test.runMvnDeps": [
-    "io.netty:netty-tcnative:2.0.73.Final;classifier={os.detected.classifier}",
-    "org.junit.platform:junit-platform-launcher:"
+    "io.netty:netty-tcnative-boringssl-static:2.0.73.Final",
+    "org.junit.platform:junit-platform-launcher"
   ],
   "transport-classes-epoll.runMvnDeps": [],
   "transport-classes-io_uring.runMvnDeps": [],
   "transport-classes-kqueue.runMvnDeps": [],
   "transport-native-epoll.runMvnDeps": [],
   "transport-native-epoll.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "transport-native-io_uring.runMvnDeps": [],
   "transport-native-io_uring.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "transport-native-kqueue.runMvnDeps": [],
   "transport-native-kqueue.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "transport-native-unix-common.runMvnDeps": [],
   "transport-native-unix-common.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "transport-native-unix-common-tests.runMvnDeps": [],
   "transport-rxtx.runMvnDeps": [],
   "transport-sctp.runMvnDeps": [],
   "transport-sctp.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "transport-udt.runMvnDeps": [],
   "transport-udt.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher:"
+    "org.junit.platform:junit-platform-launcher"
   ],
   "varhandle-stub.runMvnDeps": []
 }
@@ -2351,695 +2351,58 @@ Module dependencies of varhandle-stub:
   ]
 }
 {
-  "all.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "bom.pomParentProject": {
-    "group": "org.sonatype.oss",
-    "id": "oss-parent",
-    "version": "7"
-  },
-  "buffer.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-base.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-classes-quic.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-compression.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-dns.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-haproxy.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-http.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-http2.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-http3.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-marshalling.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-memcache.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-mqtt.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-native-quic.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-protobuf.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-redis.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-smtp.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-socks.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-stomp.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "codec-xml.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "common.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "dev-tools.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "example.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "handler.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "handler-proxy.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "handler-ssl-ocsp.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "jfr-stub.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "microbench.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "pkitesting.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "pomParentProject": {
-    "group": "org.sonatype.oss",
-    "id": "oss-parent",
-    "version": "9"
-  },
-  "resolver.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "resolver-dns.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "resolver-dns-classes-macos.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "resolver-dns-native-macos.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "testsuite.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-classes-epoll.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-classes-io_uring.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-classes-kqueue.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-native-epoll.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-native-io_uring.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-native-kqueue.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-native-unix-common.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-native-unix-common-tests.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-rxtx.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-sctp.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "transport-udt.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  },
-  "varhandle-stub.pomParentProject": {
-    "group": "io.netty",
-    "id": "netty-parent",
-    "version": "4.2.6.Final"
-  }
+  "all.pomParentProject": null,
+  "bom.pomParentProject": null,
+  "buffer.pomParentProject": null,
+  "codec.pomParentProject": null,
+  "codec-base.pomParentProject": null,
+  "codec-classes-quic.pomParentProject": null,
+  "codec-compression.pomParentProject": null,
+  "codec-dns.pomParentProject": null,
+  "codec-haproxy.pomParentProject": null,
+  "codec-http.pomParentProject": null,
+  "codec-http2.pomParentProject": null,
+  "codec-http3.pomParentProject": null,
+  "codec-marshalling.pomParentProject": null,
+  "codec-memcache.pomParentProject": null,
+  "codec-mqtt.pomParentProject": null,
+  "codec-native-quic.pomParentProject": null,
+  "codec-protobuf.pomParentProject": null,
+  "codec-redis.pomParentProject": null,
+  "codec-smtp.pomParentProject": null,
+  "codec-socks.pomParentProject": null,
+  "codec-stomp.pomParentProject": null,
+  "codec-xml.pomParentProject": null,
+  "common.pomParentProject": null,
+  "dev-tools.pomParentProject": null,
+  "example.pomParentProject": null,
+  "handler.pomParentProject": null,
+  "handler-proxy.pomParentProject": null,
+  "handler-ssl-ocsp.pomParentProject": null,
+  "jfr-stub.pomParentProject": null,
+  "microbench.pomParentProject": null,
+  "pkitesting.pomParentProject": null,
+  "pomParentProject": null,
+  "resolver.pomParentProject": null,
+  "resolver-dns.pomParentProject": null,
+  "resolver-dns-classes-macos.pomParentProject": null,
+  "resolver-dns-native-macos.pomParentProject": null,
+  "testsuite.pomParentProject": null,
+  "transport.pomParentProject": null,
+  "transport-classes-epoll.pomParentProject": null,
+  "transport-classes-io_uring.pomParentProject": null,
+  "transport-classes-kqueue.pomParentProject": null,
+  "transport-native-epoll.pomParentProject": null,
+  "transport-native-io_uring.pomParentProject": null,
+  "transport-native-kqueue.pomParentProject": null,
+  "transport-native-unix-common.pomParentProject": null,
+  "transport-native-unix-common-tests.pomParentProject": null,
+  "transport-rxtx.pomParentProject": null,
+  "transport-sctp.pomParentProject": null,
+  "transport-udt.pomParentProject": null,
+  "varhandle-stub.pomParentProject": null
 }
-{
-  "all.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "bom.pomSettings": {
-    "description": "Netty (Bill of Materials)",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "buffer.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-base.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-classes-quic.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-compression.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-dns.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-haproxy.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-http.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-http2.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-http3.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-marshalling.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-memcache.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-mqtt.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-native-quic.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-protobuf.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-redis.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-smtp.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-socks.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-stomp.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "codec-xml.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "common.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "dev-tools.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "example.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "handler.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "handler-proxy.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "handler-ssl-ocsp.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "jfr-stub.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "microbench.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "pkitesting.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "resolver.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "resolver-dns.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "resolver-dns-classes-macos.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "resolver-dns-native-macos.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "testsuite.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-classes-epoll.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-classes-io_uring.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-classes-kqueue.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-native-epoll.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-native-io_uring.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-native-kqueue.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-native-unix-common.pomSettings": {
-    "description": "Static library which contains common unix utilities.",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-native-unix-common-tests.pomSettings": {
-    "description": "Tests for the static library which contains common unix utilities.",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-rxtx.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-sctp.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "transport-udt.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  },
-  "varhandle-stub.pomSettings": {
-    "description": "",
-    "organization": "",
-    "url": "",
-    "licenses": [],
-    "versionControl": {},
-    "developers": []
-  }
-}
+
 {
   "all.publishVersion": "4.2.6.Final",
   "bom.publishVersion": "4.2.6.Final",
