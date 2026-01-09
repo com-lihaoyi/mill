@@ -34,6 +34,8 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-core-api-java11_3-SNAPSHOT.jar",
             "mill-core-api_3-SNAPSHOT.jar",
             "mill-core-constants-SNAPSHOT.jar",
+            "mill-core-internal-cli_3-SNAPSHOT.jar",
+            "mill-core-internal_3-SNAPSHOT.jar",
             "mill-libs-androidlib-databinding_3-SNAPSHOT.jar",
             "mill-libs-androidlib_3-SNAPSHOT.jar",
             "mill-libs-daemon-client-SNAPSHOT.jar",
@@ -60,7 +62,8 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-util_3-SNAPSHOT.jar",
             "mill-libs_3-SNAPSHOT.jar",
             "mill-moduledefs_3-0.12.8.jar",
-            "mill-runner-autooverride-api_3-SNAPSHOT.jar"
+            "mill-runner-autooverride-api_3-SNAPSHOT.jar",
+            "mill-runner-codesig_3-SNAPSHOT.jar"
           )
         )
         assert(millLocalClasspath == Nil)
