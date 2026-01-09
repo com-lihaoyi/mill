@@ -248,7 +248,7 @@ trait AndroidModule extends JavaModule { outer =>
   def androidTransitiveAssets: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleDeps) {
       case m: AndroidModule =>
-        m.androidAssets
+        m.androidAssetsWithLibraries
       case _ =>
         Task.Anon(Seq.empty)
     }().flatten.distinct
@@ -270,6 +270,13 @@ trait AndroidModule extends JavaModule { outer =>
    */
   def androidLibraryAssets: T[Seq[PathRef]] = Task {
     androidUnpackRunArchives().flatMap(_.assets.toSeq)
+  }
+
+  /**
+   * Combines the module android assets with the library assets
+   */
+  def androidAssetsWithLibraries: T[Seq[PathRef]] = Task {
+    androidAssets().filter(p => os.exists(p.path)) ++ androidLibraryAssets()
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
@@ -761,7 +768,7 @@ trait AndroidModule extends JavaModule { outer =>
     val argFile = Task.dest / "to-link.txt"
     os.write.over(argFile, filesToLink.map(_.toString()).mkString("\n"))
 
-    val allAssetsDirs = androidTransitiveAssets() ++ androidLibraryAssets()
+    val allAssetsDirs = androidTransitiveAssets()
 
     val javaRClassDir = Task.dest / "generatedSources/java"
     val apkDir = Task.dest / "apk"
