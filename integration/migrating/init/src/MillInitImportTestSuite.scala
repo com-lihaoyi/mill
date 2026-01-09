@@ -4,8 +4,6 @@ import utest.{assert, assertGoldenFile, assertGoldenLiteral}
 trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
   def checkImport(
       repoName: String,
-      gitUrl: String,
-      gitBranch: String,
       initArgs: Seq[String] = Nil,
       configsGoldenFile: os.SubPath = null,
       passingTasks: Seq[os.Shellable] = Nil,

@@ -41,12 +41,11 @@ object `package` extends mill.Module {
 
     val reposMap = repos.map(v => v.name -> v).toMap
 
-    private def cloneRepoImpl(repo: RepoInfo, dest: os.Path): PathRef = {
-      if (!os.exists(dest)) {
-        os.proc("git", "clone", repo.url, "--depth", "1", "--branch", repo.branch, repo.name)
-          .call(cwd = dest)
-      }
-      PathRef(dest)
+    private def cloneRepoImpl(repo: RepoInfo, destDir: os.Path): PathRef = {
+      val repoDir = destDir / repo.name
+      os.proc("git", "clone", repo.url, "--depth", "1", "--branch", repo.branch, repo.name)
+        .call(cwd = destDir)
+      PathRef(repoDir)
     }
 
     def jansi = Task { cloneRepoImpl(reposMap("jansi"), Task.dest) }
