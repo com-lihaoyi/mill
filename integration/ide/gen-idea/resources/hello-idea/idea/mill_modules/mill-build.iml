@@ -12,6 +12,8 @@
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-3.8.0-RC5" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
+        <orderEntry type="library" name="asm-9.9.1.jar" level="project"/>
+        <orderEntry type="library" name="asm-tree-9.9.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="cache-util-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-1.19.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-compress-1.28.0.jar" level="project"/>
@@ -56,8 +58,8 @@
         <orderEntry type="library" name="mill-core-constants-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal-cli_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-internal-cli_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-internal_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib-databinding_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib_3-SNAPSHOT.jar" level="project"/>
@@ -88,6 +90,7 @@
         <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.12.8.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-runner-codesig_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-0.11.6.jar" level="project"/>
         <orderEntry type="library" name="os-zip-0.11.6.jar" level="project"/>
@@ -108,7 +111,7 @@
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
         <orderEntry type="library" name="scala3-library_3-3.8.0-RC5.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="slf4j-api-2.0.17.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-3.0.1.jar" level="project"/>
+        <orderEntry type="library" name="snakeyaml-engine-3.0.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.6.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-requests_3-0.6.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-0.6.0.jar" level="project"/>
