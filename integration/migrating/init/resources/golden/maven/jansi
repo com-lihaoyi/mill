@@ -28,7 +28,7 @@ Module dependencies of test:
 {
   "runMvnDeps": [],
   "test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ]
 }
 {
@@ -57,9 +57,14 @@ null
   "organization": "org.fusesource.jansi",
   "url": "http://fusesource.github.io/jansi",
   "licenses": [
-    "Apache License, Version 2.0"
+    {
+      "name": "Apache License, Version 2.0",
+      "url": ""
+    }
   ],
-  "versionControl": "https://github.com/fusesource/jansi",
+  "versionControl": {
+    "browsableRepository": "https://github.com/fusesource/jansi"
+  },
   "developers": [
     {
       "name": "Hiram Chirino",
@@ -81,5 +86,5 @@ null
 
 
 
-"false"
-"false"
+false
+false

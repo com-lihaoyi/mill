@@ -398,20 +398,9 @@ trait GroupExecution {
                     val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
                       (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
                     }
-                    // Write merged result to disk cache so `show` can read it.
-                    // Note: This overwrites the task cache, causing the task to re-execute
-                    // on subsequent runs even if task inputs haven't changed. This is a
-                    // trade-off to support `show` displaying the correct merged value.
-                    labelled.writerOpt.foreach { w =>
-                      val json =
-                        upickle.writeJs(mergedData)(using w.asInstanceOf[upickle.Writer[Any]])
-                      writeCacheJson(
-                        paths.meta,
-                        json,
-                        mergedData.##,
-                        inputsHash + appendLocated.value.value.##
-                      )
-                    }
+                    // Don't write merged result to paths.meta - that would overwrite the task
+                    // cache and cause the task to re-execute every time. The task cache stays
+                    // valid with inputsHash, and show uses the in-memory result from newResults.
                     taskResults.copy(
                       newResults =
                         Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
@@ -590,11 +579,7 @@ trait GroupExecution {
       upickle.writeJs(v.value)(using w.asInstanceOf[upickle.Writer[Any]])
     }
     lazy val workerJson = labelled.asWorker.map { _ =>
-      ujson.Obj(
-        "worker" -> ujson.Str(labelled.toString),
-        "toString" -> ujson.Str(v.value.toString),
-        "inputsHash" -> ujson.Num(inputsHash)
-      ) -> Nil
+      Task.workerJson(labelled.toString, v.value, inputsHash) -> Nil
     }
 
     val terminalResult: Option[(ujson.Value, Seq[PathRef])] = labelled

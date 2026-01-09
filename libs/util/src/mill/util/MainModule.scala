@@ -3,7 +3,7 @@ package mill.util
 import mill.{util, *}
 import mill.api.daemon.internal.MainModuleApi
 import mill.api.*
-import mill.api.internal.{RootModule, RootModule0, Cached}
+import mill.api.internal.{RootModule, RootModule0}
 import mill.api.SelectMode.Separated
 import mill.api.daemon.Watchable
 import mill.moduledefs.Scaladoc
@@ -243,7 +243,8 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
           val allPaths = ts.flatMap { segments =>
             val evPaths = ExecutionPaths.resolve(rootDir, segments)
             val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
-            val potentialModulePath = rootDir / segments.parts
+            val potentialModulePath =
+              rootDir / segments.parts.map(ExecutionPaths.sanitizePathSegment)
             if (os.exists(potentialModulePath)) {
               // this is either because of some pre-Mill-0.10 files lying around
               // or most likely because the segments denote a module but not a task
@@ -428,9 +429,30 @@ object MainModule {
           val namesAndJson = for (t <- selectedTasks) yield {
             t match {
               case t: mill.api.Task.Named[_] =>
-                val jsonFile = ExecutionPaths.resolve(evaluator.outPath, t).meta
-                val metadata = upickle.read[Cached](ujson.read(jsonFile.toIO))
-                Some((t.toString, metadata.value))
+                // Use the in-memory result from executionResults instead of reading from
+                // paths.meta file. This ensures show displays the correct value even when
+                // the in-memory result differs from what's cached on disk (e.g., with !append)
+                val jsonOpt = for {
+                  execResult <- executionResults.transitiveResults.get(t)
+                  success <- execResult.asSuccess
+                } yield {
+                  t.writerOpt match {
+                    case Some(writer) =>
+                      upickle.writeJs(success.value.value)(using
+                        writer.asInstanceOf[upickle.Writer[Any]]
+                      )
+                    case None if t.asWorker.isDefined =>
+                      // Workers don't have a writer, use shared worker JSON generation
+                      Task.workerJson(
+                        t.toString,
+                        success.value.value,
+                        success.value.value.hashCode()
+                      )
+                    case None =>
+                      ujson.Null
+                  }
+                }
+                jsonOpt.map(json => (t.toString, json))
               case _ => None
             }
           }
