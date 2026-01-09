@@ -245,19 +245,12 @@ object Util {
                   // Check for !append tag - if present, wrap in marker object
                   val hasAppendTag = sequence.getTag.getValue == "!append"
                   if (hasAppendTag) {
-                    import mill.api.internal.Appendable.{AppendMarkerKey, ValuesMarkerKey}
-                    // Wrap array in object with marker keys
-                    val objVisitor = v.visitObject(2, jsonableKeys = true, index)
+                    import mill.api.internal.Appendable.AppendMarkerKey
+                    // Wrap array in {$millAppend: <array>}
+                    val objVisitor = v.visitObject(1, jsonableKeys = true, index)
                       .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
-
-                    // Add append marker key
-                    val appendKeyVisitor = objVisitor.visitKey(index)
-                    objVisitor.visitKeyValue(appendKeyVisitor.visitString(AppendMarkerKey, index))
-                    objVisitor.visitValue(objVisitor.subVisitor.visitTrue(index), index)
-
-                    // Add values marker key with the actual array
-                    val valuesKeyVisitor = objVisitor.visitKey(index)
-                    objVisitor.visitKeyValue(valuesKeyVisitor.visitString(ValuesMarkerKey, index))
+                    val keyVisitor = objVisitor.visitKey(index)
+                    objVisitor.visitKeyValue(keyVisitor.visitString(AppendMarkerKey, index))
                     val arrVisitor =
                       objVisitor.subVisitor.visitArray(sequence.getValue.size(), index)
                         .asInstanceOf[upickle.core.ArrVisitor[Any, Any]]

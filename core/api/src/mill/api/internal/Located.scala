@@ -9,25 +9,20 @@ case class Appendable[T](value: T, append: Boolean = false)
 object Appendable {
   import upickle.core.BufferedValue
 
-  /** Marker key indicating append mode in YAML `!append` tag wrapper objects */
-  val AppendMarkerKey = "__mill_append__"
-
-  /** Marker key containing the actual values in YAML `!append` tag wrapper objects */
-  val ValuesMarkerKey = "__mill_values__"
+  /** Marker key for append mode: `{$millAppend: <actual-value>}` */
+  val AppendMarkerKey = "$millAppend"
 
   /**
    * Extract append flag and actual value from a BufferedValue that may contain
-   * the marker object (produced by YAML `!append` tag parsing).
+   * the marker object `{$millAppend: <value>}` (produced by YAML `!append` tag parsing).
    * Returns (actualValue, appendFlag).
    */
   def unwrapAppendMarker(v: BufferedValue): (BufferedValue, Boolean) = {
     v match {
-      case obj: BufferedValue.Obj =>
-        val kvMap = obj.value0.collect { case (BufferedValue.Str(k, _), v) =>
-          k.toString -> v
-        }.toMap
-        (kvMap.get(AppendMarkerKey), kvMap.get(ValuesMarkerKey)) match {
-          case (Some(BufferedValue.True(_)), Some(values)) => (values, true)
+      case obj: BufferedValue.Obj if obj.value0.size == 1 =>
+        obj.value0.head match {
+          case (BufferedValue.Str(k, _), value) if k.toString == AppendMarkerKey =>
+            (value, true)
           case _ => (v, false)
         }
       case _ => (v, false)
