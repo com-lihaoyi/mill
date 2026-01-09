@@ -160,7 +160,7 @@ trait TestModule
     result match {
       case Result.Success((classes, newStamps)) =>
         // Always save the new stamps
-        os.write.over(stampsFile, upickle.default.write(newStamps), createFolders = true)
+        os.write.over(stampsFile, upickle.write(newStamps), createFolders = true)
         
         // Filter impacted classes to only include those that are actually discovered tests
         val discovered = discoveredTestClasses()
@@ -269,7 +269,7 @@ trait TestModule
       )
 
       val argsFile = Task.dest / "testargs"
-      os.write(argsFile, upickle.default.write(testArgs))
+      os.write(argsFile, upickle.write(testArgs))
 
       val testRunnerClasspathArg =
         jvmWorker().scalalibClasspath()
