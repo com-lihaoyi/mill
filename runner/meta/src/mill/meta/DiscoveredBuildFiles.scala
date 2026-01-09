@@ -61,17 +61,19 @@ object DiscoveredBuildFiles {
 
             val isRootFile = rootBuildFileNames.contains(s.last) && (s / os.up) == projectRoot
             val isBuildFile = buildFileExtensions.asScala.exists(ext => s.last == s"build.$ext")
+            val isPackageFile = nestedBuildFileNames.contains(s.last)
 
-            val packageDeclarationValid = (isRootFile, isBuildFile) match {
-              case (true, _) =>
-                importSegments == "" || expectedImportSegments == importSegments
-              case _ =>
-                // Nested files: allow packages starting with "build" to support flexible naming
-                // in reusable submodules that work both standalone and when integrated
-                importSegments == "" ||
-                importSegments.startsWith("build") ||
-                expectedImportSegments.startsWith(importSegments + ".") ||
-                expectedImportSegments == importSegments
+            val exactMatch = expectedImportSegments == importSegments
+            val emptyPackage = importSegments == ""
+            val relaxedMatch =
+              importSegments.startsWith("build") ||
+                expectedImportSegments.startsWith(importSegments + ".")
+
+            val packageDeclarationValid = (isRootFile, isBuildFile, isPackageFile) match {
+              case (true, _, _) => emptyPackage || exactMatch
+              case (_, true, _) => emptyPackage || relaxedMatch || exactMatch
+              case (_, _, true) => relaxedMatch || exactMatch
+              case _ => exactMatch
             }
 
             if (!packageDeclarationValid) {
