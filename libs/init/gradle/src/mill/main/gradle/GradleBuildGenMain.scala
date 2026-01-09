@@ -21,6 +21,8 @@ object GradleBuildGenMain {
       gradleJvmId: String = "system",
       @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
       merge: mainargs.Flag,
+      @mainargs.arg(doc = "disable generating meta-build files")
+      noMeta: mainargs.Flag,
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
       millJvmId: Option[String]
   ): Unit = {
@@ -58,11 +60,13 @@ object GradleBuildGenMain {
       finally gradleConnector.disconnect()
     packages = normalizeBuild(packages)
 
-    val (baseModule, packages0) = BuildGen.withBaseModule(
-      packages,
-      Seq("MavenModule"),
-      Seq("MavenTests")
-    ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
+    val (baseModule, packages0) =
+      if (noMeta.value) (None, packages)
+      else BuildGen.withBaseModule(
+        packages,
+        Seq("MavenModule"),
+        Seq("MavenTests")
+      ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     val millJvmOpts = {
       val properties = new Properties()
       val file = os.pwd / "gradle/wrapper/gradle-wrapper.properties"
