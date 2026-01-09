@@ -20,13 +20,17 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
         "Not found: type UnknownRootModule"
       )
 
-      // For now these error messages still show generated/mangled code; not ideal, but it'll do
-      res.assertContainsLines(
-        "[error] foo/package.mill:6:96",
-        "abstract class package_  extends _root_.mill.api.internal.SubfolderModule(build.millDiscover), UnknownFooModule {",
-        "                                                                                               ^^^^^^^^^^^^^^^^",
-        "Not found: type UnknownFooModule"
-      )
+      locally {
+        // For now these error messages still show generated/mangled code; not ideal, but it'll do
+        assert(res.err.replace('\\', '/').contains("""foo/package.mill:6:113"""))
+        assert(res.err.contains("""Not found: type UnknownFooModule"""))
+        assert(res.err.contains(
+          """abstract class package_  extends _root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover), UnknownFooModule {"""
+        ))
+        assert(res.err.contains(
+          """                                                                                                                ^^^^^^^^^^^^^^^^"""
+        ))
+      }
 
       res.assertContainsLines(
         "[error] build.mill:8:22",
