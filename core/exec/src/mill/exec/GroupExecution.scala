@@ -238,6 +238,20 @@ trait GroupExecution {
         val buildOverrideOpt = staticBuildOverrides.get(labelled.ctx.segments.render)
           .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render))
 
+        // Helper to create a cached result (no evaluation occurred)
+        def cachedResult(
+            execRes: ExecResult[(Val, Int)],
+            serializedPaths: Seq[PathRef]
+        ): GroupExecution.Results = GroupExecution.Results(
+          newResults = Map(labelled -> execRes),
+          newEvaluated = Nil,
+          cached = true,
+          inputsHash = inputsHash,
+          previousInputsHash = -1,
+          valueHashChanged = false,
+          serializedPaths = serializedPaths
+        )
+
         // Helper to evaluate the task with full caching support
         def evaluateTaskWithCaching(): GroupExecution.Results = {
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
@@ -267,19 +281,7 @@ trait GroupExecution {
 
           cachedValueAndHash match {
             case Some(((v, serializedPaths), hashCode)) =>
-              val res = ExecResult.Success((v, hashCode))
-              val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
-                Map(labelled -> res)
-
-              GroupExecution.Results(
-                newResults = newResults,
-                newEvaluated = Nil,
-                cached = true,
-                inputsHash = inputsHash,
-                previousInputsHash = -1,
-                valueHashChanged = false,
-                serializedPaths = serializedPaths
-              )
+              cachedResult(ExecResult.Success((v, hashCode)), serializedPaths)
 
             case _ =>
               // uncached
@@ -374,15 +376,7 @@ trait GroupExecution {
               }
             }
 
-          GroupExecution.Results(
-            newResults = Map(labelled -> execRes),
-            newEvaluated = Nil,
-            cached = true,
-            inputsHash = inputsHash,
-            previousInputsHash = -1,
-            valueHashChanged = false,
-            serializedPaths = serializedPaths
-          )
+          cachedResult(execRes, serializedPaths)
         }
 
         // Three-way conditional:
@@ -403,30 +397,18 @@ trait GroupExecution {
                     val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
                       (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
                     }
-
-                    GroupExecution.Results(
+                    taskResults.copy(
                       newResults =
                         Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
-                      newEvaluated = taskResults.newEvaluated,
-                      cached = taskResults.cached,
-                      inputsHash = inputsHash,
-                      previousInputsHash = taskResults.previousInputsHash,
-                      valueHashChanged = taskResults.valueHashChanged,
                       serializedPaths = serializedPaths
                     )
                   case Left(e) =>
                     val (failure, _) = buildOverrideDeserializationError(e, appendLocated)
-                    GroupExecution.Results(
+                    taskResults.copy(
                       newResults = Map(labelled -> failure),
-                      newEvaluated = taskResults.newEvaluated,
-                      cached = taskResults.cached,
-                      inputsHash = inputsHash,
-                      previousInputsHash = taskResults.previousInputsHash,
-                      valueHashChanged = taskResults.valueHashChanged,
                       serializedPaths = Nil
                     )
                 }
-
               // Task evaluation failed - propagate the failure
               case _ => taskResults
             }

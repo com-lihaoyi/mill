@@ -242,38 +242,30 @@ object Util {
                   objVisitor.visitEnd(index)
 
                 case sequence: SequenceNode =>
-                  // Check for !append tag - if present, wrap in marker object
-                  val hasAppendTag = sequence.getTag.getValue == "!append"
-                  if (hasAppendTag) {
-                    import mill.api.internal.Appendable.AppendMarkerKey
-                    // Wrap array in {$millAppend: <array>}
-                    val objVisitor = v.visitObject(1, jsonableKeys = true, index)
-                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
-                    val keyVisitor = objVisitor.visitKey(index)
-                    objVisitor.visitKeyValue(keyVisitor.visitString(AppendMarkerKey, index))
-                    val arrVisitor =
-                      objVisitor.subVisitor.visitArray(sequence.getValue.size(), index)
-                        .asInstanceOf[upickle.core.ArrVisitor[Any, Any]]
+                  def visitSequence[T](visitor: upickle.core.Visitor[?, T]): T = {
+                    val arrVisitor = visitor.visitArray(sequence.getValue.size(), index)
+                      .asInstanceOf[upickle.core.ArrVisitor[Any, T]]
                     for (item <- sequence.getValue.asScala) {
-                      val itemResult = rec(item, arrVisitor.subVisitor)
                       arrVisitor.visitValue(
-                        itemResult,
-                        item.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                      )
-                    }
-                    objVisitor.visitValue(arrVisitor.visitEnd(index), index)
-                    objVisitor.visitEnd(index)
-                  } else {
-                    val arrVisitor = v.visitArray(sequence.getValue.size(), index)
-                      .asInstanceOf[upickle.core.ArrVisitor[Any, J]]
-                    for (item <- sequence.getValue.asScala) {
-                      val itemResult = rec(item, arrVisitor.subVisitor)
-                      arrVisitor.visitValue(
-                        itemResult,
+                        rec(item, arrVisitor.subVisitor),
                         item.getStartMark.map(_.getIndex.intValue()).orElse(0)
                       )
                     }
                     arrVisitor.visitEnd(index)
+                  }
+                  // Check for !append tag - if present, wrap in {$millAppend: <array>}
+                  if (sequence.getTag.getValue == "!append") {
+                    import mill.api.internal.Appendable.AppendMarkerKey
+                    val objVisitor = v.visitObject(1, jsonableKeys = true, index)
+                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+                    objVisitor.visitKeyValue(objVisitor.visitKey(index).visitString(
+                      AppendMarkerKey,
+                      index
+                    ))
+                    objVisitor.visitValue(visitSequence(objVisitor.subVisitor), index)
+                    objVisitor.visitEnd(index)
+                  } else {
+                    visitSequence(v)
                   }
               }
             } catch {
