@@ -4,7 +4,7 @@ import mill.api.{ExecResult, Result, Val}
 import mill.constants.{OutFolderMode}
 import mill.constants.OutFiles.OutFiles
 import mill.{Task, given}
-import mill.api.{Cross, DefaultTaskModule, Discover, Module, PathRef}
+import mill.api.{Cross, DefaultTaskModule, Discover, ExternalModule, Module, PathRef}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import mill.util.MainModule
@@ -14,6 +14,17 @@ import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
 import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
+
+// External module for testing clean command with external workers
+object TestExternalWorkerModule extends ExternalModule {
+  def externalWorker = Task.Worker {
+    new AutoCloseable {
+      def close() = ()
+      override def toString = "externalWorkerInstance"
+    }
+  }
+  lazy val millDiscover = Discover[this.type]
+}
 
 object MainModuleTests extends TestSuite {
 
@@ -705,6 +716,31 @@ object MainModuleTests extends TestSuite {
             ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "bazz[1]"))).executionResults
           assert(r4.transitiveFailing.size == 0)
           assert(workers.size == 2)
+        }
+      }
+
+      test("external-module") {
+        // Test cleaning external module workers (issue #6549)
+        // External modules have segments ending with '/' which need special handling
+        object externalModuleBuild extends TestRootModule with MainModule {
+          def useExternalWorker = Task {
+            TestExternalWorkerModule.externalWorker()
+            "done"
+          }
+          lazy val millDiscover = Discover[this.type]
+        }
+        UnitTester(externalModuleBuild, null).scoped { ev =>
+          // First run the task that uses the external worker
+          val r1 = ev.evaluator.execute(Seq(externalModuleBuild.useExternalWorker)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+
+          // Now try to clean the external worker - this should not throw an error
+          // Previously this would fail with: "[mill.util.TestExternalWorkerModule/] is not a valid path segment"
+          val r2 = ev.evaluator.execute(Seq(externalModuleBuild.clean(
+            ev.evaluator,
+            "mill.util.TestExternalWorkerModule/externalWorker"
+          ))).executionResults
+          assert(r2.transitiveFailing.size == 0)
         }
       }
     }
