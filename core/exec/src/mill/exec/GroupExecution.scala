@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
-import mill.api.internal.{AppendLocated, Cached, Located}
+import mill.api.internal.{Cached, Located}
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
 
@@ -44,14 +44,14 @@ trait GroupExecution {
 
   /** Evaluate a build override YAML value and deserialize it */
   private def evaluateBuildOverride(
-      appendLocated: AppendLocated[BufferedValue],
+      located: Located[BufferedValue],
       labelled: Task.Named[_]
   ): Either[upickle.core.TraceVisitor.TraceException, Any] = {
     try {
       Right(PathRef.currentOverrideModulePath.withValue(
         labelled.ctx.enclosingModule.moduleCtx.millSourcePath
       ) {
-        upickle.read[Any](interpolateEnvVarsInJson(appendLocated.value))(
+        upickle.read[Any](interpolateEnvVarsInJson(located.value))(
           using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
         )
       })
@@ -60,7 +60,7 @@ trait GroupExecution {
     }
   }
 
-  val staticBuildOverrides: Map[String, AppendLocated[BufferedValue]] = staticBuildOverrideFiles
+  val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
     .flatMap { case (path0, rawText) =>
       val path = os.Path(path0)
       val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
@@ -68,7 +68,7 @@ trait GroupExecution {
       def rec(
           segments: Seq[String],
           bufValue: upickle.core.BufferedValue
-      ): Seq[(String, AppendLocated[BufferedValue])] = {
+      ): Seq[(String, Located[BufferedValue])] = {
         val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
         val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
           k.toString.split(" +") match {
@@ -77,7 +77,7 @@ trait GroupExecution {
           }
         }
 
-        val currentResults: Seq[(String, AppendLocated[BufferedValue])] =
+        val currentResults: Seq[(String, Located[BufferedValue])] =
           BufferedValue.transform(
             BufferedValue.Obj(
               rawKvs.map { case (k, i, v) => (BufferedValue.Str(k, i), v) }.to(mutable.ArrayBuffer),
@@ -88,15 +88,12 @@ trait GroupExecution {
           )
             .rest
             .map { case (k, v) =>
-              val (actualValue, append) = AppendLocated.unwrapAppendMarker(v)
-              (segments ++ Seq(k.value)).mkString(".") -> AppendLocated(
-                Located(path, k.index, actualValue),
-                append
-              )
+              val (actualValue, append) = Located.unwrapAppendMarker(v)
+              (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, actualValue, append)
             }
             .toSeq
 
-        val nestedResults: Seq[(String, AppendLocated[BufferedValue])] = nested.flatten.toSeq
+        val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
 
         currentResults ++ nestedResults
       }
@@ -315,13 +312,13 @@ trait GroupExecution {
         }
 
         // Helper to evaluate build override only (no task evaluation)
-        def evaluateBuildOverrideOnly(appendLocated: AppendLocated[BufferedValue])
+        def evaluateBuildOverrideOnly(located: Located[BufferedValue])
             : GroupExecution.Results = {
-          lazy val originalText = os.read(appendLocated.path)
+          lazy val originalText = os.read(located.path)
           lazy val strippedText = originalText.replace("\n//|", "\n")
           lazy val lookupLineSuffix = fastparse
             .IndexedParserInput(strippedText)
-            .prettyIndex(appendLocated.index)
+            .prettyIndex(located.index)
             .takeWhile(_ != ':')
 
           val (execRes, serializedPaths) =

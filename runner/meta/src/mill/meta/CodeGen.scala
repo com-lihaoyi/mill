@@ -170,7 +170,7 @@ object CodeGen {
 
           def renderModuleDepsSnippet(
               name: String,
-              deps: mill.api.internal.AppendLocated[Seq[mill.api.internal.Located[String]]]
+              deps: mill.api.internal.Located[Seq[mill.api.internal.Located[String]]]
           ): String = {
             if (deps.value.isEmpty && !deps.append) ""
             else {

@@ -25,8 +25,8 @@ trait ScriptModule extends ExternalModule {
     .rest
     .map { case (k, v) =>
       val newKey = (moduleSegments ++ mill.api.Segment.Label(k.value)).render
-      val (actualValue, append) = internal.AppendLocated.unwrapAppendMarker(v)
-      (newKey, internal.AppendLocated(internal.Located(scriptConfig.scriptFile, k.index, actualValue), append))
+      val (actualValue, append) = internal.Located.unwrapAppendMarker(v)
+      (newKey, internal.Located(scriptConfig.scriptFile, k.index, actualValue, append))
     }
 }
 @experimental

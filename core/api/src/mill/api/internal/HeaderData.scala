@@ -2,12 +2,9 @@ package mill.api.internal
 
 private[mill] case class HeaderData(
     `extends`: Located[OneOrMore[Located[String]]] = Located(null, -1, OneOrMore(Nil)),
-    moduleDeps: AppendLocated[Seq[Located[String]]] =
-      AppendLocated(Located(null, -1, Nil), append = false),
-    compileModuleDeps: AppendLocated[Seq[Located[String]]] =
-      AppendLocated(Located(null, -1, Nil), append = false),
-    runModuleDeps: AppendLocated[Seq[Located[String]]] =
-      AppendLocated(Located(null, -1, Nil), append = false),
+    moduleDeps: Located[Seq[Located[String]]] = Located(null, -1, Nil),
+    compileModuleDeps: Located[Seq[Located[String]]] = Located(null, -1, Nil),
+    runModuleDeps: Located[Seq[Located[String]]] = Located(null, -1, Nil),
     @upickle.implicits.flatten rest: Map[Located[String], upickle.core.BufferedValue]
 )
 private[mill] object HeaderData {
@@ -20,8 +17,8 @@ private[mill] object HeaderData {
   def headerDataReader(path: os.Path) = {
     implicit def locatedReader[T: upickle.Reader]: Located.UpickleReader[T] =
       new Located.UpickleReader[T](path)
-    implicit def appendLocatedReader[T: upickle.Reader]: AppendLocated.UpickleReader[T] =
-      new AppendLocated.UpickleReader[T](path)
+    implicit def appendLocatedReader[T: upickle.Reader]: Located.AppendUpickleReader[T] =
+      new Located.AppendUpickleReader[T](path)
     upickle.macroR[HeaderData]
   }
 }
