@@ -36,48 +36,61 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       assertEventually(spawned.out.text().contains("Hello 3"))
     }
 
-    test("mvnDepsAppend") - integrationTest { tester =>
+    test("append") - integrationTest { tester =>
       import tester.*
 
-      // Get baseline mvnDeps (should be empty for plain JavaModule)
-      val baseline = eval(("show", "mvnDeps"))
+      // Get baseline sources (should be default src/)
+      val baseline = eval(("show", "sources"))
       assert(baseline.isSuccess)
-      val baselineDeps = baseline.out.trim
-      assert(baselineDeps == "[]")
+      assert(baseline.out.contains("\"src\"") || baseline.out.contains("/src\""))
 
-      // Add first dependency with !append
+      // Set normal sources value (replaces default)
+      modifyFile(workspacePath / "build.mill.yaml", _ + "\nsources: [src-2/]")
+      val withNormal = eval(("show", "sources"))
+      assert(withNormal.isSuccess)
+      assert(withNormal.out.contains("src-2"))
+      assert(!withNormal.out.contains("\"src\""))
+
+      // Transition from normal to !append: now should have default src/ AND src-extra/
       modifyFile(
         workspacePath / "build.mill.yaml",
-        _ + "\nmvnDeps: !append\n- com.lihaoyi:mainargs_2.13:0.4.0"
+        _.replace("sources: [src-2/]", "sources: !append\n- src-extra/")
       )
-      val withFirstDep = eval(("show", "mvnDeps"))
-      assert(withFirstDep.isSuccess)
-      assert(withFirstDep.out.contains("com.lihaoyi:mainargs_2.13:0.4.0"))
+      val withAppend = eval(("show", "sources"))
+      assert(withAppend.isSuccess)
+      // With !append, should have both default src/ and appended src-extra/
+      assert(withAppend.out.contains("src-extra"))
+      assert(withAppend.out.contains("\"src\"") || withAppend.out.contains("/src\""))
 
-      // Add second dependency to the !append list
+      // Add another folder to the !append list
       modifyFile(
         workspacePath / "build.mill.yaml",
-        _.replace(
-          "mvnDeps: !append\n- com.lihaoyi:mainargs_2.13:0.4.0",
-          "mvnDeps: !append\n- com.lihaoyi:mainargs_2.13:0.4.0\n- com.lihaoyi:os-lib_2.13:0.9.1"
-        )
+        _.replace("sources: !append\n- src-extra/", "sources: !append\n- src-extra/\n- src-2/")
       )
-      val withBothDeps = eval(("show", "mvnDeps"))
-      assert(withBothDeps.isSuccess)
-      assert(withBothDeps.out.contains("com.lihaoyi:mainargs_2.13:0.4.0"))
-      assert(withBothDeps.out.contains("com.lihaoyi:os-lib_2.13:0.9.1"))
+      val withMoreAppend = eval(("show", "sources"))
+      assert(withMoreAppend.isSuccess)
+      assert(withMoreAppend.out.contains("\"src\"") || withMoreAppend.out.contains("/src\""))
+      assert(withMoreAppend.out.contains("src-extra"))
+      assert(withMoreAppend.out.contains("src-2"))
 
-      // Remove mvnDeps entirely - should go back to baseline
+      // Transition from !append back to normal value
       modifyFile(
         workspacePath / "build.mill.yaml",
-        _.replace(
-          "\nmvnDeps: !append\n- com.lihaoyi:mainargs_2.13:0.4.0\n- com.lihaoyi:os-lib_2.13:0.9.1",
-          ""
-        )
+        _.replace("sources: !append\n- src-extra/\n- src-2/", "sources: [src-3/]")
       )
-      val backToBaseline = eval(("show", "mvnDeps"))
-      assert(backToBaseline.isSuccess)
-      assert(backToBaseline.out.trim == baselineDeps)
+      val backToNormal = eval(("show", "sources"))
+      assert(backToNormal.isSuccess)
+      assert(backToNormal.out.contains("src-3"))
+      assert(!backToNormal.out.contains("\"src\""))
+
+      // Remove sources entirely - should go back to default
+      modifyFile(
+        workspacePath / "build.mill.yaml",
+        _.replace("\nsources: [src-3/]", "")
+      )
+      val backToDefault = eval(("show", "sources"))
+      assert(backToDefault.isSuccess)
+      assert(backToDefault.out.contains("\"src\"") || backToDefault.out.contains("/src\""))
     }
   }
 }
