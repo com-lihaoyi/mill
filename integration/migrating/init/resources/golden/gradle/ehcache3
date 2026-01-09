@@ -1305,9 +1305,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1320,9 +1325,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1335,9 +1345,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1350,9 +1365,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1365,9 +1385,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1380,9 +1405,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1395,9 +1425,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules.clustered",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1410,9 +1445,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1425,9 +1465,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1440,9 +1485,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1455,9 +1505,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1470,9 +1525,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1485,9 +1545,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1500,9 +1565,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1515,9 +1585,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
@@ -1530,9 +1605,14 @@ Module dependencies of spi-tester:
     "organization": "org.ehcache.modules",
     "url": "http://ehcache.org",
     "licenses": [
-      "The Apache Software License, Version 2.0"
+      {
+        "name": "The Apache Software License, Version 2.0",
+        "url": ""
+      }
     ],
-    "versionControl": "https://github.com/ehcache/ehcache3",
+    "versionControl": {
+      "browsableRepository": "https://github.com/ehcache/ehcache3"
+    },
     "developers": [
       {
         "name": "Terracotta Engineers",
