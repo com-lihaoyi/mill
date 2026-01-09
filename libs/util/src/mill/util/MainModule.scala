@@ -428,9 +428,15 @@ object MainModule {
           val namesAndJson = for (t <- selectedTasks) yield {
             t match {
               case t: mill.api.Task.Named[_] =>
-                val jsonFile = ExecutionPaths.resolve(evaluator.outPath, t).meta
-                val metadata = upickle.read[Cached](ujson.read(jsonFile.toIO))
-                Some((t.toString, metadata.value))
+                // Use the in-memory result from executionResults instead of reading from
+                // paths.meta file. This ensures show displays the correct value even when
+                // the in-memory result differs from what's cached on disk (e.g., with !append)
+                val jsonOpt = for {
+                  execResult <- executionResults.transitiveResults.get(t)
+                  success <- execResult.asSuccess
+                  writer <- t.writerOpt
+                } yield upickle.writeJs(success.value.value)(using writer.asInstanceOf[upickle.Writer[Any]])
+                jsonOpt.map(json => (t.toString, json))
               case _ => None
             }
           }
