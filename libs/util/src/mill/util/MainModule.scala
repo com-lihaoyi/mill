@@ -434,8 +434,23 @@ object MainModule {
                 val jsonOpt = for {
                   execResult <- executionResults.transitiveResults.get(t)
                   success <- execResult.asSuccess
-                  writer <- t.writerOpt
-                } yield upickle.writeJs(success.value.value)(using writer.asInstanceOf[upickle.Writer[Any]])
+                } yield {
+                  t.writerOpt match {
+                    case Some(writer) =>
+                      upickle.writeJs(success.value.value)(using
+                        writer.asInstanceOf[upickle.Writer[Any]]
+                      )
+                    case None if t.asWorker.isDefined =>
+                      // Workers don't have a writer, use shared worker JSON generation
+                      Task.workerJson(
+                        t.toString,
+                        success.value.value,
+                        success.value.value.hashCode()
+                      )
+                    case None =>
+                      ujson.Null
+                  }
+                }
                 jsonOpt.map(json => (t.toString, json))
               case _ => None
             }

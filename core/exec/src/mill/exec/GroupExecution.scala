@@ -579,11 +579,7 @@ trait GroupExecution {
       upickle.writeJs(v.value)(using w.asInstanceOf[upickle.Writer[Any]])
     }
     lazy val workerJson = labelled.asWorker.map { _ =>
-      ujson.Obj(
-        "worker" -> ujson.Str(labelled.toString),
-        "toString" -> ujson.Str(v.value.toString),
-        "inputsHash" -> ujson.Num(inputsHash)
-      ) -> Nil
+      Task.workerJson(labelled.toString, v.value, inputsHash) -> Nil
     }
 
     val terminalResult: Option[(ujson.Value, Seq[PathRef])] = labelled
