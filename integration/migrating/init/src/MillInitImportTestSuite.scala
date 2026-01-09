@@ -33,9 +33,11 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
 
       if (configsGoldenFile != null) {
         // Tasks that may not exist on all modules (e.g., errorProneDeps only on ErrorProneModule)
+        // or may have incomplete configuration in YAML (e.g., pomSettings for child modules)
         val expectedFailureTasks = Set(
           "errorProneDeps",
           "errorProneOptions",
+          "pomSettings",
           "scalaVersion",
           "scalacOptions",
           "scalacPluginMvnDeps",
