@@ -2,41 +2,6 @@ package mill.api.internal
 
 case class Located[T](path: os.Path, index: Int, value: T)
 
-/** Located with an additional flag indicating whether to append to super */
-case class AppendLocated[T](located: Located[T], append: Boolean) {
-  def path: os.Path = located.path
-  def index: Int = located.index
-  def value: T = located.value
-}
-
-object AppendLocated {
-  import upickle.core.BufferedValue
-
-  /** Marker key indicating append mode in YAML `!append` tag wrapper objects */
-  val AppendMarkerKey = "__mill_append__"
-  /** Marker key containing the actual values in YAML `!append` tag wrapper objects */
-  val ValuesMarkerKey = "__mill_values__"
-
-  /**
-   * Extract append flag and actual value from a BufferedValue that may contain
-   * the marker object (produced by YAML `!append` tag parsing).
-   * Returns (actualValue, appendFlag).
-   */
-  def unwrapAppendMarker(v: BufferedValue): (BufferedValue, Boolean) = {
-    v match {
-      case obj: BufferedValue.Obj =>
-        val kvMap = obj.value0.collect { case (BufferedValue.Str(k, _), v) =>
-          k.toString -> v
-        }.toMap
-        (kvMap.get(AppendMarkerKey), kvMap.get(ValuesMarkerKey)) match {
-          case (Some(BufferedValue.True(_)), Some(values)) => (values, true)
-          case _ => (v, false)
-        }
-      case _ => (v, false)
-    }
-  }
-}
-
 object Located {
   class UpickleReader[T](path: os.Path)(implicit r: upickle.Reader[T])
       extends upickle.Reader[Located[T]] {

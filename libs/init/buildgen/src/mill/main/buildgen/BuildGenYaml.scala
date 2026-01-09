@@ -343,11 +343,11 @@ object BuildGenYaml {
     values.mkString("[", ", ", "]")
 
   private def renderYamlModuleDeps(name: String, deps: Values[ModuleDep]): Option[String] = {
-    // moduleDeps is handled at compile time, so we just inline values without !append
-    if (deps.base.isEmpty) None
+    if (deps.base.isEmpty && !deps.appendSuper) None
     else {
+      val appendTag = if (deps.appendSuper) "!append " else ""
       val depStrings = deps.base.map(renderYamlModuleDep)
-      Some(s"$name: ${renderYamlStringList(depStrings)}")
+      Some(s"$name: $appendTag${renderYamlStringList(depStrings)}")
     }
   }
 

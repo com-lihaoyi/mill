@@ -168,20 +168,21 @@ object CodeGen {
             }
           }
 
-          val moduleDepsSnippet =
-            if (data.moduleDeps.value.isEmpty) ""
-            else
-              s"override def moduleDeps = Seq(${data.moduleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+          def renderModuleDepsSnippet(
+              name: String,
+              deps: mill.api.internal.AppendLocated[Seq[mill.api.internal.Located[String]]]
+          ): String = {
+            if (deps.value.isEmpty && !deps.append) ""
+            else {
+              val seqContent = deps.value.map(_.value).map(parseRender).mkString(", ")
+              if (deps.append) s"override def $name = super.$name ++ Seq($seqContent)"
+              else s"override def $name = Seq($seqContent)"
+            }
+          }
 
-          val compileModuleDepsSnippet =
-            if (data.compileModuleDeps.value.isEmpty) ""
-            else
-              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
-
-          val runModuleDepsSnippet =
-            if (data.runModuleDeps.value.isEmpty) ""
-            else
-              s"override def runModuleDeps = Seq(${data.runModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+          val moduleDepsSnippet = renderModuleDepsSnippet("moduleDeps", data.moduleDeps)
+          val compileModuleDepsSnippet = renderModuleDepsSnippet("compileModuleDeps", data.compileModuleDeps)
+          val runModuleDepsSnippet = renderModuleDepsSnippet("runModuleDeps", data.runModuleDeps)
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
