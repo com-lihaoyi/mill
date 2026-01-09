@@ -1,7 +1,5 @@
 package foo;
 
-import bar.Bar;
-
 public class Foo {
     public static int bar() {
         return 1;
@@ -9,10 +7,5 @@ public class Foo {
 
     public static int qux() {
         return 100;
-    }
-
-    // This method depends on the bar module
-    public static int barValue() {
-        return Bar.value();
     }
 }

@@ -1,0 +1,47 @@
+// The `testQuick` command provides fine-grained selective test execution by
+// analyzing bytecode callgraphs to determine which test classes are affected
+// by code changes. This is more efficient than running all tests when only
+// a small part of the codebase has changed.
+
+//// SNIPPET:BUILD1
+package build
+import mill.*, javalib.*
+
+object foo extends JavaModule {
+  object test extends JavaTests with TestModule.Junit4 {
+    def mvnDeps = Seq(
+      mvn"com.novocode:junit-interface:0.11"
+    )
+  }
+}
+//// SNIPPET:END
+
+// `testQuick` works by:
+//
+// 1. Computing a callgraph of all method calls in your compiled bytecode
+// 2. Tracking hash signatures of each method's code
+// 3. On subsequent runs, only executing tests whose transitive dependencies have changed
+// 4. Always re-running tests that failed in the previous run
+
+//// SNIPPET:USAGE
+
+/** Usage
+
+> ./mill foo.test.testQuick # First run executes all tests
+...FooTest1...
+...FooTest2...
+
+*/
+
+//// SNIPPET:END
+
+// After the first run, running `testQuick` again with no code changes will skip
+// all tests since nothing has changed. The test state is persisted between runs.
+//
+// After modifying source code, only affected tests will run. For example,
+// changing the `bar()` method will cause `FooTest2` (which calls `bar()`) to re-run,
+// while `FooTest1` (which only calls `qux()`) will be skipped.
+//
+// Failed tests are tracked and automatically re-run until they pass,
+// even if no code changes are detected. This ensures you don't accidentally
+// skip failing tests.

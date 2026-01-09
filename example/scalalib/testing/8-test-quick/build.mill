@@ -1,0 +1,41 @@
+// The `testQuick` command provides fine-grained selective test execution by
+// analyzing bytecode callgraphs to determine which test classes are affected
+// by code changes. This works for Scala projects just as it does for Java.
+
+//// SNIPPET:BUILD1
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.16"
+
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = "0.8.5"
+  }
+}
+//// SNIPPET:END
+
+// `testQuick` works by:
+//
+// 1. Computing a callgraph of all method calls in your compiled bytecode
+// 2. Tracking hash signatures of each method's code
+// 3. On subsequent runs, only executing tests whose transitive dependencies have changed
+// 4. Always re-running tests that failed in the previous run
+
+//// SNIPPET:USAGE
+
+/** Usage
+
+> ./mill foo.test.testQuick # First run executes all tests
+...foo.FooTests...
+
+*/
+
+//// SNIPPET:END
+
+// After the first run, running `testQuick` again with no code changes will skip
+// all tests since nothing has changed. The test state is persisted between runs.
+//
+// After modifying source code, only affected tests will run. Failed tests are
+// tracked and automatically re-run until they pass, even if no code changes
+// are detected.
