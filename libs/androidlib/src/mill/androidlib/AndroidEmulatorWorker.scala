@@ -49,8 +49,6 @@ class AndroidEmulatorWorker(adbPath: PathRef, emulatorId: String) extends AutoCl
       args
     )
 
-    log.debug(s"Started emulator with stdout ${startEmuCmd.stdout}, stderr ${startEmuCmd.stderr}")
-
     val bootMessage: Option[String] = startEmuCmd.stdout.buffered.lines().filter(l => {
       log.debug(l.trim())
       l.contains("Boot completed in") || l.contains("Successfully loaded snapshot")
