@@ -22,25 +22,16 @@ object BuildGenYaml {
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
     removeExistingBuildFiles()
 
-    // Get pomSettings from root module to propagate to base module
-    // (withBaseModule computes intersection, but pomSettings should come from root)
-    val rootPomSettings = packages0.headOption.map(_.module.pomSettings).getOrElse(Value(None, Nil))
-
     // Generate base module Scala file if provided
     for (module <- baseModule) do {
-      // Copy pomSettings from root module if base module doesn't have it
-      val moduleWithPomSettings =
-        if (module.pomSettings.base.isEmpty && rootPomSettings.base.nonEmpty)
-          module.copy(pomSettings = rootPomSettings)
-        else module
-      val file = os.sub / millBuild / os.SubPath(s"src/${moduleWithPomSettings.name}.scala")
+      val file = os.sub / millBuild / os.SubPath(s"src/${module.name}.scala")
       println(s"writing $file")
       os.write(
         os.pwd / file,
         Seq(
           "package millbuild",
-          renderImports(moduleWithPomSettings),
-          renderBaseModule(moduleWithPomSettings)
+          renderImports(module),
+          renderBaseModule(module)
         ).mkString(lineSep * 2),
         createFolders = true
       )
@@ -275,12 +266,8 @@ object BuildGenYaml {
 
     // Publishing
     renderYamlStringValue("artifactName", artifactName).foreach(lines += _)
-    // Only render pomSettings in YAML if the module doesn't extend ProjectBaseModule
-    // (modules extending ProjectBaseModule inherit pomSettings from the trait)
-    val extendsProjectBaseModule = effectiveSupertypes.exists(_.contains("ProjectBaseModule"))
-    if (!extendsProjectBaseModule) {
-      renderYamlPomSettings(pomSettings).foreach(lines += _)
-    }
+    // Always render pomSettings if the module has it (YAML will override any inherited value)
+    renderYamlPomSettings(pomSettings).foreach(lines += _)
     renderYamlStringValue("publishVersion", publishVersion).foreach(lines += _)
 
     // Testing
