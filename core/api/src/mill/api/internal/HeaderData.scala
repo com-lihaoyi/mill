@@ -17,8 +17,6 @@ private[mill] object HeaderData {
   def headerDataReader(path: os.Path) = {
     implicit def locatedReader[T: upickle.Reader]: Located.UpickleReader[T] =
       new Located.UpickleReader[T](path)
-    implicit def appendLocatedReader[T: upickle.Reader]: Located.AppendUpickleReader[T] =
-      new Located.AppendUpickleReader[T](path)
     upickle.macroR[HeaderData]
   }
 }

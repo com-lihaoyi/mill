@@ -325,27 +325,27 @@ trait GroupExecution {
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
               (
                 ExecResult.Failure(
-                  s"Build header config in ${appendLocated.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
+                  s"Build header config in ${located.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
                     s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
                 ),
                 Nil
               )
             } else {
-              evaluateBuildOverride(appendLocated, labelled) match {
+              evaluateBuildOverride(located, labelled) match {
                 case Right(yamlValue) =>
                   val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
                   // Write build header override JSON to meta `.json` file to support `show`
                   writeCacheJson(
                     paths.meta,
-                    upickle.core.BufferedValue.transform(appendLocated.value, ujson.Value),
+                    upickle.core.BufferedValue.transform(located.value, ujson.Value),
                     data.##,
-                    inputsHash + appendLocated.value.##
+                    inputsHash + located.value.##
                   )
                   (ExecResult.Success(Val(data), data.##), serializedPaths)
                 case Left(e) =>
                   val errorIndex = e.getCause match {
                     case abort: upickle.core.AbortException => abort.index
-                    case _ => appendLocated.value.index
+                    case _ => located.value.index
                   }
                   val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
                   (
@@ -353,7 +353,7 @@ trait GroupExecution {
                       msg,
                       Some(Result.Failure(
                         msg,
-                        path = appendLocated.path.toNIO,
+                        path = located.path.toNIO,
                         index = errorIndex
                       ))
                     ),
