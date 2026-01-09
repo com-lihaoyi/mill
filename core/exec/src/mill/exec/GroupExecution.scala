@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
-import mill.api.internal.{Cached, Located}
+import mill.api.internal.{Appendable, Cached, Located}
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
 
@@ -44,14 +44,14 @@ trait GroupExecution {
 
   /** Evaluate a build override YAML value and deserialize it */
   private def evaluateBuildOverride(
-      located: Located[BufferedValue],
+      located: Located[Appendable[BufferedValue]],
       labelled: Task.Named[_]
   ): Either[upickle.core.TraceVisitor.TraceException, Any] = {
     try {
       Right(PathRef.currentOverrideModulePath.withValue(
         labelled.ctx.enclosingModule.moduleCtx.millSourcePath
       ) {
-        upickle.read[Any](interpolateEnvVarsInJson(located.value))(
+        upickle.read[Any](interpolateEnvVarsInJson(located.value.value))(
           using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
         )
       })
@@ -63,11 +63,11 @@ trait GroupExecution {
   /** Create an ExecResult.Failure from a deserialization exception */
   private def buildOverrideDeserializationError(
       e: upickle.core.TraceVisitor.TraceException,
-      located: Located[BufferedValue]
+      located: Located[Appendable[BufferedValue]]
   ) = {
     val errorIndex = e.getCause match {
       case abort: upickle.core.AbortException => abort.index
-      case _ => located.value.index
+      case _ => located.value.value.index
     }
     val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
     (
@@ -79,74 +79,78 @@ trait GroupExecution {
     )
   }
 
-  val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
-    .flatMap { case (path0, rawText) =>
-      val path = os.Path(path0)
-      val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
+  val staticBuildOverrides: Map[String, Located[Appendable[BufferedValue]]] =
+    staticBuildOverrideFiles
+      .flatMap { case (path0, rawText) =>
+        val path = os.Path(path0)
+        val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
 
-      def rec(
-          segments: Seq[String],
-          bufValue: upickle.core.BufferedValue
-      ): Seq[(String, Located[BufferedValue])] = {
-        val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
-        val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
-          k.toString.split(" +") match {
-            case Array(k) => Left((k, i, v))
-            case Array("object", k) => Right(rec(segments ++ Seq(k), v))
+        def rec(
+            segments: Seq[String],
+            bufValue: upickle.core.BufferedValue
+        ): Seq[(String, Located[Appendable[BufferedValue]])] = {
+          val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
+          val (rawKvs, nested) = kvs.partitionMap {
+            case (upickle.core.BufferedValue.Str(k, i), v) =>
+              k.toString.split(" +") match {
+                case Array(k) => Left((k, i, v))
+                case Array("object", k) => Right(rec(segments ++ Seq(k), v))
+              }
           }
+
+          val currentResults: Seq[(String, Located[Appendable[BufferedValue]])] =
+            BufferedValue.transform(
+              BufferedValue.Obj(
+                rawKvs.map { case (k, i, v) => (BufferedValue.Str(k, i), v) }.to(
+                  mutable.ArrayBuffer
+                ),
+                true,
+                -1
+              ),
+              headerDataReader
+            )
+              .rest
+              .map { case (k, v) =>
+                val (actualValue, append) = Appendable.unwrapAppendMarker(v)
+                (segments ++ Seq(k.value)).mkString(".") -> Located(
+                  path,
+                  k.index,
+                  Appendable(actualValue, append)
+                )
+              }
+              .toSeq
+
+          val nestedResults: Seq[(String, Located[Appendable[BufferedValue]])] =
+            nested.flatten.toSeq
+
+          currentResults ++ nestedResults
         }
 
-        val currentResults: Seq[(String, Located[BufferedValue])] =
-          BufferedValue.transform(
-            BufferedValue.Obj(
-              rawKvs.map { case (k, i, v) => (BufferedValue.Str(k, i), v) }.to(mutable.ArrayBuffer),
-              true,
-              -1
-            ),
+        val parsed0 = BufferedValue.Obj(
+          mill.internal.Util.parseYaml0(
+            path0.toString,
+            rawText.replace("\r", ""),
             headerDataReader
-          )
+          ).get
             .rest
-            .map { case (k, v) =>
-              val (actualValue, append) = Located.unwrapAppendMarker(v)
-              (segments ++ Seq(k.value)).mkString(".") -> Located(
-                path,
-                k.index,
-                actualValue,
-                append
-              )
-            }
-            .toSeq
-
-        val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
-
-        currentResults ++ nestedResults
-      }
-
-      val parsed0 = BufferedValue.Obj(
-        mill.internal.Util.parseYaml0(
-          path0.toString,
-          rawText.replace("\r", ""),
-          headerDataReader
-        ).get
-          .rest
-          .map { case (k, v) => (BufferedValue.Str(k.value, k.index), v) }
-          .to(mutable.ArrayBuffer),
-        true,
-        -1
-      )
-      if ((path / "..").startsWith(workspace)) {
-        rec(
-          (path / "..").subRelativeTo(workspace).segments,
-          if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
-            parsed0
-              .value0
-              .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
-              .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
-          } else parsed0
+            .map { case (k, v) => (BufferedValue.Str(k.value, k.index), v) }
+            .to(mutable.ArrayBuffer),
+          true,
+          -1
         )
-      } else Nil
-    }
-    .toMap
+        if ((path / "..").startsWith(workspace)) {
+          rec(
+            (path / "..").subRelativeTo(workspace).segments,
+            if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+              parsed0
+                .value0
+                .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
+                .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
+            } else parsed0
+          )
+        } else Nil
+      }
+      .toMap
 
   def offline: Boolean
   def useFileLocks: Boolean
@@ -336,7 +340,7 @@ trait GroupExecution {
         }
 
         // Helper to evaluate build override only (no task evaluation)
-        def evaluateBuildOverrideOnly(located: Located[BufferedValue])
+        def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = {
           lazy val originalText = os.read(located.path)
           lazy val strippedText = originalText.replace("\n//|", "\n")
@@ -361,9 +365,9 @@ trait GroupExecution {
                   // Write build header override JSON to meta `.json` file to support `show`
                   writeCacheJson(
                     paths.meta,
-                    upickle.core.BufferedValue.transform(located.value, ujson.Value),
+                    upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
                     data.##,
-                    inputsHash + located.value.##
+                    inputsHash + located.value.value.##
                   )
                   (ExecResult.Success(Val(data), data.##), serializedPaths)
                 case Left(e) => buildOverrideDeserializationError(e, located)
@@ -386,7 +390,7 @@ trait GroupExecution {
         // 2. Both (append): evaluate task with caching, evaluate YAML, merge
         // 3. Task only (no override): evaluate task with caching
         buildOverrideOpt match {
-          case Some(appendLocated) if appendLocated.append =>
+          case Some(appendLocated) if appendLocated.value.append =>
             val taskResults = evaluateTaskWithCaching()
 
             // Check if task evaluation failed - if so, propagate the failure

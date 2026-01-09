@@ -170,12 +170,15 @@ object CodeGen {
 
           def renderModuleDepsSnippet(
               name: String,
-              deps: mill.api.internal.Located[Seq[mill.api.internal.Located[String]]]
+              deps: mill.api.internal.Located[mill.api.internal.Appendable[Seq[
+                mill.api.internal.Located[String]
+              ]]]
           ): String = {
-            if (deps.value.isEmpty && !deps.append) ""
+            val appendable = deps.value
+            if (appendable.value.isEmpty && !appendable.append) ""
             else {
-              val seqContent = deps.value.map(_.value).map(parseRender).mkString(", ")
-              if (deps.append) s"override def $name = super.$name ++ Seq($seqContent)"
+              val seqContent = appendable.value.map(_.value).map(parseRender).mkString(", ")
+              if (appendable.append) s"override def $name = super.$name ++ Seq($seqContent)"
               else s"override def $name = Seq($seqContent)"
             }
           }
