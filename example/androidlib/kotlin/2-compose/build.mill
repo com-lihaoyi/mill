@@ -29,7 +29,7 @@ object app extends AndroidAppKotlinModule {
   def androidEnableCompose = true
 
   override def androidVirtualDevice = super.androidVirtualDevice().withName("kotlin-compose-test")
-  override def androidEmulatorPort: String = "6558"
+  override def androidEmulatorPort: String = "5566"
 
   def androidIsDebug = true
 
