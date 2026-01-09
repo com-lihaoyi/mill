@@ -243,7 +243,8 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
           val allPaths = ts.flatMap { segments =>
             val evPaths = ExecutionPaths.resolve(rootDir, segments)
             val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
-            val potentialModulePath = rootDir / segments.parts
+            val potentialModulePath =
+              rootDir / segments.parts.map(ExecutionPaths.sanitizePathSegment)
             if (os.exists(potentialModulePath)) {
               // this is either because of some pre-Mill-0.10 files lying around
               // or most likely because the segments denote a module but not a task
