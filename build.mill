@@ -4,6 +4,8 @@
 
 package build
 
+val x = println(1)
+
 import coursier.{MavenRepository, Repository}
 import millbuild.*
 
