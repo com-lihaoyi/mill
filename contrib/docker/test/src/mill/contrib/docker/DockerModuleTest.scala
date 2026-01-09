@@ -48,6 +48,16 @@ object DockerModuleTest extends TestSuite {
       override def dockerEnv = Map("DOCKER_HOST" -> "wrong_host")
     }
 
+    object dockerEntryPoint extends DockerConfig {
+      override def executable = testExecutable
+      def customEntry: T[PathRef] = Task.Source("custom-entrypoint.sh")
+      override def scripts = Task {
+        Seq(customEntry() -> "custom-entrypoint.sh")
+      }
+      override def scriptTargets = Seq("custom-entrypoint.sh")
+      override def entrypoint = "/custom-entrypoint.sh"
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -162,6 +172,24 @@ object DockerModuleTest extends TestSuite {
         )
         assert(dockerfileStringRefined == expected)
       }
+
+      test("override entrypoint with script") - UnitTester(Docker, null).scoped { eval =>
+        val Right(result) = eval(Docker.dockerEntryPoint.dockerfile): @unchecked
+        val expected = multilineRegex.replaceAllIn(
+          """
+            |FROM gcr.io/distroless/java:latest
+            |COPY custom-entrypoint.sh /custom-entrypoint.sh
+            |COPY out.jar /out.jar
+            |ENTRYPOINT ["/custom-entrypoint.sh"]""".stripMargin,
+          sys.props.getOrElse("line.separator", ???)
+        )
+        val dockerfileStringRefined = multilineRegex.replaceAllIn(
+          result.value,
+          sys.props.getOrElse("line.separator", ???)
+        )
+        assert(dockerfileStringRefined == expected)
+      }
+
     }
   }
 }

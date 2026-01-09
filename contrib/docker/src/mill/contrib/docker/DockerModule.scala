@@ -108,6 +108,27 @@ trait DockerModule { outer: JavaModule =>
      */
     def executable: T[String] = "docker"
 
+    /**
+     * Scripts to include in the resulting docker image. Sequence of (PathRef source, target path inside image).
+     *
+     * Note: users should provide the sources via `Task.Source(...)` so Mill can track file inputs, e.g.
+     * `def runApp = Task.Source { RelPath("../run-app.sh") }`
+     * `def scripts = Task { Seq(runApp() -> "run-app.sh") }`.
+     */
+    def scripts: T[Seq[(PathRef, String)]] = Seq.empty[(PathRef, String)]
+
+    /**
+     * The target paths for `scripts` used when generating the COPY entries in the Dockerfile.
+     * This is kept separate to avoid making `dockerfile` depend on PathRef inputs and creating
+     * possible circular dependencies.
+     */
+    def scriptTargets: T[Seq[String]] = Seq.empty[String]
+
+    /**
+     * The entrypoint to use. If empty, the default generated entrypoint will be used.
+     */
+    def entrypoint: T[String] = ""
+
     def dockerfile: T[String] = Task {
       val jarName = assembly().path.last
       val labelRhs = labels()
@@ -134,17 +155,21 @@ trait DockerModule { outer: JavaModule =>
         if (volumes().isEmpty) ""
         else volumes().map(v => s"\"$v\"").mkString("VOLUME [", ", ", "]"),
         run().map(c => s"RUN $c").mkString("\n"),
-        if (user().isEmpty) "" else s"USER ${user()}"
-      ).filter(_.nonEmpty).mkString(sys.props.getOrElse("line.separator", ???))
+        if (user().isEmpty) "" else s"USER ${user()}",
+        if (scriptTargets().isEmpty) ""
+        else scriptTargets().map(s => s"COPY $s /$s").mkString("\n")
+      ).filter(_.nonEmpty).mkString(sys.props.getOrElse("line.separator", "\n"))
 
-      val quotedEntryPointArgs = (Seq("java") ++ jvmOptions() ++ Seq("-jar", s"/$jarName"))
+      val quotedEntryPointArgs = (Seq("java") ++ jvmOptions() ++ Seq("-jar", s"/" + jarName))
         .map(arg => s"\"$arg\"").mkString(", ")
+
+      val entryPointOverride = if (entrypoint() == "") quotedEntryPointArgs else s"\"${entrypoint()}\""
 
       s"""
          |FROM ${baseImage()}
          |$lines
          |COPY $jarName /$jarName
-         |ENTRYPOINT [$quotedEntryPointArgs]""".stripMargin
+         |ENTRYPOINT [$entryPointOverride]""".stripMargin
     }
 
     private def pullAndHash = Task {
@@ -160,12 +185,30 @@ trait DockerModule { outer: JavaModule =>
       (pullBaseImage(), imageHash())
     }
 
-    final def build = Task {
+    final def build: Task.Simple[Seq[String]] = Task {
       val dest = Task.dest
       val env = dockerEnv()
 
       val asmPath = outer.assembly().path
       os.copy(asmPath, dest / asmPath.last)
+
+      // Copy scripts (source PathRef -> target). Only files are supported.
+      scripts().foreach { case (srcRef, targetStr) =>
+        val srcPath = srcRef.path
+        val dstPath = dest / targetStr
+
+        if (!os.exists(srcPath))
+          Task.fail(s"Docker script source does not exist: $srcPath")
+        else if (os.isDir(srcPath))
+          Task.fail(s"Docker script source is a directory (folder copying not supported): $srcPath")
+        else {
+          // Ensure destination parent exists and copy file
+          os.makeDir.all(dstPath / os.up)
+          os.copy(srcPath, dstPath)
+        }
+
+        PathRef(dstPath)
+      }
 
       os.write(dest / "Dockerfile", dockerfile())
 
@@ -199,7 +242,7 @@ trait DockerModule { outer: JavaModule =>
       tags()
     }
 
-    final def push() = Task.Command {
+    final def push(): Command[Unit] = Task.Command {
       val tags = build()
       val env = dockerEnv()
       tags.foreach(t =>
