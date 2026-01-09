@@ -3,6 +3,7 @@ import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import utest.{assert, assertGoldenFile, assertGoldenLiteral}
 trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
   def checkImport(
+      repoName: String,
       gitUrl: String,
       gitBranch: String,
       initArgs: Seq[String] = Nil,
@@ -20,11 +21,11 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
     ) {
       override val workspacePath = {
         val cwd = os.temp.dir(dir = baseWorkspacePath, deleteOnExit = false)
-        // Clone into a new directory to preserve repo dir name.
-        os.proc("git", "clone", gitUrl, "--depth", 1, "--branch", gitBranch)
-          .call(cwd = cwd)
-        os.list(cwd).head
+        val destPath = cwd / repoName
+        os.copy(os.Path(sys.env(s"MILL_INIT_REPO_$repoName")), destPath)
+        destPath
       }
+
       override def initWorkspace() = {}
     }
     try {
