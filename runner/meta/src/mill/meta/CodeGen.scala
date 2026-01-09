@@ -402,7 +402,7 @@ object CodeGen {
 
     val newParent =
       if (segments.isEmpty) "_root_.mill.util.MainRootModule"
-      else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
+      else "_root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover)"
 
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>
