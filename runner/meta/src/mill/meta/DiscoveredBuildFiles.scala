@@ -72,8 +72,7 @@ object DiscoveredBuildFiles {
             val packageDeclarationValid = (isRootFile, isBuildFile, isPackageFile) match {
               case (true, _, _) => emptyPackage || exactMatch
               case (_, true, _) => emptyPackage || relaxedMatch || exactMatch
-              case (_, _, true) => relaxedMatch || exactMatch
-              case _ => exactMatch
+              case _ => relaxedMatch || exactMatch
             }
 
             if (!packageDeclarationValid) {
