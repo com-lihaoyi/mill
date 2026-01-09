@@ -2,15 +2,13 @@ package mill.main.buildgen
 
 import mill.constants.CodeGenConstants.rootModuleAlias
 import mill.constants.OutFiles.OutFiles.millBuild
-import mill.init.Util
 import mill.internal.Util.backtickWrap
 import mill.main.buildgen.BuildInfo.millVersion
+import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
 
 object BuildGen {
-
-  private inline def lineSep = System.lineSeparator()
 
   def withNamedDeps(packages: Seq[PackageSpec]): (Seq[(MvnDep, String)], Seq[PackageSpec]) = {
     val names = packages.flatMap(_.module.tree).flatMap { module =>
@@ -211,11 +209,7 @@ object BuildGen {
   ): Unit = {
     var packages0 = fillPackages(packages).sortBy(_.dir)
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
-    val existingBuildFiles = Util.buildFiles(os.pwd)
-    if (existingBuildFiles.nonEmpty) {
-      println("removing existing build files ...")
-      for (file <- existingBuildFiles) do os.remove(file)
-    }
+    removeExistingBuildFiles()
 
     if (depNames.nonEmpty) {
       val file = os.sub / millBuild / "src/Deps.scala"
@@ -236,10 +230,7 @@ object BuildGen {
       )
     }
     val rootPackage +: nestedPackages = packages0: @unchecked
-    val millJvmVersion0 = millJvmVersion.getOrElse {
-      val path = os.pwd / ".mill-jvm-version"
-      if (os.exists(path)) os.read(path) else "system"
-    }
+    val millJvmVersion0 = resolveMillJvmVersion(millJvmVersion)
     val millJvmOptsLine = if (millJvmOpts.isEmpty) ""
     else millJvmOpts.mkString("//| mill-jvm-opts: [\"", "\", \"", s"\"]")
     println("writing build.mill")
@@ -257,31 +248,6 @@ object BuildGen {
       println(s"writing $file")
       os.write(os.pwd / file, renderPackage(pkg))
     }
-  }
-
-  private def fillPackages(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
-    def recurse(dir: os.SubPath): Seq[PackageSpec] = {
-      val root = packages.find(_.dir == dir).getOrElse(PackageSpec.root(dir))
-      val nested = packages.collect {
-        case pkg if pkg.dir.startsWith(dir) && pkg.dir != dir =>
-          os.sub / pkg.dir.segments.take(dir.segments.length + 1)
-      }.distinct.flatMap(recurse)
-      root +: nested
-    }
-    recurse(os.sub)
-  }
-
-  private def mergePackages(root: PackageSpec, nested: Seq[PackageSpec]): PackageSpec = {
-    def newChildren(parentDir: os.SubPath): Seq[ModuleSpec] = {
-      val childDepth = parentDir.segments.length + 1
-      nested.collect {
-        case child if child.dir.startsWith(parentDir) && child.dir.segments.length == childDepth =>
-          child.module.copy(children = child.module.children ++ newChildren(child.dir))
-      }
-    }
-    root.copy(module =
-      root.module.copy(children = root.module.children ++ newChildren(root.dir))
-    )
   }
 
   private def renderDepsObject(depNames: Seq[(MvnDep, String)]) = {
@@ -304,16 +270,6 @@ object BuildGen {
       "  " + children.sortBy(_.name).map(renderBaseModule).mkString(lineSep * 2),
       "}"
     ).mkString(lineSep * 2)
-  }
-
-  private def renderImports(module: ModuleSpec) = {
-    val imports = module.tree.flatMap(_.imports)
-    ("import mill.*" +: imports).distinct.sorted.mkString(lineSep)
-  }
-
-  private def renderExtendsClause(supertypes: Seq[String]) = {
-    if (supertypes.isEmpty) "extends Module"
-    else supertypes.mkString("extends ", ", ", "")
   }
 
   private def renderModuleBody(module: ModuleSpec) = {

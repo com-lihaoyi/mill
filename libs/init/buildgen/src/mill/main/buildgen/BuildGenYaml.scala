@@ -1,12 +1,11 @@
 package mill.main.buildgen
 
-import mill.init.Util
 import mill.main.buildgen.BuildInfo.millVersion
+import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.ModuleSpec.*
 
 object BuildGenYaml {
 
-  private inline def lineSep = System.lineSeparator()
   private inline def millBuild = os.sub / "mill-build"
 
   def writeBuildFiles(
@@ -18,11 +17,7 @@ object BuildGenYaml {
   ): Unit = {
     var packages0 = fillPackages(packages).sortBy(_.dir)
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
-    val existingBuildFiles = Util.buildFiles(os.pwd)
-    if (existingBuildFiles.nonEmpty) {
-      println("removing existing build files ...")
-      for (file <- existingBuildFiles) do os.remove(file)
-    }
+    removeExistingBuildFiles()
 
     // Generate base module Scala file if provided
     for (module <- baseModule) do {
@@ -40,10 +35,7 @@ object BuildGenYaml {
     }
 
     val rootPackage +: nestedPackages = packages0: @unchecked
-    val millJvmVersion0 = millJvmVersion.getOrElse {
-      val path = os.pwd / ".mill-jvm-version"
-      if (os.exists(path)) os.read(path) else "system"
-    }
+    val millJvmVersion0 = resolveMillJvmVersion(millJvmVersion)
 
     println("writing build.mill.yaml")
     os.write(
@@ -57,11 +49,6 @@ object BuildGenYaml {
     }
   }
 
-  private def renderImports(module: ModuleSpec): String = {
-    val imports = module.tree.flatMap(_.imports)
-    ("import mill.*" +: imports).distinct.sorted.mkString(lineSep)
-  }
-
   private def renderBaseModule(module: ModuleSpec): String = {
     import module.*
     Seq(
@@ -70,11 +57,6 @@ object BuildGenYaml {
       "  " + children.sortBy(_.name).map(renderBaseModule).mkString(lineSep * 2),
       "}"
     ).mkString(lineSep * 2)
-  }
-
-  private def renderExtendsClause(supertypes: Seq[String]): String = {
-    if (supertypes.isEmpty) "extends Module"
-    else supertypes.mkString("extends ", ", ", "")
   }
 
   private def renderScalaModuleBody(module: ModuleSpec): String = {
@@ -148,31 +130,6 @@ object BuildGenYaml {
 
   private def renderScalaOptValues(prefix: String, values: Values[Opt]): Option[String] =
     renderScalaValues(prefix, values, _.flatMap(_.group).map(s => s""""$s"""").mkString(", "))
-
-  private def fillPackages(packages: Seq[PackageSpec]): Seq[PackageSpec] = {
-    def recurse(dir: os.SubPath): Seq[PackageSpec] = {
-      val root = packages.find(_.dir == dir).getOrElse(PackageSpec.root(dir))
-      val nested = packages.collect {
-        case pkg if pkg.dir.startsWith(dir) && pkg.dir != dir =>
-          os.sub / pkg.dir.segments.take(dir.segments.length + 1)
-      }.distinct.flatMap(recurse)
-      root +: nested
-    }
-    recurse(os.sub)
-  }
-
-  private def mergePackages(root: PackageSpec, nested: Seq[PackageSpec]): PackageSpec = {
-    def newChildren(parentDir: os.SubPath): Seq[ModuleSpec] = {
-      val childDepth = parentDir.segments.length + 1
-      nested.collect {
-        case child if child.dir.startsWith(parentDir) && child.dir.segments.length == childDepth =>
-          child.module.copy(children = child.module.children ++ newChildren(child.dir))
-      }
-    }
-    root.copy(module =
-      root.module.copy(children = root.module.children ++ newChildren(root.dir))
-    )
-  }
 
   private def renderYamlPackage(
       pkg: PackageSpec,
