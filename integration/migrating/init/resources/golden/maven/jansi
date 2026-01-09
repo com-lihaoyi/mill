@@ -33,7 +33,9 @@ Module dependencies of test:
 }
 {
   "bomMvnDeps": [],
-  "test.bomMvnDeps": []
+  "test.bomMvnDeps": [
+    "org.junit:junit-bom:5.7.0"
+  ]
 }
 {
   "javacOptions": [

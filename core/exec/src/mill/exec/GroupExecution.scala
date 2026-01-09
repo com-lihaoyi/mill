@@ -398,6 +398,12 @@ trait GroupExecution {
                     val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
                       (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
                     }
+                    // Write the merged result to disk cache so `show` can pick it up
+                    // Use inputsHash + yaml.## to avoid overwriting the original task cache
+                    labelled.writerOpt.foreach { w =>
+                      val json = upickle.writeJs(mergedData)(using w.asInstanceOf[upickle.Writer[Any]])
+                      writeCacheJson(paths.meta, json, mergedData.##, inputsHash + appendLocated.value.value.##)
+                    }
                     taskResults.copy(
                       newResults =
                         Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),

@@ -1788,100 +1788,174 @@ Module dependencies of varhandle-stub:
   "bom.bomMvnDeps": [],
   "bomMvnDeps": [],
   "buffer.bomMvnDeps": [],
-  "buffer.test.bomMvnDeps": [],
+  "buffer.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec.bomMvnDeps": [],
   "codec-base.bomMvnDeps": [],
-  "codec-base.test.bomMvnDeps": [],
+  "codec-base.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-classes-quic.bomMvnDeps": [],
   "codec-compression.bomMvnDeps": [],
-  "codec-compression.test.bomMvnDeps": [],
+  "codec-compression.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-dns.bomMvnDeps": [],
-  "codec-dns.test.bomMvnDeps": [],
+  "codec-dns.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-haproxy.bomMvnDeps": [],
-  "codec-haproxy.test.bomMvnDeps": [],
+  "codec-haproxy.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-http.bomMvnDeps": [],
-  "codec-http.test.bomMvnDeps": [],
+  "codec-http.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-http2.bomMvnDeps": [],
-  "codec-http2.test.bomMvnDeps": [],
+  "codec-http2.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-http3.bomMvnDeps": [],
-  "codec-http3.test.bomMvnDeps": [],
+  "codec-http3.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-marshalling.bomMvnDeps": [],
-  "codec-marshalling.test.bomMvnDeps": [],
+  "codec-marshalling.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-memcache.bomMvnDeps": [],
-  "codec-memcache.test.bomMvnDeps": [],
+  "codec-memcache.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-mqtt.bomMvnDeps": [],
-  "codec-mqtt.test.bomMvnDeps": [],
+  "codec-mqtt.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-native-quic.bomMvnDeps": [],
-  "codec-native-quic.test.bomMvnDeps": [],
+  "codec-native-quic.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-protobuf.bomMvnDeps": [],
-  "codec-protobuf.test.bomMvnDeps": [],
+  "codec-protobuf.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-redis.bomMvnDeps": [],
-  "codec-redis.test.bomMvnDeps": [],
+  "codec-redis.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-smtp.bomMvnDeps": [],
-  "codec-smtp.test.bomMvnDeps": [],
+  "codec-smtp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-socks.bomMvnDeps": [],
-  "codec-socks.test.bomMvnDeps": [],
+  "codec-socks.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-stomp.bomMvnDeps": [],
-  "codec-stomp.test.bomMvnDeps": [],
+  "codec-stomp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "codec-xml.bomMvnDeps": [],
-  "codec-xml.test.bomMvnDeps": [],
+  "codec-xml.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "common.bomMvnDeps": [],
-  "common.test.bomMvnDeps": [],
+  "common.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "dev-tools.bomMvnDeps": [],
   "example.bomMvnDeps": [],
   "handler.bomMvnDeps": [],
-  "handler.test.bomMvnDeps": [],
+  "handler.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "handler-proxy.bomMvnDeps": [],
-  "handler-proxy.test.bomMvnDeps": [],
+  "handler-proxy.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "handler-ssl-ocsp.bomMvnDeps": [],
-  "handler-ssl-ocsp.test.bomMvnDeps": [],
+  "handler-ssl-ocsp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "jfr-stub.bomMvnDeps": [],
   "microbench.bomMvnDeps": [],
   "pkitesting.bomMvnDeps": [],
-  "pkitesting.test.bomMvnDeps": [],
+  "pkitesting.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "resolver.bomMvnDeps": [],
-  "resolver.test.bomMvnDeps": [],
+  "resolver.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "resolver-dns.bomMvnDeps": [],
-  "resolver-dns.test.bomMvnDeps": [],
+  "resolver-dns.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "resolver-dns-classes-macos.bomMvnDeps": [],
   "resolver-dns-native-macos.bomMvnDeps": [],
-  "resolver-dns-native-macos.test.bomMvnDeps": [],
+  "resolver-dns-native-macos.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "testsuite.bomMvnDeps": [],
   "testsuite-autobahn.bomMvnDeps": [],
   "testsuite-http2.bomMvnDeps": [],
   "testsuite-jpms.bomMvnDeps": [],
-  "testsuite-jpms.test.bomMvnDeps": [],
+  "testsuite-jpms.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "testsuite-karaf.bomMvnDeps": [],
   "testsuite-native.bomMvnDeps": [],
-  "testsuite-native.test.bomMvnDeps": [],
+  "testsuite-native.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "testsuite-native-image.bomMvnDeps": [],
   "testsuite-native-image-client.bomMvnDeps": [],
   "testsuite-native-image-client-runtime-init.bomMvnDeps": [],
   "testsuite-osgi.bomMvnDeps": [],
   "testsuite-osgi.test.bomMvnDeps": [],
   "testsuite-shading.bomMvnDeps": [],
-  "testsuite-shading.test.bomMvnDeps": [],
+  "testsuite-shading.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport.bomMvnDeps": [],
-  "transport.test.bomMvnDeps": [],
+  "transport.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-blockhound-tests.bomMvnDeps": [],
-  "transport-blockhound-tests.test.bomMvnDeps": [],
+  "transport-blockhound-tests.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-classes-epoll.bomMvnDeps": [],
   "transport-classes-io_uring.bomMvnDeps": [],
   "transport-classes-kqueue.bomMvnDeps": [],
   "transport-native-epoll.bomMvnDeps": [],
-  "transport-native-epoll.test.bomMvnDeps": [],
+  "transport-native-epoll.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-native-io_uring.bomMvnDeps": [],
-  "transport-native-io_uring.test.bomMvnDeps": [],
+  "transport-native-io_uring.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-native-kqueue.bomMvnDeps": [],
-  "transport-native-kqueue.test.bomMvnDeps": [],
+  "transport-native-kqueue.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-native-unix-common.bomMvnDeps": [],
-  "transport-native-unix-common.test.bomMvnDeps": [],
+  "transport-native-unix-common.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-native-unix-common-tests.bomMvnDeps": [],
   "transport-rxtx.bomMvnDeps": [],
   "transport-sctp.bomMvnDeps": [],
-  "transport-sctp.test.bomMvnDeps": [],
+  "transport-sctp.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "transport-udt.bomMvnDeps": [],
-  "transport-udt.test.bomMvnDeps": [],
+  "transport-udt.test.bomMvnDeps": [
+    "org.junit:junit-bom:5.12.1"
+  ],
   "varhandle-stub.bomMvnDeps": []
 }
 {
@@ -2328,1574 +2402,7 @@ Module dependencies of varhandle-stub:
   "transport-udt.pomParentProject": null,
   "varhandle-stub.pomParentProject": null
 }
-{
-  "all.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "bom.pomSettings": {
-    "description": "Netty (Bill of Materials)",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      "Apache License, Version 2.0"
-    ],
-    "versionControl": "https://github.com/netty/netty",
-    "developers": [
-      {
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project"
-      }
-    ]
-  },
-  "buffer.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-base.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-classes-quic.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-compression.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-dns.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-haproxy.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-http.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-http2.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-http3.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-marshalling.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-memcache.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-mqtt.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-native-quic.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-protobuf.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-redis.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-smtp.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-socks.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-stomp.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "codec-xml.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "common.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "dev-tools.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "example.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "handler.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "handler-proxy.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "handler-ssl-ocsp.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "jfr-stub.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "microbench.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "pkitesting.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      "Apache License, Version 2.0"
-    ],
-    "versionControl": "https://github.com/netty/netty",
-    "developers": [
-      {
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project"
-      }
-    ]
-  },
-  "resolver.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "resolver-dns.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "resolver-dns-classes-macos.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "resolver-dns-native-macos.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-autobahn.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-http2.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-jpms.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-karaf.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-native.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-native-image.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-native-image-client.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-native-image-client-runtime-init.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-osgi.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "testsuite-shading.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-blockhound-tests.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-classes-epoll.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-classes-io_uring.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-classes-kqueue.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-native-epoll.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-native-io_uring.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-native-kqueue.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-native-unix-common.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-native-unix-common-tests.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-rxtx.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-sctp.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "transport-udt.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  },
-  "varhandle-stub.pomSettings": {
-    "description": "Netty is an asynchronous event-driven network application framework for\n    rapid development of maintainable high performance protocol servers and\n    clients.",
-    "organization": "io.netty",
-    "url": "https://netty.io/",
-    "licenses": [
-      {
-        "name": "Apache License, Version 2.0",
-        "url": "https://www.apache.org/licenses/LICENSE-2.0"
-      }
-    ],
-    "versionControl": {
-      "browsableRepository": "https://github.com/netty/netty",
-      "connection": "scm:git:git://github.com/netty/netty.git",
-      "developerConnection": "scm:git:ssh://git@github.com/netty/netty.git",
-      "tag": "netty-4.2.6.Final"
-    },
-    "developers": [
-      {
-        "id": "netty.io",
-        "name": "The Netty Project Contributors",
-        "url": "https://netty.io/",
-        "organization": "The Netty Project",
-        "organizationUrl": "https://netty.io/"
-      }
-    ]
-  }
-}
+
 {
   "all.publishVersion": "4.2.6.Final",
   "bom.publishVersion": "4.2.6.Final",
