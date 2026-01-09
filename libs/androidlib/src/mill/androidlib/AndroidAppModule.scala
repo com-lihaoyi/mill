@@ -3,7 +3,6 @@ package mill.androidlib
 import coursier.params.ResolutionParams
 import mill.*
 import mill.androidlib.keytool.KeytoolModule
-import mill.api.Logger
 import mill.api.internal.*
 import mill.api.daemon.internal.internal
 import mill.api.JsonFormatters.given
@@ -15,7 +14,6 @@ import upickle.*
 import mainargs.Flag
 
 import scala.concurrent.duration.*
-import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
@@ -606,7 +604,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * @param extraArgs Additional arguments to pass to the emulator
    * @return The log line that indicates the emulator is ready
    */
-  def startAndroidEmulator(
+  def androidEmulator(
       excludeDefaultArgs: Flag,
       extraArgs: String*
   ): Command[String] = Task.Command(exclusive = true) {
@@ -638,49 +636,29 @@ trait AndroidAppModule extends AndroidModule { outer =>
     ) ++
       Option.when(!excludeDefaultArgs.value)(defaultArgs).toSeq.flatten ++ extraArgs ++ settings
 
-    Task.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
+    val bootMessage = androidEmulatorWorker().startEmulator(command, Task.log)
 
-    val startEmuCmd = os.spawn(
-      command
+    Task.log.info(s"Emulator ${runningEmulator()} started with message $bootMessage")
+
+    bootMessage
+  }
+
+  def androidEmulatorWorker: Worker[AndroidEmulatorWorker] = Task.Worker {
+    new AndroidEmulatorWorker(
+      adbPath = androidSdkModule().adbExe(),
+      emulatorId = runningEmulator()
     )
-
-    val bootMessage: Option[String] = startEmuCmd.stdout.buffered.lines().filter(l => {
-      Task.log.debug(l.trim())
-      l.contains("Boot completed in")
-    }).findFirst().toScala
-
-    if (bootMessage.isEmpty) {
-      throw new Exception(s"Emulator failed to start: ${startEmuCmd.exitCode()}")
-    }
-
-    val emulator: String = waitForDevice(androidSdkModule().adbExe(), runningEmulator(), Task.log)
-
-    Task.log.info(s"Emulator ${emulator} started with message $bootMessage")
-
-    bootMessage.get
   }
 
   def adbDevices(): Command[String] = Task.Command {
     os.call((androidSdkModule().adbExe().path, "devices", "-l")).out.text()
   }
 
-  /**
-   * Stops the android emulator
-   */
-  def stopAndroidEmulator: T[String] = Task {
-    val emulator = runningEmulator()
-    os.call(
-      (androidSdkModule().adbExe().path, "-s", emulator, "emu", "kill")
-    )
-    emulator
-  }
-
   /** The emulator port where adb connects to. Defaults to 5554 */
   def androidEmulatorPort: String = "5554"
 
   /**
-   * Returns the emulator identifier for created from [[startAndroidEmulator]]
-   * by iterating the adb device list
+   * The emulator identifier to be started with [[androidEmulator]]
    */
   def runningEmulator: T[String] = Task {
     s"emulator-$androidEmulatorPort"
@@ -809,42 +787,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     relPath.last == "NOTICE.TXT" ||
     relPath.last == "kotlin-project-structure-metadata.json" ||
     relPath.last == "module-info.class"
-  }
-
-  private def waitForDevice(adbPath: PathRef, emulator: String, logger: Logger): String = {
-    val BootedIndicator = "1"
-    def getBootflag: String = {
-      val result = os.call(
-        (
-          adbPath.path,
-          "-s",
-          emulator,
-          "shell",
-          "getprop",
-          "sys.boot_completed"
-        ),
-        check = false
-      )
-      if (result.exitCode != 0)
-        "0"
-      else
-        result.out.trim()
-    }
-
-    var bootflag = getBootflag
-    var triesLeft = 25
-
-    while (bootflag != BootedIndicator && triesLeft > 0) {
-      logger.debug(s"Waiting for device to boot. Bootflag: $bootflag . Tries left ${triesLeft}")
-      Thread.sleep(1000)
-      triesLeft -= 1
-      bootflag = getBootflag
-    }
-
-    if (bootflag == BootedIndicator)
-      emulator
-    else
-      throw new Exception("Device failed to boot")
   }
 
   /**
