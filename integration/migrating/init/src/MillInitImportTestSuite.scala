@@ -33,6 +33,17 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
       assert(initRes.isSuccess)
 
       if (configsGoldenFile != null) {
+        // Tasks that may not exist on all modules (e.g., errorProneDeps only on ErrorProneModule)
+        val expectedFailureTasks = Set(
+          "errorProneDeps",
+          "errorProneOptions",
+          "scalaVersion",
+          "scalacOptions",
+          "scalacPluginMvnDeps",
+          "scalaJSVersion",
+          "moduleKind",
+          "scalaNativeVersion"
+        )
         val taskNames = Seq(
           "repositories",
           "mandatoryMvnDeps",
@@ -57,9 +68,22 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
           "testParallelism",
           "testSandboxWorkingDir"
         )
-        val showModuleDepsOut = eval("__.showModuleDeps").out
+        def evalTask(task: String): String = {
+          val result = eval(("show", s"__.$task"))
+          if (!result.isSuccess && !expectedFailureTasks.contains(task)) {
+            throw new Exception(s"Command failed: show __.$task\n${result.debugString}")
+          }
+          result.out
+        }
+        val showModuleDepsResult = eval("__.showModuleDeps")
+        if (!showModuleDepsResult.isSuccess) {
+          throw new Exception(
+            s"Command failed: __.showModuleDeps\n${showModuleDepsResult.debugString}"
+          )
+        }
+        val showModuleDepsOut = showModuleDepsResult.out
         val actualConfigs = taskNames
-          .map(task => eval(("show", s"__.$task")).out)
+          .map(evalTask)
           .mkString(
             s"""$showModuleDepsOut
                |""".stripMargin,

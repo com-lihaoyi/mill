@@ -1,8 +1,11 @@
 package mill.main.buildgen
 
+import mill.constants.CodeGenConstants.rootModuleAlias
+import mill.internal.Util.backtickWrap
 import mill.main.buildgen.BuildInfo.millVersion
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.ModuleSpec.*
+import pprint.Util.literalize
 
 object BuildGenYaml {
 
@@ -19,16 +22,25 @@ object BuildGenYaml {
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
     removeExistingBuildFiles()
 
+    // Get pomSettings from root module to propagate to base module
+    // (withBaseModule computes intersection, but pomSettings should come from root)
+    val rootPomSettings = packages0.headOption.map(_.module.pomSettings).getOrElse(Value(None, Nil))
+
     // Generate base module Scala file if provided
     for (module <- baseModule) do {
-      val file = os.sub / millBuild / os.SubPath(s"src/${module.name}.scala")
+      // Copy pomSettings from root module if base module doesn't have it
+      val moduleWithPomSettings =
+        if (module.pomSettings.base.isEmpty && rootPomSettings.base.nonEmpty)
+          module.copy(pomSettings = rootPomSettings)
+        else module
+      val file = os.sub / millBuild / os.SubPath(s"src/${moduleWithPomSettings.name}.scala")
       println(s"writing $file")
       os.write(
         os.pwd / file,
         Seq(
           "package millbuild",
-          renderImports(module),
-          renderBaseModule(module)
+          renderImports(moduleWithPomSettings),
+          renderBaseModule(moduleWithPomSettings)
         ).mkString(lineSep * 2),
         createFolders = true
       )
@@ -64,6 +76,7 @@ object BuildGenYaml {
     val lines = Seq.newBuilder[String]
 
     renderScalaStringValues("def repositories", repositories).foreach(lines += _)
+    renderScalaModuleDepValues("def bomModuleDeps", bomModuleDeps).foreach(lines += _)
     renderScalaOptValues("def forkArgs", forkArgs).foreach(lines += _)
     forkWorkingDir.base.foreach(_ => lines += "def forkWorkingDir = moduleDir")
     renderScalaMvnDepValues("def mandatoryMvnDeps", mandatoryMvnDeps).foreach(lines += _)
@@ -84,6 +97,7 @@ object BuildGenYaml {
     renderScalaMvnDepValues("def scalacPluginMvnDeps", scalacPluginMvnDeps).foreach(lines += _)
     testParallelism.base.foreach(v => lines += s"def testParallelism = $v")
     testSandboxWorkingDir.base.foreach(v => lines += s"def testSandboxWorkingDir = $v")
+    renderScalaPomSettings(pomSettings).foreach(lines += _)
 
     lines.result().mkString(lineSep)
   }
@@ -130,6 +144,48 @@ object BuildGenYaml {
 
   private def renderScalaOptValues(prefix: String, values: Values[Opt]): Option[String] =
     renderScalaValues(prefix, values, _.flatMap(_.group).map(s => s""""$s"""").mkString(", "))
+
+  private def renderScalaModuleDepValues(
+      prefix: String,
+      values: Values[ModuleDep]
+  ): Option[String] = {
+    def encodeModuleDep(a: ModuleDep): String = {
+      import a.*
+      val suffix = crossSuffix.getOrElse("") + childSegment.fold("")("." + _)
+      (rootModuleAlias +: segments.map(backtickWrap)).mkString("", ".", suffix)
+    }
+    renderScalaValues(prefix, values, _.map(encodeModuleDep).mkString(", "))
+  }
+
+  private def renderScalaPomSettings(value: Value[PomSettings]): Option[String] = {
+    def encodeOpt(o: Option[String]) = o.fold("None")(s => s"Some(\"$s\")")
+    def encodeLicense(a: License) = {
+      import a.*
+      s"""License("$id", "$name", "$url", $isOsiApproved, $isFsfLibre, "$distribution")"""
+    }
+    def encodeVersionControl(a: VersionControl) = {
+      import a.*
+      val browsableRepository0 = encodeOpt(browsableRepository)
+      val connection0 = encodeOpt(connection)
+      val developerConnection0 = encodeOpt(developerConnection)
+      val tag0 = encodeOpt(tag)
+      s"VersionControl($browsableRepository0, $connection0, $developerConnection0, $tag0)"
+    }
+    def encodeDeveloper(a: Developer) = {
+      import a.*
+      val organization0 = encodeOpt(organization)
+      val organizationUrl0 = encodeOpt(organizationUrl)
+      s"""Developer("$id", "$name", "$url", $organization0, $organizationUrl0)"""
+    }
+    value.base.map { a =>
+      import a.*
+      val description0 = literalize(description)
+      val licenses0 = licenses.map(encodeLicense).mkString("Seq(", ", ", ")")
+      val versionControl0 = encodeVersionControl(versionControl)
+      val developers0 = developers.map(encodeDeveloper).mkString("Seq(", ", ", ")")
+      s"""def pomSettings = Task { PomSettings($description0, "$organization", "$url", $licenses0, $versionControl0, $developers0) }"""
+    }
+  }
 
   private def renderYamlPackage(
       pkg: PackageSpec,
@@ -219,7 +275,12 @@ object BuildGenYaml {
 
     // Publishing
     renderYamlStringValue("artifactName", artifactName).foreach(lines += _)
-    renderYamlPomSettings(pomSettings).foreach(lines += _)
+    // Only render pomSettings in YAML if the module doesn't extend ProjectBaseModule
+    // (modules extending ProjectBaseModule inherit pomSettings from the trait)
+    val extendsProjectBaseModule = effectiveSupertypes.exists(_.contains("ProjectBaseModule"))
+    if (!extendsProjectBaseModule) {
+      renderYamlPomSettings(pomSettings).foreach(lines += _)
+    }
     renderYamlStringValue("publishVersion", publishVersion).foreach(lines += _)
 
     // Testing

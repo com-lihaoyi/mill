@@ -8,6 +8,8 @@ private[mill] case class HeaderData(
       Located(null, -1, Appendable(Nil)),
     runModuleDeps: Located[Appendable[Seq[Located[String]]]] =
       Located(null, -1, Appendable(Nil)),
+    bomModuleDeps: Located[Appendable[Seq[Located[String]]]] =
+      Located(null, -1, Appendable(Nil)),
     @upickle.implicits.flatten rest: Map[Located[String], upickle.core.BufferedValue]
 )
 private[mill] object HeaderData {

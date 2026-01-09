@@ -187,6 +187,7 @@ object CodeGen {
           val compileModuleDepsSnippet =
             renderModuleDepsSnippet("compileModuleDeps", data.compileModuleDeps)
           val runModuleDepsSnippet = renderModuleDepsSnippet("runModuleDeps", data.runModuleDeps)
+          val bomModuleDepsSnippet = renderModuleDepsSnippet("bomModuleDeps", data.bomModuleDeps)
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
@@ -197,6 +198,7 @@ object CodeGen {
             moduleDepsSnippet,
             compileModuleDepsSnippet,
             runModuleDepsSnippet,
+            bomModuleDepsSnippet,
             "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
           ).filter(_.nonEmpty) ++ definitions
 
