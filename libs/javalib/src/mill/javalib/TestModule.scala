@@ -303,16 +303,30 @@ trait TestModule
       val quickTestHashesPath = Task.dest / "transitiveCallGraphHashes0.json"
       val quickTestFailedClassesPath = Task.dest / "quickTestFailedClasses.json"
 
-      // Load previous state
+      // Load previous state with graceful fallback on corrupted files
       val prevTransitiveCallGraphHashes: Option[Map[String, Int]] =
-        if (os.exists(quickTestHashesPath))
-          Some(upickle.default.read[Map[String, Int]](os.read(quickTestHashesPath)))
-        else None
+        if (os.exists(quickTestHashesPath)) {
+          try Some(upickle.default.read[Map[String, Int]](os.read(quickTestHashesPath)))
+          catch {
+            case e: Exception =>
+              Task.log.info(
+                s"Could not read previous test state from $quickTestHashesPath: ${e.getMessage}. Running all tests."
+              )
+              None
+          }
+        } else None
 
       val prevFailedClasses: Set[String] =
-        if (os.exists(quickTestFailedClassesPath))
-          upickle.default.read[Set[String]](os.read(quickTestFailedClassesPath))
-        else Set.empty
+        if (os.exists(quickTestFailedClassesPath)) {
+          try upickle.default.read[Set[String]](os.read(quickTestFailedClassesPath))
+          catch {
+            case e: Exception =>
+              Task.log.info(
+                s"Could not read failed classes state: ${e.getMessage}. Treating as fresh run."
+              )
+              Set.empty
+          }
+        } else Set.empty
 
       // Compute call graph and find invalidated classes
       // Include class files from both test module and dependencies (outer module)
@@ -345,11 +359,20 @@ trait TestModule
         prevFailedClasses.contains(testClass)
       }
 
+      // Helper to safely write state files
+      def safeWriteState(path: os.Path, content: String, description: String): Unit =
+        try os.write.over(path, content)
+        catch {
+          case e: Exception =>
+            Task.log.error(s"Could not save $description to $path: ${e.getMessage}")
+        }
+
       if (affectedClasses.isEmpty) {
         // Save current hashes (in case they changed but no tests affected)
-        os.write.over(
+        safeWriteState(
           quickTestHashesPath,
-          upickle.default.write(callGraphAnalysis.transitiveCallGraphHashes.toMap)
+          upickle.default.write(callGraphAnalysis.transitiveCallGraphHashes.toMap),
+          "test state hashes"
         )
         Result.Success((msg = "No tests to run", results = Seq.empty[TestResult]))
       } else {
@@ -359,7 +382,11 @@ trait TestModule
         // Clean up test artifacts from previous runs (persistent destination)
         // Keep only the state files for persistence
         val keepFiles = Set("transitiveCallGraphHashes0.json", "quickTestFailedClasses.json")
-        os.list(Task.dest).filter(p => !keepFiles.contains(p.last)).foreach(os.remove.all)
+        try os.list(Task.dest).filter(p => !keepFiles.contains(p.last)).foreach(os.remove.all)
+        catch {
+          case e: Exception =>
+            Task.log.debug(s"Could not clean up old test artifacts: ${e.getMessage}")
+        }
 
         val testModuleUtil = new TestModuleUtil(
           testUseArgsFile(),
@@ -404,15 +431,17 @@ trait TestModule
         }
 
         // Save current hashes
-        os.write.over(
+        safeWriteState(
           quickTestHashesPath,
-          upickle.default.write(callGraphAnalysis.transitiveCallGraphHashes.toMap)
+          upickle.default.write(callGraphAnalysis.transitiveCallGraphHashes.toMap),
+          "test state hashes"
         )
 
         // Save failed classes
-        os.write.over(
+        safeWriteState(
           quickTestFailedClassesPath,
-          upickle.default.write(badTestClasses.toSet)
+          upickle.default.write(badTestClasses.toSet),
+          "failed test classes"
         )
 
         results
