@@ -1192,7 +1192,7 @@ Module dependencies of varhandle-stub:
     "org.jctools:jctools-core:4.0.5",
     "org.slf4j:slf4j-api:2.0.13",
     "commons-logging:commons-logging:1.3.4",
-    "org.apache.logging.log4j:log4j-1.2-api:2.23.1;exclude=javax.mail:mail;exclude=javax.jms:jms;exclude=com.sun.jdmk:jmxtools;exclude=com.sun.jmx:jmxri",
+    "org.apache.logging.log4j:log4j-1.2-api:2.23.1;exclude=com.sun.jdmk:jmxtools;exclude=com.sun.jmx:jmxri;exclude=javax.jms:jms;exclude=javax.mail:mail",
     "org.apache.logging.log4j:log4j-api:2.23.1",
     "io.projectreactor.tools:blockhound:1.0.13.RELEASE"
   ],
@@ -1582,87 +1582,87 @@ Module dependencies of varhandle-stub:
   "buffer.runMvnDeps": [],
   "buffer.test.runMvnDeps": [
     "org.graalvm.nativeimage:svm:19.3.6",
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec.runMvnDeps": [],
   "codec-base.runMvnDeps": [],
   "codec-base.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-classes-quic.runMvnDeps": [],
   "codec-compression.runMvnDeps": [],
   "codec-compression.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-dns.runMvnDeps": [],
   "codec-dns.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-haproxy.runMvnDeps": [],
   "codec-haproxy.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-http.runMvnDeps": [],
   "codec-http.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-http2.runMvnDeps": [],
   "codec-http2.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-http3.runMvnDeps": [],
   "codec-http3.test.runMvnDeps": [
     "org.jetbrains:annotations:26.0.2",
     "com.google.code.findbugs:jsr305:3.0.2",
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-marshalling.runMvnDeps": [],
   "codec-marshalling.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-memcache.runMvnDeps": [],
   "codec-memcache.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-mqtt.runMvnDeps": [],
   "codec-mqtt.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-native-quic.runMvnDeps": [],
   "codec-native-quic.test.runMvnDeps": [
     "org.jetbrains:annotations:26.0.2",
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-protobuf.runMvnDeps": [],
   "codec-protobuf.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-redis.runMvnDeps": [],
   "codec-redis.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-smtp.runMvnDeps": [],
   "codec-smtp.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-socks.runMvnDeps": [],
   "codec-socks.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-stomp.runMvnDeps": [],
   "codec-stomp.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "codec-xml.runMvnDeps": [],
   "codec-xml.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "common.runMvnDeps": [],
   "common.test.runMvnDeps": [
     "org.graalvm.nativeimage:svm:19.3.6",
     "org.jboss:jdk-misc:3.Final",
     "org.jetbrains:annotations:26.0.2",
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "dev-tools.runMvnDeps": [],
   "example.runMvnDeps": [
@@ -1683,16 +1683,16 @@ Module dependencies of varhandle-stub:
   ],
   "handler.test.runMvnDeps": [
     "io.netty:netty-tcnative-boringssl-static:2.0.73.Final",
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "handler-proxy.runMvnDeps": [],
   "handler-proxy.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "handler-ssl-ocsp.runMvnDeps": [],
   "handler-ssl-ocsp.test.runMvnDeps": [
     "org.bouncycastle:bcpkix-jdk18on:1.80",
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "jfr-stub.runMvnDeps": [],
   "microbench.runMvnDeps": [
@@ -1700,20 +1700,20 @@ Module dependencies of varhandle-stub:
   ],
   "pkitesting.runMvnDeps": [],
   "pkitesting.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "resolver.runMvnDeps": [],
   "resolver.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "resolver-dns.runMvnDeps": [],
   "resolver-dns.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "resolver-dns-classes-macos.runMvnDeps": [],
   "resolver-dns-native-macos.runMvnDeps": [],
   "resolver-dns-native-macos.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "runMvnDeps": [],
   "testsuite.runMvnDeps": [
@@ -1723,14 +1723,14 @@ Module dependencies of varhandle-stub:
   "testsuite-http2.runMvnDeps": [],
   "testsuite-jpms.runMvnDeps": [],
   "testsuite-jpms.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "testsuite-karaf.runMvnDeps": [
     "org.apache.karaf.features:framework:4.4.8;classifier=features;type=xml"
   ],
   "testsuite-native.runMvnDeps": [],
   "testsuite-native.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "testsuite-native-image.runMvnDeps": [],
   "testsuite-native-image-client.runMvnDeps": [],
@@ -1739,47 +1739,47 @@ Module dependencies of varhandle-stub:
   "testsuite-osgi.test.runMvnDeps": [],
   "testsuite-shading.runMvnDeps": [],
   "testsuite-shading.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "transport.runMvnDeps": [],
   "transport.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "transport-blockhound-tests.runMvnDeps": [
     "io.netty:netty-tcnative-boringssl-static:2.0.73.Final"
   ],
   "transport-blockhound-tests.test.runMvnDeps": [
     "io.netty:netty-tcnative-boringssl-static:2.0.73.Final",
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "transport-classes-epoll.runMvnDeps": [],
   "transport-classes-io_uring.runMvnDeps": [],
   "transport-classes-kqueue.runMvnDeps": [],
   "transport-native-epoll.runMvnDeps": [],
   "transport-native-epoll.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "transport-native-io_uring.runMvnDeps": [],
   "transport-native-io_uring.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "transport-native-kqueue.runMvnDeps": [],
   "transport-native-kqueue.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "transport-native-unix-common.runMvnDeps": [],
   "transport-native-unix-common.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "transport-native-unix-common-tests.runMvnDeps": [],
   "transport-rxtx.runMvnDeps": [],
   "transport-sctp.runMvnDeps": [],
   "transport-sctp.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "transport-udt.runMvnDeps": [],
   "transport-udt.test.runMvnDeps": [
-    "org.junit.platform:junit-platform-launcher"
+    "org.junit.platform:junit-platform-launcher:"
   ],
   "varhandle-stub.runMvnDeps": []
 }
