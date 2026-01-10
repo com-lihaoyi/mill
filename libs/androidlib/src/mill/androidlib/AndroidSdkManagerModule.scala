@@ -427,7 +427,7 @@ private class AndroidSdkManagerWorker(androidHome: os.Path, maxAttempts: Int)
   }
 
   override def close(): Unit = {
-    scala.util.Try(workerThread.close())
+    scala.util.Try(workerThread.shutdown())
     scala.util.Try(lock.delete())
   }
 }
