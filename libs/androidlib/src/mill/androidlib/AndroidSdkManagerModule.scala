@@ -342,21 +342,31 @@ trait AndroidSdkManagerModule extends ExternalModule {
       ndkVersion: Task[String],
       cmakeVersion: Task[String]
   ): Task[AndroidNdkComponents] = Task.Anon {
-    val packages = Seq(
-      s"ndk;${ndkVersion()}",
-      s"cmake;${cmakeVersion()}"
-    )
-    androidSdkManagerInstall(Task.Anon(cmdlineToolsComponents().sdkmanagerExe), Task.Anon(packages))
+    androidSdkManagerWorker().processInFunnel { () =>
+      val packages = Seq(
+        s"ndk;${ndkVersion()}",
+        s"cmake;${cmakeVersion()}"
+      )
 
-    val ndkPath = sdkPath() / "ndk" / ndkVersion()
+      val missingPackages = packages.filterNot {
+        pkg => isPackageInstalled(sdkPath(), pkg)
+      }
 
-    AndroidNdkComponents(
-      ndkVersion = ndkVersion(),
-      ndkPath = ndkPath,
-      ninjaExe = toolPathRef(sdkPath() / "cmake" / cmakeVersion() / "bin/ninja"),
-      cmakeExe = toolPathRef(sdkPath() / "cmake" / cmakeVersion() / "bin/cmake"),
-      cmakeToolchainPath = toolPathRef(ndkPath / "build" / "cmake" / "android.toolchain.cmake")
-    )
+      Task.log.info(s"Installing ${missingPackages}")
+
+      if (missingPackages.nonEmpty)
+        androidSdkManagerInstallUnsafe(cmdlineToolsComponents().sdkmanagerExe.path, missingPackages)
+
+      val ndkPath = sdkPath() / "ndk" / ndkVersion()
+
+      AndroidNdkComponents(
+        ndkVersion = ndkVersion(),
+        ndkPath = ndkPath,
+        ninjaExe = toolPathRef(sdkPath() / "cmake" / cmakeVersion() / "bin/ninja"),
+        cmakeExe = toolPathRef(sdkPath() / "cmake" / cmakeVersion() / "bin/cmake"),
+        cmakeToolchainPath = toolPathRef(ndkPath / "build" / "cmake" / "android.toolchain.cmake")
+      )
+    }
   }
 
   def androidSdkManagerInstall(
