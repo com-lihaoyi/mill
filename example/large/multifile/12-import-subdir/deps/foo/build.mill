@@ -1,12 +1,12 @@
 // deps/foo/build.mill
-// Demonstrates relaxed package naming: we use `package build` instead of
-// the directory-based `package build.deps.foo` for simplicity
+// This nested build.mill file uses `package build` instead of the
+// directory-based `package build.deps.foo`
 package build
 
 import mill.*, scalalib.*
 
 trait FooModule extends ScalaModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = myScalaVersion
 }
 
 object `package` extends FooModule
