@@ -543,17 +543,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * Installs the android system image specified in [[androidVirtualDevice]]
    * using sdkmanager . E.g. "system-images;android-35;google_apis_playstore;x86_64"
    */
-  def sdkInstallSystemImage(): Command[String] = Task.Command {
-    val image = androidVirtualDevice().systemImage
-    Task.log.info(s"Downloading $image")
+  def sdkInstallSystemImage: T[String] = Task {
+    val installCall = androidSdkManagerModule().androidSdkManagerInstall(
+      Task.Anon(androidSdkModule().sdkManagerExe()),
+      Task.Anon(Seq(androidVirtualDevice().systemImage))
+    )()
 
-    val installCall = androidSdkModule().androidSdkWorker().process(() =>
-      os.call((
-        androidSdkModule().sdkManagerExe().path,
-        "--install",
-        image
-      ))
-    )
+    val image = androidVirtualDevice().systemImage
 
     if (installCall.exitCode != 0) {
       Task.log.error(
@@ -577,7 +573,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "--name",
       name,
       "--package",
-      sdkInstallSystemImage()(),
+      sdkInstallSystemImage(),
       "--device",
       deviceId,
       "--force"
