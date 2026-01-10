@@ -72,17 +72,19 @@ null
   "url": "https://fastcsv.org",
   "licenses": [
     {
+      "id": "MIT",
       "name": "MIT License",
-      "url": "https://opensource.org/licenses/MIT"
+      "url": "https://spdx.org/licenses/MIT.html",
+      "isOsiApproved": true,
+      "isFsfLibre": true,
+      "distribution": "repo"
     }
   ],
   "versionControl": {
-    "browsableRepository": "https://github.com/osiegmar/FastCSV",
-    "connection": "scm:git:https://github.com/osiegmar/FastCSV.git"
+    "browsableRepository": "https://github.com/osiegmar/FastCSV"
   },
   "developers": [
     {
-      "id": "osiegmar",
       "name": "Oliver Siegmar"
     }
   ]

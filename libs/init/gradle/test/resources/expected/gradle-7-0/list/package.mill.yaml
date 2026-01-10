@@ -1,0 +1,4 @@
+extends: millbuild.ProjectBaseModule
+
+object test:
+  extends: ProjectBaseTests

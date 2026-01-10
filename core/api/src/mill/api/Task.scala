@@ -127,6 +127,17 @@ object Task {
   def fail(msg: String)(using ctx: mill.api.TaskCtx): Nothing = ctx.fail(msg)
 
   /**
+   * Generate JSON representation for a worker task result.
+   * Workers don't have a JSON writer, so we generate a special JSON format.
+   */
+  def workerJson(taskName: String, value: Any, inputsHash: Int): ujson.Obj =
+    ujson.Obj(
+      "worker" -> ujson.Str(taskName),
+      "toString" -> ujson.Str(value.toString),
+      "inputsHash" -> ujson.Num(inputsHash)
+    )
+
+  /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
    */
   def sequence[T](source: Seq[Task[T]]): Task[Seq[T]] = new Task.Sequence[T](source)

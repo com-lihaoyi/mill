@@ -168,20 +168,26 @@ object CodeGen {
             }
           }
 
-          val moduleDepsSnippet =
-            if (data.moduleDeps.value.isEmpty) ""
-            else
-              s"override def moduleDeps = Seq(${data.moduleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+          def renderModuleDepsSnippet(
+              name: String,
+              deps: mill.api.internal.Located[mill.api.internal.Appendable[Seq[
+                mill.api.internal.Located[String]
+              ]]]
+          ): String = {
+            val appendable = deps.value
+            if (appendable.value.isEmpty && !appendable.append) ""
+            else {
+              val seqContent = appendable.value.map(_.value).map(parseRender).mkString(", ")
+              if (appendable.append) s"override def $name = super.$name ++ Seq($seqContent)"
+              else s"override def $name = Seq($seqContent)"
+            }
+          }
 
+          val moduleDepsSnippet = renderModuleDepsSnippet("moduleDeps", data.moduleDeps)
           val compileModuleDepsSnippet =
-            if (data.compileModuleDeps.value.isEmpty) ""
-            else
-              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
-
-          val runModuleDepsSnippet =
-            if (data.runModuleDeps.value.isEmpty) ""
-            else
-              s"override def runModuleDeps = Seq(${data.runModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+            renderModuleDepsSnippet("compileModuleDeps", data.compileModuleDeps)
+          val runModuleDepsSnippet = renderModuleDepsSnippet("runModuleDeps", data.runModuleDeps)
+          val bomModuleDepsSnippet = renderModuleDepsSnippet("bomModuleDeps", data.bomModuleDeps)
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
@@ -192,6 +198,7 @@ object CodeGen {
             moduleDepsSnippet,
             compileModuleDepsSnippet,
             runModuleDepsSnippet,
+            bomModuleDepsSnippet,
             "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
           ).filter(_.nonEmpty) ++ definitions
 
