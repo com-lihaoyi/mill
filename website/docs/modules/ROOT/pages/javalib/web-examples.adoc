@@ -27,3 +27,7 @@ include::partial$example/javalib/web/3-hello-micronaut.adoc[]
 == Micronaut TodoMvc App
 
 include::partial$example/javalib/web/4-todo-micronaut.adoc[]
+
+== Micronaut Native (GraalVM)
+
+include::partial$example/javalib/web/5-micronaut-native.adoc[]
