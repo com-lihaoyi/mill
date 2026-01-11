@@ -29,14 +29,6 @@ object ErrorProneTests extends TestSuite {
     }
     lazy val millDiscover = Discover[this.type]
   }
-  // Test module with older ErrorProne version that doesn't require --should-stop=ifError=FLOW
-  object errorProneOld extends TestRootModule with JavaModule with ErrorProneModule {
-    override def errorProneVersion: T[String] = Task { "2.35.1" }
-    override def errorProneOptions: T[Seq[String]] = Task {
-      Seq("-XepAllErrorsAsWarnings")
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
 
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "errorprone"
 
