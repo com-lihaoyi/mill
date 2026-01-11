@@ -21,6 +21,22 @@ object ErrorProneTests extends TestSuite {
     }
     lazy val millDiscover = Discover[this.type]
   }
+  // Test module with ErrorProne 2.36.0+ which requires --should-stop=ifError=FLOW
+  object errorProne236 extends TestRootModule with JavaModule with ErrorProneModule {
+    override def errorProneVersion: T[String] = Task { "2.36.0" }
+    override def errorProneOptions: T[Seq[String]] = Task {
+      Seq("-XepAllErrorsAsWarnings")
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+  // Test module with older ErrorProne version that doesn't require --should-stop=ifError=FLOW
+  object errorProneOld extends TestRootModule with JavaModule with ErrorProneModule {
+    override def errorProneVersion: T[String] = Task { "2.35.1" }
+    override def errorProneOptions: T[Seq[String]] = Task {
+      Seq("-XepAllErrorsAsWarnings")
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
 
   val testModuleSourcesPath: Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "errorprone"
 
@@ -46,6 +62,16 @@ object ErrorProneTests extends TestSuite {
           val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions): @unchecked
           assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
           val res = eval(errorProneCustom.compile)
+          assert(res.isRight)
+        }
+      }
+      test("shouldStopOption236") {
+        // ErrorProne 2.36.0+ requires --should-stop=ifError=FLOW
+        // See https://github.com/com-lihaoyi/mill/issues/4926
+        UnitTester(errorProne236, testModuleSourcesPath).scoped { eval =>
+          val Right(opts) = eval(errorProne236.mandatoryJavacOptions): @unchecked
+          assert(opts.value.contains("--should-stop=ifError=FLOW"))
+          val res = eval(errorProne236.compile)
           assert(res.isRight)
         }
       }
