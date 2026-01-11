@@ -2,6 +2,7 @@ package mill.javalib.errorprone
 
 import mill.api.PathRef
 import mill.javalib.{Dep, DepSyntax, JavaModule}
+import mill.util.Version
 import mill.{T, Task}
 
 import java.io.File
@@ -57,7 +58,12 @@ trait ErrorProneModule extends JavaModule {
       "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
       "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED"
     ).map(o => s"-J${o}")).toSeq.flatten
-    java17Options ++ enableOpts
+    // ErrorProne 2.36.0+ requires explicit --should-stop policy
+    // See https://github.com/com-lihaoyi/mill/issues/4926
+    val errorProne236Options = Option.when(
+      Version.isAtLeast(errorProneVersion(), "2.36.0")(using Version.IgnoreQualifierOrdering)
+    )(Seq("--should-stop=ifError=FLOW")).toSeq.flatten
+    java17Options ++ errorProne236Options ++ enableOpts
   }
 
   /**
