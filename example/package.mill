@@ -145,7 +145,7 @@ object `package` extends Module {
 
     /**
      * Unique Android emulator port for this example test module.
-     * Each module claims an even port by incrementing the shared counter twice
+     * Each module claims an even port by incrementing the shared counter by two.
      */
     override val testPort: Int = androidPortCounter.getAndAdd(2)
   }
@@ -236,7 +236,7 @@ object `package` extends Module {
 
   /**
    * Counter for assigning unique Android emulator ports to example test modules.
-   * Each module claims a port by incrementing this counter twice (for console and adb).
+   * Each module claims a port by incrementing this counter by two (for console and adb).
    * Ports start at 5554 which is the default starting port for Android emulators.
    */
   private val androidPortCounter = new AtomicInteger(5554)
