@@ -654,6 +654,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
     os.call((androidSdkModule().adbExe().path, "devices", "-l")).out.text()
   }
 
+  /**
+   * Port number for the android emulator to listen on
+   * It is suggested to use even numbers between 5554 and 5584
+   *
+   * See more at `-port` on:
+   * [[https://developer.android.com/studio/run/emulator-commandline#common]]
+   */
   /** The emulator port where adb connects to. Defaults to 5554 */
   def androidEmulatorPort: String = "5554"
 
