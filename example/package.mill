@@ -144,10 +144,15 @@ object `package` extends Module {
     def testExclusive = true
 
     /**
-     * Unique Android emulator port for this example test module.
-     * Each module claims an even port by incrementing the shared counter by two.
+     * Unique and even Android emulator port for this example test module.
+     * Each module claims the port by incrementing the shared counter by two.
      */
-    override val testPort: Int = androidPortCounter.getAndAdd(2)
+    val emulatorPort: Int = androidPortCounter.getAndAdd(2)
+
+    override def forkEnv = super.forkEnv() ++ Map(
+      "EMULATOR_PORT" -> emulatorPort.toString
+    )
+
   }
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {

@@ -36,7 +36,7 @@ object app extends AndroidAppModule {
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDevice = super.androidVirtualDevice().withName("java-test")
-  override def androidEmulatorPort: String = System.getenv.getOrDefault("PORT", "5554")
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
 
   object test extends AndroidAppTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
@@ -126,7 +126,6 @@ object app extends AndroidAppModule {
 > ./mill show app.androidEmulator
 
 > ./mill show app.adbDevices
-...emulator-5554...device...
 
 > ./mill show app.it
 ...
