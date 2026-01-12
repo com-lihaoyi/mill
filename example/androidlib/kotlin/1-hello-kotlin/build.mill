@@ -128,7 +128,6 @@ object app extends AndroidAppKotlinModule {
 > ./mill show app.androidEmulator
 
 > ./mill show app.adbDevices
-...emulator-5556...device...
 
 > ./mill show app.it
 ...
