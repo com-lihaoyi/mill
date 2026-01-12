@@ -5,16 +5,14 @@ import utest.*
 object MillInitSbtTests extends MillInitImportTestSuite {
   def tests = Tests {
     test("airstream") - checkImport(
-      gitUrl = "https://github.com/raquo/Airstream.git",
-      gitBranch = "v17.2.1",
+      repoName = "Airstream",
       initArgs = Seq("--mill-jvm-id", "17"),
       configsGoldenFile = "golden/sbt/airstream",
       passingTasks = Seq("[3.3.3].compile")
     )
 
     test("fs2") - checkImport(
-      gitUrl = "https://github.com/typelevel/fs2.git",
-      gitBranch = "v3.12.0",
+      repoName = "fs2",
       initArgs = Seq("--mill-jvm-id", "17"),
       configsGoldenFile = if (System.getenv("CI") == null) "golden/sbt/fs2" else null,
       passingTasks = Seq(

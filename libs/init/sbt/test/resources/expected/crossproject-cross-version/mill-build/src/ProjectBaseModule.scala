@@ -27,7 +27,7 @@ trait ProjectBaseModule extends PublishModule, CrossSbtPlatformModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  trait Tests extends CrossSbtPlatformTests {
+  trait ProjectBaseTests extends CrossSbtPlatformTests {
 
     def testParallelism = false
 
