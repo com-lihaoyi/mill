@@ -39,7 +39,7 @@ object app extends AndroidAppKotlinModule {
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDevice = super.androidVirtualDevice().withName("kotlin-test")
-  override def androidEmulatorPort: String = "5564"
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("PORT", "5556")
 
   override def androidIsDebug: T[Boolean] = Task { false }
 
@@ -168,6 +168,6 @@ object app extends AndroidAppKotlinModule {
 // typically run on an android device.
 // The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
 // and the androidEmulator command starts the AVD. The it task runs the integration tests
-// against the available AVD. The "clean androidEmulator" command stops the AVD and the
+// against the available AVD. The "clean app.androidEmulator" command stops the AVD and the
 // destroyAndroidVirtualDevice command destroys the AVD.
 // The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.

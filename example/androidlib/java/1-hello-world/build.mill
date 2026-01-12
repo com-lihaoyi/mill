@@ -36,6 +36,7 @@ object app extends AndroidAppModule {
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDevice = super.androidVirtualDevice().withName("java-test")
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("PORT", "5554")
 
   object test extends AndroidAppTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
@@ -156,6 +157,6 @@ object app extends AndroidAppModule {
 // typically run on an android device.
 // The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
 // and the androidEmulator command starts the AVD. The it task runs the android tests
-// against the available AVD. The "clean androidEmulator" command stops the AVD and the
+// against the available AVD. The "clean app.androidEmulator" command stops the AVD and the
 // destroyAndroidVirtualDevice command destroys the AVD.
 // The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.
