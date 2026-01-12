@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters.*
 class Modeler(builder: ModelBuilder, resolver: ModelResolver, systemProperties: Properties) {
 
   /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
-  def buildAll(workspace: os.Path = os.pwd): Seq[ModelBuildingResult] = {
+  def buildAll(workspace: os.Path): Seq[ModelBuildingResult] = {
     def recurse(dir: os.Path): Seq[ModelBuildingResult] = {
       val result = build((dir / "pom.xml").toIO)
       val subResults = result.getEffectiveModel.getModules.asScala.flatMap(rel =>

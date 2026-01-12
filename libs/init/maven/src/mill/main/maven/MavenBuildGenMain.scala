@@ -21,17 +21,20 @@ object MavenBuildGenMain {
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
       millJvmId: Option[String],
       @mainargs.arg(doc = "Generate declarative (YAML) or programmable (Scala) build files")
-      declarative: Boolean = true
+      declarative: Boolean = true,
+      projectDir: String = "."
   ): Unit = {
     println("converting Maven build")
 
     val buildGen = if (declarative) BuildGenYaml else BuildGenScala
+    val mvnWorkspace = os.Path.expandUser(projectDir, os.pwd)
+    val millWorkspace = os.pwd
 
-    val modelBuildingResults = Modeler().buildAll()
+    val modelBuildingResults = Modeler().buildAll(mvnWorkspace)
     val moduleDepLookup: PartialFunction[Dependency, ModuleDep] = modelBuildingResults.map { mbr =>
       val model = mbr.getEffectiveModel
       val key = (model.getGroupId, model.getArtifactId, model.getVersion)
-      val dep = ModuleDep(os.Path(model.getProjectDirectory).subRelativeTo(os.pwd).segments)
+      val dep = ModuleDep(os.Path(model.getProjectDirectory).subRelativeTo(mvnWorkspace).segments)
       (key, dep)
     }.toMap.compose {
       case dep: Dependency => (dep.getGroupId, dep.getArtifactId, dep.getVersion)
@@ -168,7 +171,7 @@ object MavenBuildGenMain {
             if (publishProperties.value) model.getProperties.asScala.toSeq else Nil
         )
       }
-      PackageSpec(moduleDir.subRelativeTo(os.pwd), mainModule)
+      PackageSpec(moduleDir.subRelativeTo(mvnWorkspace), mainModule)
     }
     packages = normalizeBuild(packages)
 
@@ -180,7 +183,7 @@ object MavenBuildGenMain {
         Seq("MavenTests")
       ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     buildGen.writeBuildFiles(
-      baseDir = os.pwd,
+      baseDir = millWorkspace,
       packages = packages0,
       merge = merge.value,
       baseModule = baseModule,
