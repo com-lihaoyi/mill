@@ -311,6 +311,7 @@ object CoursierModule {
         deps0.map(_.dep),
         sources = sources,
         ctx = Some(ctx),
+        resolutionParams = resolutionParams,
         checkGradleModules = checkGradleModules,
         config = config
       ).get
@@ -333,6 +334,7 @@ object CoursierModule {
         sources = sources,
         ctx = Some(ctx),
         checkGradleModules = checkGradleModules,
+        resolutionParams = resolutionParams,
         config = config
       ).get
     }
