@@ -35,7 +35,7 @@ object app extends AndroidNativeAppModule { // <1>
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDevice = super.androidVirtualDevice().withName("native-test")
-  override def androidEmulatorPort = "5562"
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
 
   def androidExternalNativeLibs = Task { // <2>
     Seq(
