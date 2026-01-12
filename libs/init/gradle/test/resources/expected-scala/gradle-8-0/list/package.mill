@@ -1,0 +1,26 @@
+package build.list
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.errorprone.ErrorProneModule
+import millbuild.*
+
+object `package` extends ProjectBaseModule, ErrorProneModule {
+
+  def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
+
+  def errorProneJavacEnableOptions =
+    Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+
+  object test extends ProjectBaseTests, ErrorProneModule, TestModule.Junit5 {
+
+    def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
+
+    def errorProneOptions = Seq("-XepCompilingTestOnlyCode")
+
+    def errorProneJavacEnableOptions =
+      Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
+
+  }
+
+}
