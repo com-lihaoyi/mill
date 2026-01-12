@@ -8,8 +8,6 @@ import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
 
-
-
 /**
  * Generate Scala-based build/project files for Mill from given [[PakcageSpec]] and [[ModuleSpec]].
  *
@@ -66,8 +64,6 @@ object BuildGenScala extends BuildGen {
     (names.toSeq, packages0)
   }
 
-
-
   override def writeBuildFiles(
       baseDir: os.Path,
       packages: Seq[PackageSpec],
@@ -75,7 +71,7 @@ object BuildGenScala extends BuildGen {
       baseModule: Option[ModuleSpec] = None,
       millJvmVersion: Option[String] = None,
       millJvmOpts: Seq[String] = Nil,
-      depNames: Seq[(MvnDep, String)] = Nil,
+      depNames: Seq[(MvnDep, String)] = Nil
   ): Seq[os.Path] = {
     var packages0 = fillPackages(packages).sortBy(_.dir)
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0

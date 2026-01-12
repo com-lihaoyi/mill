@@ -30,7 +30,7 @@ object GradleBuildGenMain {
   ): Unit = {
     println("converting Gradle build")
 
-    val buildGen = if(declarative) BuildGenYaml else BuildGenScala
+    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
 
     val exportPluginJar = Using.resource(
       getClass.getResourceAsStream(exportpluginAssemblyResource)

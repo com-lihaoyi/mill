@@ -25,7 +25,7 @@ object MavenBuildGenMain {
   ): Unit = {
     println("converting Maven build")
 
-    val buildGen = if(declarative) BuildGenYaml else BuildGenScala
+    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
 
     val modelBuildingResults = Modeler().buildAll()
     val moduleDepLookup: PartialFunction[Dependency, ModuleDep] = modelBuildingResults.map { mbr =>
