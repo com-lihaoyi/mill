@@ -97,15 +97,15 @@ object `package` extends MillPublishScalaModule {
         val file = Task.dest / ".scalafmt.conf"
         os.write(
           file,
-          """version = "3.8.5"
-            |runner.dialect = scala3
-            |newlines.source=fold
-            |project.includePaths = [
-            |  "glob:**/build.mill"
-            |  "glob:**/package.mill"
-            |  "glob:**/mill-build/**.scala"
-            |]
-            |""".stripMargin
+          s"""version = "${Deps.scalafmtDynamic.version}"
+             |runner.dialect = scala3
+             |newlines.source=fold
+             |project.includePaths = [
+             |  "glob:**/build.mill"
+             |  "glob:**/package.mill"
+             |  "glob:**/mill-build/**.scala"
+             |]
+             |""".stripMargin
         )
         PathRef(file)
       }
