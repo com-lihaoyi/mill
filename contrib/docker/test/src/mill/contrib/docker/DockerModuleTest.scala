@@ -54,7 +54,6 @@ object DockerModuleTest extends TestSuite {
       override def scripts = Task {
         Seq(customEntry() -> "custom-entrypoint.sh")
       }
-      override def scriptTargets = Seq("custom-entrypoint.sh")
       override def entrypoint = "/custom-entrypoint.sh"
     }
 
