@@ -661,7 +661,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * See more at `-port` on:
    * [[https://developer.android.com/studio/run/emulator-commandline#common]]
    */
-  /** The emulator port where adb connects to. Defaults to 5554 */
   def androidEmulatorPort: String = "5554"
 
   /**
