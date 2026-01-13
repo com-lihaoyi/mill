@@ -87,10 +87,11 @@ object FileImportGraph {
           errors.append(ex.getClass.getName + " " + ex.getMessage)
       }
 
-    val (_, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+    val (isDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
     val foundRootBuildFile = projectRoot / foundRootBuildFileName
-    processScript(foundRootBuildFile)
+    // For dummy builds (no build.mill), skip processing the non-existent file
+    if (!isDummy) processScript(foundRootBuildFile)
 
     walked.filter(_ != foundRootBuildFile).foreach(processScript(_))
 

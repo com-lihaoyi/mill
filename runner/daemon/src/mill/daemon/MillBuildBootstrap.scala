@@ -131,17 +131,11 @@ class MillBuildBootstrap(
 
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
-            else if (useDummy) {
-              // Use pre-compiled dummy build (mill.util.internal) to avoid compilation.
-              // Detected downstream by bootstrapModuleOpt being None with no error.
-              RunnerState(
-                None,
-                Nil,
-                None,
-                Some(foundRootBuildFileName),
-                Seq(bootstrapEvalWatched)
-              )
-            } else {
+            else {
+              // For both dummy builds (no build.mill) and non-dummy builds (build.mill.yaml only),
+              // we create a BootstrapModule to get the libs classpath. For dummy builds,
+              // the BootstrapModule will have no sources to compile, and we'll load the
+              // pre-compiled DummyBuildFile from the resulting classloader.
               mill.api.ExecResult.catchWrapException {
                 new MillBuildRootModule.BootstrapModule(
                   (currentRoot / foundRootBuildFileName).toString
@@ -166,7 +160,6 @@ class MillBuildBootstrap(
                     Seq(bootstrapEvalWatched)
                   )
               }
-
             }
 
           state
@@ -292,10 +285,6 @@ class MillBuildBootstrap(
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else if (depth <= requestedDepth) nestedState
-                // With the pre-compiled dummy build (no frames, no bootstrap module),
-                // skip processRunClasspath which would try to evaluate millBuildRootModuleResult
-                else if (nestedState.bootstrapModuleOpt.isEmpty && nestedState.frames.isEmpty)
-                  nestedState
                 else {
                   processRunClasspath(
                     nestedState,
@@ -636,11 +625,23 @@ object MillBuildBootstrap {
 
   def getRootModule(runClassLoader: URLClassLoader)
       : Result[BuildFileApi] = {
-    val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl")
+    // Try loading the compiled BuildFileImpl first. If it doesn't exist (dummy build case
+    // where there's no build.mill to compile), fall back to the pre-compiled DummyBuildFile.
+    val (buildClass, isDummyBuild) =
+      try (runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl"), false)
+      catch {
+        case _: ClassNotFoundException =>
+          (runClassLoader.loadClass("mill.util.internal.DummyBuildFile$"), true)
+      }
 
-    val valueMethod = buildClass.getMethod("value")
     mill.api.ExecResult.catchWrapException {
-      valueMethod.invoke(null).asInstanceOf[BuildFileApi]
+      if (isDummyBuild) {
+        // For Scala objects, get the singleton instance from MODULE$ field
+        buildClass.getField("MODULE$").get(null).asInstanceOf[BuildFileApi]
+      } else {
+        val valueMethod = buildClass.getMethod("value")
+        valueMethod.invoke(null).asInstanceOf[BuildFileApi]
+      }
     }
   }
 
