@@ -7,8 +7,4 @@ import mill.api.internal.RootModule
  * This allows the dummy build to work with any project directory without needing
  * to be recompiled for each project.
  */
-object MillMiscInfo extends RootModule.Info(
-  RootModule.Info.fromEnv().projectRoot,
-  RootModule.Info.fromEnv().output,
-  RootModule.Info.fromEnv().topLevelProjectRoot
-)
+object MillMiscInfo extends RootModule.Info.FromEnv
