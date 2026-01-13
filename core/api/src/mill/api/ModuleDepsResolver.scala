@@ -1,5 +1,7 @@
 package mill.api
 
+import mill.api.daemon.internal.internal
+
 import scala.quoted.*
 
 /**
@@ -7,7 +9,7 @@ import scala.quoted.*
  * Used by YAML builds to defer module resolution from codegen time to runtime.
  * Configuration is loaded from a classpath resource file written during code generation.
  */
-object ModuleDepsResolver {
+@internal object ModuleDepsResolver {
 
   /**
    * Configuration entry for a single moduleDeps field.
