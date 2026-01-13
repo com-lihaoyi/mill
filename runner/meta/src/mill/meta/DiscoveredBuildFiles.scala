@@ -50,7 +50,7 @@ object DiscoveredBuildFiles {
           catch { case e: RuntimeException => Left(e.getMessage) }
 
         val allowNestedBuildMillFiles =
-          if (useDummy) false else BuildHeaderUtil.allowNestedBuildMillFiles(s)
+          BuildHeaderUtil.allowNestedBuildMillFiles(s)
 
         if (s.last.endsWith(".yaml")) seenScripts(s) = os.read(s)
         else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName, colored)) match {
