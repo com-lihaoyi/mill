@@ -1,0 +1,11 @@
+// This nested build.mill does NOT have the allowNestedBuildMillFiles flag,
+// so using `package build` should fail
+package build
+
+import mill._, scalalib._
+
+trait FooModule extends ScalaModule {
+  def scalaVersion = "2.13.16"
+}
+
+object `package` extends FooModule

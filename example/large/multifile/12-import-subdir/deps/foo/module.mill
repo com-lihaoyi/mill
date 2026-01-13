@@ -1,0 +1,8 @@
+// deps/foo/module.mill
+package build
+
+import mill.*, scalalib.*
+
+trait FooModule extends ScalaModule {
+  def scalaVersion = myScalaVersion
+}

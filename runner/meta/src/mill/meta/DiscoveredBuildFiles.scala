@@ -49,6 +49,9 @@ object DiscoveredBuildFiles {
           try Right(mill.constants.Util.readBuildHeader(s.toNIO, s.last))
           catch { case e: RuntimeException => Left(e.getMessage) }
 
+        val allowNestedBuildMillFiles =
+          if (useDummy) false else CodeGen.isNestedBuildAllowed(s)
+
         if (s.last.endsWith(".yaml")) seenScripts(s) = os.read(s)
         else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName, colored)) match {
           case Right((prefix, pkgs, stmts)) =>
@@ -71,7 +74,9 @@ object DiscoveredBuildFiles {
 
             val packageDeclarationValid = (isRootFile, isBuildFile, isPackageFile) match {
               case (true, _, _) => emptyPackage || exactMatch
-              case (_, true, _) => emptyPackage || relaxedMatch || exactMatch
+              case (_, true, _) if allowNestedBuildMillFiles =>
+                emptyPackage || relaxedMatch || exactMatch
+              case (_, true, _) => exactMatch
               case _ => relaxedMatch || exactMatch
             }
 
@@ -79,11 +84,20 @@ object DiscoveredBuildFiles {
               val expectedImport =
                 if (expectedImportSegments.isEmpty) "<none>"
                 else s"\"package $expectedImportSegments\""
-              errors.append(
+              val errorMsg = if (isBuildFile && !allowNestedBuildMillFiles) {
+                s"Package declaration \"package $importSegments\" in " +
+                  s"${s.relativeTo(topLevelProjectRoot)} does not match " +
+                  s"folder structure. Expected: $expectedImport\n" +
+                  s"Hint: Add '//| allowNestedBuildMillFiles: true' at the top of this " +
+                  s"build.mill file to enable relaxed package naming for nested build.mill files. " +
+                  s"Note: this is mainly for compatibility with isolated sub-builds but " +
+                  s"makes IDE support less precise."
+              } else {
                 s"Package declaration \"package $importSegments\" in " +
                   s"${s.relativeTo(topLevelProjectRoot)} does not match " +
                   s"folder structure. Expected: $expectedImport"
-              )
+              }
+              errors.append(Result.Failure(errorMsg))
             }
             seenScripts(s) = prefix + stmts.mkString
           case Left(error) =>
@@ -116,11 +130,11 @@ object DiscoveredBuildFiles {
             nestedBuildFileNames.contains(f.last)
         ).map(_.last).mkString(", ")
 
-        errors.append(
+        val errorMsg =
           s"Conflicting build files in ${dir.relativeTo(topLevelProjectRoot)}: $conflictingFiles. " +
             s"A directory can contain either build.mill (for root/standalone projects) or " +
             s"package.mill (for submodules), but not both."
-        )
+        errors.append(Result.Failure(errorMsg))
       }
     }
 

@@ -1,12 +1,9 @@
+//| allowNestedBuildMillFiles: true
 // deps/foo/build.mill
 // This nested build.mill file uses `package build` instead of the
 // directory-based `package build.deps.foo`
 package build
 
 import mill.*, scalalib.*
-
-trait FooModule extends ScalaModule {
-  def scalaVersion = myScalaVersion
-}
 
 object `package` extends FooModule

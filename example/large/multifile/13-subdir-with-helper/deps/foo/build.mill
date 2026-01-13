@@ -1,11 +1,7 @@
+//| allowNestedBuildMillFiles: true
 // deps/foo/build.mill
 package build
 
 import mill.*, scalalib.*
-import build.project.Version // Import Version from the project package
-
-trait FooModule extends ScalaModule {
-  def scalaVersion = Version.scalaVersion
-}
 
 object `package` extends FooModule

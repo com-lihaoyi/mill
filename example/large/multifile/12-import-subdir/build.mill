@@ -16,7 +16,7 @@ package build
 import mill.*, scalalib.*
 
 /** Reference FooModule from the nested build.mill file */
-trait BarModule extends build_.deps.foo.FooModule
+trait BarModule extends build.deps.foo.FooModule
 
 /** See Also: deps/package.mill */
 
