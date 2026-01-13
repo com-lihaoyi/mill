@@ -154,10 +154,9 @@ object CodeGen {
           ).filter(_.nonEmpty)
 
           // Helper to extract ModuleDepsEntry from HeaderData field
-          def extractEntry(deps: Located[Appendable[Seq[Located[String]]]]): Option[ModuleDepsEntry] = {
+          def extractEntry(deps: Located[Appendable[Seq[Located[String]]]]): ModuleDepsEntry = {
             val appendable = deps.value
-            if (appendable.value.isEmpty && !appendable.append) None
-            else Some(ModuleDepsEntry(appendable.value.map(_.value), appendable.append))
+            ModuleDepsEntry(appendable.value.map(_.value), appendable.append)
           }
 
           // Collect moduleDeps config for this module path and store in the map
