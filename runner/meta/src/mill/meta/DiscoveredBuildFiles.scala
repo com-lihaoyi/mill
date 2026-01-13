@@ -41,6 +41,11 @@ object DiscoveredBuildFiles {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[Result.Failure]
 
+    val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+    val foundRootBuildFile = projectRoot / foundRootBuildFileName
+    val rootAllowsNestedBuilds =
+      !useDummy && BuildHeaderUtil.allowNestedBuildMillFiles(foundRootBuildFile)
+
     def processScript(s: os.Path): Unit =
       try {
         val content = os.read(s)
@@ -50,7 +55,7 @@ object DiscoveredBuildFiles {
           catch { case e: RuntimeException => Left(e.getMessage) }
 
         val allowNestedBuildMillFiles =
-          BuildHeaderUtil.allowNestedBuildMillFiles(s)
+          rootAllowsNestedBuilds || BuildHeaderUtil.allowNestedBuildMillFiles(s)
 
         if (s.last.endsWith(".yaml")) seenScripts(s) = os.read(s)
         else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName, colored)) match {
@@ -111,11 +116,8 @@ object DiscoveredBuildFiles {
           errors.append(Result.Failure(ex.getClass.getName + " " + ex.getMessage))
       }
 
-    val (isDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
-
-    val foundRootBuildFile = projectRoot / foundRootBuildFileName
     // For dummy builds (no build.mill), skip processing the non-existent file
-    if (!isDummy) processScript(foundRootBuildFile)
+    if (!useDummy) processScript(foundRootBuildFile)
 
     // Check for conflicting build files in the same directory
     val scriptsByDir = walked.groupBy(_ / os.up)

@@ -42,6 +42,11 @@ object CodeGen {
       (Seq(CGConst.globalPackagePrefix) ++ innerSegments).map(backtickWrap).mkString(".")
     }
 
+    val (useDummy, foundRootBuildFileName) = DiscoveredBuildFiles.findRootBuildFiles(projectRoot)
+    val foundRootBuildFile = projectRoot / foundRootBuildFileName
+    val rootAllowsNestedBuilds =
+      !useDummy && BuildHeaderUtil.allowNestedBuildMillFiles(foundRootBuildFile)
+
     val buildFileNames =
       CGConst.buildFileExtensions.asScala.map(ext => s"build.$ext").toSet
 
@@ -50,7 +55,7 @@ object CodeGen {
         case path
             if buildFileNames.contains(path.last)
               && (path / os.up) != projectRoot
-              && BuildHeaderUtil.allowNestedBuildMillFiles(path) =>
+              && (rootAllowsNestedBuilds || BuildHeaderUtil.allowNestedBuildMillFiles(path)) =>
           (path / os.up, packagePrefixFor(path))
       }
       .distinct
