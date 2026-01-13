@@ -61,7 +61,7 @@ object ModuleDepsResolver {
               depString.split('.').toIndexedSeq match{
                 case Seq("build", rest*) => rest
                 case all => all
-              }
+              }*
             )
 
             segmentsToModules.get(segments) match {
