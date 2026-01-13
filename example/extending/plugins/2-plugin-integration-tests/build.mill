@@ -10,7 +10,7 @@ import mill.*, scalalib.*, publish.*
 object myplugin extends ScalaModule, PublishModule {
   def millVersion = "1.0.6"
 
-  def scalaVersion = "3.8.0"
+  def scalaVersion = "3.7.4"
 
   def jvmVersion = "11"
 
