@@ -3,6 +3,6 @@ package build
 
 import mill.*, scalalib.*
 
-trait FooModule extends ScalaModule {
+trait FooModule extends ScalaModule { // trait definition in Helper Files
   def scalaVersion = myScalaVersion
 }

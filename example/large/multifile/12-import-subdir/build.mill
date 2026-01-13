@@ -1,26 +1,38 @@
-// Mill supports nested `build.mill` files in subdirectories. Unlike `package.mill` files
-// which must use package declarations matching their directory path (e.g., `package build.deps.foo`),
-// nested `build.mill` files can use a simple `package build` declaration regardless of where
-// they are located.
+//| allowNestedBuildMillFiles: true
+// Mill supports nested `build.mill` files in subdirectories.
+// Unlike `package.mill` files which must use package declarations matching their directory
+// path (e.g., `package build.deps.foo`), nested `build.mill` files can use a simple
+// `package build` declaration regardless of where they are located (when marked with
+// `//| allowNestedBuildMillFiles: true`).
 //
 // This makes it easy to:
 //
 // * Keep module definitions self-contained in subdirectories that can be built independently
 // * Refactor or move modules around without updating package declarations
+// * Extract reusable traits and objects into separate helper files
+//
+// === Limitation
+// When using nested `build.mill` files, you can only import traits or objects defined in
+// helper files (like `versions.mill` or `module.mill`), not from the `build.mill` itself.
 //
 // === Example Project
-// The `FooModule` trait is defined in the nested `deps/foo/build.mill` file, and we can reference it
-// using the hierarchical path `build_.deps.foo.FooModule`
+// The `FooModule` trait is defined in the nested `deps/foo/module.mill` helper file,
+// and we can reference it from the root build using the hierarchical path
+// `build.deps.foo.FooModule`. Additional helpers like `versions.mill` provide shared
+// configuration via imports like `build.deps.foo.myScalaVersion`.
+
 package build
 
 import mill.*, scalalib.*
 
-/** Reference FooModule from the nested build.mill file */
+/** Reference FooModule from the nested helper file `deps/foo/module.mill` */
 trait BarModule extends build.deps.foo.FooModule
 
 /** See Also: deps/package.mill */
 
 /** See Also: deps/foo/build.mill */
+
+/** See Also: deps/foo/module.mill */
 
 /** See Also: deps/foo/versions.mill */
 
@@ -29,15 +41,17 @@ trait BarModule extends build.deps.foo.FooModule
 //
 // * The root `build.mill` uses `package build` and defines a `BarModule` trait
 // * `deps/package.mill` uses `package build.deps` to create the intermediate namespace
-// * `deps/foo/build.mill` also uses `package build` instead of needing `package build.deps.foo`
-// * `deps/foo/versions.mill` is a helper file that provides shared configuration
+// * `deps/foo/build.mill` also uses `package build` (with `allowNestedBuildMillFiles` header)
+// * `deps/foo/module.mill` is a helper file that contains the `FooModule` trait definition
+// * `deps/foo/versions.mill` is a helper file that contains shared version configuration
 //
-// The nested `deps/foo/build.mill` file defines a `FooModule` trait that can be referenced
-// from the root build file as `build_.deps.foo.FooModule`. Note the use of `build_` to
-// reference the generated build package object.
+// Helper files in nested directories can be referenced from parent build files:
+// - Traits and objects defined in `versions.mill` can be imported like `build.deps.foo.versions.myScalaVersion`
+// - Traits and objects defined in `module.mill` can be imported like `build.deps.foo.FooModule`
 //
-// Helper files like `versions.mill` work alongside nested `build.mill` files and can be
-// referenced using the hierarchical path (e.g., `build.foo.scalaVersion`).
+// The nested `deps/foo/build.mill` simply composes these helper files and references
+// the root build as needed. Note the use of `build` to reference the generated build
+// package object from parent scopes.
 
 /** Usage
 
@@ -46,5 +60,6 @@ trait BarModule extends build.deps.foo.FooModule
 
 */
 
-// Each nested `build.mill` can use the simple `package build` declaration while still being
-// accessible through its full hierarchical path from parent build files.
+// Each nested `build.mill` with `allowNestedBuildMillFiles` can use the simple
+// `package build` declaration while still being accessible through its full hierarchical
+// path from parent build files. Shared logic should be extracted into helper files.

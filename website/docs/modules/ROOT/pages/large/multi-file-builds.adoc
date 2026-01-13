@@ -9,7 +9,7 @@ include::partial$example/large/multifile/10-multi-file-builds.adoc[]
 
 include::partial$example/large/multifile/11-helper-files.adoc[]
 
-== Nested Build Files (Opt-in Feature)
+== Nested Build Files
 
 include::partial$example/large/multifile/12-import-subdir.adoc[]
 

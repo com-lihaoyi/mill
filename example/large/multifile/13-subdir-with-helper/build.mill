@@ -1,3 +1,4 @@
+//| allowNestedBuildMillFiles: true
 // build.mill
 package build
 
