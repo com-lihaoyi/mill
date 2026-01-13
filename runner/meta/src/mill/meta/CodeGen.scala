@@ -7,7 +7,6 @@ import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.internal.HeaderData
-import mill.api.daemon.Segment
 
 import scala.util.control.Breaks.*
 
@@ -149,25 +148,6 @@ object CodeGen {
               renderTemplate(s"object $k", nestedData, path :+ k)
           ).filter(_.nonEmpty)
 
-          def parseRender(moduleDep: String) = {
-            mill.resolve.ParseArgs.extractSegments(moduleDep) match {
-              case f: Result.Failure =>
-                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + f.error)
-              case Result.Success((rootModulePrefix, taskSegments)) =>
-                val renderedSegments = taskSegments.value
-                  .map {
-                    case Segment.Label(s) => backtickWrap(s)
-                    case Segment.Cross(vs) => "lookup(" + vs.map(literalize(_)).mkString(", ") + ")"
-                  }
-                  .mkString(".")
-
-                rootModulePrefix match {
-                  case "" => renderedSegments
-                  case s"$externalModulePrefix/" => s"$externalModulePrefix.$renderedSegments"
-                }
-            }
-          }
-
           def renderModuleDepsSnippet(
               name: String,
               deps: mill.api.internal.Located[mill.api.internal.Appendable[Seq[
@@ -177,9 +157,9 @@ object CodeGen {
             val appendable = deps.value
             if (appendable.value.isEmpty && !appendable.append) ""
             else {
-              val seqContent = appendable.value.map(_.value).map(parseRender).mkString(", ")
-              if (appendable.append) s"override def $name = super.$name ++ Seq($seqContent)"
-              else s"override def $name = Seq($seqContent)"
+              // Generate string literals for runtime resolution
+              val depsSeq = appendable.value.map(_.value).map(literalize(_)).mkString(", ")
+              s"override def $name = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(Seq($depsSeq), ${appendable.append}, super.$name)"
             }
           }
 
