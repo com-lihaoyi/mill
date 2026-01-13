@@ -10,7 +10,12 @@ import java.io.File
 import java.util.Properties
 import scala.jdk.CollectionConverters.*
 
-class Modeler(mvnWorkspace: os.Path, builder: ModelBuilder, resolver: ModelResolver, systemProperties: Properties) {
+class Modeler(
+    mvnWorkspace: os.Path,
+    builder: ModelBuilder,
+    resolver: ModelResolver,
+    systemProperties: Properties
+) {
 
   /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
   def buildAll(): Seq[ModelBuildingResult] = {
@@ -53,7 +58,7 @@ object Modeler {
       local: LocalRepository = defaultLocalRepository,
       remotes: Seq[RemoteRepository] = defaultRemoteRepositories,
       context: String = "",
-      systemProperties: Properties = null,
+      systemProperties: Properties = null
   ): Modeler = {
     val builder = new DefaultModelBuilderFactory().newInstance()
     val system = new RepositorySystemSupplier().get()
