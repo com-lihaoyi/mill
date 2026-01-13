@@ -186,10 +186,8 @@ object CodeGen {
             runModuleDeps = extractEntry(data.runModuleDeps),
             bomModuleDeps = extractEntry(data.bomModuleDeps)
           )
-          if (config.moduleDeps.nonEmpty || config.compileModuleDeps.nonEmpty ||
-              config.runModuleDeps.nonEmpty || config.bomModuleDeps.nonEmpty) {
-            moduleDepsConfig(modulePathKey) = config
-          }
+
+          moduleDepsConfig(modulePathKey) = config
 
           // Generate fixed calls that read config from classpath resource at runtime
           def renderModuleDepsSnippet(name: String, entry: Option[ModuleDepsEntry]): String = {
