@@ -345,12 +345,6 @@ trait GroupExecution {
         // Helper to evaluate build override only (no task evaluation)
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = {
-          lazy val originalText = os.read(located.path)
-          lazy val strippedText = originalText.replace("\n//|", "\n")
-          lazy val lookupLineSuffix = fastparse
-            .IndexedParserInput(strippedText)
-            .prettyIndex(located.index)
-            .takeWhile(_ != ':')
 
           val (execRes, serializedPaths) =
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
