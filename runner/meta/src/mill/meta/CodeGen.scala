@@ -154,41 +154,47 @@ object CodeGen {
           ).filter(_.nonEmpty)
 
           // Helper to extract ModuleDepsEntry from HeaderData field
+          // Each Located[String] contains (path, index, value) - we extract (value, index)
           def extractEntry(deps: Located[Appendable[Seq[Located[String]]]]): ModuleDepsEntry = {
             val appendable = deps.value
-            ModuleDepsEntry(appendable.value.map(_.value), appendable.append)
+            ModuleDepsEntry(appendable.value.map(loc => (loc.value, loc.index)), appendable.append)
           }
 
           // Collect moduleDeps config for this module path and store in the map
-          // Always store config for every module so adding/removing moduleDeps doesn't
-          // change the generated code (only the config JSON changes)
           val modulePathKey = path.mkString(".")
+          val moduleDepsEntry = extractEntry(data.moduleDeps)
+          val compileModuleDepsEntry = extractEntry(data.compileModuleDeps)
+          val runModuleDepsEntry = extractEntry(data.runModuleDeps)
+          val bomModuleDepsEntry = extractEntry(data.bomModuleDeps)
+
           val config = ModuleDepsConfig(
-            moduleDeps = extractEntry(data.moduleDeps),
-            compileModuleDeps = extractEntry(data.compileModuleDeps),
-            runModuleDeps = extractEntry(data.runModuleDeps),
-            bomModuleDeps = extractEntry(data.bomModuleDeps)
+            yamlPath = scriptPath.toString,
+            moduleDeps = Some(moduleDepsEntry),
+            compileModuleDeps = Some(compileModuleDepsEntry),
+            runModuleDeps = Some(runModuleDepsEntry),
+            bomModuleDeps = Some(bomModuleDepsEntry)
           )
 
           moduleDepsConfig(modulePathKey) = config
 
-          // Always generate fixed calls that read config from classpath resource at runtime.
-          // The resolver returns the default when no config exists, so the generated code
-          // is always the same regardless of whether moduleDeps is specified in YAML.
+          // Always generate defs without override - use macros to get super value if it exists
           val pathLiteral = literalize(modulePathKey)
-          def moduleDepsOverride(name: String) =
-            s"override def $name = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, super.$name)"
+          def moduleDepsSnippet(name: String, superMacro: String) =
+            s"def $name = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.ModuleDepsResolver.$superMacro)"
+
+          val moduleDepsSnippets = Seq(
+            moduleDepsSnippet("moduleDeps", "superModuleDeps"),
+            moduleDepsSnippet("compileModuleDeps", "superCompileModuleDeps"),
+            moduleDepsSnippet("runModuleDeps", "superRunModuleDeps"),
+            moduleDepsSnippet("bomModuleDeps", "superBomModuleDeps")
+          )
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
               s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[?]]"
             else " extends AutoOverride[_root_.mill.T[?]]"
 
-          val allSnippets = Seq(
-            moduleDepsOverride("moduleDeps"),
-            moduleDepsOverride("compileModuleDeps"),
-            moduleDepsOverride("runModuleDeps"),
-            moduleDepsOverride("bomModuleDeps"),
+          val allSnippets = moduleDepsSnippets ++ Seq(
             "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
           ) ++ definitions
 

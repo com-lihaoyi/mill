@@ -1,5 +1,7 @@
 package mill.api
 
+import scala.quoted.*
+
 /**
  * Helper object for resolving module deps from string identifiers at runtime.
  * Used by YAML builds to defer module resolution from codegen time to runtime.
@@ -9,23 +11,58 @@ object ModuleDepsResolver {
 
   /**
    * Configuration entry for a single moduleDeps field.
-   * @param deps List of module path strings to resolve
+   * @param deps List of (module path string, character offset in YAML file) pairs
    * @param append If true, append to super.moduleDeps; if false, replace it
    */
-  case class ModuleDepsEntry(deps: Seq[String], append: Boolean)
+  case class ModuleDepsEntry(deps: Seq[(String, Int)], append: Boolean)
   object ModuleDepsEntry {
     implicit val rw: upickle.default.ReadWriter[ModuleDepsEntry] = upickle.default.macroRW
   }
 
   /** Configuration for all moduleDeps fields of a module */
   case class ModuleDepsConfig(
-      moduleDeps: ModuleDepsEntry,
-      compileModuleDeps: ModuleDepsEntry,
-      runModuleDeps: ModuleDepsEntry,
-      bomModuleDeps: ModuleDepsEntry
+      yamlPath: String,
+      moduleDeps: Option[ModuleDepsEntry] = None,
+      compileModuleDeps: Option[ModuleDepsEntry] = None,
+      runModuleDeps: Option[ModuleDepsEntry] = None,
+      bomModuleDeps: Option[ModuleDepsEntry] = None
   )
   object ModuleDepsConfig {
     implicit val rw: upickle.default.ReadWriter[ModuleDepsConfig] = upickle.default.macroRW
+  }
+
+  /**
+   * Macro that returns super.moduleDeps if the enclosing class has a parent with moduleDeps,
+   * otherwise returns Seq.empty. Used by generated code to avoid requiring override keyword.
+   */
+  inline def superModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("moduleDeps") }
+  inline def superCompileModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("compileModuleDeps") }
+  inline def superRunModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("runModuleDeps") }
+  inline def superBomModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("bomModuleDeps") }
+
+  private def superMethodImpl[T <: Module: Type](methodName: String)(using Quotes): Expr[Seq[T]] = {
+    import quotes.reflect.*
+
+    // Find the enclosing class/trait
+    var enclosingClass = Symbol.spliceOwner
+    while (!enclosingClass.isClassDef && enclosingClass != Symbol.noSymbol) {
+      enclosingClass = enclosingClass.owner
+    }
+
+    // Look for the method in base classes (excluding the current class)
+    val baseClasses = enclosingClass.typeRef.baseClasses.drop(1)
+    val methodSymOpt = baseClasses.flatMap(_.declaredMethod(methodName)).headOption
+
+    methodSymOpt match {
+      case Some(methodSym) =>
+        // Generate: super.methodName.asInstanceOf[Seq[T]]
+        val thisRef = This(enclosingClass)
+        val superRef = Super(thisRef, None)
+        val selectExpr = superRef.select(methodSym)
+        selectExpr.asExpr.asInstanceOf[Expr[Seq[T]]]
+      case None =>
+        '{ Seq.empty[T] }
+    }
   }
 
   def resolveModuleDeps[T <: Module](
@@ -44,7 +81,7 @@ object ModuleDepsResolver {
     // If no config found for this module path, return default (no override specified in YAML)
     val config = configFromClasspath.getOrElse(modulePath, return default)
 
-    val ModuleDepsEntry(deps, append) = fieldName match {
+    val entryOpt = fieldName match {
       case "moduleDeps" => config.moduleDeps
       case "compileModuleDeps" => config.compileModuleDeps
       case "runModuleDeps" => config.runModuleDeps
@@ -52,12 +89,14 @@ object ModuleDepsResolver {
       case _ => throw new IllegalArgumentException(s"Unknown field name: $fieldName")
     }
 
+    val ModuleDepsEntry(deps, append) = entryOpt.getOrElse(return default)
+
     if (deps.isEmpty) {
       if (append) default else Seq.empty
     } else {
       val segmentsToModules = rootModule.moduleInternal.segmentsToModules
 
-      val resolved = deps.flatMap { depString =>
+      val resolved = deps.flatMap { case (depString, charOffset) =>
         val segments = Segments.labels(
           depString.split('.').toIndexedSeq match {
             case Seq("build", rest*) => rest
@@ -68,9 +107,15 @@ object ModuleDepsResolver {
         segmentsToModules.get(segments) match {
           case Some(module) => Some(module.asInstanceOf[T])
           case None =>
-            throw new IllegalArgumentException(
-              s"Failed to resolve module dep '$depString': module not found. " +
-                s"Available modules: ${segmentsToModules.keys.map(_.render).mkString(", ")}"
+            val available = segmentsToModules.keys.map(_.render).mkString(", ")
+            val msg = s"Cannot resolve moduleDep '$depString'. Available modules: $available"
+            throw new Result.Exception(
+              msg,
+              Some(Result.Failure(
+                msg,
+                path = java.nio.file.Path.of(config.yamlPath),
+                index = charOffset
+              ))
             )
         }
       }

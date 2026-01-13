@@ -43,6 +43,19 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       assert(res3.err.contains("objec lols:"))
       assert(res3.err.contains("^"))
       assert(res3.err.contains("generatedScriptSources Invalid key: objec lols"))
+
+      // Fix the mispelledextends file before testing badmoduledep
+      tester.modifyFile(
+        tester.workspacePath / "mispelledextends/package.mill.yaml",
+        _ => "extends: [mill.javalib.JavaModule]"
+      )
+
+      // Test invalid moduleDeps reference produces error with file and line number
+      val res4 = tester.eval("badmoduledep.compile")
+      assert(!res4.isSuccess)
+      assert(res4.err.replace('\\', '/').contains("badmoduledep/package.mill.yaml"))
+      assert(res4.err.contains("Cannot resolve moduleDep 'doesnotexist'"))
+      assert(res4.err.contains(":2:")) // line 2 where moduleDeps is defined
     }
   }
 }
