@@ -19,9 +19,14 @@ object MavenBuildGenMain {
       @mainargs.arg(doc = "disable generating meta-build files")
       noMeta: mainargs.Flag,
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
-      millJvmId: Option[String]
+      millJvmId: Option[String],
+      @mainargs.arg(doc = "Generate declarative (YAML) or programmable (Scala) build files")
+      declarative: Boolean = true
   ): Unit = {
     println("converting Maven build")
+
+    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
+
     val modelBuildingResults = Modeler().buildAll()
     val moduleDepLookup: PartialFunction[Dependency, ModuleDep] = modelBuildingResults.map { mbr =>
       val model = mbr.getEffectiveModel
@@ -169,12 +174,18 @@ object MavenBuildGenMain {
 
     val (baseModule, packages0) =
       if (noMeta.value) (None, packages)
-      else BuildGen.withBaseModule(
+      else buildGen.withBaseModule(
         packages,
         Seq("MavenModule"),
         Seq("MavenTests")
       ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
-    BuildGenYaml.writeBuildFiles(packages0, merge.value, baseModule, millJvmId)
+    buildGen.writeBuildFiles(
+      baseDir = os.pwd,
+      packages = packages0,
+      merge = merge.value,
+      baseModule = baseModule,
+      millJvmVersion = millJvmId
+    )
   }
 
   private def isBom(dep: Dependency) = dep.getScope == "import" && dep.getType == "pom"

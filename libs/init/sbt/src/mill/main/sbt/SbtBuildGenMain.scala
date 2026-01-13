@@ -27,6 +27,8 @@ object SbtBuildGenMain {
   ): Unit = {
     println("converting sbt build")
 
+    val buildGen = BuildGenScala
+
     val sbtCmd = sbt.getOrElse {
       def systemSbtExists(cmd: String) = os.call((cmd, "--help"), check = false).exitCode == 1
       if (isWin) {
@@ -96,21 +98,21 @@ object SbtBuildGenMain {
     packages = normalizeBuild(packages)
 
     val (depNames, packages0) =
-      if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
+      if (noMeta.value) (Nil, packages) else buildGen.withNamedDeps(packages)
     val (baseModule, packages1) = Option.when(!noMeta.value)(
-      BuildGen.withBaseModule(
+      buildGen.withBaseModule(
         packages0,
         Seq("CrossSbtPlatformModule"),
         Seq("CrossSbtPlatformTests")
-      ).orElse(BuildGen.withBaseModule(
+      ).orElse(buildGen.withBaseModule(
         packages0,
         Seq("CrossSbtModule", "CrossSbtPlatformModule"),
         Seq("CrossSbtTests")
-      )).orElse(BuildGen.withBaseModule(
+      )).orElse(buildGen.withBaseModule(
         packages0,
         Seq("SbtPlatformModule"),
         Seq("SbtPlatformTests")
-      )).orElse(BuildGen.withBaseModule(
+      )).orElse(buildGen.withBaseModule(
         packages0,
         Seq("SbtModule", "SbtPlatformModule"),
         Seq("SbtTests")
@@ -124,7 +126,15 @@ object SbtBuildGenMain {
         .flatMap(_.split("\\s"))
       else Nil
     }
-    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmId, millJvmOpts)
+    buildGen.writeBuildFiles(
+      baseDir = os.pwd,
+      packages = packages1,
+      merge = merge.value,
+      baseModule = baseModule,
+      millJvmVersion = millJvmId,
+      millJvmOpts = millJvmOpts,
+      depNames = depNames
+    )
   }
 
   private def toCrossModule(crossVersionModules: Seq[ModuleSpec]) = {
