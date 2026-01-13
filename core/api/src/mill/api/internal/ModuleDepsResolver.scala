@@ -1,5 +1,6 @@
-package mill.api
+package mill.api.internal
 
+import mill.api.{Module, Result, Segments}
 import mill.api.daemon.internal.internal
 
 import scala.quoted.*
@@ -69,6 +70,15 @@ import scala.reflect.ClassTag
     }
   }
 
+  /**
+   * Parses a module reference string using ParseArgs.extractSegments.
+   * Handles both dot notation (qux.1) and bracket notation (qux[1]).
+   */
+  private def parseModuleRef(depString: String): Result[Segments] = {
+    val normalized = if (depString.startsWith("build.")) depString.drop(6) else depString
+    ParseArgs.extractSegments(normalized).map { case (_, segments) => segments }
+  }
+
   def resolveModuleDeps[T <: Module](
       rootModule: Module,
       modulePath: String,
@@ -101,39 +111,40 @@ import scala.reflect.ClassTag
       val segmentsToModules = rootModule.moduleInternal.segmentsToModules
 
       val resolved = deps.flatMap { case (depString, charOffset) =>
-        val segments = Segments.labels(
-          depString.split('.').toIndexedSeq match {
-            case Seq("build", rest*) => rest
-            case all => all
-          }*
-        )
-
-        segmentsToModules.get(segments) match {
-          case Some(module) if ct.runtimeClass.isInstance(module) =>
-            Some(module.asInstanceOf[T])
-          case Some(module) =>
-            val expectedType = ct.runtimeClass.getName
-            val actualType = module.getClass.getName
-            val msg = s"Module '$depString' is a $actualType, not a $expectedType"
+        parseModuleRef(depString) match {
+          case f: Result.Failure =>
             throw new Result.Exception(
-              msg,
-              Some(Result.Failure(
-                msg,
-                path = java.nio.file.Path.of(config.yamlPath),
-                index = charOffset
-              ))
+              f.error,
+              Some(f.copy(path = java.nio.file.Path.of(config.yamlPath), index = charOffset))
             )
-          case None =>
-            val available = segmentsToModules.keys.map(_.render).mkString(", ")
-            val msg = s"Cannot resolve moduleDep '$depString'. Available modules: $available"
-            throw new Result.Exception(
-              msg,
-              Some(Result.Failure(
-                msg,
-                path = java.nio.file.Path.of(config.yamlPath),
-                index = charOffset
-              ))
-            )
+          case Result.Success(segments) =>
+            segmentsToModules.get(segments) match {
+              case Some(module) if ct.runtimeClass.isInstance(module) =>
+                Some(module.asInstanceOf[T])
+              case Some(module) =>
+                val expectedType = ct.runtimeClass.getName
+                val actualType = module.getClass.getName
+                val msg = s"Module '$depString' is a $actualType, not a $expectedType"
+                throw new Result.Exception(
+                  msg,
+                  Some(Result.Failure(
+                    msg,
+                    path = java.nio.file.Path.of(config.yamlPath),
+                    index = charOffset
+                  ))
+                )
+              case None =>
+                val available = segmentsToModules.keys.map(_.render).mkString(", ")
+                val msg = s"Cannot resolve moduleDep '$depString'. Available modules: $available"
+                throw new Result.Exception(
+                  msg,
+                  Some(Result.Failure(
+                    msg,
+                    path = java.nio.file.Path.of(config.yamlPath),
+                    index = charOffset
+                  ))
+                )
+            }
         }
       }
 

@@ -3,7 +3,7 @@ package mill.meta
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.constants.CodeGenConstants as CGConst
 import mill.api.Result
-import mill.api.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig}
+import mill.api.internal.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig}
 import mill.internal.Util.backtickWrap
 import mill.api.internal.*
 import pprint.Util.literalize
@@ -180,7 +180,7 @@ object CodeGen {
           // Always generate defs without override - use macro to get super value if it exists
           val pathLiteral = literalize(modulePathKey)
           def moduleDepsSnippet(name: String) =
-            s"def $name = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.ModuleDepsResolver.superMethod(${literalize(name)}))"
+            s"def $name = _root_.mill.api.internal.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.internal.ModuleDepsResolver.superMethod(${literalize(name)}))"
 
           val moduleDepsSnippets = Seq(
             moduleDepsSnippet("moduleDeps"),

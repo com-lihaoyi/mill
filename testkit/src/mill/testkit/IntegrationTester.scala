@@ -322,7 +322,7 @@ object IntegrationTester {
        * Returns the raw text of the `.json` metadata file
        */
       def text: String = {
-        val Seq(res) = mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
+        val Seq(res) = mill.api.internal.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
 
         val (Seq((rootModulePrefix, taskSegments)), _) = res.get
 

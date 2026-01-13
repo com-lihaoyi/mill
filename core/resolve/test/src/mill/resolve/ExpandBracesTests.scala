@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mill.api.Result
+import mill.api.internal.ExpandBraces
 import utest.*
 
 object ExpandBracesTests extends TestSuite {
