@@ -32,16 +32,16 @@ object ModuleDepsResolver {
   }
 
   /**
-   * Macro that returns super.moduleDeps if the enclosing class has a parent with moduleDeps,
+   * Macro that returns super.methodName if the enclosing class has a parent with that method,
    * otherwise returns Seq.empty. Used by generated code to avoid requiring override keyword.
    */
-  inline def superModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("moduleDeps") }
-  inline def superCompileModuleDeps[T <: Module]: Seq[T] =
-    ${ superMethodImpl[T]("compileModuleDeps") }
-  inline def superRunModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("runModuleDeps") }
-  inline def superBomModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("bomModuleDeps") }
+  inline def superMethod[T <: Module](inline methodName: String): Seq[T] =
+    ${ superMethodImpl[T]('methodName) }
 
-  private def superMethodImpl[T <: Module: Type](methodName: String)(using Quotes): Expr[Seq[T]] = {
+  private def superMethodImpl[T <: Module: Type](methodNameExpr: Expr[String])(using
+      Quotes
+  ): Expr[Seq[T]] = {
+    val methodName = methodNameExpr.valueOrAbort
     import quotes.reflect.*
 
     // Find the enclosing class/trait

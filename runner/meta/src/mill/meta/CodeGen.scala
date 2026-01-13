@@ -177,16 +177,16 @@ object CodeGen {
 
           moduleDepsConfig(modulePathKey) = config
 
-          // Always generate defs without override - use macros to get super value if it exists
+          // Always generate defs without override - use macro to get super value if it exists
           val pathLiteral = literalize(modulePathKey)
-          def moduleDepsSnippet(name: String, superMacro: String) =
-            s"def $name = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.ModuleDepsResolver.$superMacro)"
+          def moduleDepsSnippet(name: String) =
+            s"def $name = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.ModuleDepsResolver.superMethod(${literalize(name)}))"
 
           val moduleDepsSnippets = Seq(
-            moduleDepsSnippet("moduleDeps", "superModuleDeps"),
-            moduleDepsSnippet("compileModuleDeps", "superCompileModuleDeps"),
-            moduleDepsSnippet("runModuleDeps", "superRunModuleDeps"),
-            moduleDepsSnippet("bomModuleDeps", "superBomModuleDeps")
+            moduleDepsSnippet("moduleDeps"),
+            moduleDepsSnippet("compileModuleDeps"),
+            moduleDepsSnippet("runModuleDeps"),
+            moduleDepsSnippet("bomModuleDeps")
           )
 
           val extendsSnippet =
