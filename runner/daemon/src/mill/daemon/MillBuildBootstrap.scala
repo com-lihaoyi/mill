@@ -107,14 +107,16 @@ class MillBuildBootstrap(
                     frames,
                     Some(error),
                     None,
-                    bootstrapEvalWatched
+                    bootstrapEvalWatched,
+                    useDummyBuild
                   ) =>
                 // Add a potential clue (missing build.mill) to the underlying error message
                 RunnerState(
                   bootstrapModuleOpt,
                   frames,
                   Some(msg + "\n" + error),
-                  bootstrapEvalWatched = bootstrapEvalWatched
+                  bootstrapEvalWatched = bootstrapEvalWatched,
+                  useDummyBuild = useDummyBuild
                 )
               case state => state
             }
@@ -131,7 +133,19 @@ class MillBuildBootstrap(
 
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
-            else {
+            else if (useDummy) {
+              // Use pre-compiled dummy build to avoid compilation overhead.
+              // The dummy build classes are in mill.meta.dummy package (part of runner/meta),
+              // so we can directly access them without any classloader tricks.
+              RunnerState(
+                None,
+                Nil,
+                None,
+                Some(foundRootBuildFileName),
+                Seq(bootstrapEvalWatched),
+                useDummyBuild = true
+              )
+            } else {
               mill.api.ExecResult.catchWrapException {
                 new MillBuildRootModule.BootstrapModule(
                   (currentRoot / foundRootBuildFileName).toString
@@ -210,11 +224,15 @@ class MillBuildBootstrap(
           )
           nestedState.add(frame = evalState, errorOpt = None)
         } else {
-          val rootModuleRes = nestedState.frames.headOption match {
-            case None =>
-              Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
-            case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
-          }
+          val rootModuleRes: Result[BuildFileApi] =
+            if (nestedState.useDummyBuild) {
+              // Use pre-compiled dummy build from mill.meta.dummy package
+              Result.Success(mill.meta.dummy.BuildFileImpl)
+            } else nestedState.frames.headOption match {
+              case None =>
+                Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
+              case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
+            }
 
           rootModuleRes.flatMap { buildFileApi =>
             def tryReadParent(fileName: String) = {
@@ -278,7 +296,12 @@ class MillBuildBootstrap(
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else if (depth <= requestedDepth) nestedState
-                else {
+                else if (nestedState.useDummyBuild) {
+                  // With the pre-compiled dummy build, we skip processRunClasspath
+                  // (which would try to evaluate millBuildRootModuleResult) and just
+                  // return the nested state for the parent level to use directly.
+                  nestedState
+                } else {
                   processRunClasspath(
                     nestedState,
                     buildFileApi,
