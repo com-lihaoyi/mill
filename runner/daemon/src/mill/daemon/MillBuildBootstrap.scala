@@ -618,7 +618,14 @@ object MillBuildBootstrap {
 
   def getRootModule(runClassLoader: URLClassLoader)
       : Result[BuildFileApi] = {
-    val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl")
+    // Try loading the compiled BuildFileImpl first. If it doesn't exist (dummy build case
+    // where there's no build.mill to compile), fall back to the pre-compiled DummyBuildFile.
+    val buildClass =
+      try runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl")
+      catch {
+        case _: ClassNotFoundException =>
+          runClassLoader.loadClass("mill.util.internal.DummyBuildFile")
+      }
 
     val valueMethod = buildClass.getMethod("value")
     mill.api.ExecResult.catchWrapException {
