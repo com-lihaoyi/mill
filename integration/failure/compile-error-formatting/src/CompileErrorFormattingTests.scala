@@ -82,7 +82,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
           "[error] java-parse-toplevel/src/Foo.java:3:0",
           "int x = 1;",
           "",
-          "unnamed class"
+          "unnamed classes are a preview feature and are disabled by default."
         )
       }
       locally {

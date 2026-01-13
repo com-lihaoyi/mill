@@ -76,9 +76,8 @@ object IntegrationTester {
     }
 
     /**
-     * Asserts that the given lines appear as consecutive substrings in the combined
-     * stdout/stderr output. Each expected line must be contained (as a substring) in
-     * a corresponding actual line, and they must appear in consecutive order.
+     * Asserts that the given lines appear as exact consecutive lines in the combined
+     * stdout/stderr output. Lines are trimmed before comparison.
      * Normalizes backslashes to forward slashes for cross-platform compatibility.
      */
     def assertContainsLines(expectedLines: String*): Unit = {
@@ -92,11 +91,7 @@ object IntegrationTester {
       val actualLines = combinedNormalized.linesIterator.map(_.trim).toVector
       val expectedTrimmed = expectedLines.map(_.trim)
 
-      val found = actualLines.indices.exists { start =>
-        expectedTrimmed.indices.forall { i =>
-          start + i < actualLines.length && actualLines(start + i).contains(expectedTrimmed(i))
-        }
-      }
+      val found = actualLines.sliding(expectedTrimmed.size).exists(_ == expectedTrimmed)
       assert(
         found,
         s"Expected consecutive lines not found:\n${expectedTrimmed.mkString("\n")}\n\nActual output:\n${actualLines.mkString("\n")}"

@@ -125,7 +125,8 @@ public class Util {
       String errorFileName, int lineNumber, String line, String msg) {
     // lineNumber is 0-indexed, convert to 1-indexed for display
     // Column is 1 since the error applies to the start of the line
-    throw new RuntimeException(formatError(errorFileName, lineNumber + 1, 1, line, msg, s -> s));
+    // Use 7-parameter formatError without [error] prefix - prefix is added at display layer
+    throw new RuntimeException(formatError(errorFileName, lineNumber + 1, 1, line, msg, 1, s -> s));
   }
 
   public static String readBuildHeader(Path buildFile, String errorFileName) {
