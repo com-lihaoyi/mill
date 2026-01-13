@@ -3,6 +3,7 @@ package mill.api
 import mill.api.daemon.internal.internal
 
 import scala.quoted.*
+import scala.reflect.ClassTag
 
 /**
  * Helper object for resolving module deps from string identifiers at runtime.
@@ -73,7 +74,7 @@ import scala.quoted.*
       modulePath: String,
       fieldName: String,
       default: => Seq[T]
-  ): Seq[T] = {
+  )(implicit ct: ClassTag[T]): Seq[T] = {
     // Load config using the build's classloader (accessed via rootModule).
     // We can't cache this because ModuleDepsResolver is in core/api which uses Mill's
     // classloader, not the build's classloader that has the config resource.
@@ -108,7 +109,20 @@ import scala.quoted.*
         )
 
         segmentsToModules.get(segments) match {
-          case Some(module) => Some(module.asInstanceOf[T])
+          case Some(module) if ct.runtimeClass.isInstance(module) =>
+            Some(module.asInstanceOf[T])
+          case Some(module) =>
+            val expectedType = ct.runtimeClass.getName
+            val actualType = module.getClass.getName
+            val msg = s"Module '$depString' is a $actualType, not a $expectedType"
+            throw new Result.Exception(
+              msg,
+              Some(Result.Failure(
+                msg,
+                path = java.nio.file.Path.of(config.yamlPath),
+                index = charOffset
+              ))
+            )
           case None =>
             val available = segmentsToModules.keys.map(_.render).mkString(", ")
             val msg = s"Cannot resolve moduleDep '$depString'. Available modules: $available"

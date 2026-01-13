@@ -6,6 +6,7 @@ import utest.*
 
 // Basic tests for errors in build.mill.yaml an package.mill.yaml files.
 object YamlConfigMiscTests extends UtestIntegrationTestSuite {
+
   val tests: Tests = Tests {
     integrationTest { tester =>
       // This errors doesn't look great, but for now just assert on them and make sure they don't regress
@@ -20,15 +21,13 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       )
 
       val res2 = tester.eval("mispelledextends.compile")
-      assert(res2.err.replace(
-        '\\',
-        '/'
-      ).contains("[error] mispelledextends/package.mill.yaml:1:1"))
-      assert(res2.err.contains("mill-version: 1.0.0"))
-      assert(res2.err.contains("^"))
-      assert(res2.err.contains(
-        "key \"mill-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"
-      ))
+      assert(!res2.isSuccess)
+      res2.assertContainsLines(
+        "[error] mispelledextends/package.mill.yaml:1:1",
+        "mill-version: 1.0.0",
+        "^"
+      )
+      assert(res2.err.contains("key \"mill-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"))
 
       tester.modifyFile(
         tester.workspacePath / "mispelledextends/package.mill.yaml",
@@ -36,12 +35,12 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       )
 
       val res3 = tester.eval("mispelledextends.compile")
-      assert(res3.err.replace(
-        '\\',
-        '/'
-      ).contains("[error] mispelledextends/package.mill.yaml:1:1"))
-      assert(res3.err.contains("objec lols:"))
-      assert(res3.err.contains("^"))
+      assert(!res3.isSuccess)
+      res3.assertContainsLines(
+        "[error] mispelledextends/package.mill.yaml:1:1",
+        "objec lols:",
+        "^"
+      )
       assert(res3.err.contains("generatedScriptSources Invalid key: objec lols"))
 
       // Fix the mispelledextends file before testing badmoduledep
@@ -53,9 +52,24 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       // Test invalid moduleDeps reference produces error with file and line number
       val res4 = tester.eval("badmoduledep.compile")
       assert(!res4.isSuccess)
-      assert(res4.err.replace('\\', '/').contains("badmoduledep/package.mill.yaml"))
+      res4.assertContainsLines(
+        "[error] badmoduledep/package.mill.yaml:2:14",
+        "moduleDeps: [doesnotexist]",
+        "^"
+      )
       assert(res4.err.contains("Cannot resolve moduleDep 'doesnotexist'"))
-      assert(res4.err.contains(":2:")) // line 2 where moduleDeps is defined
+
+      // Test that a JavaModule depending on a plain Module produces a type error
+      val res5 = tester.eval("wrongmoduledeptype.compile")
+      assert(!res5.isSuccess)
+      res5.assertContainsLines(
+        "[error] wrongmoduledeptype/package.mill.yaml:2:14",
+        "moduleDeps: [plainmodule]",
+        "^"
+      )
+      assert(res5.err.contains("Module 'plainmodule' is a"))
+      assert(res5.err.contains("not a"))
+      assert(res5.err.contains("JavaModule"))
     }
   }
 }
