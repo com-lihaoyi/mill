@@ -364,21 +364,7 @@ class MillBuildBootstrap(
         val moduleWatchChanged = prevOuterFrameOpt
           .exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
 
-        // Check if moduleDeps keys in YAML headers changed. These are resolved at
-        // runtime, so even though the generated code doesn't change, we need to
-        // invalidate the classloader to pick up the new module dependencies.
-        // Task key changes don't need classloader invalidation since the evaluator
-        // handles those through its own invalidation mechanism.
-        val moduleDepsKeys = Set("moduleDeps", "compileModuleDeps", "runModuleDeps")
-        def extractModuleDepsKeys(files: Map[java.nio.file.Path, String]) =
-          files.view.mapValues { content =>
-            content.linesIterator.filter(line => moduleDepsKeys.exists(line.contains)).toSet
-          }.toMap
-        val buildOverrideFilesChanged = !prevFrameOpt.exists(prev =>
-          extractModuleDepsKeys(prev.buildOverrideFiles) == extractModuleDepsKeys(buildOverrideFiles)
-        )
-
-        val classLoader = if (runClasspathChanged || moduleWatchChanged || buildOverrideFilesChanged) {
+        val classLoader = if (runClasspathChanged || moduleWatchChanged) {
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks, as well as all the workers in each subsequent
           // frame's `workerCache`s that may depend on classes loaded by that classloader
