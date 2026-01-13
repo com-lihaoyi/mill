@@ -154,7 +154,7 @@ jobs:
             millargs: "example.javalib.__.shared.daemon"
 
           - java-version: 17
-            millargs: "example.androidlib.__.packaged.daemon"
+            millargs: "example.androidlib.__.shared.daemon"
             setup-android: true
 
           - java-version: 17

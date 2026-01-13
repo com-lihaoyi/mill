@@ -11,7 +11,7 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
   implicit val retryMax: RetryMax = RetryMax(120.seconds)
   implicit val retryInterval: RetryInterval = RetryInterval(1.seconds)
   val tests: Tests = Tests {
-    test - integrationTest { tester =>
+    test("sources") - integrationTest { tester =>
       val spawned = tester.spawn(("--watch", "run"))
 
       assertEventually(spawned.out.text().contains("Hello 1"))
@@ -34,6 +34,79 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
         _.replace("[src-2/]", "[src-3/]")
       )
       assertEventually(spawned.out.text().contains("Hello 3"))
+    }
+
+    test("append") - integrationTest { tester =>
+      import tester.*
+
+      // Get baseline sources (should be default src/)
+      val baseline = eval(("show", "sources"))
+      assert(baseline.isSuccess)
+      assert(
+        baseline.out.contains("\"src\"") ||
+          baseline.out.contains("/src\"") ||
+          baseline.out.contains("\\src\"")
+      )
+
+      // Set normal sources value (replaces default)
+      modifyFile(workspacePath / "build.mill.yaml", _ + "\nsources: [src-2/]")
+      val withNormal = eval(("show", "sources"))
+      assert(withNormal.isSuccess)
+      assert(withNormal.out.contains("src-2"))
+      assert(!withNormal.out.contains("\"src\""))
+
+      // Transition from normal to !append: now should have default src/ AND src-extra/
+      modifyFile(
+        workspacePath / "build.mill.yaml",
+        _.replace("sources: [src-2/]", "sources: !append\n- src-extra/")
+      )
+      val withAppend = eval(("show", "sources"))
+      assert(withAppend.isSuccess)
+      // With !append, should have both default src/ and appended src-extra/
+      assert(withAppend.out.contains("src-extra"))
+      assert(
+        withAppend.out.contains("\"src\"") ||
+          withAppend.out.contains("/src\"") ||
+          withAppend.out.contains("\\src\"")
+      )
+
+      // Add another folder to the !append list
+      modifyFile(
+        workspacePath / "build.mill.yaml",
+        _.replace("sources: !append\n- src-extra/", "sources: !append\n- src-extra/\n- src-2/")
+      )
+      val withMoreAppend = eval(("show", "sources"))
+      assert(withMoreAppend.isSuccess)
+      assert(
+        withMoreAppend.out.contains("\"src\"") ||
+          withMoreAppend.out.contains("/src\"") ||
+          withMoreAppend.out.contains("\\src\"")
+      )
+      assert(withMoreAppend.out.contains("src-extra"))
+      assert(withMoreAppend.out.contains("src-2"))
+
+      // Transition from !append back to normal value
+      modifyFile(
+        workspacePath / "build.mill.yaml",
+        _.replace("sources: !append\n- src-extra/\n- src-2/", "sources: [src-3/]")
+      )
+      val backToNormal = eval(("show", "sources"))
+      assert(backToNormal.isSuccess)
+      assert(backToNormal.out.contains("src-3"))
+      assert(!backToNormal.out.contains("\"src\""))
+
+      // Remove sources entirely - should go back to default
+      modifyFile(
+        workspacePath / "build.mill.yaml",
+        _.replace("\nsources: [src-3/]", "")
+      )
+      val backToDefault = eval(("show", "sources"))
+      assert(backToDefault.isSuccess)
+      assert(
+        backToDefault.out.contains("\"src\"") ||
+          backToDefault.out.contains("/src\"") ||
+          backToDefault.out.contains("\\src\"")
+      )
     }
   }
 }

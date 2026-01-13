@@ -67,7 +67,7 @@ object app extends AndroidAppKotlinModule {
 
 
 > ./mill show app.createAndroidVirtualDevice
-...Name: kotlin-test, DeviceId: medium_phone...
+...Name: kotlin-compose-test, DeviceId: medium_phone...
 
 > ./mill show app.startAndroidEmulator
 

@@ -23,12 +23,24 @@ object SbtBuildGenMain {
       @mainargs.arg(doc = "disable generating meta-build files")
       noMeta: mainargs.Flag,
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
-      millJvmId: Option[String]
+      millJvmId: Option[String],
+      @mainargs.arg(doc =
+        "The sbt project directory to migrate. Default is the current working directory."
+      )
+      projectDir: String = "."
   ): Unit = {
     println("converting sbt build")
 
+    val buildGen = BuildGenScala
+    val sbtWorkspace = os.Path.expandUser(projectDir, os.pwd)
+    val millWorkspace = os.pwd
+
     val sbtCmd = sbt.getOrElse {
-      def systemSbtExists(cmd: String) = os.call((cmd, "--help"), check = false).exitCode == 1
+      def systemSbtExists(cmd: String) = os.call(
+        cmd = (cmd, "--help"),
+        check = false,
+        cwd = sbtWorkspace
+      ).exitCode == 1
       if (isWin) {
         val cmd = "sbt.bat"
         if (systemSbtExists(cmd)) cmd else sys.error(s"No system wide $cmd found")
@@ -36,7 +48,7 @@ object SbtBuildGenMain {
         val exes = Seq("sbt", "sbtx")
         val cmd = "sbt"
         exes.collectFirst {
-          case exe if os.isFile(os.pwd / exe) => s"./$exe"
+          case exe if os.isFile(sbtWorkspace / exe) => s"./$exe"
         }.orElse {
           Option.when(systemSbtExists(cmd))(cmd)
         }.getOrElse {
@@ -50,7 +62,7 @@ object SbtBuildGenMain {
       Using.resource(getClass.getResourceAsStream(exportpluginAssemblyResource))(
         os.temp(_, suffix = ".jar")
       )
-    val sbtMetaDir = os.pwd / "project"
+    val sbtMetaDir = sbtWorkspace / "project"
     if (!os.exists(sbtMetaDir)) os.makeDir(sbtMetaDir)
     os.temp(
       s"""addSbtPlugin("com.lihaoyi" % "mill-libs-init-sbt-exportplugin" % "dummy-version" from ${
@@ -67,7 +79,7 @@ object SbtBuildGenMain {
         s"-DmillInitExportDir=$exportDir",
         // Run task with cross-build prefix to export data for all cross Scala versions.
         "+millInitExportBuild"
-      ).call(stdout = os.Inherit)
+      ).call(stdout = os.Inherit, cwd = sbtWorkspace)
     } catch {
       case e: os.SubprocessException =>
         val message =
@@ -96,35 +108,43 @@ object SbtBuildGenMain {
     packages = normalizeBuild(packages)
 
     val (depNames, packages0) =
-      if (noMeta.value) (Nil, packages) else BuildGen.withNamedDeps(packages)
+      if (noMeta.value) (Nil, packages) else buildGen.withNamedDeps(packages)
     val (baseModule, packages1) = Option.when(!noMeta.value)(
-      BuildGen.withBaseModule(
+      buildGen.withBaseModule(
         packages0,
         Seq("CrossSbtPlatformModule"),
         Seq("CrossSbtPlatformTests")
-      ).orElse(BuildGen.withBaseModule(
+      ).orElse(buildGen.withBaseModule(
         packages0,
         Seq("CrossSbtModule", "CrossSbtPlatformModule"),
         Seq("CrossSbtTests")
-      )).orElse(BuildGen.withBaseModule(
+      )).orElse(buildGen.withBaseModule(
         packages0,
         Seq("SbtPlatformModule"),
         Seq("SbtPlatformTests")
-      )).orElse(BuildGen.withBaseModule(
+      )).orElse(buildGen.withBaseModule(
         packages0,
         Seq("SbtModule", "SbtPlatformModule"),
         Seq("SbtTests")
       ))
     ).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
     val millJvmOpts = {
-      val file = os.pwd / ".jvmopts"
+      val file = millWorkspace / ".jvmopts"
       if (os.isFile(file)) os.read.lines(file)
         .map(_.trim)
         .filter(s => s.nonEmpty && !s.startsWith("#"))
         .flatMap(_.split("\\s"))
       else Nil
     }
-    BuildGen.writeBuildFiles(packages1, merge.value, depNames, baseModule, millJvmId, millJvmOpts)
+    buildGen.writeBuildFiles(
+      baseDir = millWorkspace,
+      packages = packages1,
+      merge = merge.value,
+      baseModule = baseModule,
+      millJvmVersion = millJvmId,
+      millJvmOpts = millJvmOpts,
+      depNames = depNames
+    )
   }
 
   private def toCrossModule(crossVersionModules: Seq[ModuleSpec]) = {

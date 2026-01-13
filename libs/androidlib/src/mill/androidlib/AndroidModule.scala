@@ -43,6 +43,14 @@ trait AndroidModule extends JavaModule { outer =>
   override def sources: T[Seq[PathRef]] = Task.Sources("src/main/java")
 
   /**
+   * Provides access to the sdkmanager. Use this module instead of
+   * using the sdkmanager directly to avoid race conditions within mill
+   * (e.g. installing the same package in parallel).
+   */
+  def androidSdkManagerModule: ModuleRef[AndroidSdkManagerModule] =
+    ModuleRef(AndroidSdkManagerModule)
+
+  /**
    * Provides access to the Android SDK configuration.
    */
   def androidSdkModule: ModuleRef[AndroidSdkModule]

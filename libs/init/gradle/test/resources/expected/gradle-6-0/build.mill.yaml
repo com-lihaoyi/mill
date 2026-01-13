@@ -1,0 +1,15 @@
+mill-version: SNAPSHOT
+mill-jvm-version: system
+extends: MavenModule
+mvnDeps:
+- com.google.guava:guava:28.0-jre
+javacOptions: [-source, 11, -target, 11]
+repositories: [https://jcenter.bintray.com/]
+
+object test:
+  extends: [MavenTests, TestModule.TestNg]
+  mvnDeps:
+  - org.testng:testng:6.14.3
+  javacOptions: [-source, 11, -target, 11]
+  testParallelism: false
+  testSandboxWorkingDir: false

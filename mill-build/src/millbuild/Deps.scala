@@ -200,7 +200,7 @@ object Deps {
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.27.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
-  val requests = mvn"com.lihaoyi::requests:0.9.0"
+  val requests = mvn"com.lihaoyi::requests:0.9.2"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.21"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
@@ -311,7 +311,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.9.4"
+    val utest = mvn"com.lihaoyi::utest:0.9.5"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 
