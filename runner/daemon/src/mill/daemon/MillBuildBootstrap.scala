@@ -132,10 +132,8 @@ class MillBuildBootstrap(
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else if (useDummy) {
-              // Use pre-compiled dummy build to avoid compilation overhead.
-              // The dummy build classes are in mill.meta.dummy package (part of runner/meta),
-              // so we can directly access them without any classloader tricks.
-              // This is detected by bootstrapModuleOpt being None with no error.
+              // Use pre-compiled dummy build (mill.meta.dummy) to avoid compilation.
+              // Detected downstream by bootstrapModuleOpt being None with no error.
               RunnerState(
                 None,
                 Nil,
