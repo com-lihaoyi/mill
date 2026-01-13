@@ -161,6 +161,8 @@ object CodeGen {
           }
 
           // Collect moduleDeps config for this module path and store in the map
+          // Always store config for every module so adding/removing moduleDeps doesn't
+          // change the generated code (only the config JSON changes)
           val modulePathKey = path.mkString(".")
           val config = ModuleDepsConfig(
             moduleDeps = extractEntry(data.moduleDeps),
@@ -171,20 +173,18 @@ object CodeGen {
 
           moduleDepsConfig(modulePathKey) = config
 
-          // Generate fixed calls that read config from classpath resource at runtime
-          def renderModuleDepsSnippet(name: String, entry: Option[ModuleDepsEntry]): String = {
-            entry match {
-              case None => ""
-              case Some(_) =>
-                val pathLiteral = literalize(modulePathKey)
-                s"override def $name = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, super.$name)"
-            }
-          }
-
-          val moduleDepsSnippet = renderModuleDepsSnippet("moduleDeps", config.moduleDeps)
-          val compileModuleDepsSnippet = renderModuleDepsSnippet("compileModuleDeps", config.compileModuleDeps)
-          val runModuleDepsSnippet = renderModuleDepsSnippet("runModuleDeps", config.runModuleDeps)
-          val bomModuleDepsSnippet = renderModuleDepsSnippet("bomModuleDeps", config.bomModuleDeps)
+          // Always generate fixed calls that read config from classpath resource at runtime.
+          // The resolver returns super.moduleDeps when config is None, so the generated code
+          // is always the same regardless of whether moduleDeps is specified in YAML.
+          val pathLiteral = literalize(modulePathKey)
+          val moduleDepsSnippet =
+            s"override def moduleDeps = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, \"moduleDeps\", super.moduleDeps)"
+          val compileModuleDepsSnippet =
+            s"override def compileModuleDeps = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, \"compileModuleDeps\", super.compileModuleDeps)"
+          val runModuleDepsSnippet =
+            s"override def runModuleDeps = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, \"runModuleDeps\", super.runModuleDeps)"
+          val bomModuleDepsSnippet =
+            s"override def bomModuleDeps = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, \"bomModuleDeps\", super.bomModuleDeps)"
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)

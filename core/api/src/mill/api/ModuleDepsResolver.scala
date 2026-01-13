@@ -56,12 +56,8 @@ object ModuleDepsResolver {
       fieldName: String,
       default: => Seq[T]
   ): Seq[T] = {
-    val config = configFromClasspath.getOrElse(modulePath,
-      throw new IllegalStateException(
-        s"No module deps configuration found for module '$modulePath'. " +
-          s"Available: ${configFromClasspath.keys.mkString(", ")}"
-      )
-    )
+    // If no config found for this module path, return default (no override specified in YAML)
+    val config = configFromClasspath.getOrElse(modulePath, return default)
 
     val entry = fieldName match {
       case "moduleDeps" => config.moduleDeps
