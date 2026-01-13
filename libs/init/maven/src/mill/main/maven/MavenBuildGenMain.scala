@@ -33,7 +33,7 @@ object MavenBuildGenMain {
     val mvnWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
 
-    val modelBuildingResults = Modeler().buildAll(mvnWorkspace)
+    val modelBuildingResults = Modeler(mvnWorkspace).buildAll()
     val moduleDepLookup: PartialFunction[Dependency, ModuleDep] = modelBuildingResults.map { mbr =>
       val model = mbr.getEffectiveModel
       val key = (model.getGroupId, model.getArtifactId, model.getVersion)
