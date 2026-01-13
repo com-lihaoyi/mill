@@ -174,6 +174,22 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       val runWithRunModuleDeps = eval(("show", "sub.runClasspath"))
       assert(runWithRunModuleDeps.isSuccess)
       assert(runWithRunModuleDeps.out.contains("out/compile.dest/classes\""))
+
+      // Test circular dependency detection: create a cycle between root and sub
+      // First, clear sub's runModuleDeps
+      modifyFile(
+        workspacePath / "sub/package.mill.yaml",
+        _.replace("\nrunModuleDeps: [build]", "")
+      )
+      // Add moduleDeps: [sub] to root module
+      modifyFile(workspacePath / "build.mill.yaml", _ + "\nmoduleDeps: [sub]")
+      // Add moduleDeps: [build] to sub module (creates cycle: build -> sub -> build)
+      modifyFile(workspacePath / "sub/package.mill.yaml", _ + "\nmoduleDeps: [build]")
+
+      // Evaluating should produce a cycle detection error
+      val withCycle = eval(("show", "sub.compileClasspath"))
+      assert(!withCycle.isSuccess)
+      assert(withCycle.err.contains("cycle detected"))
     }
   }
 }
