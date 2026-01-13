@@ -10,10 +10,15 @@ import java.io.File
 import java.util.Properties
 import scala.jdk.CollectionConverters.*
 
-class Modeler(builder: ModelBuilder, resolver: ModelResolver, systemProperties: Properties) {
+class Modeler(
+    mvnWorkspace: os.Path,
+    builder: ModelBuilder,
+    resolver: ModelResolver,
+    systemProperties: Properties
+) {
 
   /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
-  def buildAll(workspace: os.Path = os.pwd): Seq[ModelBuildingResult] = {
+  def buildAll(): Seq[ModelBuildingResult] = {
     def recurse(dir: os.Path): Seq[ModelBuildingResult] = {
       val result = build((dir / "pom.xml").toIO)
       val subResults = result.getEffectiveModel.getModules.asScala.flatMap(rel =>
@@ -21,7 +26,7 @@ class Modeler(builder: ModelBuilder, resolver: ModelResolver, systemProperties: 
       ).toSeq
       result +: subResults
     }
-    recurse(workspace)
+    recurse(mvnWorkspace)
   }
 
   /** Returns the [[ModelBuildingResult]] for `pomFile`. */
@@ -49,17 +54,19 @@ class Modeler(builder: ModelBuilder, resolver: ModelResolver, systemProperties: 
 object Modeler {
 
   def apply(
+      mvnWorkspace: os.Path,
       local: LocalRepository = defaultLocalRepository,
       remotes: Seq[RemoteRepository] = defaultRemoteRepositories,
       context: String = "",
-      systemProperties: Properties = defaultSystemProperties
+      systemProperties: Properties = null
   ): Modeler = {
     val builder = new DefaultModelBuilderFactory().newInstance()
     val system = new RepositorySystemSupplier().get()
     val session = MavenRepositorySystemUtils.newSession()
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, local))
     val resolver = new Resolver(system, session, remotes, context)
-    new Modeler(builder, resolver, systemProperties)
+    val properties = Option(systemProperties).getOrElse(defaultSystemProperties(mvnWorkspace))
+    new Modeler(mvnWorkspace, builder, resolver, properties)
   }
 
   def defaultLocalRepository: LocalRepository =
@@ -71,7 +78,7 @@ object Modeler {
         .build()
     )
 
-  def defaultSystemProperties: Properties = {
+  def defaultSystemProperties(mvnWorkspace: os.Path): Properties = {
     val props = new Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     System.getProperties.forEach((k, v) => props.put(k, v))

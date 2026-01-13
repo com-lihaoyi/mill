@@ -1,5 +1,6 @@
 package mill.util
 
+import mainargs.{Flag, Leftover}
 import mill.{util, *}
 import mill.api.daemon.internal.MainModuleApi
 import mill.api.*
@@ -9,6 +10,7 @@ import mill.api.daemon.Watchable
 import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
 import mill.api.daemon.internal.bsp.BspMainModuleApi
+import scala.util.chaining.given
 
 abstract class MainRootModule()(using
     baseModuleInfo: RootModule.Info,
@@ -315,6 +317,22 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
     ()
   }
 
+  private case class InitArgs(
+      @mainargs.arg(doc = "Print this help and exit")
+      help: Flag = Flag(false),
+      @mainargs.arg(doc = "Initialize a Mill project from a Giter8 template.")
+      giter8: Flag = Flag(false),
+      @mainargs.arg(doc = "Create a Mill project by migrating from a Maven project.")
+      maven: Flag = Flag(false),
+      @mainargs.arg(doc = "Create a Mill project by migrating from a Gradle project.")
+      gradle: Flag = Flag(false),
+      @mainargs.arg(doc = "Create a Mill project by migrating from a sbt project.")
+      sbt: Flag = Flag(false),
+      @mainargs.arg(doc = "Initialize a Mill project from an example project.")
+      example: Flag = Flag(false),
+      rest: Leftover[String]
+  )
+
   /**
    * The `init` allows you to quickly generate a starter project.
    *
@@ -328,37 +346,72 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    */
   def init(evaluator: Evaluator, args: String*): Command[Unit] =
     Task.Command(exclusive = true) {
+
+      val parser = mainargs.Parser[InitArgs]
+      val parsed = parser.constructOrThrow(args)
+      if (parsed.help.value) {
+        // systemExit isn't ideal, since it stops the Mill daemon, but we don't want to fail the build
+        Task.ctx().systemExitWithReason(parser.helpText(), 0)
+      }
+
+      enum Mode(
+          val entryPoint: String,
+          val selected: InitArgs => Boolean,
+          val guess: InitArgs => Boolean
+      ) {
+        case Maven extends Mode(
+              entryPoint = "mill.init.InitMavenModule/init",
+              selected = _.maven.value,
+              guess = _ => os.exists(os.pwd / "pom.xml")
+            )
+        case Gradle extends Mode(
+              entryPoint = "mill.init.InitGradleModule/init",
+              selected = _.gradle.value,
+              guess = _ =>
+                (
+                  os.exists(os.pwd / "build.gradle") ||
+                    os.exists(os.pwd / "build.gradle.kts") ||
+                    os.exists(os.pwd / "settings.gradle") ||
+                    os.exists(os.pwd / "settings.gradle.kts")
+                )
+            )
+        case Sbt extends Mode(
+              entryPoint = "mill.init.InitSbtModule/init",
+              selected = _.sbt.value,
+              guess = _ => os.exists(os.pwd / "build.sbt")
+            )
+        case Giter8 extends Mode(
+              entryPoint = "mill.init.Giter8Module/init",
+              selected = _.giter8.value,
+              guess = _.rest.value.headOption.exists(_.toLowerCase.endsWith(".g8"))
+            )
+        case Example extends Mode(
+              entryPoint = "mill.init.InitModule/init",
+              selected = _.example.value,
+              guess = _ => false
+            )
+      }
+
+      val selected = Mode.values
+        // 1. Prefer explicit selection
+        .filter(_.selected(parsed))
+        // check and guess
+        .pipe { selected =>
+          selected.length match {
+            case 1 => selected.headOption
+            // nothing selected, need to guess the mode
+            case 0 => Mode.values.find(_.guess(parsed))
+            case _ => Task.fail(
+                "You can only select one of: --giter8, --maven, --gradle, --sbt or --dontGuess"
+              )
+          }
+        }
+        // fallback to Example
+        .getOrElse(Mode.Example)
+
       val evaluated =
-        if (os.exists(os.pwd / "pom.xml"))
-          evaluator.evaluate(
-            Seq("mill.init.InitMavenModule/init") ++ args,
-            SelectMode.Separated
-          )
-        else if (
-          os.exists(os.pwd / "build.gradle") ||
-          os.exists(os.pwd / "build.gradle.kts") ||
-          os.exists(os.pwd / "settings.gradle") ||
-          os.exists(os.pwd / "settings.gradle.kts")
-        )
-          evaluator.evaluate(
-            Seq("mill.init.InitGradleModule/init") ++ args,
-            SelectMode.Separated
-          )
-        else if (os.exists(os.pwd / "build.sbt"))
-          evaluator.evaluate(
-            Seq("mill.init.InitSbtModule/init") ++ args,
-            SelectMode.Separated
-          )
-        else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
-          evaluator.evaluate(
-            Seq("mill.init.Giter8Module/init") ++ args,
-            SelectMode.Separated
-          )
-        else
-          evaluator.evaluate(
-            Seq("mill.init.InitModule/init") ++ args,
-            SelectMode.Separated
-          )
+        evaluator.evaluate(Seq(selected.entryPoint) ++ parsed.rest.value, SelectMode.Separated)
+
       (evaluated: @unchecked) match {
         case f: Result.Failure => f
         case Result.Success(Evaluator.Result(
