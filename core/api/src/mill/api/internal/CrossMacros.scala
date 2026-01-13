@@ -34,8 +34,7 @@ private[mill] object CrossMacros {
     }
 
     lazy val (elemsStr, posStr) = elems0 match {
-      case '[
-          type elems1 <: NonEmptyTuple; `elems1`] =>
+      case '[type elems1 <: NonEmptyTuple; `elems1`] =>
         (
           tupleToList[elems1](Nil).map({ case '[t] => Type.show[t] }).mkString("(", ", ", ")"),
           (n: Int) => s" at index $n"
@@ -56,8 +55,7 @@ private[mill] object CrossMacros {
               '{ ??? : e0 } // We will have already reported an error so we can return a placeholder
         }
         elems0 match {
-          case '[
-              type elems1 <: NonEmptyTuple; `elems1`] =>
+          case '[type elems1 <: NonEmptyTuple; `elems1`] =>
             (arg, tpe) =>
               arg match {
                 case '{ $arg: `elems1` } => check(tpe)('{ $arg.apply(${ Expr(n) }) }.asExprOf[E])
@@ -72,8 +70,7 @@ private[mill] object CrossMacros {
         case '[EmptyTuple] => Nil
       }
       elems0 match {
-        case '[
-            type elems <: Tuple; `elems`] =>
+        case '[type elems <: Tuple; `elems`] =>
           val wrappedElems = wrappedT.asExprOf[Seq[elems]]
           (
             '{ $wrappedElems.map(_.productIterator.toList) },

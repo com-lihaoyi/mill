@@ -24,7 +24,8 @@ def main(args: Array[String]): Unit = {
     val names = db.run( // Find names of buyers whose shipping date is today or later
       Buyer.select.join(ShippingInfo)(_.id === _.buyerId)
         .filter { case (b, s) => s.shippingDate >= LocalDate.parse(args(0)) }
-        .map { case (b, s) => b.name })
+        .map { case (b, s) => b.name }
+    )
 
     for (name <- names) println(name)
   }
