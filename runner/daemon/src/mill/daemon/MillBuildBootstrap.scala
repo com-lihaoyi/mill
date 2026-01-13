@@ -132,7 +132,7 @@ class MillBuildBootstrap(
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else if (useDummy) {
-              // Use pre-compiled dummy build (mill.meta.dummy) to avoid compilation.
+              // Use pre-compiled dummy build (mill.util.internal) to avoid compilation.
               // Detected downstream by bootstrapModuleOpt being None with no error.
               RunnerState(
                 None,
@@ -226,7 +226,7 @@ class MillBuildBootstrap(
                 case Some(bootstrapModule) =>
                   Result.Success(BuildFileApi.Bootstrap(bootstrapModule))
                 // Dummy build: no frames and no bootstrap module, use pre-compiled build
-                case None => Result.Success(mill.meta.dummy.BuildFileImpl)
+                case None => Result.Success(mill.util.internal.DummyBuildFile)
               }
           }
 

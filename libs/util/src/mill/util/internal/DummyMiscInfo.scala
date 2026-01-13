@@ -1,4 +1,4 @@
-package mill.meta.dummy
+package mill.util.internal
 
 import mill.api.internal.RootModule
 
@@ -7,4 +7,4 @@ import mill.api.internal.RootModule
  * This allows the dummy build to work with any project directory without needing
  * to be recompiled for each project.
  */
-object MillMiscInfo extends RootModule.Info.FromEnv
+object DummyMiscInfo extends RootModule.Info.FromEnv
