@@ -169,10 +169,10 @@ object CodeGen {
 
           val config = ModuleDepsConfig(
             yamlPath = scriptPath.toString,
-            moduleDeps = Some(moduleDepsEntry),
-            compileModuleDeps = Some(compileModuleDepsEntry),
-            runModuleDeps = Some(runModuleDepsEntry),
-            bomModuleDeps = Some(bomModuleDepsEntry)
+            moduleDeps = moduleDepsEntry,
+            compileModuleDeps = compileModuleDepsEntry,
+            runModuleDeps = runModuleDepsEntry,
+            bomModuleDeps = bomModuleDepsEntry
           )
 
           moduleDepsConfig(modulePathKey) = config

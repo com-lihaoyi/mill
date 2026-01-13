@@ -22,10 +22,10 @@ object ModuleDepsResolver {
   /** Configuration for all moduleDeps fields of a module */
   case class ModuleDepsConfig(
       yamlPath: String,
-      moduleDeps: Option[ModuleDepsEntry] = None,
-      compileModuleDeps: Option[ModuleDepsEntry] = None,
-      runModuleDeps: Option[ModuleDepsEntry] = None,
-      bomModuleDeps: Option[ModuleDepsEntry] = None
+      moduleDeps: ModuleDepsEntry,
+      compileModuleDeps: ModuleDepsEntry,
+      runModuleDeps: ModuleDepsEntry,
+      bomModuleDeps: ModuleDepsEntry
   )
   object ModuleDepsConfig {
     implicit val rw: upickle.default.ReadWriter[ModuleDepsConfig] = upickle.default.macroRW
@@ -79,48 +79,44 @@ object ModuleDepsResolver {
     val configFromClasspath = upickle.default.read[Map[String, ModuleDepsConfig]](content)
 
     // If no config found for this module path, return default (no override specified in YAML)
-    val config = configFromClasspath.getOrElse(modulePath, return default)
+    val config = configFromClasspath(modulePath)
 
-    val entryOpt = fieldName match {
+    val entry = fieldName match {
       case "moduleDeps" => config.moduleDeps
       case "compileModuleDeps" => config.compileModuleDeps
       case "runModuleDeps" => config.runModuleDeps
       case "bomModuleDeps" => config.bomModuleDeps
-      case _ => throw new IllegalArgumentException(s"Unknown field name: $fieldName")
     }
 
-    val ModuleDepsEntry(deps, append) = entryOpt.getOrElse(return default)
+    val ModuleDepsEntry(deps, append) = entry
 
-    if (deps.isEmpty) {
-      if (append) default else Seq.empty
-    } else {
-      val segmentsToModules = rootModule.moduleInternal.segmentsToModules
+    val segmentsToModules = rootModule.moduleInternal.segmentsToModules
 
-      val resolved = deps.flatMap { case (depString, charOffset) =>
-        val segments = Segments.labels(
-          depString.split('.').toIndexedSeq match {
-            case Seq("build", rest*) => rest
-            case all => all
-          }*
-        )
+    val resolved = deps.flatMap { case (depString, charOffset) =>
+      val segments = Segments.labels(
+        depString.split('.').toIndexedSeq match {
+          case Seq("build", rest*) => rest
+          case all => all
+        }*
+      )
 
-        segmentsToModules.get(segments) match {
-          case Some(module) => Some(module.asInstanceOf[T])
-          case None =>
-            val available = segmentsToModules.keys.map(_.render).mkString(", ")
-            val msg = s"Cannot resolve moduleDep '$depString'. Available modules: $available"
-            throw new Result.Exception(
+      segmentsToModules.get(segments) match {
+        case Some(module) => Some(module.asInstanceOf[T])
+        case None =>
+          val available = segmentsToModules.keys.map(_.render).mkString(", ")
+          val msg = s"Cannot resolve moduleDep '$depString'. Available modules: $available"
+          throw new Result.Exception(
+            msg,
+            Some(Result.Failure(
               msg,
-              Some(Result.Failure(
-                msg,
-                path = java.nio.file.Path.of(config.yamlPath),
-                index = charOffset
-              ))
-            )
-        }
+              path = java.nio.file.Path.of(config.yamlPath),
+              index = charOffset
+            ))
+          )
       }
-
-      if (append) default ++ resolved else resolved
     }
+
+    if (append) default ++ resolved else resolved
+
   }
 }
