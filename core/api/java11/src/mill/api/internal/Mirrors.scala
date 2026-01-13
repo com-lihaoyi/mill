@@ -299,7 +299,8 @@ private[mill] object Mirrors {
         (t.asType, acc.asType) match
           case (
                 '[t],
-                '[type ts <: Tuple; `ts`]
+                '[
+                type ts <: Tuple; `ts`]
               ) => TypeRepr.of[t *: ts]
           case other => throw Exception(s"unexpected: $other")
       )
@@ -335,9 +336,12 @@ private[mill] object Mirrors {
     def castProductImpl[T: Type](m: Expr[Mirror.Of[T]])(using Quotes): Expr[Mirror.ProductOf[T]] = {
       productClassStructure[T].reflect {
         case (
-              '[type label <: String; `label`],
-              '[type names <: Tuple; `names`],
-              '[type types <: Tuple; `types`]
+              '[
+              type label <: String; `label`],
+              '[
+              type names <: Tuple; `names`],
+              '[
+              type types <: Tuple; `types`]
             ) => '{
             $m.asInstanceOf[
               Mirror.ProductOf[T] {
@@ -355,9 +359,12 @@ private[mill] object Mirrors {
     def castSumMirror[T: Type](m: Expr[Mirror.Of[T]])(using Quotes): Expr[Mirror.SumOf[T]] = {
       sumStructure[T].reflect {
         case (
-              '[type label <: String; `label`],
-              '[type names <: Tuple; `names`],
-              '[type types <: Tuple; `types`]
+              '[
+              type label <: String; `label`],
+              '[
+              type names <: Tuple; `names`],
+              '[
+              type types <: Tuple; `types`]
             ) => '{
             $m.asInstanceOf[Mirror.SumOf[T] {
               type MirroredLabel = label
@@ -415,9 +422,12 @@ private[mill] object Mirrors {
 
       val sumMirror: Expr[Mirror.SumOf[T]] = structure.reflect {
         case (
-              '[type label <: String; `label`],
-              '[type names <: Tuple; `names`],
-              '[type types <: Tuple; `types`]
+              '[
+              type label <: String; `label`],
+              '[
+              type names <: Tuple; `names`],
+              '[
+              type types <: Tuple; `types`]
             ) => '{ AutoSum[T, label, names, types]((arg: T) => ${ ordinalBody('arg) }) }
 
         case other => throw Exception(s"unexpected: $other")
@@ -447,9 +457,12 @@ private[mill] object Mirrors {
 
       val mirror: Expr[Mirror.ProductOf[T]] = structure.reflect {
         case (
-              '[type label <: String; `label`],
-              '[type names <: Tuple; `names`],
-              '[type types <: Tuple; `types`]
+              '[
+              type label <: String; `label`],
+              '[
+              type names <: Tuple; `names`],
+              '[
+              type types <: Tuple; `types`]
             ) => '{ AutoProduct[T, label, names, types](p => ${ applyCall('p) }) }
         case other => throw Exception(s"unexpected: $other")
       }
