@@ -39,7 +39,7 @@ object CodeGen {
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
-      val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
+      val packageSegments = DiscoveredBuildFiles.fileImportToSegments(projectRoot, scriptPath)
       val wrappedDestFile = wrappedDest / packageSegments
       val pkgSegments = packageSegments.drop(1).dropRight(1)
       def pkgSelector0(pre: Option[String], s: Option[String]) =

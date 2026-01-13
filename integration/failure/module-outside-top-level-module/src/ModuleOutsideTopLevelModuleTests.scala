@@ -10,14 +10,14 @@ object ModuleOutsideTopLevelModuleTests extends UtestIntegrationTestSuite {
       import tester.*
       val res = eval(("resolve", "_"))
       assert(!res.isSuccess)
-      assert(
-        res.err.contains(
-          "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
-        )
+      res.assertContainsLines(
+        "[error] build.mill:4:8",
+        "object invalidModule extends Module",
+        "^"
       )
       assert(
         res.err.contains(
-          "object invalidModule extends Module"
+          "Modules and Tasks can only be defined within a mill Module (in `build.mill` or `package.mill` files)"
         )
       )
     }

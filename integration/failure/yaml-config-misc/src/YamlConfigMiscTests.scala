@@ -27,7 +27,9 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
         "mill-version: 1.0.0",
         "^"
       )
-      assert(res2.err.contains("key \"mill-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"))
+      assert(res2.err.contains(
+        "key \"mill-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"
+      ))
 
       tester.modifyFile(
         tester.workspacePath / "mispelledextends/package.mill.yaml",

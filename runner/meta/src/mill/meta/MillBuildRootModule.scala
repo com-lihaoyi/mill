@@ -62,7 +62,7 @@ trait MillBuildRootModule()(using
 
   val scriptSourcesPaths = BuildCtx.watchValue {
     BuildCtx.withFilesystemCheckerDisabled {
-      FileImportGraph
+      DiscoveredBuildFiles
         .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
         .sorted // Ensure ordering is deterministic
     }
@@ -74,9 +74,9 @@ trait MillBuildRootModule()(using
    */
   def scriptSources: T[Seq[PathRef]] = Task.Sources(scriptSourcesPaths*)
 
-  def parseBuildFiles: T[FileImportGraph] = Task {
+  def parseBuildFiles: T[DiscoveredBuildFiles] = Task {
     BuildCtx.withFilesystemCheckerDisabled {
-      FileImportGraph.parseBuildFiles(
+      DiscoveredBuildFiles.parseBuildFiles(
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.projectRoot / os.up,
         rootModuleInfo.output,
@@ -148,24 +148,21 @@ trait MillBuildRootModule()(using
     val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
-    if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
-    else {
-      CodeGen.generateWrappedAndSupportSources(
-        rootModuleInfo.projectRoot / os.up,
-        parsed.seenScripts,
-        wrapped,
-        support,
-        resources,
-        rootModuleInfo.topLevelProjectRoot,
-        rootModuleInfo.output,
-        MillScalaParser.current.value
-      )
-      (
-        wrapped = Seq(PathRef(wrapped)),
-        support = Seq(PathRef(support)),
-        resources = Seq(PathRef(resources))
-      )
-    }
+    CodeGen.generateWrappedAndSupportSources(
+      rootModuleInfo.projectRoot / os.up,
+      parsed.seenScripts,
+      wrapped,
+      support,
+      resources,
+      rootModuleInfo.topLevelProjectRoot,
+      rootModuleInfo.output,
+      MillScalaParser.current.value
+    )
+    (
+      wrapped = Seq(PathRef(wrapped)),
+      support = Seq(PathRef(support)),
+      resources = Seq(PathRef(resources))
+    )
   }
 
   def millBuildRootModuleResult = Task {

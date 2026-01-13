@@ -16,7 +16,7 @@ import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.MillBuildRootModule
 import mill.meta.CliImports
-import mill.meta.FileImportGraph.findRootBuildFiles
+import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
 

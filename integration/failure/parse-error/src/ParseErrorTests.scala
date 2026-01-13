@@ -12,12 +12,18 @@ object ParseErrorTests extends UtestIntegrationTestSuite {
 
       assert(res.isSuccess == false)
 
-      assert(res.err.contains("""bar.mill:14:20"""))
-      assert(res.err.contains("""')' expected, but '}' found"""))
-      assert(res.err.contains("""println(doesntExist})"""))
-      assert(res.err.contains("""qux.mill:3:31"""))
-      assert(res.err.contains("""')' expected, but eof found"""))
-      assert(res.err.contains("""System.out.println(doesntExist"""))
+      res.assertContainsLines(
+        "bar.mill:14:20",
+        "println(doesntExist})",
+        "^",
+        "')' expected, but '}' found"
+      )
+      res.assertContainsLines(
+        "qux.mill:3:31",
+        "System.out.println(doesntExist",
+        "^",
+        "')' expected, but eof found"
+      )
     }
   }
 }
