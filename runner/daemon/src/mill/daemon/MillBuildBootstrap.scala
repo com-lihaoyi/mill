@@ -225,12 +225,10 @@ class MillBuildBootstrap(
           nestedState.add(frame = evalState, errorOpt = None)
         } else {
           val rootModuleRes: Result[BuildFileApi] =
-            if (nestedState.useDummyBuild) {
-              // Use pre-compiled dummy build from mill.meta.dummy package
-              Result.Success(mill.meta.dummy.BuildFileImpl)
-            } else nestedState.frames.headOption match {
-              case None =>
-                Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
+            // Use pre-compiled dummy build from mill.meta.dummy package
+            if (nestedState.useDummyBuild) Result.Success(mill.meta.dummy.BuildFileImpl)
+            else nestedState.frames.headOption match {
+              case None => Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
               case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
             }
 
@@ -296,12 +294,11 @@ class MillBuildBootstrap(
                 if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else if (depth <= requestedDepth) nestedState
-                else if (nestedState.useDummyBuild) {
-                  // With the pre-compiled dummy build, we skip processRunClasspath
-                  // (which would try to evaluate millBuildRootModuleResult) and just
-                  // return the nested state for the parent level to use directly.
-                  nestedState
-                } else {
+                // With the pre-compiled dummy build, we skip processRunClasspath
+                // (which would try to evaluate millBuildRootModuleResult) and just
+                // return the nested state for the parent level to use directly.
+                else if (nestedState.useDummyBuild) nestedState
+                else {
                   processRunClasspath(
                     nestedState,
                     buildFileApi,
