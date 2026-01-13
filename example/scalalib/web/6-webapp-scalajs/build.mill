@@ -3,7 +3,7 @@ import mill.*, scalalib.*, scalajslib.*
 
 object `package` extends ScalaModule {
 
-  def scalaVersion = "3.7.1"
+  def scalaVersion = "3.8.0"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::cask:0.9.1",
     mvn"com.lihaoyi::upickle:4.3.0",
@@ -28,7 +28,7 @@ object `package` extends ScalaModule {
   }
 
   object client extends ScalaJSModule {
-    def scalaVersion = "3.7.1"
+    def scalaVersion = "3.8.0"
     def scalaJSVersion = "1.19.0"
     def mvnDeps = Seq(mvn"org.scala-js::scalajs-dom::2.2.0")
   }

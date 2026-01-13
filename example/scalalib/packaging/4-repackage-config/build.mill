@@ -10,7 +10,7 @@ import mill.javalib.repackage.RepackageModule
 import mill.javalib.spring.boot.SpringBootToolsModule
 
 trait MyModule extends ScalaModule, PublishModule {
-  def scalaVersion = "3.7.3"
+  def scalaVersion = "3.8.0"
 
   def publishVersion = "0.0.1"
 

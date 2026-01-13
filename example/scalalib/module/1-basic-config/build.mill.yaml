@@ -1,5 +1,5 @@
 extends: [mill.scalalib.ScalaModule] # fully-qualified class name
-scalaVersion: 3.7.4
+scalaVersion: 3.8.0
 mvnDeps:
 - com.lihaoyi::scalatags:0.13.1
 - com.lihaoyi::os-lib:0.11.4

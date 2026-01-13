@@ -39,7 +39,7 @@ package build
 import mill.*, scalalib.*
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = "3.7.4"
+  def scalaVersion = "3.8.0"
 }
 
 /** See Also: foo/package.mill */
