@@ -173,17 +173,11 @@ object CodeGen {
           moduleDepsConfig(modulePathKey) = config
 
           // Always generate fixed calls that read config from classpath resource at runtime.
-          // The resolver returns super.moduleDeps when config is None, so the generated code
+          // The resolver returns the default when no config exists, so the generated code
           // is always the same regardless of whether moduleDeps is specified in YAML.
           val pathLiteral = literalize(modulePathKey)
-          val moduleDepsSnippet =
-            s"override def moduleDeps = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, \"moduleDeps\", super.moduleDeps)"
-          val compileModuleDepsSnippet =
-            s"override def compileModuleDeps = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, \"compileModuleDeps\", super.compileModuleDeps)"
-          val runModuleDepsSnippet =
-            s"override def runModuleDeps = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, \"runModuleDeps\", super.runModuleDeps)"
-          val bomModuleDepsSnippet =
-            s"override def bomModuleDeps = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, \"bomModuleDeps\", super.bomModuleDeps)"
+          def moduleDepsOverride(name: String) =
+            s"override def $name = _root_.mill.api.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, super.$name)"
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
@@ -191,12 +185,12 @@ object CodeGen {
             else " extends AutoOverride[_root_.mill.T[?]]"
 
           val allSnippets = Seq(
-            moduleDepsSnippet,
-            compileModuleDepsSnippet,
-            runModuleDepsSnippet,
-            bomModuleDepsSnippet,
+            moduleDepsOverride("moduleDeps"),
+            moduleDepsOverride("compileModuleDeps"),
+            moduleDepsOverride("runModuleDeps"),
+            moduleDepsOverride("bomModuleDeps"),
             "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
-          ).filter(_.nonEmpty) ++ definitions
+          ) ++ definitions
 
           s"""$prefix$extendsSnippet {
              |  ${allSnippets.mkString("\n  ")}
