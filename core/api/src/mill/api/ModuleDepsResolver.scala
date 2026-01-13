@@ -57,9 +57,12 @@ object ModuleDepsResolver {
           val segmentsToModules = rootModule.moduleInternal.segmentsToModules
 
           val resolved = deps.flatMap { depString =>
-            val segments =
-              if (depString == "build") Segments()
-              else Segments.labels(depString.split('.').toIndexedSeq*)
+            val segments = Segments.labels(
+              depString.split('.').toIndexedSeq match{
+                case Seq("build", rest*) => rest
+                case all => all
+              }
+            )
 
             segmentsToModules.get(segments) match {
               case Some(module) => Some(module.asInstanceOf[T])
