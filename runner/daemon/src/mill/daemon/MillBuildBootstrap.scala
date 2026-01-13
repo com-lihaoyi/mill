@@ -225,10 +225,11 @@ class MillBuildBootstrap(
           val rootModuleRes: Result[BuildFileApi] = nestedState.frames.headOption match {
             case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
             case None => nestedState.bootstrapModuleOpt match {
-              case Some(bootstrapModule) => Result.Success(BuildFileApi.Bootstrap(bootstrapModule))
-              // Dummy build: no frames and no bootstrap module, use pre-compiled build
-              case None => Result.Success(mill.meta.dummy.BuildFileImpl)
-            }
+                case Some(bootstrapModule) =>
+                  Result.Success(BuildFileApi.Bootstrap(bootstrapModule))
+                // Dummy build: no frames and no bootstrap module, use pre-compiled build
+                case None => Result.Success(mill.meta.dummy.BuildFileImpl)
+              }
           }
 
           rootModuleRes.flatMap { buildFileApi =>
@@ -295,7 +296,8 @@ class MillBuildBootstrap(
                 } else if (depth <= requestedDepth) nestedState
                 // With the pre-compiled dummy build (no frames, no bootstrap module),
                 // skip processRunClasspath which would try to evaluate millBuildRootModuleResult
-                else if (nestedState.bootstrapModuleOpt.isEmpty && nestedState.frames.isEmpty) nestedState
+                else if (nestedState.bootstrapModuleOpt.isEmpty && nestedState.frames.isEmpty)
+                  nestedState
                 else {
                   processRunClasspath(
                     nestedState,
