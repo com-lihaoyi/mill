@@ -624,21 +624,16 @@ object MillBuildBootstrap {
       : Result[BuildFileApi] = {
     // Try loading the compiled BuildFileImpl first. If it doesn't exist (dummy build case
     // where there's no build.mill to compile), fall back to the pre-compiled DummyBuildFile.
-    val (buildClass, isDummyBuild) =
-      try (runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl"), false)
+    val buildClass =
+      try runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl")
       catch {
         case _: ClassNotFoundException =>
-          (runClassLoader.loadClass("mill.util.internal.DummyBuildFile$"), true)
+          runClassLoader.loadClass("mill.util.internal.DummyBuildFile")
       }
 
+    val valueMethod = buildClass.getMethod("value")
     mill.api.ExecResult.catchWrapException {
-      if (isDummyBuild) {
-        // For Scala objects, get the singleton instance from MODULE$ field
-        buildClass.getField("MODULE$").get(null).asInstanceOf[BuildFileApi]
-      } else {
-        val valueMethod = buildClass.getMethod("value")
-        valueMethod.invoke(null).asInstanceOf[BuildFileApi]
-      }
+      valueMethod.invoke(null).asInstanceOf[BuildFileApi]
     }
   }
 
