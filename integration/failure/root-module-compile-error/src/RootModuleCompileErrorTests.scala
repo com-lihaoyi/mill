@@ -16,7 +16,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] build.mill:7:67",
         "abstract class package_  extends _root_.mill.util.MainRootModule, UnknownRootModule {",
-        "^^^^^^^^^^^^^^^^^",
+        "                                                                  ^^^^^^^^^^^^^^^^^",
         "Not found: type UnknownRootModule"
       )
 
@@ -24,49 +24,49 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] foo/package.mill:6:96",
         "abstract class package_  extends _root_.mill.api.internal.SubfolderModule(build.millDiscover), UnknownFooModule {",
-        "^^^^^^^^^^^^^^^^",
+        "                                                                                               ^^^^^^^^^^^^^^^^",
         "Not found: type UnknownFooModule"
       )
 
       res.assertContainsLines(
         "[error] build.mill:8:22",
-        "def scalaVersion = unknownRootInternalDef",
-        "^^^^^^^^^^^^^^^^^^^^^^",
+        "  def scalaVersion = unknownRootInternalDef",
+        "                     ^^^^^^^^^^^^^^^^^^^^^^",
         "Not found: unknownRootInternalDef"
       )
 
       res.assertContainsLines(
         "[error] build.mill:5:23",
         "object before extends UnknownBeforeModule",
-        "^^^^^^^^^^^^^^^^^^^",
+        "                      ^^^^^^^^^^^^^^^^^^^",
         "Not found: type UnknownBeforeModule"
       )
 
       res.assertContainsLines(
         "[error] build.mill:12:22",
         "object after extends UnknownAfterModule",
-        "^^^^^^^^^^^^^^^^^^",
+        "                     ^^^^^^^^^^^^^^^^^^",
         "Not found: type UnknownAfterModule"
       )
 
       res.assertContainsLines(
         "[error] foo/package.mill:7:22",
-        "def scalaVersion = unknownFooInternalDef",
-        "^^^^^^^^^^^^^^^^^^^^^",
+        "  def scalaVersion = unknownFooInternalDef",
+        "                     ^^^^^^^^^^^^^^^^^^^^^",
         "Not found: unknownFooInternalDef"
       )
 
       res.assertContainsLines(
         "[error] foo/package.mill:4:23",
         "object before extends UnknownBeforeFooModule",
-        "^^^^^^^^^^^^^^^^^^^^^^",
+        "                      ^^^^^^^^^^^^^^^^^^^^^^",
         "Not found: type UnknownBeforeFooModule"
       )
 
       res.assertContainsLines(
         "[error] foo/package.mill:11:22",
         "object after extends UnknownAfterFooModule",
-        "^^^^^^^^^^^^^^^^^^^^^",
+        "                     ^^^^^^^^^^^^^^^^^^^^^",
         "Not found: type UnknownAfterFooModule"
       )
     }

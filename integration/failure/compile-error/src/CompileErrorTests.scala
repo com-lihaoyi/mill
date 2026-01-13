@@ -14,14 +14,14 @@ object CompileErrorTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] bar.mill:15:9",
         "println(doesntExist)",
-        "^^^^^^^^^^^",
+        "        ^^^^^^^^^^^",
         "Not found: doesntExist"
       )
 
       res.assertContainsLines(
         "[error] qux.mill:4:34",
         "def myOtherMsg = myMsg.substring(\"0\")",
-        "^^^",
+        "                                 ^^^",
         "Found:    (\"0\" : String)",
         "Required: Int"
       )
@@ -29,7 +29,7 @@ object CompileErrorTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] build.mill:11:5",
         "foo.noSuchMethod",
-        "^^^^^^^^^^^^"
+        "    ^^^^^^^^^^^^"
       )
       assert(res.err.contains("""value noSuchMethod is not a member"""))
     }

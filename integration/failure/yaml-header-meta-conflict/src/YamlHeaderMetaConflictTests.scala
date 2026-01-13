@@ -17,7 +17,7 @@ object YamlHeaderMetaConflictTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] build.mill:1:5",
         "//| mvnDeps: []",
-        "^"
+        "    ^"
       )
       assert(res.err.contains(
         "Build header config conflicts with task defined in mill-build/build.mill:7"

@@ -12,7 +12,7 @@ object YamlHeaderHelperTests extends UtestIntegrationTestSuite {
 
       assert(res.isSuccess == false)
       res.assertContainsLines(
-        "[error] parseBuildFiles [error] helper.mill:1:1",
+        "[error] parseBuildFiles helper.mill:1:1",
         "//| mill-version: 1.0.0-RC1",
         "^"
       )

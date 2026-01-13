@@ -14,7 +14,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[warn] java-type-unchecked/src/Foo.java:6:22",
           "return (T[]) obj;",
-          "^^^",
+          "                     ^^^",
           "unchecked cast"
         )
       }
@@ -25,7 +25,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] java-type-mismatch/src/Foo.java:5:17",
           "int x = \"hello\";",
-          "^^^^^^^",
+          "                ^^^^^^^",
           "incompatible types: java.lang.String cannot be converted to int"
         )
       }
@@ -36,7 +36,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] java-type-method/src/Foo.java:6:10",
           "s.nonExistentMethod();",
-          "^^^^^^^^^^^^^^^^^^",
+          "         ^^^^^^^^^^^^^^^^^^",
           "cannot find symbol"
         )
       }
@@ -47,7 +47,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] java-type-variable/src/Foo.java:5:17",
           "int x = undefinedVariable + 1;",
-          "^^^^^^^^^^^^^^^^^",
+          "                ^^^^^^^^^^^^^^^^^",
           "cannot find symbol"
         )
       }
@@ -58,7 +58,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] java-parse-semicolon/src/Foo.java:5:18",
           "int x = 1",
-          "^",
+          "                 ^",
           "';' expected"
         )
       }
@@ -69,7 +69,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] java-parse-string/src/Foo.java:5:20",
           "String s = \"hello world",
-          "^",
+          "                   ^",
           "unclosed string literal"
         )
       }
@@ -91,7 +91,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] scala-type-mismatch/src/Foo.scala:5:18",
           "val x: Int = \"hello\"",
-          "^^^^^^^",
+          "                 ^^^^^^^",
           "Found:    (\"hello\" : String)",
           "Required: Int"
         )
@@ -103,7 +103,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] scala-type-method/src/Foo.scala:6:7",
           "s.nonExistentMethod()",
-          "^^^^^^^^^^^^^^^^^",
+          "      ^^^^^^^^^^^^^^^^^",
           "value nonExistentMethod is not a member of String"
         )
       }
@@ -114,7 +114,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] scala-type-variable/src/Foo.scala:5:13",
           "val x = undefinedVariable + 1",
-          "^^^^^^^^^^^^^^^^^",
+          "            ^^^^^^^^^^^^^^^^^",
           "Not found: undefinedVariable"
         )
       }
@@ -125,7 +125,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] scala-parse-semicolon/src/Foo.scala:6:15",
           "val y = x +",
-          "^",
+          "              ^",
           "end of statement expected but identifier found"
         )
       }
@@ -136,7 +136,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] scala-parse-string/src/Foo.scala:5:13",
           "val s = \"hello world",
-          "^",
+          "            ^",
           "unclosed string literal"
         )
       }
@@ -147,7 +147,7 @@ object CompileErrorFormattingTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] scala-parse-toplevel/src/Foo.scala:6:7",
           "class class Foo {",
-          "^^^^^",
+          "      ^^^^^",
           "an identifier expected, but 'class' found"
         )
       }

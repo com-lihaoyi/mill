@@ -13,7 +13,7 @@ object ModuleOutsideTopLevelModuleTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] build.mill:4:8",
         "object invalidModule extends Module",
-        "^"
+        "       ^"
       )
       assert(
         res.err.contains(

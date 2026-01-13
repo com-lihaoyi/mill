@@ -12,7 +12,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] InvalidExtends.java:1:15",
           "//| extends: [doesntExist]",
-          "^"
+          "              ^"
         )
         assert(res.err.contains("Script extends invalid class \"doesntExist\""))
         assert(res.err.linesIterator.toList.length < 20)
@@ -22,7 +22,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] InvalidModuleDepType.java:1:17",
           "//| moduleDeps: dummy",
-          "^"
+          "                ^"
         )
         assert(res.err.contains(
           "Failed de-serializing config key $['moduleDeps']: expected sequence got string"
@@ -34,7 +34,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] ModuleDepResolveError.java:1:18",
           "//| moduleDeps: [doesntExist]",
-          "^"
+          "                 ^"
         )
         assert(res.err.contains("Cannot resolve doesntExist"))
       }
@@ -43,7 +43,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] InvalidTaskType.java:1:14",
           "//| mvnDeps: dummy",
-          "^"
+          "             ^"
         )
         assert(
           res.err.contains("Failed de-serializing config override: expected sequence got string")
@@ -55,7 +55,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] InvalidYamlSyntax.java:1:14",
           "//| extends: ]",
-          "^"
+          "             ^"
         )
         assert(res.err.contains("expected the node content, but found ']'"))
         assert(res.err.linesIterator.toList.length < 30)
@@ -66,7 +66,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] invalid-key/Foo.java:1:5",
           "//| moduleDep: [doesntExist]",
-          "^"
+          "    ^"
         )
         assert(res.err.contains("key \"moduleDep\" does not override any task"))
         assert(res.err.linesIterator.toList.length < 20)
@@ -75,7 +75,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         res2.assertContainsLines(
           "[error] invalid-key/Foo.scala:1:5",
           "//| moduleDep: [doesntExist]",
-          "^"
+          "    ^"
         )
         assert(res2.err.contains("key \"moduleDep\" does not override any task"))
         assert(res2.err.linesIterator.toList.length < 20)
@@ -84,7 +84,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         res3.assertContainsLines(
           "[error] invalid-key/Foo.kt:1:5",
           "//| moduleDep: [doesntExist]",
-          "^"
+          "    ^"
         )
         assert(res3.err.contains("key \"moduleDep\" does not override any task"))
         assert(res3.err.linesIterator.toList.length < 20)
@@ -105,7 +105,7 @@ object YamlScriptTests extends UtestIntegrationTestSuite {
         res.assertContainsLines(
           "[error] InvalidJvmVersion.java:1:5",
           "//| mill-jvm-version: 17",
-          "^"
+          "    ^"
         )
         assert(res.err.contains(
           "key \"mill-jvm-version\" can only be used in your root `build.mill` or `build.mill.yaml` file"

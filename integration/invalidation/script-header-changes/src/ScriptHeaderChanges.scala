@@ -20,7 +20,7 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
       res2.assertContainsLines(
         "[error] Foo.java:1:5",
         "//| invalid: key",
-        "^"
+        "    ^"
       )
       assert(res2.err.contains("key \"invalid\" does not override any task"))
 
@@ -34,7 +34,7 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
       res3.assertContainsLines(
         "[error] Foo.java:1:14",
         "//| mvnDeps: key",
-        "^"
+        "             ^"
       )
       assert(
         res3.err.contains("Failed de-serializing config override: expected sequence got string")
@@ -55,7 +55,7 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
       res5.assertContainsLines(
         "[error] Foo.java:1:14",
         "//| mvnDeps: [key]",
-        "^"
+        "             ^"
       )
       assert(
         res5.err.contains("Failed de-serializing config override: Unable to parse signature: [key]")

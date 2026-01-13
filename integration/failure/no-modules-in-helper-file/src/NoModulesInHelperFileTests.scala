@@ -13,7 +13,7 @@ object NoModulesInHelperFileTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] helper.mill:3:8",
         "object foo extends Module",
-        "^"
+        "       ^"
       )
       assert(
         res.err.contains(

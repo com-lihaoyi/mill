@@ -57,7 +57,7 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       res4.assertContainsLines(
         "[error] badmoduledep/package.mill.yaml:2:14",
         "moduleDeps: [doesnotexist]",
-        "^"
+        "             ^"
       )
       assert(res4.err.contains("Cannot resolve moduleDep 'doesnotexist'"))
 
@@ -67,7 +67,7 @@ object YamlConfigMiscTests extends UtestIntegrationTestSuite {
       res5.assertContainsLines(
         "[error] wrongmoduledeptype/package.mill.yaml:2:14",
         "moduleDeps: [plainmodule]",
-        "^"
+        "             ^"
       )
       assert(res5.err.contains("Module 'plainmodule' is a"))
       assert(res5.err.contains("not a"))

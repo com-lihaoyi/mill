@@ -16,7 +16,7 @@ object YamlHeaderValueTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] build.mill:1:14",
         "//| mvnDeps: lols",
-        "^"
+        "             ^"
       )
       assert(
         res.err.contains("Failed de-serializing config override: expected sequence got string")

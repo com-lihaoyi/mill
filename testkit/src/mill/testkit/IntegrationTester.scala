@@ -77,8 +77,7 @@ object IntegrationTester {
 
     /**
      * Asserts that the given lines appear as exact consecutive lines in the combined
-     * stdout/stderr output. Lines are trimmed before comparison.
-     * Normalizes backslashes to forward slashes for cross-platform compatibility.
+     * stdout/stderr output. Normalizes backslashes to forward slashes for cross-platform compatibility.
      */
     def assertContainsLines(expectedLines: String*): Unit = {
       val combined = geny.ByteData.Chunks(result.chunks.map {
@@ -88,13 +87,12 @@ object IntegrationTester {
       val combinedNormalized = fansi.Str(combined, errorMode = fansi.ErrorMode.Strip)
         .plainText
         .replace('\\', '/')
-      val actualLines = combinedNormalized.linesIterator.map(_.trim).toVector
-      val expectedTrimmed = expectedLines.map(_.trim)
+      val actualLines = combinedNormalized.linesIterator.toVector
 
-      val found = actualLines.sliding(expectedTrimmed.size).exists(_ == expectedTrimmed)
+      val found = actualLines.sliding(expectedLines.size).exists(_ == expectedLines)
       assert(
         found,
-        s"Expected consecutive lines not found:\n${expectedTrimmed.mkString("\n")}\n\nActual output:\n${actualLines.mkString("\n")}"
+        s"Expected consecutive lines not found:\n${expectedLines.mkString("\n")}\n\nActual output:\n${actualLines.mkString("\n")}"
       )
     }
   }

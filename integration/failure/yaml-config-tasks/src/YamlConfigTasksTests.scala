@@ -40,7 +40,7 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
       res2.assertContainsLines(
         "[error] build.mill.yaml:2:15",
         "scalaVersion: []",
-        "^"
+        "              ^"
       )
       assert(
         res2.err.contains("Failed de-serializing config override: expected string got sequence")
@@ -48,7 +48,7 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
       res2.assertContainsLines(
         "[error] test/package.mill.yaml:2:15",
         "scalaVersion: []",
-        "^"
+        "              ^"
       )
 
       tester.modifyFile(

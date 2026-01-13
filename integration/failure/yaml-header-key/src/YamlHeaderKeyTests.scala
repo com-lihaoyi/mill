@@ -16,14 +16,14 @@ object YamlHeaderKeyTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] build.mill:1:5",
         "//| invalidKey: lols",
-        "^"
+        "    ^"
       )
       assert(res.err.contains("key \"invalidKey\" does not override any task"))
 
       res.assertContainsLines(
         "[error] build.mill:2:5",
         "//| mvnDep: lols",
-        "^"
+        "    ^"
       )
       assert(
         res.err.contains("key \"mvnDep\" does not override any task, did you mean \"mvnDeps\"?")
@@ -32,7 +32,7 @@ object YamlHeaderKeyTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "[error] build.mill:3:5",
         "//| mill-jm-version: lols",
-        "^"
+        "    ^"
       )
       assert(res.err.contains(
         "key \"mill-jm-version\" does not override any task, did you mean \"mill-jvm-version\"?"

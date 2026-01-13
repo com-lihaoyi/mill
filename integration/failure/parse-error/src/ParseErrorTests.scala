@@ -15,13 +15,13 @@ object ParseErrorTests extends UtestIntegrationTestSuite {
       res.assertContainsLines(
         "bar.mill:14:20",
         "println(doesntExist})",
-        "^",
+        "                   ^",
         "')' expected, but '}' found"
       )
       res.assertContainsLines(
         "qux.mill:3:31",
         "System.out.println(doesntExist",
-        "^",
+        "                              ^",
         "')' expected, but eof found"
       )
     }
