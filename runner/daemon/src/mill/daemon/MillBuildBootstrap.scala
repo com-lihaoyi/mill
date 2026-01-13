@@ -132,10 +132,6 @@ class MillBuildBootstrap(
           val state =
             if (currentRootContainsBuildFile) evaluateRec(depth + 1)
             else {
-              // For both dummy builds (no build.mill) and non-dummy builds (build.mill.yaml only),
-              // we create a BootstrapModule to get the libs classpath. For dummy builds,
-              // the BootstrapModule will have no sources to compile, and we'll load the
-              // pre-compiled DummyBuildFile from the resulting classloader.
               mill.api.ExecResult.catchWrapException {
                 new MillBuildRootModule.BootstrapModule(
                   (currentRoot / foundRootBuildFileName).toString
@@ -160,6 +156,7 @@ class MillBuildBootstrap(
                     Seq(bootstrapEvalWatched)
                   )
               }
+
             }
 
           state
