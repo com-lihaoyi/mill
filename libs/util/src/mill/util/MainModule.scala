@@ -320,11 +320,16 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
   private case class InitArgs(
       @mainargs.arg(doc = "Print this help and exit")
       help: Flag = Flag(false),
+      @mainargs.arg(doc = "Initialize a Mill project from a Giter8 template.")
       giter8: Flag = Flag(false),
+      @mainargs.arg(doc = "Create a Mill project by migrating from a Maven project.")
       maven: Flag = Flag(false),
+      @mainargs.arg(doc = "Create a Mill project by migrating from a Gradle project.")
       gradle: Flag = Flag(false),
+      @mainargs.arg(doc = "Create a Mill project by migrating from a sbt project.")
       sbt: Flag = Flag(false),
-      dontGuess: Flag = Flag(false),
+      @mainargs.arg(doc = "Initialize a Mill project from an example project.")
+      example: Flag = Flag(false),
       rest: Leftover[String]
   )
 
@@ -380,9 +385,9 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
               selected = _.giter8.value,
               guess = _.rest.value.headOption.exists(_.toLowerCase.endsWith(".g8"))
             )
-        case Init extends Mode(
+        case Example extends Mode(
               entryPoint = "mill.init.InitModule/init",
-              selected = _.dontGuess.value,
+              selected = _.example.value,
               guess = _ => false
             )
       }
@@ -401,8 +406,8 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
               )
           }
         }
-        // fallback to Init
-        .getOrElse(Mode.Init)
+        // fallback to Example
+        .getOrElse(Mode.Example)
 
       val evaluated =
         evaluator.evaluate(Seq(selected.entryPoint) ++ parsed.rest.value, SelectMode.Separated)
