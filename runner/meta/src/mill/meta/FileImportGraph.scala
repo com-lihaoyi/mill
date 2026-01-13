@@ -45,16 +45,13 @@ object FileImportGraph {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[String]
 
-    def processScript(s: os.Path, useDummy: Boolean = false): Unit =
+    def processScript(s: os.Path): Unit =
       try {
-
-        val content = if (useDummy) "" else os.read(s)
+        val content = os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
         val buildHeaderError =
-          if (useDummy) Right(())
-          else
-            try Right(mill.constants.Util.readBuildHeader(s.toNIO, s.last))
-            catch { case e: RuntimeException => Left(e.getMessage) }
+          try Right(mill.constants.Util.readBuildHeader(s.toNIO, s.last))
+          catch { case e: RuntimeException => Left(e.getMessage) }
 
         if (s.last.endsWith(".yaml")) seenScripts(s) = os.read(s)
         else buildHeaderError.flatMap(_ => parser.splitScript(content, fileName, colored)) match {
@@ -90,10 +87,10 @@ object FileImportGraph {
           errors.append(ex.getClass.getName + " " + ex.getMessage)
       }
 
-    val (useDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+    val (_, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
 
     val foundRootBuildFile = projectRoot / foundRootBuildFileName
-    processScript(foundRootBuildFile, useDummy)
+    processScript(foundRootBuildFile)
 
     walked.filter(_ != foundRootBuildFile).foreach(processScript(_))
 

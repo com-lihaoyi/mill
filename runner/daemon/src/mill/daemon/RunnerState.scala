@@ -42,9 +42,7 @@ case class RunnerState(
     // Any watches that take place during bootstrap module instantiation. Necessary because
     // if bootstrap instantiation fails, there are no `frames` to hold `evalWatches`, so we
     // need to track them separately
-    bootstrapEvalWatched: Seq[Watchable] = Nil,
-    // Whether to use the pre-compiled dummy build instead of compiling an empty build.mill
-    useDummyBuild: Boolean = false
+    bootstrapEvalWatched: Seq[Watchable] = Nil
 ) extends Watching.Result {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
