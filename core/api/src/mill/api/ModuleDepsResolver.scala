@@ -36,7 +36,8 @@ object ModuleDepsResolver {
    * otherwise returns Seq.empty. Used by generated code to avoid requiring override keyword.
    */
   inline def superModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("moduleDeps") }
-  inline def superCompileModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("compileModuleDeps") }
+  inline def superCompileModuleDeps[T <: Module]: Seq[T] =
+    ${ superMethodImpl[T]("compileModuleDeps") }
   inline def superRunModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("runModuleDeps") }
   inline def superBomModuleDeps[T <: Module]: Seq[T] = ${ superMethodImpl[T]("bomModuleDeps") }
 
@@ -90,33 +91,37 @@ object ModuleDepsResolver {
 
     val ModuleDepsEntry(deps, append) = entry
 
-    val segmentsToModules = rootModule.moduleInternal.segmentsToModules
+    // If no deps specified and not appending, use default (super value)
+    // This handles cases where the YAML doesn't specify moduleDeps at all
+    if (deps.isEmpty && !append) default
+    else {
+      val segmentsToModules = rootModule.moduleInternal.segmentsToModules
 
-    val resolved = deps.flatMap { case (depString, charOffset) =>
-      val segments = Segments.labels(
-        depString.split('.').toIndexedSeq match {
-          case Seq("build", rest*) => rest
-          case all => all
-        }*
-      )
+      val resolved = deps.flatMap { case (depString, charOffset) =>
+        val segments = Segments.labels(
+          depString.split('.').toIndexedSeq match {
+            case Seq("build", rest*) => rest
+            case all => all
+          }*
+        )
 
-      segmentsToModules.get(segments) match {
-        case Some(module) => Some(module.asInstanceOf[T])
-        case None =>
-          val available = segmentsToModules.keys.map(_.render).mkString(", ")
-          val msg = s"Cannot resolve moduleDep '$depString'. Available modules: $available"
-          throw new Result.Exception(
-            msg,
-            Some(Result.Failure(
+        segmentsToModules.get(segments) match {
+          case Some(module) => Some(module.asInstanceOf[T])
+          case None =>
+            val available = segmentsToModules.keys.map(_.render).mkString(", ")
+            val msg = s"Cannot resolve moduleDep '$depString'. Available modules: $available"
+            throw new Result.Exception(
               msg,
-              path = java.nio.file.Path.of(config.yamlPath),
-              index = charOffset
-            ))
-          )
+              Some(Result.Failure(
+                msg,
+                path = java.nio.file.Path.of(config.yamlPath),
+                index = charOffset
+              ))
+            )
+        }
       }
+
+      if (append) default ++ resolved else resolved
     }
-
-    if (append) default ++ resolved else resolved
-
   }
 }
