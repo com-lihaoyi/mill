@@ -158,6 +158,12 @@ public class MillLauncherMain {
 
   private static void handleLauncherException(
       Exception e, String outDir, java.util.List<String> logs) {
+    // For MillException, just print the message without stack trace
+    if (e instanceof mill.constants.MillException) {
+      System.err.println(e.getMessage());
+      return;
+    }
+
     Path errorFile = Paths.get(outDir, "mill-launcher-error.log");
     try (var writer = Files.newBufferedWriter(errorFile)) {
       writer.write("Mill launcher failed with unknown exception.\n\n");
