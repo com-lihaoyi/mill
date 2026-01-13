@@ -24,23 +24,6 @@ object ModuleDepsResolver {
     implicit val rw: upickle.default.ReadWriter[ModuleDepsConfig] = upickle.default.macroRW
   }
 
-  // Lazily load configuration from classpath resource
-  private lazy val configFromClasspath: Map[String, ModuleDepsConfig] = {
-    val resourcePath = "mill/module-deps-config.json"
-    val classLoader = Thread.currentThread().getContextClassLoader
-    Option(classLoader.getResourceAsStream(resourcePath)) match {
-      case Some(stream) =>
-        try {
-          val content = new String(stream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)
-          upickle.default.read[Map[String, ModuleDepsConfig]](content)
-        } finally {
-          stream.close()
-        }
-      case None =>
-        Map.empty
-    }
-  }
-
   /**
    * Resolves module deps from classpath configuration at runtime.
    *
@@ -56,6 +39,13 @@ object ModuleDepsResolver {
       fieldName: String,
       default: => Seq[T]
   ): Seq[T] = {
+    // Load config fresh each time using the build's classloader (accessed via rootModule)
+    // We can't cache this because ModuleDepsResolver is in core/api which uses Mill's
+    // classloader, not the build's classloader that has the config resource
+    val classLoader = rootModule.getClass.getClassLoader
+    val content = os.read(os.resource(classLoader) / "mill/module-deps-config.json")
+    val configFromClasspath = upickle.default.read[Map[String, ModuleDepsConfig]](content)
+
     // If no config found for this module path, return default (no override specified in YAML)
     val config = configFromClasspath.getOrElse(modulePath, return default)
 

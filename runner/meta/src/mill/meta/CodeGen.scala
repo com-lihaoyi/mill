@@ -297,15 +297,12 @@ object CodeGen {
       }
     }
 
-    // Write the moduleDeps configuration to a classpath resource file
-    if (moduleDepsConfig.nonEmpty) {
-      val resourceFile = resourceDest / "mill" / "module-deps-config.json"
-      os.write.over(
-        resourceFile,
-        upickle.default.write(moduleDepsConfig.toMap, indent = 2),
-        createFolders = true
-      )
-    }
+    val resourceFile = resourceDest / "mill" / "module-deps-config.json"
+    os.write.over(
+      resourceFile,
+      upickle.default.write(moduleDepsConfig.toMap, indent = 2),
+      createFolders = true
+    )
   }
 
   private def calcSegments(scriptFolderPath: os.Path, projectRoot: os.Path) =
