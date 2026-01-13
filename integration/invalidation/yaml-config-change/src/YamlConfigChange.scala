@@ -108,5 +108,61 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
           backToDefault.out.contains("\\src\"")
       )
     }
+
+    test("moduleDeps") - integrationTest { tester =>
+      import tester.*
+
+      // Compile root module first so its classes exist
+      val compileRoot = eval(("compile"))
+      assert(compileRoot.isSuccess)
+
+      // Get baseline compileClasspath for sub module (no moduleDeps yet)
+      val baseline = eval(("show", "sub.compileClasspath"))
+      assert(baseline.isSuccess)
+      assert(!baseline.out.contains("/compile.dest/classes"))
+
+      // Add moduleDeps on root module
+      modifyFile(workspacePath / "sub/package.mill.yaml", _ + "\nmoduleDeps: [build]")
+      val withModuleDeps = eval(("show", "sub.compileClasspath"))
+      assert(withModuleDeps.isSuccess)
+      assert(withModuleDeps.out.contains("/compile.dest/classes"))
+
+      // Remove moduleDeps - should no longer include root module's classes
+      modifyFile(
+        workspacePath / "sub/package.mill.yaml",
+        _.replace("\nmoduleDeps: [build]", "")
+      )
+      val withoutModuleDeps = eval(("show", "sub.compileClasspath"))
+      assert(withoutModuleDeps.isSuccess)
+      assert(!withoutModuleDeps.out.contains("/compile.dest/classes"))
+
+      // Test compileModuleDeps
+      modifyFile(workspacePath / "sub/package.mill.yaml", _ + "\ncompileModuleDeps: [build]")
+      val withCompileModuleDeps = eval(("show", "sub.compileClasspath"))
+      assert(withCompileModuleDeps.isSuccess)
+      assert(withCompileModuleDeps.out.contains("/compile.dest/classes"))
+
+      // compileModuleDeps should NOT appear in runClasspath (check for root module's classes specifically)
+      val runWithCompileModuleDeps = eval(("show", "sub.runClasspath"))
+      assert(runWithCompileModuleDeps.isSuccess)
+      // Root module's classes are at out/compile.dest/classes (not out/sub/compile.dest/classes)
+      assert(!runWithCompileModuleDeps.out.contains("out/compile.dest/classes\""))
+
+      // Switch to runModuleDeps
+      modifyFile(
+        workspacePath / "sub/package.mill.yaml",
+        _.replace("\ncompileModuleDeps: [build]", "\nrunModuleDeps: [build]")
+      )
+
+      // runModuleDeps should NOT appear in compileClasspath (check for root module's classes specifically)
+      val compileWithRunModuleDeps = eval(("show", "sub.compileClasspath"))
+      assert(compileWithRunModuleDeps.isSuccess)
+      assert(!compileWithRunModuleDeps.out.contains("out/compile.dest/classes\""))
+
+      // runModuleDeps should appear in runClasspath
+      val runWithRunModuleDeps = eval(("show", "sub.runClasspath"))
+      assert(runWithRunModuleDeps.isSuccess)
+      assert(runWithRunModuleDeps.out.contains("out/compile.dest/classes\""))
+    }
   }
 }

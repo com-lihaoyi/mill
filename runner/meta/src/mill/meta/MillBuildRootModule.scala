@@ -130,6 +130,10 @@ trait MillBuildRootModule()(using
     generatedScriptSources().support
   }
 
+  override def resources: T[Seq[PathRef]] = Task {
+    super.resources() ++ generatedScriptSources().resources
+  }
+
   /**
    * Additional script files, we generate, since not all Mill source
    * files (`*.mill` can be fed to the compiler as-is.
