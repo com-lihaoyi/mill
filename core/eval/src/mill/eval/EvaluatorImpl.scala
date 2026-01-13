@@ -158,9 +158,11 @@ final class EvaluatorImpl(
         filePath == os.sub / "mill-build/build.mill" || filePath == os.sub / "build.mill.yaml"
 
       val millKeys = mill.constants.ConfigConstants.all()
+      val alwaysAllowedKeys =
+        Set(mill.constants.ConfigConstants.allowNestedBuildMillFiles)
       val validKeys =
-        if (isRootBuildFile) moduleTaskNames ++ millKeys
-        else moduleTaskNames
+        if (isRootBuildFile) moduleTaskNames ++ millKeys ++ alwaysAllowedKeys
+        else moduleTaskNames ++ alwaysAllowedKeys
 
       val invalidBuildOverrides = moduleBuildOverrides.filter { case (k, _) =>
         !validKeys.contains(k)

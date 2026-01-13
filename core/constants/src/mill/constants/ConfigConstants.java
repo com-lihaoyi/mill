@@ -7,10 +7,17 @@ public class ConfigConstants {
   public static final String millJvmIndexVersion = "mill-jvm-index-version";
   public static final String millJvmOpts = "mill-jvm-opts";
   public static final String millOpts = "mill-opts";
+  public static final String allowNestedBuildMillFiles = "allowNestedBuildMillFiles";
 
   public static String[] all() {
     return new String[] {
-      millBuild, millVersion, millJvmVersion, millJvmIndexVersion, millJvmOpts, millOpts
+      millBuild,
+      millVersion,
+      millJvmVersion,
+      millJvmIndexVersion,
+      millJvmOpts,
+      millOpts,
+      allowNestedBuildMillFiles
     };
   }
 }
