@@ -210,14 +210,10 @@ class MillBuildBootstrap(
           )
           nestedState.add(frame = evalState, errorOpt = None)
         } else {
-          val rootModuleRes: Result[BuildFileApi] = nestedState.frames.headOption match {
+          val rootModuleRes = nestedState.frames.headOption match {
+            case None =>
+              Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
             case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
-            case None => nestedState.bootstrapModuleOpt match {
-                case Some(bootstrapModule) =>
-                  Result.Success(BuildFileApi.Bootstrap(bootstrapModule))
-                // Dummy build: no frames and no bootstrap module, use pre-compiled build
-                case None => Result.Success(mill.util.internal.DummyBuildFile)
-              }
           }
 
           rootModuleRes.flatMap { buildFileApi =>
