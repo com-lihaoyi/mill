@@ -26,11 +26,17 @@ object GradleBuildGenMain {
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
       millJvmId: Option[String],
       @mainargs.arg(doc = "Generate declarative (YAML) or programmable (Scala) build files")
-      declarative: Boolean = true
+      declarative: Boolean = true,
+      @mainargs.arg(doc =
+        "The Gradle project directory to migrate. Default is the current working directory."
+      )
+      projectDir: String = "."
   ): Unit = {
     println("converting Gradle build")
 
     val buildGen = if (declarative) BuildGenYaml else BuildGenScala
+    val gradleWorkspace = os.Path.expandUser(projectDir, os.pwd)
+    val millWorkspace = os.pwd
 
     val exportPluginJar = Using.resource(
       getClass.getResourceAsStream(exportpluginAssemblyResource)
@@ -54,12 +60,13 @@ object GradleBuildGenMain {
       case conn => conn
     }
     var packages =
-      try Using.resource(gradleConnector.forProjectDirectory(os.pwd.toIO).connect) { connection =>
-          val model = connection.model(classOf[BuildModel])
-            .addArguments("--init-script", initScript.toString)
-            .setJavaHome(Jvm.resolveJavaHome(gradleJvmId).get.toIO)
-            .setStandardOutput(System.out).get
-          upickle.default.read[Seq[PackageSpec]](model.asJson)
+      try Using.resource(gradleConnector.forProjectDirectory(gradleWorkspace.toIO).connect) {
+          connection =>
+            val model = connection.model(classOf[BuildModel])
+              .addArguments("--init-script", initScript.toString)
+              .setJavaHome(Jvm.resolveJavaHome(gradleJvmId).get.toIO)
+              .setStandardOutput(System.out).get
+            upickle.default.read[Seq[PackageSpec]](model.asJson)
         }
       finally gradleConnector.disconnect()
     packages = normalizeBuild(packages)
@@ -73,13 +80,13 @@ object GradleBuildGenMain {
       ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     val millJvmOpts = {
       val properties = new Properties()
-      val file = os.pwd / "gradle/wrapper/gradle-wrapper.properties"
+      val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
       if (os.isFile(file)) Using.resource(os.read.inputStream(file))(properties.load)
       val prop = properties.getProperty("org.gradle.jvmargs")
       if (prop == null) Nil else prop.trim.split("\\s").toSeq
     }
     buildGen.writeBuildFiles(
-      baseDir = os.pwd,
+      baseDir = millWorkspace,
       packages = packages0,
       merge = merge.value,
       baseModule = baseModule,

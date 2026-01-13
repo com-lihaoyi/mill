@@ -22,6 +22,9 @@ object MavenBuildGenMain {
       millJvmId: Option[String],
       @mainargs.arg(doc = "Generate declarative (YAML) or programmable (Scala) build files")
       declarative: Boolean = true,
+      @mainargs.arg(doc =
+        "The Maven project directory to migrate. Default is the current working directory."
+      )
       projectDir: String = "."
   ): Unit = {
     println("converting Maven build")
