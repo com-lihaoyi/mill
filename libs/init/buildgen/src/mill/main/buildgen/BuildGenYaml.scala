@@ -7,27 +7,34 @@ import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
 
-object BuildGenYaml {
+/**
+ * Generate YAML-based build/project files for Mill from given [[PakcageSpec]] and [[ModuleSpec]].
+ *
+ * See also [[BuildGenScala]]
+ */
+object BuildGenYaml extends BuildGen {
 
   private inline def millBuild = os.sub / "mill-build"
 
-  def writeBuildFiles(
+  override def writeBuildFiles(
+      baseDir: os.Path,
       packages: Seq[PackageSpec],
       merge: Boolean = false,
       baseModule: Option[ModuleSpec] = None,
       millJvmVersion: Option[String] = None,
-      millJvmOpts: Seq[String] = Nil
-  ): Unit = {
+      millJvmOpts: Seq[String] = Nil,
+      depNames: Seq[(MvnDep, String)] = Nil
+  ): Seq[os.Path] = {
     var packages0 = fillPackages(packages).sortBy(_.dir)
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
     removeExistingBuildFiles()
 
     // Generate base module Scala file if provided
-    for (module <- baseModule) do {
+    val baseFile = for (module <- baseModule) yield {
       val file = os.sub / millBuild / os.SubPath(s"src/${module.name}.scala")
       println(s"writing $file")
       os.write(
-        os.pwd / file,
+        baseDir / file,
         Seq(
           "package millbuild",
           renderImports(module),
@@ -35,6 +42,7 @@ object BuildGenYaml {
         ).mkString(lineSep * 2),
         createFolders = true
       )
+      file
     }
 
     val rootPackage +: nestedPackages = packages0: @unchecked
@@ -42,14 +50,17 @@ object BuildGenYaml {
 
     println("writing build.mill.yaml")
     os.write(
-      os.pwd / "build.mill.yaml",
+      baseDir / "build.mill.yaml",
       renderYamlPackage(rootPackage, Some(millVersion), Some(millJvmVersion0), millJvmOpts)
     )
-    for (pkg <- nestedPackages) do {
+    val subFiles = for (pkg <- nestedPackages) yield {
       val file = os.sub / pkg.dir / "package.mill.yaml"
       println(s"writing $file")
-      os.write(os.pwd / file, renderYamlPackage(pkg, None, None, Nil))
+      os.write(baseDir / file, renderYamlPackage(pkg, None, None, Nil))
+      file
     }
+
+    (baseFile.toSeq ++ subFiles).map(baseDir / _)
   }
 
   private def renderBaseModule(module: ModuleSpec): String = {

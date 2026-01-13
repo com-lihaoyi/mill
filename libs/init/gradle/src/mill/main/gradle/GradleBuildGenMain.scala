@@ -24,9 +24,13 @@ object GradleBuildGenMain {
       @mainargs.arg(doc = "disable generating meta-build files")
       noMeta: mainargs.Flag,
       @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
-      millJvmId: Option[String]
+      millJvmId: Option[String],
+      @mainargs.arg(doc = "Generate declarative (YAML) or programmable (Scala) build files")
+      declarative: Boolean = true
   ): Unit = {
     println("converting Gradle build")
+
+    val buildGen = if (declarative) BuildGenYaml else BuildGenScala
 
     val exportPluginJar = Using.resource(
       getClass.getResourceAsStream(exportpluginAssemblyResource)
@@ -62,7 +66,7 @@ object GradleBuildGenMain {
 
     val (baseModule, packages0) =
       if (noMeta.value) (None, packages)
-      else BuildGen.withBaseModule(
+      else buildGen.withBaseModule(
         packages,
         Seq("MavenModule"),
         Seq("MavenTests")
@@ -74,7 +78,14 @@ object GradleBuildGenMain {
       val prop = properties.getProperty("org.gradle.jvmargs")
       if (prop == null) Nil else prop.trim.split("\\s").toSeq
     }
-    BuildGenYaml.writeBuildFiles(packages0, merge.value, baseModule, millJvmId, millJvmOpts)
+    buildGen.writeBuildFiles(
+      baseDir = os.pwd,
+      packages = packages0,
+      merge = merge.value,
+      baseModule = baseModule,
+      millJvmVersion = millJvmId,
+      millJvmOpts = millJvmOpts
+    )
   }
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {
