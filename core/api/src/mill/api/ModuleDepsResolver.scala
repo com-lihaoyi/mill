@@ -24,15 +24,6 @@ object ModuleDepsResolver {
     implicit val rw: upickle.default.ReadWriter[ModuleDepsConfig] = upickle.default.macroRW
   }
 
-  /**
-   * Resolves module deps from classpath configuration at runtime.
-   *
-   * @param rootModule The root module to use for resolving paths
-   * @param modulePath The path of the module requesting resolution (e.g., "sub", "foo.bar")
-   * @param fieldName The name of the field being resolved (e.g., "moduleDeps", "compileModuleDeps")
-   * @param default The default module deps (from super.moduleDeps)
-   * @return The resolved modules, either replacing or appending to default
-   */
   def resolveModuleDeps[T <: Module](
       rootModule: Module,
       modulePath: String,
@@ -66,9 +57,6 @@ object ModuleDepsResolver {
           val segmentsToModules = rootModule.moduleInternal.segmentsToModules
 
           val resolved = deps.flatMap { depString =>
-            // Convert path string to Segments
-            // "build" -> empty segments (root module)
-            // "foo.bar" -> Segments(Label("foo"), Label("bar"))
             val segments =
               if (depString == "build") Segments()
               else Segments.labels(depString.split('.').toIndexedSeq*)
