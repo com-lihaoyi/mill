@@ -82,13 +82,17 @@
       "target": {
         "uri": "file:///workspace/mill-build"
       },
-      "resources": []
+      "resources": [
+        "file:///workspace/.bsp/out/mill-build/generatedScriptSources.dest/resources"
+      ]
     },
     {
       "target": {
         "uri": "file:///workspace/mill-build/mill-build"
       },
-      "resources": []
+      "resources": [
+        "file:///workspace/.bsp/out/mill-build/mill-build/generatedScriptSources.dest/resources"
+      ]
     },
     {
       "target": {

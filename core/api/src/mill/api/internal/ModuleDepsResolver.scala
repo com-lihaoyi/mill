@@ -1,6 +1,6 @@
 package mill.api.internal
 
-import mill.api.{Module, Result, Segments}
+import mill.api.{Module, Result, Segment, Segments}
 import mill.api.daemon.internal.internal
 
 import scala.quoted.*
@@ -75,8 +75,13 @@ import scala.reflect.ClassTag
    * Handles both dot notation (qux.1) and bracket notation (qux[1]).
    */
   private def parseModuleRef(depString: String): Result[Segments] = {
-    val normalized = if (depString.startsWith("build.")) depString.drop(6) else depString
-    ParseArgs.extractSegments(normalized).map { case (_, segments) => segments }
+    ParseArgs.extractSegments(depString).map { case (_, segments) =>
+      // Strip leading "build" segment if present
+      segments.value match {
+        case Segment.Label("build") +: rest => Segments(rest)
+        case _ => segments
+      }
+    }
   }
 
   def resolveModuleDeps[T <: Module](
