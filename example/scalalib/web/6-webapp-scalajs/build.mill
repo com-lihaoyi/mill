@@ -29,7 +29,7 @@ object `package` extends ScalaModule {
 
   object client extends ScalaJSModule {
     def scalaVersion = "3.8.0"
-    def scalaJSVersion = "1.19.0"
+    def scalaJSVersion = "1.20.2"
     def mvnDeps = Seq(mvn"org.scala-js::scalajs-dom::2.2.0")
   }
 }
@@ -57,7 +57,7 @@ object `package` extends ScalaModule {
 ...
 
 > curl http://localhost:${PORT:-8080}/static/main.js
-..."org.scalajs.linker.runtime.RuntimeLong"...
+..."org.scalajs.linker.runtime.RuntimeLong$"...
 ...
 
 > ./mill clean runBackground
