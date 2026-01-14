@@ -33,8 +33,13 @@ case class Execution(
     offline: Boolean,
     useFileLocks: Boolean,
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    depth: Int,
+    isFinalDepth: Boolean
 ) extends GroupExecution with AutoCloseable {
+
+  // Track nesting depth of executeTasks calls to only show final status on outermost call
+  private val executionNestingDepth = new AtomicInteger(0)
 
   // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(
@@ -56,7 +61,9 @@ case class Execution(
       offline: Boolean,
       useFileLocks: Boolean,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
-      enableTicker: Boolean
+      enableTicker: Boolean,
+      depth: Int,
+      isFinalDepth: Boolean
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -77,7 +84,9 @@ case class Execution(
     offline = offline,
     useFileLocks = useFileLocks,
     staticBuildOverrideFiles = staticBuildOverrideFiles,
-    enableTicker = enableTicker
+    enableTicker = enableTicker,
+    depth = depth,
+    isFinalDepth = isFinalDepth
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -95,9 +104,13 @@ case class Execution(
       serialCommandExec: Boolean = false
   ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
-
-    PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
-      execute0(goals, logger, reporter, testReporter, serialCommandExec)
+    executionNestingDepth.incrementAndGet()
+    try {
+      PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
+        execute0(goals, logger, reporter, testReporter, serialCommandExec)
+      }
+    } finally {
+      executionNestingDepth.decrementAndGet()
     }
   }
 
@@ -153,7 +166,7 @@ case class Execution(
           indexToTerminal.size.toString.length,
           '0'
         )
-        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed)}"
+        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
       val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
@@ -317,8 +330,13 @@ case class Execution(
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
-      // Set final header showing SUCCESS/FAILED status
-      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = true))
+      // Set final header showing SUCCESS/FAILED status:
+      // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
+      // - SUCCESS: only show for the final requested depth (depth 0 normally, or --meta-level if specified)
+      val isOutermostExecution = executionNestingDepth.get() == 1
+      val hasFailures = rootFailedCount.get() > 0
+      val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
+      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
 
       logger.prompt.clearPromptStatuses()
 
@@ -372,12 +390,17 @@ object Execution {
    * When completed: returns ", N FAILED" if count > 0, otherwise ", SUCCESS"
    * When in-progress: returns ", N failing" if count > 0, otherwise an empty string.
    */
-  def formatFailedCount(failures: Int, completed: Boolean): String = {
-    (completed, failures) match{
+  def formatFailedCount(
+      failures: Int,
+      completed: Boolean,
+      errorColor: String => String,
+      successColor: String => String
+  ): String = {
+    (completed, failures) match {
       case (false, 0) => ""
-      case (false, n) => ", " + fansi.Color.Red(s"$failures failing")
-      case (true, 0) => ", " + fansi.Color.Green("SUCCESS")
-      case (true, n) =>  ", " + fansi.Color.Red(s"$failures FAILED")
+      case (false, _) => ", " + errorColor(s"$failures failing")
+      case (true, 0) => ", " + successColor("SUCCESS")
+      case (true, _) => ", " + errorColor(s"$failures FAILED")
     }
   }
 

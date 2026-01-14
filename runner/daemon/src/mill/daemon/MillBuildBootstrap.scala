@@ -271,6 +271,7 @@ class MillBuildBootstrap(
                   .map(_.hashCode())
                   .getOrElse(0),
                 depth = depth,
+                isFinalDepth = depth == requestedDepth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
                 staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
@@ -469,6 +470,7 @@ object MillBuildBootstrap {
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
       depth: Int,
+      isFinalDepth: Boolean,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String]
@@ -512,7 +514,9 @@ object MillBuildBootstrap {
           offline,
           useFileLocks,
           staticBuildOverrideFiles,
-          enableTicker
+          enableTicker,
+          depth,
+          isFinalDepth
         )
       ).asInstanceOf[EvaluatorApi]
 

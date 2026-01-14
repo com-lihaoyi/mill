@@ -119,7 +119,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       import tester.*
       modifyFile(workspacePath / "build.mill", _ + "?")
 
-      val res2 = eval(("--ticker", "true", "--keep-going", "jar"), propagateEnv = false)
+      val res2 = eval(("--ticker", "true", "--color=false", "--keep-going", "jar"), propagateEnv = false)
       res2.isSuccess ==> false
 
       assertGoldenLiteral(
@@ -199,7 +199,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       import tester.*
 
       val res = eval(
-        ("--ticker", "true", "{broken1,broken2}.compile"),
+        ("--ticker", "true", "--color=false", "{broken1,broken2}.compile"),
         mergeErrIntoOut = true,
         propagateEnv = false
       )

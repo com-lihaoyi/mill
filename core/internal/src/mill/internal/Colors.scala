@@ -1,7 +1,7 @@
 package mill.internal
 
-case class Colors(info: fansi.Attrs, warn: fansi.Attrs, error: fansi.Attrs)
+case class Colors(info: fansi.Attrs, warn: fansi.Attrs, error: fansi.Attrs, success: fansi.Attrs)
 object Colors {
-  object Default extends Colors(fansi.Color.Blue, fansi.Color.Yellow, fansi.Color.Red)
-  object BlackWhite extends Colors(fansi.Attrs.Empty, fansi.Attrs.Empty, fansi.Attrs.Empty)
+  object Default extends Colors(fansi.Color.Blue, fansi.Color.Yellow, fansi.Color.Red, fansi.Color.Green)
+  object BlackWhite extends Colors(fansi.Attrs.Empty, fansi.Attrs.Empty, fansi.Attrs.Empty, fansi.Attrs.Empty)
 }

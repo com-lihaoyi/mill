@@ -33,7 +33,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
     test("ticker") - integrationTest { tester =>
       import tester.*
 
-      val res = eval(("--ticker", "true", "run", "--text", "hello"), propagateEnv = false)
+      val res = eval(("--ticker", "true", "--color=false", "run", "--text", "hello"), propagateEnv = false)
       res.isSuccess ==> true
 
       assertGoldenLiteral(
@@ -59,7 +59,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       import tester.*
 
       val res = eval(
-        ("--ticker", "true", "exclusives.printingC"),
+        ("--ticker", "true", "--color=false", "exclusives.printingC"),
         mergeErrIntoOut = true,
         propagateEnv = false
       )
@@ -109,7 +109,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X) MY INFO LOGS",
           "(B)<digits>](X) [(Y)warn(X)] MY WARN LOGS",
           "(B)<digits>](X) [(R)error(X)] MY ERROR LOGS",
-          ".../..., SUCCESS] <dashes> logging <dashes>"
+          ".../..., (G)SUCCESS(X)] <dashes> logging <dashes>"
         )
       )
       // Make sure the `.log` files on disk contain what we expect
