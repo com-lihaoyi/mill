@@ -17,9 +17,11 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
 
       val res2 = tester.eval("./Foo.java")
       assert(!res2.isSuccess)
-      assert(res2.err.contains("[error] Foo.java:1:5"))
-      assert(res2.err.contains("//| invalid: key"))
-      assert(res2.err.contains("    ^"))
+      res2.assertContainsLines(
+        "[error] Foo.java:1:5",
+        "//| invalid: key",
+        "    ^"
+      )
       assert(res2.err.contains("key \"invalid\" does not override any task"))
 
       tester.modifyFile(
@@ -29,9 +31,11 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
 
       val res3 = tester.eval("./Foo.java")
       assert(!res3.isSuccess)
-      assert(res3.err.contains("[error] Foo.java:1:14"))
-      assert(res3.err.contains("//| mvnDeps: key"))
-      assert(res3.err.contains("             ^"))
+      res3.assertContainsLines(
+        "[error] Foo.java:1:14",
+        "//| mvnDeps: key",
+        "             ^"
+      )
       assert(
         res3.err.contains("Failed de-serializing config override: expected sequence got string")
       )
@@ -48,9 +52,11 @@ object ScriptHeaderChanges extends UtestIntegrationTestSuite {
 
       val res5 = tester.eval("./Foo.java")
       assert(!res5.isSuccess)
-      assert(res5.err.contains("[error] Foo.java:1:14"))
-      assert(res5.err.contains("//| mvnDeps: [key]"))
-      assert(res5.err.contains("             ^"))
+      res5.assertContainsLines(
+        "[error] Foo.java:1:14",
+        "//| mvnDeps: [key]",
+        "             ^"
+      )
       assert(
         res5.err.contains("Failed de-serializing config override: Unable to parse signature: [key]")
       )
