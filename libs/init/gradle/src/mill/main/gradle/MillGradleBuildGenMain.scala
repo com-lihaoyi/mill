@@ -11,7 +11,7 @@ import java.util.Properties
 import java.util.concurrent.TimeUnit
 import scala.util.Using
 
-object GradleBuildGenMain {
+object MillGradleBuildGenMain {
 
   def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 

@@ -2,7 +2,7 @@ package mill.javalib.testrunner
 
 import mill.api.daemon.internal.internal
 
-@internal object DiscoverJunit5TestsMain {
+@internal object DiscoverJunit5Tests {
 
   def apply(args0: mill.javalib.api.internal.ZincOp.DiscoverJunit5Tests): Seq[String] = {
     import args0.*

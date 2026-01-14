@@ -14,7 +14,7 @@ import java.io.{BufferedReader, InputStreamReader, PrintStream}
 import scala.util.Using
 
 /** Entry point for the Zinc worker subprocess. */
-object JvmWorkerMain {
+object MillJvmWorkerMain {
   def main(args: Array[String]): Unit = SystemStreamsUtils.withTopLevelSystemStreamProxy {
     args match {
       case Array(daemonDir, jobsStr, useFileLocksStr) =>

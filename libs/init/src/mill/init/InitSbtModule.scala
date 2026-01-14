@@ -11,5 +11,5 @@ object InitSbtModule extends ExternalModule with BuildGenModule {
     Dep.millProjectModule("mill-libs-init-sbt")
   )
 
-  def buildGenMainClass: T[String] = "mill.main.sbt.SbtBuildGenMain"
+  def buildGenMainClass: T[String] = "mill.main.sbt.MillSbtBuildGenMain"
 }

@@ -6,7 +6,7 @@ import org.apache.maven.model.{Developer as MvnDeveloper, License as MvnLicense,
 
 import scala.jdk.CollectionConverters.*
 
-object MavenBuildGenMain {
+object MillMavenBuildGenMain {
 
   def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 
