@@ -17,6 +17,7 @@ object PromptLoggerTests extends TestSuite {
       infoColor = fansi.Attrs.Empty,
       warnColor = fansi.Attrs.Empty,
       errorColor = fansi.Attrs.Empty,
+      successColor = fansi.Attrs.Empty,
       systemStreams0 = new SystemStreams(baosOut, baosErr, System.in),
       debugEnabled = false,
       titleText = "TITLE",

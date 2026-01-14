@@ -102,6 +102,8 @@ class MultiLogger(
       logger1.prompt.warnColor(logger2.prompt.warnColor(s))
     override def errorColor(s: String): String =
       logger1.prompt.errorColor(logger2.prompt.errorColor(s))
+    override def successColor(s: String): String =
+      logger1.prompt.successColor(logger2.prompt.successColor(s))
     override def colored: Boolean = logger1.prompt.colored || logger2.prompt.colored
 
     override def beginChromeProfileEntry(text: String): Unit = {

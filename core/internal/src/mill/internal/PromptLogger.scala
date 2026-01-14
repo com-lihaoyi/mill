@@ -22,6 +22,7 @@ class PromptLogger(
     infoColor: fansi.Attrs,
     warnColor: fansi.Attrs,
     errorColor: fansi.Attrs,
+    successColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     debugEnabled: Boolean,
     titleText: String,
@@ -284,6 +285,7 @@ class PromptLogger(
     def infoColor(s: String): String = PromptLogger.this.infoColor(s).render
     def warnColor(s: String): String = PromptLogger.this.warnColor(s).render
     def errorColor(s: String): String = PromptLogger.this.errorColor(s).render
+    def successColor(s: String): String = PromptLogger.this.successColor(s).render
     def colored: Boolean = PromptLogger.this.colored
   }
   def ticker(s: String): Unit = ()

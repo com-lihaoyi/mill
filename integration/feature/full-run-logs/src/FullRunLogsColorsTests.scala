@@ -164,7 +164,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) ",
             "(B)<digits>](X) Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took .../... sec",
             "(B)<digits>](X) (B)Test run (X)foo.(Y)FooTest(B) finished: 0 failed, 0 ignored, 1 total, .../...s(X)",
-            ".../..., completed] <dashes> test <dashes>"
+            ".../..., (G)SUCCESS(X)] <dashes> test <dashes>"
           )
         )
       }
@@ -312,7 +312,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_59(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_60(X)",
             "(B)<digits>](X) ",
-            ".../..., completed] <dashes> test.printColors <dashes>"
+            ".../..., (G)SUCCESS(X)] <dashes> test.printColors <dashes>"
           )
         )
       }

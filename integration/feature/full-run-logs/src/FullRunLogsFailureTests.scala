@@ -53,7 +53,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] three errors found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 failed(X), completed] <dashes> jar <dashes>",
+          ".../..., (R)1 FAILED(X)] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
         )
       )
@@ -85,7 +85,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X)   location: package java.lang",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 failed(X), completed] <dashes> jar <dashes>",
+          ".../..., (R)1 FAILED(X)] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile javac returned non-zero exit code"
         )
       )
@@ -110,7 +110,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] one error found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 failed(X), completed] <dashes> jar <dashes>",
+          ".../..., (R)1 FAILED(X)] <dashes> jar <dashes>",
           "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
         )
       )
@@ -119,7 +119,8 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       import tester.*
       modifyFile(workspacePath / "build.mill", _ + "?")
 
-      val res2 = eval(("--ticker", "true", "--keep-going", "jar"), propagateEnv = false)
+      val res2 =
+        eval(("--ticker", "true", "--color=false", "--keep-going", "jar"), propagateEnv = false)
       res2.isSuccess ==> false
 
       assertGoldenLiteral(
@@ -134,7 +135,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "build.mill-<digits>] ",
           "build.mill-<digits>] [error] one error found",
           "build.mill-<digits>] [error] compile task failed",
-          ".../..., 1 failed, completed] <dashes> jar <dashes>",
+          ".../..., 1 FAILED] <dashes> jar <dashes>",
           "build.mill-<digits>] [error] compile Compilation failed"
         )
       )
@@ -178,7 +179,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<dashes> exception <dashes>",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
-          ".../..., (R)1 failed(X), completed] <dashes> exception <dashes>",
+          ".../..., (R)1 FAILED(X)] <dashes> exception <dashes>",
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
@@ -199,7 +200,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       import tester.*
 
       val res = eval(
-        ("--ticker", "true", "{broken1,broken2}.compile"),
+        ("--ticker", "true", "--color=false", "{broken1,broken2}.compile"),
         mergeErrIntoOut = true,
         propagateEnv = false
       )
@@ -228,7 +229,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "<digits>] ",
           "<digits>] class, interface, enum, or record expected",
           "<digits>] ",
-          ".../..., 2 failed, completed] <dashes> {brokenN,brokenN}.compile <dashes>",
+          ".../..., 2 FAILED] <dashes> {brokenN,brokenN}.compile <dashes>",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code",
           "<digits>] [error] brokenN.compile javac returned non-zero exit code"
         )
