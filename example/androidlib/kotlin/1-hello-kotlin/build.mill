@@ -132,7 +132,7 @@ object app extends AndroidAppKotlinModule {
 ...emulator-...device...
 
 > ./mill show app.androidInstall
- ...All files should be loaded. Notifying the device...
+...All files should be loaded. Notifying the device...
 
 */
 
@@ -184,24 +184,22 @@ object app extends AndroidAppKotlinModule {
 /** Usage
 
 > ./mill show app.it -e package com.helloworld.logictest
-
+..."status": "Success"...
 */
 
 // To run a specific class:
 /** Usage
 > ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest
-*/
-
-// To run a specific method:
-/** Usage
-> ./mill show app.it -e class "com.helloworld.app.ExampleInstrumentedTest#useAppContext"
+..."status": "Success"...
 */
 
 // You can combine multiple `-e` options as needed.
 /** Usage
 
-> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest \
- -e package com.helloworld.app
+> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest -e package com.helloworld.app
+..."status": "Success"...
+..."status": "Success"...
+..."status": "Success"...
 
 */
 

@@ -141,7 +141,6 @@ object app extends AndroidAppModule {
 /** Usage
 
 > ./mill show app.it
-
 ...
 {
   "msg": "",
@@ -183,24 +182,24 @@ object app extends AndroidAppModule {
 /** Usage
 
 > ./mill show app.it -e package com.helloworld.logictest
+..."status": "Success"...
 
 */
 
 // To run a specific class:
 /** Usage
 > ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest
-*/
+..."status": "Success"...
 
-// To run a specific method:
-/** Usage
-> ./mill show app.it -e class "com.helloworld.app.ExampleInstrumentedTest#useAppContext"
 */
 
 // You can combine multiple `-e` options as needed.
 /** Usage
 
-> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.AnotherLogicInstrumentedTest \
-  -e package com.helloworld.app
+> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.AnotherLogicInstrumentedTest -e package com.helloworld.app
+..."status": "Success"...
+..."status": "Success"...
+..."status": "Success"...
 
 */
 
