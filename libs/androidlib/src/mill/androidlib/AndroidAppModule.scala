@@ -645,7 +645,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val bootMessage: Option[String] = startEmuCmd.stdout.buffered.lines().filter(l => {
       Task.log.debug(l.trim())
-      l.contains("Boot completed in")
+      l.contains("Boot completed in") || l.contains("Successfully loaded snapshot")
     }).findFirst().toScala
 
     if (bootMessage.isEmpty) {
@@ -666,7 +666,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Stops the android emulator
    */
-  def stopAndroidEmulator: T[String] = Task {
+  def stopAndroidEmulator(): Command[String] = Task.Command {
     val emulator = runningEmulator()
     os.call(
       (androidSdkModule().adbExe().path, "-s", emulator, "emu", "kill")
