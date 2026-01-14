@@ -42,6 +42,10 @@ overhead giving the 5x speedup.
 To get a feel for this difference, play recording below to see Mill (Left) and
 Maven (Right) running side by side.
 
+:cast-file: ../_images/basic/MillMavenComparison.cast
+
+* _Mill vs Maven_
++
 include::partial$Asciinema_Comparison.adoc[]
 
 The second benchmark worth noting is *Incremental Compile Single Module*.
