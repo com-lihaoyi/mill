@@ -236,6 +236,19 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
    */
   def nativeServiceProviders: T[Map[String, Seq[String]]] = Task { Map.empty[String, Seq[String]] }
 
+  /**
+   * Shall toolchain enable mechanism for generation for source level debugging
+   *  metadata.
+   */
+  def nativeSourceLevelDebuggingConfig: T[SourceLevelDebuggingConfig] =
+    Task { SourceLevelDebuggingConfig.Disabled }
+
+  /**
+   * Create a new config with given base artifact name.
+   */
+  def nativeBaseName: T[String] =
+    Task { "out" }
+
   private def nativeConfig(mainClass: Option[String]): Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
     withScalaNativeBridge.apply().apply(_.config(
@@ -258,7 +271,9 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       nativeMultithreading(),
       nativeServiceProviders(),
       toWorkerApi(logLevel()),
-      toWorkerApi(nativeBuildTarget())
+      toWorkerApi(nativeBuildTarget()),
+      toWorkerApi(nativeSourceLevelDebuggingConfig()),
+      nativeBaseName()
     )) match {
       case Right(config) => Result.Success(NativeConfig(config))
       case Left(error) => Result.Failure(error)
@@ -279,6 +294,21 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
       case api.BuildTarget.Application => workerApi.BuildTarget.Application
       case api.BuildTarget.LibraryDynamic => workerApi.BuildTarget.LibraryDynamic
       case api.BuildTarget.LibraryStatic => workerApi.BuildTarget.LibraryStatic
+    }
+
+  private[scalanativelib] def toWorkerApi(
+      sourceLevelDebuggingConfig: api.SourceLevelDebuggingConfig
+  ): workerApi.SourceLevelDebuggingConfig =
+    sourceLevelDebuggingConfig match {
+      case enabled: api.SourceLevelDebuggingConfig.Enabled =>
+        workerApi.SourceLevelDebuggingConfig(
+          enabled = true,
+          generateFunctionSourcePositions = enabled.generateFunctionSourcePositions,
+          generateLocalVariables = enabled.generateLocalVariables,
+          customSourceRoots = enabled.customSourceRoots.map(_.toNIO)
+        )
+      case api.SourceLevelDebuggingConfig.Disabled =>
+        workerApi.SourceLevelDebuggingConfig(false, false, false, Nil)
     }
 
   // Generates native binary

@@ -8,11 +8,11 @@ import mill.*, scalalib.*
 import mill.api.ModuleRef
 
 object foo extends ScalaModule {
-  def scalaVersion = "3.7.1"
+  def scalaVersion = "3.8.0"
 
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
-    mvn"com.lihaoyi::mainargs:0.7.6"
+    mvn"com.lihaoyi::mainargs:0.7.8"
   )
 
   def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
@@ -50,7 +50,7 @@ object foo extends ScalaModule {
 // To add custom resolvers to the initial bootstrap of the build, you can create a
 // custom `JvmWorkerModule` (named after the https://github.com/sbt/zinc[Zinc Incremental compiler]
 // used to compile the `build.mill` files) and override the `jvmWorker` method in your
-// `ScalaModule` by pointing it to that custom object:
+// `Module` by pointing it to that custom object:
 
 //// SNIPPET:BUILD2
 
@@ -59,7 +59,7 @@ object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "3.7.1"
+  def scalaVersion = "3.8.0"
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 

@@ -2,12 +2,12 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object VersionChangeTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("simple") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val javaVersion1 = eval(("show", "javaVersion"))
       assert(!javaVersion1.out.contains("19.0.2"))
 

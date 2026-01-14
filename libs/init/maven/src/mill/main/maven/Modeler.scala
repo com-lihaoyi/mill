@@ -1,67 +1,72 @@
 package mill.main.maven
 
-import mill.api.daemon.internal.internal
-import org.apache.maven.model.Model
-import org.apache.maven.model.building.{
-  DefaultModelBuilderFactory,
-  DefaultModelBuildingRequest,
-  ModelBuilder
-}
+import org.apache.maven.model.building.*
 import org.apache.maven.model.resolution.ModelResolver
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
-import org.eclipse.aether.DefaultRepositoryCache
 import org.eclipse.aether.repository.{LocalRepository, RemoteRepository}
 import org.eclipse.aether.supplier.RepositorySystemSupplier
 
 import java.io.File
 import java.util.Properties
+import scala.jdk.CollectionConverters.*
 
-/**
- * Builds a [[Model]].
- *
- * The implementation is inspired by [[https://github.com/sbt/sbt-pom-reader/ sbt-pom-reader]].
- */
-@internal
 class Modeler(
-    config: ModelerConfig,
+    mvnWorkspace: os.Path,
     builder: ModelBuilder,
     resolver: ModelResolver,
     systemProperties: Properties
 ) {
 
-  /** Builds and returns the effective [[Model]] from `pomDir / "pom.xml"`. */
-  def apply(pomDir: os.Path): Model =
-    build((pomDir / "pom.xml").toIO)
+  /** Returns the [[ModelBuildingResult]] for all projects in `workspace`. */
+  def buildAll(): Seq[ModelBuildingResult] = {
+    def recurse(dir: os.Path): Seq[ModelBuildingResult] = {
+      val result = build((dir / "pom.xml").toIO)
+      val subResults = result.getEffectiveModel.getModules.asScala.flatMap(rel =>
+        recurse(dir / os.RelPath(rel))
+      ).toSeq
+      result +: subResults
+    }
+    recurse(mvnWorkspace)
+  }
 
-  /** Builds and returns the effective [[Model]] from `pomFile`. */
-  def build(pomFile: File): Model = {
+  /** Returns the [[ModelBuildingResult]] for `pomFile`. */
+  def build(pomFile: File): ModelBuildingResult = {
     val request = new DefaultModelBuildingRequest()
     request.setPomFile(pomFile)
-    request.setModelResolver(resolver.newCopy())
+    request.setModelResolver(resolver)
     request.setSystemProperties(systemProperties)
-    request.setProcessPlugins(config.processPlugins.value)
-
-    val result = builder.build(request)
-    result.getEffectiveModel
+    request.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL)
+    request.setTwoPhaseBuilding(true)
+    try {
+      val result1 = builder.build(request)
+      val depMgmt1 = Option(result1.getEffectiveModel.getDependencyManagement).map(_.clone)
+      val result2 = builder.build(request, result1)
+      // Restore dep mgmt from Phase 1 since Phase 2 substitutes BOM deps with their components.
+      depMgmt1.foreach(result2.getEffectiveModel.setDependencyManagement)
+      result2
+    } catch {
+      case e: ModelBuildingException =>
+        e.getProblems.asScala.foreach(problem => println(s"ignoring $problem"))
+        e.getResult
+    }
   }
 }
-@internal
 object Modeler {
 
   def apply(
-      config: ModelerConfig,
+      mvnWorkspace: os.Path,
       local: LocalRepository = defaultLocalRepository,
       remotes: Seq[RemoteRepository] = defaultRemoteRepositories,
       context: String = "",
-      systemProperties: Properties = defaultSystemProperties
+      systemProperties: Properties = null
   ): Modeler = {
     val builder = new DefaultModelBuilderFactory().newInstance()
     val system = new RepositorySystemSupplier().get()
     val session = MavenRepositorySystemUtils.newSession()
     session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, local))
-    if (config.cacheRepository.value) session.setCache(new DefaultRepositoryCache)
     val resolver = new Resolver(system, session, remotes, context)
-    new Modeler(config, builder, resolver, systemProperties)
+    val properties = Option(systemProperties).getOrElse(defaultSystemProperties(mvnWorkspace))
+    new Modeler(mvnWorkspace, builder, resolver, properties)
   }
 
   def defaultLocalRepository: LocalRepository =
@@ -73,16 +78,11 @@ object Modeler {
         .build()
     )
 
-  def defaultSystemProperties: Properties = {
+  def defaultSystemProperties(mvnWorkspace: os.Path): Properties = {
     val props = new Properties()
-    sys.env.foreachEntry((k, v) => props.put(s"env.$k", v))
-    sys.props.foreachEntry(props.put)
+    System.getenv().forEach((k, v) => props.put(s"env.$k", v))
+    System.getProperties.forEach((k, v) => props.put(k, v))
+    props.put("maven.multiModuleProjectDirectory", os.pwd.toString)
     props
   }
-}
-
-@internal
-trait ModelerConfig {
-  def cacheRepository: mainargs.Flag
-  def processPlugins: mainargs.Flag
 }

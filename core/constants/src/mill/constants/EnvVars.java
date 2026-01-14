@@ -23,9 +23,15 @@ public class EnvVars {
 
   /**
    * Output directory where Mill workers' state and Mill tasks output should be
-   * written to
+   * written to.
    */
   public static final String MILL_OUTPUT_DIR = "MILL_OUTPUT_DIR";
+
+  /**
+   * Output directory where Mill workers' state and Mill tasks output should be
+   * written to in BSP server mode.
+   */
+  public static final String MILL_BSP_OUTPUT_DIR = "MILL_BSP_OUTPUT_DIR";
 
   /**
    * If set to "1", Mill will re-use the regular @{Link OutFiles#out} folder instead of
@@ -53,4 +59,10 @@ public class EnvVars {
    * The path to the currently executing Mill launcher executable
    */
   public static final String MILL_EXECUTABLE_PATH = "MILL_EXECUTABLE_PATH";
+
+  /**
+   * Env var used to enable certain compile-time checks only in the actual Mill process,
+   * so that they don't cause false positives in IDEs like IntelliJ.
+   */
+  public static final String MILL_ENABLE_STATIC_CHECKS = "MILL_ENABLE_STATIC_CHECKS";
 }

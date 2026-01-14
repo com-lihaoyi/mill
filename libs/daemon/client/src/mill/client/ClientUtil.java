@@ -7,16 +7,12 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class ClientUtil {
-  // use methods instead of constants to avoid inlining by compiler
-  public static int ExitClientCodeCannotReadFromExitCodeFile() {
-    return 1;
-  }
-
-  public static int ExitServerCodeWhenIdle() {
-    return 0;
-  }
-
-  public static int ExitServerCodeWhenVersionMismatch() {
+  /**
+   * Exit code indicating the server shut down and the client should retry.
+   * This can happen due to version mismatch or when the server is terminated
+   * while the client is waiting.
+   */
+  public static int ServerExitPleaseRetry() {
     return 101;
   }
 

@@ -1,0 +1,44 @@
+// `testParallelism` respects `testForkGrouping`, allowing you to use both features in a test module.
+
+//// SNIPPET:BUILD1
+package build
+import mill.*, scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "3.8.0"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
+
+    // Group tests by GroupX and GroupY
+    def testForkGrouping =
+      discoveredTestClasses().groupMapReduce(_.contains("GroupX"))(Seq(_))(_ ++ _).toSeq.sortBy(
+        data => !data._1
+      ).map(_._2)
+    def testParallelism = true
+  }
+}
+
+//// SNIPPET:END
+
+/** Usage
+
+> ./mill --jobs 2 foo.test
+
+> find out/foo/test/testForked.dest
+...
+out/foo/test/testForked.dest/group-0-foo.GroupX1/worker-...
+out/foo/test/testForked.dest/group-0-foo.GroupX1/test-classes
+out/foo/test/testForked.dest/group-1-foo.GroupY1/worker-...
+out/foo/test/testForked.dest/group-1-foo.GroupY1/test-classes
+out/foo/test/testForked.dest/test-report.xml
+...
+
+*/
+
+// This example sets `testForkGrouping` to group test classes into two categories: `GroupX` and `GroupY`.
+// Additionally, `testParallelism` is enabled.
+// Mill ensures each subprocess exclusively claims and runs tests from either `GroupX` or `GroupY`, preventing them from mixing.
+// Test classes from `GroupX` and `GroupY` will never share the same test runner.
+//
+// This is useful when you have incompatible tests that cannot run within the same JVM.
+// Test Grouping combined with Test Parallel Scheduler maintains their isolation while maximizing performance through parallel test execution.

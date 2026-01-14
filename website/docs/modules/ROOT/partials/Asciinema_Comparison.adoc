@@ -1,0 +1,20 @@
+[subs=attributes]
+++++
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.css" />
+<script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.min.js"></script>
+<style>
+/* hack to make the stuff fit within the text body */
+.ap-terminal {
+  transform: scale(0.53);
+  transform-origin: top left;
+}
+</style>
+<div id="mill-maven-comparison"></div>
+<script>
+var player = AsciinemaPlayer.create(
+    '{cast-file}',
+    document.getElementById('mill-maven-comparison'),
+    {startAt: 12, markers: [12], pauseOnMarkers: true, poster: "npt:00:12"}
+);
+</script>
+++++

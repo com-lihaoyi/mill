@@ -10,7 +10,7 @@ import mill.api.Task
 import mill.util.TokenReaders.given
 
 object OfflineSupport extends ExternalModule {
-  override protected def millDiscover: Discover = Discover[this.type]
+  override def millDiscover: Discover = Discover[this.type]
 
   /**
    * Prepare the project for working offline.

@@ -2,7 +2,7 @@ package foo
 
 import scala.scalanative.libc.*
 import scala.scalanative.unsafe.*
-import mainargs.{main, ParserForMethods, arg}
+import mainargs.{main, Parser, arg}
 
 object Foo {
   @main
@@ -24,7 +24,7 @@ object Foo {
       )
     }
 
-  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
+  def main(args: Array[String]): Unit = Parser(this).runOrExit(args)
 }
 
 @extern

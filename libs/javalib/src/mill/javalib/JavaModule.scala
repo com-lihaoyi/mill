@@ -7,7 +7,17 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{MillException, Result}
+import mill.api.{
+  BuildCtx,
+  DefaultTaskModule,
+  MillException,
+  ModuleRef,
+  PathRef,
+  Result,
+  Segment,
+  Task,
+  TaskCtx
+}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
 import mill.api.daemon.internal.bsp.{
   BspBuildTarget,
@@ -19,15 +29,15 @@ import mill.api.daemon.internal.bsp.{
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
-import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
-import mill.util.{JarManifest, Jvm}
+import mill.util.{JarManifest, JdkCommandsModule, Jvm}
 import os.Path
 
+import java.io.File
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
@@ -46,7 +56,10 @@ trait JavaModule
     with BspModule
     with SemanticDbJavaModule
     with AssemblyModule
+    with JdkCommandsModule
     with JavaModuleApi { outer =>
+
+  override def jdkCommandsJavaHome: Task[Option[PathRef]] = Task.Anon { javaHome() }
 
   private[mill] lazy val bspExt: ModuleRef[mill.javalib.bsp.BspJavaModule] = {
     ModuleRef(new BspJavaModule.Wrap(this) {}.internalBspJavaModule)
@@ -69,6 +82,7 @@ trait JavaModule
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
 
+  // Keep in sync with JavaModule.JavaTests0, duplicated due to binary compatibility concerns
   trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
     hierarchyChecks()
@@ -79,14 +93,19 @@ trait JavaModule
       outer.repositoriesTask()
     }
 
+    override def enableBsp: Boolean = outer.enableBsp
+
     override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
       outer.resolutionCustomizer
 
+    override def annotationProcessorsJavacOptions: T[Seq[String]] =
+      outer.annotationProcessorsJavacOptions()
     override def javacOptions = outer.javacOptions()
     override def jvmWorker = outer.jvmWorker
 
     def jvmId = outer.jvmId
 
+    def jvmVersion = outer.jvmVersion
     def jvmIndexVersion = outer.jvmIndexVersion
 
     /**
@@ -256,6 +275,40 @@ trait JavaModule
    * here if you'd like fancy artifact extensions to be fetched.
    */
   def artifactTypes: T[Set[Type]] = Task { coursier.core.Resolution.defaultTypes }
+
+  /**
+   * The Java annotation processors to pass to the Java compilation in the form of
+   * mvn deps, e.g. mvn"org.projectlombok:lombok:1.18.34"
+   */
+  def annotationProcessorsMvnDeps: T[Seq[Dep]] = Task {
+    Seq.empty[Dep]
+  }
+
+  /**
+   * Resolves the Java annotation processor mvn deps [[annotationProcessorsMvnDeps]].
+   * By default, it passes the BOMs via [[allBomDeps]] to the resolution.
+   */
+  def annotationProcessorsResolvedMvnDeps: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      annotationProcessorsMvnDeps(),
+      boms = allBomDeps()
+    )
+  }
+
+  /**
+   * Constructs the -processorpath compiler flag using [[annotationProcessorsResolvedMvnDeps]]
+   */
+  def annotationProcessorsJavacOptions: T[Seq[String]] = Task {
+    if (annotationProcessorsMvnDeps().nonEmpty)
+      Seq(
+        "-processorpath",
+        annotationProcessorsResolvedMvnDeps()
+          .map(_.path).mkString(File.pathSeparator)
+      )
+    else
+      Seq.empty
+
+  }
 
   /**
    * Options to pass to the java compiler
@@ -463,7 +516,7 @@ trait JavaModule
     cs.Dependency(
       cs.Module(
         JavaModule.internalOrg,
-        coursier.core.ModuleName(moduleSegments.parts.mkString("-")),
+        coursier.core.ModuleName(moduleSegments.parts.mkString("-").replace('/', '-')),
         Map.empty
       ),
       JavaModule.internalVersion
@@ -833,9 +886,12 @@ trait JavaModule
     ).equalsIgnoreCase("true")
   }
 
-  def zincIncrementalCompilation: T[Boolean] = Task {
-    true
-  }
+  /**
+   * Whether to turn on zinc incremental compilation or not, as it can speed things up
+   * by skipping some source files but also adds some performance overhead. Defaults
+   * to turning it on if there is more than one source file being compiled
+   */
+  def zincIncrementalCompilation: T[Boolean] = Task { allSourceFiles().length > 1 }
 
   /**
    * Compiles the current module to generate compiled classfiles/bytecode.
@@ -854,26 +910,27 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val jOpts = JavaCompilerOptions(Seq(
+    val jOpts = JavaCompilerOptions.split(Seq(
       "-s",
       compileGenSources.toString
-    ) ++ javacOptions() ++ mandatoryJavacOptions())
+    ) ++ javacOptions() ++ mandatoryJavacOptions() ++ annotationProcessorsJavacOptions())
 
-    jvmWorker()
-      .internalWorker()
-      .compileJava(
-        ZincCompileJava(
-          upstreamCompileOutput = upstreamCompileOutput(),
-          sources = allSourceFiles().map(_.path),
-          compileClasspath = compileClasspath().map(_.path),
-          javacOptions = jOpts.compiler,
-          incrementalCompilation = zincIncrementalCompilation()
-        ),
-        javaHome = javaHome().map(_.path),
-        javaRuntimeOptions = jOpts.runtime,
-        reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems()
-      )
+    val worker = jvmWorker().internalWorker()
+
+    worker.apply(
+      ZincOp.CompileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = allSourceFiles().map(_.path),
+        compileClasspath = compileClasspath().map(_.path),
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = zincIncrementalCompilation(),
+        workDir = Task.dest
+      ),
+      javaHome = javaHome().map(_.path),
+      javaRuntimeOptions = jOpts.runtime,
+      reporter = Task.reporter.apply(hashCode),
+      reportCachedProblems = zincReportCachedProblems()
+    )
   }
 
   /** Resolves paths relative to the `out` folder. */
@@ -1010,10 +1067,7 @@ trait JavaModule
     compileResources() ++ unmanagedClasspath()
   }
 
-  /**
-   * Resolved dependencies
-   */
-  def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+  private def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -1022,7 +1076,8 @@ trait JavaModule
         ),
         BoundDep(coursierDependencyTask(), force = false)
       ),
-      artifactTypes = Some(artifactTypes()),
+      sources = sources,
+      artifactTypes = if (sources) None else Some(artifactTypes()),
       resolutionParamsMapOpt =
         Some { params =>
           params
@@ -1036,6 +1091,34 @@ trait JavaModule
             )
         }
     )
+  }
+
+  /**
+   * Resolved dependencies
+   */
+  def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+    if (resolvedDepsWarnNonPlatform()) {
+      Dep.validatePlatformDeps(platformSuffix(), mvnDeps()).pipe(warn =>
+        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
+      )
+    }
+    resolvedMvnDeps0(sources = false)()
+  }
+
+  /**
+   * Resolved dependency sources, unpacked into a single directory. Useful to quickly
+   * look up the sources of the dependencies on your classpath so you can find the
+   * exact source code you are compiling and running against.
+   */
+  def resolvedMvnSources: T[PathRef] = Task {
+    for (jar <- resolvedMvnDeps0(sources = true)()) {
+      val jarName = jar.path.last.stripSuffix(".jar")
+      os.unzip(jar.path, Task.dest / jarName)
+    }
+    println(
+      s"Unpacked sources of transitive third-party dependencies into ${Task.dest.relativeTo(BuildCtx.workspaceRoot)} for browsing"
+    )
+    PathRef(Task.dest)
   }
 
   override def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
@@ -1054,6 +1137,11 @@ trait JavaModule
   }
 
   def resolvedRunMvnDeps: T[Seq[PathRef]] = Task {
+    if (resolvedDepsWarnNonPlatform()) {
+      Dep.validatePlatformDeps(platformSuffix(), runMvnDeps()).pipe(warn =>
+        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
+      )
+    }
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -1075,6 +1163,14 @@ trait JavaModule
             )
         }
     )
+  }
+
+  /**
+   * If `true`, Mill reports a warning for non-platform dependencies used
+   * in a module with a [[platformSuffix]].
+   */
+  protected def resolvedDepsWarnNonPlatform: T[Boolean] = Task {
+    true
   }
 
   override def runClasspath: T[Seq[PathRef]] = Task {
@@ -1203,6 +1299,32 @@ trait JavaModule
         manifest()
       )
     )
+  }
+
+  /**
+   * Opens up a JShell console with your module and all dependencies present,
+   * for you to test and operate your code interactively.
+   */
+  def jshell(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+    if (!mill.constants.Util.hasConsole()) {
+      Task.fail("jshell needs to be run with the -i/--interactive flag")
+    } else {
+      val classPath = runClasspath()
+        .map(_.path)
+        .filter(_.ext != "pom")
+        .filter(os.exists)
+      val jshellArgs = Seq("--class-path", classPath.mkString(java.io.File.pathSeparator)) ++ args
+
+      val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
+      os.call(
+        cmd = cmd,
+        env = allForkEnv(),
+        cwd = forkWorkingDir(),
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+      ()
+    }
   }
 
   def launcher: T[PathRef] = Task { launcher0() }
@@ -1403,6 +1525,7 @@ trait JavaModule
         super.prepareOffline(all)() ++
           resolvedMvnDeps() ++
           classgraphWorkerModule().prepareOffline(all)() ++
+          // should be in WithJvmWorkerModule, but isn't due to bin-compat
           jvmWorker().prepareOffline(all)() ++
           resolvedRunMvnDeps() ++
           Task.sequence(tasks)().flatten
@@ -1511,6 +1634,56 @@ trait JavaModule
 }
 
 object JavaModule {
+  // Keep in sync with JavaModule#JavaTests, duplicated due to binary compatibility concerns
+  trait JavaTests0 extends JavaModule with TestModule {
+    private val outer: JavaModule = moduleDeps.head
+    // Run some consistence checks
+    hierarchyChecks()
+
+    override def resources = super[JavaModule].resources
+    override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+      outer.repositoriesTask()
+    }
+
+    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
+      outer.resolutionCustomizer
+
+    override def annotationProcessorsJavacOptions: T[Seq[String]] =
+      outer.annotationProcessorsJavacOptions()
+    override def javacOptions = outer.javacOptions()
+    override def jvmWorker = outer.jvmWorker
+
+    def jvmId = outer.jvmId
+    def jvmVersion = outer.jvmVersion
+
+    def jvmIndexVersion = outer.jvmIndexVersion
+
+    /**
+     * Optional custom Java Home for the JvmWorker to use
+     *
+     * If this value is None, then the JvmWorker uses the same Java used to run
+     * the current mill instance.
+     */
+    def javaHome = outer.javaHome
+
+    override def skipIdea = outer.skipIdea
+    override def runUseArgsFile = outer.runUseArgsFile()
+    override def sourcesFolders = outer.sourcesFolders
+
+    override def bomMvnDeps = super.bomMvnDeps() ++ outer.bomMvnDeps()
+
+    override def depManagement = super.depManagement() ++ outer.depManagement()
+
+    /**
+     * JavaModule and its derivatives define inner test modules.
+     * To avoid unexpected misbehavior due to the use of the wrong inner test trait
+     * we apply some hierarchy consistency checks.
+     * If, for some reason, those are too restrictive to you, you can override this method.
+     * @throws MillException
+     */
+    protected def hierarchyChecks(): Unit = JavaModule.hierarchyChecks(outer, this)
+  }
+
   private def hierarchyChecks(outer: JavaModule, self: JavaModule) = {
     val outerInnerSets = Seq(
       ("mill.scalajslib.ScalaJSModule", "ScalaJSTests"),

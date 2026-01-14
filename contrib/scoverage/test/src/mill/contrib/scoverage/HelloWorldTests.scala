@@ -278,12 +278,12 @@ trait FailedWorldTests extends HelloWorldTests {
       val mod = HelloWorld
       test("shouldFail") {
         test("scoverageToolsCp") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(ExecResult.Failure(msg)) =
+          val Left(ExecResult.Failure(msg = msg)) =
             eval.apply(mod.core.scoverageToolsClasspath): @unchecked
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(ExecResult.Failure(msg)) =
+          val Left(ExecResult.Failure(msg = msg)) =
             eval.apply(mod.core.scoverage.xmlReport()): @unchecked
           assert(msg == errorMsg)
         }
@@ -296,11 +296,11 @@ trait FailedWorldTests extends HelloWorldTests {
           val res = eval.apply(mod.core.scoverageToolsClasspath)
           assert(res.isLeft)
           println(s"res: ${res}")
-          val Left(ExecResult.Failure(msg)) = res: @unchecked
+          val Left(ExecResult.Failure(msg = msg)) = res: @unchecked
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
-          val Left(ExecResult.Failure(msg)) =
+          val Left(ExecResult.Failure(msg = msg)) =
             eval.apply(mod.core.scoverage.xmlReport()): @unchecked
           assert(msg == errorMsg)
         }

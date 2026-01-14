@@ -15,7 +15,7 @@ import mill.javalib.publish.{
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 import scala.jdk.CollectionConverters.*
 import scala.xml.NodeSeq
 import mill.javalib.internal
@@ -198,7 +198,7 @@ object PublishModuleTests extends TestSuite {
       test(
         "should throw exception if neither environment variables or direct argument were not passed"
       ) - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
-        val Left(ExecResult.Failure(msg)) =
+        val Left(ExecResult.Failure(msg = msg)) =
           eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds("")): @unchecked
 
         assert(

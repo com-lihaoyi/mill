@@ -654,7 +654,7 @@ tool, but running on the JVM comes with additional advantages:
 
 * *IDE support* (e.g. in IntelliJ and VSCode): your IDE is able to provide autocomplete,
   error-highlighting, and navigation up and down your build graph. This is something impossible
-  in `make` (which runs Bash scripts too dynamic for your IDE to analyze) or config-based tools
+  in `make` (which runs Bash scripts too dynamic for your IDE to analyze) or declarative tools
   like Bazel or Gradle (where the code you write just configures an execution-engine that
   your IDE doesn't understand)
 

@@ -1,29 +1,19 @@
 package mill.javalib
 
 import com.lihaoyi.unroll
-import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
-import mill.*
-import javalib.*
-import mill.api.{ExternalModule, Task}
-import mill.util.Tasks
-import mill.api.DefaultTaskModule
-import mill.api.Result
-import mill.javalib.SonatypeCentralPublishModule.{
-  defaultAwaitTimeout,
-  defaultConnectTimeout,
-  defaultCredentials,
-  defaultReadTimeout,
-  getPublishingTypeFromReleaseFlag,
-  getSonatypeCredentials
-}
-import mill.javalib.publish.Artifact
-import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
-import mill.api.BuildCtx
+import mill.T
+import mill.given
 import mill.api.daemon.Logger
+import mill.api.{BuildCtx, DefaultTaskModule, ExternalModule, Result, Task}
 import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
+import mill.javalib.publish.SonatypeHelpers.CREDENTIALS_ENV_VARIABLE_PREFIX
+import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
+import mill.util.Tasks
 
-trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
+trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
+      PublishCredentialsModule {
+  import SonatypeCentralPublishModule.*
 
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "Mill 1.0.1")
   def sonatypeCentralGpgArgs: T[String] =
@@ -63,7 +53,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
       @unroll docs: Boolean = true
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
-    val credentials = getSonatypeCredentials(username, password)()
+    val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
     val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
     val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
 
@@ -97,8 +87,8 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
 /**
  * External module to publish artifacts to `central.sonatype.org`
  */
-object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModule
-    with MavenWorkerSupport {
+object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, MavenWorkerSupport,
+      PublishCredentialsModule, MavenPublish {
   private final val sonatypeCentralGpgArgsSentinelValue = "<user did not override this method>"
 
   def self = this
@@ -123,11 +113,11 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = "",
       @unroll snapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
-  ): Command[Unit] = Task.Command {
+  ): Task.Command[Unit] = Task.Command {
     val artifacts = Task.sequence(publishArtifacts.value)()
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
-    val credentials = getSonatypeCredentials(username, password)()
+    val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
     def makeGpgArgs() = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
@@ -154,7 +144,7 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
   private def publishAll(
       publishArtifacts: Seq[PublishData],
       bundleName: Option[String],
-      credentials: SonatypeCredentials,
+      credentials: (username: String, password: String),
       publishingType: PublishingType,
       makeGpgArgs: () => GpgArgs,
       readTimeout: Int,
@@ -169,42 +159,22 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
     def publishSnapshot(publishData: PublishData): Unit = {
-      val uri = sonatypeCentralSnapshotUri
-      val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
-        publishData.meta,
-        publishData.payloadAsMap
+      mavenPublishData(
+        dryRun = dryRun,
+        publishData = publishData,
+        isSnapshot = true,
+        credentials = credentials,
+        releaseUri = sonatypeCentralSnapshotUri,
+        snapshotUri = sonatypeCentralSnapshotUri,
+        taskDest = taskDest,
+        log = log,
+        worker = worker
       )
-
-      log.info(
-        s"Detected a 'SNAPSHOT' version for ${publishData.meta}, publishing to Sonatype Central Snapshots at '$uri'"
-      )
-
-      /** Maven uses this as a workspace for file manipulation. */
-      val mavenWorkspace = taskDest / "maven"
-
-      if (dryRun) {
-        val publishTo = taskDest / "repository"
-        val result = worker.publishToLocal(
-          publishTo = publishTo,
-          workspace = mavenWorkspace,
-          artifacts
-        )
-        log.info(s"Dry-run publishing to '$publishTo' finished with result: $result")
-      } else {
-        val result = worker.publishToRemote(
-          uri = uri,
-          workspace = mavenWorkspace,
-          username = credentials.username,
-          password = credentials.password,
-          artifacts
-        )
-        log.info(s"Publishing to '$uri' finished with result: $result")
-      }
     }
 
     def publishReleases(artifacts: Seq[PublishData], gpgArgs: GpgArgs): Unit = {
       val publisher = new SonatypeCentralPublisher(
-        credentials = credentials,
+        credentials = SonatypeCredentials(credentials.username, credentials.password),
         gpgArgs = gpgArgs,
         connectTimeout = connectTimeout,
         readTimeout = readTimeout,
@@ -251,43 +221,9 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
   }
 
   private def getPublishingTypeFromReleaseFlag(shouldRelease: Boolean): PublishingType = {
-    if (shouldRelease) {
-      PublishingType.AUTOMATIC
-    } else {
-      PublishingType.USER_MANAGED
-    }
+    if (shouldRelease) PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
   }
 
-  private def getSonatypeCredential(
-      credentialParameterValue: String,
-      credentialName: String,
-      envVariableName: String
-  ): Task[String] = Task.Anon {
-    if (credentialParameterValue.nonEmpty) {
-      Result.Success(credentialParameterValue)
-    } else {
-      (for {
-        credential <- Task.env.get(envVariableName)
-      } yield {
-        Result.Success(credential)
-      }).getOrElse(
-        Result.Failure(
-          s"No $credentialName set. Consider using the $envVariableName environment variable or passing `$credentialName` argument"
-        )
-      )
-    }
-  }
-
-  private def getSonatypeCredentials(
-      usernameParameterValue: String,
-      passwordParameterValue: String
-  ): Task[SonatypeCredentials] = Task.Anon {
-    val username =
-      getSonatypeCredential(usernameParameterValue, "username", USERNAME_ENV_VARIABLE_NAME)()
-    val password =
-      getSonatypeCredential(passwordParameterValue, "password", PASSWORD_ENV_VARIABLE_NAME)()
-    Result.Success(SonatypeCredentials(username, password))
-  }
-
+  // TODO: make protected
   lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 }

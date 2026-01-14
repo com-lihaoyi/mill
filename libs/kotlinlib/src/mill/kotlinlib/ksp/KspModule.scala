@@ -8,7 +8,7 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.ksp2.{KspWorker, KspWorkerArgs}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
-import mill.util.Jvm
+import mill.util.{Jvm, Version}
 
 import java.io.File
 
@@ -84,7 +84,8 @@ trait KspModule extends KotlinModule { outer =>
    */
   def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      kotlinSymbolProcessors()
+      kotlinSymbolProcessors(),
+      boms = allBomDeps()
     )
   }
 
@@ -293,10 +294,17 @@ trait KspModule extends KotlinModule { outer =>
    * For more info go to [[https://github.com/google/ksp/blob/main/docs/ksp2cmdline.md]]
    */
   def ksp2ToolsDeps: T[Seq[Dep]] = Task {
+    val kspVer = kspVersion()
+    val kspDepVer =
+      if (Version.isAtLeast(kspVer, "2.3")(using Version.MavenOrdering)) {
+        kspVer
+      } else {
+        s"${kotlinVersion()}-$kspVer"
+      }
     Seq(
-      mvn"com.google.devtools.ksp:symbol-processing-aa-embeddable:${kotlinVersion()}-${kspVersion()}",
-      mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
-      mvn"com.google.devtools.ksp:symbol-processing-common-deps:${kotlinVersion()}-${kspVersion()}",
+      mvn"com.google.devtools.ksp:symbol-processing-aa-embeddable:${kspDepVer}",
+      mvn"com.google.devtools.ksp:symbol-processing-api:${kspDepVer}",
+      mvn"com.google.devtools.ksp:symbol-processing-common-deps:${kspDepVer}",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2"
     )
   }

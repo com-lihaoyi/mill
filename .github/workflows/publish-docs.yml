@@ -28,8 +28,6 @@ jobs:
       - uses: actions/checkout@v5
         with: {fetch-depth: 0}
 
-      - uses: coursier/cache-action@v6
-
-      - run: "echo temurin:11 > .mill-jvm-version"
+      - uses: coursier/cache-action@v7
 
       - run: ci/publish-docs.sh

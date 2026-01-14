@@ -12,7 +12,7 @@ object foo extends RsWithServeModule {
 /** Usage
 
 > ./mill foo.test
-PASS src/test/App.test.tsx
+...PASS .../test/App.test.tsx
 ...renders learn react link...
 Test Suites:...1 passed, 1 total
 Tests:...1 passed, 1 total

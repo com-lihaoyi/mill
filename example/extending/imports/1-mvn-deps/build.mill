@@ -1,4 +1,7 @@
-//| mvnDeps: ["org.thymeleaf:thymeleaf:3.1.1.RELEASE"]
+//| mill-jvm-version: 17
+//| mvnDeps:
+//| - org.thymeleaf:thymeleaf:3.1.1.RELEASE
+//| - org.slf4j:slf4j-nop:2.0.7
 
 // The following example shows how to import the library `org.thymeleaf:thymeleaf:3.1.1.RELEASE`
 // into your build, so you can use it at build-time to safely generate escaped HTML snippets

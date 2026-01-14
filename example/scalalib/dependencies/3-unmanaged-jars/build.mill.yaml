@@ -1,0 +1,4 @@
+extends: ScalaModule
+scalaVersion: 3.8.0
+unmanagedClasspath:
+- lib/nanojson-1.8.jar

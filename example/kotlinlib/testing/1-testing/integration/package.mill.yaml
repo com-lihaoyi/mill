@@ -1,0 +1,3 @@
+extends: [build.KotlinTests, TestModule.Junit5]
+moduleDeps: !append [test]
+mvnDeps: [io.kotest:kotest-runner-junit5:5.9.1]

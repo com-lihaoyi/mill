@@ -11,7 +11,7 @@ import mill.api.PathRef
 case class CheckstyleXsltReport(xslt: PathRef, output: PathRef)
 object CheckstyleXsltReport {
 
-  import upickle._
+  import upickle.*
 
   implicit val RW: ReadWriter[CheckstyleXsltReport] = macroRW[CheckstyleXsltReport]
 }

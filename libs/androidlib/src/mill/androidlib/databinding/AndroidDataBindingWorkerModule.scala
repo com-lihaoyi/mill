@@ -35,5 +35,5 @@ trait AndroidDataBindingWorkerModule extends mill.Module {
 
 @mill.api.experimental
 object AndroidDataBindingWorkerModule extends ExternalModule, AndroidDataBindingWorkerModule {
-  override protected def millDiscover: Discover = Discover[this.type]
+  override def millDiscover: Discover = Discover[this.type]
 }

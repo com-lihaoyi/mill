@@ -1,17 +1,19 @@
 package mill.javalib.spring.boot
 
+import mainargs.Flag
 import mill.*
 import mill.api.{Discover, ExternalModule}
-import mill.javalib.{CoursierModule, Dep, DepSyntax}
+import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
 import mill.javalib.api.Versions
 import mill.api.MillURLClassLoader
 import mill.javalib.spring.boot.worker.SpringBootTools
 
-trait SpringBootToolsModule extends CoursierModule {
+trait SpringBootToolsModule extends CoursierModule, OfflineSupportModule {
 
   /**
    * The Spring-Boot tools version to use.
    * Defaults to the version which was used at built-time of this Mill release.
+   * Versions since `3.x` require at least Java 17.
    */
   def springBootToolsVersion: T[String] = Task {
     Versions.springBuildToolsVersion
@@ -61,6 +63,10 @@ trait SpringBootToolsModule extends CoursierModule {
       Task.log.error("Same worker classloader was used to load interface and implementation")
     }
     worker
+  }
+
+  override def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    (super.prepareOffline(all)() ++ springBootToolsClasspath()).distinct
   }
 
 }

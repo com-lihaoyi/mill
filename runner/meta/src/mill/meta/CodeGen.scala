@@ -1,12 +1,15 @@
 package mill.meta
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
-
-import mill.constants.{CodeGenConstants as CGConst}
+import mill.constants.CodeGenConstants as CGConst
 import mill.api.Result
+import mill.api.internal.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig}
 import mill.internal.Util.backtickWrap
+import mill.api.internal.*
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
+import mill.api.internal.HeaderData
+
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -19,11 +22,15 @@ object CodeGen {
       allScriptCode: Map[os.Path, String],
       wrappedDest: os.Path,
       supportDest: os.Path,
+      resourceDest: os.Path,
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
       parser: MillScalaParser
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
+
+    // Collect moduleDeps configuration from all YAML files to write to a classpath resource
+    val moduleDepsConfig = collection.mutable.Map.empty[String, ModuleDepsConfig]
 
     // Provide `build` as an alias to the root `build_.package_`, since from the user's
     // perspective it looks like they're writing things that live in `package build`,
@@ -32,7 +39,7 @@ object CodeGen {
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
-      val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
+      val packageSegments = DiscoveredBuildFiles.fileImportToSegments(projectRoot, scriptPath)
       val wrappedDestFile = wrappedDest / packageSegments
       val pkgSegments = packageSegments.drop(1).dropRight(1)
       def pkgSelector0(pre: Option[String], s: Option[String]) =
@@ -63,7 +70,7 @@ object CodeGen {
           val rhs = s"${pkgSelector2(Some(c))}.package_"
           s"final lazy val $lhs: $rhs.type = $rhs // subfolder module reference"
         }
-        .mkString("\n")
+        .mkString("\n  ")
 
       if (scriptFolderPath == projectRoot) {
         val buildFileImplCode = generateBuildFileImpl(pkg)
@@ -86,44 +93,130 @@ object CodeGen {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
           else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
-        val parsedHeaderData = mill.internal.Util.parsedHeaderData(allScriptCode(scriptPath))
-        val moduleDeps = parsedHeaderData.get("moduleDeps").map(_.arr.map(_.str))
-        val extendsConfig = parsedHeaderData.get("extends").map(_.arr.map(_.str)).getOrElse(Nil)
-        val definitions =
-          for ((k, v) <- parsedHeaderData if !Set("moduleDeps", "extends").contains(k))
-            yield {
-              s"override def $k = Task.Literal(\"\"\"$v\"\"\")"
-            }
+        val parsedHeaderData = mill.internal.Util.parseHeaderData(scriptPath).get
 
         val prelude =
-          s"""|import MillMiscInfo._
+          s"""|import MillMiscInfo.*
               |import _root_.mill.util.TokenReaders.given
+              |import _root_.mill.runner.autooverride.AutoOverride
               |""".stripMargin
 
-        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
-        val moduleDepsSnippet =
-          if (moduleDeps.isEmpty) ""
-          else s"override def moduleDeps = Seq(${moduleDeps.get.mkString(", ")})"
-
-        val extendsSnippet = {
-          if (extendsConfig.nonEmpty) s" extends ${extendsConfig.mkString(", ")}"
-          else ""
+        def processDataRest[T](data: HeaderData)(
+            onProperty: (String, upickle.core.BufferedValue) => T,
+            onNestedObject: (String, HeaderData) => T
+        ): Seq[T] = {
+          for ((locatedKeyString, v) <- data.rest.toSeq)
+            yield locatedKeyString.value.split(" +") match {
+              case Array(k) => onProperty(k, v)
+              case Array("object", k) => onNestedObject(
+                  k,
+                  upickle.core.BufferedValue.transform(
+                    v,
+                    HeaderData.headerDataReader(scriptPath)
+                  )
+                )
+              case _ => throw new Result.Exception(
+                  "",
+                  Some(Result.Failure(
+                    "Invalid key: " + locatedKeyString.value,
+                    scriptPath.toNIO,
+                    locatedKeyString.index
+                  ))
+                )
+            }
         }
+
+        val miscInfoWithResource = {
+          val header = if (pkg.isBlank()) "" else s"package $pkg"
+          val miscInfoBody = if (segments.isEmpty) {
+            rootMiscInfo(scriptFolderPath, millTopLevelProjectRoot, output)
+          } else {
+            subfolderMiscInfo(scriptFolderPath, segments)
+          }
+          s"""|$generatedFileHeader
+              |$header
+              |
+              |$miscInfoBody
+              |""".stripMargin
+        }
+        os.write.over(
+          supportDestDir / "MillMiscInfo.scala",
+          miscInfoWithResource,
+          createFolders = true
+        )
+
+        def renderTemplate(prefix: String, data: HeaderData, path: Seq[String]): String = {
+          val extendsConfig = data.`extends`.value.value.map(_.value)
+          val definitions = processDataRest(data)(
+            onProperty = (_, _) => "", // Properties will be auto-implemented by AutoOverride
+            onNestedObject = (k, nestedData) =>
+              renderTemplate(s"object $k", nestedData, path :+ k)
+          ).filter(_.nonEmpty)
+
+          // Helper to extract ModuleDepsEntry from HeaderData field
+          // Each Located[String] contains (path, index, value) - we extract (value, index)
+          def extractEntry(deps: Located[Appendable[Seq[Located[String]]]]): ModuleDepsEntry = {
+            val appendable = deps.value
+            ModuleDepsEntry(appendable.value.map(loc => (loc.value, loc.index)), appendable.append)
+          }
+
+          // Collect moduleDeps config for this module path and store in the map
+          val modulePathKey = path.mkString(".")
+          val moduleDepsEntry = extractEntry(data.moduleDeps)
+          val compileModuleDepsEntry = extractEntry(data.compileModuleDeps)
+          val runModuleDepsEntry = extractEntry(data.runModuleDeps)
+          val bomModuleDepsEntry = extractEntry(data.bomModuleDeps)
+
+          val config = ModuleDepsConfig(
+            yamlPath = scriptPath.toString,
+            moduleDeps = moduleDepsEntry,
+            compileModuleDeps = compileModuleDepsEntry,
+            runModuleDeps = runModuleDepsEntry,
+            bomModuleDeps = bomModuleDepsEntry
+          )
+
+          moduleDepsConfig(modulePathKey) = config
+
+          // Always generate defs without override - use macro to get super value if it exists
+          val pathLiteral = literalize(modulePathKey)
+          def moduleDepsSnippet(name: String) =
+            s"def $name = _root_.mill.api.internal.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.internal.ModuleDepsResolver.superMethod(${literalize(name)}))"
+
+          val moduleDepsSnippets = Seq(
+            moduleDepsSnippet("moduleDeps"),
+            moduleDepsSnippet("compileModuleDeps"),
+            moduleDepsSnippet("runModuleDeps"),
+            moduleDepsSnippet("bomModuleDeps")
+          )
+
+          val extendsSnippet =
+            if (extendsConfig.nonEmpty)
+              s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[?]]"
+            else " extends AutoOverride[_root_.mill.T[?]]"
+
+          val allSnippets = moduleDepsSnippets ++ Seq(
+            "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
+          ) ++ definitions
+
+          s"""$prefix$extendsSnippet {
+             |  ${allSnippets.mkString("\n  ")}
+             |}
+             |""".stripMargin
+        }
+
         os.write.over(
           (wrappedDestFile / os.up) / wrappedDestFile.baseName,
           s"""package $pkg
              |import mill.*, scalalib.*, javalib.*, kotlinlib.*
              |$aliasImports
+             |import build.*
              |$prelude
              |//SOURCECODE_ORIGINAL_FILE_PATH=$scriptPath
-             |object package_ extends $newParent, package_{
+             |object package_ extends $newParent, package_ {
              |  ${if (segments.isEmpty) millDiscover(segments.nonEmpty) else ""}
              |  $childAliases
              |}
-             |trait package_$extendsSnippet {
-             |  $moduleDepsSnippet
-             |  ${definitions.mkString("\n  ")}
-             |}
+             |${renderTemplate("trait package_", parsedHeaderData, segments)}
              |""".stripMargin,
           createFolders = true
         )
@@ -202,6 +295,13 @@ object CodeGen {
         }
       }
     }
+
+    val resourceFile = resourceDest / "mill" / "module-deps-config.json"
+    os.write.over(
+      resourceFile,
+      upickle.default.write(moduleDepsConfig.toMap, indent = 2),
+      createFolders = true
+    )
   }
 
   private def calcSegments(scriptFolderPath: os.Path, projectRoot: os.Path) =
@@ -258,7 +358,7 @@ object CodeGen {
       siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
 
     val prelude =
-      s"""|import MillMiscInfo._
+      s"""|import MillMiscInfo.*
           |import _root_.mill.util.TokenReaders.given
           |import _root_.mill.api.JsonFormatters.given
           |""".stripMargin
@@ -357,7 +457,7 @@ object CodeGen {
     s"""|object MillMiscInfo
         |    extends mill.api.internal.SubfolderModule.Info(
         |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.toString)}),
-        |  segments = _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
+        |  segments = _root_.scala.Seq(${segments.map(literalize(_)).mkString(", ")})
         |)
         |""".stripMargin
   }
@@ -376,7 +476,7 @@ object CodeGen {
       output: os.Path
   ): String = {
     s"""|@_root_.scala.annotation.nowarn
-        |object MillMiscInfo 
+        |object MillMiscInfo
         |    extends mill.api.internal.RootModule.Info(
         |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
         |  output0 = ${literalize(output.toString)},

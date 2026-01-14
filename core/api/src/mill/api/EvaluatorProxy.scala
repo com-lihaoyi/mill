@@ -1,11 +1,11 @@
 package mill.api
 
 import mill.api.*
-import mill.api.daemon.*
 import mill.api.daemon.internal.*
 import mill.api.internal.*
 
 final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
+  private[mill] override def scriptModuleInit: Any = delegate.scriptModuleInit
   private def delegate = delegate0()
   override def allowPositionalCommandArgs = delegate.allowPositionalCommandArgs
   override def selectiveExecution = delegate.selectiveExecution
@@ -18,7 +18,9 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def env = delegate.env
   override def effectiveThreadCount = delegate.effectiveThreadCount
   override def offline: Boolean = delegate.offline
-
+  override def useFileLocks: Boolean = delegate.useFileLocks
+  override def staticBuildOverrides = delegate.staticBuildOverrides
+  override def invalidateAllHashes: Int = delegate.invalidateAllHashes
   def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
   def resolveSegments(

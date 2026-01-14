@@ -1,3 +1,5 @@
+//| mill-jvm-version: 17
+
 // Althought running JVM bytecode via a one-off isolated classloader has less overhead
 // than running it in a subprocess, the fact that the classloader needs to be created
 // each time adds overhead: newly-created classloaders contain code that is not yet
@@ -6,7 +8,7 @@
 // stay optimized without being thrown away each time.
 
 // This example is similar to the earlier example running the Groovy interpreter in
-// a subprocess, but instead of using `Jvm.runSubprocess` we use `Jvm.createClassLoader`
+// a subprocess, but instead of using `Jvm.callProcess` we use `Jvm.createClassLoader`
 // to load the Groovy interpreter classpath files:
 
 package build
@@ -70,7 +72,7 @@ Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Bar Groovy!</
 
 // Because the `URLClassLoader` within `groovyWorker` is long-lived, the code within the
 // classloader can be optimized by the JVM runtime, and would have less overhead than if
-// run in separate classloaders via `Jvm.runClassloader`. And because `URLClassLoader`
+// run in short-lived classloaders via `Jvm.withClassLoader`. And because `URLClassLoader`
 // already extends `AutoCloseable`, `groovyWorker` gets treated as an
 // xref:fundamentals/tasks.adoc#_autoclosable_workers[Autocloseable Worker] automatically.
 

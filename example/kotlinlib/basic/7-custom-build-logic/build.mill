@@ -1,0 +1,27 @@
+//// SNIPPET:BUILD
+package build
+import mill.*, kotlinlib.*
+
+object foo extends KotlinModule {
+
+  def kotlinVersion = "1.9.24"
+
+  def mainClass = Some("foo.FooKt")
+
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
+    )
+  }
+}

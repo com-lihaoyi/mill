@@ -1,9 +1,10 @@
 package mill.util
 
 import mill.api.{ExecResult, Result, Val}
-import mill.constants.{OutFiles, OutFolderMode}
+import mill.constants.{OutFolderMode}
+import mill.constants.OutFiles.OutFiles
 import mill.{Task, given}
-import mill.api.{Cross, DefaultTaskModule, Discover, Module, PathRef}
+import mill.api.{Cross, DefaultTaskModule, Discover, ExternalModule, Module, PathRef}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import mill.util.MainModule
@@ -13,6 +14,17 @@ import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
 import scala.collection.mutable
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
+
+// External module for testing clean command with external workers
+object TestExternalWorkerModule extends ExternalModule {
+  def externalWorker = Task.Worker {
+    new AutoCloseable {
+      def close() = ()
+      override def toString = "externalWorkerInstance"
+    }
+  }
+  lazy val millDiscover = Discover[this.type]
+}
 
 object MainModuleTests extends TestSuite {
 
@@ -88,6 +100,46 @@ object MainModuleTests extends TestSuite {
       bazz("2").task()
       bazz("3").task()
     }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object pathModule extends TestRootModule with MainModule {
+    // Create a dependency graph:
+    //   src1 -> mid1 -> dest1
+    //   src2 -> mid2 -> dest2
+    //   src3 -> mid1 (src3 also leads to dest1 via mid1)
+    //   isolated (no connections)
+
+    def base = Task { "base" }
+
+    def mid1 = Task { base() + "-mid1" }
+    def mid2 = Task { base() + "-mid2" }
+
+    def src1 = Task { mid1() + "-src1" }
+    def src2 = Task { mid2() + "-src2" }
+    def src3 = Task { mid1() + "-src3" }
+
+    def dest1 = Task { "dest1" }
+    def dest2 = Task { "dest2" }
+
+    // mid1 depends on dest1, mid2 depends on dest2
+    // Actually, we need deps to go the other way for path finding
+    // path finds: src -> ... -> dest means src depends on dest transitively
+    // So: src1.inputs contains mid1, mid1.inputs contains dest1
+    // Let's restructure:
+
+    def leaf1 = Task { "leaf1" }
+    def leaf2 = Task { "leaf2" }
+
+    def inner1 = Task { leaf1() + "-inner1" }
+    def inner2 = Task { leaf2() + "-inner2" }
+
+    def outer1 = Task { inner1() + "-outer1" }
+    def outer2 = Task { inner2() + "-outer2" }
+    def outer3 = Task { inner1() + "-outer3" } // also depends on inner1 -> leaf1
+
+    def isolated = Task { "isolated" }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -320,7 +372,7 @@ object MainModuleTests extends TestSuite {
           errStream = new PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
-          val Left(ExecResult.Failure(failureMsg)) =
+          val Left(ExecResult.Failure(msg = failureMsg)) =
             evaluator.apply("show", "helloCommand"): @unchecked
           assert(
             failureMsg.contains("Expected Signature: helloCommand"),
@@ -402,6 +454,67 @@ object MainModuleTests extends TestSuite {
         assert(res.contains("hello2"))
         assert(res.contains("helloCommand"))
         assert(res.contains("helloWorker"))
+      }
+    }
+
+    test("path") {
+      // Graph structure:
+      // outer1 -> inner1 -> leaf1
+      // outer2 -> inner2 -> leaf2
+      // outer3 -> inner1 -> leaf1
+      // isolated (no deps)
+
+      test("simple") - UnitTester(pathModule, null).scoped { eval =>
+        // Single src to single dest
+        val Right(result) = eval.apply("path", "outer1", "leaf1"): @unchecked
+        val Seq(labels: List[String]) = result.value: @unchecked
+        assert(labels == List("outer1", "inner1", "leaf1"))
+      }
+
+      test("multiSrc") - UnitTester(pathModule, null).scoped { eval =>
+        // Multiple sources (outer1 and outer3 both depend on leaf1 via inner1)
+        // Using glob pattern to match multiple sources
+        val Right(result) = eval.apply("path", "{outer1,outer3}", "leaf1"): @unchecked
+        val Seq(labels: List[String]) = result.value: @unchecked
+        // Should find path from either outer1 or outer3 to leaf1
+        assert(labels.last == "leaf1")
+        assert(labels.head == "outer1" || labels.head == "outer3")
+        assert(labels.contains("inner1"))
+      }
+
+      test("multiDest") - UnitTester(pathModule, null).scoped { eval =>
+        // Single source, multiple possible destinations
+        // outer1 depends on leaf1 but not leaf2
+        val Right(result) = eval.apply("path", "outer1", "{leaf1,leaf2}"): @unchecked
+        val Seq(labels: List[String]) = result.value: @unchecked
+        // Should find path to leaf1 (not leaf2)
+        assert(labels == List("outer1", "inner1", "leaf1"))
+      }
+
+      test("multiSrcMultiDest") - UnitTester(pathModule, null).scoped { eval =>
+        // Multiple sources and multiple destinations
+        // outer1,outer3 -> inner1 -> leaf1
+        // outer2 -> inner2 -> leaf2
+        val Right(result) = eval.apply("path", "{outer1,outer2}", "{leaf1,leaf2}"): @unchecked
+        val Seq(labels: List[String]) = result.value: @unchecked
+        // Should find a path from one of the sources to one of the destinations
+        assert(labels.nonEmpty)
+        assert(
+          (labels.head == "outer1" && labels.last == "leaf1") ||
+            (labels.head == "outer2" && labels.last == "leaf2")
+        )
+      }
+
+      test("noPath") - UnitTester(pathModule, null).scoped { eval =>
+        // isolated has no dependencies, so no path to leaf1
+        val Left(result) = eval.apply("path", "isolated", "leaf1"): @unchecked
+        assert(result.toString.contains("No path found"))
+      }
+
+      test("noPathMulti") - UnitTester(pathModule, null).scoped { eval =>
+        // isolated has no path to any leaf
+        val Left(result) = eval.apply("path", "isolated", "{leaf1,leaf2}"): @unchecked
+        assert(result.toString.contains("No path found"))
       }
     }
 
@@ -603,6 +716,31 @@ object MainModuleTests extends TestSuite {
             ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "bazz[1]"))).executionResults
           assert(r4.transitiveFailing.size == 0)
           assert(workers.size == 2)
+        }
+      }
+
+      test("external-module") {
+        // Test cleaning external module workers (issue #6549)
+        // External modules have segments ending with '/' which need special handling
+        object externalModuleBuild extends TestRootModule with MainModule {
+          def useExternalWorker = Task {
+            TestExternalWorkerModule.externalWorker()
+            "done"
+          }
+          lazy val millDiscover = Discover[this.type]
+        }
+        UnitTester(externalModuleBuild, null).scoped { ev =>
+          // First run the task that uses the external worker
+          val r1 = ev.evaluator.execute(Seq(externalModuleBuild.useExternalWorker)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+
+          // Now try to clean the external worker - this should not throw an error
+          // Previously this would fail with: "[mill.util.TestExternalWorkerModule/] is not a valid path segment"
+          val r2 = ev.evaluator.execute(Seq(externalModuleBuild.clean(
+            ev.evaluator,
+            "mill.util.TestExternalWorkerModule/externalWorker"
+          ))).executionResults
+          assert(r2.transitiveFailing.size == 0)
         }
       }
     }

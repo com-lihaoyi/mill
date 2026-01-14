@@ -1,0 +1,15 @@
+extends: SbtModule
+scalaVersion: 3.8.0
+mvnDeps:
+- com.lihaoyi::scalatags:0.13.1
+- com.lihaoyi::mainargs:0.7.8
+
+object test:
+  extends: [SbtTests, TestModule.Utest]
+  mvnDeps:
+  - com.lihaoyi::utest:0.9.1
+
+object integration:
+  extends: [SbtTests, TestModule.Utest]
+  mvnDeps:
+  - com.lihaoyi::utest:0.9.1

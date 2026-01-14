@@ -7,12 +7,14 @@ object MillVersionFrontmatterTests extends TestSuite {
   private val millVersion = "1.0.0-RC1"
 
   val tests: Tests = Tests {
-    def doTest(frontmatter: String, expectedVersion: Option[String] = Some(millVersion))(using
-        testValue: TestPath
-    ): Unit = {
+    def doTest(
+        frontmatter: String,
+        expectedVersion: Option[String] = Some(millVersion),
+        buildFile: String = "build.mill"
+    )(using testValue: TestPath): Unit = {
       val wd = os.pwd / testValue.value
       os.makeDir.all(wd)
-      os.write(wd / "build.mill", frontmatter)
+      os.write(wd / buildFile, frontmatter)
 
       // If that particular version is not downloaded to the cache, stdout will be polluted by the download messages.
       // Thus, we run our own task to print the version.
@@ -26,17 +28,14 @@ object MillVersionFrontmatterTests extends TestSuite {
         check = false
       )
       val output = res.out.text().trim
-      val errOutput = res.err.text().trim
 
       if (res.exitCode != 0) {
-        println(s"stdout:\n$output\n\n")
-        println(s"stderr:\n$errOutput\n\n")
         throw new IllegalStateException(s"exitCode != 0 (actual = ${res.exitCode}")
       }
 
       expectedVersion match {
         case Some(expected) => assert(output.contains(s"/$expected/"))
-        case None => assert(errOutput.contains("No mill version specified."))
+        case None => assert(output.contains(s"/SNAPSHOT/"))
       }
     }
 
@@ -71,5 +70,36 @@ object MillVersionFrontmatterTests extends TestSuite {
     )
 
     test("withCommentAfterTheBuildHeader") - doTest(s"""//| mill-version: $millVersion # comment""")
+
+    test("yaml") - {
+      test("noFrontmatter") - doTest("", expectedVersion = None, buildFile = "build.mill.yaml")
+
+      test("onFirstLine") - doTest(
+        s"""mill-version: $millVersion""",
+        buildFile = "build.mill.yaml"
+      )
+
+      test("onSecondLine") - doTest(
+        s"""
+           |mill-version: $millVersion
+           |""".stripMargin,
+        buildFile = "build.mill.yaml"
+      )
+
+      test("valueQuotedWithSingleQuote") - doTest(
+        s"""mill-version: '$millVersion'""",
+        buildFile = "build.mill.yaml"
+      )
+
+      test("valueQuotedWithDoubleQuote") - doTest(
+        s"""mill-version: "$millVersion"""",
+        buildFile = "build.mill.yaml"
+      )
+
+      test("withCommentAfterTheVersion") - doTest(
+        s"""mill-version: $millVersion # comment""",
+        buildFile = "build.mill.yaml"
+      )
+    }
   }
 }

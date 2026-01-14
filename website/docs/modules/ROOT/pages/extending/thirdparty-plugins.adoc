@@ -26,7 +26,7 @@ Project home: https://github.com/carlosedp/mill-aliases
 //| mvnDeps: ["com.carlosedp::mill-aliases::0.2.1"]
 
 import mill.*, scalalib.*
-import com.carlosedp.aliases._
+import com.carlosedp.aliases.*
 
 object foo extends ScalaModule {
   ...
@@ -85,10 +85,10 @@ Project home: https://github.com/lefou/mill-aspectj
 //| mvnDeps: ["de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01"]
 
 import mill.*
-import mill.scalalib._
-import mill.api._
+import mill.scalalib.*
+import mill.api.*
 
-import de.tobiasroeser.mill.aspectj._
+import de.tobiasroeser.mill.aspectj.*
 
 object main extends AspectjModule {
 
@@ -252,7 +252,7 @@ parameters for your application using the `DockerNativeConfig` trait in the
 ----
 //| mvnDeps: ["com.carlosedp::mill-docker-nativeimage::0.6.0"]
 
-import mill.*, mill.scalalib._, mill.scalalib.scalafmt._
+import mill.*, mill.scalalib.*, mill.scalalib.scalafmt.*
 import com.carlosedp.milldockernative.DockerNative
 
 object hello extends ScalaModule, DockerNative {
@@ -356,7 +356,6 @@ Found undeclared dependencies: (add these to mvnDeps)
 Found unimported dependencies: (remove these from mvnDeps)
     mvn"org.typelevel::cats-effect:3.3.6",
 
-1 tasks failed
 main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies
 ----
 
@@ -491,7 +490,7 @@ We assume, you have a mill plugin named `mill-demo`
 .`build.mill`
 [source,scala]
 ----
-import mill.*, mill.scalalib._
+import mill.*, mill.scalalib.*
 
 object demo extends ScalaModule, PublishModule {
   // ...
@@ -505,7 +504,7 @@ Add a new test sub-project, e.g. `itest`.
 ----
 //| mvnDeps: ["de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0"]
 
-import de.tobiasroeser.mill.integrationtest._
+import de.tobiasroeser.mill.integrationtest.*
 
 object demo extends ScalaModule, PublishModule {
   // ...
@@ -572,7 +571,7 @@ JBake home: https://jbake.org
 //| mvnDeps: ["de.tototec::de.tobiasroeser.mill.jbake:0.1.0"]
 
 import mill.*
-import de.tobiasroeser.mill.jbake._
+import de.tobiasroeser.mill.jbake.*
 
 object site extends JBakeModule {
   def jbakeVersion = "2.6.4"
@@ -694,7 +693,7 @@ And set the previous artifacts you want to check binary compatibility.
 //| mvnDeps: ["com.github.lolgab::mill-mima_mill0.9:0.0.2"]
 
 import mill.*, scalalib.*
-import com.github.lolgab.mill.mima._
+import com.github.lolgab.mill.mima.*
 
 object main extends ScalaModule, Mima {
 
@@ -727,7 +726,7 @@ _build.mill_:
 ----
 //| mvnDeps: ["io.github.hoangmaihuy::mill-missinglink::<latest-version>"]
 
-import io.github.hoangmaihuy.missinglink._
+import io.github.hoangmaihuy.missinglink.*
 
 object example extends MissinglinkCheckModule
 ----
@@ -803,7 +802,7 @@ Project home: https://github.com/mikybars/openapi-generator-mill-plugin
 //| mvnDeps: ["io.github.mikybars::openapi-generator-mill-plugin::0.1.0"]
 package build
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 import mill.api.BuildCtx
 
 import io.github.mikybars.mill.openapi.OpenApiModule
@@ -844,7 +843,7 @@ Project home: https://github.com/sake92/mill-openapi4s
 //| mvnDeps: ["ba.sake::mill-openapi4s::0.7.0"]
 
 import mill.*
-import mill.scalalib._
+import mill.scalalib.*
 import ba.sake.mill.openapi4s.OpenApiGeneratorModule
 
 object app extends ScalaModule, OpenApiGeneratorModule {
@@ -871,8 +870,8 @@ Project home: https://github.com/lefou/mill-osgi
 ----
 //| mvnDeps: ["de.tototec::de.tobiasroeser.mill.osgi:0.0.5"]
 
-import mill.*, mill.scalalib._
-import de.tobiasroeser.mill.osgi._
+import mill.*, mill.scalalib.*
+import de.tobiasroeser.mill.osgi.*
 
 object project extends ScalaModule, OsgiBundleModule {
 
@@ -927,7 +926,7 @@ set-up a `package.json` file with your TypeScript dependencies.
 //| mvnDeps: ["com.github.lolgab::mill-scalablytyped::0.0.2"]
 
 import mill.*, scalalib.*
-import com.github.lolgab.mill.scalablytyped._
+import com.github.lolgab.mill.scalablytyped.*
 
 object main extends ScalaJSModule, ScalablyTyped {
   // other settings ...
@@ -949,7 +948,7 @@ _build.mill_:
 ----
 //| mvnDeps: ["io.github.hoangmaihuy::mill-scala-tsi::<latest-version>"]
 
-import io.github.hoangmaihuy.scalatsi._
+import io.github.hoangmaihuy.scalatsi.*
 
 object example extends ScalaModule, ScalaTsiModule {
 // The classes that you want to generate typescript interfaces for
@@ -997,7 +996,7 @@ _build.mill_:
 ----
 //| mvnDeps: ["com.goyeau::mill-scalafix:<latest version>"]
 import com.goyeau.mill.scalafix.ScalafixModule
-import mill.scalalib._
+import mill.scalalib.*
 
 object project extends ScalaModule, ScalafixModule {
   def scalaVersion = "2.12.11"
@@ -1011,7 +1010,6 @@ object project extends ScalaModule, ScalafixModule {
 /project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
   private var hashLength = 7
           ^^^
-1 tasks failed
 project.fix A Scalafix linter error was reported
 ----
 
@@ -1071,7 +1069,7 @@ Project home: https://github.com/lefou/mill-spring-boot
 [source,scala,subs="attributes,verbatim"]
 ----
 import mill.*
-import mill.scalalib._
+import mill.scalalib.*
 import de.tobiasroeser.mill.spring.boot.SpringBootModule
 
 object app extends MavenModule, SpringBootModule {
@@ -1097,7 +1095,7 @@ Project home: https://github.com/sake92/mill-squery
 //| mvnDeps: ["ba.sake::mill-squery-generator::0.10.0"]
 
 import mill.*
-import mill.scalalib._
+import mill.scalalib.*
 import ba.sake.mill.squery.generator.SqueryGeneratorModule
 
 object app extends ScalaModule, SqueryGeneratorModule {
@@ -1153,7 +1151,7 @@ When used with its defaults, the outcome is identical to the version scheme that
 //| mvnDeps: ["de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2"]
 
 import mill.*
-import mill.scalalib._
+import mill.scalalib.*
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 
 object main extends JavaModule, PublishModule {

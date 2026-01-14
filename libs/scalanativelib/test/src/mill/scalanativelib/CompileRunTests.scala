@@ -1,18 +1,18 @@
 package mill.scalanativelib
 
-import mill._
+import mill.*
 import mill.api.Discover
 import mill.api.ExecutionPaths
 import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-import mill.scalanativelib.api._
+import mill.scalanativelib.api.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest._
+import utest.*
 
 import java.util.jar.JarFile
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object CompileRunTests extends TestSuite {
 
@@ -136,8 +136,11 @@ object CompileRunTests extends TestSuite {
         val Right(result) = eval(task): @unchecked
 
         val paths = ExecutionPaths.resolve(eval.outPath, task)
+        val log = os.read(paths.log)
         val stdout = os.proc(paths.dest / "out").call().out.lines()
         assert(
+          log.contains("[info] Checking intermediate code (quick)"),
+          log.contains("[info] Linking native code"),
           stdout.contains("Hello Scala Native"),
           result.evalCount > 0
         )

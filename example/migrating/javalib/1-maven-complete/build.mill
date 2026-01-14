@@ -1,7 +1,5 @@
 /** Usage
 
-> rm build.mill # remove any existing build file
-
 > git init .
 > git remote add -f origin https://github.com/davidmoten/geo.git
 > git checkout 0.8.1 # example multi-module Java project using JUnit4

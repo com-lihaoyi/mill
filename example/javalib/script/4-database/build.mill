@@ -1,0 +1,11 @@
+//// SNIPPET:DATABASE
+// In this case, we make use of the popular https://www.jooq.org/[JOOQ]
+// library to perform the queries:
+/** See Also: Database.java */
+
+/** Usage
+> ./mill Database.java 2011-01-01
+James Bond
+John Doe
+
+*/

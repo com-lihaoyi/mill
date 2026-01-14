@@ -12,14 +12,17 @@ import mill.javalib.*
 import os.{Path, RelPath, zip}
 import os.RelPath.stringRelPathValidated
 import upickle.*
-import scala.concurrent.duration.*
+import mainargs.Flag
 
+import scala.concurrent.duration.*
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
+
 import scala.util.Properties.isWin
+import scala.util.matching.Regex
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -118,6 +121,17 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
+  override def androidBuildConfigMembers: T[Seq[String]] = Task {
+    val buildType = if (androidIsDebug()) "debug" else "release"
+    Seq(
+      s"boolean DEBUG = ${androidIsDebug()}",
+      s"""String BUILD_TYPE = "$buildType"""",
+      s"""String APPLICATION_ID = "$androidApplicationId"""",
+      s"""int VERSION_CODE = ${androidVersionCode()}""",
+      s"""String VERSION_NAME = "${androidVersionName()}""""
+    )
+  }
+
   @internal
   override def bspCompileClasspath(
       needsToMergeResourcesIntoCompileDest: Boolean
@@ -134,12 +148,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
   )
 
   /**
-   * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
+   * Collect files from META-INF folder of [[androidPackagedDeps]] (not META-INF of aar in case of Android library).
+   * to include in the apk
    */
   def androidLibsClassesJarMetaInf: T[Seq[PathRef]] = Task {
     // ^ not the best name for the method, but this is to distinguish between META-INF of aar and META-INF
     // of classes.jar included in aar
-    compileClasspath()
+    androidPackagedDeps()
       .filter(ref =>
         ref.path.ext == "jar" &&
           ref != androidSdkModule().androidJarPath()
@@ -178,7 +193,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
         }
       })
       .map(PathRef(_))
-      .toSeq
   }
 
   /**
@@ -189,7 +203,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
     Task { Seq.empty[AndroidPackageableExtraFile] }
 
-  def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
+  def androidPackagedMetaInfFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
     def metaInfRoot(p: os.Path): os.Path = {
       var current = p
       while (!current.endsWith(os.rel / "META-INF")) {
@@ -221,6 +235,17 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
   }
 
+  override def androidAaptNonFinalIds: T[Boolean] = Task {
+    false
+  }
+
+  /**
+   * Regex patterns of files to be excluded from packaging into the APK.
+   */
+  def androidExcludePackageFiles: T[Seq[Regex]] = Task {
+    Seq.empty[Regex]
+  }
+
   /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
@@ -230,16 +255,20 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val unsignedApk = Task.dest / "app.unsigned.apk"
 
     os.copy(androidLinkedResources().path / "apk/res.apk", unsignedApk)
-    val dexFiles = os.walk(androidDex().path)
-      .filter(_.ext == "dex")
-      .map(os.zip.ZipSource.fromPath)
+
+    val androidDexPath = androidDex().path
+    os.zip(
+      unsignedApk,
+      Seq(androidDexPath),
+      excludePatterns = androidExcludePackageFiles()
+    )
 
     def asZipSource(androidPackageableExtraFile: AndroidPackageableExtraFile): os.zip.ZipSource =
       os.zip.ZipSource.fromPathTuple(
         (androidPackageableExtraFile.source.path, androidPackageableExtraFile.destination.asSubPath)
       )
 
-    val metaInf = androidPackageMetaInfoFiles().map(asZipSource)
+    val metaInf = androidPackagedMetaInfFiles().map(asZipSource)
 
     val nativeDeps = androidPackageableNativeDeps().map(asZipSource)
 
@@ -258,8 +287,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // Example of app-metadata.properties:
     // appMetadataVersion=1.1
     // androidGradlePluginVersion=8.7.2
-    os.zip(unsignedApk, dexFiles)
-    os.zip(unsignedApk, metaInf)
+
+    // Add META-INF if it does not already exist
+    if (!os.exists(androidDexPath / "META-INF"))
+      os.zip(unsignedApk, metaInf)
     os.zip(unsignedApk, nativeDeps)
     os.zip(unsignedApk, extraFiles)
 
@@ -271,8 +302,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
     val debugManifest = Seq(androidDebugManifestLocation()).filter(pr => os.exists(pr.path))
-    val libManifests = androidUnpackArchives().flatMap(_.manifest)
-    debugManifest ++ libManifests
+    super.androidMergeableManifests() ++ debugManifest
   }
 
   override def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
@@ -497,32 +527,29 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(Task.dest)
   }
 
-  /** The name of the virtual device to be created by  [[createAndroidVirtualDevice]] */
-  def androidVirtualDeviceIdentifier: String = "test"
-
-  /** The device  id as listed from avdmanager list device. Default is medium_phone */
-  def androidDeviceId: String = "medium_phone"
-
   /**
-   * The target architecture of the virtual device to be created by  [[createAndroidVirtualDevice]]
-   *  For example, "x86_64" (default). For a list of system images and their architectures,
-   *  see the Android SDK Manager `sdkmanager --list`.
+   * Specifies the default configuration for the Android Virtual Device (AVD).
    */
-  def androidEmulatorArchitecture: String = "x86_64"
+  def androidVirtualDevice: T[AndroidVirtualDevice] = Task {
+    AndroidVirtualDevice(
+      deviceId = "medium_phone",
+      apiVersion = androidSdkModule().platformsVersion(),
+      architecture = "x86_64",
+      systemImageSource = "google_apis_playstore"
+    )
+  }
 
   /**
-   * Installs the user specified system image for the emulator
+   * Installs the android system image specified in [[androidVirtualDevice]]
    * using sdkmanager . E.g. "system-images;android-35;google_apis_playstore;x86_64"
    */
-  def sdkInstallSystemImage(): Command[String] = Task.Command {
-    val image =
-      s"system-images;${androidSdkModule().platformsVersion()};google_apis_playstore;$androidEmulatorArchitecture"
-    Task.log.info(s"Downloading $image")
-    val installCall = os.call((
-      androidSdkModule().sdkManagerExe().path,
-      "--install",
-      image
-    ))
+  def sdkInstallSystemImage: T[String] = Task {
+    val installCall = androidSdkManagerModule().androidSdkManagerInstall(
+      Task.Anon(androidSdkModule().sdkManagerExe()),
+      Task.Anon(Seq(androidVirtualDevice().systemImage))
+    )()
+
+    val image = androidVirtualDevice().systemImage
 
     if (installCall.exitCode != 0) {
       Task.log.error(
@@ -534,26 +561,28 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Creates the android virtual device identified in virtualDeviceIdentifier
+   * Creates the android virtual device identified in [[androidVirtualDevice]]
    */
   def createAndroidVirtualDevice(): Command[String] = Task.Command(exclusive = true) {
+    val name = androidVirtualDevice().name
+    val deviceId = androidVirtualDevice().deviceId
     val command = os.call((
       androidSdkModule().avdmanagerExe().path,
       "create",
       "avd",
       "--name",
-      androidVirtualDeviceIdentifier,
+      name,
       "--package",
-      sdkInstallSystemImage()(),
+      sdkInstallSystemImage(),
       "--device",
-      androidDeviceId,
+      deviceId,
       "--force"
     ))
     if (command.exitCode != 0) {
       Task.log.error(s"Failed to create android virtual device: ${command.err.text()}")
       throw new Exception(s"Failed to create android virtual device: ${command.exitCode}")
     }
-    s"DeviceName: $androidVirtualDeviceIdentifier, DeviceId: $androidDeviceId"
+    s"DeviceName: $name, DeviceId: $deviceId"
   }
 
   /**
@@ -565,16 +594,21 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "delete",
       "avd",
       "--name",
-      androidVirtualDeviceIdentifier
+      androidVirtualDevice().name
     ))
   }
 
   /**
    * Starts the android emulator and waits until it is booted
-   *
+   * @param excludeDefaultArgs Whether to exclude the default arguments for starting the emulator.
+   *                           If set, needs to come first before extraArgs.
+   * @param extraArgs Additional arguments to pass to the emulator
    * @return The log line that indicates the emulator is ready
    */
-  def startAndroidEmulator(): Command[String] = Task.Command(exclusive = true) {
+  def startAndroidEmulator(
+      excludeDefaultArgs: Flag,
+      extraArgs: String*
+  ): Command[String] = Task.Command(exclusive = true) {
     val ciSettings = Seq(
       "-no-snapshot-save",
       "-no-window",
@@ -588,12 +622,20 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val settings = if (sys.env.getOrElse("GITHUB_ACTIONS", "false") == "true")
       ciSettings
     else Seq.empty[String]
-    val command = Seq(
-      androidSdkModule().emulatorExe().path.toString(),
+
+    val defaultArgs = Seq(
       "-delay-adb",
       "-port",
-      androidEmulatorPort
-    ) ++ settings ++ Seq("-avd", androidVirtualDeviceIdentifier)
+      androidEmulatorPort,
+      "-no-metrics",
+      "-avd",
+      androidVirtualDevice().name
+    )
+
+    val command = Seq(
+      androidSdkModule().emulatorExe().path.toString()
+    ) ++
+      Option.when(!excludeDefaultArgs.value)(defaultArgs).toSeq.flatten ++ extraArgs ++ settings
 
     Task.log.debug(s"Starting emulator with command ${command.mkString(" ")}")
 
@@ -636,7 +678,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidEmulatorPort: String = "5554"
 
   /**
-   * Returns the emulator identifier for created from startAndroidEmulator
+   * Returns the emulator identifier for created from [[startAndroidEmulator]]
    * by iterating the adb device list
    */
   def runningEmulator: T[String] = Task {
@@ -644,7 +686,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Installs the app to the android device identified by this configuration in [[androidVirtualDeviceIdentifier]].
+   * Installs the app to the [[runningEmulator]]
    *
    * @return The name of the device the app was installed to
    */
@@ -698,15 +740,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Task.Sources(subPaths*)
   }
 
-  private def androidMillHomeDir: Task[PathRef] = Task.Anon {
-    val globalDebugFileLocation = os.home / ".mill-android"
-    if (!os.exists(globalDebugFileLocation))
-      os.makeDir(globalDebugFileLocation)
-    PathRef(globalDebugFileLocation)
-  }
-
   private def debugKeystoreFile: Task[PathRef] = Task.Anon {
-    PathRef(androidMillHomeDir().path / "mill-debug.jks")
+    PathRef(androidSdkModule().androidMillHomeDir().path / "mill-debug.jks")
   }
 
   private def keytoolModuleRef: ModuleRef[KeytoolModule] = ModuleRef(KeytoolModule)
@@ -718,7 +753,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   private def androidDebugKeystore: Task[PathRef] = Task.Anon {
     val debugKeystoreFilePath = debugKeystoreFile().path
-    os.makeDir.all(androidMillHomeDir().path)
+    os.makeDir.all(androidSdkModule().androidMillHomeDir().path)
     keytoolModuleRef().createKeystoreWithCertificate(
       Task.Anon(Seq(
         "--keystore",
@@ -822,7 +857,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   }
 
-  def knownProguardRules: T[String] = Task {
+  def androidKnownProguardRules: T[String] = Task {
     // TODO need also pick proguard files from
     // [[moduleDeps]]
     androidUnpackArchives()
@@ -833,22 +868,21 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .mkString("\n")
   }
 
-  override def androidProguard: T[PathRef] = Task {
-    val inheritedProguardFile = super.androidProguard()
-    val proguardFile = Task.dest / "proguard-rules.pro"
-
-    os.write(proguardFile, os.read(inheritedProguardFile.path))
-
-    os.write.append(proguardFile, knownProguardRules())
-
-    PathRef(proguardFile)
+  /**
+   * File names that are provided by the Android SDK in `androidSdkModule().androidProguardPath().path`
+   *
+   * For now, it's only used by [[AndroidR8AppModule]]
+   */
+  def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+    Seq.empty[String]
   }
 
   // uses the d8 tool to generate the dex file, when minification is disabled
   private def androidD8Dex
       : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
 
-    val outPath = Task.dest
+    val outPath = Task.dest / "dex-output"
+    os.makeDir.all(outPath)
 
     val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
 
@@ -913,6 +947,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     def androidResources: T[Seq[PathRef]] = Task.Sources("src/androidTest/res")
 
+    override def androidDefaultProguardFileNames: Task[Seq[String]] = Task.Anon {
+      outer.androidDefaultProguardFileNames()
+    }
+
     override def testFramework: T[String] = Task {
       "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -957,7 +995,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     private def androidxTestManifests: Task[Seq[PathRef]] = Task {
-      androidUnpackArchives().flatMap {
+      androidUnpackRunArchives().flatMap {
         unpackedArchive =>
           unpackedArchive.manifest.map(_.path)
       }.filter {
@@ -997,8 +1035,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
     }
 
-    override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
-    override def androidEmulatorArchitecture: String = outer.androidEmulatorArchitecture
+    override def androidVirtualDevice: T[AndroidVirtualDevice] = outer.androidVirtualDevice()
 
     /**
      * Re/Installs the app apk and then the test apk on the [[runningEmulator]]
@@ -1035,8 +1072,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val device = androidTestInstall().apply()
 
       val instrumentOutput = os.proc(
-        (
-          androidSdkModule().adbExe().path,
+        Seq(
+          androidSdkModule().adbExe().path.toString,
           "-s",
           device,
           "shell",
@@ -1063,24 +1100,20 @@ trait AndroidAppModule extends AndroidModule { outer =>
      * as its apk is installed separately
      */
     def androidTransitiveTestClasspath: T[Seq[PathRef]] = Task {
-      Task.traverse(transitiveModuleCompileModuleDeps) {
+      Task.traverse(transitiveRunModuleDeps) {
         m =>
-          Task.Anon(m.localRunClasspath())
+          m.localRunClasspath
       }().flatten
     }
 
     /** The instrumented dex should just contain the test dependencies and locally tested files */
     override def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
-      (testClasspath() ++ androidTransitiveTestClasspath())
+      androidTransitiveTestClasspath()
         .map(_.path).filter(os.isDir)
         .flatMap(os.walk(_))
         .filter(os.isFile)
         .filter(_.ext == "class")
         .map(PathRef(_))
-    }
-
-    override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      androidResolvedMvnDeps()
     }
 
     /**

@@ -7,7 +7,7 @@ import mill.Task
 import mill.api.Discover
 import mill.api.ExternalModule
 
-import utest._
+import utest.*
 
 object `package` extends ExternalModule.Alias(TestExternalModule)
 object TestExternalModule extends mill.api.ExternalModule with mill.api.DefaultTaskModule {
@@ -55,10 +55,10 @@ object ModuleTests extends TestSuite {
           zresult == Right(Result(30, 1)),
           os.read(check.execution.outPath / "z.json").contains("30"),
           os.read(
-            check.outPath / "mill/exec/TestExternalModule/x.json"
+            check.outPath / "mill.exec.TestExternalModule/x.json"
           ).contains("13"),
           os.read(
-            check.outPath / "mill/exec/TestExternalModule/inner/y.json"
+            check.outPath / "mill.exec.TestExternalModule/inner/y.json"
           ).contains("17")
         )
       }

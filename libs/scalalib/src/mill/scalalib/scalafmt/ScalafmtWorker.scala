@@ -2,7 +2,7 @@ package mill.scalalib.scalafmt
 
 import mill.*
 import mill.api.{Discover, ExternalModule, PathRef, TaskCtx}
-import mill.scalalib._
+import mill.scalalib.*
 
 import scala.collection.mutable
 import mill.api.Result

@@ -54,11 +54,7 @@ object ScalaSemanticDbTests extends TestSuite {
           assert(result2.evalCount == 0)
         }
       }
-      test("incremental") - UnitTester(
-        SemanticWorld,
-        sourceRoot = resourcePath,
-        debugEnabled = true
-      ).scoped { eval =>
+      test("incremental") - UnitTester(SemanticWorld, sourceRoot = resourcePath).scoped { eval =>
         // create some more source file to have a reasonable low incremental change later
         val extraFiles = Seq("Second", "Third", "Fourth").map { f =>
           val file = eval.evaluator.workspace / "core/src/hello" / s"${f}.scala"

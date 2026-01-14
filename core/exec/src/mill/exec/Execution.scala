@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
-import mill.constants.OutFiles.millProfile
+import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{JsonArrayLogger, PrefixLogger}
 
@@ -13,7 +13,7 @@ import scala.concurrent.*
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
  */
-private[mill] case class Execution(
+case class Execution(
     baseLogger: Logger,
     profileLogger: JsonArrayLogger.Profile,
     workspace: os.Path,
@@ -31,10 +31,17 @@ private[mill] case class Execution(
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
     offline: Boolean,
-    enableTicker: Boolean
+    useFileLocks: Boolean,
+    staticBuildOverrideFiles: Map[java.nio.file.Path, String],
+    enableTicker: Boolean,
+    depth: Int,
+    isFinalDepth: Boolean
 ) extends GroupExecution with AutoCloseable {
 
-  // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
+  // Track nesting depth of executeTasks calls to only show final status on outermost call
+  private val executionNestingDepth = new AtomicInteger(0)
+
+  // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(
       baseLogger: Logger,
       workspace: java.nio.file.Path,
@@ -52,26 +59,34 @@ private[mill] case class Execution(
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
       offline: Boolean,
-      enableTicker: Boolean
+      useFileLocks: Boolean,
+      staticBuildOverrideFiles: Map[java.nio.file.Path, String],
+      enableTicker: Boolean,
+      depth: Int,
+      isFinalDepth: Boolean
   ) = this(
-    baseLogger,
-    new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
-    os.Path(workspace),
-    os.Path(outPath),
-    os.Path(externalOutPath),
-    rootModule,
-    classLoaderSigHash,
-    classLoaderIdentityHash,
-    workerCache,
-    env,
-    failFast,
-    ec,
-    codeSignatures,
-    systemExit,
-    exclusiveSystemStreams,
-    getEvaluator,
-    offline,
-    enableTicker
+    baseLogger = baseLogger,
+    profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
+    workspace = os.Path(workspace),
+    outPath = os.Path(outPath),
+    externalOutPath = os.Path(externalOutPath),
+    rootModule = rootModule,
+    classLoaderSigHash = classLoaderSigHash,
+    classLoaderIdentityHash = classLoaderIdentityHash,
+    workerCache = workerCache,
+    env = env,
+    failFast = failFast,
+    ec = ec,
+    codeSignatures = codeSignatures,
+    systemExit = systemExit,
+    exclusiveSystemStreams = exclusiveSystemStreams,
+    getEvaluator = getEvaluator,
+    offline = offline,
+    useFileLocks = useFileLocks,
+    staticBuildOverrideFiles = staticBuildOverrideFiles,
+    enableTicker = enableTicker,
+    depth = depth,
+    isFinalDepth = isFinalDepth
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -89,9 +104,13 @@ private[mill] case class Execution(
       serialCommandExec: Boolean = false
   ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
-
-    PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
-      execute0(goals, logger, reporter, testReporter, serialCommandExec)
+    executionNestingDepth.incrementAndGet()
+    try {
+      PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
+        execute0(goals, logger, reporter, testReporter, serialCommandExec)
+      }
+    } finally {
+      executionNestingDepth.decrementAndGet()
     }
   }
 
@@ -107,6 +126,7 @@ private[mill] case class Execution(
     os.makeDir.all(outPath)
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
+    val completedCount = new AtomicInteger(0)
     val rootFailedCount = new AtomicInteger(0) // Track only root failures
     val planningLogger = new PrefixLogger(
       logger0 = baseLogger,
@@ -138,8 +158,26 @@ private[mill] case class Execution(
 
       val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
-      def formatHeaderPrefix(countMsg: String, keySuffix: String) =
-        s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
+      val keySuffix = s"/${indexToTerminal.size}"
+
+      def formatHeaderPrefix(completed: Boolean = false) = {
+        val completedMsg = mill.api.internal.Util.leftPad(
+          completedCount.get().toString,
+          indexToTerminal.size.toString.length,
+          '0'
+        )
+        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
+      }
+
+      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
+      val downstreamEdges: Map[Task[?], Set[Task[?]]] =
+        tasksTransitive.flatMap(t => t.inputs.map(_ -> t)).groupMap(_._1)(_._2)
+
+      val allExclusiveCommands = tasksTransitive.filter(_.isExclusiveCommand)
+      val downstreamOfExclusive =
+        mill.internal.SpanningForest.breadthFirst[Task[?]](allExclusiveCommands)(t =>
+          downstreamEdges.getOrElse(t, Set())
+        )
 
       def evaluateTerminals(
           terminals: Seq[Task[?]],
@@ -160,9 +198,9 @@ private[mill] case class Execution(
           val group = plan.sortedGroups.lookupKey(terminal)
           val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
 
-          if (!terminal.isExclusiveCommand && exclusiveDeps.nonEmpty) {
+          if (terminal.asCommand.isEmpty && downstreamOfExclusive.contains(terminal)) {
             val failure = ExecResult.Failure(
-              s"Non-exclusive task ${terminal} cannot depend on exclusive task " +
+              s"Non-Command task ${terminal} cannot depend on exclusive command " +
                 exclusiveDeps.mkString(", ")
             )
             val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
@@ -170,7 +208,15 @@ private[mill] case class Execution(
               .toMap
 
             futures(terminal) = Future.successful(
-              Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false, Nil))
+              Some(GroupExecution.Results(
+                newResults = taskResults,
+                newEvaluated = group.toSeq,
+                cached = false,
+                inputsHash = -1,
+                previousInputsHash = -1,
+                valueHashChanged = false,
+                serializedPaths = Nil
+              ))
             )
           } else {
             futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -180,8 +226,6 @@ private[mill] case class Execution(
                   terminals.length.toString.length,
                   '0'
                 )
-
-                val keySuffix = s"/${indexToTerminal.size}"
 
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
@@ -193,7 +237,7 @@ private[mill] case class Execution(
 
                 if (enableTicker) prefixes.put(terminal, contextLogger.logKey)
                 contextLogger.withPromptLine {
-                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                   if (failed.get()) None
                   else {
@@ -218,20 +262,21 @@ private[mill] case class Execution(
                       testReporter = testReporter,
                       logger = contextLogger,
                       deps = deps,
-                      classToTransitiveClasses,
-                      allTransitiveClassMethods,
-                      forkExecutionContext,
-                      exclusive,
-                      upstreamPathRefs
+                      classToTransitiveClasses = classToTransitiveClasses,
+                      allTransitiveClassMethods = allTransitiveClassMethods,
+                      executionContext = forkExecutionContext,
+                      exclusive = exclusive,
+                      upstreamPathRefs = upstreamPathRefs
                     )
 
                     // Count new failures - if there are upstream failures, tasks should be skipped, not failed
                     val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
                     rootFailedCount.addAndGet(newFailures)
+                    completedCount.incrementAndGet()
 
-                    // Always show failed count in header if there are failures
-                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                    // Always show completed count in header after task finishes
+                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix())
 
                     if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
                       failed.set(true)
@@ -274,33 +319,35 @@ private[mill] case class Execution(
         terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       }
 
-      val tasks0 = indexToTerminal.filter {
-        case _: Task.Command[_] => false
-        case _ => true
-      }
-
-      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(tasks0)).toSet
-      val (tasks, leafExclusiveCommands) = indexToTerminal.partition {
-        case t: Task.Named[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
+      val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
+        case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
         case _ => !serialCommandExec
       }
 
       // Run all non-command tasks according to the threads
       // given but run the commands in linear order
-      val nonExclusiveResults = evaluateTerminals(tasks, exclusive = false)
+      val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
+
+      // Set final header showing SUCCESS/FAILED status:
+      // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
+      // - SUCCESS: only show for the final requested depth (depth 0 normally, or --meta-level if specified)
+      val isOutermostExecution = executionNestingDepth.get() == 1
+      val hasFailures = rootFailedCount.get() > 0
+      val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
+      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
 
       logger.prompt.clearPromptStatuses()
 
       val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
       ExecutionLogs.logInvalidationTree(
-        interGroupDeps,
-        indexToTerminal,
-        outPath,
-        uncached,
-        changedValueHash
+        interGroupDeps = interGroupDeps,
+        indexToTerminal = indexToTerminal,
+        outPath = outPath,
+        uncached = uncached,
+        changedValueHash = changedValueHash
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
@@ -321,7 +368,7 @@ private[mill] case class Execution(
 
       val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
-      import scala.collection.JavaConverters._
+      import scala.collection.JavaConverters.*
       Execution.Results(
         goals.toIndexedSeq.map(results(_).map(_._1)),
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
@@ -336,14 +383,25 @@ private[mill] case class Execution(
   }
 }
 
-private[mill] object Execution {
+object Execution {
 
   /**
    * Format a failed count as a string to be used in status messages.
-   * Returns ", N failed" if count > 0, otherwise an empty string.
+   * When completed: returns ", N FAILED" if count > 0, otherwise ", SUCCESS"
+   * When in-progress: returns ", N failing" if count > 0, otherwise an empty string.
    */
-  def formatFailedCount(count: Int): String = {
-    if (count > 0) s", $count failed" else ""
+  def formatFailedCount(
+      failures: Int,
+      completed: Boolean,
+      errorColor: String => String,
+      successColor: String => String
+  ): String = {
+    (completed, failures) match {
+      case (false, 0) => ""
+      case (false, _) => ", " + errorColor(s"$failures failing")
+      case (true, 0) => ", " + successColor("SUCCESS")
+      case (true, _) => ", " + errorColor(s"$failures FAILED")
+    }
   }
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])

@@ -12,11 +12,24 @@ import java.nio.file.Path
 import scala.jdk.CollectionConverters.*
 import concurrent.duration.*
 
-/**
- * Exercises the client-server logic in memory, using in-memory locks
- * and in-memory clients and servers
- */
-object ClientServerTests extends TestSuite {
+object ClientServerTests extends ClientServerTestsBase {
+  def createLocks(daemonDir: String): Locks = Locks.memory()
+}
+
+object ClientServerPidLockTests extends ClientServerTestsBase {
+  def createLocks(daemonDir: String): Locks = Locks.pid(daemonDir)
+}
+
+// NOTE: We do not run this test with file locks, because file locks
+// workflows can only run in separate JVMs and this unit test runs in one
+//
+//object ClientServerFileLockTests extends ClientServerTestsBase {
+//  def createLocks(daemonDir: String): Locks = Locks.files(daemonDir)
+//}
+
+trait ClientServerTestsBase extends TestSuite {
+
+  def createLocks(daemonDir: String): Locks
 
   val ENDL = System.lineSeparator()
   class EchoServer(
@@ -30,14 +43,13 @@ object ClientServerTests extends TestSuite {
         1000.millis,
         locks,
         testLogEvenWhenServerIdWrong
-      )
-      with Runnable {
+      ) {
 
     override def outLock = mill.client.lock.Lock.memory()
 
-    override def out = os.temp.dir()
+    override def outFolder = os.temp.dir()
 
-    def stateCache0 = None
+    def initialStateCache = None
 
     override def serverLog0(s: String) = {
       println(s)
@@ -45,9 +57,10 @@ object ClientServerTests extends TestSuite {
     }
 
     @volatile var runCompleted = false
-    override def run() = {
-      super.run()
+    override def run(): Option[Int] = {
+      val exitCode = super.run()
       runCompleted = true
+      exitCode
     }
     def main0(
         args: Array[String],
@@ -88,8 +101,10 @@ object ClientServerTests extends TestSuite {
     val dest = os.pwd / "out"
     os.makeDir.all(dest)
     val outDir = os.temp.dir(dest, deleteOnExit = false)
+    val daemonDir = outDir / "server-0"
+    os.makeDir.all(daemonDir)
 
-    val memoryLock = Locks.memory()
+    val locks = createLocks(daemonDir.toString)
 
     def apply(
         env: Map[String, String] = Map(),
@@ -99,25 +114,26 @@ object ClientServerTests extends TestSuite {
       val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
-      val daemonDir = outDir / "server-0"
       val result = new MillServerLauncher(
         ServerLauncher.Streams(in, out, err),
         env.asJava,
         args,
-        Optional.of(memoryLock),
-        forceFailureForTestingMillisDelay
+        Optional.of(locks),
+        forceFailureForTestingMillisDelay,
+        /*useFileLocks */ false
       ) {
         def initServer(daemonDir: Path, locks: Locks) = {
           nextServerId += 1
           // Use a negative process ID to indicate we're not a real process.
           val processId = -nextServerId
-          val t = Thread(EchoServer(
+          val server = EchoServer(
             processId,
             os.Path(daemonDir, os.pwd),
             locks,
             testLogEvenWhenServerIdWrong,
             commandSleepMillis = commandSleepMillis
-          ))
+          )
+          val t = Thread(() => { server.run(); () })
           t.start()
           LaunchedServer.NewThread(t, () => { /* do nothing */ })
         }

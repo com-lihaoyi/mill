@@ -8,6 +8,7 @@ import mill.scalalib.*
  * This package contains the code for the Mill-specific TCP client implementation.
  */
 object `package` extends MillPublishJavaModule {
+  def jvmId = "11"
   def moduleDeps = Seq(build.core.constants)
 
   object test extends JavaTests with TestModule.Junit4 {

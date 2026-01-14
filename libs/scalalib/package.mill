@@ -1,12 +1,12 @@
 package build.libs.scalalib
 import scala.util.Properties
-import scala.util.chaining._
+import scala.util.chaining.*
 
 import coursier.maven.MavenRepository
-import mill._
+import mill.*
 import mill.util.Tasks
-import mill.scalalib._
-import mill.scalalib.publish._
+import mill.scalalib.*
+import mill.scalalib.publish.*
 import mill.util.Jvm
 import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo

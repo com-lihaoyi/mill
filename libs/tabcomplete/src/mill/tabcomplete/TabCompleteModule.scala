@@ -95,7 +95,8 @@ private object TabCompleteModule extends ExternalModule {
           // This is the task I need to autocomplete, or the next incomplete flag
           else if (index == parsedArgCount) {
             findMatchingArgs(args.lift(index), argSigs)
-              .getOrElse(completeTasks(ev, index, args))
+              .getOrElse(completeTasks(ev, index, args)) ++
+              delegateToBash(args, index)
 
           } else ???
 
@@ -108,8 +109,8 @@ private object TabCompleteModule extends ExternalModule {
           // In this case, we cannot really identify any tokens in the argument list
           // which are task selectors, since the last flag is incomplete and prior
           // flags are all completed. So just delegate to bash completion
-          findMatchingArgs(args.lift(index), argSigs)
-            .getOrElse(delegateToBash(args, index))
+          findMatchingArgs(args.lift(index), argSigs).getOrElse(Nil) ++
+            delegateToBash(args, index)
 
       }
 
@@ -156,7 +157,11 @@ private object TabCompleteModule extends ExternalModule {
             case _ => ""
           }
 
-          for (name <- nameField(arg) if !arg.doc.contains("Unsupported")) yield {
+          for (
+            name <- nameField(arg)
+            // We don't want complete outdated args, although we still support them
+            if !MillCliConfig.isUnsupported(arg) && !MillCliConfig.isDeprecated(arg)
+          ) yield {
             val suffix =
               val docLine = oneLine(arg.doc.getOrElse(""))
               s"$typeStringPrefix$docLine"
@@ -207,7 +212,7 @@ private object TabCompleteModule extends ExternalModule {
       case _: Resolved.Module =>
         mill.util.Inspect.scaladocForModule(resolved.cls)
       case _ =>
-        mill.util.Inspect.scaladocForTask(resolved.segments, resolved.cls)
+        mill.util.Inspect.scaladocForTask(resolved.fullSegments, resolved.cls)
     }
 
     oneLine(allDocs.mkString("\n"))
@@ -231,33 +236,45 @@ private object TabCompleteModule extends ExternalModule {
           case Some('[') => trimmed + "__]"
           case Some(',') => trimmed + "__]"
           case Some(']') => trimmed + "._"
-          case Some(other) => throw Exception(s"Unexpected char: $other")
+          case Some('/') => trimmed + "_"
+          case Some(_) => trimmed + "_"
         }
 
         (query, Some(unescaped))
     }
 
+    // Check if user is typing with bracket syntax
+    val useBracketSyntax = unescapedOpt.exists(u => u.contains("[") || u.contains(","))
+
     ev.resolveRaw(Seq(query), SelectMode.Multi).map { res =>
       val unescapedStr = unescapedOpt.getOrElse("")
       val filtered = res.flatMap { r =>
-        val rendered = r.segments.render
+        val rendered = renderSegments(r.fullSegments, useBracketSyntax)
         Option.when(rendered.startsWith(unescapedStr))(rendered -> getDocs(r))
       }
       val moreFiltered = unescapedOpt match {
         case Some(u) if filtered.exists(_._1 == u) =>
           ev.resolveRaw(Seq(u + "._"), SelectMode.Multi) match {
             case Result.Success(v) =>
-              v.map { res =>
-                (res.segments.render -> getDocs(res))
-              }
-            case Result.Failure(error) => Nil
+              v.map { res => renderSegments(res.fullSegments, useBracketSyntax) -> getDocs(res) }
+            case _: Result.Failure => Nil
           }
 
         case _ => Nil
       }
 
-      (filtered ++ moreFiltered)
+      filtered ++ moreFiltered
     }.toOption.getOrElse(Nil)
+  }
+
+  /**
+   * Renders segments for tab completion. By default uses the new dot-delimited syntax
+   * for cross modules (e.g., `foo.2_12_20` instead of `foo[2.12.20]`), but uses bracket
+   * syntax if the user has already started typing with brackets.
+   */
+  def renderSegments(segments: mill.api.daemon.Segments, useBracketSyntax: Boolean): String = {
+    if (useBracketSyntax) segments.renderBracketSyntax
+    else segments.render
   }
 
   /**

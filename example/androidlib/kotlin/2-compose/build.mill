@@ -28,6 +28,9 @@ object app extends AndroidAppKotlinModule {
   def androidMinSdk = 26
   def androidEnableCompose = true
 
+  override def androidVirtualDevice = super.androidVirtualDevice().withName("kotlin-compose-test")
+  override def androidEmulatorPort: String = "5566"
+
   def androidIsDebug = true
 
   def androidApplicationId = "com.example.composetest"
@@ -55,7 +58,7 @@ object app extends AndroidAppKotlinModule {
 
 }
 
-////SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 
@@ -64,7 +67,7 @@ object app extends AndroidAppKotlinModule {
 
 
 > ./mill show app.createAndroidVirtualDevice
-...Name: test, DeviceId: medium_phone...
+...Name: kotlin-compose-test, DeviceId: medium_phone...
 
 > ./mill show app.startAndroidEmulator
 

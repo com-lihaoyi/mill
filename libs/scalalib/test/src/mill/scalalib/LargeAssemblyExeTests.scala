@@ -45,7 +45,7 @@ object LargeAssemblyExeTests extends TestSuite {
   def tests: Tests = Tests {
     test("exe") {
       UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
-        val Left(ExecResult.Failure(msg)) =
+        val Left(ExecResult.Failure(msg = msg)) =
           eval(TestCase.exe.assembly): @unchecked
         val expectedMsg =
           """The created assembly jar contains more than 65535 ZIP entries.

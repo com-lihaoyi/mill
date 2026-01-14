@@ -1,7 +1,7 @@
 package build
 
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 
 object `package` extends ScalaModule {
   def scalaVersion = scala.util.Properties.versionNumberString

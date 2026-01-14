@@ -1,5 +1,7 @@
 package mill.launcher;
 
+import static mill.constants.OutFiles.OutFiles;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +16,6 @@ import mill.client.*;
 import mill.client.lock.Locks;
 import mill.constants.BuildInfo;
 import mill.constants.EnvVars;
-import mill.constants.OutFiles;
 import mill.constants.OutFolderMode;
 import mill.internal.MillCliConfig;
 
@@ -27,22 +28,31 @@ public class MillLauncherMain {
   public static void main(String[] args) throws Exception {
     var needParsedConfig = Arrays.stream(args)
         .anyMatch(f -> f.startsWith("-") && !f.startsWith("--") && f.contains("i"));
-    for (var token :
-        Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")) {
+    for (var token : Arrays.asList(
+        "--interactive",
+        "--no-server",
+        "--no-daemon",
+        "--jshell",
+        "--repl",
+        "--bsp",
+        "--bsp-install",
+        "--help",
+        "--use-file-locks")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
     }
 
     var runNoDaemon = false;
     var bspMode = false;
+    var useFileLocks = false;
 
     // Only use MillCliConfig and other Scala classes if we detect that a relevant flag
     // might have been passed, to avoid loading those classes on the common path for performance
     if (needParsedConfig) {
       var config = MillCliConfig.parse(args).toOption();
-      if (config.exists(c -> c.bsp().value())) bspMode = true;
-      if (config.exists(
-          c -> c.interactive().value() || c.noServer().value() || c.noDaemon().value()))
-        runNoDaemon = true;
+      // Use BSP output directory for both --bsp (server mode) and --bsp-install (setup)
+      if (config.exists(c -> c.bsp().value() || c.bspInstall().value())) bspMode = true;
+      if (config.exists(c -> c.noDaemonEnabled() > 0)) runNoDaemon = true;
+      if (config.exists(c -> c.useFileLocks().value())) useFileLocks = true;
     }
 
     // Ensure that if we're running in BSP mode we don't start a daemon.
@@ -72,6 +82,8 @@ public class MillLauncherMain {
                   + " make it less responsive.");
     }
 
+    coursier.Resolve.proxySetup();
+
     String[] runnerClasspath = MillProcessLauncher.cachedComputedValue0(
         outMode,
         "resolve-runner",
@@ -85,11 +97,17 @@ public class MillLauncherMain {
         });
 
     if (runNoDaemon) {
-      String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
-      // start in no-server mode
-      int exitCode =
-          MillProcessLauncher.launchMillNoDaemon(args, outMode, runnerClasspath, mainClass);
-      System.exit(exitCode);
+      try {
+        String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
+        // start in no-server mode
+        int exitCode = MillProcessLauncher.launchMillNoDaemon(
+            args, outMode, runnerClasspath, mainClass, useFileLocks);
+        System.exit(exitCode);
+      } catch (mill.api.daemon.MillException e) {
+        // Print clean error message without stack trace for expected errors
+        System.err.println(e.getMessage());
+        System.exit(1);
+      }
     } else {
       var logs = new java.util.ArrayList<String>();
       try {
@@ -99,17 +117,19 @@ public class MillLauncherMain {
         var formatter =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"));
         Consumer<String> log = (s) -> logs.add(formatter.format(Instant.now()) + " " + s);
+        final boolean useFileLocksFinal = useFileLocks;
         MillServerLauncher launcher =
             new MillServerLauncher(
                 new MillServerLauncher.Streams(System.in, System.out, System.err),
                 System.getenv(),
                 optsArgs.toArray(new String[0]),
                 Optional.empty(),
-                -1) {
+                -1,
+                useFileLocksFinal) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-                return new LaunchedServer.OsProcess(
-                    MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath)
-                        .toHandle());
+                return new LaunchedServer.OsProcess(MillProcessLauncher.launchMillDaemon(
+                        daemonDir, outMode, runnerClasspath, useFileLocksFinal)
+                    .toHandle());
               }
             };
 
@@ -118,20 +138,19 @@ public class MillLauncherMain {
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir);
         var exitCode = launcher.run(daemonDir, javaHome, log);
-        if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
+        // Retry if server requests it. This can happen when:
+        // - There's a version mismatch between client and server
+        // - The server was terminated while this client was waiting
+        int maxRetries = 10;
+        for (int i = 0; i < maxRetries && exitCode == ClientUtil.ServerExitPleaseRetry(); i++) {
           exitCode = launcher.run(daemonDir, javaHome, log);
+        }
+        if (exitCode == ClientUtil.ServerExitPleaseRetry()) {
+          System.err.println("Max launcher retries exceeded (" + maxRetries + "), exiting");
         }
         System.exit(exitCode);
       } catch (Exception e) {
-        System.err.println("Mill client failed with unknown exception.");
-        System.err.println();
-
-        System.err.println("Exception:");
-        //noinspection CallToPrintStackTrace
-        e.printStackTrace();
-        System.err.println();
-        System.err.println("Logs:");
-        logs.forEach(System.err::println);
+        handleLauncherException(e, outDir, logs);
         System.exit(1);
       }
     }
@@ -141,5 +160,32 @@ public class MillLauncherMain {
     if (System.getenv("MILL_TEST_EXIT_AFTER_BSP_CHECK") != null) {
       System.exit(0);
     }
+  }
+
+  private static void handleLauncherException(
+      Exception e, String outDir, java.util.List<String> logs) {
+    // For MillException, just print the message without stack trace
+    if (e instanceof mill.api.daemon.MillException) {
+      System.err.println(e.getMessage());
+      return;
+    }
+
+    Path errorFile = Paths.get(outDir, "mill-launcher-error.log");
+    try (var writer = Files.newBufferedWriter(errorFile)) {
+      writer.write("Mill launcher failed with unknown exception.\n\n");
+      writer.write("Exception:\n");
+      var sw = new java.io.StringWriter();
+      e.printStackTrace(new java.io.PrintWriter(sw));
+      writer.write(sw.toString());
+      writer.write("\nLogs:\n");
+      for (String log : logs) {
+        writer.write(log + "\n");
+      }
+    } catch (Exception writeEx) {
+      // If we can't write to file, fall back to stderr
+      System.err.println("Mill launcher failed. Could not write error log: " + writeEx);
+      e.printStackTrace();
+    }
+    System.err.println("Mill launcher failed. See " + errorFile + " for details.");
   }
 }

@@ -81,7 +81,7 @@ trait HelloWorldTests extends TestSuite {
     }
     test("compileTwirl") {
       skipUnsupportedVersions {
-        UnitTester(HelloWorld, resourcePath / "hello-world", debugEnabled = true).scoped { eval =>
+        UnitTester(HelloWorld, resourcePath / "hello-world").scoped { eval =>
           val res = eval.apply(HelloWorld.core.compileTwirl)
           assert(res.isRight)
           val Right(result) = res: @unchecked

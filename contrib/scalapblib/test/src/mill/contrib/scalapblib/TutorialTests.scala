@@ -11,7 +11,9 @@ import utest.{TestSuite, Tests, assert, *}
 object TutorialTests extends TestSuite {
   val testScalaPbVersion = "0.11.7"
 
-  trait TutorialBase extends TestRootModule
+  trait TutorialBase extends TestRootModule {
+    val core: TutorialModule
+  }
 
   trait TutorialModule extends ScalaPBModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
@@ -70,18 +72,68 @@ object TutorialTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object TutorialWithJavaGen extends TutorialBase {
+    object core extends TutorialModule {
+      override def scalaPBGenerators = Seq(Generator.JavaGen)
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object TutorialWithScalaAndJavaGen extends TutorialBase {
+    object core extends TutorialModule {
+      override def scalaPBGenerators = Seq(Generator.ScalaGen, Generator.JavaGen)
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
 
   def protobufOutPath(eval: UnitTester): os.Path =
     eval.outPath / "core/compileScalaPB.dest/com/example/tutorial"
 
-  def compiledSourcefiles: Seq[os.RelPath] = Seq[os.RelPath](
+  def compiledScalaSourcefiles: Seq[os.RelPath] = Seq[os.RelPath](
     os.rel / "AddressBook.scala",
     os.rel / "Person.scala",
     os.rel / "TutorialProto.scala",
     os.rel / "Include.scala",
     os.rel / "IncludeProto.scala"
   )
+
+  def compiledJavaSourcefiles: Seq[os.RelPath] = Seq[os.RelPath](
+    os.rel / "AddressBookProtos.java",
+    os.rel / "IncludeOuterClass.java"
+  )
+
+  // Helper function to test compilation with different generators
+  def testCompilation(
+      module: TutorialBase,
+      expectedFiles: Seq[os.RelPath]
+  ): Unit = {
+    UnitTester(module, resourcePath).scoped { eval =>
+      if (Util.isWindows) "Skipped test on Windows"
+      else {
+        val Right(result) = eval.apply(module.core.compileScalaPB): @unchecked
+
+        val outPath = protobufOutPath(eval)
+        val outputFiles = os.walk(result.value.path).filter(os.isFile)
+        val expectedSourcefiles = expectedFiles.map(outPath / _)
+
+        assert(
+          result.value.path == eval.outPath / "core/compileScalaPB.dest",
+          outputFiles.nonEmpty,
+          outputFiles.forall(expectedSourcefiles.contains),
+          outputFiles.size == outputFiles.size,
+          result.evalCount > 0
+        )
+
+        // don't recompile if nothing changed
+        val Right(result2) = eval.apply(module.core.compileScalaPB): @unchecked
+        assert(result2.evalCount == 0)
+      }
+    }
+  }
 
   def tests: Tests = Tests {
     test("scalapbVersion") {
@@ -97,36 +149,19 @@ object TutorialTests extends TestSuite {
     }
 
     test("compileScalaPB") {
-      test("calledDirectly") - UnitTester(Tutorial, resourcePath).scoped { eval =>
-        if (!mill.constants.Util.isWindows) {
-          val Right(result) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
-
-          val outPath = protobufOutPath(eval)
-
-          val outputFiles = os.walk(result.value.path).filter(os.isFile)
-
-          val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
-
-          assert(
-            result.value.path == eval.outPath / "core/compileScalaPB.dest",
-            outputFiles.nonEmpty,
-            outputFiles.forall(expectedSourcefiles.contains),
-            outputFiles.size == 5,
-            result.evalCount > 0
-          )
-
-          // don't recompile if nothing changed
-          val Right(result2) = eval.apply(Tutorial.core.compileScalaPB): @unchecked
-
-          assert(result2.evalCount == 0)
-        }
-      }
+      test("scalaGen") - testCompilation(Tutorial, compiledScalaSourcefiles)
+      test("javaGen") - testCompilation(TutorialWithJavaGen, compiledJavaSourcefiles)
+      test("scalaAndJavaGen") - testCompilation(
+        TutorialWithScalaAndJavaGen,
+        compiledScalaSourcefiles ++ compiledJavaSourcefiles
+      )
 
       test("calledWithSpecificFile") - UnitTester(
         TutorialWithSpecificSources,
         resourcePath
       ).scoped { eval =>
-        if (!Util.isWindows) {
+        if (Util.isWindows) "Skipped test on Windows"
+        else {
           val Right(result) =
             eval.apply(TutorialWithSpecificSources.core.compileScalaPB): @unchecked
 
@@ -165,7 +200,7 @@ object TutorialTests extends TestSuite {
 //
 //      //   val outputFiles = os.walk(outPath).filter(_.isFile)
 //
-//      //   val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
+//      //   val expectedSourcefiles = compiledScalaSourcefiles.map(outPath / _)
 //
 //      //   assert(
 //      //     outputFiles.nonEmpty,

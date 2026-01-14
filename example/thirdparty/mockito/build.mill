@@ -38,7 +38,7 @@ object libraries {
 }
 
 trait MockitoModule extends MavenModule {
-  def jvmId = "temurin:11.0.24"
+  def jvmVersion = "temurin:11.0.24"
   def javacOptions = Seq("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
   def testMvnDeps: T[Seq[Dep]] = Seq()
@@ -268,7 +268,7 @@ object `package` extends MockitoModule {
 //        s"-DtestRuntimeBundles=${testRuntimeBundles.runClasspath().map(_.path).distinct.filter(os.exists(_)).mkString(java.io.File.pathSeparator)}"
 //      )
 //    }
-    object `programmatic-test` extends MockitoModule {
+    object `programmable-test` extends MockitoModule {
       def testModuleDeps = Seq(build)
       def testMvnDeps = Seq(libraries.junit4, libraries.assertj)
     }

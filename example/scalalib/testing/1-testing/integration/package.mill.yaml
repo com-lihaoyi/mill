@@ -1,0 +1,3 @@
+extends: [build.ScalaTests, TestModule.Utest]
+moduleDeps: !append [test]
+mvnDeps: [com.lihaoyi::utest:0.9.1]

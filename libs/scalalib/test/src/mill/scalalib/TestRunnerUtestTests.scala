@@ -109,7 +109,7 @@ object TestRunnerUtestTests extends TestSuite {
         )
         // noMatch
         tester.testOnly0 { (eval, mod) =>
-          val Left(ExecResult.Failure(msg)) =
+          val Left(ExecResult.Failure(msg = msg)) =
             eval.apply(mod.utest.testOnly("noMatch", "noMatch*2")): @unchecked
           assert(
             msg == "Test selector does not match any test: noMatch noMatch*2\nRun discoveredTestClasses to see available tests"

@@ -1,6 +1,7 @@
 package mill.resolve
 
 import mill.api.Result
+import mill.api.internal.ExpandBraces
 import utest.*
 
 object ExpandBracesTests extends TestSuite {
@@ -51,8 +52,8 @@ object ExpandBracesTests extends TestSuite {
         val malformed = Seq("core.{compile", "core.{compile,test]")
 
         malformed.foreach { m =>
-          val Result.Failure(error) = ExpandBraces.expandBraces(m): @unchecked
-          assert(error.contains("Parsing exception"))
+          val (failure: Result.Failure) = ExpandBraces.expandBraces(m): @unchecked
+          assert(failure.error.contains("Parsing exception"))
         }
       }
       test("dontExpand") {

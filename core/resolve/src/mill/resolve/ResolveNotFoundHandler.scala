@@ -6,7 +6,7 @@ import mill.api.{Segment, Segments}
 /**
  * Reports errors in the case where nothing was resolved
  */
-private object ResolveNotFoundHandler {
+private[mill] object ResolveNotFoundHandler {
   def apply(
       selector: Segments,
       segments: Segments,

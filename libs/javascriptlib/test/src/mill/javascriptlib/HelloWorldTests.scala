@@ -34,7 +34,8 @@ object HelloWorldTests extends TestSuite {
 
           val Right(_) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))): @unchecked
 
-          assert(baos.toString() == "Hello James Qux\n")
+          val baosToString = baos.toString()
+          assert(baosToString == "Hello James Qux\n")
       }
     }
   }

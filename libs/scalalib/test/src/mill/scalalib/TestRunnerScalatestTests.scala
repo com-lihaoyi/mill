@@ -117,7 +117,7 @@ object TestRunnerScalatestTests extends TestSuite {
 
         // includeAndExclude
         tester.testOnly0 { (eval, mod) =>
-          val Left(ExecResult.Failure(msg)) =
+          val Left(ExecResult.Failure(msg = msg)) =
             eval.apply(mod.scalatest.testOnly(
               "mill.scalalib.ScalaTestSpec",
               "--",

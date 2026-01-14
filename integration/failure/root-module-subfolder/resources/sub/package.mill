@@ -1,0 +1,3 @@
+package build.sub
+import mill.*
+object `package`

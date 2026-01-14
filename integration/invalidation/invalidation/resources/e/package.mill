@@ -1,5 +1,5 @@
 package build.e
-import mill._
+import mill.*
 
 def input = Task {
   println("e")

@@ -1,0 +1,8 @@
+plugins {
+    id 'gradle.java-common-conventions'
+    id 'java-library'
+    id 'net.ltgt.errorprone'
+}
+dependencies {
+    errorprone 'com.google.errorprone:error_prone_core:2.28.0'
+}

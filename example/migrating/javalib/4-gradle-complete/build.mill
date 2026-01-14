@@ -1,12 +1,10 @@
 /** Usage
 
-> rm build.mill # remove any existing build file
-
 > git init .
 > git remote add -f origin https://github.com/komamitsu/fluency.git
 > git checkout 2.7.3 # multi-module Java project that requires Java 16+
 
-> ./mill init --base-module FluencyModule --jvm-id 16
+> ./mill init
 converting Gradle build
 ...
 init completed, run "mill resolve _" to list available tasks

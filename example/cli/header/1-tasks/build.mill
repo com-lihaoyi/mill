@@ -14,7 +14,7 @@ private def foo = 1
 
 > ./mill version
 error: ...unused private member
-...No warnings can be incurred under -Werror (or -Xfatal-warnings)
+...No warnings can be incurred under -Werror
 */
 
 // As the `build.mill` file is written in Scala, most tasks you override on

@@ -1,0 +1,120 @@
+//// SNIPPET:ALL
+package build
+import mill.*, kotlinlib.*, publish.*
+
+trait MyModule extends KotlinModule, PublishModule {
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  def kotlinVersion = "1.9.24"
+
+  def mvnDeps = Seq(mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0")
+
+  object test extends KotlinTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
+    )
+  }
+}
+
+object foo extends MyModule {
+  def moduleDeps = Seq(bar, qux)
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "Version.kt",
+      s"""
+         |package foo
+         |
+         |object Version {
+         |  fun value() = "${publishVersion()}"
+         |}
+      """.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends MyModule {
+  def moduleDeps = Seq(qux)
+}
+
+object qux extends MyModule {
+  def mainClass = Some("qux.QuxKt")
+}
+
+// A semi-realistic build setup, combining all the individual Mill concepts:
+//
+// - Three ``KotlinModule``s that depend on each other
+//
+// - With unit testing and publishing set up
+//
+// - With generated sources to include the `publishVersion` as a string in the
+//   code, so it can be printed at runtime
+//
+// Note that for multi-module builds like this, using using xref:cli/query-syntax.adoc[queries] to run tasks on
+// multiple modules at once can be very convenient:
+//
+// [source,sh]
+// ----
+// > mill __.test
+// > mill __.publishLocal
+// ----
+//
+// Also note how you can use ``trait``s to bundle together common combinations of
+// modules: `MyModule` not only defines a `KotlinModule` with some common
+// configuration, but it also defines a `object test` module within it with its
+// own configuration. This is a very useful technique for managing the often
+// repetitive module structure in a typical project
+
+/** Usage
+
+> ./mill resolve __.run
+bar.run
+bar.test.run
+foo.run
+foo.test.run
+qux.run
+
+> ./mill foo.run
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+
+> ./mill bar.test
+...bar.BarTests world ...
+
+> ./mill qux.run
+Qux.value: 31337
+
+> ./mill __.compile
+
+> ./mill __.test
+...bar.BarTests world ...
+...foo.FooTests hello ...
+
+> ./mill __.publishLocal
+Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
+...
+
+> ./mill show foo.assembly # mac/linux
+".../out/foo/assembly.dest/out.jar"
+
+> ./out/foo/assembly.dest/out.jar # mac/linux
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+
+*/

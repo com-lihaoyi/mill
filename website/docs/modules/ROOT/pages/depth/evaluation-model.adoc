@@ -116,7 +116,7 @@ a concrete Mill `RootModule` object, which is then used in the subsequent tasks 
 === Resolution
 
 Resolution converts the Mill xref:cli/query-syntax.adoc[task selector] ``_.assembly`` given from the command line
-into a list ofxref:fundamentals/tasks.adoc[Task] objects. This explores the `build` and `package`
+into a list of xref:fundamentals/tasks.adoc[Task] objects. This explores the `build` and `package`
 files generated in the <<Compilation>> step above, instantiates the xref:fundamentals/modules.adoc[Modules]
 and xref:fundamentals/tasks.adoc[Tasks] as necessary, and returns a list of the final tasks that
 were selected by selector:
@@ -353,12 +353,12 @@ build. For example:
 
 3. *But* your code inside of ``Task``s cannot influence the shape of the task
    graph or module hierarchy, as all <<Resolution>> logic happens first
-   *before* any <<Evaluation>> of the ``Task``s bodies.
+   *before* any <<Execution>> of the ``Task``s bodies.
 
 This should not be a problem for most builds, but it is something to be aware
 of. In general, we have found that having "two places" to put code - outside of
 ``Task``s to run during <<Planning>> or inside of ``Task``s to run during
-<<Evaluation>> - is generally enough flexibility for most use cases. You
+<<Execution>> - is generally enough flexibility for most use cases. You
 can generally just write "direct style" business logic you need - in the example
 above counting the lints in `allSourceFiles` - and Mill handles all the caching,
 invalidation, and parallelism for you without any additional work.

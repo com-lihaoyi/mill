@@ -19,12 +19,12 @@ object server extends TypeScriptModule {
 // Documentation for mill.example.javascriptlib
 // This example demonstrated a js client module and js server module,
 // wired up and interacting
-// Runninng `mill server.run` serves bundled static HTML files through the server.
+// Running `mill server.run` serves bundled static HTML files through the server.
 
 /** Usage
 
 > ./mill client.test
-PASS .../App.test.tsx
+...PASS .../App.test.tsx
 ...
 
 > ./mill client.bundle   # bundle the react app;

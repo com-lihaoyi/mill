@@ -1,34 +1,54 @@
 = Kotlin Web Project Examples
-
-
+:language: Kotlin
+:language-small: kotlin
 
 This page contains examples of using Mill as a build tool for web-applications.
 It covers setting up a basic backend server with a variety of server frameworks
 
-== Ktor Hello World App
+== Simple Web Example
 
-include::partial$example/kotlinlib/web/1-hello-ktor.adoc[]
+include::partial$example/kotlinlib/web/1-web-example.adoc[]
 
-== Ktor TodoMvc App
+== Ktor
 
-include::partial$example/kotlinlib/web/2-todo-ktor.adoc[]
+=== Ktor Hello World App
 
-== Simple KotlinJS Module
+include::partial$example/kotlinlib/web/2-hello-ktor.adoc[]
 
-include::partial$example/kotlinlib/web/3-hello-kotlinjs.adoc[]
+=== Ktor TodoMvc App
 
-== Ktor Webapp, KotlinJS Client
+include::partial$example/kotlinlib/web/3-todo-ktor.adoc[]
 
-include::partial$example/kotlinlib/web/4-webapp-kotlinjs.adoc[]
+== KotlinJS
 
-== Ktor KotlinJS Code Sharing
+=== Simple KotlinJS Module
 
-include::partial$example/kotlinlib/web/5-webapp-kotlinjs-shared.adoc[]
+include::partial$example/kotlinlib/web/4-hello-kotlinjs.adoc[]
 
-== Spring Boot Hello World App
+=== Ktor Webapp, KotlinJS Client
 
-include::partial$example/kotlinlib/web/6-hello-spring-boot.adoc[]
+include::partial$example/kotlinlib/web/5-webapp-kotlinjs.adoc[]
 
-== Spring Boot TodoMvc App
+=== Ktor KotlinJS Code Sharing
 
-include::partial$example/kotlinlib/web/7-todo-spring-boot.adoc[]
+include::partial$example/kotlinlib/web/6-webapp-kotlinjs-shared.adoc[]
+
+== Spring Boot
+=== Spring Boot Hello World App
+
+include::partial$example/kotlinlib/web/7-hello-spring-boot.adoc[]
+
+=== Spring Boot TodoMvc App
+
+include::partial$example/kotlinlib/web/8-todo-spring-boot.adoc[]
+
+
+=== Spring Boot AOT
+
+include::partial$example/kotlinlib/web/10-spring-boot-aot.adoc[]
+
+== Micronaut App
+
+include::partial$example/kotlinlib/web/9-hello-micronaut.adoc[]
+
+

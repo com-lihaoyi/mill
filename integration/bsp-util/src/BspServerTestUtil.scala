@@ -16,7 +16,7 @@ import scala.reflect.ClassTag
 
 object BspServerTestUtil {
 
-  private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
+  def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
   trait TestBuildClient extends b.BuildClient {
     // Whether to check the validity of some messages
@@ -61,6 +61,10 @@ object BspServerTestUtil {
           val (from, to) = if (inverse) (to0, from0) else (from0, to0)
           input0.replace(from, to)
       }.replaceAll("\"javaHome\": \"[^\"]+\"", "\"javaHome\": \"java-home\"")
+        .replaceAll("\"PATH\": \"[^\"]+\"", "\"PATH\": \"...\"")
+        .replaceAll("\"PATH(\\\\u003d|=)[^\"]+\"", "\"PATH=...\"")
+        // Normalize third-party dependency versions to "..." but preserve already-normalized versions like <scala-version>
+        .replaceAll("\"version\": \"(?!<)[^\"]+\"", "\"version\": \"...\"")
 
     val jsonStr = normalizeLocalValues(
       gson.toJson(

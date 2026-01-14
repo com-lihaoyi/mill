@@ -47,7 +47,7 @@ The above example uses `ScalaModule` but `BuildInfo` can also be used with ``Jav
 `def buildInfoMembers: T[Seq[BuildInfo.Value]]`::
 The map containing all member names and values for the generated info object.
 
-`def buildInfoObjectName: String = "BuildInfo`::
+`def buildInfoObjectName: String = "BuildInfo"`::
 The name of the BuildInfo data object which contains all the members from `buildInfoMembers`. Defaults to "BuildInfo".
 
 `def buildInfoPackageName: String`::

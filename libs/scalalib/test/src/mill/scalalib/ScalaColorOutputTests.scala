@@ -31,7 +31,7 @@ object ScalaColorOutputTests extends TestSuite {
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-color-output",
         errStream = new PrintStream(errStream, true)
       ).scoped { eval =>
-        val Left(ExecResult.Failure("Compilation failed")) =
+        val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(HelloWorldColorOutput.core.compile): @unchecked
         val output = errStream.toString
         assert(output.contains(s"${Console.RED}!${Console.RESET}${Console.BLUE}I"))

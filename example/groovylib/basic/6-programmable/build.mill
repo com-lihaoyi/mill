@@ -1,0 +1,20 @@
+//// SNIPPET:BUILD
+
+package build
+import mill.*, groovylib.*
+
+object foo extends GroovyModule {
+  def groovyVersion = "5.0.3"
+
+  // Groovy dependency version have been loaded via BOM from the Module already
+  def mvnDeps = Seq(
+    mvn"org.apache.groovy:groovy-cli-commons",
+    mvn"org.apache.groovy:groovy-xml"
+  )
+
+  object test extends GroovyTests, TestModule.Junit5 {
+    def mvnDeps = Seq(
+      mvn"org.apache.groovy:groovy-test"
+    )
+  }
+}

@@ -2,7 +2,7 @@ package foo
 
 import scala.scalanative.libc.*
 import scala.scalanative.unsafe.*
-import mainargs.{main, ParserForMethods}
+import mainargs.{main, Parser}
 
 object Foo {
 
@@ -19,5 +19,5 @@ object Foo {
     stdio.printf(generateHtml(text))
   }
 
-  def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
+  def main(args: Array[String]): Unit = Parser(this).runOrExit(args)
 }

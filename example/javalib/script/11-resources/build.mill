@@ -1,0 +1,23 @@
+//// SNIPPET:ALL
+
+/** See Also: Foo.java */
+
+/** Usage
+> ./mill Foo.java
+Hello World Resource File
+*/
+
+//// SNIPPET:END
+//// SNIPPET:ALL2
+
+/** Usage
+
+> ./mill show Foo.java:assembly
+".../out/Foo.java/assembly.dest/out.jar"
+
+> out/Foo.java/assembly.dest/out.jar
+Hello World Resource File
+
+*/
+
+//// SNIPPET:END

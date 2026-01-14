@@ -1,0 +1,11 @@
+//// SNIPPET:ALL
+
+/** See Also: Foo.kt */
+
+/** Usage
+> ./mill Foo.kt
+java.version 11.0.21
+
+*/
+
+//// SNIPPET:END

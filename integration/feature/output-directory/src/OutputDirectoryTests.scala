@@ -1,21 +1,22 @@
 package mill.integration
 
-import mill.constants.{EnvVars, OutFiles}
+import mill.constants.EnvVars
+import mill.constants.OutFiles.OutFiles
 import mill.testkit.UtestIntegrationTestSuite
-import utest._
+import utest.*
 
 object OutputDirectoryTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("Output directory sanity check") - integrationTest { tester =>
-      import tester._
+      import tester.*
       eval("__.compile").isSuccess ==> true
       val defaultOutDir = workspacePath / OutFiles.defaultOut
       assert(os.isDir(defaultOutDir))
     }
 
     test("Output directory elsewhere in workspace") - integrationTest { tester =>
-      import tester._
+      import tester.*
       eval(
         "__.compile",
         env = Map(EnvVars.MILL_OUTPUT_DIR -> "testing/test-out")
@@ -27,7 +28,7 @@ object OutputDirectoryTests extends UtestIntegrationTestSuite {
     }
 
     test("Output directory outside workspace") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val outDir = os.temp.dir() / "tmp-out"
       eval(
         "__.compile",

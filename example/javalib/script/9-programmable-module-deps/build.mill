@@ -1,0 +1,18 @@
+//// SNIPPET:BUILD
+package build
+import mill.*, javalib.*
+
+object bar extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
+  )
+}
+
+/** See Also: Foo.java */
+/** Usage
+
+> ./mill Foo.java hello
+<h1>hello</h1>
+
+*/

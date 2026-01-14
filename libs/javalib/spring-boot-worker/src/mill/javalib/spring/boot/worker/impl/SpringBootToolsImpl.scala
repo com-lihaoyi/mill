@@ -62,4 +62,8 @@ class SpringBootToolsImpl() extends SpringBootTools {
 
     ()
   }
+
+  override def close(): Unit = {
+    // Nothing to do
+  }
 }

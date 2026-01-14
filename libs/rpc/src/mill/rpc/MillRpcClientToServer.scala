@@ -6,8 +6,8 @@ import upickle.{Reader, Writer}
 enum MillRpcClientToServer[+Data] derives Reader, Writer {
 
   /** Client is asking the server to do something. */
-  case Ask(id: MillRpcRequestId, data: Data)
+  case Ask(data: Data)
 
   /** Response to server's [[MillRpcServerToClient.Ask]] which either succeeded or failed. */
-  case Response(id: MillRpcRequestId, data: Either[RpcThrowable, Data])
+  case Response(data: Either[RpcThrowable, Data])
 }

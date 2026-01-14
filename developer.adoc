@@ -1,42 +1,23 @@
+= Developer Documentation
 
-== Developer Documentation
-
-The remainder of this readme is developer-documentation targeted at people who wish to work
-on Mill's own codebase. The developer docs assume you have read through the user-facing
-documentation linked above. It's also worth spending a few minutes reading the following
-blog posts to get a sense of Mill's design & motivation:
-
-
-
-Mill is built using Mill. To begin, you just need a JVM installed, and the
-`./mill` script will be sufficient to bootstrap the project.
-
-== IntelliJ Setup
-
-If you are using IntelliJ IDEA to edit Mill's Scala code, IntelliJ's built in BSP support should
-be sufficient to load the Mill project, but you need to set up the file association from
-`*.mill` as Scala source files manually in the following settings:
-
-* `Settings` / `Editor` / `File Types` / `Scala`, add the pattern `*.mill`
+Mill is built using Mill. The `./mill` script will be sufficient to bootstrap the project.
 
 == Manual & Automated Testing
 
-The following table contains the main ways you can test the code in
-`com-lihaoyi/mill`, via manual testing or automated tests:
+Ways you can run manual testing or automated tests using `./mill`:
 
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
 | In-Process Tests | `core.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process w/o packaging/publishing| `example.\\__.local.daemon`, `integration.__.local.daemon` | `dist.run` | `test-mill-dev.sh`
-| Sub-Process w/ packaging/publishing | `example.\\__.packaged.daemon`, `integration.__.packaged.daemon` | `dist.assembly` | `test-mill-release.sh`
+| Sub-Process Tests| `integration.ide.bsp-server`, `example.javalib.basic._` | `dist.run` | `test-mill-dev.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
 |===
 
 In general, `println` or `pprint.log` should work in most places and be sufficient for
 instrumenting and debugging the Mill codebase. In the occasional spot where `println`
-doesn't work you can use `mill.constants.DebugLog.println` which writes to a file
-`~/mill-debug-log.txt` in your home folder. `DebugLog` is useful for scenarios like
-debugging Mill's terminal UI (where `println` would mess things up) or subprocesses
+doesn't work you can use `mill.constants.DebugLog.println`/`mill.api.Debug` which writes
+to a file `~/mill-debug-log.txt` in your home folder. `DebugLog`/`Debug` is useful for scenarios
+like debugging Mill's terminal UI (where `println` would mess things up) or subprocesses
 (where stdout/stderr may get captured or used and cannot be used to display your own
 debug statements).
 
@@ -58,19 +39,41 @@ The various `contrib` modules also have tests in this style, e.g.
 Note that the in-memory tests compile the `BaseModule` together with the test suite,
 and do not exercise the Mill script-file bootstrapping, transformation, and compilation process.
 
-=== Sub-Process Tests *without* Packaging/Publishing
+=== Sub-Process Tests
 
-`example.\\__.local.daemon` and `integration.__.local.daemon` tests run Mill end-to-end in a subprocess,
-but *without* the expensive/slow steps of packaging the core packages into an assembly jar
-and publishing the remaining packages to
-`~/.ivy2/local`.
-You can reproduce these tests manually using
-`./mill dist.run <test-folder-path> <command>`.
+These are tests that involve bootstrapping an entire Mill subprocess to exercise its functionality.
+Typically end-to-end test to verify user workflows, or integration tests to assert on behavior that
+is difficult to cover via unit tests.
+
+**Automated Test**
+
+[source,console]
+----
+> ./mill example.javalib.basic.3-simple
+> ./mill integration.feature.inspect
+----
+
+For automated test runs, you can see the state of the workspace and `out/` folder contents in
+the respective test sandboxes e.g. `out/integration/feature/inspect/testForked.dest/sandbox/run-1/`.
+This is useful for analysis of why the test passed or failed.
+
+**Manual Test**
+
+[source,console]
+----
+> ./mill -i dist.run example/javalib/basic/3-simple -i foo.run --text hello
+----
+
+**Manual Test using Launcher Script**
+
+[source,console]
+----
+> ./mill dist.launcher && (cd example/javalib/basic/3-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
+----
 
 `example` tests are written in a single `build.mill` file, with the test commands written
 in a comment with a bash-like syntax together with the build code and comments that explain
-the example.
-These serve three purposes:
+the example.These serve three purposes:
 
 1. Basic smoke-tests to make sure the functionality works at all, without covering every
 edge case
@@ -89,30 +92,7 @@ infrastructure, but with differences:
 2. `integration` tests are written using a Scala test suite extending
 `IntegrationTestSuite`, giving more flexibility at the expense of readability
 
-You can reproduce any of the tests manually using `dist.run`, e.g.
-
-**Automated Test**
-
-[source,console]
-----
-> ./mill "example.javalib.basic[1-simple].local.daemon"
-----
-
-**Manual Test**
-
-[source,console]
-----
-> ./mill dist.run example/javalib/basic/1-simple foo.run --text hello
-----
-
-**Manual Test using Launcher Script**
-
-[source,console]
-----
-> ./mill dist.launcher && (cd example/javalib/basic/1-simple && ../../../../out/dist/launcher.dest/run foo.run --text hello)
-----
-
-=== Sub-Process Tests *with* Packaging/Publishing
+==== Different Flavors or Sub-Process Tests
 
 `example.\\__.daemon`, `integration.__.daemon`, `example.\\__.nodaemon` and
 `integration.__.nodaemon` cover the same test cases as the `.local.daemon` tests described above, but
@@ -125,25 +105,26 @@ You can reproduce these tests manually using `dist.installLocal`:
 
 [source,console]
 ----
-> ./mill dist.installLocal && (cd example/javalib/basic/1-simple && ../../../../mill-assembly.jar run --text hello)
+> ./mill dist.installLocal && (cd example/javalib/basic/3-simple && ../../../../mill-assembly.jar run --text hello)
 ----
 
 You can also use `dist.native.installLocal` for a Graal Native Image executable,
 which is slower to create but faster to start than the default executable assembly.
 
-There are two six of these tests, `.{local,assembly,native}.{daemon,fork}`.
+There are six of these tests, `.{packaged,shared,native}.{daemon,nodaemon}`.
 
 The first label specifies how the Mill code is packaged before testing
 
-1. `.local` runs using all compiled Mill code directly in the `out/` folder. This is the fastest
-and should be used for most testing
 
-2. `.assembly` runs using the compiled Mill code either packaged into an assembly (for the Mill executable).
-This is slower than `.local`, and normally isn't necessary unless you are debugging issues in the Mill
-packaging logic.
+
+1. `.packaged` runs using the compiled Mill code either packaged into an assembly or into jars.
+This is the default for commands like `example.basic.3-simple`
 
 3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
 This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
+
+4. `.shared` runs without packaging code into jars and re-uses the `out/` folder the Mill daemon between runs.
+This isn't intended for manual usage, but is used in CI to speed up running large numbers of tests
 
 The second label specifies how the Mill process is managed during the test:
 
@@ -223,7 +204,7 @@ To run all autofixes and autoformatters:
 
 [source,console]
 ----
-> ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/scalafmt + mill.kotlinlib.ktlint.KtlintModule/
+> ./mill __.fix + mill.javalib.palantirformat/ + mill.scalalib.scalafmt/ + mill.kotlinlib.ktlint/
 ----
 
 These are run automatically on pull requests, so feel free to `pull` down the changes if you want

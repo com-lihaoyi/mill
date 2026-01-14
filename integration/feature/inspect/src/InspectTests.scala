@@ -1,12 +1,12 @@
 package mill.integration
 
-import mill.testkit.UtestIntegrationTestSuite
-import utest._
+import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
+import utest.*
 
 object InspectTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val res = eval(("inspect", "core.test.mvnDeps"))
       assert(res.isSuccess == true)
 
@@ -149,6 +149,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    mill.javalib.OfflineSupportModule
           |    mill.javalib.SemanticDbJavaModule
           |    mill.javalib.AssemblyModule
+          |    mill.util.JdkCommandsModule
           |    mill.javalib.JavaModule
           |
           |Default Task: core.run
@@ -174,6 +175,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    mill.javalib.OfflineSupportModule
           |    mill.javalib.SemanticDbJavaModule
           |    mill.javalib.AssemblyModule
+          |    mill.util.JdkCommandsModule
           |    mill.javalib.JavaModule
           |
           |Module Dependencies:
@@ -200,6 +202,36 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    build_.core3.package_
           |
           |Default Task: core3.run
+          |""".stripMargin
+      )
+
+      val overrideRes = eval(("inspect", "configoverride.mvnDeps"))
+      assert(overrideRes.isSuccess)
+      val overrideInspect = out("inspect").json.str
+      assertGoldenLiteral(
+        overrideInspect
+          .replaceAll("JavaModule.scala:\\d+", "JavaModule.scala:..."),
+        """configoverride.mvnDeps(configoverride/package.mill.yaml:3)
+          |    Any ivy dependencies you want to add to this Module, in the format
+          |    mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
+          |    for Java dependencies
+          |
+          |Inputs:
+          |""".stripMargin
+      )
+
+      val scriptOverrideRes = eval(("inspect", "configoverride/Script.scala:mvnDeps"))
+      assert(scriptOverrideRes.isSuccess)
+      val scriptOverrideInspect = out("inspect").json.str
+      assertGoldenLiteral(
+        scriptOverrideInspect
+          .replaceAll("JavaModule.scala:\\d+", "JavaModule.scala:..."),
+        """configoverride/Script.scala:mvnDeps(configoverride/Script.scala:1)
+          |    Any ivy dependencies you want to add to this Module, in the format
+          |    mvn"org::name:version" for Scala dependencies or mvn"org:name:version"
+          |    for Java dependencies
+          |
+          |Inputs:
           |""".stripMargin
       )
     }

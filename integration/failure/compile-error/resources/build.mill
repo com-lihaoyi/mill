@@ -1,9 +1,9 @@
 //| # make sure line numbers are correctly
 //| # offset in the presence of a yaml header
-//| dummy-key: dummy-value
+//| mvnDeps: []
 package build
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 object foo extends ScalaModule {
   def scalaVersion = myScalaVersion
 }

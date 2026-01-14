@@ -2,18 +2,25 @@ package mill.client.lock;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
-import java.nio.channels.OverlappingFileLockException;
 
 public class FileLock extends Lock {
 
-  private final RandomAccessFile raf;
-  private final FileChannel chan;
+  private RandomAccessFile raf;
+  private FileChannel chan;
   private final String path;
 
+  // Sometimes thread interruption causing these files or channels to be
+  // closed unexpectedly, so if that happens just re-open them before use
+  public void initializeIfNeeded() throws Exception {
+    if (chan == null || !chan.isOpen()) {
+      raf = new RandomAccessFile(path, "rw");
+      chan = raf.getChannel();
+    }
+  }
+
   public FileLock(String path) throws Exception {
-    raf = new RandomAccessFile(path, "rw");
-    chan = raf.getChannel();
     this.path = path;
+    initializeIfNeeded();
   }
 
   @Override
@@ -23,22 +30,19 @@ public class FileLock extends Lock {
 
   @Override
   public Locked lock() throws Exception {
+    initializeIfNeeded();
     return new FileLocked(chan.lock());
   }
 
   @Override
   public TryLocked tryLock() throws Exception {
-    java.nio.channels.FileLock lock = null;
-    try {
-      lock = chan.tryLock();
-    } catch (OverlappingFileLockException ex) {
-      // file already locked by this JVM
-    }
-    return new FileTryLocked(lock);
+    initializeIfNeeded();
+    return new FileTryLocked(chan.tryLock());
   }
 
   @Override
   public boolean probe() throws Exception {
+    initializeIfNeeded();
     var l = chan.tryLock();
     if (l == null) return false;
     else {

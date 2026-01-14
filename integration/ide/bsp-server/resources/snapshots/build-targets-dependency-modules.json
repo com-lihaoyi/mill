@@ -7,11 +7,11 @@
       "modules": [
         {
           "name": "ch.qos.logback:logback-core",
-          "version": "1.5.15"
+          "version": "..."
         },
         {
           "name": "org.slf4j:slf4j-api",
-          "version": "2.0.16"
+          "version": "..."
         }
       ]
     },
@@ -22,11 +22,11 @@
       "modules": [
         {
           "name": "ch.qos.logback:logback-core",
-          "version": "1.5.15"
+          "version": "..."
         },
         {
           "name": "org.slf4j:slf4j-api",
-          "version": "2.0.16"
+          "version": "..."
         }
       ]
     },
@@ -98,23 +98,23 @@
       "modules": [
         {
           "name": "com.github.sbt:junit-interface",
-          "version": "0.13.2"
+          "version": "..."
         },
         {
           "name": "junit:junit",
-          "version": "4.13.2"
+          "version": "..."
         },
         {
           "name": "junit:junit",
-          "version": "4.13.2"
+          "version": "..."
         },
         {
           "name": "org.scala-sbt:test-interface",
-          "version": "1.0"
+          "version": "..."
         },
         {
           "name": "org.hamcrest:hamcrest-core",
-          "version": "1.3"
+          "version": "..."
         }
       ]
     },
@@ -129,7 +129,7 @@
         },
         {
           "name": "org.jetbrains:annotations",
-          "version": "13.0"
+          "version": "..."
         }
       ]
     },
@@ -155,15 +155,15 @@
         },
         {
           "name": "com.lihaoyi:utest_2.13",
-          "version": "0.8.5"
+          "version": "..."
         },
         {
           "name": "org.scala-sbt:test-interface",
-          "version": "1.0"
+          "version": "..."
         },
         {
           "name": "org.portable-scala:portable-scala-reflect_2.13",
-          "version": "1.1.3"
+          "version": "..."
         },
         {
           "name": "org.scala-lang:scala-reflect",
@@ -182,17 +182,336 @@
       "modules": [
         {
           "name": "junit:junit",
-          "version": "4.13.2"
+          "version": "..."
         },
         {
           "name": "org.slf4j:slf4j-api",
-          "version": "2.0.16"
+          "version": "..."
         },
         {
           "name": "org.hamcrest:hamcrest-core",
-          "version": "1.3"
+          "version": "..."
         }
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "modules": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "modules": [
+        {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:pprint_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:os-lib_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:upickle_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:requests_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:mainargs_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:scalatags_3",
+          "version": "..."
+        },
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:fansi_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:sourcecode_3",
+          "version": "..."
+        },
+        {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:geny_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:os-zip",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:ujson_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:upack_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:upickle-implicits_3",
+          "version": "..."
+        },
+        {
+          "name": "org.scala-lang.modules:scala-collection-compat_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:upickle-core_3",
+          "version": "..."
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/Foo.java"
+      },
+      "modules": [
+        {
+          "name": "net.sourceforge.argparse4j:argparse4j",
+          "version": "..."
+        },
+        {
+          "name": "org.thymeleaf:thymeleaf",
+          "version": "..."
+        },
+        {
+          "name": "ognl:ognl",
+          "version": "..."
+        },
+        {
+          "name": "org.attoparser:attoparser",
+          "version": "..."
+        },
+        {
+          "name": "org.unbescape:unbescape",
+          "version": "..."
+        },
+        {
+          "name": "org.slf4j:slf4j-api",
+          "version": "..."
+        },
+        {
+          "name": "org.javassist:javassist",
+          "version": "..."
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/FooTest.java"
+      },
+      "modules": [
+        {
+          "name": "com.github.sbt:junit-interface",
+          "version": "..."
+        },
+        {
+          "name": "com.google.guava:guava",
+          "version": "..."
+        },
+        {
+          "name": "net.sourceforge.argparse4j:argparse4j",
+          "version": "..."
+        },
+        {
+          "name": "org.thymeleaf:thymeleaf",
+          "version": "..."
+        },
+        {
+          "name": "junit:junit",
+          "version": "..."
+        },
+        {
+          "name": "org.scala-sbt:test-interface",
+          "version": "..."
+        },
+        {
+          "name": "com.google.guava:failureaccess",
+          "version": "..."
+        },
+        {
+          "name": "com.google.guava:listenablefuture",
+          "version": "..."
+        },
+        {
+          "name": "com.google.code.findbugs:jsr305",
+          "version": "..."
+        },
+        {
+          "name": "org.checkerframework:checker-qual",
+          "version": "..."
+        },
+        {
+          "name": "com.google.errorprone:error_prone_annotations",
+          "version": "..."
+        },
+        {
+          "name": "com.google.j2objc:j2objc-annotations",
+          "version": "..."
+        },
+        {
+          "name": "ognl:ognl",
+          "version": "..."
+        },
+        {
+          "name": "org.attoparser:attoparser",
+          "version": "..."
+        },
+        {
+          "name": "org.unbescape:unbescape",
+          "version": "..."
+        },
+        {
+          "name": "org.slf4j:slf4j-api",
+          "version": "..."
+        },
+        {
+          "name": "org.hamcrest:hamcrest-core",
+          "version": "..."
+        },
+        {
+          "name": "org.javassist:javassist",
+          "version": "..."
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/Foo.java"
+      },
+      "modules": [
+        {
+          "name": "net.sourceforge.argparse4j:argparse4j",
+          "version": "..."
+        },
+        {
+          "name": "org.thymeleaf:thymeleaf",
+          "version": "..."
+        },
+        {
+          "name": "ognl:ognl",
+          "version": "..."
+        },
+        {
+          "name": "org.attoparser:attoparser",
+          "version": "..."
+        },
+        {
+          "name": "org.unbescape:unbescape",
+          "version": "..."
+        },
+        {
+          "name": "org.slf4j:slf4j-api",
+          "version": "..."
+        },
+        {
+          "name": "org.javassist:javassist",
+          "version": "..."
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "modules": [
+        {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:pprint_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:os-lib_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:upickle_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:requests_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:mainargs_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:scalatags_3",
+          "version": "..."
+        },
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:fansi_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:sourcecode_3",
+          "version": "..."
+        },
+        {
+          "name": "org.scala-lang:scala3-library_3",
+          "version": "<scala3-version>"
+        },
+        {
+          "name": "com.lihaoyi:geny_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:os-zip",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:ujson_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:upack_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:upickle-implicits_3",
+          "version": "..."
+        },
+        {
+          "name": "org.scala-lang.modules:scala-collection-compat_3",
+          "version": "..."
+        },
+        {
+          "name": "com.lihaoyi:upickle-core_3",
+          "version": "..."
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
+      },
+      "modules": []
     },
     {
       "target": {

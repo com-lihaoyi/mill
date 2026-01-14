@@ -2,13 +2,13 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 // Regress test for issue https://github.com/com-lihaoyi/mill/issues/1901
 object ZincIncrementalCompilationTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("incremental compilation only compiles changed files") - integrationTest { tester =>
-      import tester._
+      import tester.*
       val successful = tester.eval("app.compile")
       assert(successful.isSuccess)
 

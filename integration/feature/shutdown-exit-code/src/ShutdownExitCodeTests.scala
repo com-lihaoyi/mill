@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 
-import utest._
+import utest.*
 
 object ShutdownExitCodeTests extends UtestIntegrationTestSuite {
   // Ensure that `shutdown` succeeds even if the prior command failed

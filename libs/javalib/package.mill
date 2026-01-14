@@ -57,10 +57,12 @@ object `package` extends MillStableScalaModule {
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)
+    def jvmId = "11"
   }
 
-  object api extends MillStableScalaModule with BuildInfo {
-    def moduleDeps = Seq(build.core.api)
+  object api extends MillStableScalaModule with BuildInfo with MillJava11ScalaModule {
+
+    def moduleDeps = Seq(build.core.api.java11, build.libs.rpc, build.libs.util.java11)
     def buildInfoPackageName = "mill.javalib.api"
     def buildInfoObjectName = "Versions"
 
@@ -121,9 +123,9 @@ object `package` extends MillStableScalaModule {
     )
   }
 
-  object worker extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api, build.libs.javalib)
-    def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
+  object worker extends MillPublishScalaModule with BuildInfo with MillJava11ScalaModule {
+    def moduleDeps = Seq(api, build.libs.javalib.testrunner)
+    def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core, Deps.javaparser, Deps.fansi)
     def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
@@ -146,6 +148,30 @@ object `package` extends MillStableScalaModule {
     def compileMvnDeps = Seq(
       // we just bind against the API, will be loaded at Mill runtime by the module
       Deps.springBootTools
+    )
+  }
+
+  object `graalvm-reachability-worker` extends MillPublishScalaModule, BuildInfo {
+    def moduleDeps = Seq(api)
+    def mvnDeps = Seq(
+      Deps.graalVMReachabilityMetadataBuildTool,
+      Deps.openJson
+    )
+
+    def compileMvnDeps = Seq(
+      Deps.requests
+    )
+
+    def buildInfoPackageName = "mill.javalib.graalvm"
+
+    def buildInfoObjectName = "Versions"
+
+    def buildInfoMembers = Seq(
+      BuildInfo.Value(
+        "graalVmReachabilityMetadata",
+        Deps.graalVmReachabilityMetadataVersion,
+        "Version of graalvm-reachability-metadata."
+      )
     )
   }
 

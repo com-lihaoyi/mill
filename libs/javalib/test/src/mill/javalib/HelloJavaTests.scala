@@ -29,7 +29,7 @@ object HelloJavaTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
 
-  def testEval() = UnitTester(HelloJava, resourcePath, debugEnabled = true)
+  def testEval() = UnitTester(HelloJava, resourcePath)
   def tests: Tests = Tests {
     test("compile") {
       testEval().scoped { eval =>
@@ -174,7 +174,7 @@ object HelloJavaTests extends TestSuite {
     test("test") - {
       testEval().scoped { eval =>
 
-        val Left(ExecResult.Failure(_)) =
+        val Left(_: ExecResult.Failure[_]) =
           eval.apply(HelloJava.core.test.testForked()): @unchecked
 
         //      assert(

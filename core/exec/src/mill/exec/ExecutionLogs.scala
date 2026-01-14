@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.constants.OutFiles
+import mill.constants.OutFiles.OutFiles
 import mill.api.Task
 import mill.internal.SpanningForest
 

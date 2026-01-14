@@ -1,542 +1,285 @@
 package mill.main.sbt
 
-import mainargs.{ParserForClass, arg, main}
-import mill.api.daemon.internal.internal
-import mill.constants.Util
 import mill.main.buildgen.*
-import mill.main.buildgen.BuildGenUtil.*
-import mill.main.buildgen.IrDependencyType.*
-import os.Path
+import mill.main.buildgen.ModuleSpec.*
+import mill.main.sbt.BuildInfo.*
+import pprint.Util.literalize
 
-import scala.collection.immutable.SortedSet
+import scala.util.Properties.isWin
+import scala.util.Using
 
-/**
- * Converts an `sbt` build to Mill by generating Mill build file(s).
- * The implementation uses the `sbt`
- * [[https://www.scala-sbt.org/1.x/docs/Combined+Pages.html#addPluginSbtFile+command addPluginSbtFile command]]
- * to add a plugin and a task to extract the settings for a project using a custom model.
- *
- * The generated output should be considered scaffolding and will likely require edits to complete conversion.
- *
- * ===Capabilities===
- * The conversion
- *  - handles deeply nested modules
- *  - captures publish settings
- *  - configures dependencies for configurations:
- *    - no configuration
- *    - Compile
- *    - Test
- *    - Runtime
- *    - Provided
- *    - Optional
- *  - configures testing frameworks (@see [[mill.scalalib.TestModule]]):
- *    - Java:
- *      - JUnit 4
- *      - JUnit 5
- *      - TestNG
- *    - Scala:
- *      - ScalaTest
- *      - Specs2
- *      - µTest
- *      - MUnit
- *      - Weaver
- *      - ZIOTest
- *      - ScalaCheck
- * ===Limitations===
- * The conversion does not support:
- *  - custom dependency configurations
- *  - custom settings including custom tasks
- *  - sources other than Scala on JVM and Java, such as Scala.js and Scala Native
- *  - cross builds
- */
-@internal
-object SbtBuildGenMain
-    extends BuildGenBase[Project, String, (BuildInfo, Tree[Node[Option[Project]]])] {
-  override type C = Config
+object SbtBuildGenMain {
 
-  def main(args: Array[String]): Unit = {
-    val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
-    run(cfg)
-  }
+  def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 
-  private def run(cfg: Config): Unit = {
-    val workspace = os.pwd
-
+  @mainargs.main(doc = "Generates Mill build files that are derived from an SBT build.")
+  def init(
+      @mainargs.arg(doc = "path to custom SBT executable")
+      sbt: Option[String],
+      @mainargs.arg(doc = "command line arguments for SBT")
+      sbtArgs: mainargs.Leftover[String],
+      @mainargs.arg(doc = "merge package.mill files in to the root build.mill file")
+      merge: mainargs.Flag,
+      @mainargs.arg(doc = "disable generating meta-build files")
+      noMeta: mainargs.Flag,
+      @mainargs.arg(doc = "Coursier JVM ID to assign to mill-jvm-version key in the build header")
+      millJvmId: Option[String],
+      @mainargs.arg(doc =
+        "The sbt project directory to migrate. Default is the current working directory."
+      )
+      projectDir: String = "."
+  ): Unit = {
     println("converting sbt build")
 
-    def systemSbtExists(sbt: String) =
-      // The return code is somehow 1 instead of 0.
-      os.call((sbt, "--help"), check = false).exitCode == 1
+    val buildGen = BuildGenScala
+    val sbtWorkspace = os.Path.expandUser(projectDir, os.pwd)
+    val millWorkspace = os.pwd
 
-    val isWindows = Util.isWindows
-    val sbtExecutable = cfg.customSbt.getOrElse(
-      if (isWindows) {
-        val systemSbt = "sbt.bat"
-        if (systemSbtExists(systemSbt))
-          systemSbt
-        else
-          throw new RuntimeException(s"No system-wide `$systemSbt` found")
+    val sbtCmd = sbt.getOrElse {
+      def systemSbtExists(cmd: String) = os.call(
+        cmd = (cmd, "--help"),
+        check = false,
+        cwd = sbtWorkspace
+      ).exitCode == 1
+      if (isWin) {
+        val cmd = "sbt.bat"
+        if (systemSbtExists(cmd)) cmd else sys.error(s"No system wide $cmd found")
       } else {
-        val systemSbt = "sbt"
-        // resolve the sbt executable
-        // https://raw.githubusercontent.com/paulp/sbt-extras/master/sbt
-        if (os.exists(workspace / "sbt"))
-          "./sbt"
-        else if (os.exists(workspace / "sbtx"))
-          "./sbtx"
-        else if (systemSbtExists(systemSbt))
-          systemSbt
-        else
-          throw new RuntimeException(
-            s"No sbt executable (`./sbt`, `./sbtx`, or system-wide `$systemSbt`) found"
+        val exes = Seq("sbt", "sbtx")
+        val cmd = "sbt"
+        exes.collectFirst {
+          case exe if os.isFile(sbtWorkspace / exe) => s"./$exe"
+        }.orElse {
+          Option.when(systemSbtExists(cmd))(cmd)
+        }.getOrElse {
+          sys.error(
+            s"No sbt executable (${exes.mkString("./", ", ./", "")}), or system-wide $cmd found"
           )
-      }
-    )
-
-    println("Running the added `millInitExportBuild` sbt task to export the build")
-
-    try {
-      if (isWindows) {
-        /*
-        `-addPluginSbtFile` somehow doesn't work on Windows, therefore, the ".sbt" file is put directly in the `sbt` "project" directory.
-        The error message:
-        ```text
-        [error] Expected ':'
-        [error] Expected '='
-        [error] Expected whitespace character
-        [error] -addPluginSbtFile
-        [error]                  ^
-        ```
-         */
-        val sbtFile = writeTempSbtFileInSbtProjectDirectory(workspace)
-        os.call(
-          (sbtExecutable, "millInitExportBuild"),
-          cwd = workspace,
-          stdout = os.Inherit
-        )
-        os.remove(sbtFile)
-      } else
-        os.call(
-          (sbtExecutable, s"-addPluginSbtFile=${writeSbtFile().toString}", "millInitExportBuild"),
-          cwd = workspace,
-          stdout = os.Inherit
-        )
-
-    } catch {
-      case e: os.SubprocessException => throw RuntimeException(
-          "The sbt command to run the `millInitExportBuild` sbt task has failed, " +
-            s"please check out the following solutions and try again:\n" +
-            s"1. check whether your existing sbt build works properly;\n" +
-            s"2. make sure there are no other sbt processes running;\n" +
-            s"3. clear your build output and cache;\n" +
-            s"4. update the project's sbt version to the latest or our tested version v${Versions.sbtVersion};\n" +
-            "5. check whether you have the appropriate Java version.\n",
-          e
-        )
-      case t: Throwable => throw t
-    }
-
-    val buildExportPickled = os.read(workspace / "target" / "mill-init-build-export.json")
-    // TODO This is mainly for debugging purposes. Comment out or uncomment this line as needed.
-    // println("sbt build export retrieved: " + buildExportPickled)
-    import upickle.*
-    val buildExport = read[BuildExport](buildExportPickled)
-
-    import scala.math.Ordering.Implicits.*
-    // Types have to be specified explicitly here for the code to be resolved correctly in IDEA.
-    val projectNodes =
-      buildExport.projects.view
-        .map(project =>
-          Node(os.Path(project.projectDirectory).subRelativeTo(workspace).segments, project)
-        )
-        // The projects are ordered differently in different `sbt millInitExportBuild` runs and on different OSs, which is strange.
-        .sortBy(_.dirs)
-
-    val projectNodeTree = projectNodes.foldLeft(Tree(Node(Seq.empty, None)))(merge)
-
-    convertWriteOut(cfg, cfg.shared, (buildExport.defaultBuildInfo, projectNodeTree))
-
-    println("converted sbt build to Mill")
-
-    {
-      val jvmOptsSbt = workspace / ".jvmopts"
-      val jvmOptsMill = workspace / ".mill-jvm-opts"
-
-      if (os.exists(jvmOptsSbt)) {
-        println(s"copying ${jvmOptsSbt.last} to ${jvmOptsMill.last}")
-        if (os.exists(jvmOptsMill)) {
-          val backup = jvmOptsMill / os.up / s"${jvmOptsMill.last}.bak"
-          println(s"creating backup ${backup.last}")
-          os.move.over(jvmOptsMill, backup)
         }
-        var reportOnce = true
-        // Since .jvmopts may contain multiple args per line, we warn the user
-        // as Mill wants each arg on a separate line
-        os.read.lines(jvmOptsSbt).collectFirst {
-          // Warn the user once when we find spaces, but ignore comments
-          case x if reportOnce && !x.trim().startsWith("#") && x.trim().contains(" ") =>
-            reportOnce = false
-            println(
-              s"${jvmOptsMill.last}: Please check that each arguments is on a separate line!"
-            )
-        }
-        os.copy(jvmOptsSbt, jvmOptsMill)
       }
     }
-  }
-
-  /**
-   * @return the temp directory the jar is in and the `sbt` file contents.
-   */
-  private def copyExportBuildAssemblyJarOutAndGetSbtFileContents(): (os.Path, String) = {
-    val tempDir = os.temp.dir()
-    // This doesn't work in integration tests when Mill is packaged.
-    /*
-    val sbtPluginJarUrl =
-      getClass.getResource("/exportplugin-assembly.jar").toExternalForm
-     */
-    val sbtPluginJarName = "exportplugin-assembly.jar"
-    val sbtPluginJarStream = getClass.getResourceAsStream(s"/$sbtPluginJarName")
-    val sbtPluginJarPath = tempDir / sbtPluginJarName
-    os.write(sbtPluginJarPath, sbtPluginJarStream)
-    val contents =
-      s"""addSbtPlugin("com.lihaoyi" % "mill-libs-init-sbt-exportplugin" % "dummy-version" from ${
-          escape(sbtPluginJarPath.wrapped.toUri.toString)
-        })
-         |""".stripMargin
-    (tempDir, contents)
-  }
-
-  private def writeSbtFile(): os.Path = {
-    val (tempDir, contents) = copyExportBuildAssemblyJarOutAndGetSbtFileContents()
-    val sbtFile = tempDir / "mill-init.sbt"
-    os.write(sbtFile, contents)
-    sbtFile
-  }
-
-  private def writeTempSbtFileInSbtProjectDirectory(workspace: os.Path) =
+    val exportPluginJar =
+      Using.resource(getClass.getResourceAsStream(exportpluginAssemblyResource))(
+        os.temp(_, suffix = ".jar")
+      )
+    val sbtMetaDir = sbtWorkspace / "project"
+    if (!os.exists(sbtMetaDir)) os.makeDir(sbtMetaDir)
     os.temp(
-      copyExportBuildAssemblyJarOutAndGetSbtFileContents()._2,
-      workspace / "project",
+      s"""addSbtPlugin("com.lihaoyi" % "mill-libs-init-sbt-exportplugin" % "dummy-version" from ${
+          literalize(exportPluginJar.wrapped.toUri.toString)
+        })""",
+      dir = sbtMetaDir,
       suffix = ".sbt"
     )
+    val exportDir = os.temp.dir()
+    try {
+      os.proc(
+        sbtCmd,
+        sbtArgs.value,
+        s"-DmillInitExportDir=$exportDir",
+        // Run task with cross-build prefix to export data for all cross Scala versions.
+        "+millInitExportBuild"
+      ).call(stdout = os.Inherit, cwd = sbtWorkspace)
+    } catch {
+      case e: os.SubprocessException =>
+        val message =
+          "The sbt command to run the `millInitExportBuild` sbt task has failed, " +
+            "please check out the following solutions and try again:\n" +
+            "1. check whether your existing sbt build works properly;\n" +
+            "2. make sure there are no other sbt processes running;\n" +
+            "3. clear your build output and cache;\n" +
+            s"4. update the project's sbt version to the latest or our tested version v$sbtVersion;\n" +
+            "5. check whether you have the appropriate Java version.\n"
+        throw RuntimeException(message, e)
+    }
+    val exportedBuild = os.list.stream(exportDir)
+      .map(path => upickle.default.read[SbtModuleSpec](path.toNIO)).toSeq
+    var packages = exportedBuild.groupMap(_.sharedBaseDir)(_.module).map {
+      case (Left(dir), Seq(module)) => PackageSpec(dir, module)
+      case (Left(dir), crossVersionModules) => PackageSpec(dir, toCrossModule(crossVersionModules))
+      case (Right(dir), modules) =>
+        val children = modules.groupBy(_.name).map {
+          case (_, Seq(module)) => module
+          case (_, crossVersionModules) => toCrossModule(crossVersionModules)
+        }.toSeq
+        val root = PackageSpec.root(dir)
+        root.copy(module = root.module.copy(children = children))
+    }.toSeq
+    packages = normalizeBuild(packages)
 
-  override def getModuleTree(
-      input: (BuildInfo, Tree[Node[Option[Project]]])
-  ): Tree[Node[Option[Project]]] =
-    input._2
-
-  private def sbtSupertypes = Seq("SbtModule", "PublishModule") // always publish
-
-  override def getBaseInfo(
-      input: (BuildInfo, Tree[Node[Option[Project]]]),
-      cfg: Config,
-      baseModule: String,
-      packagesSize: Int
-  ): IrBaseInfo = {
-    val buildInfo = cfg.baseProject.fold(input._1)(name =>
-      // TODO This can simplified if `buildExport.projects` is passed here.
-      input._2.nodes().collectFirst(Function.unlift(_.value.flatMap(project =>
-        Option.when(project.name == name)(project)
-      ))).get.buildInfo
-    )
-
-    import buildInfo.*
-    val javacOptions = getJavacOptions(buildInfo)
-    val repositories = getRepositories(buildInfo)
-    val pomSettings = extractPomSettings(buildPublicationInfo)
-    val publishVersion = getPublishVersion(buildInfo)
-
-    val typedef = IrTrait(
-      cfg.shared.jvmId, // There doesn't seem to be a Java version setting in `sbt` though. See https://stackoverflow.com/a/76456295/5082913.
-      baseModule,
-      sbtSupertypes,
-      javacOptions,
-      scalaVersion,
-      scalacOptions,
-      pomSettings,
-      publishVersion,
-      Seq.empty, // not available in `sbt` as it seems
-      repositories
-    )
-
-    IrBaseInfo(typedef)
-  }
-
-  /**
-   * From the [[Project.projectRefProject]] to the package string built by [[BuildGenUtil.buildModuleFqn]].
-   */
-  override type ModuleFqnMap = Map[String, String]
-
-  override def getModuleFqnMap(moduleNodes: Seq[Node[Project]]): Map[String, String] =
-    buildModuleFqnMap(moduleNodes)(_.projectRefProject)
-
-  override def extractIrBuild(
-      cfg: Config,
-      // baseInfo: IrBaseInfo,
-      build: Node[Project],
-      moduleFqnMap: ModuleFqnMap
-  ): IrBuild = {
-    val project = build.value
-    val buildInfo = project.buildInfo
-    val configurationDeps = extractConfigurationDeps(project, moduleFqnMap, cfg)
-    val version = getPublishVersion(buildInfo)
-    IrBuild(
-      scopedDeps = configurationDeps,
-      testModule = cfg.shared.testModule,
-      testModuleMainType = "SbtTests",
-      hasTest = os.exists(getMillSourcePath(project) / "src/test"),
-      dirs = build.dirs,
-      repositories = getRepositories(buildInfo),
-      javacOptions = getJavacOptions(buildInfo),
-      scalaVersion = buildInfo.scalaVersion,
-      scalacOptions = buildInfo.scalacOptions,
-      projectName = project.name,
-      pomSettings = extractPomSettings(buildInfo.buildPublicationInfo),
-      publishVersion = version,
-      packaging = null, // not available in `sbt` as it seems
-      pomParentArtifact = null, // not available
-      resources = Nil,
-      testResources = Nil,
-      publishProperties = Nil, // not available in `sbt` as it seems
-      jvmId = cfg.shared.jvmId,
-      testForkDir = None
+    val (depNames, packages0) =
+      if (noMeta.value) (Nil, packages) else buildGen.withNamedDeps(packages)
+    val (baseModule, packages1) = Option.when(!noMeta.value)(
+      buildGen.withBaseModule(
+        packages0,
+        Seq("CrossSbtPlatformModule"),
+        Seq("CrossSbtPlatformTests")
+      ).orElse(buildGen.withBaseModule(
+        packages0,
+        Seq("CrossSbtModule", "CrossSbtPlatformModule"),
+        Seq("CrossSbtTests")
+      )).orElse(buildGen.withBaseModule(
+        packages0,
+        Seq("SbtPlatformModule"),
+        Seq("SbtPlatformTests")
+      )).orElse(buildGen.withBaseModule(
+        packages0,
+        Seq("SbtModule", "SbtPlatformModule"),
+        Seq("SbtTests")
+      ))
+    ).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
+    val millJvmOpts = {
+      val file = millWorkspace / ".jvmopts"
+      if (os.isFile(file)) os.read.lines(file)
+        .map(_.trim)
+        .filter(s => s.nonEmpty && !s.startsWith("#"))
+        .flatMap(_.split("\\s"))
+      else Nil
+    }
+    buildGen.writeBuildFiles(
+      baseDir = millWorkspace,
+      packages = packages1,
+      merge = merge.value,
+      baseModule = baseModule,
+      millJvmVersion = millJvmId,
+      millJvmOpts = millJvmOpts,
+      depNames = depNames
     )
   }
 
-  override def extraImports: Seq[String] = Seq("mill.scalalib.SbtModule")
-
-  def getModuleSupertypes(cfg: Config): Seq[String] =
-    cfg.shared.baseModule.fold(sbtSupertypes)(Seq(_))
-
-  def getArtifactId(project: Project): String = project.name
-
-  def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
-
-  override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
-    getModuleSupertypes(cfg)
-
-  def getJavacOptions(buildInfo: BuildInfo): Seq[String] =
-    buildInfo.javacOptions.getOrElse(Seq.empty)
-
-  def getRepositories(buildInfo: BuildInfo): Seq[String] =
-    buildInfo.resolvers.getOrElse(Seq.empty).map(resolver =>
-      escape(resolver.root)
+  private def toCrossModule(crossVersionModules: Seq[ModuleSpec]) = {
+    def combineValue[A](a: Value[A], b: Value[A]) = Value(
+      if (a.base == b.base) a.base else None,
+      a.cross ++ b.cross
     )
-
-  def getPublishVersion(buildInfo: BuildInfo): String | Null =
-    buildInfo.buildPublicationInfo.version.orNull
-
-  // originally named `mvnInterp` in the Maven and module
-  def renderMvn(dependency: LibraryDependency): String = {
-    import dependency.*
-    renderMvnString(
-      organization,
-      name,
-      crossVersion match {
-        case CrossVersion.Disabled => None
-        // The formatter doesn't work well for the import `import mill.scalalib.CrossVersion as MillCrossVersion` in IntelliJ IDEA, so FQNs are used here.
-        case CrossVersion.Binary => Some(mill.api.CrossVersion.Binary(false))
-        case CrossVersion.Full => Some(mill.api.CrossVersion.Full(false))
-        case CrossVersion.Constant(value) => Some(mill.api.CrossVersion.Constant(value, false))
-      },
-      version = revision,
-      tpe = tpe.orNull,
-      classifier = classifier.orNull,
-      excludes = excludes
+    def combineValues[A](a: Values[A], b: Values[A]) = Values(
+      a.base.intersect(b.base),
+      a.cross ++ b.cross,
+      appendSuper = a.appendSuper && b.appendSuper
     )
-  }
-
-  def extractPomSettings(buildPublicationInfo: BuildPublicationInfo): IrPom = {
-    import buildPublicationInfo.*
-    // always publish
-    /*
-    if (
-      Seq(
-        description,
-        homepage,
-        licenses,
-        organizationName,
-        organizationHomepage,
-        developers,
-        scmInfo
-      ).forall(_.isEmpty)
+    def combineModule(a: ModuleSpec, b: ModuleSpec): ModuleSpec = ModuleSpec(
+      name = a.name,
+      imports = (a.imports ++ b.imports).distinct,
+      supertypes = a.supertypes.intersect(b.supertypes),
+      mixins = if (a.mixins == b.mixins) a.mixins else Nil,
+      crossKeys = a.crossKeys ++ b.crossKeys,
+      useOuterModuleDir = a.useOuterModuleDir && b.useOuterModuleDir,
+      repositories = combineValues(a.repositories, b.repositories),
+      mvnDeps = combineValues(a.mvnDeps, b.mvnDeps),
+      compileMvnDeps = combineValues(a.compileMvnDeps, b.compileMvnDeps),
+      runMvnDeps = combineValues(a.runMvnDeps, b.runMvnDeps),
+      bomMvnDeps = combineValues(a.bomMvnDeps, b.bomMvnDeps),
+      depManagement = combineValues(a.depManagement, b.depManagement),
+      moduleDeps = combineValues(a.moduleDeps, b.moduleDeps),
+      compileModuleDeps = combineValues(a.compileModuleDeps, b.compileModuleDeps),
+      runModuleDeps = combineValues(a.runModuleDeps, b.runModuleDeps),
+      bomModuleDeps = combineValues(a.bomModuleDeps, b.bomModuleDeps),
+      javacOptions = combineValues(a.javacOptions, b.javacOptions),
+      artifactName = combineValue(a.artifactName, b.artifactName),
+      pomPackagingType = combineValue(a.pomPackagingType, b.pomPackagingType),
+      pomParentProject = combineValue(a.pomParentProject, b.pomParentProject),
+      pomSettings = combineValue(a.pomSettings, b.pomSettings),
+      publishVersion = combineValue(a.publishVersion, b.publishVersion),
+      versionScheme = combineValue(a.versionScheme, b.versionScheme),
+      publishProperties = combineValues(a.publishProperties, b.publishProperties),
+      scalacOptions = combineValues(a.scalacOptions, b.scalacOptions),
+      scalacPluginMvnDeps = combineValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
+      scalaJSVersion = combineValue(a.scalaJSVersion, b.scalaJSVersion),
+      moduleKind = combineValue(a.moduleKind, b.moduleKind),
+      scalaNativeVersion = combineValue(a.scalaNativeVersion, b.scalaNativeVersion),
+      sourcesRootFolders = combineValues(a.sourcesRootFolders, b.sourcesRootFolders),
+      testParallelism = combineValue(a.testParallelism, b.testParallelism),
+      testSandboxWorkingDir = combineValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir),
+      testFramework = combineValue(a.testFramework, b.testFramework),
+      children = a.children.map(a => b.children.find(_.name == a.name).fold(a)(combineModule(a, _)))
     )
-      null
-    else
-     */
-    IrPom(
-      description.getOrElse(""),
-      organization.getOrElse(""),
-      homepage.fold("")(_.getOrElse("")),
-      licenses.getOrElse(Seq.empty).map(license => IrLicense(license._1, license._1, license._2)),
-      scmInfo.flatten.fold(IrVersionControl(null, null, null, null))(scmInfo => {
-        import scmInfo.*
-        IrVersionControl(browseUrl, connection, devConnection.orNull, null)
-      }),
-      developers.getOrElse(Seq.empty).map { developer =>
-        import developer.*
-        IrDeveloper(id, name, url, null, null)
-      }
-    )
-  }
-
-  private def isScalaStandardLibrary(dep: LibraryDependency) =
-    Seq("ch.epfl.lamp", "org.scala-lang").contains(dep.organization) &&
-      Seq("scala-library", "dotty-library", "scala3-library").contains(dep.name)
-
-  /**
-   * @param toModuleFqn see [[ModuleFqnMap]].
-   */
-  def extractConfigurationDeps(
-      project: Project,
-      toModuleFqn: PartialFunction[String, String],
-      cfg: Config
-  ): IrScopedDeps = {
-    // refactored to a functional approach from the original imperative code in Maven and Gradle
-
-    case class DepTypeAndConf(tpe: IrDependencyType, confAfterArrow: Option[String])
-    def parseConfigurations(dep: Dependency): Iterator[DepTypeAndConf] =
-      dep.configurations match {
-        case None => Iterator(DepTypeAndConf(Default, None))
-        case Some(configurations) =>
-          configurations.split(';').iterator.flatMap(configuration => {
-            val splitConfigurations = configuration.split("->")
-            (splitConfigurations(0) match {
-              case "compile" => Some(Default)
-              case "test" => Some(Test)
-              case "runtime" => Some(Run)
-              case "provided" | "optional" => Some(Compile)
-              case other =>
-                println(
-                  s"Dependency $dep with an unsupported configuration before `->` ${escape(other)} is dropped."
-                )
-                None
-            })
-              .map(DepTypeAndConf(_, splitConfigurations.lift(1)))
-          })
-      }
-
-    val allDependencies = project.allDependencies
-
-    val moduleDepsByType = allDependencies.projectDependencies.flatMap(dep =>
-      parseConfigurations(dep).map { case DepTypeAndConf(tpe, confAfterArrow) =>
-        tpe -> {
-          val dependsOnTestModule = confAfterArrow match {
-            case None => false
-            case Some(value) =>
-              value match {
-                case "default" | "compile" | "default(compile)" => false
-                case "test" => true
-                case conf =>
-                  println(
-                    s"Unsupported dependency configuration after `->` in project dependency $dep ${escape(conf)} is ignored."
-                  )
-                  false
-              }
-          }
-          val moduleRef = toModuleFqn(dep.projectRefProject)
-          if (dependsOnTestModule) s"$moduleRef.${cfg.shared.testModule}" else moduleRef
-        }
-      }
-    ).groupMap(_._1)(_._2)
-
-    val mvnDepsByType = allDependencies.libraryDependencies
-      .iterator
-      .filterNot(isScalaStandardLibrary)
-      .flatMap(dep =>
-        parseConfigurations(dep).map { case DepTypeAndConf(tpe, confAfterArrow) =>
-          confAfterArrow match {
-            case None => ()
-            case Some(value) =>
-              value match {
-                case "default" | "compile" | "default(compile)" => ()
-                case conf =>
-                  println(
-                    s"Unsupported dependency configuration after `->` in library dependency $dep ${escape(conf)} is ignored."
-                  )
-              }
-          }
-          tpe -> dep
-        }
-      )
-      .toSeq
-      .groupMap(_._1)(_._2)
-
-    val defaultModuleDeps = moduleDepsByType.getOrElse(Default, Seq.empty)
-    val compileModuleDeps = moduleDepsByType.getOrElse(Compile, Seq.empty)
-    val runModuleDeps = moduleDepsByType.getOrElse(Run, Seq.empty)
-    val testModuleDeps = moduleDepsByType.getOrElse(Test, Seq.empty)
-
-    val testMvnDeps = mvnDepsByType.getOrElse(Test, Seq.empty)
-
-    val hasTest = os.exists(os.Path(project.projectDirectory) / "src/test")
-    val testModule = Option.when(hasTest)(testMvnDeps.collectFirst(Function.unlift(dep =>
-      testModulesByGroup.get(dep.organization)
-    ))).flatten
-
-    cfg.shared.depsObject.fold({
-      val defaultMvnDeps = mvnDepsByType.getOrElse(Default, Seq.empty)
-      val compileMvnDeps = mvnDepsByType.getOrElse(Compile, Seq.empty)
-      val runMvnDeps = mvnDepsByType.getOrElse(Run, Seq.empty)
-
-      IrScopedDeps(
-        Seq.empty,
-        SortedSet.empty,
-        SortedSet.from(defaultMvnDeps.iterator.map(renderMvn)),
-        SortedSet.from(defaultModuleDeps),
-        SortedSet.from(compileMvnDeps.iterator.map(renderMvn)),
-        SortedSet.from(compileModuleDeps),
-        SortedSet.from(runMvnDeps.iterator.map(renderMvn)),
-        SortedSet.from(runModuleDeps),
-        testModule,
-        SortedSet.empty,
-        SortedSet.from(testMvnDeps.iterator.map(renderMvn)),
-        SortedSet.from(testModuleDeps),
-        SortedSet.empty,
-        SortedSet.empty
-      )
-    })(objectName => {
-      val extractedMvnDeps = mvnDepsByType.view.mapValues(_.map(dep => {
-        val depName = s"`${dep.organization}:${dep.name}`"
-        ((depName, renderMvn(dep)), s"$objectName.$depName")
-      }))
-
-      val extractedDefaultMvnDeps = extractedMvnDeps.getOrElse(Default, Seq.empty)
-      val extractedCompileMvnDeps = extractedMvnDeps.getOrElse(Compile, Seq.empty)
-      val extractedRunMvnDeps = extractedMvnDeps.getOrElse(Run, Seq.empty)
-      val extractedTestMvnDeps = extractedMvnDeps.getOrElse(Test, Seq.empty)
-
-      IrScopedDeps(
-        extractedMvnDeps.values.flatMap(_.map(_._1)).toSeq,
-        SortedSet.empty,
-        SortedSet.from(extractedDefaultMvnDeps.iterator.map(_._2)),
-        SortedSet.from(defaultModuleDeps),
-        SortedSet.from(extractedCompileMvnDeps.iterator.map(_._2)),
-        SortedSet.from(compileModuleDeps),
-        SortedSet.from(extractedRunMvnDeps.iterator.map(_._2)),
-        SortedSet.from(runModuleDeps),
-        testModule,
-        SortedSet.empty,
-        SortedSet.from(extractedTestMvnDeps.iterator.map(_._2)),
-        SortedSet.from(testModuleDeps),
-        SortedSet.empty,
-        SortedSet.empty
-      )
+    def normalizeValue[A](a: Value[A]): Value[A] = a.copy(cross = a.cross.collect {
+      case kv @ (_, v) if !a.base.contains(v) => kv
     })
+    def normalizeValues[A](a: Values[A]): Values[A] =
+      a.copy(cross = a.cross.map((k, v) => (k, v.diff(a.base))).filter(_._2.nonEmpty))
+    def normalizeModule(a: ModuleSpec): ModuleSpec = a.copy(
+      repositories = normalizeValues(a.repositories),
+      mvnDeps = normalizeValues(a.mvnDeps),
+      compileMvnDeps = normalizeValues(a.compileMvnDeps),
+      runMvnDeps = normalizeValues(a.runMvnDeps),
+      bomMvnDeps = normalizeValues(a.bomMvnDeps),
+      depManagement = normalizeValues(a.depManagement),
+      moduleDeps = normalizeValues(a.moduleDeps),
+      compileModuleDeps = normalizeValues(a.compileModuleDeps),
+      runModuleDeps = normalizeValues(a.runModuleDeps),
+      bomModuleDeps = normalizeValues(a.bomModuleDeps),
+      javacOptions = normalizeValues(a.javacOptions),
+      artifactName = normalizeValue(a.artifactName),
+      pomPackagingType = normalizeValue(a.pomPackagingType),
+      pomParentProject = normalizeValue(a.pomParentProject),
+      pomSettings = normalizeValue(a.pomSettings),
+      publishVersion = normalizeValue(a.publishVersion),
+      versionScheme = normalizeValue(a.versionScheme),
+      publishProperties = normalizeValues(a.publishProperties),
+      scalacOptions = normalizeValues(a.scalacOptions),
+      scalacPluginMvnDeps = normalizeValues(a.scalacPluginMvnDeps),
+      scalaJSVersion = normalizeValue(a.scalaJSVersion),
+      moduleKind = normalizeValue(a.moduleKind),
+      scalaNativeVersion = normalizeValue(a.scalaNativeVersion),
+      sourcesRootFolders = normalizeValues(a.sourcesRootFolders),
+      testParallelism = normalizeValue(a.testParallelism),
+      testSandboxWorkingDir = normalizeValue(a.testSandboxWorkingDir),
+      testFramework = normalizeValue(a.testFramework),
+      children = a.children.map(normalizeModule)
+    )
+    normalizeModule(crossVersionModules.reduce(combineModule))
   }
 
-  @main
-  @internal
-  case class Config(
-      shared: BuildGenUtil.BasicConfig,
-      @arg(
-        doc = "name of the sbt project to extract settings for --base-module, " +
-          "if not specified, settings are extracted from `ThisBuild`",
-        short = 'g'
+  private def normalizeBuild(packages: Seq[PackageSpec]) = {
+    val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
+    def moduleDepExists(dep: ModuleDep) = moduleLookup.contains(dep.segments ++ dep.childSegment)
+    def filterModuleDeps(values: Values[ModuleDep]) = {
+      import values.*
+      values.copy(
+        base.filter(moduleDepExists),
+        cross.map((k, v) => (k, v.filter(moduleDepExists))).filter(_._2.nonEmpty)
       )
-      baseProject: Option[String] = None,
-      @arg(doc = "the custom sbt executable location")
-      customSbt: Option[String] = None
-  )
+    }
+    val platformedMvnDeps = packages.flatMap(_.module.tree).flatMap { module =>
+      import module.*
+      Seq(mvnDeps, compileMvnDeps, runMvnDeps, scalacPluginMvnDeps)
+    }.flatMap(values => values.base ++ values.cross.flatMap(_._2)).filter(_.cross.platformed).toSet
+    def toPlatformedMvnDep(dep: MvnDep) = {
+      val dep0 = if (dep.cross.platformed) dep
+      else dep.copy(cross = dep.cross match {
+        case v: CrossVersion.Constant => v.copy(platformed = true)
+        case v: CrossVersion.Binary => v.copy(platformed = true)
+        case v: CrossVersion.Full => v.copy(platformed = true)
+      })
+      if (platformedMvnDeps.contains(dep0)) dep0 else dep
+    }
+    def toPlatformedMvnDeps(deps: Values[MvnDep]) = deps.copy(
+      base = deps.base.map(toPlatformedMvnDep),
+      cross = deps.cross.map((k, v) => (k, v.map(toPlatformedMvnDep)))
+    )
+    def recMvnDeps(module: ModuleSpec): Seq[MvnDep] = module.mvnDeps.base ++ module.moduleDeps.base
+      .flatMap(dep => recMvnDeps(moduleLookup(dep.segments ++ dep.childSegment)))
+    packages.map(pkg =>
+      pkg.copy(module = pkg.module.recMap { module =>
+        import module.*
+        var module0 = module.copy(
+          moduleDeps = filterModuleDeps(moduleDeps),
+          compileModuleDeps = filterModuleDeps(compileModuleDeps),
+          runModuleDeps = filterModuleDeps(runModuleDeps),
+          mvnDeps = toPlatformedMvnDeps(mvnDeps),
+          compileMvnDeps = toPlatformedMvnDeps(compileMvnDeps),
+          runMvnDeps = toPlatformedMvnDeps(runMvnDeps),
+          scalacPluginMvnDeps = toPlatformedMvnDeps(scalacPluginMvnDeps)
+        )
+        if (module0.testFramework.base.contains("")) {
+          val testMixin = ModuleSpec.testModuleMixin(recMvnDeps(module0))
+          if (testMixin.nonEmpty) {
+            module0 = module0.copy(mixins = module0.mixins ++ testMixin, testFramework = None)
+          }
+        }
+        module0
+      })
+    )
+  }
 }

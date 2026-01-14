@@ -1,11 +1,10 @@
 package mill.init
 
-import mill.api.PathRef
-import mill.api.Result
-import mill.scalalib.{CoursierModule, Dep}
+import mill.api.{PathRef, Result}
 import mill.scalalib.scalafmt.ScalafmtWorkerModule
+import mill.scalalib.{CoursierModule, Dep}
 import mill.util.Jvm
-import mill.{Command, T, Task, DefaultTaskModule}
+import mill.{Command, DefaultTaskModule, T, Task}
 
 trait BuildGenModule extends CoursierModule with DefaultTaskModule {
 
@@ -19,7 +18,11 @@ trait BuildGenModule extends CoursierModule with DefaultTaskModule {
 
   def buildGenMainClass: T[String]
 
-  def buildGenScalafmtConfig: T[PathRef] = PathRef(mill.init.Util.scalafmtConfigFile)
+  def buildGenScalafmtConfig: T[PathRef] = Task {
+    val out = Task.dest / ".scalafmt.conf"
+    os.write(out, Util.scalafmtConfig)
+    PathRef(out)
+  }
 
   def init(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     val root = moduleDir
@@ -36,12 +39,13 @@ trait BuildGenModule extends CoursierModule with DefaultTaskModule {
     ).exitCode
 
     if (exitCode == 0) {
-      val files = mill.init.Util.buildFiles(root).map(PathRef(_)).toSeq
-      val config = buildGenScalafmtConfig()
-      Task.log.info("formatting Mill build files")
-      ScalafmtWorkerModule.worker().reformat(files, config)
-
-      Task.log.info("init completed, run \"mill resolve _\" to list available tasks")
+      val files = Util.buildFiles(root).map(PathRef(_))
+      if (files.nonEmpty) {
+        val config = buildGenScalafmtConfig()
+        Task.log.info("formatting Mill build files")
+        ScalafmtWorkerModule.worker().reformat(files, config)
+        Task.log.info("init completed, run \"mill resolve _\" to list available tasks")
+      }
     } else {
       throw BuildGenException(s"$mainClass exit($exitCode)")
     }

@@ -112,7 +112,7 @@ def dist = Task {
 
 /** Usage
 
-> ./mill show "post[1-My-First-Post.md].render"
+> ./mill show "post.1-My-First-Post_md.render"
 ".../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html"
 
 > cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html
@@ -128,13 +128,13 @@ def dist = Task {
 // ....
 // digraph G {
 //   node [shape=box width=0 height=0]
-//   "1 - Foo.md" -> "post[1]\nrender"
-//   "2 - Foo.md" -> "post[2]\nrender"
-//   "3 - Foo.md" -> "post[3]\nrender"
+//   "1 - Foo.md" -> "post.1\nrender"
+//   "2 - Foo.md" -> "post.2\nrender"
+//   "3 - Foo.md" -> "post.3\nrender"
 //
-//   "post[1]\nrender" -> "dist"
-//   "post[2]\nrender" -> "dist"
-//   "post[3]\nrender" -> "dist"
+//   "post.1\nrender" -> "dist"
+//   "post.2\nrender" -> "dist"
+//   "post.3\nrender" -> "dist"
 //   "index" -> "dist"
 //
 // }

@@ -39,7 +39,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
 
   // shared between kotlinlib and kotlinlib.worker
   object api extends MillPublishScalaModule {
-    def moduleDeps = Seq(build.libs.javalib.testrunner)
+    def moduleDeps = Seq(build.libs.javalib.testrunner, build.core.api.java11)
 
     override def compileMvnDeps: T[Seq[Dep]] = Seq(
       Deps.osLib
@@ -59,7 +59,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       )
   }
 
-  object `ksp2-api` extends MillPublishScalaModule
+  object `ksp2-api` extends MillPublishScalaModule with MillJava11ScalaModule
 
   object ksp2 extends MillPublishScalaModule {
     def moduleDeps = Seq(`ksp2-api`)

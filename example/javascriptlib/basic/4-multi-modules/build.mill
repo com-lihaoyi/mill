@@ -29,6 +29,6 @@ Build succeeded!
 Hello James Bond Professor
 
 > ./mill qux.test
-PASS .../qux.test.ts
+...PASS .../qux.test.ts
 ...
 */

@@ -59,7 +59,7 @@ object bar extends MyModule
 */
 
 // As each test suite runs in a different working directory by default, naive usage
-// reading and writing to the filesystem does not cause tests to interefere with
+// reading and writing to the filesystem does not cause tests to interfere with
 // one another, which helps keep tests stable and deterministic even when run in
 // parallel
 //

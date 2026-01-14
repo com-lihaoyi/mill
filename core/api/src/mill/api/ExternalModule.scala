@@ -27,9 +27,10 @@ abstract class ExternalModule(using
     !" #".exists(millModuleEnclosing0.value.contains(_)),
     "External modules must be at a top-level static path, not " + millModuleEnclosing0.value
   )
-  override def moduleSegments: Segments = {
-    Segments(millModuleEnclosing0.value.split('.').map(Segment.Label(_)).toIndexedSeq)
-  }
+
+  // Include a trailing `/` in the external module first segment to distinguish it
+  // from script modules or normal build.mill modules
+  override def moduleSegments: Segments = Segments.labels(millModuleEnclosing0.value + "/")
 }
 
 object ExternalModule {

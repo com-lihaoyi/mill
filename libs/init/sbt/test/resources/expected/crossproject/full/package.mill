@@ -1,0 +1,84 @@
+package build.full
+
+import mill.*
+import mill.javalib.PublishModule
+import mill.javalib.publish.*
+import mill.scalajslib.ScalaJSModule
+import mill.scalajslib.api.*
+import mill.scalalib.*
+import mill.scalanativelib.ScalaNativeModule
+import mill.scalanativelib.api.*
+import millbuild.*
+
+object `package` extends Module {
+
+  object js extends ProjectBaseModule, ScalaJSModule {
+
+    def moduleDeps = Seq(build.pure.js)
+
+    def scalaJSVersion = "1.16.0"
+
+    def moduleKind = ModuleKind.NoModule
+
+    def sourcesRootFolders = super.sourcesRootFolders ++ Seq("shared")
+
+    def artifactName = "full"
+
+    def pomSettings = PomSettings(
+      "full",
+      "full",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+    object test extends ProjectBaseTests, ScalaJSTests, TestModule.Utest {}
+
+  }
+
+  object jvm extends ProjectBaseModule {
+
+    def moduleDeps = Seq(build.pure.jvm)
+
+    def sourcesRootFolders = super.sourcesRootFolders ++ Seq("shared")
+
+    def artifactName = "full"
+
+    def pomSettings = PomSettings(
+      "full",
+      "full",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+    object test extends ProjectBaseTests, TestModule.Utest {}
+
+  }
+
+  object native extends ProjectBaseModule, ScalaNativeModule {
+
+    def moduleDeps = Seq(build.pure.native)
+
+    def scalaNativeVersion = "0.5.4"
+
+    def sourcesRootFolders = super.sourcesRootFolders ++ Seq("shared")
+
+    def artifactName = "full"
+
+    def pomSettings = PomSettings(
+      "full",
+      "full",
+      "",
+      Seq(),
+      VersionControl(None, None, None, None),
+      Seq()
+    )
+
+    object test extends ProjectBaseTests, ScalaNativeTests, TestModule.Utest {}
+
+  }
+
+}

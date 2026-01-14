@@ -1,9 +1,8 @@
 package mill.resolve
 
 import mill.api.*
-import mill.api.internal.{Reflect, Resolved, RootModule0}
+import mill.api.internal.{OverrideMapping, Reflect, Resolved, RootModule0}
 
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 /**
@@ -38,7 +37,24 @@ private object ResolveCore {
       possibleNexts: Set[Segment]
   ) extends Failed
 
-  case class Error(msg: String) extends Failed
+  case class Error(failure: Result.Failure) extends Failed
+
+  /**
+   * Convert a label to potential cross segment values by replacing underscores with
+   * `.`, `/`, or `:` since those characters have special meaning in Mill selectors.
+   * Returns the original label and variants with substitutions applied.
+   */
+  def labelToCrossSegments(label: String): Seq[String] = {
+    if (!label.contains('_')) Seq(label)
+    else {
+      // Generate variants by replacing underscores with `.`, `/`, or `:`
+      // We prioritize `.` as it's the most common (e.g., version numbers)
+      val withDots = label.replace('_', '.')
+      val withSlashes = label.replace('_', '/')
+      val withColons = label.replace('_', ':')
+      Seq(label, withDots, withSlashes, withColons).distinct
+    }
+  }
 
   /**
    * Cache for modules instantiated during task and resolution.
@@ -50,18 +66,17 @@ private object ResolveCore {
    * same module
    */
   class Cache(
-      val instantiatedModules: collection.mutable.Map[Segments, mill.api.Result[Module]] =
+      val instantiatedModules: collection.mutable.Map[
+        (RootModule0, Segments),
+        mill.api.Result[Module]
+      ] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
       methods: collection.mutable.Map[(Class[?], Boolean, Class[?]), Array[(
           java.lang.reflect.Method,
           String
       )]] =
-        collection.mutable.Map(),
-      val scriptModuleChildResolver: (
-          String,
-          Option[String]
-      ) => Seq[mill.api.Result[mill.api.ExternalModule]]
+        collection.mutable.Map()
   ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
@@ -76,25 +91,13 @@ private object ResolveCore {
     }
   }
 
-  def catchWrapException[T](t: => T): mill.api.Result[T] = {
-    try mill.api.Result.Success(t)
-    catch {
-      case e: InvocationTargetException =>
-        mill.api.Result.Failure(makeResultException(e.getCause, new java.lang.Exception()).left.get)
-      case e: Exception =>
-        mill.api.Result.Failure(makeResultException(e, new java.lang.Exception()).left.get)
-    }
-  }
-
-  def makeResultException(e: Throwable, base: Exception): Left[String, Nothing] =
-    mill.api.ExecResult.makeResultException(e, base)
-
   def cyclicModuleErrorMsg(segments: Segments): String = {
     s"Cyclic module reference detected at ${segments.render}, " +
       s"it's required to wrap it in ModuleRef."
   }
   def resolve(
       rootModule: RootModule0,
+      rootModulePrefix: String,
       remainingQuery: List[Segment],
       current: Resolved,
       querySoFar: Segments,
@@ -103,21 +106,24 @@ private object ResolveCore {
   ): Result = {
 
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[?]] = {
-      resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
+      resolved.collect { case Resolved.Module(_, _, _, cls) => cls }.toSet
     }
 
     remainingQuery match {
       case Nil => Success(Seq(current))
       case head :: tail =>
+        lazy val currentNotFoundResult =
+          notFoundResult(rootModule, rootModulePrefix, querySoFar, current, head, cache)
         def recurse(searchModules: Seq[Resolved]): Result = {
           val (failures, successesLists) = searchModules
             .map { r =>
               val rClasses = moduleClasses(Set(r))
               if (seenModules.intersect(rClasses).nonEmpty) {
-                Error(cyclicModuleErrorMsg(r.segments))
+                Error(Result.Failure(cyclicModuleErrorMsg(r.taskSegments)))
               } else {
                 resolve(
                   rootModule,
+                  rootModulePrefix,
                   tail,
                   r,
                   querySoFar ++ Seq(head),
@@ -133,31 +139,73 @@ private object ResolveCore {
               case f: Failed => Left(f)
             }
 
-          val (errors, notFounds) = failures.partitionMap {
+          val (resFailures, notFounds) = failures.partitionMap {
             case s: NotFound => Right(s)
-            case s: Error => Left(s.msg)
+            case s: Error => Left(s.failure)
           }
 
-          if (errors.nonEmpty) Error(errors.mkString("\n"))
+          if (resFailures.nonEmpty) Error(Result.Failure.join(resFailures))
           else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
           else notFounds.size match {
             case 1 => notFounds.head
-            case _ => notFoundResult(rootModule, querySoFar, current, head, cache)
+            case _ => currentNotFoundResult
           }
 
         }
 
         (head, current) match {
+          // Handle super task resolution specially since it may consume tail for disambiguation
+          case (Segment.Label(s"$baseTaskName.super"), m: Resolved.Module) =>
+            val taskExists = Reflect
+              .reflect(
+                m.cls,
+                classOf[Task.Named[?]],
+                _ == baseTaskName,
+                noParams = true,
+                cache.getMethods
+              )
+              .nonEmpty
+
+            if (!taskExists) currentNotFoundResult
+            else {
+              resolveSuperTasks(
+                rootModule,
+                rootModulePrefix,
+                m.cls,
+                current.taskSegments,
+                baseTaskName,
+                tail, // remaining segments for disambiguation (e.g., "ParentModule")
+                rootModule.moduleCtx.discover
+              ) match {
+                case Nil =>
+                  val taskPath = (current.taskSegments ++ Segments.labels(baseTaskName)).render
+                  Error(mill.api.Result.Failure(
+                    s"Task $taskPath has no super tasks. " +
+                      s"Only overridden tasks have super tasks that can be invoked."
+                  ))
+
+                case Seq(single) => Success(Seq(single))
+                case multiple =>
+                  val options = multiple.map(t => t.superSuffix.get.getSimpleName).mkString(", ")
+                  Error(
+                    mill.api.Result.Failure(s"Ambiguous super task reference. Available: $options")
+                  )
+              }
+            }
+
           case (Segment.Label(singleLabel), m: Resolved.Module) =>
             val resOrErr: mill.api.Result[Seq[Resolved]] = singleLabel match {
               case "__" =>
-                val self = Seq(Resolved.Module(m.segments, m.cls))
+                val self =
+                  Seq(Resolved.Module(rootModule, m.rootModulePrefix, m.taskSegments, m.cls))
+
                 val transitiveOrErr =
                   resolveTransitiveChildren(
                     rootModule,
+                    rootModulePrefix,
                     m.cls,
                     None,
-                    current.segments,
+                    current.taskSegments,
                     seenModules,
                     cache
                   )
@@ -167,28 +215,31 @@ private object ResolveCore {
               case "_" =>
                 resolveDirectChildren(
                   rootModule,
+                  rootModulePrefix,
                   m.cls,
                   None,
-                  current.segments,
+                  current.taskSegments,
                   cache = cache
                 )
 
               case pattern if pattern.startsWith("__:") =>
                 val typePattern = pattern.split(":").drop(1)
-                val self = Seq(Resolved.Module(m.segments, m.cls))
+                val self =
+                  Seq(Resolved.Module(rootModule, m.rootModulePrefix, m.taskSegments, m.cls))
 
                 val transitiveOrErr = resolveTransitiveChildren(
                   rootModule,
+                  rootModulePrefix,
                   m.cls,
                   None,
-                  current.segments,
+                  current.taskSegments,
                   seenModules,
                   cache
                 )
 
                 transitiveOrErr.map(transitive =>
                   (self ++ transitive).collect {
-                    case r @ Resolved.Module(segments, cls)
+                    case r @ Resolved.Module(_, _, _, cls)
                         if classMatchesTypePred(typePattern)(cls) =>
                       r
                   }
@@ -198,13 +249,14 @@ private object ResolveCore {
                 val typePattern = pattern.split(":").drop(1)
                 resolveDirectChildren(
                   rootModule,
+                  rootModulePrefix,
                   m.cls,
                   None,
-                  current.segments,
+                  current.taskSegments,
                   cache
                 ).map {
                   _.collect {
-                    case r @ Resolved.Module(segments, cls)
+                    case r @ Resolved.Module(_, _, _, cls)
                         if classMatchesTypePred(typePattern)(cls) => r
                   }
                 }
@@ -212,23 +264,41 @@ private object ResolveCore {
               case _ =>
                 resolveDirectChildren(
                   rootModule,
+                  rootModulePrefix,
                   m.cls,
                   Some(singleLabel),
-                  current.segments,
+                  current.taskSegments,
                   cache = cache
                 )
             }
 
             resOrErr match {
-              case mill.api.Result.Failure(err) => Error(err)
-              case mill.api.Result.Success(res) => recurse(res.distinct)
+              case f: mill.api.Result.Failure => Error(f)
+              case mill.api.Result.Success(res) if res.nonEmpty => recurse(res.distinct)
+              case mill.api.Result.Success(_) =>
+                // Direct resolution found nothing; try label-as-cross if this is a Cross module
+                tryResolveLabelAsCross(
+                  rootModule,
+                  rootModulePrefix,
+                  m,
+                  singleLabel,
+                  tail,
+                  querySoFar,
+                  seenModules,
+                  cache
+                ).getOrElse(currentNotFoundResult)
             }
 
           case (Segment.Cross(cross), m: Resolved.Module) =>
             if (classOf[Cross[?]].isAssignableFrom(m.cls)) {
-              instantiateModule(rootModule, current.segments, cache).flatMap {
+              instantiateModule(
+                rootModule,
+                rootModulePrefix,
+                current.taskSegments,
+                cache
+              ).flatMap {
                 case c: Cross[_] =>
-                  catchWrapException(
+                  mill.api.ExecResult.catchWrapException(
                     if (cross == Seq("__")) for ((_, v) <- c.valuesToModules.toSeq) yield v
                     else if (cross.contains("_")) {
                       for {
@@ -245,32 +315,40 @@ private object ResolveCore {
                     }
                   )
               } match {
-                case mill.api.Result.Failure(err) => Error(err)
+                case f: mill.api.Result.Failure => Error(f)
                 case mill.api.Result.Success(searchModules) =>
                   recurse(
                     searchModules
-                      .map(m => Resolved.Module(m.moduleSegments, m.getClass))
+                      .map(m =>
+                        Resolved.Module(
+                          rootModule,
+                          rootModulePrefix,
+                          m.moduleSegments,
+                          m.getClass
+                        )
+                      )
                   )
               }
+            } else currentNotFoundResult
 
-            } else notFoundResult(rootModule, querySoFar, current, head, cache)
-
-          case _ => notFoundResult(rootModule, querySoFar, current, head, cache)
+          case _ => currentNotFoundResult
         }
     }
   }
 
   def instantiateModule(
       rootModule: RootModule0,
+      rootModulePrefix: String,
       segments: Segments,
       cache: Cache
   ): mill.api.Result[Module] = cache.instantiatedModules.getOrElseUpdate(
-    segments, {
+    (rootModule, segments), {
       segments.value.foldLeft[mill.api.Result[Module]](mill.api.Result.Success(rootModule)) {
         case (mill.api.Result.Success(current), Segment.Label(s)) =>
           assert(s != "_", s)
           resolveDirectChildren0(
             rootModule,
+            rootModulePrefix,
             current.moduleSegments,
             current.getClass,
             Some(s),
@@ -288,14 +366,14 @@ private object ResolveCore {
         case (mill.api.Result.Success(current), Segment.Cross(vs)) =>
           assert(!vs.contains("_"), vs)
 
-          catchWrapException(
+          mill.api.ExecResult.catchWrapException(
             current
               .asInstanceOf[Cross[?]]
               .segmentsToModules(vs.toList)
               .asInstanceOf[Module]
           )
 
-        case (mill.api.Result.Failure(err), _) => mill.api.Result.Failure(err)
+        case (f: mill.api.Result.Failure, _) => f
       }
 
     }
@@ -303,16 +381,19 @@ private object ResolveCore {
 
   def resolveTransitiveChildren(
       rootModule: RootModule0,
+      rootModulePrefix: String,
       cls: Class[?],
       nameOpt: Option[String],
-      segments: Segments,
+      taskSegments: Segments,
       seenModules: Set[Class[?]],
       cache: Cache
   ): mill.api.Result[Seq[Resolved]] = {
-    if (seenModules.contains(cls)) mill.api.Result.Failure(cyclicModuleErrorMsg(segments))
+    if (seenModules.contains(cls)) mill.api.Result.Failure(cyclicModuleErrorMsg(taskSegments))
     else {
-      val errOrDirect = resolveDirectChildren(rootModule, cls, nameOpt, segments, cache)
-      val directTraverse = resolveDirectChildren(rootModule, cls, nameOpt, segments, cache)
+      val errOrDirect =
+        resolveDirectChildren(rootModule, rootModulePrefix, cls, nameOpt, taskSegments, cache)
+      val directTraverse =
+        resolveDirectChildren(rootModule, rootModulePrefix, cls, nameOpt, taskSegments, cache)
 
       val errOrModules = directTraverse.map { modules =>
         modules.flatMap {
@@ -326,22 +407,21 @@ private object ResolveCore {
           modules.flatMap { m =>
             Some(resolveTransitiveChildren(
               rootModule,
+              rootModulePrefix,
               m.cls,
               nameOpt,
-              m.segments,
+              m.taskSegments,
               seenModules + cls,
               cache
             ))
           }
-        case mill.api.Result.Failure(err) => Seq(mill.api.Result.Failure(err))
+        case f: mill.api.Result.Failure => Seq(f)
       }
 
       val errOrIndirect = mill.api.Result.sequence(errOrIndirect0).map(_.flatten)
 
-      for {
-        direct <- errOrDirect
-        indirect <- errOrIndirect
-      } yield direct ++ indirect
+      for ((direct, indirect) <- errOrDirect.zip(errOrIndirect))
+        yield direct ++ indirect
     }
   }
 
@@ -379,16 +459,22 @@ private object ResolveCore {
 
   def resolveDirectChildren(
       rootModule: RootModule0,
+      rootModulePrefix: String,
       cls: Class[?],
       nameOpt: Option[String],
       segments: Segments,
       cache: Cache
   ): mill.api.Result[Seq[Resolved]] = {
     val crossesOrErr = if (classOf[Cross[?]].isAssignableFrom(cls) && nameOpt.isEmpty) {
-      instantiateModule(rootModule, segments, cache).map {
+      instantiateModule(rootModule, rootModulePrefix, segments, cache).map {
         case cross: Cross[_] =>
           for (item <- cross.items) yield {
-            Resolved.Module(segments ++ Segment.Cross(item.crossSegments), item.cls)
+            Resolved.Module(
+              rootModule,
+              rootModulePrefix,
+              segments ++ Segment.Cross(item.crossSegments),
+              item.cls
+            )
           }
 
         case _ => Nil
@@ -397,21 +483,24 @@ private object ResolveCore {
 
     def expandSegments(direct: Seq[(Resolved, Option[Module => mill.api.Result[Module]])]) = {
       direct.map {
-        case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
-        case (Resolved.NamedTask(s, enclosing), _) => Resolved.NamedTask(segments ++ s, enclosing)
-        case (Resolved.Command(s, enclosing), _) => Resolved.Command(segments ++ s, enclosing)
+        case (Resolved.Module(rootModule, rootModulePrefix, s, cls), _) =>
+          Resolved.Module(rootModule, rootModulePrefix, segments ++ s, cls)
+        case (Resolved.NamedTask(rootModule, rootModulePrefix, s, enclosing, superSuffix), _) =>
+          Resolved.NamedTask(rootModule, rootModulePrefix, segments ++ s, enclosing, superSuffix)
+        case (Resolved.Command(rootModule, rootModulePrefix, s, enclosing), _) =>
+          Resolved.Command(rootModule, rootModulePrefix, segments ++ s, enclosing)
       }
     }
 
     for {
-      crosses <- crossesOrErr
-      direct0 <- resolveDirectChildren0(rootModule, segments, cls, nameOpt, cache)
-      direct <- mill.api.Result.Success(expandSegments(direct0))
-    } yield direct ++ crosses
+      (crosses, direct0) <- crossesOrErr
+        .zip(resolveDirectChildren0(rootModule, rootModulePrefix, segments, cls, nameOpt, cache))
+    } yield expandSegments(direct0) ++ crosses
   }
 
   def resolveDirectChildren0(
       rootModule: RootModule0,
+      rootModulePrefix: String,
       segments: Segments,
       cls: Class[?],
       nameOpt: Option[String],
@@ -422,13 +511,15 @@ private object ResolveCore {
     val modulesOrErr
         : mill.api.Result[Seq[(Resolved, Option[Module => mill.api.Result[Module]])]] = {
       if (classOf[DynamicModule].isAssignableFrom(cls)) {
-        instantiateModule(rootModule, segments, cache).map {
+        instantiateModule(rootModule, rootModulePrefix, segments, cache).map {
           case m: DynamicModule =>
             m.moduleDirectChildren
               .filter(c => namePred(c.moduleSegments.last.value))
               .map(c =>
                 (
                   Resolved.Module(
+                    rootModule,
+                    rootModulePrefix,
                     Segments.labels(c.moduleSegments.last.value),
                     c.getClass
                   ),
@@ -437,47 +528,156 @@ private object ResolveCore {
               )
         }
       } else mill.api.Result.Success {
-        val reflectMemberObjects = Reflect
+        Reflect
           .reflectNestedObjects02[Module](cls, namePred, cache.getMethods)
           .collect {
             case (name, memberCls, getter) =>
-              val resolved = Resolved.Module(Segments.labels(cache.decode(name)), memberCls)
-              val getter2 = Some((mod: Module) => catchWrapException(getter(mod)))
+              val resolved =
+                Resolved.Module(
+                  rootModule,
+                  rootModulePrefix,
+                  Segments.labels(cache.decode(name)),
+                  memberCls
+                )
+              val getter2 =
+                Some((mod: Module) => mill.api.ExecResult.catchWrapException(getter(mod)))
               (resolved, getter2)
           }
           .toSeq
-
-        val simpleModuleObjects =
-          if (!segments.value.forall(_.isInstanceOf[Segment.Label])) Nil
-          else {
-            val scriptKey = segments.value.flatMap(_.pathSegments).mkString("/")
-            val resolvedScript = cache.scriptModuleChildResolver(scriptKey, nameOpt)
-            for (mod <- resolvedScript) yield {
-              val newSegments = Segments.labels(mod.get.moduleSegments.last.value)
-              (Resolved.Module(newSegments, mod.get.getClass), Some((_: Module) => mod))
-            }
-          }
-        reflectMemberObjects ++ simpleModuleObjects
       }
     }
 
     val namedTasks = Reflect
       .reflect(cls, classOf[Task.Named[?]], namePred, noParams = true, cache.getMethods)
-      .map { m =>
-        Resolved.NamedTask(Segments.labels(cache.decode(m.getName)), cls) ->
+      .map { case (_, name) =>
+        Resolved.NamedTask(
+          rootModule,
+          rootModulePrefix,
+          Segments.labels(name),
+          cls
+        ) ->
           None
       }
 
     val commands = Reflect
       .reflect(cls, classOf[Task.Command[?]], namePred, noParams = false, cache.getMethods)
-      .map(m => cache.decode(m.getName))
-      .map { name => Resolved.Command(Segments.labels(name), cls) -> None }
+      .map { case (_, name) =>
+        Resolved.Command(rootModule, rootModulePrefix, Segments.labels(name), cls) -> None
+      }
 
     modulesOrErr.map(_ ++ namedTasks ++ commands)
   }
 
+  /**
+   * Try to resolve a label segment as a cross module value.
+   *
+   * For example, `foo.bar.qux` can resolve to `foo.bar[qux]` if `bar` is a Cross.Module,
+   * or `foo.bar.qux.baz` can resolve to `foo.bar[qux,baz]` if `bar` is a Cross.Module2.
+   *
+   * Also handles underscore-to-dot substitution: `foo.bar.qux_baz` can resolve to `foo.bar[qux.baz]`.
+   *
+   * Returns Some(Result) if a match was found, None otherwise.
+   */
+  def tryResolveLabelAsCross(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      m: Resolved.Module,
+      firstLabel: String,
+      tail: List[Segment],
+      querySoFar: Segments,
+      seenModules: Set[Class[?]],
+      cache: Cache
+  ): Option[Result] = {
+    if (!classOf[Cross[?]].isAssignableFrom(m.cls)) None
+    else instantiateModule(rootModule, rootModulePrefix, m.taskSegments, cache) match {
+      case f: mill.api.Result.Failure => Some(Error(f))
+      case mill.api.Result.Success(c: Cross[_]) =>
+        c.items.headOption.flatMap { item =>
+          val dimensions = item.crossSegments.length
+
+          // Collect label segments: firstLabel + up to (dimensions - 1) more from tail
+          val additionalLabels = tail.take(dimensions - 1).collect { case Segment.Label(l) => l }
+
+          val allLabels = firstLabel :: additionalLabels
+
+          // Try different combinations with underscore-to-dot conversion and find matching cross modules
+          val labelCombinations = generateCrossSegmentCombinations(allLabels)
+
+          val matchedModules = labelCombinations
+            .flatMap { segments => c.segmentsToModules.get(segments).toSeq }
+            .distinct
+
+          if (matchedModules.isEmpty) None
+          else { // We found matches! Now recurse with the remaining tail
+            val crossSegment = Segment.Cross(
+              c.segmentsToModules.keys
+                .find(segs => matchedModules.contains(c.segmentsToModules(segs)))
+                .getOrElse(allLabels)
+            )
+
+            val resolvedModules = matchedModules.map { crossMod =>
+              Resolved.Module(
+                rootModule,
+                rootModulePrefix,
+                crossMod.moduleSegments,
+                crossMod.getClass
+              )
+            }
+
+            val actualRemainingTail = tail.drop(dimensions - 1)
+
+            // Recurse with remaining query
+            val results = resolvedModules.map { resolved =>
+              resolve(
+                rootModule,
+                rootModulePrefix,
+                actualRemainingTail,
+                resolved,
+                querySoFar ++ Seq(crossSegment),
+                seenModules ++ Set(m.cls),
+                cache
+              )
+            }
+
+            // Combine results
+            val (failures, successes) = results.partitionMap {
+              case s: Success => Right(s.value)
+              case f: Failed => Left(f)
+            }
+
+            val (errors, notFounds) = failures.partitionMap {
+              case e: Error => Left(e.failure)
+              case n: NotFound => Right(n)
+            }
+
+            if (errors.nonEmpty) Some(Error(mill.api.Result.Failure.join(errors)))
+            else if (successes.flatten.nonEmpty) Some(Success(successes.flatten))
+            else if (notFounds.nonEmpty) Some(notFounds.head)
+            else None
+          }
+        }
+    }
+  }
+
+  /**
+   * Generate all combinations of cross segments by replacing underscores with dots.
+   * For example, ["2_12_20", "jvm"] generates combinations like:
+   * - ["2_12_20", "jvm"]
+   * - ["2.12.20", "jvm"]
+   */
+  def generateCrossSegmentCombinations(labels: List[String]): Seq[List[String]] = {
+    labels match {
+      case Nil => Seq(Nil)
+      case head :: tail =>
+        val headVariants = labelToCrossSegments(head)
+        val tailCombinations = generateCrossSegmentCombinations(tail)
+        for (h <- headVariants; t <- tailCombinations) yield h :: t
+    }
+  }
+
   def notFoundResult(
       rootModule: RootModule0,
+      rootModulePrefix: String,
       querySoFar: Segments,
       current: Resolved,
       next: Segment,
@@ -487,17 +687,74 @@ private object ResolveCore {
       case m: Resolved.Module =>
         resolveDirectChildren(
           rootModule,
+          rootModulePrefix,
           m.cls,
           None,
-          current.segments,
+          current.taskSegments,
           cache = cache
-        ).toOption.get.map(
-          _.segments.value.last
-        )
+        ).toOption.get.map(_.taskSegments.value.last)
 
       case _ => Set[Segment]()
     }
 
     NotFound(querySoFar, Set(current), next, possibleNexts.toSet)
   }
+
+  /**
+   * Resolve super tasks for CLI invocation.
+   *
+   * When a user types `foo.super` or `foo.super.ParentModule`, this function
+   * resolves the super task(s) for task `foo`.
+   */
+  def resolveSuperTasks(
+      rootModule: RootModule0,
+      rootModulePrefix: String,
+      moduleCls: Class[?],
+      moduleSegments: Segments,
+      baseTaskName: String,
+      superSuffixSegments: List[Segment],
+      discover: Discover
+  ): Seq[Resolved.NamedTask] = {
+    val linearized = OverrideMapping.computeLinearization(moduleCls)
+
+    // Find all classes that declare this task
+    val declaring = linearized.filter { cls =>
+      discover.classInfo.get(cls).exists(_.declaredTaskNameSet.contains(baseTaskName))
+    }
+
+    if (declaring.size <= 1) Nil // No overrides, no super tasks exist
+    else {
+      // The last class in `declaring` is the final override (not a super task)
+      // All others are potential super tasks
+      val superClasses = declaring.init
+
+      // Filter by the requested suffix if provided
+      val filteredClasses =
+        if (superSuffixSegments.isEmpty) superClasses
+        else {
+          // Match suffix against any unique suffix of the class name segments
+          // e.g., for class "mill.javalib.JavaModule", valid suffixes are:
+          // - "JavaModule"
+          // - "javalib.JavaModule"
+          // - "mill.javalib.JavaModule"
+          // Note: Inner classes use $ as separator, so we split on both . and $
+          val suffixNames = superSuffixSegments.collect { case Segment.Label(l) => l }
+          superClasses.filter { parentCls =>
+            val classSegments = parentCls.getName.split("[.$]").toSeq
+            classSegments.endsWith(suffixNames)
+          }
+        }
+
+      filteredClasses.map { parentCls =>
+        Resolved.NamedTask(
+          rootModule,
+          rootModulePrefix,
+          moduleSegments ++ Segments.labels(baseTaskName),
+          moduleCls,
+          superSuffix = Some(parentCls)
+        )
+      }
+    }
+  }
+
 }

@@ -5,15 +5,15 @@ import scala.annotation.switch
 
 private object PromptLoggerUtil {
 
-  private[mill] val defaultTermWidth = 99
-  private[mill] val defaultTermHeight = 25
+  val defaultTermWidth = 99
+  val defaultTermHeight = 25
 
   /**
    * How often to update the multiline status prompt on the terminal.
    * Too frequent is bad because it causes a lot of visual noise,
    * but too infrequent results in latency. 10 times per second seems reasonable
    */
-  private[mill] val promptUpdateIntervalMillis = 100
+  val promptUpdateIntervalMillis = 100
 
   /**
    * How often to update the multiline status prompt in non-interactive scenarios,
@@ -23,7 +23,7 @@ private object PromptLoggerUtil {
    * the logs, but we still want to print it occasionally so people can debug stuck
    * background or CI jobs and see what tasks it is running when stuck
    */
-  private[mill] val nonInteractivePromptUpdateIntervalMillis = 60000
+  val nonInteractivePromptUpdateIntervalMillis = 60000
 
   /**
    * Add some extra latency delay to the process of removing an entry from the status
@@ -41,14 +41,14 @@ private object PromptLoggerUtil {
    */
   val statusRemovalRemoveDelayMillis = 2000
 
-  private[mill] case class StatusEntry(text: String, startTimeMillis: Long, detail: String = "")
+  case class StatusEntry(text: String, startTimeMillis: Long, detail: String = "")
 
   /**
    * Represents a line in the prompt. Stores up to two separate [[StatusEntry]]s, because
    * we want to buffer up status transitions to debounce them. Which status entry is currently
    * shown depends on the [[beginTransitionTime]] and other heuristics
    */
-  private[mill] case class Status(
+  case class Status(
       next: Option[StatusEntry],
       beginTransitionTime: Long,
       prev: Option[StatusEntry]
@@ -59,7 +59,7 @@ private object PromptLoggerUtil {
    * and down via `\n` to have a "fresh" line. This only should get called to clear the prompt, so
    * the cursor is already at the left-most column, which '\n' will not change.
    */
-  private[mill] val clearScreenToEndBytes: Array[Byte] =
+  val clearScreenToEndBytes: Array[Byte] =
     (AnsiNav.clearScreen(0) + AnsiNav.up(1) + "\n").getBytes
 
   def spaceNonEmpty(s: String) = if (s.isEmpty) "" else s" $s"
@@ -207,7 +207,7 @@ private object PromptLoggerUtil {
     ???
   }
 
-  private[mill] val seqStringOrdering = new Ordering[Seq[String]] {
+  val seqStringOrdering = new Ordering[Seq[String]] {
     def compare(xs: Seq[String], ys: Seq[String]): Int = {
       val iter = xs.iterator.zip(ys)
       while (iter.nonEmpty) {
@@ -232,11 +232,17 @@ private object PromptLoggerUtil {
       (buf(i): @switch) match {
         case '\r' =>
           if (i + 1 < end && buf(i + 1) == '\n') {
+            // \r\n case: prepend before the \r\n sequence
             dest.write(buf, last, i - last)
             dest.write(prepended)
             last = i
             i += 2
           } else {
+            // Standalone \r: prepend before the \r to support progress output
+            // that uses \r to overwrite the current line
+            dest.write(buf, last, i - last)
+            dest.write(prepended)
+            last = i
             i += 1
           }
         case '\n' | '\t' =>

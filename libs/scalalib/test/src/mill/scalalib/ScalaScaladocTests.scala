@@ -78,7 +78,7 @@ object ScalaScaladocTests extends TestSuite {
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
       ).scoped { eval =>
         // scaladoc generation fails because of "-Xfatal-warnings" flag
-        val Left(ExecResult.Failure(_)) =
+        val Left(_: ExecResult.Failure[_]) =
           eval.apply(HelloWorldWithDocVersion.core.docJar): @unchecked
       }
       test("docJarOnlyVersion") - UnitTester(
@@ -86,7 +86,7 @@ object ScalaScaladocTests extends TestSuite {
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
       ).scoped { eval =>
         // `docJar` requires the `compile` task to succeed (since the addition of Scaladoc 3)
-        val Left(ExecResult.Failure(_)) =
+        val Left(_: ExecResult.Failure[_]) =
           eval.apply(HelloWorldOnlyDocVersion.core.docJar): @unchecked
       }
     }

@@ -1,0 +1,74 @@
+package build
+
+import mill.*, kotlinlib.*
+import kotlinlib.kover.KoverModule
+
+object `package` extends KotlinModule, KoverModule {
+
+  trait KotestTests extends TestModule.Junit5 {
+    override def forkArgs: T[Seq[String]] = Task {
+      super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
+
+    }
+    def mvnDeps = Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
+    )
+  }
+
+  def kotlinVersion = "1.9.24"
+
+  override def koverVersion = "0.8.3"
+
+  object test extends KotlinTests, KotestTests, KoverTests
+
+  object bar extends KotlinModule, KoverModule {
+    def kotlinVersion = "1.9.24"
+    object test extends KotlinTests, KotestTests, KoverTests
+  }
+}
+
+// This is a basic Mill build for a single `KotlinModule`, enhanced with
+// Kover module. The root module extends the `KoverModule` and
+// specifies the version of Kover version to use here: `0.8.3`. This
+// version can be changed if there is a newer one. Now you can call the
+// Kover tasks to produce coverage reports.
+// The sub test module extends `KoverTests` to transform the
+// execution of the various testXXX tasks to use Kover and produce
+// coverage data.
+// This lets us perform the coverage operations but before that you
+// must first run the test.
+// `./mill test` then `./mill show kover.htmlReport` and get your
+// coverage in HTML format.
+// Also reports for all modules can be collected in a single place by
+// running `./mill show mill.kotlinlib.kover/htmlReportAll`.
+
+/** Usage
+
+> ./mill test # Run the tests and produce the coverage data
+...
+... foo.FooTests kotlin - success started
+
+> ./mill resolve kover._ # List what tasks are available to run from kover
+...
+kover.htmlReport
+...
+kover.xmlReport
+...
+
+> ./mill show kover.htmlReport
+...
+...out/kover/htmlReport.dest/kover-report...
+
+> cat out/kover/htmlReport.dest/kover-report/index.html
+...
+...Kover HTML Report: Overall Coverage Summary...
+
+> ./mill show mill.kotlinlib.kover/htmlReportAll # collect reports from all modules
+...
+...out/mill.kotlinlib.kover.Kover/htmlReportAll.dest/kover-report...
+
+> cat out/mill.kotlinlib.kover.Kover/htmlReportAll.dest/kover-report/index.html
+...
+...Kover HTML Report: Overall Coverage Summary...
+
+*/

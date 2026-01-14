@@ -3,13 +3,13 @@ package mill.integration
 import ch.epfl.scala.{bsp4j => b}
 import mill.api.BuildInfo
 import mill.bsp.Constants
-import mill.integration.BspServerTestUtil._
+import mill.integration.BspServerTestUtil.*
 import mill.testkit.UtestIntegrationTestSuite
-import utest._
+import utest.*
 
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.DurationInt
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Success
 
 object BspServerReloadTests extends UtestIntegrationTestSuite {
@@ -18,7 +18,7 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
 
   def tests = Tests {
     test("reload") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       val startSnapshotsPath = super.workspaceSourcePath / "snapshots" / "reload" / "start"
       val afterChangesSnapshotsPath = super.workspaceSourcePath / "snapshots" / "reload" / "changed"
@@ -113,7 +113,7 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
     }
 
     test("broken") - integrationTest { tester =>
-      import tester._
+      import tester.*
 
       val startSnapshotsPath = super.workspaceSourcePath / "snapshots" / "broken" / "start"
       val afterChangesSnapshotsPath = super.workspaceSourcePath / "snapshots" / "broken" / "changed"
@@ -179,7 +179,11 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
           "thing" -> b.BuildTargetEventKind.CREATED,
           "app" -> b.BuildTargetEventKind.CREATED,
           "lib" -> b.BuildTargetEventKind.CREATED,
-          "mill-build" -> b.BuildTargetEventKind.CHANGED
+          "Lib.scala" -> b.BuildTargetEventKind.DELETED,
+          "TheApp.scala" -> b.BuildTargetEventKind.DELETED,
+          "mill-build" -> b.BuildTargetEventKind.CHANGED,
+          "MillMiscInfo.scala" -> b.BuildTargetEventKind.DELETED,
+          "BuildFileImpl.scala" -> b.BuildTargetEventKind.DELETED
         )
         val changes = didChangeParams.getChanges().asScala.map(eventData).toSet
         assert(expectedChanges == changes)

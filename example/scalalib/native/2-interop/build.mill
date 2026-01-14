@@ -2,7 +2,7 @@ package build
 import mill.*, scalalib.*, scalanativelib.*
 
 object `package` extends ScalaNativeModule {
-  def scalaVersion = "3.3.4"
+  def scalaVersion = "3.3.6"
   def scalaNativeVersion = "0.5.8"
 
   object test extends ScalaNativeTests {
@@ -15,7 +15,7 @@ object `package` extends ScalaNativeModule {
 // This is an example of how to use Mill to compile C code together with your Scala Native
 // code.
 //
-// The above build expect the following project layout:
+// The above build expects the following project layout:
 //
 // ----
 // build.mill

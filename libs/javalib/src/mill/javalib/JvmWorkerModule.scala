@@ -3,11 +3,12 @@ package mill.javalib
 import mainargs.Flag
 import mill.*
 import mill.api.{PathRef, Task, *}
+import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.javalib.api.internal.JvmWorkerApi as InternalJvmWorkerApi
-import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.javalib.internal.{JvmWorkerArgs, JvmWorkerFactoryApi, ZincCompilerBridgeProvider}
+import mill.javalib.api.internal.InternalJvmWorkerApi
+import mill.javalib.api.{CompilationResult, JvmWorkerApi, JvmWorkerArgs, JvmWorkerUtil, Versions}
+import mill.javalib.api.internal.ZincCompilerBridgeProvider
 
 /**
  * A default implementation of [[JvmWorkerModule]]
@@ -27,9 +28,13 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     ))
   }
 
+  /**
+   * This is actually the testrunner classpath, not the scalalib classpath,
+   * but the wrong name is preserved for backwards compatibility
+   */
   def scalalibClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-libs-javalib")
+      Dep.millProjectModule("mill-libs-javalib-testrunner")
     ))
   }
 
@@ -48,39 +53,130 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   /** Whether Zinc debug logging is enabled. */
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
-  def worker: Worker[JvmWorkerApi] = internalWorker
+  /** Whether to use file-based locking instead of PID-based locking. */
+  def useFileLocks: T[Boolean] = Task.Input(Task.ctx().useFileLocks)
 
-  private[mill] def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
-    val jobs = Task.ctx().jobs
+  def worker: Worker[JvmWorkerApi] = Task.Worker {
+    // don't know why we have `worker` and `internalWorker`,
+    // but we can't share the same instance, as we risk to run `close` on one,
+    // while the other is still in use, hence the delegating facade.
+    val internal = internalWorker()
+    // just forward everything to `internalWorker`
+    new JvmWorkerApi {
+      override def compileJava(
+          upstreamCompileOutput: Seq[CompilationResult],
+          sources: Seq[os.Path],
+          compileClasspath: Seq[os.Path],
+          javaHome: Option[os.Path],
+          javacOptions: Seq[String],
+          reporter: Option[CompileProblemReporter],
+          reportCachedProblems: Boolean,
+          incrementalCompilation: Boolean,
+          workDir: os.Path
+      )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
+        internal.compileJava(
+          upstreamCompileOutput,
+          sources,
+          compileClasspath,
+          javaHome,
+          javacOptions,
+          reporter,
+          reportCachedProblems,
+          incrementalCompilation,
+          workDir
+        )
 
-    val cl = mill.util.Jvm.createClassLoader(
-      classpath().map(_.path),
-      getClass.getClassLoader
-    )
+      override def compileMixed(
+          upstreamCompileOutput: Seq[CompilationResult],
+          sources: Seq[os.Path],
+          compileClasspath: Seq[os.Path],
+          javaHome: Option[os.Path],
+          javacOptions: Seq[String],
+          scalaVersion: String,
+          scalaOrganization: String,
+          scalacOptions: Seq[String],
+          compilerClasspath: Seq[PathRef],
+          scalacPluginClasspath: Seq[PathRef],
+          compilerBridgeOpt: Option[PathRef],
+          reporter: Option[CompileProblemReporter],
+          reportCachedProblems: Boolean,
+          incrementalCompilation: Boolean,
+          auxiliaryClassFileExtensions: Seq[String],
+          workDir: os.Path
+      )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
+        internal.compileMixed(
+          upstreamCompileOutput = upstreamCompileOutput,
+          sources = sources,
+          compileClasspath = compileClasspath,
+          javaHome = javaHome,
+          javacOptions = javacOptions,
+          scalaVersion = scalaVersion,
+          scalaOrganization = scalaOrganization,
+          scalacOptions = scalacOptions,
+          compilerClasspath = compilerClasspath,
+          scalacPluginClasspath = scalacPluginClasspath,
+          compilerBridgeOpt = compilerBridgeOpt,
+          reporter = reporter,
+          reportCachedProblems = reportCachedProblems,
+          incrementalCompilation = incrementalCompilation,
+          auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+          workDir = workDir
+        )
 
-    val factory =
-      cl.loadClass("mill.javalib.worker.JvmWorkerFactory").getConstructor().newInstance()
-        .asInstanceOf[JvmWorkerFactoryApi]
+      override def docJar(
+          scalaVersion: String,
+          scalaOrganization: String,
+          compilerClasspath: Seq[PathRef],
+          scalacPluginClasspath: Seq[PathRef],
+          compilerBridgeOpt: Option[PathRef],
+          javaHome: Option[os.Path],
+          args: Seq[String],
+          workDir: os.Path
+      )(using ctx: JvmWorkerApi.Ctx): Boolean =
+        internal.docJar(
+          scalaVersion = scalaVersion,
+          scalaOrganization = scalaOrganization,
+          compilerClasspath = compilerClasspath,
+          scalacPluginClasspath = scalacPluginClasspath,
+          compilerBridgeOpt = compilerBridgeOpt,
+          javaHome = javaHome,
+          args = args,
+          workDir = workDir
+        )
 
+    }
+  }
+
+  def internalWorkerClassLoader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
+    mill.util.Jvm.createClassLoader(classpath().map(_.path), getClass.getClassLoader)
+  }
+
+  @internal def internalWorker: Worker[InternalJvmWorkerApi] = Task.Worker {
     val ctx = Task.ctx()
+    val jobs = ctx.jobs
+
+    val cl = internalWorkerClassLoader()
+
     val zincCompilerBridge = ZincCompilerBridgeProvider(
       workspace = ctx.dest,
       logInfo = ctx.log.info,
       acquire = (scalaVersion, scalaOrganization) =>
-        scalaCompilerBridgeJarV2(
-          scalaVersion = scalaVersion,
-          scalaOrganization = scalaOrganization,
-          defaultResolver()
-        ).map(_.path)
+        scalaCompilerBridgeJarV2(scalaVersion, scalaOrganization, defaultResolver()).map(_.path)
     )
+
     val args = JvmWorkerArgs(
       zincCompilerBridge,
       classPath = classpath().map(_.path),
       jobs = jobs,
       zincLogDebug = zincLogDebug(),
-      close0 = () => cl.close()
+      useFileLocks = useFileLocks(),
+      close0 = () => ()
     )
-    factory.make(args)
+
+    cl.loadClass("mill.javalib.worker.JvmWorkerImpl")
+      .getConstructor(classOf[JvmWorkerArgs])
+      .newInstance(args)
+      .asInstanceOf[InternalJvmWorkerApi]
   }
 
   private[mill] def scalaCompilerBridgeJarV2(
@@ -172,9 +268,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   }
 
   override def prepareOffline(all: Flag): Command[Seq[PathRef]] = Task.Command {
-    (
-      super.prepareOffline(all)() ++ classpath()
-    ).distinct
+    (super.prepareOffline(all)() ++ classpath()).distinct
   }
 
   // noinspection ScalaUnusedSymbol - Task.Command

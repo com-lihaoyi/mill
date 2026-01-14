@@ -1,0 +1,20 @@
+This page documents the use cases and features of Mill's single-file {language} modules, or "scripts".
+These are {language} modules with a single source file, with build configuration included
+in a header comment block at the top of the file.
+
+{language} single-file scripts can be standalone or xref:#_project_moduledeps[part of a larger Mill project].
+They can be run via `./mill Foo.{language-ext}` from the command line, or have other tasks on
+them executed via `./mill Foo.{language-ext}:compile` or `./mill Foo.{language-ext}:assembly`.
+Apart from being limited to a single source file, single-file script modules otherwise
+support all the same tasks that normal ``{language}Module``s do.
+
+Mill Single-file {language} programs can make it more convenient to script simple command-line
+workflows interacting with files, subprocesses, and HTTP endpoints. This section walks through
+a few examples where one-off single-file {language} programs can be useful in day-to-day
+development and how you can configure them.
+
+While initially single-file {language} programs may be a bit more verbose than the equivalent
+Bash script containing `cp` or `curl` commands, as the script grows in complexity the value
+of IDE support, typechecking, and JVM libraries makes writing them in {language} an attractive
+proposition. This is especially true if you already have developers fluent in {language} which
+may not be as familiar with the intricacies of writing robust and maintainable Bash code.

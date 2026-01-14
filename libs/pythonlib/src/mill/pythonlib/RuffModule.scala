@@ -1,6 +1,6 @@
 package mill.pythonlib
 
-import mill._
+import mill.*
 import mill.api.{Args, ExternalModule, Discover}
 import mill.util.Tasks
 

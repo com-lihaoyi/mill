@@ -22,6 +22,7 @@
           "arguments": [],
           "jvmOptions": [],
           "environmentVariables": [
+            "PATH=...",
             "MILL_WORKSPACE_ROOT\u003d/workspace"
           ]
         }
@@ -37,8 +38,41 @@
           "arguments": [],
           "jvmOptions": [],
           "environmentVariables": [
+            "PATH=...",
             "MILL_WORKSPACE_ROOT\u003d/workspace",
             "MILL_TEST_RESOURCE_DIR\u003d/workspace/hello-scala/test/resources"
+          ]
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "classes": [
+        {
+          "class": "build.script$package",
+          "arguments": [],
+          "jvmOptions": [],
+          "environmentVariables": [
+            "PATH=...",
+            "MILL_WORKSPACE_ROOT\u003d/workspace"
+          ]
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "classes": [
+        {
+          "class": "build.script$package",
+          "arguments": [],
+          "jvmOptions": [],
+          "environmentVariables": [
+            "PATH=...",
+            "MILL_WORKSPACE_ROOT\u003d/workspace"
           ]
         }
       ]

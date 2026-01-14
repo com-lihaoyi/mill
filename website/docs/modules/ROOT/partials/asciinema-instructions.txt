@@ -1,0 +1,30 @@
+# WARMUP AND PREPARE CLEAN COMPARISON
+./mill clean _ && time ./mill __.compile && ./mill clean _ && time ./mill __.compile && ./mill clean _ && time ./mill __.compile && ./mill clean _ && ./mvnw clean
+
+# SIZE WINDOW
+
+# BEGIN RECORDING
+asciinema rec demo.cast --overwrite
+
+# PREPARE MILL PANE
+screen
+ENTER
+time ./mill __.compile
+
+# PREPARE MVN PANE
+Ctrl-a |
+Ctrl-a TAB
+Ctrl-a c
+time ./mvnw -T 10 -Pfast -Denforcer.skip=true install
+
+# RUN MAVEN PANE AND MILL PANE
+ENTER
+Ctrl-a TAB
+ENTER
+
+# WAIT FOR COMPLETION
+
+#EXIT
+Ctrl-d
+Ctrl-a TAB
+Ctrl-d

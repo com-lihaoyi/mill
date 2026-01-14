@@ -1,3 +1,4 @@
+//| mill-jvm-version: 17
 // This example demonstrates how to resolve a third-party library from Maven Central,
 // but instead of using xref:extending/import-mvn-plugins.adoc[//| mvnDeps] (which loads the
 // library as part of the main build) we use:
@@ -6,7 +7,7 @@
 //   converting `org:name:version` coordinates (and their transitive dependencies) to
 //   ``PathRef``s referring to files on disk
 //
-// * `Jvm.runSubprocess`, which runs the given classpath files in a subprocess, starting
+// * `Jvm.callProcess`, which runs the given classpath files in a subprocess, starting
 //   from specified `mainClass`
 //
 // While xref:fundamentals/bundled-libraries.adoc#_os_lib[OS-Lib]'s `os.call` and `os.spawn` APIs
@@ -58,7 +59,7 @@ object foo extends JavaModule {
 Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Groovy!</p></body></html>
 */
 
-// As mentioned above, `defaultResolver().classpath` and `Jvm.runSubprocess` are an
+// As mentioned above, `defaultResolver().classpath` and `Jvm.callProcess` are an
 // alternative to `//| mvnDeps`, providing you more flexibility to resolve dependencies
 // on-demand as part of your task graph only when necessary, and keeping it isolated from
 // the build in a subprocess preventing classpath collisions.

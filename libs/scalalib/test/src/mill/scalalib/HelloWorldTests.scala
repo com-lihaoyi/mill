@@ -90,7 +90,7 @@ object HelloWorldTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
-    import java.util.jar.Attributes._
+    import java.util.jar.Attributes.*
     val attrs = jar.getManifest.getMainAttributes.asScala
     attrs.get(Name.MAIN_CLASS).map(_.asInstanceOf[String])
   }
@@ -212,7 +212,7 @@ object HelloWorldTests extends TestSuite {
         // Make sure we *do* end up compiling the compiler bridge, since it's
         // *not* using a pre-compiled bridge value
         assert(os.exists(
-          eval.outPath / "mill/javalib/JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
+          eval.outPath / "mill.javalib.JvmWorkerModule/internalWorker.dest" / s"zinc-${zincVersion}"
         ))
       }
 
@@ -228,7 +228,7 @@ object HelloWorldTests extends TestSuite {
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
         os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
 
-        val Left(ExecResult.Failure("Compilation failed")) =
+        val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(HelloWorld.core.compile): @unchecked
 
         val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
@@ -252,7 +252,7 @@ object HelloWorldTests extends TestSuite {
         sourceRoot = resourcePath
       ).scoped { eval =>
         // compilation fails because of "-Xfatal-warnings" flag
-        val Left(ExecResult.Failure("Compilation failed")) =
+        val Left(ExecResult.Failure(msg = "Compilation failed")) =
           eval.apply(HelloWorldFatalWarnings.core.compile): @unchecked
       }
     }

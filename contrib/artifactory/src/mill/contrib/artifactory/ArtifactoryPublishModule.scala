@@ -1,8 +1,8 @@
 package mill.contrib.artifactory
 
-import mill._
+import mill.*
 import mill.api.Result
-import javalib._
+import javalib.*
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
 import mill.api.{ExternalModule, Task}
 
@@ -83,11 +83,7 @@ object ArtifactoryPublishModule extends ExternalModule {
         password <- Task.env.get("ARTIFACTORY_PASSWORD")
       } yield {
         s"$username:$password"
-      }).getOrElse(
-        Task.fail(
-          "Consider using ARTIFACTORY_USERNAME/ARTIFACTORY_PASSWORD environment variables or passing `credentials` argument"
-        )
-      )
+      }).getOrElse("")
     } else {
       credentials
     }

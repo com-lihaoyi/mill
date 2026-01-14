@@ -1,0 +1,17 @@
+extends: MavenModule
+
+bomMvnDeps:
+- org.springframework.boot:spring-boot-dependencies:3.5.7
+
+mvnDeps:
+- org.springframework.boot:spring-boot-starter-webflux
+
+object test:
+  extends: [MavenTests, TestModule.Junit5]
+
+  bomMvnDeps:
+  - org.springframework.boot:spring-boot-dependencies:3.5.7
+
+  mvnDeps:
+  - org.springframework.boot:spring-boot-starter-test
+  - io.projectreactor:reactor-test

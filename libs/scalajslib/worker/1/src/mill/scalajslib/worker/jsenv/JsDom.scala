@@ -1,6 +1,6 @@
 package mill.scalajslib.worker.jsenv
 
-import mill.scalajslib.worker.api._
+import mill.scalajslib.worker.api.*
 
 object JsDom {
   def apply(config: JsEnvConfig.JsDom) =

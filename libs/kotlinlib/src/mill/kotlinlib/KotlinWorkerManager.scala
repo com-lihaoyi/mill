@@ -41,5 +41,5 @@ object KotlinWorkerManager extends ExternalModule {
     worker
   }
 
-  override protected def millDiscover: Discover = Discover[this.type]
+  override def millDiscover: Discover = Discover[this.type]
 }

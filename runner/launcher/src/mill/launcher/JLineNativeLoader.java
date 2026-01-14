@@ -38,7 +38,7 @@ final class JLineNativeLoader {
     final boolean isWindows =
         System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows");
     final Path baseDir;
-    if (isWindows) baseDir = Paths.get(System.getenv("UserProfile")).resolve(".mill/cache/");
+    if (isWindows) baseDir = Paths.get(System.getenv("UserProfile")).resolve(".cache/mill/");
     else {
       final String xdgCacheHome = System.getenv("XDG_CACHE_HOME");
       final Path cacheBase;

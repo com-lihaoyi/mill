@@ -11,3 +11,4 @@ asciidoc:
     example-semanticdb-version: '4.9.7'
     example-scala-2-13-version: '2.13.14'
     example-utest-version: '0.8.3'
+    android-cmdline-tools-version: '19.0'

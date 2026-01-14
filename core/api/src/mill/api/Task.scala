@@ -2,8 +2,13 @@ package mill.api
 
 import mill.api.Logger
 import mill.api.Result
-import mill.api.daemon.internal.CompileProblemReporter
-import mill.api.daemon.internal.{NamedTaskApi, TaskApi, TestReporter}
+import mill.api.daemon.internal.{
+  CompileProblemReporter,
+  NamedTaskApi,
+  TaskApi,
+  TestReporter,
+  internal
+}
 import mill.api.internal.Applicative.Applyable
 import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.ReadWriter
@@ -26,6 +31,8 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
    * What other tasks does this task depend on?
    */
   val inputs: Seq[Task[?]]
+
+  override private[mill] def inputsApi: Seq[TaskApi[?]] = inputs
 
   /**
    * Evaluate this task
@@ -53,6 +60,8 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
 }
 
 object Task {
+
+  type rename = mill.api.rename
 
   /**
    * Returns the [[mill.api.TaskCtx]] that is available within this task
@@ -116,6 +125,17 @@ object Task {
   def offline(using ctx: mill.api.TaskCtx): Boolean = ctx.offline
 
   def fail(msg: String)(using ctx: mill.api.TaskCtx): Nothing = ctx.fail(msg)
+
+  /**
+   * Generate JSON representation for a worker task result.
+   * Workers don't have a JSON writer, so we generate a special JSON format.
+   */
+  def workerJson(taskName: String, value: Any, inputsHash: Int): ujson.Obj =
+    ujson.Obj(
+      "worker" -> ujson.Str(taskName),
+      "toString" -> ujson.Str(value.toString),
+      "inputsHash" -> ujson.Num(inputsHash)
+    )
 
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
@@ -185,6 +205,26 @@ object Task {
       inline ctx: ModuleCtx
   ): Simple[T] =
     ${ Macros.inputImpl[T]('value)('w, 'ctx) }
+
+  inline def Uncached[T](inline t: Result[T])(using
+      inline w: Writer[T],
+      inline ctx: ModuleCtx
+  ): Simple[T] =
+    ${ Macros.uncachedImpl[T]('t)('w, 'ctx, persistent = '{ false }) }
+
+  def Uncached(
+      @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      persistent: Boolean = false
+  ): UncachedFactory =
+    // Magnet pattern for the second param list in Task.Uncached(persistent = true) { ... }
+    new UncachedFactory(persistent)
+
+  class UncachedFactory private[mill] (val persistent: Boolean) {
+    inline def apply[T](inline t: Result[T])(using
+        inline w: Writer[T],
+        inline ctx: ModuleCtx
+    ): Simple[T] = ${ Macros.uncachedImpl[T]('t)('w, 'ctx, '{ persistent }) }
+  }
 
   /**
    * [[Command]]s are only [[Task.Named]]s defined using
@@ -289,50 +329,31 @@ object Task {
     ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
-  // The extra `(x: T) = null` parameter list is necessary to make type inference work
-  // right, ensuring that `T` is fully inferred before implicit resolution starts
-  def Literal[T](s: String)(using
-      x: T = null.asInstanceOf[T]
-  )(using li: LiteralImplicit[T]): Task.Simple[T] = {
-    assert(li.ctx != null, "Unable to resolve context")
-    assert(li.writer != null, "Unable to resolve JSON writer")
-    assert(li.reader != null, "Unable to resolve JSON reader")
-    new Task.Input[T](
-      (_, _) => Result.Success(upickle.default.read[T](s)(using li.reader)),
-      li.ctx,
-      li.writer,
-      None
-    )
+  @internal def notImplementedImpl[TaskT: Type](using quotes: Quotes): Expr[TaskT] = {
+    import scala.compiletime.summonInline
+    Type.of[TaskT] match {
+      case '[Task.Simple[t]] =>
+        Cacher.impl0('{
+          new NotImplemented[t](summonInline[ModuleCtx], summonInline[ReadWriter[t]])
+            .asInstanceOf[TaskT]
+        })
+    }
   }
 
-  class LiteralImplicit[T](
-      val reader: upickle.default.Reader[T],
-      val writer: upickle.default.Writer[T],
-      val ctx: ModuleCtx
-  )
-  object LiteralImplicit {
-    // Use a custom macro to perform the implicit lookup so we have more control over implicit
-    // resolution failures. In this case, we want to fall back to `null` if an implicit search
-    // fails so we can provide a good error message
-    implicit inline def create[T]: LiteralImplicit[T] = ${ createImpl[T] }
+  @internal class NotImplemented[T](val ctx0: ModuleCtx, rw: ReadWriter[T])
+      extends Task.Simple[T] {
 
-    private def createImpl[T: Type](using Quotes): Expr[LiteralImplicit[T]] = {
-      import quotes.reflect.*
-
-      def summonOrNull[U: Type]: Expr[U] = {
-        Implicits.search(TypeRepr.of[U]) match {
-          case s: ImplicitSearchSuccess => s.tree.asExprOf[U] // Use the found given
-          case _: ImplicitSearchFailure =>
-            '{ null.asInstanceOf[U] } // Includes both NoMatchingImplicits and AmbiguousImplicits
-        }
+    override def evaluate0: (Seq[Any], TaskCtx) => Result[T] =
+      (_, ctx) => {
+        val relPath = os.Path(ctx0.fileName).relativeTo(mill.api.BuildCtx.workspaceRoot)
+        Result.Failure(s"configuration missing in $relPath")
       }
 
-      val readerExpr = summonOrNull[upickle.default.Reader[T]]
-      val writerExpr = summonOrNull[upickle.default.Writer[T]]
-      val ctxExpr = summonOrNull[ModuleCtx]
+    def isPrivate = None
 
-      '{ new LiteralImplicit[T]($readerExpr, $writerExpr, $ctxExpr) }
-    }
+    val inputs = Nil
+
+    override def readWriterOpt = Some(rw)
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -402,7 +423,7 @@ object Task {
   ) extends Simple[T] {
     override def asSimple: Option[Simple[T]] = Some(this)
 
-    // FIXME: deprecated return type: Change to Option
+    // FIXME: deprecated return type: Change to Option (bin-compat)
     override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
   }
 
@@ -488,6 +509,18 @@ object Task {
     override def sideHash: Int = util.Random.nextInt()
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
+    override private[mill] def isInputTask: Boolean = true
+  }
+
+  class Uncached[T](
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
+      val ctx0: mill.api.ModuleCtx,
+      val writer: upickle.Writer[?],
+      val isPrivate: Option[Boolean],
+      override val persistent: Boolean
+  ) extends Simple[T] {
+    override def writerOpt: Option[Writer[?]] = Some(writer)
   }
 
   class Sources(
@@ -499,7 +532,9 @@ object Task {
         ctx0,
         upickle.readwriter[Seq[PathRef]],
         isPrivate
-      ) {}
+      ) {
+    override def readWriterOpt = Some(upickle.readwriter[Seq[PathRef]])
+  }
 
   class Source(
       evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[PathRef],
@@ -510,7 +545,9 @@ object Task {
         ctx0,
         upickle.readwriter[PathRef],
         isPrivate
-      ) {}
+      ) {
+    override def readWriterOpt = Some(upickle.readwriter[PathRef])
+  }
 
   private object Macros {
     def appImpl[M[_]: Type, T: Type](using
@@ -590,7 +627,31 @@ object Task {
             case None => report.error(err)
           }
       }
+
+      assertInsideModule()
     }
+
+    private def assertInsideModule()(using Quotes): Unit = Cacher.withMacroOwner { owner =>
+      import quotes.reflect.*
+      import mill.constants.EnvVars.MILL_ENABLE_STATIC_CHECKS
+      if (
+        sys.env.contains(MILL_ENABLE_STATIC_CHECKS) ||
+        sys.props.contains(MILL_ENABLE_STATIC_CHECKS)
+      ) {
+        val CacherSym = TypeRepr.of[Cacher].typeSymbol
+
+        val ownerIsCacherClass =
+          owner.owner.isClassDef && owner.owner.typeRef.baseClasses.contains(CacherSym)
+
+        if (!(ownerIsCacherClass && owner.flags.is(Flags.Method))) {
+          report.errorAndAbort(
+            "Task{} members must be defs defined in a Module class/trait/object body",
+            Position.ofMacroExpansion
+          )
+        }
+      }
+    }
+
     def sourceImpl(using
         Quotes
     )(value: Expr[Result[PathRef]])(
@@ -617,6 +678,31 @@ object Task {
         ( /*in*/ _, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
         value,
         allowTaskReferences = false
+      )
+      Cacher.impl0(expr)
+    }
+
+    def uncachedImpl[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
+        w: Expr[upickle.Writer[T]],
+        ctx: Expr[mill.api.ModuleCtx],
+        persistent: Expr[Boolean]
+    ): Expr[Simple[T]] = {
+      assertTaskShapeOwner("Task.Uncached", 0)
+      val expr = appImpl[Simple, T](
+        (in, ev) =>
+          '{
+            new Uncached[T](
+              $in,
+              $ev,
+              $ctx,
+              $w,
+              ${ taskIsPrivate() },
+              $persistent
+            )
+          },
+        t
       )
       Cacher.impl0(expr)
     }
@@ -652,7 +738,18 @@ object Task {
     )(t: Expr[Result[T]])(
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Worker[T]] = {
+      import quotes.reflect.*
+
       assertTaskShapeOwner("Task.Worker", 0)
+
+      // Warn if T does not extend AutoCloseable
+      if (!(TypeRepr.of[T] <:< TypeRepr.of[AutoCloseable])) {
+        report.warning(
+          s"Task.Worker body type ${TypeRepr.of[T].show} does not extend AutoCloseable. " +
+            "Workers should implement AutoCloseable to properly clean up resources when invalidated."
+        )
+      }
+
       val expr = appImpl[Worker, T](
         (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
         t

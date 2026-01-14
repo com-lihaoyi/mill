@@ -1,150 +1,335 @@
 package mill.main.sbt
 
-import sbt.Keys._
-import sbt.io.IO
-import sbt.librarymanagement.{Binary, Disabled, Full, MavenRepository, _}
-import sbt.{Def, CrossVersion => _, Developer => _, Project => _, Resolver => _, ScmInfo => _, _}
-import upickle.default._
+import _root_.sbt.{Value => _, _}
+import mill.main.buildgen.ModuleSpec
+import mill.main.buildgen.ModuleSpec._
 
-import java.io.File
+import scala.language.implicitConversions
+import scala.util.Using
 
 object ExportBuildPlugin extends AutoPlugin {
+  override def requires = plugins.JvmPlugin
   override def trigger = allRequirements
-  // override def requires = ??? // defaults to `JvmPlugin`
 
   object autoImport {
-    val millInitBuildInfo = taskKey[BuildInfo](
-      "get the `mill.main.sbt.BuildInfo` model of this build or this project"
-    )
-    val millInitProject = taskKey[Project]("get the `mill.main.sbt.Project` model of this project")
-    val millInitExportBuild = taskKey[File]("export the build in a JSON file for `mill init`")
+    val millInitExportBuild = taskKey[Unit]("")
   }
 
+  val millInitExportDir = settingKey[os.Path]("")
+  val millInitExportProject = taskKey[Unit]("")
+  // Proxies for third-party plugin settings that are resolved using reflection.
+  val millScalaJSModuleKind = settingKey[Option[String]]("")
+  // Copies of third-party plugin settings that are resolved directly.
+  val crossProjectBaseDirectory = settingKey[File]("")
+
   import autoImport._
-
-  val buildInfoSetting = millInitBuildInfo := BuildInfo(
-    BuildPublicationInfo(
-      description.?.value,
-      homepage.?.value.map(_.map(_.toExternalForm)),
-      licenses.?.value.map(_.map { case (name, url) =>
-        (name, url.toExternalForm)
-      }),
-      organization.?.value,
-      // organizationName.?.value, // not needed
-      // organizationHomepage.?.value.map(_.map(_.toExternalForm)), // not needed
-      developers.?.value.map(_.map(developer =>
-        Developer(developer.id, developer.name, developer.email, developer.url.toExternalForm)
-      )),
-      scmInfo.?.value.map(_.map(scmInfo =>
-        ScmInfo(scmInfo.browseUrl.toExternalForm, scmInfo.connection, scmInfo.devConnection)
-      )),
-      version.?.value
-    ),
-    javacOptions.?.value,
-    scalaVersion.?.value,
-    scalacOptions.?.value,
-    resolvers.?.value.map(_.flatMap {
-      case mavenRepository: MavenRepository => Some(Resolver(mavenRepository.root))
-      case resolver =>
-        println(s"A `Resolver` which is not a `MavenRepository` is skipped: $resolver")
-        None
-    })
+  override def globalSettings = Seq(
+    millInitExportBuild := exportBuild.value,
+    millInitExportDir := os.Path(System.getProperty("millInitExportDir"))
+  )
+  override def projectSettings = Seq(
+    millScalaJSModuleKind := scalaJSModuleKind.value,
+    millInitExportProject := exportProject.value
   )
 
-  override lazy val buildSettings: Seq[Def.Setting[_]] = Seq(
-    buildInfoSetting
-  )
+  // This is required to export projects that are not aggregated by the root project.
+  private def exportBuild = Def.taskDyn {
+    val structure = Project.structure(Keys.state.value)
+    Def.task {
+      val _ = std.TaskExtra.joinTasks(structure.allProjectPairs.flatMap {
+        case (project, ref) =>
+          if (project.aggregate.isEmpty) (ref / millInitExportProject).get(structure.data)
+          else None
+      }).join.value
+    }
+  }
 
-  override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    buildInfoSetting,
-    millInitProject :=
-      Project(
-        // organization.value,
-        name.value,
-        // version.value,
-        // baseDirectory.value.relativeTo((ThisBuild / baseDirectory).value).get.getPath.split(File.separator),
-        baseDirectory.value.getPath,
-        thisProjectRef.value.project,
-        /*{
-          // keep the project `BuildInfo` members only when they are different
-          val defaultBi = (ThisBuild / millInitBuildInfo).value
-          val projectBi = millInitBuildInfo.value
-          import projectBi.*
-          BuildInfo({
-            val defaultBpi = defaultBi.buildPublicationInfo
-            import projectBi.buildPublicationInfo.*
-            BuildPublicationInfo(
-              if (description != defaultBpi.description) description else None,
-              if (homepage != defaultBpi.homepage) homepage else None,
-              if (licenses != defaultBpi.licenses) licenses else None,
-              if (organization != defaultBpi.organization) organization else None,
-              //if (organizationName != defaultBpi.organizationName) organizationName else None, // not needed
-              if (organizationHomepage != defaultBpi.organizationHomepage) organizationHomepage else None,
-              if (developers != defaultBpi.developers) developers else None,
-              if (scmInfo != defaultBpi.scmInfo) scmInfo else None,
-              if (version != defaultBpi.version) version else None
-            )
-          },
-            if (javacOptions != defaultBi.javacOptions) javacOptions else None,
-            if (scalacOptions != defaultBi.scalacOptions) scalacOptions else None,
-            if (resolvers != defaultBi.resolvers) resolvers else None
-          )
-        }*/
-        millInitBuildInfo.value,
-        AllDependencies(
-          buildDependencies.value.classpath(thisProjectRef.value).map(classpathDep => {
-            val depProject = classpathDep.project
-            InterProjectDependency(depProject.project, classpathDep.configuration)
-          }),
-          libraryDependencies.value.flatMap(moduleID => {
-            val dependency = LibraryDependency(
-              moduleID.organization,
-              moduleID.name,
-              moduleID.crossVersion match {
-                case Disabled => CrossVersion.Disabled
-                case _: Binary => CrossVersion.Binary
-                case _: Full => CrossVersion.Full
-                case _: For3Use2_13 => CrossVersion.Constant("2.13")
-                case _: For2_13Use3 => CrossVersion.Constant("3")
-                case constant: Constant => CrossVersion.Constant(constant.value)
-                case crossVersion =>
-                  println(s"Dependency $moduleID with unsupported `CrossVersion`: $crossVersion")
-                  CrossVersion.Disabled
-              },
-              moduleID.revision,
-              moduleID.configurations,
-              None,
-              None,
-              moduleID.exclusions.map(inclExclRule =>
-                (inclExclRule.organization, inclExclRule.name)
-              )
-            )
-            val explicitArtifacts = moduleID.explicitArtifacts
-            if (explicitArtifacts.isEmpty)
-              Seq(dependency)
-            else
-              explicitArtifacts.map(artifact =>
-                dependency.copy(
-                  tpe = Some(artifact.`type`) /*{
-                    val tpe = artifact.`type`
-                    Option.when(tpe != DefaultType)(tpe)
-                  }*/,
-                  classifier = artifact.classifier
-                )
-              )
-          })
+  private def proxyForSetting(id: String, rt: Class[_]) = {
+    val manifest = new Manifest[AnyRef] { def runtimeClass = rt }
+    val anyRefWriter = implicitly[util.OptJsonWriter[AnyRef]]
+    SettingKey(id)(manifest, anyRefWriter).?
+  }
+
+  private def scalaJSModuleKind = Def.settingDyn {
+    try {
+      val class0 = Class.forName("org.scalajs.linker.interface.StandardConfig")
+      val method = class0.getMethod("moduleKind")
+      Def.setting {
+        proxyForSetting("scalaJSLinkerConfig", class0).value.map("ModuleKind." + method.invoke(_))
+      }
+    } catch {
+      case _: ClassNotFoundException => Def.setting(None)
+      case _: NoSuchMethodException => Def.setting(None)
+    }
+  }
+
+  private def exportProject = Def.taskDyn {
+    val project = Keys.thisProject.value
+    val scalaVersion = Keys.scalaVersion.value
+    val outDir = millInitExportDir.value
+    val outFile = outDir / s"${project.id}-$scalaVersion.json"
+    // Ignore duplicate invocations triggered by cross-build execution.
+    Def.task(if (!os.exists(outFile)) {
+      def hasAutoPlugin(label: String) = project.autoPlugins.exists(_.label == label)
+      val hasScalaJSPlugin = hasAutoPlugin("org.scalajs.sbtplugin.ScalaJSPlugin")
+      val hasScalaNativePlugin = hasAutoPlugin("scala.scalanative.sbtplugin.ScalaNativePlugin")
+      val structure = Project.structure(Keys.state.value)
+      def isBaseDirShared(baseDir: File) =
+        structure.allProjects.count(p => p.aggregate.isEmpty && p.base == baseDir) > 1
+      val useOuterModuleDir = isBaseDirShared(project.base)
+      val baseDir = os.Path(project.base)
+      val crossProjectBaseDir = crossProjectBaseDirectory.?.value.map(os.Path(_)).orElse(
+        if (baseDir.last.matches("""^[.]?(js|jvm|native)$""")) Some(baseDir / os.up) else None
+      )
+      val isCrossPlatform = crossProjectBaseDir.nonEmpty
+      val isCrossVersion = Keys.crossScalaVersions.value.length > 1
+      // Values are duplicated by cross version for ease of processing when combining cross specs.
+      implicit def value[A](base: Option[A]): Value[A] = Value(
+        base,
+        base match {
+          case Some(a) if isCrossVersion => Seq(scalaVersion -> a)
+          case _ => Nil
+        }
+      )
+      implicit def values[A](base: Seq[A]): Values[A] = Values(
+        base = base,
+        cross = if (isCrossVersion && base.nonEmpty) Seq(scalaVersion -> base) else Nil
+      )
+      var mainModule = ModuleSpec(
+        name = if (useOuterModuleDir) project.id else toModuleName(baseDir.last),
+        imports = Seq("import mill.scalalib.*"),
+        supertypes = Seq((isCrossPlatform, isCrossVersion) match {
+          case (true, true) => "CrossSbtPlatformModule"
+          case (true, _) => "SbtPlatformModule"
+          case (_, true) => "CrossSbtModule"
+          case _ => "SbtModule"
+        }),
+        mixins =
+          if (
+            (Compile / Keys.unmanagedSourceDirectories).value.exists(_.name.last match {
+              case '+' | '-' => true
+              case _ => false
+            })
+          ) Seq("CrossScalaVersionRanges")
+          else Nil,
+        useOuterModuleDir = useOuterModuleDir,
+        crossKeys = if (isCrossVersion) Seq(scalaVersion) else Nil,
+        repositories = Keys.resolvers.value
+          .diff(Seq(Resolver.mavenCentral, Resolver.mavenLocal))
+          .collect {
+            case r: MavenRepository => r.root
+          }
+      )
+
+      def skipDep(dep: ModuleID) = {
+        import dep.{name, organization => org}
+        ((name.startsWith("scala-library") ||
+          name.startsWith("scala3-library")) && org == "org.scala-lang") ||
+        (name.startsWith("dotty") && org == "ch.epfl.lamp") ||
+        (hasScalaJSPlugin && !name.startsWith("scalajs-dom") && org == "org.scala-js") ||
+        (hasScalaNativePlugin && org == "org.scala-native")
+      }
+      val configDeps = Keys.libraryDependencies.value.collect {
+        case dep if !skipDep(dep) => (dep, dep.configurations.getOrElse("compile").split(';').toSeq)
+      }
+      def mvnDeps(configs: String*) = configDeps.collect {
+        case (dep, configs0) if configs.exists(configs0.contains) => toMvnDep(dep)
+      }
+      val configProjectDeps = project.dependencies
+        .map(dep => dep -> dep.configuration.getOrElse("compile").split(";").toSeq)
+      def moduleDeps(p: String => Boolean, childSegment: Option[String] = None): Seq[ModuleDep] =
+        configProjectDeps.flatMap {
+          case (dep, configs) if configs.exists(p) =>
+            (dep.project / Keys.baseDirectory).get(structure.data).flatMap { depBaseDir =>
+              var depModuleDir = toModuleDir(os.Path(depBaseDir))
+              if (isBaseDirShared(depBaseDir))
+                depModuleDir = depModuleDir / os.RelPath(dep.project.project)
+              val depCrossScalaVersions =
+                (dep.project / Keys.crossScalaVersions).get(structure.data).getOrElse(Nil)
+              if (depCrossScalaVersions.contains(scalaVersion)) {
+                val crossSuffix = if (depCrossScalaVersions.length < 2) None
+                else Some(if (isCrossVersion) "()" else s"""("$scalaVersion")""")
+                Some(ModuleDep(depModuleDir.segments, crossSuffix, childSegment))
+              } else None
+            }
+          case _ => None
+        }
+      mainModule = mainModule.copy(
+        mvnDeps = mvnDeps("compile"),
+        compileMvnDeps = mvnDeps("provided", "optional"),
+        runMvnDeps = mvnDeps("runtime"),
+        javacOptions = Opt.groups(Keys.javacOptions.value),
+        moduleDeps = moduleDeps(config => config == "compile" || config.startsWith("compile->")),
+        compileModuleDeps = moduleDeps(config =>
+          config == "provided" || config.startsWith("provided->") ||
+            config == "optional" || config.startsWith("optional->")
+        ),
+        runModuleDeps = moduleDeps(config => config == "runtime" || config.startsWith("runtime->")),
+        artifactName = Some(Keys.moduleName.value),
+        scalaVersion = if (isCrossVersion) None else Some(scalaVersion),
+        scalacOptions = Opt.groups(Keys.scalacOptions.value.filterNot(skipScalacOption)),
+        scalacPluginMvnDeps = mvnDeps("plugin->default(compile)"),
+        sourcesRootFolders = values(
+          if (crossProjectBaseDir.exists(dir => os.isDir(dir / "shared"))) Seq("shared")
+          else Nil
+        ).copy(appendSuper = true)
+      )
+
+      if (!(Keys.publish / Keys.skip).value && Keys.publishArtifact.value) {
+        mainModule = mainModule.copy(
+          imports =
+            "import mill.javalib.PublishModule" +: "import mill.javalib.publish.*" +: mainModule.imports,
+          supertypes = "PublishModule" +: mainModule.supertypes,
+          pomSettings = Some(toPomSettings(Keys.projectInfo.value, Keys.organization.value)),
+          publishVersion = Some(Keys.version.value),
+          versionScheme = Keys.versionScheme.value.collect {
+            case "early-semver" => "VersionScheme.EarlySemVer"
+            case "pvp" => "VersionScheme.PVP"
+            case "semver-spec" => "VersionScheme.SemVerSpec"
+            case "strict" => "VersionScheme.Strict"
+          }
         )
-      ),
-    // `target.value` doesn't work in `globalSettings` and `buildSettings`, so this is added to `projectSettings.
-    millInitExportBuild := {
-      val defaultBuildInfo = (ThisBuild / millInitBuildInfo).value
-      val projects = millInitProject.all(ScopeFilter(inAnyProject)).value
-      val buildExport = BuildExport(defaultBuildInfo, projects)
+      }
 
-      val outputFile = target.value / "mill-init-build-export.json"
-      IO.write(outputFile, write(buildExport))
-      outputFile
-    },
-    millInitExportBuild / aggregate := false
-  )
+      if (hasScalaJSPlugin) {
+        Keys.libraryDependencies.value.collectFirst {
+          case dep
+              if dep.organization == "org.scala-js" && dep.name.startsWith("scalajs-library") =>
+            mainModule = mainModule.copy(
+              imports =
+                "import mill.scalajslib.ScalaJSModule" +: "import mill.scalajslib.api.*" +: mainModule.imports,
+              supertypes = "ScalaJSModule" +: mainModule.supertypes,
+              scalaJSVersion = Some(dep.revision),
+              moduleKind = millScalaJSModuleKind.value
+            )
+        }
+      }
+      if (hasScalaNativePlugin) {
+        Keys.libraryDependencies.value.collectFirst {
+          case dep
+              if dep.organization == "org.scala-native" &&
+                dep.configurations.contains("plugin->default(compile)") =>
+            mainModule = mainModule.copy(
+              imports =
+                "import mill.scalanativelib.ScalaNativeModule" +: "import mill.scalanativelib.api.*" +: mainModule.imports,
+              supertypes = "ScalaNativeModule" +: mainModule.supertypes,
+              scalaNativeVersion = Some(dep.revision)
+            )
+        }
+      }
+      if ((Test / Keys.sourceDirectories).value.exists(_.exists)) {
+        val testMvnDeps = mvnDeps("test")
+        val testMixin = ModuleSpec.testModuleMixin(testMvnDeps)
+        val testModule = ModuleSpec(
+          name = "test",
+          supertypes = mainModule.supertypes.collect {
+            case "ScalaJSModule" => "ScalaJSTests"
+            case "ScalaNativeModule" => "ScalaNativeTests"
+            case "CrossSbtPlatformModule" => "CrossSbtPlatformTests"
+            case "SbtPlatformModule" => "SbtPlatformTests"
+            case "CrossSbtModule" => "CrossSbtTests"
+            case "SbtModule" => "SbtTests"
+          },
+          mixins = testMixin.toSeq,
+          mvnDeps = values(testMvnDeps).copy(appendSuper = hasScalaNativePlugin),
+          compileMvnDeps = mainModule.compileMvnDeps,
+          runMvnDeps = mainModule.compileMvnDeps.base ++ mainModule.runMvnDeps.base,
+          moduleDeps = values(
+            moduleDeps(_ == "test") ++
+              moduleDeps(_ == "test->test", childSegment = Some("test"))
+          ).copy(appendSuper = true),
+          compileModuleDeps = mainModule.compileModuleDeps,
+          runModuleDeps = mainModule.compileModuleDeps.base ++ mainModule.runModuleDeps.base,
+          testParallelism = Some(false),
+          testSandboxWorkingDir = Some(false),
+          testFramework =
+            if (testMixin.isEmpty) testFramework(testMvnDeps).orElse(Some("")) else None
+        )
+        mainModule = mainModule.copy(children = Seq(testModule))
+      }
+
+      val moduleDir = toModuleDir(crossProjectBaseDir.getOrElse(baseDir))
+      val exportedData = SbtModuleSpec(
+        Either.cond(isCrossPlatform || useOuterModuleDir, moduleDir, moduleDir),
+        mainModule
+      )
+      Using.resource(os.write.outputStream(outFile))(
+        upickle.default.writeToOutputStream(exportedData, _)
+      )
+    })
+  }
+
+  private def skipScalacOption(s: String) =
+    s.startsWith("-P") || s.startsWith("-Xplugin") || s.startsWith("-scalajs")
+
+  private def testFramework(deps: Seq[MvnDep]) = deps.collectFirst {
+    case dep if dep.organization == "com.eed3si9n.verify" => "verify.runner.Framework"
+  }
+
+  // Cleanup `CrossType.Pure` module names.
+  private def toModuleName(dirName: String) = dirName.stripPrefix(".")
+
+  private def toModuleDir(baseDir: os.Path) = baseDir.subRelativeTo(os.pwd).segments match {
+    case Seq() => os.sub
+    case init :+ last => os.sub / os.SubPath(init :+ toModuleName(last))
+  }
+
+  private def toMvnDep(dep: ModuleID) = {
+    import ModuleSpec.{CrossVersion => CV}
+    import dep._
+    import librarymanagement.{For2_13Use3, For3Use2_13, Patch}
+    val artifact = explicitArtifacts.find(_.name == name)
+    MvnDep(
+      organization = organization,
+      name = name,
+      version = revision,
+      classifier = artifact.flatMap(_.classifier),
+      `type` = artifact.map(_.`type`),
+      excludes = exclusions.map(x => (x.organization, x.name)),
+      cross = crossVersion match {
+        case v: Binary => CV.Binary(platformed = v.prefix.nonEmpty)
+        case v: Full => CV.Full(platformed = v.prefix.nonEmpty)
+        case _: Patch => CV.Full(platformed = false)
+        case v: For2_13Use3 => CV.Constant("_3", platformed = v.prefix.nonEmpty)
+        case v: For3Use2_13 => CV.Constant("_2.13", platformed = v.prefix.nonEmpty)
+        case _ => CV.Constant("", platformed = false)
+      }
+    )
+  }
+
+  private def toPomSettings(moduleInfo: ModuleInfo, groupId: String) = {
+    import moduleInfo._
+    PomSettings(
+      description = description,
+      organization = groupId,
+      url = homepage.fold("")(_.toExternalForm),
+      licenses = licenses.map(toLicense),
+      versionControl = toVersionControl(scmInfo),
+      developers = developers.map(toDeveloper)
+    )
+  }
+
+  private def toLicense(license: (String, URL)) = {
+    val (name, url) = license
+    ModuleSpec.License(
+      name = name,
+      url = url.toExternalForm,
+      distribution = "repo" // hardcoded by sbt
+    )
+  }
+
+  private def toVersionControl(scmInfo: Option[ScmInfo]) =
+    scmInfo.fold(VersionControl()) { scmInfo =>
+      import scmInfo._
+      VersionControl(
+        Some(browseUrl.toExternalForm),
+        Some(connection),
+        devConnection
+      )
+    }
+
+  private def toDeveloper(developer: librarymanagement.Developer) = {
+    import developer._
+    ModuleSpec.Developer(id, name, url.toExternalForm)
+  }
 }

@@ -32,7 +32,7 @@ object bundle extends AndroidAppBundle {
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 }
 
-////SNIPPET:END
+//// SNIPPET:END
 
 /** Usage
 

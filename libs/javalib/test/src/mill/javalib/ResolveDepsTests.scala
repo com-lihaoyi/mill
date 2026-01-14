@@ -11,7 +11,8 @@ import mill.api.{Discover, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.CoursierConfig
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
+
 object ResolveDepsTests extends TestSuite {
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
   val repos =
@@ -121,6 +122,12 @@ object ResolveDepsTests extends TestSuite {
       }
     }
 
+    object sources extends JavaModule {
+      def mvnDeps = Seq(
+        mvn"com.lihaoyi:geny_2.13:1.0.0"
+      )
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -174,22 +181,22 @@ object ResolveDepsTests extends TestSuite {
     test("errOnInvalidOrgDeps") {
       val deps = Seq(mvn"xxx.yyy.invalid::pprint:0.5.3")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg) = evalDeps(deps): @unchecked
-      assert(errMsg.contains("xxx.yyy.invalid"))
+      val (f: Result.Failure) = evalDeps(deps): @unchecked
+      assert(f.error.contains("xxx.yyy.invalid"))
     }
 
     test("errOnInvalidVersionDeps") {
       val deps = Seq(mvn"com.lihaoyi::pprint:invalid.version.num")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg) = evalDeps(deps): @unchecked
-      assert(errMsg.contains("invalid.version.num"))
+      val (f: Result.Failure) = evalDeps(deps): @unchecked
+      assert(f.error.contains("invalid.version.num"))
     }
 
     test("errOnPartialSuccess") {
       val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3", mvn"fake::fake:fake")
       assertRoundTrip(deps, simplified = true)
-      val Failure(errMsg) = evalDeps(deps): @unchecked
-      assert(errMsg.contains("fake"))
+      val (f: Result.Failure) = evalDeps(deps): @unchecked
+      assert(f.error.contains("fake"))
     }
 
     test("pomArtifactType") {
@@ -303,6 +310,59 @@ object ResolveDepsTests extends TestSuite {
         val dependsOnForcedAndNonForcedClassPathFileNames =
           resolvedClassPathFileNames(TestCase.forceVersion.dependsOnForcedAndNonForced)
         assert(dependsOnForcedAndNonForcedClassPathFileNames == expectedClassPathFileNames("4.6.1"))
+      }
+    }
+
+    test("resolvedMvnSources") {
+      UnitTester(TestCase, null).scoped { eval =>
+        // First check that regular resolvedMvnDeps works
+        val Right(depsResult) = eval(TestCase.sources.resolvedMvnDeps): @unchecked
+        val deps = depsResult.value
+        assert(deps.nonEmpty)
+        assert(deps.exists(_.path.last.contains("geny")))
+
+        // Now check resolvedMvnSources
+        val Right(result) = eval(TestCase.sources.resolvedMvnSources): @unchecked
+        val sourcesDir = result.value.path
+
+        // Check that the sources directory exists and contains unpacked source files
+        assert(os.exists(sourcesDir))
+        assert(os.isDir(sourcesDir))
+
+        // Find the jar directory names for geny and scala-library
+        val jarDirs = os.list(sourcesDir).filter(os.isDir).map(_.last)
+        val genyJar = jarDirs.find(_.contains("geny")).get
+        val scalaLibJar = jarDirs.find(_.contains("scala-library")).get
+
+        // Check that source files are unpacked
+        val allFiles = os
+          .walk(sourcesDir)
+          .filter(os.isFile)
+          .map(_.relativeTo(sourcesDir).toString)
+          .sorted
+
+        val expected = Set(
+          s"$genyJar/geny/ByteData.scala",
+          s"$genyJar/geny/Bytes.scala",
+          s"$genyJar/geny/Generator.scala",
+          s"$genyJar/geny/Internal.scala",
+          s"$genyJar/geny/Writable.scala",
+          s"$scalaLibJar/rootdoc.txt",
+          s"$scalaLibJar/scala/AnyVal.scala",
+          s"$scalaLibJar/scala/AnyValCompanion.scala",
+          s"$scalaLibJar/scala/App.scala",
+          s"$scalaLibJar/scala/Array.scala",
+          s"$scalaLibJar/scala/Boolean.scala",
+          s"$scalaLibJar/scala/Byte.scala",
+          s"$scalaLibJar/scala/Char.scala",
+          s"$scalaLibJar/scala/Console.scala",
+          s"$scalaLibJar/scala/DelayedInit.scala",
+          s"$scalaLibJar/scala/Double.scala",
+          s"$scalaLibJar/scala/DummyImplicit.scala",
+          s"$scalaLibJar/scala/Dynamic.scala"
+        )
+
+        assert(expected.subsetOf(allFiles.toSet))
       }
     }
   }

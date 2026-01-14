@@ -80,7 +80,7 @@ To build `Foo.java` using Mill, we can use the following build configuration:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -123,7 +123,7 @@ above:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule with NativeImageModule {
   def mvnDeps = Seq(
@@ -132,7 +132,7 @@ object foo extends JavaModule with NativeImageModule {
     mvn"org.slf4j:slf4j-nop:2.0.7"
   )
 
-  def jvmId = "graalvm-community:23.0.1"
+  def jvmVersion = "graalvm-community:23.0.1"
 
   def nativeImageOptions = Seq(
     "--no-fallback",
@@ -167,7 +167,7 @@ $ out/foo/nativeImage.dest/native-executable --text "hello world"
 
 You can download this example below:
 
-* xref:mill:ROOT:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Building Native Image Binaries with Graal VM]
+* xref:mill:ROOT:javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[Building Native Image Binaries with Graal VM]
 
 You can also access the `native-image` tool directly from the Mill download folder,
 if you want to use it directly or view its `--help` documentation:
@@ -443,7 +443,7 @@ the fact that the native executable is OS/CPU-specific means that you need to sp
 generate separate native executables for each platform you want to support.
 
 The Mill build tool takes advantage of this hermeticity for easier installation: it's
-xref:mill:ROOT:cli/installation-ide.adoc#_mill_native_executable[Mill Native Executable] can be run on systems without
+xref:mill:ROOT:cli/installation-ide.adoc#_mill_native_and_jvm_executables[Mill Native Executable] can be run on systems without
 a JVM installed at all. Mill still needs a JVM later on, e.g. to compile and run user code, and so
 the native launcher downloads one on-demand automatically from the
 https://github.com/coursier/jvm-index[Coursier JVM Index]. But bootstrapping with a native

@@ -1,6 +1,6 @@
 package build
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 
 trait JUnitTests extends TestModule.Junit4 {
 
@@ -42,7 +42,7 @@ object core extends JavaModule {
    * Core Task Docz!
    */
   def task = Task {
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
     "Hello!"
   }
@@ -56,7 +56,7 @@ object MyJavaTaskModule extends JavaModule {
     allSourceFiles().map(f => os.read.lines(f.path).size).sum
   }
   def task = Task {
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
     "Hello!"
   }

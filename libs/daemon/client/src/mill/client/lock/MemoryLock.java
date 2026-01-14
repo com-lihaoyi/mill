@@ -27,6 +27,10 @@ public class MemoryLock extends Lock {
 
   @Override
   public void close() throws Exception {
-    innerLock.unlock();
+    try {
+      innerLock.unlock();
+    } catch (Exception e) {
+      // If the lock is not currently locked, close() does nothing, but shouldn't throw
+    }
   }
 }

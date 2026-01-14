@@ -174,12 +174,6 @@ object LocalSummary {
 
     def discardPreviousInsn(): Unit = insnSigs(insnSigs.size - 1) = 0
 
-    /**
-     * Hack to skip the lazy val setup code that Scala 3 generates in `<clinit>`,
-     * which tends to be very unstable and causes unnecessary invalidations
-     */
-    var inScala3LazyValClinit = false
-
     override def visitFieldInsn(
         opcode: Int,
         owner: String,
@@ -202,22 +196,13 @@ object LocalSummary {
             ) => true
         case _ => false
       }
-      val isLazyValsGet = (owner, name, descriptor) match {
-        case ("scala/runtime/LazyVals$", "MODULE$", "Lscala/runtime/LazyVals$;") => true
-        case _ => false
-      }
-      val isLazyValsPut = (name, descriptor) match {
-        case (s"OFFSET$$_m_$n", "J") if n.forall(_.isDigit) => true
-        case _ => false
-      }
+
       if (lazyValBodyStart && opcode == Opcodes.GETSTATIC) {
         if (!endScala3LazyInit) isScala3LazyInit = false
       } else if (lazyValBodyEnd && opcode == Opcodes.GETSTATIC) {
         endScala3LazyInit = true
-      } else if (isLazyValsGet && (opcode == Opcodes.GETSTATIC || opcode == Opcodes.GETFIELD)) {
-        inScala3LazyValClinit = true
-      } else if (isLazyValsPut && (opcode == Opcodes.PUTSTATIC || opcode == Opcodes.PUTFIELD)) {
-        inScala3LazyValClinit = false
+      } else if (name.endsWith("$lzy1$lzyHandle")) {
+        // skip
       } else {
         hash(opcode)
         hash(owner.hashCode)
@@ -251,6 +236,11 @@ object LocalSummary {
         bootstrapMethodHandle: Handle,
         bootstrapMethodArguments: Object*
     ): Unit = {
+      // Hash the invokedynamic name and descriptor to detect changes in the
+      // dynamic call site (e.g. makeConcatWithConstants for string concatenation)
+      hash(name.hashCode)
+      hash(descriptor.hashCode)
+
       for (bsmArg <- bootstrapMethodArguments) {
         bsmArg match {
           case handle: Handle =>
@@ -270,6 +260,15 @@ object LocalSummary {
                 st.Desc.read(handle.getDesc)
               )
             )
+          // Hash bootstrap method arguments (e.g. string templates for makeConcatWithConstants)
+          // to detect changes in string literals and other constants used in invokedynamic
+          case v: java.lang.String => hash(v.hashCode)
+          case v: java.lang.Integer => hash(v.hashCode)
+          case v: java.lang.Float => hash(v.hashCode)
+          case v: java.lang.Long => hash(v.hashCode)
+          case v: java.lang.Double => hash(v.hashCode)
+          case v: org.objectweb.asm.Type => hash(v.hashCode)
+          case v: org.objectweb.asm.ConstantDynamic => hash(v.hashCode)
           case _ =>
         }
       }
@@ -287,7 +286,7 @@ object LocalSummary {
     }
 
     override def visitLdcInsn(value: Any): Unit = {
-      if (!inScala3LazyValClinit) hash(
+      if (!value.toString.endsWith("$lzy1")) hash(
         value match {
           case v: java.lang.String => v.hashCode()
           case v: java.lang.Integer => v.hashCode()
