@@ -369,7 +369,14 @@ object Util {
               case Some(failure) =>
                 // If there is an associated `Result.Failure` with no prefix, set the prefix to the
                 // current `keyPrefix` and prefix `error` with `key`
-                if (failure.tickerPrefix == "")
+                if (
+                  failure.tickerPrefix == "" && failure.path == null &&
+                  failure.index < 0 &&
+                  failure.error.startsWith("[error]") &&
+                  failure.error.contains("package.mill:")
+                )
+                  failure
+                else if (failure.tickerPrefix == "")
                   failure.copy(error = s"$key ${failure.error}", tickerPrefix = keyPrefix)
                 // If there is an associated `Result.Failure` with its own prefix, preserve it
                 // and chain together a new `Result.Failure` entry representing the current key
