@@ -125,13 +125,13 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       // Get baseline compileClasspath for sub module (no moduleDeps yet)
       val baseline = eval(("show", "sub.compileClasspath"))
       assert(baseline.isSuccess)
-      assert(!baseline.out.replace("\\", "/").contains("/compile.dest/classes"))
+      assert(!baseline.out.replace("\\\\", "/").contains("/compile.dest/classes"))
 
       // Add moduleDeps on root module
       modifyFile(workspacePath / "sub/package.mill.yaml", _ + "\nmoduleDeps: [build]")
       val withModuleDeps = eval(("show", "sub.compileClasspath"))
       assert(withModuleDeps.isSuccess)
-      assert(withModuleDeps.out.replace("\\", "/").contains("/compile.dest/classes"))
+      assert(withModuleDeps.out.replace("\\\\", "/").contains("/compile.dest/classes"))
       // Changing moduleDeps should NOT trigger Scala compilation of the build
       assert(!withModuleDeps.err.contains(compilingScala))
 
@@ -142,14 +142,14 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       )
       val withoutModuleDeps = eval(("show", "sub.compileClasspath"))
       assert(withoutModuleDeps.isSuccess)
-      assert(!withoutModuleDeps.out.replace("\\", "/").contains("/compile.dest/classes"))
+      assert(!withoutModuleDeps.out.replace("\\\\", "/").contains("/compile.dest/classes"))
       assert(!withoutModuleDeps.err.contains(compilingScala))
 
       // Test compileModuleDeps
       modifyFile(workspacePath / "sub/package.mill.yaml", _ + "\ncompileModuleDeps: [build]")
       val withCompileModuleDeps = eval(("show", "sub.compileClasspath"))
       assert(withCompileModuleDeps.isSuccess)
-      assert(withCompileModuleDeps.out.replace("\\", "/").contains("/compile.dest/classes"))
+      assert(withCompileModuleDeps.out.replace("\\\\", "/").contains("/compile.dest/classes"))
       assert(!withCompileModuleDeps.err.contains(compilingScala))
 
       // compileModuleDeps should NOT appear in runClasspath (check for root module's classes specifically)
@@ -157,7 +157,7 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       assert(runWithCompileModuleDeps.isSuccess)
       // Root module's classes are at out/compile.dest/classes (not out/sub/compile.dest/classes)
       assert(!runWithCompileModuleDeps.out.replace(
-        "\\",
+        "\\\\",
         "/"
       ).contains("out/compile.dest/classes\""))
 
@@ -171,7 +171,7 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       val compileWithRunModuleDeps = eval(("show", "sub.compileClasspath"))
       assert(compileWithRunModuleDeps.isSuccess)
       assert(!compileWithRunModuleDeps.out.replace(
-        "\\",
+        "\\\\",
         "/"
       ).contains("out/compile.dest/classes\""))
       assert(!compileWithRunModuleDeps.err.contains(compilingScala))
@@ -179,7 +179,7 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       // runModuleDeps should appear in runClasspath
       val runWithRunModuleDeps = eval(("show", "sub.runClasspath"))
       assert(runWithRunModuleDeps.isSuccess)
-      assert(runWithRunModuleDeps.out.replace("\\", "/").contains("out/compile.dest/classes\""))
+      assert(runWithRunModuleDeps.out.replace("\\\\", "/").contains("out/compile.dest/classes\""))
 
       // Test circular dependency detection: create a cycle between root and sub
       // First, clear sub's runModuleDeps
