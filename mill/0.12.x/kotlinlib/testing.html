@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.16</span>
+    <span class="version">0.12.17</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,17 +618,14 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.16</a>
+          <a href="../index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -654,8 +651,6 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
-</div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
@@ -673,7 +668,7 @@
 <h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/1-test-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/1-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -685,9 +680,9 @@ object foo extends KotlinModule {
   object test extends KotlinTests {
     def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def ivyDeps = Agg(
-      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+      mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     // This is needed because of the "mockito-kotlin"
@@ -697,7 +692,7 @@ object foo extends KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/1-test-suite/foo/src/foo/Foo.kt">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/1-test-suite/foo/src/foo/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -709,7 +704,7 @@ fun main(args: Array&lt;String&gt;) = println(Foo().hello())</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/1-test-suite/foo/test/src/foo/FooTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/1-test-suite/foo/test/src/foo/FooTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -826,8 +821,8 @@ details on how to use each one from the command line.</p>
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     // This is needed because of the "mockito-kotlin"
@@ -954,7 +949,7 @@ and <code>runIvyDeps</code> to declare dependencies in test modules, and test mo
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/2-test-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/2-test-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -968,8 +963,8 @@ object qux extends KotlinModule {
   object test extends KotlinTests with TestModule.Junit5 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"com.google.guava:guava:33.3.0-jre"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"com.google.guava:guava:33.3.0-jre"
     )
   }
 }
@@ -980,8 +975,8 @@ object baz extends KotlinModule {
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"com.google.guava:guava:33.3.0-jre"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"com.google.guava:guava:33.3.0-jre"
     )
   }
 }</code></pre>
@@ -1025,7 +1020,7 @@ the build below defines a test suite with the name <code>integration</code>, in 
 to that named <code>test</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/3-integration-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/3-integration-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1035,12 +1030,12 @@ object qux extends KotlinModule {
 
   object test extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
   object integration extends KotlinTests with TestModule.Junit5 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
   }
 }</code></pre>
@@ -1080,7 +1075,7 @@ Test parallelism should be able to reduce testing times for most project&#8217;s
 This feature is expected to be enabled by default in future versions of Mill.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-testing-4-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/4-test-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-testing-4-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/4-test-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1092,9 +1087,9 @@ object foo extends KotlinModule {
   object test extends KotlinTests {
     def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def ivyDeps = Agg(
-      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+      mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     def testParallelism = true
@@ -1131,7 +1126,7 @@ execute in parallel in a separate JVM when you call <code>test</code>. Test grou
 is enabled by overriding <code>def testForkGrouping</code>, as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-testing-5-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/5-test-grouping">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-testing-5-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/5-test-grouping">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1143,9 +1138,9 @@ object foo extends KotlinModule {
   object test extends KotlinTests {
     def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def ivyDeps = Agg(
-      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+      mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
@@ -1154,7 +1149,7 @@ object foo extends KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/HelloTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/5-test-grouping/foo/test/src/foo/HelloTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/foo/HelloTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/5-test-grouping/foo/test/src/foo/HelloTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -1174,7 +1169,7 @@ class HelloTests :
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/WorldTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/5-test-grouping/foo/test/src/foo/WorldTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/foo/WorldTests.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/5-test-grouping/foo/test/src/foo/WorldTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
@@ -1254,7 +1249,7 @@ execution, based on the unique constraints of your test suite.</p>
 <p><code>testParallelism</code> respects <code>testForkGrouping</code>, allowing you to use both features in a test module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-testing-6-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/testing/6-test-group-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-testing-6-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/testing/6-test-group-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1266,9 +1261,9 @@ object foo extends KotlinModule {
   object test extends KotlinTests {
     def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework"
     def ivyDeps = Agg(
-      ivy"com.github.sbt.junit:jupiter-interface:0.11.4",
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1",
-      ivy"org.mockito.kotlin:mockito-kotlin:5.4.0"
+      mvn"com.github.sbt.junit:jupiter-interface:0.11.4",
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1",
+      mvn"org.mockito.kotlin:mockito-kotlin:5.4.0"
     )
 
     def testForkGrouping =

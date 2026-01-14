@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Case Study: Mill vs Maven :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/comparisons/maven.html" />
-    <link rel="prev" href="why-mill.html" />
-    <link rel="next" href="gradle.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Comparing Mill vs Maven: Declarative Builds :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/comparisons/maven.html">
+    <link rel="prev" href="../kotlinlib/script.html">
+    <link rel="next" href="gradle.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -137,22 +136,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
@@ -161,7 +152,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../javalib/packaging.html">Packaging Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -175,6 +170,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -184,22 +183,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -208,7 +199,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../scalalib/packaging.html">Packaging Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -226,6 +221,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -235,22 +234,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -259,11 +250,236 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../kotlinlib/packaging.html">Packaging Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Why Mill?</span>
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="maven.html">Comparing Mill vs Maven: Declarative Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="gradle.html">Comparing Mill vs Gradle: Programmable Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="performance.html">Mill Build Performance</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Managing JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sbom.html">Software Bill of Materials (SBOM)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
   </li>
 </ul>
   </li>
@@ -377,222 +593,9 @@
   </li>
 </ul>
   </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="why-mill.html">Why Use Mill?</a>
-<ul class="nav-list">
-
-  <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="maven.html">Case Study: Mill vs Maven</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="gradle.html">Case Study: Mill vs Gradle</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sbt.html">Case Study: Mill vs <code>sbt</code></a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">The Mill CLI</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill Fundamentals</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Extending Mill</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/docker.html">Docker</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sbom.html">Software Bill of Materials (SBOM)</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+    <a class="nav-link" href="../groovylib/intro.html">Building Groovy with Mill</a>
   </li>
 </ul>
   </li>
@@ -667,17 +670,14 @@
         <li class="version is-current">
           <a href="../index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version">
-          <a href="../../0.12.x/index.html">0.12.16</a>
+          <a href="../../0.12.x/index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -703,672 +703,668 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/comparisons/maven.adoc">Edit this Page</a></div>
-</div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Case Study: Mill vs Maven</h1>
+<h1 class="page">Comparing Mill vs Maven: Declarative Builds</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This page goes into the weeds comparing the Mill and Maven build tools.
-For a higher-level comparison of Mill vs other tools, and why Mill is interesting,
-see the page <a href="why-mill.html" class="xref page">Why Use Mill?</a>.</p>
+<p>The <a href="#">Maven</a> build tool is famous for pioneering the idea of
+<em>"Declarative Builds"</em>: that you should only need to specify what your project needs,
+and the build tool should be able to get everything downloaded and cached and working on
+your behalf. However, although that is an excellent ideal to strive towards, in practice
+there are many ways where using Maven can be annoyingly tedious.</p>
 </div>
 <div class="paragraph">
-<p>Compared to Maven, Mill tries to improve in the following ways:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Performance</strong>: Mill compiles the same project 4-6x faster than Maven.
-<a href="#_performance">A Maven &quot;clean install&quot; workflow
-taking over a minute might take just a few seconds in Mill</a>. It does this by aggressively
-parallelizing and caching your build at all levels.</p>
-</li>
-<li>
-<p><strong>Extensibility</strong>: Mill makes customizing the build tool much easier than Maven. Projects usually
-grow beyond just compiling a single language: needing custom
-code generation, linting workflows, tool integrations, output artifacts, or support for
-additional languages. Mill’s <a href="#_extensibility">extensibility</a> and <a href="#_ide_support">IDE support</a>
-makes doing this yourself easy and safe, with type-checked code and
-<a href="../depth/sandboxing.html" class="xref page">sandboxed tasks</a>.</p>
-</li>
-<li>
-<p><strong>IDE Support</strong>: Jump-to-definition, autocomplete, show-documentation, etc. are all much more
-useful in <code>build.mill</code> files than in <code>pom.xml</code>s. This makes it easier to navigate, understand,
-and maintain your build configuration without being limited by the quantity and quality of
-online documentation (or the lack thereof!)</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>This page compares using Mill to Maven using the <a href="https://github.com/netty/netty">Netty Network Server</a>
-codebase as the example. Netty is a large, old codebase. 500,000 lines of Java, written by
-over 100 contributors across 15 years, split over 47 subprojects, with over 10,000 lines of
-Maven <code>pom.xml</code> configuration alone. By porting it to Mill, this case study should give you
-an idea of how Mill compares to Maven in larger, real-world projects.</p>
-</div>
-<div class="paragraph">
-<p>To do this, we have written a Mill <code>build.mill</code> file for the Netty project. This can be used
-with Mill to build and test the various submodules of the Netty project without needing to
-change any other files in the repository:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://github.com/com-lihaoyi/mill/blob/main/example/thirdparty/netty/build.mill">Netty build.mill file</a></p>
-</li>
-</ul>
+<p>This page discusses some of the key ways that the Mill build tool learns from Maven, and
+also how Mill tries to improve upon some of its rough edges. This lets Mill provide a user
+experience that improves upon what Maven can provide to developers, letting the simplicity
+of <em>"Declarative Builds"</em> really shine through.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_completeness"><a class="anchor" href="#_completeness"></a>Completeness</h2>
+<h2 id="_where_maven_falls_short"><a class="anchor" href="#_where_maven_falls_short"></a>Where Maven Falls Short</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Mill build for Netty is not 100% complete, but it covers most of the major parts of Netty:
-compiling Java, compiling and linking C code via JNI, custom codegen using Groovy scripts,
-running JUnit tests and some integration tests using H2Spec. All 47 Maven subprojects are
-modelled using Mill, with the entire Netty codebase being approximately 500,000 lines of code.</p>
+<p>Consider a small Java program such as the one below:</p>
+</div>
+<div class="paragraph">
+<p><code>HtmlScraper.java</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ git ls-files | grep \\.java | xargs wc -l
-...
-513805 total</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The goal of this exercise is not to be 100% feature complete enough to replace the Maven build
-today. It is instead meant to provide a realistic comparison of how using Mill in a large,
-complex project compares to using Maven.</p>
-</div>
-<div class="paragraph">
-<p>Both Mill and Maven builds end up compiling the same set of files, although the number being
-reported by the command line is slightly higher for Mill (2915 files) than Maven (2822) due
-to minor differences in the reporting (e.g. Maven does not report <code>package-info.java</code> files
-as part of the compiled file count).</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_performance"><a class="anchor" href="#_performance"></a>Performance</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The Mill build for Netty is much more performant than the default Maven build. This applies to
-most workflows.</p>
-</div>
-<div class="paragraph">
-<p>For the benchmarks below, each provided number is the wall time of three consecutive runs
-on my M1 Macbook Pro using Java 17 and Mill <code>0.12.9-native</code>. While ad-hoc, these benchmarks
-are enough to give you a flavor of how Mill’s performance compares to Maven:</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-<col style="width: 25%;" />
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Benchmark</th>
-<th class="tableblock halign-left valign-top">Maven</th>
-<th class="tableblock halign-left valign-top">Mill</th>
-<th class="tableblock halign-left valign-top">Speedup</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_sequential_clean_compile_all">Sequential Clean Compile All</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">98.80s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">23.41s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.2x</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_parallel_clean_compile_all">Parallel Clean Compile All</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">48.92s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">9.29s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.3x</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_clean_compile_single_module">Clean Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.89s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.88s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.82s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.18s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">37.9x</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_no_op_compile_single_module">No-Op Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.12s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">43.8x</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>The column on the right shows the speedups of how much faster Mill is compared to the
-equivalent Maven workflow. In most cases,  Mill is 4-6x faster than Maven. Below, we
-will go into more detail of each benchmark: how they were run, what they mean, and how
-we can explain the difference in performing the same task with the two different build tools.</p>
-</div>
-<div class="sect2">
-<h3 id="_sequential_clean_compile_all"><a class="anchor" href="#_sequential_clean_compile_all"></a>Sequential Clean Compile All</h3>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
-98.80s
-96.14s
-99.95s
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.jsoup.Jsoup;
+import java.util.*;
 
-$ ./mill clean; time ./mill -j1 __.compile
-22.83s
-23.41s
-23.47s</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This benchmark exercises the simple &quot;build everything from scratch&quot; workflow, with all remote
-artifacts already in the local cache. The actual files
-being compiled are the same in either case (as mentioned in the <a href="#_completeness">Completeness</a> section).
-I have explicitly disabled the various linters and tests for the Maven build, to just focus
-on the compilation of Java source code making it an apples-to-apples comparison. As Mill
-runs tasks in parallel by default, I have disabled parallelism explicitly via <code>-j1</code></p>
-</div>
-<div class="paragraph">
-<p>As a point of reference, Java typically compiles at 10,000-50,000 lines per second on a
-single thread, and the Netty codebase is ~500,000 lines of code, so we would expect compile
-to take 10-50 seconds without parallelism.
-The 20-30s taken by Mill seems about what you would expect for a codebase of this size,
-and the ~100s taken by Maven is far beyond what you would expect from simple Java compilation.</p>
-</div>
-<div class="sect3">
-<h4 id="_maven_compile_vs_install"><a class="anchor" href="#_maven_compile_vs_install"></a>Maven Compile vs Install</h4>
-<div class="paragraph">
-<p>In general, the reason we have to use <code>./mvnw install</code> rather than <code>./mvnw compile</code> is that
-Maven’s main mechanism for managing inter-module dependencies is via the local artifact cache
-at <code>~/.m2/repository</code>. Although many workflows work with <code>compile</code>, some don’t, and
-<code>./mvnw clean compile</code> on the Netty repository fails with:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>[ERROR] Failed to execute goal org.apache.maven.plugins:maven-dependency-plugin:2.10:unpack-dependencies
-(unpack) on project netty-resolver-dns-native-macos: Artifact has not been packaged yet.
-When used on reactor artifact, unpack should be executed after packaging: see MDEP-98. -&gt; [Help 1]
-[ERROR]
-[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR]
-[ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
-[ERROR]
-[ERROR] After correcting the problems, you can resume the build with the command
-[ERROR]   mvn &lt;args&gt; -rf :netty-resolver-dns-native-macos</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In contrast, Mill builds do not rely on the local artifact cache, even though Mill is able
-to publish to it. That means Mill builds are able to work directly with classfiles on disk,
-simply referencing them and using them as-is without spending time packing and unpacking them
-into <code>.jar</code> files. But even if we <em>did</em> want Mill to generate the <code>.jar</code>s, the
-overhead of doing so is just a few seconds, far less than the minutes that
-Maven’s overhead adds to the clean build:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill clean; time ./mill -j1 __.jar
-26.74s
-26.02s
-26.53s</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>From this benchmark, we can see that although both Mill and Maven are doing the same work,
-Mill takes about as long as it <em>should</em> for this task of compiling 500,000 lines of Java source
-code, while Maven takes considerably longer. This difference is purely build tool overhead
-in Maven - in the <code>install</code> workflow, in the JVM process warmup, etc. - that Mill manages
-to avoid.</p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-48.92s
-48.41s
-49.50s
+public class HtmlScraper {
+  static List&lt;String&gt; fetchLinks(String title) throws Exception {
+    var url = "https://en.wikipedia.org/wiki/" + title;
+    var doc = Jsoup.connect(url).header("User-Agent", "My Scraper").get();
+    var links = new ArrayList&lt;String&gt;();
+    for (var a : doc.select("main p a")) {
+      var href = a.attr("href");
+      if (href.startsWith("/wiki/")) links.add(href.substring(6));
+    }
+    return links;
+  }
 
-$ ./mill clean; time ./mill __.compile
-10.95s
-8.51s
-9.29s</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This example compares Maven v.s. Mill, when performing the clean build on 10 threads.
-Both build tools support parallelism (<code>-T 10</code> in Maven, by default in Mill), and both
-tools see a similar ~2x speedup for building the Netty project using 4 threads.Again,
-this tests a clean build using <code>./mvnw clean</code> or <code>./mill clean</code>.</p>
-</div>
-<div class="paragraph">
-<p>This comparison shows that much of Mill’s speedup over Maven is unrelated to parallelism.
-Whether sequential or parallel, Mill has approximately the same 4-5x speedup over Maven
-when performing a clean build of the Netty repository.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_clean_compile_single_module"><a class="anchor" href="#_clean_compile_single_module"></a>Clean Compile Single-Module</h3>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
-4.85s
-4.96s
-4.89s
-
-$ ./mill clean common; time ./mill common.compile
-0.88s
-0.97s
-0.73s</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This exercise limits the comparison to compiling a single module, in this case <code>common/</code>,
-ignoring test sources.</p>
-</div>
-<div class="paragraph">
-<p>Again, we can see a significant speedup of Mill v.s. Maven remains even when compiling a
-single module: a clean compile of <code>common/</code> is about 6x faster with Mill than with Maven!
-Again, <code>common/</code> is about 30,000 lines of Java source code, so at 10,000-50,000 lines per
-second we would expect it to compile in about 1-4s. That puts Mill’s compile times right
-at what you would expect, whereas Maven’s has a significant overhead.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
-$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
-Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
-
-6.89s
-6.34s
-6.82s
-
-
-$ echo &quot;&quot; &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
-$ time ./mill common.test.compile
-compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-
-0.18s
-0.18s
-0.21s</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This benchmark explores editing a single file and re-compiling <code>common/</code>.</p>
-</div>
-<div class="paragraph">
-<p>Maven by default takes about as long to re-compile <code>common/</code>s <code>main/</code> and <code>test/</code> sources
-after a single-line edit as it does from scratch, about 20 seconds. However, Mill
-takes just about 0.5s to compile and be done! Looking at the logs, we can see it is
-because Mill only compiles the single file we changed, and not the others.</p>
-</div>
-<div class="paragraph">
-<p>For this incremental compilation, Mill uses the
-<a href="https://github.com/sbt/zinc">Zinc Incremental Compiler</a>. Zinc is able to analyze the dependencies
-between files to figure out what needs to re-compile: for an internal change that doesn’t
-affect downstream compilation (e.g. changing a string literal) Zinc only needs to compile
-the file that changed, taking barely half a second:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">$ git diff
-diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
-@@ -83,7 +83,7 @@ public abstract class AbstractConstant&lt;T extends AbstractConstant&lt;T&gt;&gt; implements
-             return 1;
-         }
-
--        throw new Error(&quot;failed to compare two different constants&quot;);
-+        throw new Error(&quot;failed to compare two different CONSTANTS!!&quot;);
-     }
-
- }</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill common.test.compile
-[info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-0m 00.55s6</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In contrast, a change to a class or function public signature (e.g. adding a method) may
-require downstream code to re-compile, and we can see that below:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">$ git diff
-diff --git a/common/src/main/java/io/netty/util/AbstractConstant.java b/common/src/main/java/io/netty/util/AbstractConstant.java
-@@ -41,6 +41,10 @@ public abstract class AbstractConstant&lt;T extends AbstractConstant&lt;T&gt;&gt; implements
-         return name;
-     }
-
-+    public final String name2() {
-+        return name;
-+    }
-+
-     @Override
-     public final int id() {
-         return id;</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mill common.test.compile
-[25/48] common.compile
-[info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-[info] compiling 2 Java sources to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-[info] compiling 4 Java sources to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-[info] compiling 3 Java sources to /Users/lihaoyi/Github/netty/out/common/test/compile.super/mill/scalalib/JavaModule/compile.dest/classes ...
-[info] compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/test/compile.super/mill/scalalib/JavaModule/compile.dest/classes ...
-0m 00.81s2</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Here, we can see that Zinc ended up re-compiling 7 files in <code>common/src/main/</code> and 3 files
-in <code>common/src/test/</code> as a result of adding a method to <code>AbstractConstant.java</code>.</p>
-</div>
-<div class="paragraph">
-<p>In general, Zinc is conservative, and does not always end up selecting the minimal set of
-files that need re-compiling: e.g. in the above example, the new method <code>name2</code> does not
-interfere with any existing method, and the ~9 downstream files did not actually need to
-be re-compiled! However, even conservatively re-compiling 9 files is much faster than
-Maven blindly re-compiling all 234 files, and as a result the iteration loop of
-editing-compiling-testing your Java projects in Mill can be much faster than doing
-the same thing in Maven</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_no_op_compile_single_module"><a class="anchor" href="#_no_op_compile_single_module"></a>No-Op Compile Single-Module</h3>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-5.08s
-5.25s
-5.26s
-
-$ time ./mill common.test.compile
-0.14s
-0.12s
-0.12s</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This last benchmark explores the boundaries of Maven and Mill: what happens if
-we ask to compile a single module <em>that has already been compiled</em>? In this case,
-there is literally <em>nothing to do</em>. For Maven, &quot;doing nothing&quot; takes ~17 seconds,
-whereas for Mill we can see it complete and return in less than 0.5 seconds</p>
-</div>
-<div class="paragraph">
-<p>Grepping the logs, we can confirm that both build tools skip re-compilation of the
-<code>common/</code> source code. In Maven, skipping compilation only saves us ~2 seconds,
-bringing down the 19s we saw in <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> to 17s here. This
-matches what we expect about Java compilation speed, with the 2s savings on
-40,000 lines of code telling us Java compiles at ~20,000 lines per second. However,
-we still see Maven taking <strong>17 entire seconds</strong> before it can decide to do nothing!</p>
-</div>
-<div class="paragraph">
-<p>In contrast, doing the same no-op compile using Mill, we see the timing from 2.2s
-in <a href="#_clean_compile_single_module">Clean Compile Single-Module</a> to 0.5 seconds here. This is the same ~2s reduction
-we saw with Maven, but due to Mill’s minimal overhead, in the end the command
-finishes in less than half a second.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_extensibility"><a class="anchor" href="#_extensibility"></a>Extensibility</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Even though Maven is designed to be declarative, in many real-world codebases you end
-up needing to run ad-hoc scripts and logic. This section will explore one such scenario,
-so you can see how Mill differs from Maven in the handling of these requirements.</p>
-</div>
-<div class="paragraph">
-<p>The Maven build for the <code>common/</code> subproject
-uses a Groovy script for code generation. This is configured via:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;properties&gt;
-  &lt;collection.template.dir&gt;${project.basedir}/src/main/templates&lt;/collection.template.dir&gt;
-  &lt;collection.template.test.dir&gt;${project.basedir}/src/test/templates&lt;/collection.template.test.dir&gt;
-  &lt;collection.src.dir&gt;${project.build.directory}/generated-sources/collections/java&lt;/collection.src.dir&gt;
-  &lt;collection.testsrc.dir&gt;${project.build.directory}/generated-test-sources/collections/java&lt;/collection.testsrc.dir&gt;
-&lt;/properties&gt;
-&lt;plugin&gt;
-  &lt;groupId&gt;org.codehaus.gmaven&lt;/groupId&gt;
-  &lt;artifactId&gt;groovy-maven-plugin&lt;/artifactId&gt;
-  &lt;version&gt;2.1.1&lt;/version&gt;
-  &lt;dependencies&gt;
-    &lt;dependency&gt;
-      &lt;groupId&gt;org.codehaus.groovy&lt;/groupId&gt;
-      &lt;artifactId&gt;groovy&lt;/artifactId&gt;
-      &lt;version&gt;3.0.9&lt;/version&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-      &lt;groupId&gt;ant&lt;/groupId&gt;
-      &lt;artifactId&gt;ant-optional&lt;/artifactId&gt;
-      &lt;version&gt;1.5.3-1&lt;/version&gt;
-    &lt;/dependency&gt;
-  &lt;/dependencies&gt;
-  &lt;executions&gt;
-    &lt;execution&gt;
-      &lt;id&gt;generate-collections&lt;/id&gt;
-      &lt;phase&gt;generate-sources&lt;/phase&gt;
-      &lt;goals&gt;
-        &lt;goal&gt;execute&lt;/goal&gt;
-      &lt;/goals&gt;
-      &lt;configuration&gt;
-        &lt;source&gt;${project.basedir}/src/main/script/codegen.groovy&lt;/source&gt;
-      &lt;/configuration&gt;
-    &lt;/execution&gt;
-  &lt;/executions&gt;
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In contrast, the Mill build configures the code generation as follows:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
-//| - &quot;org.codehaus.groovy:groovy:3.0.9&quot;
-//| - &quot;org.codehaus.groovy:groovy-ant:3.0.9&quot;
-//| - &quot;ant:ant-optional:1.5.3-1&quot;
-
-object common extends NettyModule {
-  ...
-  def script = Task.Source(&quot;src&quot; / &quot;main&quot; / &quot;script&quot;)
-  def generatedSources = Task {
-    val shell = new groovy.lang.GroovyShell()
-
-    val context = new java.util.HashMap[String, Object]
-    context.put(&quot;collection.template.dir&quot;, s&quot;${mill.api.BuildCtx.workspaceRoot}/common/src/main/templates&quot;)
-    context.put(&quot;collection.template.test.dir&quot;, s&quot;${mill.api.BuildCtx.workspaceRoot}/common/src/test/templates&quot;)
-    context.put(&quot;collection.src.dir&quot;, (Task.dest / &quot;src&quot;).toString)
-    context.put(&quot;collection.testsrc.dir&quot;, (Task.dest / &quot;testsrc&quot;).toString)
-    shell.setProperty(&quot;properties&quot;, context)
-    shell.setProperty(&quot;ant&quot;, new groovy.ant.AntBuilder())
-    shell.evaluate((script().path / &quot;codegen.groovy&quot;).toIO)
-    PathRef(Task.dest / &quot;src&quot;)
+  public static void main(String[] args) throws Exception {
+    if (args.length &lt; 2) throw new Exception("HtmlScraper.java &lt;start&gt; &lt;depth&gt;");
+    var seen = new HashSet&lt;&gt;(Set.of(args[0]));
+    var current = new HashSet&lt;&gt;(Set.of(args[0]));
+    for (int i = 0; i &lt; Integer.parseInt(args[1]); i++) {
+      var next = new HashSet&lt;String&gt;();
+      for (String article : current) {
+        for (String link : fetchLinks(article)) {
+          if (seen.add(link)) next.add(link);
+        }
+      }
+      current = next;
+    }
+    for (String s : seen) System.out.println(s);
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The number of lines of code <em>written</em> is not that different, and in fact both Mill and Maven
-configs need to do similar things: setting <code>collection.src.dir</code>, invoking <code>org.codehaus.groovy</code>,
-and so on. Where things differ is the amount of indirection: while Maven has us
-configuring a third-party <code>groovy-maven-plugin</code> artifact, in Mill
-we can import <code>org.codehaus.groovy:groovy:3.0.9</code> and instantiate a <code>GroovyShell</code> directly.
-to evaluate our <code>codegen.groovy</code> script.</p>
+<p>This program is a single-file Java application that uses the <a href="https://jsoup.org/">Jsoup</a>
+third-party library to scrape links from a Wikipedia page, and then uses that in turn to
+do a breadth-first search on the graph of Wikipedia articles and links. This is
+representative of the many small programs that get written in practice:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Students doing a homework assignment</p>
+</li>
+<li>
+<p>Developers trying to automate a common workflow</p>
+</li>
+<li>
+<p>Someone trying to reproduce and minimize a bug in a library so that it can be reported</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>This direct control means you are not beholden to third party plugins: rather than being
-limited to what an existing plugin <em>allows</em> you to do, Mill allows you to directly write
-the code necessary to do what <em>you need to do</em>. In this case, if we need to invoke
-<a href="https://github.com/apache/groovy">Groovy</a> and
-<a href="https://github.com/groovy/groovy-core/blob/4c05980922a927b32691e4c3eba5633825cc01e3/subprojects/groovy-ant/src/spec/doc/groovy-ant-task.adoc">Groovy-Ant</a>,
-Mill allows us to direct <a href="../extending/import-mvn-plugins.html" class="xref page">import $ivy</a> the relevant
-JVM artifacts from Maven Central</p>
+<p>This is a simple program that any programmer should be able to write without difficulty.
+In theory, there should be no reason for developers not to write small automation scripts
+and utilities in Java rather than Python or Bash: it&#8217;s an easy widely-used language with
+an excellent runtime and a rich ecosystem with high-quality libraries (such as Jsoup above).
+But in practice, setting up your single-file Java program to actually be <em>run</em> proves
+quite a hurdle. This article will discuss why.</p>
+</div>
+<div class="sect2">
+<h3 id="_installing_java"><a class="anchor" href="#_installing_java"></a>Installing Java</h3>
+<div class="paragraph">
+<p>To run your Java program, you first might need to install Java. This may seem obvious and
+straightforward, but in practice it can turn out to be surprisingly tricky.
+Consider this discussion on <a href="https://news.ycombinator.com/item?id=46037261">Installing Java in 2025</a>:</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>+1 sdkman! is awesome. I&#8217;ve been using sdkman! for a decade to manage Java installations. Doesn&#8217;t seem to work on freebsd though, which I have to use freebsd&#8217;s pkg instead.</p>
 </div>
 <div class="paragraph">
-<p>Mill gives you the full power of the JVM ecosystem to use in your build: any Java library
-on Maven central is just an <code>//| mvnDeps</code> away, and can be used with the full IDE support
-and tooling experience you are used to in the JVM ecosystem.</p>
+<p>Avoid Oracle&#8217;s builds unless you need them for compliance reasons</p>
+</div>
+<div class="paragraph">
+<p>If you are on Linux or mac, getting your sdk via your favorite package manager is fine for casual use. Just be aware that this might not necessarily work with all software projects you want to work on. If that matters to you, that&#8217;s what sdkman is for.</p>
+</div>
+<div class="paragraph">
+<p>On macOS I wrote my own 9-line Zsh function that lists the JDKs available and sets JAVA_HOME.</p>
+</div>
+<div class="paragraph">
+<p>On Windows, the only sane way to install Java seems to be scoop.sh or chocolatey</p>
+</div>
+<div class="paragraph">
+<p>I just don&#8217;t see the point in installing a version manager specifically for the JDK.</p>
+</div>
+<div class="paragraph">
+<p>I would say as well as using SDKMan, you should use Jenv shell plugin to easily manage your JDK versions across projects</p>
+</div>
+</blockquote>
+</div>
+<div class="paragraph">
+<p>Even among experienced developers, it is clear there is no consensus on how Java should be
+installed: it varies between JDK distributions, between operating systems, and between different
+users' personal preference. Although a new Java developer might not need to understand the breadth
+and depth of Java installation methods to get something working, there&#8217;s a non-trivial number of
+decisions that need to be made and a non-trivial number of ways things can go wrong.</p>
+</div>
+<div class="paragraph">
+<p>Maybe you got things working on your Mac-OSX laptop, but can you ensure the project works when
+run on your colleague&#8217;s Windows-11 desktop machine, or your Linux backend servers? And can you
+keep things working as versions need to be upgraded, or you have multiple projects requiring
+differing versions of Java? Just "installing Java" turns out to be quite a tricky thing to
+get right!</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_setting_up_your_pom_xml"><a class="anchor" href="#_setting_up_your_pom_xml"></a>Setting up your pom.xml</h3>
+<div class="paragraph">
+<p>If our simple Java program had no third-party dependencies, then we could just run it
+from the command-line via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; java HtmlScraper.java</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>However, the program <em>does</em> use a third-party dependency - Jsoup - and so running it is no
+longer so simple: we now need a build tool! The most common build tool in the Java ecosystem
+is Maven, and so you may want to set up a Maven <code>pom.xml</code> for the project.</p>
+</div>
+<div class="paragraph">
+<p><strong>CONSIDER: are you able to write out the <code>pom.xml</code> for this project
+without copy-paste cargo-culting something from Stackoverflow or similar?</strong></p>
+</div>
+<div class="paragraph">
+<p>In practice, even experienced developers are not able to write <code>pom.xml</code>s by hand. They&#8217;re
+simply too verbose with too much irrelevant boilerplate that you don&#8217;t actually care about. Here&#8217;s
+an example <code>pom.xml</code> for the above project:</p>
+</div>
+<div class="paragraph">
+<p><code>pom.xml</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  &lt;groupId&gt;example&lt;/groupId&gt;
+  &lt;artifactId&gt;html-scraper&lt;/artifactId&gt;
+  &lt;version&gt;1.0&lt;/version&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.jsoup&lt;/groupId&gt;
+      &lt;artifactId&gt;jsoup&lt;/artifactId&gt;
+      &lt;version&gt;1.17.2&lt;/version&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+  &lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+        &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;3.2.0&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;mainClass&gt;HtmlScraper&lt;/mainClass&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+&lt;/project&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Although copy-pasting something from Stackoverflow (or from an existing project, from ChatGPT,
+from Gemini, etc.) does get things working in the short term, longer term the boilerplate does
+have costs that may not be immediately obvious:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When you need to <em>update</em> the <code>pom.xml</code> later, splicing together multiple copy-pasted blobs
+of XML can be a lot more error-prone than copy-pasting things the first time</p>
+</li>
+<li>
+<p>Although modern AI assistants like ChatGPT or Gemini are able to modify the code on your behalf,
+they sometimes make mistakes or hallucinate. Will you be able to catch these errors in the
+reams of boilerplate?</p>
+</li>
+<li>
+<p>When the build tool is misbehaving because something is misconfigured, and your AI assistant
+isn&#8217;t able to diagnose the problem (maybe they&#8217;re the one who made the mistake in the first place!),
+would you be able to debug it and figure out how to fix things?</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>But let&#8217;s assume we have our <code>pom.xml</code> written, we next need to install Maven to use it:</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_installing_maven"><a class="anchor" href="#_installing_maven"></a>Installing Maven</h3>
+<div class="paragraph">
+<p>Next we need to install Maven. From the <a href="https://maven.apache.org/install.html">Maven docs</a>, there
+are a bunch of different commands needed for different operating systems or Linux distributions.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; brew install maven
+&gt; sdk install maven
+&gt; sudo port install maven
+&gt; sudo apt install maven
+&gt; sudo dnf install maven
+&gt; sudo yum install maven
+&gt; choco install maven
+&gt; scoop install maven</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This itself isn&#8217;t a huge problem, but even after installing Maven on your machine, there are
+questions remaining:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Did we install the <em>right version</em> of Maven? Not every project builds on every version of Maven,
+and the same command above may install a different version of Maven on different operating system
+versions. Figuring out what Maven version our project needs and figuring out the command-line
+syntax to make our specific package manage install it can be a challenge</p>
+</li>
+<li>
+<p>To solve the right-maven-version problem, many projects these days use
+<a href="https://maven.apache.org/tools/wrapper/maven-wrapper-plugin/usage.html">./mvnw bootstrap scripts</a>
+as a best practice. Should you be using that instead? And if you do, you&#8217;d still find people
+using <code>mvn</code> rather than <code>./mvnw</code> out of muscle memory and getting confusing errors</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Similar to the challenges of <a href="#_installing_java">Installing Java</a>, installing Maven <em>once</em> isn&#8217;t hard, but
+installing Maven consistently on your Mac laptop, or your colleague&#8217;s Windows desktop, and
+on your Linux CI machines can be quite tricky! And trickier still is maintaining these
+installations as the different development environments inevitable evolve over time.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_running_your_java_program"><a class="anchor" href="#_running_your_java_program"></a>Running your Java program</h3>
+<div class="paragraph">
+<p>Finally, now that we have our <code>HtmlScraper.java</code> written, <code>java</code> installed, our <code>pom.xml</code>
+set up, and <code>mvn</code> (or <code>./mvnw</code>) installed, we need to run our Java application.</p>
+</div>
+<div class="paragraph">
+<p><strong>CONSIDER: can you remember the command to run this Java application from the command line?</strong></p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s not</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mvn run Java 1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Neither is it</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mvn HtmlScraper.java Java 1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mvn run HtmlScraper.java Java 1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Rather, the correct invocation is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mvn exec:java -Dexec.args="Java 1"
+Ptolemy
+Bali
+Greater_Sunda_Islands
+Rama
+Sulaiman_al-Tajir
+Endemism
+Gajah_Mada
+Yingya_Shenglan
+Mahabharata
+Cirebon
+Ethnic_groups_in_Indonesia
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Maven experts should be able to write this out from memory without issues, but it
+is surprisingly involved for someone who just wants to run a single <code>HtmlScraper.java</code>
+file containing their code! Many experienced Java developers probably can&#8217;t do this
+without looking it up first.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_whither_declarative_builds"><a class="anchor" href="#_whither_declarative_builds"></a>Whither Declarative Builds?</h3>
+<div class="paragraph">
+<p>Although Maven is the first "declarative" build tool, in practice it has a lot of
+friction that has nothing to do with its declarative nature, which gets in the
+way of the smooth user experience a declarative build tool should be able to provide.
+From installing Java and Maven to setting up the verbose <code>pom.xml</code> and the unusual
+command-line invocation syntax, none of this is rocket science. But it adds enough
+friction to our <code>HtmlScraper.java</code> that people prefer to write their small programs
+in Python, Javascript.</p>
+</div>
+<div class="paragraph">
+<p>This is not for any fault of Java <em>the language</em>: while Java is a bit more verbose
+than Python or Bash, it is fine for writing this particular <code>HtmlScraper.java</code> program.
+Java may even be preferable when the time comes to add parallelism
+and concurrency and other features that may be harder to implement in Python or Bash.
+The problem here is really that Java <em>build tools</em>: <code>HtmlScraper.java</code> is simple enough
+anyone could write it, but making sure <code>HtmlScraper.java</code> runs consistently on any
+machine you put it on can be surprisingly difficult.</p>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
+<h2 id="_mills_simpler_declarative_builds"><a class="anchor" href="#_mills_simpler_declarative_builds"></a>Mill&#8217;s Simpler Declarative Builds</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill build files contain code written in a strongly-typed fashion, with full autocomplete
-and code assistance. As a baseline, consider this Maven configuration where we are generating
-some source files:</p>
+<p>Because all of the issues above are with Java&#8217;s <em>tooling</em> rather than the <em>language itself</em>,
+the Mill build tool is able to streamline these things considerably.</p>
 </div>
-<div class="imageblock">
+<div class="sect2">
+<h3 id="_mill_bootstrap_scripts"><a class="anchor" href="#_mill_bootstrap_scripts"></a>Mill Bootstrap Scripts</h3>
+<div class="paragraph">
+<p>Mill is primarily installed via a <code>./mill</code>
+<a href="../cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a>, similar to
+<code>./mvnw</code> or <code>./gradlew</code> scripts common with those build tools. Although it may look
+similar to what Maven or Gradle provide, Mill&#8217;s approach
+has several advantages that may not be obvious at a glance:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>./mill</code> is the <em>standard way</em> to install Mill. Any Mill project you check out should
+be runnable via <code>./mill</code> without needing to first figure out how the project expects
+you to set up your machine.</p>
+</li>
+<li>
+<p>The <code>./mill</code> bootstrap script downloads and caches not just Mill itself, but
+also <em>the Java runtime needed to run your project</em>. In general, Mill projects do not
+need Java to be pre-installed at all, and can build and run on any clean Windows, Mac,
+or Linux machine without prior setup</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Mill does not rely on a pre-installed Java runtime by default, and instead manages its
+own JVM by downloaded and caching it on-demand. This defaults to <code>zulu:21</code>,
+or you can explicitly configure it in your <code>build.mill.yaml</code> file via:</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyMaven1.png" alt="IntellijNettyMaven1" />
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">jvmId: 24
+jvmId: zulu:24
+jvmId: temurin:24</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If you weren’t sure what <code>build-helper-maven-plugin</code> does, the obvious thing
-to reach for is to try and jump-to-definition in your IDE. If you do that in Intellij,
-you get:</p>
+<p>You can easily try out different Java versions by changing the <code>jvmId</code> config key,
+and any Mill project can set <code>jvmId</code> to specify a consistent JVM version that is used
+regardless of where the project is being built. You can also have different
+projects or even different modules within the same project using different <code>jvmId</code>s,
+and Mill will download/cache/use them without you needing to worry about collisions.</p>
 </div>
-<div class="imageblock">
+<div class="paragraph">
+<p>With Mill, the Java version you
+use is managed declaratively: just like how Maven lets you declaratively configure the libraries
+that a project needs such as <code>org.jsoup:jsoup:1.17.2</code>, Mill lets you declaratively configure
+the <code>jvmId</code> the project needs and then handles any downloading and caching of those JVMs
+automatically for you.</p>
+</div>
+<div class="paragraph">
+<p>Thus the <code>./mill</code> bootstrap script is able to fix both the challenges
+<a href="#_installing_java">Installing Java</a> as well as <a href="#_installing_maven">Installing Maven</a>.
+You don&#8217;t need to install Maven, you don&#8217;t need to install <a href="https://sdkman.io/">SdkMan</a> or
+<a href="https://www.jenv.be/">JEnv</a>, you don&#8217;t even need to install Mill! Any Mill project you check
+out should be buildable and runnable using the <code>./mill</code> bootstrap script without needing
+any prior installation, so you can immediately begin working on your project rather than
+fiddling with setup commands.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mill_build_configuration"><a class="anchor" href="#_mill_build_configuration"></a>Mill Build Configuration</h3>
+<div class="paragraph">
+<p>Mill&#8217;s <code>build.mill.yaml</code> <a href="../javalib/intro.html#_declarative_configuration" class="xref page">declarative configuration
+files</a> are much simpler than the Maven <code>pom.xml</code>s you may be used to writing. For example, for
+the <code>HtmlScraper.java</code> file shown above, the minimal configuration file looks like this:</p>
+</div>
+<div class="paragraph">
+<p><code>build.mill.yaml</code></p>
+</div>
+<div class="listingblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyMaven2.png" alt="IntellijNettyMaven2" />
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This gives you the signature of the config value: <code>sources</code> is an array of files,
-it is required, and its description is <em>&quot;additional source directories&quot;</em>. While
-this is better than nothing, it is less than what you would expect if you use
-<em>jump-to-definition</em> in any application codebase.</p>
+<p>In this file,</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>extends</code> tells us what class of modules this is, e.g.
+<code>mill.javalib.JavaModule</code>, <code>mill.kotlinlib.KotlinModule</code>, <code>mill.scalalib.ScalaModule</code>,</p>
+</li>
+<li>
+<p>The other keys such as <code>mvnDeps</code> tell us configuration on that module we want to override</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>In contrast, when using Mill, not only do you get full autocomplete to
-explore available methods, their signatures, and their documentation:</p>
+<p>Mill follows Mavens principle of <em>Convention over Configuration</em>: although there are a lot
+of possible configuration options (<code>mvnDeps</code>, <code>moduleDeps</code>, <code>repositories</code>,
+<code>javacOptions</code>, etc.) the  <code>build.mill.yaml</code> file only needs to contain
+the keys the user needs to customize. This greatly simplifies the common case where
+the user is mostly fine with the default configuration and avoids much of the
+complexity of <a href="#_setting_up_your_pom_xml">Setting up your pom.xml</a>.</p>
 </div>
-<div class="imageblock">
+<div class="paragraph">
+<p>In general, Mill&#8217;s <code>build.mill.yaml</code> config files are concise enough you don&#8217;t need to
+copy-paste reams of boilerplate to set them up, or skim through reams of boilerplate to
+read and understand and maintain them. They contain only the configuration that you care
+about, with every key listed and documented in the Mill API documentation for that particular
+module:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/javalib/JavaModule.html#mvnDeps-0">mill.javalib.JavaModule</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you want to configure the <code>jvmId</code>, <code>repositories</code>, <code>javacOptions</code>, or any of the other
+normal build tool settings you can, but if you don&#8217;t need to configure them Mill makes
+it super easy to get started with reasonable defaults for everything.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_running_programs_with_mill"><a class="anchor" href="#_running_programs_with_mill"></a>Running Programs with Mill</h3>
+<div class="paragraph">
+<p>When the time comes to running your program, with Mill it is simply:</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyAutocomplete.png" alt="IntellijNettyAutocomplete" />
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run Java 1
+Ptolemy
+Bali
+Greater_Sunda_Islands
+Rama
+Sulaiman_al-Tajir
+Endemism
+Gajah_Mada
+Yingya_Shenglan
+Mahabharata
+Cirebon
+Ethnic_groups_in_Indonesia
+...</code></pre>
 </div>
 </div>
-<div class="imageblock">
+<div class="paragraph">
+<p>This command-line syntax follows closely the syntax used in other runtimes:</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyPeekDocs.png" alt="IntellijNettyPeekDocs" />
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; python foo.py &lt;arg2&gt; &lt;arg2&gt;
+&gt; bash foo.sh &lt;arg2&gt; &lt;arg2&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>We can jump to definition, e.g. going from our own <code>def generatedSources</code>
-to the original definition that was overridden:</p>
+<p><code>mvn</code>'s command line syntax to run your Java code isn&#8217;t a blocker, but it is yet another
+small hurdle on top of the many other small hurdles. In contrast, Mill tries to follow the
+common command-line conventions used by most other programming languages and CLI tools, so
+that anyone who picks up a Mill project coming from other languages or ecosystems will feel
+right at home.</p>
 </div>
-<div class="imageblock">
+</div>
+<div class="sect2">
+<h3 id="_java_single_file_scripts_in_mill"><a class="anchor" href="#_java_single_file_scripts_in_mill"></a>Java Single-File Scripts in Mill</h3>
+<div class="paragraph">
+<p>Apart from Mill modules defined via a <code>build.mill.yaml</code>, Mill also allows you to write
+single-file "scripts" with their build configuration defined in a build header comment. For
+example, the <code>HtmlScraper.java</code> file above can be annotated with a <code>//|</code> build header comment
+as shown below:</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyJumpToDefinition.png" alt="IntellijNettyJumpToDefinition" />
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+import org.jsoup.Jsoup;
+import java.util.*;
+public class HtmlScraper {
+  static List&lt;String&gt; fetchLinks(String title) throws IOException {
+    var url = "https://en.wikipedia.org/wiki/" + title;
+    var doc = Jsoup.connect(url).header("User-Agent", "My Scraper").get();
+    var links = new ArrayList&lt;String&gt;();
+    for (var a : doc.select("main p a")) {
+      var href = a.attr("href");
+      if (href.startsWith("/wiki/")) links.add(href.substring(6));
+    }
+    return links;
+  }
+  public static void main(String[] args) throws Exception {
+    if (args.length &lt; 2) throw new Exception("HtmlScraper.java &lt;start&gt; &lt;depth&gt;");
+    var seen = new HashSet&lt;&gt;(Set.of(args[0]));
+    var current = new HashSet&lt;&gt;(Set.of(args[0]));
+    for (int i = 0; i &lt; Integer.parseInt(args[1]); i++) {
+      var next = new HashSet&lt;String&gt;();
+      for (String article : current) {
+        for (String link : fetchLinks(article)) {
+          if (seen.add(link)) next.add(link);
+        }
+      }
+      current = next;
+    }
+    for (String s : seen) System.out.println(s);
+  }
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>From here, you can trace through the data flow, seeing how <code>def generatedSources</code>
-gets used by <code>def sources</code>, then <code>def allSources</code>:</p>
+<p>Mill single-file script modules can be run from the command line just like any Python or Bash
+script, via:</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="../_images/comparisons/IntellijNettyDataflow.png" alt="IntellijNettyDataflow" />
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill HtmlScraper.java Java 1
+Ptolemy
+Bali
+Greater_Sunda_Islands
+Rama
+Sulaiman_al-Tajir
+Endemism
+Gajah_Mada
+Yingya_Shenglan
+Mahabharata
+Cirebon
+Ethnic_groups_in_Indonesia
+...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>An <code>allSources</code> eventually gets used in <code>def compile</code>:</p>
+<p>Mill scripts further simplifies the usage of Mill for small programs. Like Maven, Mill
+single-file scripts are fully declarative:</p>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijNettyDataflow2.png" alt="IntellijNettyDataflow2" />
-</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Any build configuration is set in the <code>//|</code> build header comment to specify what the file needs</p>
+</li>
+<li>
+<p>Any downloading of dependencies or compilation of the <code>.java</code> file is scheduled, parallelized
+and cached automatically</p>
+</li>
+<li>
+<p>You have full power to configure the script however you like: <code>jvmId</code>, <code>repositories</code>,
+<code>javacOptions</code>, etc.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>None of this should be a surprise to anyone using a JVM language: Java, Kotlin, and Scala
-have had this kind of IDE experience for decades! However, it stands in stark contrast
-to the experience using IDEs with tools like Maven, where although the IDE is able to
-superficially understand what XML entries are allowed where, they do not help at all in
-understand how the various configuration values actually end up affecting your build.</p>
+<p>But unlike Maven, Mill is able to streamline the process of taking your <code>.java</code> file
+and running it, such that the underlying simplicity of its declarative configuration
+really shines through in the user experience.</p>
 </div>
 <div class="paragraph">
-<p>With Mill, you get your full IDE experience working with your build: autocomplete, code
-assistance, navigation, and so on. You can explore and navigate around your build
-just like you would any application codebase, avoiding the feeling of &quot;hitting a wall&quot;
-that often occurs when trying to figure out why a Maven build or plugin does not behave
-quite as you expect. Where with Maven you may find yourself searching online docs
-or digging through plugin source code on Github, with Mill you can comfortably
-navigate the build logic in your IDE as easily as any application codebase.</p>
+<p>While Mill&#8217;s <code>build.mill.yaml</code> are already pretty easy to use, for small programs
+Mill&#8217;s single-file scripts with a <code>//|</code> build header are even easier to start with.
+And when the program does grow in size and complexity, more advanced use cases such
+as multi-module projects or custom build logic are well supported.</p>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<h2 id="_conclusion_mill_vs_maven"><a class="anchor" href="#_conclusion_mill_vs_maven"></a>Conclusion: Mill vs Maven</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Both the Mill and Maven builds we discussed in this case study do the same thing: they
-compile Java code, zip them into Jar files, run tests. Sometimes they compile and link
-C code or run <code>make</code> or Groovy to accomplish what they need to do.</p>
+<p>Maven invented the idea of <em>"declarative builds"</em>, which was a big step forward in
+a build-tool landscape dominated by tools like <a href="https://www.gnu.org/software/bash/">Bash</a>
+or <a href="https://ant.apache.org/">Ant</a>. However, despite being declarative, Maven&#8217;s rough edges
+make getting started with Java troublesome and error-prone:
+from installing a Java runtime (the "right" way), to installing Maven (the "right" way),
+to cargo-cult copy-pasting a <code>pom.xml</code> and associated commands to run your program from the
+command-line.</p>
 </div>
 <div class="paragraph">
-<p>Mill doesn’t do <em>more</em> than Maven does, but it tries to do it <em>better</em>: faster compiles,
-easier extensibility via libraries (e.g. <code>org.codehaus.groovy:groovy</code>), better IDE
-support for working with your build.</p>
+<p>None of these issues are blockers, but each of them is a hurdle enough to make
+someone re-consider whether they want to write their code in Java. Some may persevere
+and get things working, others will wrap all this messiness in their own collection of
+bash scripts and automation, and still others will end up deciding to write their
+small program in Python or Bash instead of Java.</p>
 </div>
 <div class="paragraph">
-<p>Again, the Mill build used in this comparison is for demonstration purposes, and more
-work would be necessary to make the Mill build production ready: compatibility with
-different operating system architectures, Java versions, and so on. However, hopefully
-it demonstrates the potential value: greatly improved performance, easy extensibility,
-and a much better IDE experience for working with your build.
-Mill provides builtin tools to help you navigate,
-visualize, and understand your build, turning a normally opaque &quot;build config&quot; into
-something that’s transparent and easily understandable.</p>
+<p>Mill tries to learn from all the best-practices of Maven, but polishes the rough edges
+to provide a much smoother experience working with declarative builds. From the
+zero-setup installation process and declarative <code>jvmId</code> management,
+to the concise <code>build.mill.yaml</code> format and familiar command-line syntax, to
+support for single-file programs. Mill lets the key ideas of declarative shine
+through to provide an experience writing and running your Java programs that is every
+bit as smooth as running a Python or Bash script from the command line.</p>
+</div>
+<div class="paragraph">
+<p>If you have ever worked with a Maven build you found it clunky to configure and clunky to use,
+do give Mill a try!</p>
 </div>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="why-mill.html">Why Use Mill?</a></span>
-  <span class="next"><a href="gradle.html">Case Study: Mill vs Gradle</a></span>
+  <span class="prev"><a href="../kotlinlib/script.html">Kotlin Single-File Scripts</a></span>
+  <span class="next"><a href="gradle.html">Comparing Mill vs Gradle: Programmable Builds</a></span>
 </nav>
 </article>
   </div>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

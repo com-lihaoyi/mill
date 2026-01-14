@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.16</span>
+    <span class="version">0.12.17</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,17 +618,14 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.16</a>
+          <a href="../index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -653,8 +650,6 @@
 
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-</div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -685,7 +680,7 @@ security, and usability warnings. This helps maintain the health and quality of 
 <p>In this example, we set a custom config to generate the report in both txt and HTML formats.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-android-javalib-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-android-javalib-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/android/javalib/3-linting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -728,7 +723,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
+<div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/android/javalib/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.helloworld.app" android:versionCode="1" android:versionName="1.0"&gt;
     &lt;uses-sdk android:minSdkVersion="9" android:targetSdkVersion="35"/&gt;
@@ -748,7 +743,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 <p>The <code>AndroidManifest.xml</code> file shown above is flawed with hardcoded string linting problem so it can be spoted by running the <code>androidLintRun</code> task.</p>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/android/javalib/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;color name="white"&gt;#FFFFFF&lt;/color&gt;
@@ -757,7 +752,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/android/javalib/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;string name="app_name"&gt;HelloWorldApp&lt;/string&gt;
@@ -766,7 +761,7 @@ import mill.javalib.android.{AndroidSdkModule, AndroidAppModule, AndroidLintRepo
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
+<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/android/javalib/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package com.helloworld.app;
 
@@ -810,7 +805,7 @@ public class MainActivity extends Activity {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/lint.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/android/javalib/3-linting/app/lint.xml">browse</a>)</div>
+<div class="title">app/lint.xml (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/android/javalib/3-linting/app/lint.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;lint&gt;

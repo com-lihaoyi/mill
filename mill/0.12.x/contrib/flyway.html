@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.16</span>
+    <span class="version">0.12.17</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,17 +618,14 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.16</a>
+          <a href="../index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -653,8 +650,6 @@
 
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-</div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -683,7 +678,7 @@ object foo extends ScalaModule with FlywayModule {
 
   //region flyway
   def flywayUrl = "jdbc:postgresql:myDb" // required
-  def flywayDriverDeps = Agg(ivy"org.postgresql:postgresql:42.2.5") // required
+  def flywayDriverDeps = Agg(mvn"org.postgresql:postgresql:42.2.5") // required
   def flywayUser = "postgres" // optional
   // def flywayPassword = "" // optional
   //endregion

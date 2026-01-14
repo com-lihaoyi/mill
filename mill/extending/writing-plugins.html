@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Writing Mill Plugins :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/extending/writing-plugins.html" />
-    <link rel="prev" href="running-jvm-code.html" />
-    <link rel="next" href="meta-build.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/extending/writing-plugins.html">
+    <link rel="prev" href="running-jvm-code.html">
+    <link rel="next" href="meta-build.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -137,22 +136,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
@@ -161,7 +152,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../javalib/packaging.html">Packaging Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -175,6 +170,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -184,22 +183,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -208,7 +199,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../scalalib/packaging.html">Packaging Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -226,6 +221,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -235,22 +234,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -259,11 +250,236 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../kotlinlib/packaging.html">Packaging Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Why Mill?</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Comparing Mill vs Maven: Declarative Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Comparing Mill vs Gradle: Programmable Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/performance.html">Mill Build Performance</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Managing JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sbom.html">Software Bill of Materials (SBOM)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="example-python-support.html">Example: Python Support</a>
   </li>
 </ul>
   </li>
@@ -377,218 +593,9 @@
   </li>
 </ul>
   </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">The Mill CLI</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill Fundamentals</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Extending Mill</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="contrib-plugins.html">Contrib Plugins</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/docker.html">Docker</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="thirdparty-plugins.html">Third-Party Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="running-jvm-code.html">Running Dynamic JVM Code</a>
-  </li>
-
-  <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="writing-plugins.html">Writing Mill Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="meta-build.html">The Mill Meta-Build</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="example-typescript-support.html">Example: Typescript Support</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="example-python-support.html">Example: Python Support</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+    <a class="nav-link" href="../groovylib/intro.html">Building Groovy with Mill</a>
   </li>
 </ul>
   </li>
@@ -654,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC3</span>
+    <span class="version">1.1.0-RC4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -663,17 +670,14 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC3</a>
+          <a href="../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version">
-          <a href="../0.12.x/index.html">0.12.16</a>
+          <a href="../0.12.x/index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -699,8 +703,6 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
-</div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
@@ -711,7 +713,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>This example demonstrates how to write and test Mill plugin, and publish it to
-Sonatype’s Maven Central so it can be used by other developers over the internet
+Sonatype&#8217;s Maven Central so it can be used by other developers over the internet
 via <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a>.</p>
 </div>
 </div>
@@ -720,38 +722,38 @@ via <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a>.</p>
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/1-writing-mill-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/1-writing-mill-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
 
 object myplugin extends ScalaModule, PublishModule {
-  def millVersion = &quot;1.0.6&quot;
+  def millVersion = "1.0.6"
 
-  def scalaVersion = &quot;3.7.4&quot;
+  def scalaVersion = "3.7.4"
 
-  def jvmId = &quot;11&quot;
+  def jvmVersion = "11"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
-  def platformSuffix = s&quot;_mill1&quot;
+  def platformSuffix = s"_mill1"
 
   // Depend on `mill-libs` so we can compile against Mill APIs
-  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-libs:$millVersion&quot;)
+  def mvnDeps = Seq(mvn"com.lihaoyi::mill-libs:$millVersion")
 
   object test extends ScalaTests, TestModule.Utest { // Unit test submodule
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
+    def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
   }
 
   // Publishing Config
-  def publishVersion = &quot;0.0.1&quot;
+  def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
-    description = &quot;Line Count Mill Plugin&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/myplugin&quot;,
+    description = "Line Count Mill Plugin",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/myplugin",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;myplugin&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+    versionControl = VersionControl.github("lihaoyi", "myplugin"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }</code></pre>
 </div>
@@ -771,7 +773,7 @@ and <code>mill-testkit</code> to bring in the appropriate libraries</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -784,7 +786,7 @@ In this example, we publish for Mill-1.0.6/Scala-3.7.4/JDK11, even though our pl
 may be on a version of Mill 1.1.0 or later.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 </div>
@@ -797,7 +799,7 @@ way that plugins interact with your project is by providing <code>trait</code>s 
 your modules to inherit from.</p>
 </div>
 <div class="paragraph">
-<p>Like any other <code>trait</code>, a Mill plugin’s traits modules allow you to:</p>
+<p>Like any other <code>trait</code>, a Mill plugin&#8217;s traits modules allow you to:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -818,7 +820,7 @@ it defines an abstract <code>def lineCountResourceFileName</code> task, it adds 
 <code>def lineCount</code> task, and it overrides the <code>def resources</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/1-writing-mill-plugins/myplugin/src/LineCountJavaModule.scala">browse</a>)</div>
+<div class="title">myplugin/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/1-writing-mill-plugins/myplugin/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.*
@@ -839,7 +841,7 @@ trait LineCountJavaModule extends mill.javalib.JavaModule {
 
   /** Generate resources using lineCount of sources */
   override def resources = Task {
-    os.write(Task.dest / lineCountResourceFileName(), &quot;&quot; + lineCount())
+    os.write(Task.dest / lineCountResourceFileName(), "" + lineCount())
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 }</code></pre>
@@ -883,7 +885,7 @@ and can be used to evaluate tasks (by direct reference or by string-selector) an
 the results in-memory:</p>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/src/mill/testkit/UnitTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/1-writing-mill-plugins/myplugin/test/src/mill/testkit/UnitTests.scala">browse</a>)</div>
+<div class="title">myplugin/test/src/mill/testkit/UnitTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/1-writing-mill-plugins/myplugin/test/src/mill/testkit/UnitTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 
@@ -895,31 +897,31 @@ import utest.*
 
 object UnitTests extends TestSuite {
   def tests: Tests = Tests {
-    test(&quot;unit&quot;) {
+    test("unit") {
       object build extends TestRootModule with LineCountJavaModule {
-        def lineCountResourceFileName = &quot;line-count.txt&quot;
+        def lineCountResourceFileName = "line-count.txt"
 
         lazy val millDiscover = Discover[this.type]
       }
 
-      val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
-      UnitTester(build, resourceFolder / &quot;unit-test-project&quot;).scoped { eval =&gt;
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
+      UnitTester(build, resourceFolder / "unit-test-project").scoped { eval =&gt;
         // Evaluating tasks by direct reference
         val Right(result) = eval(build.resources)
         assert(
           result.value.exists(pathref =&gt;
-            os.exists(pathref.path / &quot;line-count.txt&quot;) &amp;&amp;
-              os.read(pathref.path / &quot;line-count.txt&quot;) == &quot;18&quot;
+            os.exists(pathref.path / "line-count.txt") &amp;&amp;
+              os.read(pathref.path / "line-count.txt") == "18"
           )
         )
 
         // Evaluating tasks by passing in their Mill selector
-        val Right(result2) = eval(&quot;resources&quot;)
+        val Right(result2) = eval("resources")
         val Seq(pathrefs: Seq[PathRef]) = result2.value
         assert(
           pathrefs.exists(pathref =&gt;
-            os.exists(pathref.path / &quot;line-count.txt&quot;) &amp;&amp;
-              os.read(pathref.path / &quot;line-count.txt&quot;) == &quot;18&quot;
+            os.exists(pathref.path / "line-count.txt") &amp;&amp;
+              os.read(pathref.path / "line-count.txt") == "18"
           )
         )
       }
@@ -929,7 +931,7 @@ object UnitTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/resources/unit-test-project/src/foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/1-writing-mill-plugins/myplugin/test/resources/unit-test-project/src/foo/Foo.java">browse</a>)</div>
+<div class="title">myplugin/test/resources/unit-test-project/src/foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/1-writing-mill-plugins/myplugin/test/resources/unit-test-project/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
 
@@ -937,7 +939,7 @@ public class Foo {
   public static String getLineCount() {
     try {
       return new String(
-          Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
+          Foo.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
     } catch (java.io.IOException e) {
       return null;
     }
@@ -946,7 +948,7 @@ public class Foo {
   static String lineCount = getLineCount();
 
   public static void main(String[] args) throws Exception {
-    System.out.println(&quot;Line Count: &quot; + lineCount);
+    System.out.println("Line Count: " + lineCount);
   }
 }</code></pre>
 </div>
@@ -971,7 +973,7 @@ Publishing Artifact(com.lihaoyi,myplugin_mill1_3,0.0.2) to ivy repo...</code></p
 </div>
 <div class="paragraph">
 <p>Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they
-are published the same way: by extending <code>PublishModule</code> and defining the module’s <code>publishVersion</code>
+are published the same way: by extending <code>PublishModule</code> and defining the module&#8217;s <code>publishVersion</code>
 and <code>pomSettings</code>. Once done, you can publish the plugin locally via <code>publishLocal</code>,
 or to Maven Central via <code>mill.scalalib.PublishModule/</code> for other developers to
 use. For more details on publishing Mill projects, see the documentation for
@@ -988,51 +990,51 @@ to running Mill in a subprocess, but are able to exercise the end-to-end lifecyc
 command. Integration tests require further build configuration, which is shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/2-plugin-integration-tests">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/2-plugin-integration-tests">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
 
 object myplugin extends ScalaModule, PublishModule {
-  def millVersion = &quot;1.0.6&quot;
+  def millVersion = "1.0.6"
 
-  def scalaVersion = &quot;3.7.4&quot;
+  def scalaVersion = "3.7.4"
 
-  def jvmId = &quot;11&quot;
+  def jvmVersion = "11"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
-  def platformSuffix = s&quot;_mill1&quot;
+  def platformSuffix = s"_mill1"
 
   // Depend on `mill-libs` so we can compile against Mill APIs
-  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-libs:$millVersion&quot;)
+  def mvnDeps = Seq(mvn"com.lihaoyi::mill-libs:$millVersion")
 
   // Setup for integration/example tests
   object integration extends ScalaTests, TestModule.Utest {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
+    def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Task {
       Map(
-        &quot;MILL_EXECUTABLE_PATH&quot; -&gt; millExecutable.assembly().path.toString,
-        &quot;MILL_USER_TEST_REPO&quot; -&gt; publishLocalTestRepo().path.toString
+        "MILL_EXECUTABLE_PATH" -&gt; millExecutable.assembly().path.toString,
+        "MILL_USER_TEST_REPO" -&gt; publishLocalTestRepo().path.toString
       )
     }
 
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
-      def mvnDeps = Seq(mvn&quot;com.lihaoyi:mill-runner-launcher_3:$millVersion&quot;)
-      def mainClass = Some(&quot;mill.launcher.MillLauncherMain&quot;)
+      def mvnDeps = Seq(mvn"com.lihaoyi:mill-runner-launcher_3:$millVersion")
+      def mainClass = Some("mill.launcher.MillLauncherMain")
     }
   }
 
   // Publishing Config
-  def publishVersion = &quot;0.0.1&quot;
+  def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
-    description = &quot;Line Count Mill Plugin&quot;,
-    organization = &quot;com.lihaoyi&quot;,
-    url = &quot;https://github.com/lihaoyi/myplugin&quot;,
+    description = "Line Count Mill Plugin",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/myplugin",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;myplugin&quot;),
-    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+    versionControl = VersionControl.github("lihaoyi", "myplugin"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }</code></pre>
 </div>
@@ -1047,7 +1049,7 @@ object myplugin extends ScalaModule, PublishModule {
 </div>
 <div class="paragraph">
 <p>Unlike unit tests which define a <code>TestRootModule</code> in-memory as part of the test code,
-Mill’s integration tests rely on a <code>build.mill</code> that is processed and compiled as part of the
+Mill&#8217;s integration tests rely on a <code>build.mill</code> that is processed and compiled as part of the
 test initialization, and can only perform assertions on the four things that are returned from
 any subprocess:</p>
 </div>
@@ -1064,13 +1066,13 @@ any subprocess:</p>
 </li>
 <li>
 <p>Any files that are generated on disk. In particular, files generated by tasks
-can be fetched via the <code>tester.out(&quot;...​&quot;).*</code> APIs to be read as JSON strings (via <code>.text</code>),
+can be fetched via the <code>tester.out("&#8230;&#8203;").*</code> APIs to be read as JSON strings (via <code>.text</code>),
 parsed <code>ujson.Value</code> ASTs (<code>.json</code>), or parsed into a typed Scala value (<code>.value[T]</code>)</p>
 </li>
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/src/mill/testkit/IntegrationTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/src/mill/testkit/IntegrationTests.scala">browse</a>)</div>
+<div class="title">myplugin/integration/src/mill/testkit/IntegrationTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/src/mill/testkit/IntegrationTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.testkit.IntegrationTester
@@ -1078,42 +1080,42 @@ import utest.*
 
 object IntegrationTests extends TestSuite {
 
-  println(&quot;initializing myplugin.IntegrationTest&quot;)
+  println("initializing myplugin.IntegrationTest")
   def tests: Tests = Tests {
-    println(&quot;initializing myplugin.IntegrationTest.tests&quot;)
+    println("initializing myplugin.IntegrationTest.tests")
 
-    test(&quot;integration&quot;) {
-      val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
+    test("integration") {
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       val tester = new IntegrationTester(
         daemonMode = true,
-        workspaceSourcePath = resourceFolder / &quot;integration-test-project&quot;,
-        millExecutable = os.Path(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
+        workspaceSourcePath = resourceFolder / "integration-test-project",
+        millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       )
 
-      val res1 = tester.eval(&quot;run&quot;)
+      val res1 = tester.eval("run")
       assert(res1.isSuccess)
-      assert(res1.err.contains(&quot;compiling 1 Java source&quot;)) // compiling the `build.mill`
-      assert(res1.out.contains(&quot;Line Count: 18&quot;))
-      assert(tester.out(&quot;lineCount&quot;).value[Int] == 18)
+      assert(res1.err.contains("compiling 1 Java source")) // compiling the `build.mill`
+      assert(res1.out.contains("Line Count: 18"))
+      assert(tester.out("lineCount").value[Int] == 18)
 
-      val res2 = tester.eval(&quot;run&quot;) // No need to recompile when nothing changed
-      assert(!res2.err.contains(&quot;compiling 1 Java source&quot;))
-      assert(res2.out.contains(&quot;Line Count: 18&quot;))
-      assert(tester.out(&quot;lineCount&quot;).value[Int] == 18)
+      val res2 = tester.eval("run") // No need to recompile when nothing changed
+      assert(!res2.err.contains("compiling 1 Java source"))
+      assert(res2.out.contains("Line Count: 18"))
+      assert(tester.out("lineCount").value[Int] == 18)
 
-      tester.modifyFile(tester.workspacePath / &quot;src/foo/Foo.java&quot;, _ + &quot;\n&quot;)
+      tester.modifyFile(tester.workspacePath / "src/foo/Foo.java", _ + "\n")
 
-      val res3 = tester.eval(&quot;run&quot;) // Additional newline forces recompile and increases line count
-      assert(res3.err.contains(&quot;compiling 1 Java source&quot;))
-      assert(res3.out.contains(&quot;Line Count: 19&quot;))
-      assert(tester.out(&quot;lineCount&quot;).value[Int] == 19)
+      val res3 = tester.eval("run") // Additional newline forces recompile and increases line count
+      assert(res3.err.contains("compiling 1 Java source"))
+      assert(res3.out.contains("Line Count: 19"))
+      assert(tester.out("lineCount").value[Int] == 19)
     }
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/resources/integration-test-project/src/foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/integration-test-project/src/foo/Foo.java">browse</a>)</div>
+<div class="title">myplugin/integration/resources/integration-test-project/src/foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/integration-test-project/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
 
@@ -1121,7 +1123,7 @@ public class Foo {
   public static String getLineCount() {
     try {
       return new String(
-          Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
+          Foo.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
     } catch (java.io.IOException e) {
       return null;
     }
@@ -1130,13 +1132,13 @@ public class Foo {
   static String lineCount = getLineCount();
 
   public static void main(String[] args) throws Exception {
-    System.out.println(&quot;Line Count: &quot; + lineCount);
+    System.out.println("Line Count: " + lineCount);
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/resources/integration-test-project/build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/integration-test-project/build.mill">browse</a>)</div>
+<div class="title">myplugin/integration/resources/integration-test-project/build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/integration-test-project/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
 //| - com.lihaoyi::myplugin::0.0.1
@@ -1145,7 +1147,7 @@ package build
 import mill.*, myplugin.*
 
 object `package` extends LineCountJavaModule {
-  def lineCountResourceFileName = &quot;line-count.txt&quot;
+  def lineCountResourceFileName = "line-count.txt"
 }</code></pre>
 </div>
 </div>
@@ -1169,7 +1171,7 @@ extended by a module) and what commands they can run exercising the plugin and t
 output they should expect:</p>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/src/mill/testkit/ExampleTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/src/mill/testkit/ExampleTests.scala">browse</a>)</div>
+<div class="title">myplugin/integration/src/mill/testkit/ExampleTests.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/src/mill/testkit/ExampleTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.testkit.ExampleTester
@@ -1178,12 +1180,12 @@ import utest.*
 object ExampleTests extends TestSuite {
 
   def tests: Tests = Tests {
-    test(&quot;example&quot;) {
-      val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
+    test("example") {
+      val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       ExampleTester.run(
         daemonMode = true,
-        workspaceSourcePath = resourceFolder / &quot;example-test-project&quot;,
-        millExecutable = os.Path(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
+        workspaceSourcePath = resourceFolder / "example-test-project",
+        millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       )
     }
   }
@@ -1191,7 +1193,7 @@ object ExampleTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/resources/example-test-project/src/foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/example-test-project/src/foo/Foo.java">browse</a>)</div>
+<div class="title">myplugin/integration/resources/example-test-project/src/foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/example-test-project/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
 
@@ -1199,7 +1201,7 @@ public class Foo {
   public static String getLineCount() {
     try {
       return new String(
-          Foo.class.getClassLoader().getResourceAsStream(&quot;line-count.txt&quot;).readAllBytes());
+          Foo.class.getClassLoader().getResourceAsStream("line-count.txt").readAllBytes());
     } catch (java.io.IOException e) {
       return null;
     }
@@ -1208,13 +1210,13 @@ public class Foo {
   static String lineCount = getLineCount();
 
   public static void main(String[] args) throws Exception {
-    System.out.println(&quot;Line Count: &quot; + lineCount);
+    System.out.println("Line Count: " + lineCount);
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/resources/example-test-project/build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/example-test-project/build.mill">browse</a>)</div>
+<div class="title">myplugin/integration/resources/example-test-project/build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/example-test-project/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
 //| - com.lihaoyi::myplugin::0.0.1
@@ -1223,7 +1225,7 @@ package build
 import mill.*, myplugin.*
 
 object `package` extends LineCountJavaModule {
-  def lineCountResourceFileName = &quot;line-count.txt&quot;
+  def lineCountResourceFileName = "line-count.txt"
 }
 
 /** Usage
@@ -1232,7 +1234,7 @@ object `package` extends LineCountJavaModule {
 Line Count: 18
 ...
 
-&gt; printf &quot;\n&quot; &gt;&gt; src/foo/Foo.java
+&gt; printf "\n" &gt;&gt; src/foo/Foo.java
 
 &gt; ./mill run
 Line Count: 19
@@ -1256,11 +1258,11 @@ Line Count: 19
 <p>If the command is expected to fail, the following lines should be prefixed by `error: `</p>
 </li>
 <li>
-<p>Expected output lines can contain <code>...​</code> wildcards to match against parts of the output
+<p>Expected output lines can contain <code>&#8230;&#8203;</code> wildcards to match against parts of the output
 which are unstable or unnecessary for someone reading through the <code>build.mill</code>.</p>
 </li>
 <li>
-<p>A <code>...​</code> wildcard on its own line can be used to match against any number of additional
+<p>A <code>&#8230;&#8203;</code> wildcard on its own line can be used to match against any number of additional
 lines of output</p>
 </li>
 </ul>
@@ -1268,9 +1270,9 @@ lines of output</p>
 <div class="paragraph">
 <p>The line-matching for example tests is intentionally fuzzy: it does not assert that the
 ordering of the lines printed by the command matches the ordering given, as long as every
-line printed is given and every line given is printed. <code>...​</code> wildcards intentionally add
+line printed is given and every line given is printed. <code>&#8230;&#8203;</code> wildcards intentionally add
 additional fuzziness to the matching. The point of example tests is not to match
-character-for-character exactly what the output must be, but to match on the &quot;important&quot;
+character-for-character exactly what the output must be, but to match on the "important"
 parts of the output while simultaneously emphasizing these important parts to someone who
 may be reading the <code>build.mill</code></p>
 </div>
@@ -1293,9 +1295,9 @@ what output they should expect.</p>
 </main>
 </div>
 <script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
-<script async="async" src="../../_/js/vendor/highlight.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
 <script src="../../_/js/vendor/lunr.js"></script>
 <script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
-<script async="async" src="../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>

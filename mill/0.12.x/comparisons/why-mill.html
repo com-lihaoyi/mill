@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Why Use Mill? :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/comparisons/why-mill.html">
+    <link rel="canonical" href="https://mill-build.org/mill/1.0.x/comparisons/why-mill.html">
     <link rel="prev" href="../android/android-linting.html">
     <link rel="next" href="maven.html">
     <meta name="generator" content="Antora 3.1.12">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.16</span>
+    <span class="version">0.12.17</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,17 +618,14 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.16</a>
+          <a href="../index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -653,8 +650,6 @@
 
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-</div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -712,8 +707,8 @@ import mill._, javalib._
 
 object foo extends JavaModule {
   def ivyDeps = Seq(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   object test extends JavaTests with TestModule.Junit4
@@ -1482,11 +1477,6 @@ define templated, customizable graph-computations when setting up their build pi
  viewBox="0.00 0.00 767.02 364.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"/>
-<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 484.87,-348 484.87,-240 8,-240"/>
@@ -1496,6 +1486,11 @@ define templated, customizable graph-computations when setting up their build pi
 <title>cluster_2</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="250.41,-8 250.41,-116 751.02,-116 751.02,-8 250.41,-8"/>
 <text text-anchor="middle" x="500.71" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"/>
+<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">

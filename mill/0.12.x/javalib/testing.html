@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.16</span>
+    <span class="version">0.12.17</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,17 +618,14 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.16</a>
+          <a href="../index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -654,8 +651,6 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
-</div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
@@ -673,7 +668,7 @@
 <h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/1-test-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/1-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -682,15 +677,15 @@ object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = Agg(
-      ivy"com.novocode:junit-interface:0.11",
-      ivy"org.mockito:mockito-core:4.6.1"
+      mvn"com.novocode:junit-interface:0.11",
+      mvn"org.mockito:mockito-core:4.6.1"
     )
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/1-test-suite/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/1-test-suite/foo/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -706,7 +701,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/1-test-suite/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/1-test-suite/foo/test/src/foo/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -816,7 +811,7 @@ details on how to use each one from the command line.</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.mockito:mockito-core:4.6.1"
+      mvn"org.mockito:mockito-core:4.6.1"
     )
   }
 }</code></pre>
@@ -940,7 +935,7 @@ and <code>runIvyDeps</code> to declare dependencies in test modules, and test mo
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/2-test-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/2-test-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -950,13 +945,13 @@ object qux extends JavaModule {
 
   object test extends JavaTests with TestModule.Junit4 {
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
-    def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.google.guava:guava:33.3.0-jre")
+    def ivyDeps = super.ivyDeps() ++ Agg(mvn"com.google.guava:guava:33.3.0-jre")
   }
 }
 
 object baz extends JavaModule {
   object test extends JavaTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.google.guava:guava:33.3.0-jre")
+    def ivyDeps = super.ivyDeps() ++ Agg(mvn"com.google.guava:guava:33.3.0-jre")
   }
 }</code></pre>
 </div>
@@ -999,7 +994,7 @@ the build below defines a test suite with the name <code>integration</code>, in 
 to that named <code>test</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/3-integration-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/3-integration-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1043,7 +1038,7 @@ Test parallelism should be able to reduce testing times for most project&#8217;s
 This feature is expected to be enabled by default in future versions of Mill.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-testing-4-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/4-test-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-testing-4-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/4-test-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1052,8 +1047,8 @@ object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = Agg(
-      ivy"com.novocode:junit-interface:0.11",
-      ivy"org.mockito:mockito-core:4.6.1"
+      mvn"com.novocode:junit-interface:0.11",
+      mvn"org.mockito:mockito-core:4.6.1"
     )
     def testParallelism = true
   }
@@ -1089,7 +1084,7 @@ execute in parallel in a separate JVM when you call <code>test</code>. Test grou
 is enabled by overriding <code>def testForkGrouping</code>, as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-testing-5-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/5-test-grouping">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-testing-5-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/5-test-grouping">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1098,8 +1093,8 @@ object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = Agg(
-      ivy"com.novocode:junit-interface:0.11",
-      ivy"org.mockito:mockito-core:4.6.1"
+      mvn"com.novocode:junit-interface:0.11",
+      mvn"org.mockito:mockito-core:4.6.1"
     )
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
   }
@@ -1107,7 +1102,7 @@ object foo extends JavaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/HelloTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/5-test-grouping/foo/test/src/foo/HelloTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/HelloTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/5-test-grouping/foo/test/src/foo/HelloTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -1129,7 +1124,7 @@ public class HelloTests {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/WorldTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/5-test-grouping/foo/test/src/foo/WorldTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/WorldTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/5-test-grouping/foo/test/src/foo/WorldTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -1210,7 +1205,7 @@ execution, based on the unique constraints of your test suite.</p>
 <p><code>testParallelism</code> respects <code>testForkGrouping</code>, allowing you to use both features in a test module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-testing-6-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/testing/6-test-group-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-testing-6-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/testing/6-test-group-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1219,8 +1214,8 @@ object foo extends JavaModule {
   object test extends JavaTests {
     def testFramework = "com.novocode.junit.JUnitFramework"
     def ivyDeps = Agg(
-      ivy"com.novocode:junit-interface:0.11",
-      ivy"org.mockito:mockito-core:4.6.1"
+      mvn"com.novocode:junit-interface:0.11",
+      mvn"org.mockito:mockito-core:4.6.1"
     )
     def testForkGrouping =
       discoveredTestClasses().groupMapReduce(_.contains("GroupX"))(Seq(_))(_ ++ _).toSeq.sortBy(

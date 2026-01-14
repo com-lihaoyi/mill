@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.16</span>
+    <span class="version">0.12.17</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,17 +618,14 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.16</a>
+          <a href="../index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -653,8 +650,6 @@
 
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-</div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -692,7 +687,7 @@ so its sources will live in the top-level <code>src/</code> folder and its tasks
 called directly via <code>compile</code> or <code>run</code> without needing a <code>foo.</code> module prefix.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -700,7 +695,7 @@ import mill._, javalib._
 object `package` extends RootModule with JavaModule {
   // You can have arbitrary numbers of third-party dependencies
   def ivyDeps = Agg(
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
   // Choose a main class to use for `.run` if there are multiple present
@@ -817,7 +812,7 @@ my.custom.property: my-prop-value</code></pre>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -874,7 +869,7 @@ mill foo.runLocal arg1 arg2 arg3</code></pre>
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/7-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/7-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -930,31 +925,31 @@ provide the folder path as an environment variable that the test can make use of
 <p>Example application code demonstrating the techniques above can be seen below:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Hello World Resource File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File B</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Other Hello World File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/7-resources/foo/src/Foo.java">browse</a>)</div>
+<div class="title">foo/src/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/7-resources/foo/src/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -974,7 +969,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/7-resources/foo/test/src/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/7-resources/foo/test/src/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -1050,14 +1045,14 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_annotation_processors"><a class="anchor" href="#_annotation_processors"></a>Annotation Processors</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-module-8-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/8-annotation-processors">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-module-8-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/8-annotation-processors">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 import java.io.File
 
 object foo extends JavaModule {
-  def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
+  def compileIvyDeps = Agg(mvn"org.projectlombok:lombok:1.18.34")
 
   object test extends JavaTests with TestModule.Junit4
 }</code></pre>
@@ -1093,10 +1088,10 @@ those to <code>-processorpath</code> to <code>javacOptions</code> explicitly:</p
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  def compileIvyDeps = Agg(ivy"org.projectlombok:lombok:1.18.34")
+  def compileIvyDeps = Agg(mvn"org.projectlombok:lombok:1.18.34")
 
   def processors = Task {
-    defaultResolver().classpath(Agg(ivy"org.projectlombok:lombok:1.18.34"))
+    defaultResolver().classpath(Agg(mvn"org.projectlombok:lombok:1.18.34"))
   }
 
   def javacOptions = Seq(
@@ -1130,7 +1125,7 @@ or ErrorProne use annotation processors, and can be set up in this way.</p>
 like to create the docs for, configured via <code>javaDocOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/9-docjar">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/9-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1155,7 +1150,7 @@ object foo extends JavaModule {
 <h2 id="specifying-main-class"><a class="anchor" href="#specifying-main-class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/11-main-class">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/11-main-class">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1203,13 +1198,13 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 
 object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(ivy"net.sourceforge.argparse4j:argparse4j:0.9.0")
+  def ivyDeps = Agg(mvn"net.sourceforge.argparse4j:argparse4j:0.9.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyIvyDeps = for (ivyDep &lt;- ivyDeps()) yield {
@@ -1443,7 +1438,7 @@ change.</p>
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1537,7 +1532,7 @@ Hello World</code></pre>
 code using JNI.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-javalib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/javalib/module/15-jni">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-javalib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/javalib/module/15-jni">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, util.Jvm

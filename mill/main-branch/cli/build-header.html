@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Build Header Config :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/cli/build-header.html" />
-    <link rel="prev" href="query-syntax.html" />
-    <link rel="next" href="../migrating/migrating.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/cli/build-header.html">
+    <link rel="prev" href="query-syntax.html">
+    <link rel="next" href="../migrating/migrating.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -137,22 +136,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/config.html">Config-Based Java Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
   </li>
 
@@ -161,7 +152,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../javalib/packaging.html">Packaging Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Publishing Java Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -175,6 +170,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../javalib/spring-boot.html">Spring Boot Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/script.html">Java Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -184,22 +183,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -208,7 +199,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../scalalib/packaging.html">Packaging Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -226,6 +221,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -235,22 +234,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -259,11 +250,236 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../kotlinlib/packaging.html">Packaging Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Why Mill?</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Comparing Mill vs Maven: Declarative Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Comparing Mill vs Gradle: Programmable Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/performance.html">Mill Build Performance</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Managing JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sbom.html">Software Bill of Materials (SBOM)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
   </li>
 </ul>
   </li>
@@ -377,222 +593,9 @@
   </li>
 </ul>
   </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">The Mill CLI</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="installation-ide.html">Installation &amp; IDE Setup</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="flags.html">Mill Command-Line Flags</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-current-page is-active" data-depth="2">
-    <a class="nav-link" href="build-header.html">Build Header Config</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill Fundamentals</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Extending Mill</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/docker.html">Docker</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sbom.html">Software Bill of Materials (SBOM)</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+    <a class="nav-link" href="../groovylib/intro.html">Building Groovy with Mill</a>
   </li>
 </ul>
   </li>
@@ -667,17 +670,14 @@
         <li class="version is-current">
           <a href="../index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version">
-          <a href="../../0.12.x/index.html">0.12.16</a>
+          <a href="../../0.12.x/index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -703,9 +703,6 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/cli/build-header.adoc">Edit this Page</a></div>
-</div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
@@ -725,9 +722,9 @@ This contains Mill configuration that needs to take effect before the body of th
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-version: {mill-version}
-mill-opts: [&quot;--jobs=0.5C&quot;]
+mill-opts: ["--jobs=0.5C"]
 mill-jvm-version: temurin:11
-mill-jvm-opts: [&quot;-XX:NonProfiledCodeHeapSize=250m&quot;, &quot;-XX:ReservedCodeCacheSize=500m&quot;]
+mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 
 mill-build: # configuration for the Mill meta-build
   repositories:
@@ -747,9 +744,9 @@ and newlines allowed:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-version: {mill-version}
 //| # yaml comments are allowed in the build header
-//| mill-opts: [&quot;--jobs=0.5C&quot;]
+//| mill-opts: ["--jobs=0.5C"]
 //| mill-jvm-version: temurin:11
-//| mill-jvm-opts: [&quot;-XX:NonProfiledCodeHeapSize=250m&quot;, &quot;-XX:ReservedCodeCacheSize=500m&quot;]
+//| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| # newlines are allowed too
 //|
 //| # configuration for the Mill meta-build
@@ -763,7 +760,7 @@ package build
 </div>
 </div>
 <div class="paragraph">
-<p>Mill’s build headers can contain the following keys:</p>
+<p>Mill&#8217;s build headers can contain the following keys:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -775,14 +772,14 @@ project. If not provided, Mill will launch using the version of your <code>./mil
 </li>
 <li>
 <p><a href="#_mill_opts">mill-opts</a>: flags to pass to Mill by default, useful for flags that you want
-everyone to use so they don’t need to always remember to type them at the command line</p>
+everyone to use so they don&#8217;t need to always remember to type them at the command line</p>
 </li>
 <li>
 <p><a href="#_mill_jvm_version">mill-jvm-version</a>: specifies an explicit JVM version to use, useful to help
 keep the build reproducible even when run on different machines.</p>
 </li>
 <li>
-<p><a href="#_mill_jvm_opts">mill-jvm-opts</a>: flags to pass to Mill’s background daemon JVM process,
+<p><a href="#_mill_jvm_opts">mill-jvm-opts</a>: flags to pass to Mill&#8217;s background daemon JVM process,
 e.g. to configure how much memory to give it</p>
 </li>
 <li>
@@ -807,7 +804,7 @@ following the <a href="https://dot-config.github.io/"><code>.config</code> XDG B
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill supports <code>mill-opts</code> for passing a default set of command line
-options to Mill itself. For example, if your project’s tasks are CPU heavy, you
+options to Mill itself. For example, if your project&#8217;s tasks are CPU heavy, you
 may want everyone using your project to run only 0.5 concurrent tasks per CPU. This
 can be done by adding your build header:</p>
 </div>
@@ -816,7 +813,7 @@ can be done by adding your build header:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">//| mill-opts: [&quot;--jobs=0.5C&quot;]</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">//| mill-opts: ["--jobs=0.5C"]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -827,7 +824,7 @@ flags the Mill executable can take.</p>
 </div>
 <div class="admonitionblock note">
 <table>
-<tbody><tr>
+<tr>
 <td class="icon">
 <i class="fa icon-note" title="Note"></i>
 </td>
@@ -835,10 +832,10 @@ flags the Mill executable can take.</p>
 <code>.mill-opts</code> is for passing options to Mill itself, and <code>.mill-jvm-opts</code> is for passing
 JVM options to the JVM running Mill. If you want to pass JVM options to the project that Mill
 is building and running, see the section on
-<a href="../javalib/module-config.html#_compilation_execution_flags" class="xref page">Compilation and Execution Flags</a>.
+<a href="../javalib/module-config.html#_declarative_configuration" class="xref page">Compilation and Execution Flags</a>.
 </td>
 </tr>
-</tbody></table>
+</table>
 </div>
 </div>
 </div>
@@ -863,11 +860,11 @@ version used for any JVMs spawned by Mill to <code>run</code> or <code>test</cod
 YAML key:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-26-8ebd51/mill-dist-1.1.0-RC3-26-8ebd51-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: temurin:17.0.6
 
-extends: [JavaModule]</code></pre>
+extends: JavaModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -913,7 +910,7 @@ versions to their download location, as well as partially-qualified versions suc
 <code>temurin:11</code> to the specific point version such as <code>temurin:11.0.28</code>. The version of
 the JVM index is set by the version of Mill you are using, but you can override it
 to use a newer JVM index (e.g. if you want to use a newly-released JVM not yet included
-in Mill’s jvm index version) or an older JVM index.</p>
+in Mill&#8217;s jvm index version) or an older JVM index.</p>
 </div>
 <div class="paragraph">
 <p>The list of JVM index versions can be seen here:</p>
@@ -926,17 +923,17 @@ in Mill’s jvm index version) or an older JVM index.</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-26-8ebd51/mill-dist-1.1.0-RC3-26-8ebd51-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/cli/header/4-jvm-index-version">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/cli/header/4-jvm-index-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-index-version: 0.0.4-88-f9ba3d
 //| mill-jvm-version: temurin:17
 
 package build
 
-import mill._
+import mill.*
 
 def printJavaVersion() = Task.Command {
-  println(&quot;Java version: &quot; + System.getProperty(&quot;java.version&quot;))
+  println("Java version: " + System.getProperty("java.version"))
 }</code></pre>
 </div>
 </div>
@@ -957,9 +954,9 @@ Java version: 17.0.14</code></pre>
 <h2 id="_mill_jvm_opts"><a class="anchor" href="#_mill_jvm_opts"></a>mill-jvm-opts</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill supports <code>mill-jvm-opts</code> to set JVM-level flags
-It’s possible to pass JVM options to the Mill launcher.To do this you can either set
-the <code>JAVA_OPTS</code> environment variable, <a href="build-header.html" class="xref page">Build Header Config</a>, or create a <code>.mill-jvm-opts</code> file in your project’s
+<p>Mill supports <code>mill-jvm-opts</code> to set JVM-level flags.
+It&#8217;s possible to pass JVM options to the Mill launcher. To do this you can either set
+the <code>JAVA_OPTS</code> environment variable, <a href="build-header.html" class="xref page">Build Header Config</a>, or create a <code>.mill-jvm-opts</code> file in your project&#8217;s
 root that contains JVM options one per line.</p>
 </div>
 <div class="paragraph">
@@ -978,7 +975,7 @@ root that contains JVM options one per line.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">//| mill-jvm-opts: [&quot;-Xss10m&quot;, &quot;-Xmx10G&quot;]</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">//| mill-jvm-opts: ["-Xss10m", "-Xmx10G"]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1005,9 +1002,9 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-26-8ebd51/mill-dist-1.1.0-RC3-26-8ebd51-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: [&quot;-Wunused:privates&quot;, &quot;-Xfatal-warnings&quot;]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: ["-Wunused:privates", "-Xfatal-warnings"]
 
 package build
 import mill.*, javalib.*
@@ -1029,10 +1026,10 @@ For simple projects defined with a <code>build.mill.yaml</code> file, meta-build
 is put in the <code>mill-build:</code> key of the <code>build.mill.yaml</code> file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-26-8ebd51/mill-dist-1.1.0-RC3-26-8ebd51-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
-  scalacOptions: [&quot;-verbose&quot;]</code></pre>
+  scalacOptions: ["-verbose"]</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1066,9 +1063,9 @@ file.</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

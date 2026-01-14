@@ -1,18 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html lang="en"><head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Java Web Project Examples :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/javalib/web-examples.html" />
-    <link rel="prev" href="build-examples.html" />
-    <link rel="next" href="spring-boot.html" />
-    <meta name="generator" content="Antora 3.1.12" />
-    <link rel="stylesheet" href="../../../_/css/site.css" />
-    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <link rel="canonical" href="https://mill-build.org/mill/javalib/web-examples.html">
+    <link rel="prev" href="build-examples.html">
+    <link rel="next" href="spring-boot.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
-<link rel="icon" href="../../../_/favicon.png" type="image/x-icon" />
-  
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
   <style>
   /* auto-hyphenation is super ugly */
   *{
@@ -43,10 +45,7 @@
     top: 2.5rem;
     height: calc(100vh - 2.5rem);
   }
-  </style></head><body class="article">
-  
-<header class="header">
-  
+  </style>
   <script>
   gtag('config', 'AW-16649289906');
 
@@ -65,9 +64,9 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <!-- TODO: add mill icon -->
-      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" /> The Mill Build Tool</a>
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
       <div class="navbar-item search">
-        <input id="search-input" type="text" placeholder="Search the docs" />
+        <input id="search-input" type="text" placeholder="Search the docs">
       </div>
       <button class="navbar-burger" data-target="topbar-nav">
         <span></span>
@@ -137,22 +136,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="config.html">Config-Based Java Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="script.html">Java Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="module-config.html">Java Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="testing.html">Testing Java Projects</a>
   </li>
 
@@ -161,7 +152,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Java Packaging &amp; Publishing</a>
+    <a class="nav-link" href="packaging.html">Packaging Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="publishing.html">Publishing Java Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -175,6 +170,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="spring-boot.html">Spring Boot Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="script.html">Java Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -184,22 +183,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -208,7 +199,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../scalalib/packaging.html">Packaging Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -226,6 +221,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -235,22 +234,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -259,11 +250,236 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../kotlinlib/packaging.html">Packaging Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Why Mill?</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Comparing Mill vs Maven: Declarative Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Comparing Mill vs Gradle: Programmable Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/performance.html">Mill Build Performance</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Managing JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sbom.html">Software Bill of Materials (SBOM)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
   </li>
 </ul>
   </li>
@@ -377,222 +593,9 @@
   </li>
 </ul>
   </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">The Mill CLI</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill Fundamentals</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Extending Mill</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/docker.html">Docker</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sbom.html">Software Bill of Materials (SBOM)</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+    <a class="nav-link" href="../groovylib/intro.html">Building Groovy with Mill</a>
   </li>
 </ul>
   </li>
@@ -667,17 +670,14 @@
         <li class="version is-current">
           <a href="../index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version">
-          <a href="../../0.12.x/index.html">0.12.16</a>
+          <a href="../../0.12.x/index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -703,9 +703,6 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px;">
-<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/docs/modules/ROOT/pages/javalib/web-examples.adoc">Edit this Page</a></div>
-</div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
@@ -721,6 +718,83 @@ It covers setting up a basic backend server with a variety of server frameworks<
 </div>
 </div>
 <div class="sect1">
+<h2 id="_simple_web_example"><a class="anchor" href="#_simple_web_example"></a>Simple Web Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example shows off running a simple webserver in a module configured via <code>build.mill.yaml</code></p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/web/1-web-example/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, the webserver script uses the <a href="https://spring.io/projects/spring-boot">Spring Boot</a> framework
+to run the web server</p>
+</div>
+<div class="listingblock">
+<div class="title">src/WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/web/1-web-example/src/WebServer.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.*;
+
+@SpringBootApplication
+@RestController
+public class WebServer {
+  public static void main(String[] args) {
+    System.setProperty("server.port", System.getenv().getOrDefault("PORT", "8080"));
+    SpringApplication.run(WebServer.class, args);
+  }
+
+  @PostMapping("/reverse-string")
+  public String reverseString(@RequestBody String body) {
+    return new StringBuilder(body).reverse().toString();
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill runBackground
+
+&gt; curl -d 'helloworld' localhost:${PORT:-8080}/reverse-string
+dlrowolleh
+
+&gt; ./mill clean runBackground # shut down webserver</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_testing_web_projects"><a class="anchor" href="#_testing_web_projects"></a>Testing Web Projects</h3>
+<div class="paragraph">
+<p>This example web project comes with a small test suite in the <code>test/</code> folder,
+configured by <code>test/package.mill.yaml</code>. This test suite spins up the server and
+makes a single HTTP request against and checks it behaves as expected.</p>
+</div>
+<div class="listingblock">
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-javalib-web-1-web-example.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/web/1-web-example/test/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, TestModule.Junit5]
+mvnDeps:
+- com.squareup.okhttp3:okhttp:4.12.0
+- org.junit.jupiter:junit-jupiter-api:5.10.1
+- org.junit.jupiter:junit-jupiter-engine:5.10.1</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
+Test example.WebServerTests#testReverseString() finished...</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_spring_boot"><a class="anchor" href="#_spring_boot"></a>Spring Boot</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -732,14 +806,14 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-26-8ebd51/mill-dist-1.1.0-RC3-26-8ebd51-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/web/1-hello-jetty/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-javalib-web-2-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/web/2-hello-jetty/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule]
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps:
 - org.eclipse.jetty:jetty-server:9.4.43.v20210629
 - javax.servlet:javax.servlet-api:4.0.1
 object test:
-  extends: [JavaTests, mill.javalib.TestModule.Junit4]</code></pre>
+  extends: [JavaTests, TestModule.Junit4]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -753,7 +827,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 
 &gt; ./mill runBackground
 
-&gt; curl http://localhost:8085
+&gt; curl http://localhost:${PORT:-8080}
 ...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
 
 &gt; ./mill clean runBackground</code></pre>
@@ -765,26 +839,26 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-26-8ebd51/mill-dist-1.1.0-RC3-26-8ebd51-example-javalib-web-2-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/web/2-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-javalib-web-3-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/web/3-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill.*, javalib.*
 
 object `package` extends MicronautModule {
-  def micronautVersion = &quot;4.6.1&quot;
+  def micronautVersion = "4.6.1"
 
   def mvnDeps = Seq(
-    mvn&quot;io.micronaut:micronaut-http-server-netty&quot;,
-    mvn&quot;io.micronaut.serde:micronaut-serde-jackson&quot;,
-    mvn&quot;ch.qos.logback:logback-classic:1.5.3&quot;
+    mvn"io.micronaut:micronaut-http-server-netty",
+    mvn"io.micronaut.serde:micronaut-serde-jackson",
+    mvn"ch.qos.logback:logback-classic:1.5.3"
   )
 
   object test extends MavenTests, TestModule.Junit5 {
 
     def mvnDeps = Seq(
-      mvn&quot;io.micronaut:micronaut-http-client&quot;,
-      mvn&quot;io.micronaut.test:micronaut-test-junit5&quot;
+      mvn"io.micronaut:micronaut-http-client",
+      mvn"io.micronaut.test:micronaut-test-junit5"
     )
 
     // Micronaut test not compatible with running in parallel
@@ -796,27 +870,27 @@ trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
   override def bomMvnDeps = Seq(
-    mvn&quot;io.micronaut.platform:micronaut-platform:${micronautVersion}&quot;
+    mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
   )
 
   override def annotationProcessorsMvnDeps =
     Seq(
-      mvn&quot;io.micronaut.data:micronaut-data-processor&quot;,
-      mvn&quot;io.micronaut:micronaut-http-validation&quot;,
-      mvn&quot;io.micronaut.serde:micronaut-serde-processor&quot;,
-      mvn&quot;io.micronaut.validation:micronaut-validation-processor&quot;,
-      mvn&quot;io.micronaut:micronaut-inject-java&quot;
+      mvn"io.micronaut.data:micronaut-data-processor",
+      mvn"io.micronaut:micronaut-http-validation",
+      mvn"io.micronaut.serde:micronaut-serde-processor",
+      mvn"io.micronaut.validation:micronaut-validation-processor",
+      mvn"io.micronaut:micronaut-inject-java"
     )
 
   override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
-    &quot;-Amicronaut.processing.incremental=true&quot;,
-    &quot;-Amicronaut.processing.group=example.micronaut&quot;,
-    &quot;-Amicronaut.processing.module=hello&quot;,
-    &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;
+    "-Amicronaut.processing.incremental=true",
+    "-Amicronaut.processing.group=example.micronaut",
+    "-Amicronaut.processing.module=hello",
+    "-Amicronaut.processing.annotations=example.micronaut.*"
   )
 
   def javacOptions = super.javacOptions() ++ Seq(
-    &quot;-parameters&quot;
+    "-parameters"
   )
 }</code></pre>
 </div>
@@ -849,7 +923,7 @@ extended with more features as necessary.</p>
 
 &gt; ./mill runBackground
 
-&gt; curl http://localhost:8088/hello
+&gt; curl http://localhost:${PORT:-8080}/hello
 ...Hello World...
 
 &gt; ./mill clean runBackground</code></pre>
@@ -861,42 +935,42 @@ extended with more features as necessary.</p>
 <h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3-26-8ebd51/mill-dist-1.1.0-RC3-26-8ebd51-example-javalib-web-3-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/web/3-todo-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-javalib-web-4-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/web/4-todo-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill.*, javalib.*
 
 object `package` extends MicronautModule {
-  def micronautVersion = &quot;4.4.3&quot;
+  def micronautVersion = "4.4.3"
   def runMvnDeps = Seq(
-    mvn&quot;ch.qos.logback:logback-classic:1.5.3&quot;,
-    mvn&quot;com.h2database:h2:2.2.224&quot;
+    mvn"ch.qos.logback:logback-classic:1.5.3",
+    mvn"com.h2database:h2:2.2.224"
   )
 
   def mvnDeps = Seq(
-    mvn&quot;io.micronaut:micronaut-http-server-netty&quot;,
-    mvn&quot;io.micronaut.serde:micronaut-serde-jackson&quot;,
-    mvn&quot;io.micronaut.data:micronaut-data-jdbc&quot;,
-    mvn&quot;io.micronaut.sql:micronaut-jdbc-hikari&quot;,
-    mvn&quot;io.micronaut.validation:micronaut-validation&quot;,
-    mvn&quot;io.micronaut.views:micronaut-views-htmx&quot;,
-    mvn&quot;io.micronaut.views:micronaut-views-thymeleaf&quot;,
-    mvn&quot;org.webjars.npm:todomvc-common:1.0.5&quot;,
-    mvn&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;,
-    mvn&quot;org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10&quot;
+    mvn"io.micronaut:micronaut-http-server-netty",
+    mvn"io.micronaut.serde:micronaut-serde-jackson",
+    mvn"io.micronaut.data:micronaut-data-jdbc",
+    mvn"io.micronaut.sql:micronaut-jdbc-hikari",
+    mvn"io.micronaut.validation:micronaut-validation",
+    mvn"io.micronaut.views:micronaut-views-htmx",
+    mvn"io.micronaut.views:micronaut-views-thymeleaf",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1",
+    mvn"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
   )
 
   object test extends MavenTests, TestModule.Junit5 {
 
     override def bomMvnDeps = Seq(
-      mvn&quot;io.micronaut.platform:micronaut-platform:${micronautVersion}&quot;
+      mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
     )
 
     def mvnDeps = Seq(
-      mvn&quot;com.h2database:h2:2.2.224&quot;,
-      mvn&quot;io.micronaut:micronaut-http-client&quot;,
-      mvn&quot;io.micronaut.test:micronaut-test-junit5&quot;
+      mvn"com.h2database:h2:2.2.224",
+      mvn"io.micronaut:micronaut-http-client",
+      mvn"io.micronaut.test:micronaut-test-junit5"
     )
 
     // Micronaut test not compatible with running in parallel
@@ -908,26 +982,26 @@ trait MicronautModule extends MavenModule {
   def micronautVersion: String
 
   override def bomMvnDeps = Seq(
-    mvn&quot;io.micronaut.platform:micronaut-platform:${micronautVersion}&quot;
+    mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
   )
 
   override def annotationProcessorsMvnDeps = Seq(
-    mvn&quot;io.micronaut.data:micronaut-data-processor&quot;,
-    mvn&quot;io.micronaut:micronaut-http-validation&quot;,
-    mvn&quot;io.micronaut.serde:micronaut-serde-processor&quot;,
-    mvn&quot;io.micronaut.validation:micronaut-validation-processor&quot;,
-    mvn&quot;io.micronaut:micronaut-inject-java&quot;
+    mvn"io.micronaut.data:micronaut-data-processor",
+    mvn"io.micronaut:micronaut-http-validation",
+    mvn"io.micronaut.serde:micronaut-serde-processor",
+    mvn"io.micronaut.validation:micronaut-validation-processor",
+    mvn"io.micronaut:micronaut-inject-java"
   )
 
   override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
-    &quot;-Amicronaut.processing.incremental=true&quot;,
-    &quot;-Amicronaut.processing.group=example.micronaut&quot;,
-    &quot;-Amicronaut.processing.module=todo&quot;,
-    &quot;-Amicronaut.processing.annotations=example.micronaut.*&quot;
+    "-Amicronaut.processing.incremental=true",
+    "-Amicronaut.processing.group=example.micronaut",
+    "-Amicronaut.processing.module=todo",
+    "-Amicronaut.processing.annotations=example.micronaut.*"
   )
 
   def javacOptions = super.javacOptions() ++ Seq(
-    &quot;-parameters&quot;
+    "-parameters"
   )
 }</code></pre>
 </div>
@@ -936,7 +1010,7 @@ trait MicronautModule extends MavenModule {
 <p>This example is a more complete example using Micronaut, adapted from
 <a href="https://github.com/sdelamo/todomvc" class="bare">https://github.com/sdelamo/todomvc</a>. On top of the <code>MicronautModule</code> and
 annotation processing demonstrated by the previous example, this example
-shows how a &quot;full stack&quot; web application using Micronaut looks like:</p>
+shows how a "full stack" web application using Micronaut looks like:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -962,7 +1036,7 @@ shows how a &quot;full stack&quot; web application using Micronaut looks like:</
 </div>
 <div class="paragraph">
 <p>Again, the example <code>MicronautModule</code> is by no means complete, but it demonstrates
-how Mill can be integrated with Micronaut’s annotation processors and configuration,
+how Mill can be integrated with Micronaut&#8217;s annotation processors and configuration,
 and can be extended to cover additional functionality in future</p>
 </div>
 <div class="listingblock">
@@ -976,10 +1050,168 @@ and can be extended to cover additional functionality in future</p>
 
 &gt; ./mill runBackground
 
-&gt; curl http://localhost:8089
+&gt; curl http://localhost:${PORT:-8080}
  ...&lt;h1&gt;todos&lt;/h1&gt;...
 
 &gt; ./mill clean runBackground</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_micronaut_native_graalvm"><a class="anchor" href="#_micronaut_native_graalvm"></a>Micronaut Native (GraalVM)</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-4-da1855/mill-dist-1.1.0-RC4-4-da1855-example-javalib-web-5-micronaut-native.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/web/5-micronaut-native">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*
+import javalib.*
+import mill.api.{PathRef, Task}
+import mill.util.Jvm
+import os.zip.ZipSource
+
+import java.util.jar.JarInputStream
+
+object `package` extends MavenModule, NativeImageModule { outer =&gt;
+
+  override def bomMvnDeps = Seq(
+    mvn"io.micronaut.platform:micronaut-platform:4.10.3"
+  )
+
+  /**
+   * TODO Mill support for AOT
+   */
+  def resolvedMicronautAotCli: T[Seq[PathRef]] = defaultResolver().classpath(
+    Seq(
+      mvn"io.micronaut.aot:micronaut-aot-cli:2.9.0",
+      mvn"io.micronaut.aot:micronaut-aot-api:2.9.0",
+      mvn"io.micronaut.aot:micronaut-aot-core:2.9.0",
+      mvn"io.micronaut.aot:micronaut-aot-std-optimizers:2.9.0"
+    )
+  )
+
+  /**
+   * TODO Mill support for AOT
+   * More information on configuring Micronaut AOT can be found
+   * in [[https://micronaut-projects.github.io/micronaut-aot/latest/guide/configurationreference.html]]
+   */
+  def aotConfigFile: T[PathRef] = Task {
+    val file = Task.dest / "micronaut-aot.properties"
+    os.write(
+      file,
+      """
+        |logback.xml.to.java.enabled=true
+        |netty.properties.enabled=true
+        |deduce.environment.enabled=true
+        |serviceloading.native.enabled=false
+        |precompute.environment.properties.enabled=true
+        |sealed.property.source.enabled=true
+        |cached.environment.enabled=true
+        |graalvm.config.enabled=true
+      """.stripMargin
+    )
+    PathRef(file)
+  }
+
+  /**
+   * The settings can be found in
+   * [[https://github.com/micronaut-projects/micronaut-aot/blob/3.0.x/aot-cli/src/main/java/io/micronaut/aot/cli/Main.java]]
+   */
+  def micronautProcessAOT: T[PathRef] = Task {
+    val dest = Task.dest
+
+    val args = Seq(
+      "--classpath",
+      (runClasspath() ++ resolvedMicronautAotCli()).map(_.path).mkString(":"),
+      "--package",
+      "hello.world",
+      "--runtime",
+      "native",
+      "--config",
+      aotConfigFile().path.toString,
+      "--output",
+      dest.toString
+    )
+
+    Jvm.callProcess(
+      mainClass = "io.micronaut.aot.cli.Main",
+      mainArgs = args,
+      classPath = resolvedMicronautAotCli().map(_.path)
+    )
+
+    PathRef(dest)
+  }
+
+  override def nativeImageClasspath: Task.Simple[Seq[PathRef]] = Task {
+    val aotClasses = Seq(PathRef(outer.micronautProcessAOT().path / "classes"))
+    super.nativeImageClasspath() ++ aotClasses
+  }
+
+  def nettyDeps: T[Seq[Dep]] = Seq(
+    mvn"io.micronaut:micronaut-http-server-netty"
+  )
+
+  override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
+    val configurationsPath = outer.micronautProcessAOT().path / "classes/META-INF"
+    super.nativeImageOptions() ++ Seq(
+      "--no-fallback",
+      "--configurations-path",
+      configurationsPath.toString
+    )
+  }
+
+  def mvnDeps = Seq(
+    mvn"io.micronaut:micronaut-http-client",
+    mvn"io.micronaut.serde:micronaut-serde-jackson"
+  )
+
+  def jvmVersion = "graalvm-community:21.0.2"
+
+  def finalMainClass = "hello.world.Application"
+
+  def annotationProcessorsMvnDeps = Seq(
+    mvn"io.micronaut:micronaut-http-validation",
+    mvn"io.micronaut.serde:micronaut-serde-processor"
+  )
+
+  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
+    "-Amicronaut.processing.incremental=true",
+    "-Amicronaut.processing.annotations=hello.world.*"
+  )
+
+  def javacOptions = super.javacOptions() ++ Seq(
+    "-parameters"
+  )
+
+  def compileMvnDeps = Seq(
+    mvn"io.micronaut:micronaut-http-client"
+  )
+
+  override def runMvnDeps = Seq(
+    mvn"io.micronaut:micronaut-http-server-netty",
+    mvn"ch.qos.logback:logback-classic"
+  )
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to configure mill for a simple micronaut project.
+It manually configures Micronaut&#8217;s AOT and feeds the result into the native image process.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show nativeImage
+...out/nativeImage.dest/native-executable...
+
+&gt; ./mill show nativeRunBackground
+
+&gt; curl http://localhost:${PORT:-9870}
+{"_links":{"self":[{"href":"/","templated":false}]},"_embedded":{"errors":[{"message":"Page Not Found"}]},"message":"Not Found"}
+
+&gt; ./mill clean nativeRunBackground</code></pre>
 </div>
 </div>
 </div>
@@ -993,9 +1225,9 @@ and can be extended to cover additional functionality in future</p>
 </main>
 </div>
 <script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
-<script async="async" src="../../../_/js/vendor/highlight.js"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
 <script src="../../../_/js/vendor/lunr.js"></script>
 <script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
-<script async="async" src="../../../search-index.js"></script>
-  
-</body></html>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>

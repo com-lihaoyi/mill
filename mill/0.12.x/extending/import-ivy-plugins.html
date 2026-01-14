@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.16</span>
+    <span class="version">0.12.17</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,17 +618,14 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.16</a>
+          <a href="../index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -653,8 +650,6 @@
 
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-</div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -686,7 +681,7 @@ into your build, so you can use it at build-time to safely generate escaped HTML
 in your resource path for your application to use.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-extending-imports-1-import-ivy.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/imports/1-import-ivy">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-extending-imports-1-import-ivy.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/extending/imports/1-import-ivy">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -748,7 +743,7 @@ a HTML generation library that does the string concatenation/construction intern
 and also escapes the input strings on your behalf:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-extending-imports-2-import-ivy-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/extending/imports/2-import-ivy-scala">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-extending-imports-2-import-ivy-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/extending/imports/2-import-ivy-scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
 import $ivy.`com.lihaoyi::scalatags:0.13.1`, scalatags.Text.all._
@@ -756,7 +751,7 @@ import $ivy.`com.lihaoyi::scalatags:0.13.1`, scalatags.Text.all._
 object bar extends ScalaModule {
   def scalaVersion = "2.13.8"
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7")
+  def ivyDeps = Agg(mvn"com.lihaoyi::os-lib:0.10.7")
   def htmlSnippet = Task { div(h1("hello"), p("world")).toString }
   def resources = Task.Sources {
     os.write(Task.dest / "snippet.txt", htmlSnippet())

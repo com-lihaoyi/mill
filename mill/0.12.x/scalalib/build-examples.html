@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.16</span>
+    <span class="version">0.12.17</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,17 +618,14 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.16</a>
+          <a href="../index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -654,8 +651,6 @@
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
 </div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
-</div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
@@ -672,7 +667,7 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <div class="sect2">
 <h3 id="_acyclic"><a class="anchor" href="#_acyclic"></a>Acyclic</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/thirdparty/acyclic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-thirdparty-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/thirdparty/acyclic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._</code></pre>
@@ -692,9 +687,9 @@ when preparing the resources for test suite execution</p>
 )
 
 object Deps {
-  def acyclic = ivy"com.lihaoyi:::acyclic:0.3.6"
-  def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:$scalaVersion"
-  val utest = ivy"com.lihaoyi::utest:0.8.5"
+  def acyclic = mvn"com.lihaoyi:::acyclic:0.3.6"
+  def scalaCompiler(scalaVersion: String) = mvn"org.scala-lang:scala-compiler:$scalaVersion"
+  val utest = mvn"com.lihaoyi::utest:0.8.5"
 }
 
 val crosses =
@@ -771,7 +766,7 @@ compiling 6 Scala sources...
 <div class="sect2">
 <h3 id="_fansi"><a class="anchor" href="#_fansi"></a>Fansi</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/thirdparty/fansi">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-thirdparty-fansi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/thirdparty/fansi">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
@@ -792,10 +787,10 @@ trait FansiModule extends PublishModule with CrossScalaModule with PlatformScala
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode::0.3.0")
+  def ivyDeps = Agg(mvn"com.lihaoyi::sourcecode::0.3.0")
 
   trait FansiTests extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.5")
+    def ivyDeps = Agg(mvn"com.lihaoyi::utest::0.8.5")
   }
 }
 

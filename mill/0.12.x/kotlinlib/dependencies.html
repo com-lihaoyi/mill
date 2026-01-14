@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.16</span>
+    <span class="version">0.12.17</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,17 +618,14 @@
         <li class="version">
           <a href="../../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC3</a>
+          <a href="../../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version is-current">
-          <a href="../index.html">0.12.16</a>
+          <a href="../index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../../0.11.x/index.html">0.11.13</a>
@@ -653,8 +650,6 @@
 
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-</div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -684,7 +679,7 @@ for <code>KotlinModule</code>.</p>
 <h2 id="_adding_ivy_dependencies"><a class="anchor" href="#_adding_ivy_dependencies"></a>Adding Ivy Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-dependencies-1-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/dependencies/1-ivy-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-dependencies-1-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/dependencies/1-ivy-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -694,7 +689,7 @@ object `package` extends RootModule with KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def ivyDeps = Agg(
-    ivy"com.fasterxml.jackson.core:jackson-databind:2.13.4"
+    mvn"com.fasterxml.jackson.core:jackson-databind:2.13.4"
   )
 }</code></pre>
 </div>
@@ -709,7 +704,7 @@ a type common in Mill builds.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Single <code>:</code> syntax (e.g. <code>"ivy"org.testng:testng:6.11"</code>) defines Java
+<p>Single <code>:</code> syntax (e.g. <code>"mvn"org.testng:testng:6.11"</code>) defines Java
 dependencies</p>
 </li>
 </ul>
@@ -720,7 +715,7 @@ dependencies</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests</code></p>
+<p><code>mvn"org.apache.spark::spark-sql:2.4.0;classifier=tests</code></p>
 </li>
 </ul>
 </div>
@@ -744,7 +739,7 @@ dependencies and their versions at runtime, you can do so with
 <code>runIvyDeps</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/dependencies/2-run-compile-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/dependencies/2-run-compile-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -755,9 +750,9 @@ object foo extends KotlinModule {
 
   def moduleDeps = Seq(bar)
   def runIvyDeps = Agg(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    mvn"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
   def mainClass = Some("bar.BarKt")
 }</code></pre>
@@ -775,9 +770,9 @@ transitive dependencies.</p>
   def kotlinVersion = "1.9.24"
 
   def compileIvyDeps = Agg(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    mvn"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
 }</code></pre>
 </div>
@@ -841,7 +836,7 @@ from somewhere and need to include it in your project, <code>unmanagedClasspath<
 way to do it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/dependencies/3-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/dependencies/3-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -881,7 +876,7 @@ download from arbitrary URLs.
 library, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -944,7 +939,7 @@ the standard package repository for JVM languages like Java, Kotlin, or Scala. Y
 can also add your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.16/mill-dist-0.12.16-example-kotlinlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.16/example/kotlinlib/dependencies/5-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.17/mill-dist-0.12.17-example-kotlinlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.17/example/kotlinlib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -961,8 +956,8 @@ object foo extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def ivyDeps = Agg(
-    ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
-    ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+    mvn"com.github.ajalt.clikt:clikt-jvm:4.4.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
   def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }

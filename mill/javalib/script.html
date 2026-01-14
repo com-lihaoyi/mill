@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Java Single-File Scripts :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/javalib/script.html">
-    <link rel="prev" href="config.html">
-    <link rel="next" href="module-config.html">
+    <link rel="prev" href="spring-boot.html">
+    <link rel="next" href="../scalalib/intro.html">
     <meta name="generator" content="Antora 3.1.12">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -136,22 +136,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="config.html">Config-Based Java Modules</a>
-  </li>
-
-  <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="script.html">Java Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="module-config.html">Java Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="dependencies.html">Java Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="testing.html">Testing Java Projects</a>
   </li>
 
@@ -160,7 +152,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="publishing.html">Java Packaging &amp; Publishing</a>
+    <a class="nav-link" href="packaging.html">Packaging Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="publishing.html">Publishing Java Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -174,6 +170,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="spring-boot.html">Spring Boot Projects</a>
   </li>
+
+  <li class="nav-item is-current-page is-active" data-depth="2">
+    <a class="nav-link" href="script.html">Java Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -183,22 +183,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/config.html">Config-Based Scala Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
   </li>
 
@@ -207,7 +199,11 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../scalalib/packaging.html">Packaging Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Publishing Scala Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
@@ -225,6 +221,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/script.html">Scala Single-File Scripts</a>
+  </li>
 </ul>
   </li>
 
@@ -234,22 +234,14 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/config.html">Config-Based Kotlin Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="2">
+  <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
   </li>
 
@@ -258,11 +250,236 @@
   </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+    <a class="nav-link" href="../kotlinlib/packaging.html">Packaging Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Publishing Kotlin Projects</a>
   </li>
 
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/script.html">Kotlin Single-File Scripts</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Why Mill?</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Comparing Mill vs Maven: Declarative Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Comparing Mill vs Gradle: Programmable Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/performance.html">Mill Build Performance</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Managing JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sbom.html">Software Bill of Materials (SBOM)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
   </li>
 </ul>
   </li>
@@ -376,218 +593,9 @@
   </li>
 </ul>
   </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">The Mill CLI</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
-  </li>
 
   <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Mill Fundamentals</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Extending Mill</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/docker.html">Docker</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
-  </li>
-</ul>
-  </li>
-
-  <li class="nav-item is-active" data-depth="1">
-    <button class="nav-item-toggle"></button>
-    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+    <a class="nav-link" href="../groovylib/intro.html">Building Groovy with Mill</a>
   </li>
 </ul>
   </li>
@@ -653,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC3</span>
+    <span class="version">1.1.0-RC4</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -662,17 +670,14 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.1.0-RC3-19-3730cf/index.html">dev-1.1.0-RC3-19-3730cf</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC3</a>
+          <a href="../index.html">1.1.0-RC4</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version">
-          <a href="../0.12.x/index.html">0.12.16</a>
+          <a href="../0.12.x/index.html">0.12.17</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -697,8 +702,6 @@
 
 <div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
 <button class="nav-toggle"></button>
-</div>
-<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
 </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -741,11 +744,11 @@ may not be as familiar with the intricacies of writing robust and maintainable B
 <div class="sect2">
 <h3 id="_html_web_scraper"><a class="anchor" href="#_html_web_scraper"></a>HTML Web Scraper</h3>
 <div class="paragraph">
-<p>Below is crawler that scrapes Wikipedia&#8217;s 's HTML pages using JSoup.
+<p>Below is crawler that scrapes Wikipedia&#8217;s HTML pages using JSoup.
 JSoup is not bundled with Mill, but can be included easily via <code>mvnDeps</code> header declaration:</p>
 </div>
 <div class="listingblock">
-<div class="title">HtmlScraper.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-1-html-scraper.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/1-html-scraper/HtmlScraper.java">browse</a>)</div>
+<div class="title">HtmlScraper.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-1-html-scraper.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/1-html-scraper/HtmlScraper.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps: [org.jsoup:jsoup:1.7.2]
 import org.jsoup.Jsoup;
@@ -801,7 +804,7 @@ it uses <a href="https://github.com/FasterXML/jackson">Jackson</a>,
 program that crawls wikipedia and saves the crawl results to a file:</p>
 </div>
 <div class="listingblock">
-<div class="title">JsonApiClient.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-2-json-api-client.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/2-json-api-client/JsonApiClient.java">browse</a>)</div>
+<div class="title">JsonApiClient.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-2-json-api-client.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/2-json-api-client/JsonApiClient.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
 //| - info.picocli:picocli:4.7.6
@@ -908,7 +911,7 @@ way to start, and it can always grow into a more full-featured project later if 
 to run the web server</p>
 </div>
 <div class="listingblock">
-<div class="title">WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-3-web-server.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/3-web-server/WebServer.java">browse</a>)</div>
+<div class="title">WebServer.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-3-web-server.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/3-web-server/WebServer.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]
 package example;
@@ -920,6 +923,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class WebServer {
   public static void main(String[] args) throws Exception {
+    System.setProperty("server.port", System.getenv().getOrDefault("PORT", "8080"));
     SpringApplication.run(WebServer.class, args);
     Thread.sleep(Integer.MAX_VALUE);
   }
@@ -935,7 +939,7 @@ public class WebServer {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill WebServer.java:runBackground
 
-&gt; curl -d 'helloworld' localhost:8080/reverse-string
+&gt; curl -d 'helloworld' localhost:${PORT:-8080}/reverse-string
 dlrowolleh</code></pre>
 </div>
 </div>
@@ -954,7 +958,7 @@ Sqlite database populated by the contents of a local <code>sqlite-customers.sql<
 library to perform the queries:</p>
 </div>
 <div class="listingblock">
-<div class="title">Database.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-4-database.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/4-database/Database.java">browse</a>)</div>
+<div class="title">Database.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-4-database.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/4-database/Database.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
 //| - org.jooq:jooq:3.19.8
@@ -1028,7 +1032,7 @@ a HTML template and writes them to HTML files in an <code>out/</code> folder alo
 page that links to them:</p>
 </div>
 <div class="listingblock">
-<div class="title">StaticSite.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-5-static-site.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/5-static-site/StaticSite.java">browse</a>)</div>
+<div class="title">StaticSite.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-5-static-site.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/5-static-site/StaticSite.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
 //| - com.j2html:j2html:1.6.0
@@ -1132,13 +1136,13 @@ public class StaticSite {
 <div class="paragraph">
 <p>Mill Single-File Scripts can be packaged into executable assemblies or Graal
 native images for convenient distribution or deployment. Note that to create
-Graal native image binaries, you need to define your <code>jvmId</code> to be a <code>graalvm</code>
+Graal native image binaries, you need to define your <code>jvmVersion</code> to be a <code>graalvm</code>
 version</p>
 </div>
 <div class="listingblock">
-<div class="title">Bar.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-6-packaging.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/6-packaging/Bar.java">browse</a>)</div>
+<div class="title">Bar.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-6-packaging.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/6-packaging/Bar.java">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| jvmId: "graalvm-community:17"
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| jvmVersion: "graalvm-community:17"
 //| nativeImageOptions: ["--no-fallback"]
 public class Bar {
   public static void main(String[] args) {
@@ -1178,6 +1182,156 @@ your script.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_script_moduledeps"><a class="anchor" href="#_script_moduledeps"></a>Script moduleDeps</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Single-file scripts can have <code>moduleDeps</code> on other scripts. This can be useful to re-use
+your Java logic between multiple scripts which share related functionality.</p>
+</div>
+<div class="listingblock">
+<div class="title">Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-7-script-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/7-script-deps/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class Foo {
+  public static int fooValue = 1337;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Bar.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-7-script-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/7-script-deps/Bar.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| moduleDeps: [Foo.java]
+
+public class Bar {
+  public static void main(String[] args) {
+    System.out.println(Foo.fooValue);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Bar.java
+1337</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_relative_and_absolute_script_moduledeps"><a class="anchor" href="#_relative_and_absolute_script_moduledeps"></a>Relative and Absolute Script moduleDeps</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill single-file scripts can depend on each other via either relative or workspace-relative
+<code>moduleDeps</code>. For example, given a <code>bar/Bar.java</code> file such as below:</p>
+</div>
+<div class="listingblock">
+<div class="title">bar/Bar.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-8-relative-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/8-relative-deps/bar/Bar.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package bar;
+
+public class Bar {
+  public static String generateHtml(String text) {
+    return "&lt;h1&gt;" + text + "&lt;/h1&gt;";
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It can be depended upon via a <code>Bar.java</code> dependency relative to its own enclosing folder
+(in this case <code>bar/</code>), as shown below where it is imported from the <code>bar/BarTests.java</code>
+test suite in the same folder:</p>
+</div>
+<div class="listingblock">
+<div class="title">bar/BarTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-8-relative-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/8-relative-deps/bar/BarTests.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| extends: [mill.script.JavaModule.Junit4]
+//| moduleDeps: [Bar.java]
+package bar;
+
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+
+public class BarTests {
+  @Test
+  public void simple() {
+    assertEquals("&lt;h1&gt;hello&lt;/h1&gt;", Bar.generateHtml("hello"));
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or it can be depended upon via <code>//bar/Bar.java</code> workspace-relative dependency
+(with the <code>//</code> prefix), as shown below where it is imported from the <code>foo/Foo.java</code></p>
+</div>
+<div class="listingblock">
+<div class="title">foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-8-relative-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/8-relative-deps/foo/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| moduleDeps: [//bar/Bar.java]
+package foo;
+
+public class Foo {
+  public static void main(String[] args) throws Exception {
+    System.out.println(bar.Bar.generateHtml(args[0]));
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example can be exercised as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar/Bar.java:compile
+&gt; ./mill bar/BarTests.java
+&gt; ./mill foo/Foo.java hello</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_project_moduledeps"><a class="anchor" href="#_project_moduledeps"></a>Project <code>moduleDeps</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Single-file scripts can depend on programmable modules. This can be useful to integrate
+your scripts into a large project, where your scripts may make use of classes and methods
+defined in your library or application code to perform domain-specific actions that may
+not be available in the standard library or third-party libraries.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-9-programmable-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/9-programmable-module-deps">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object bar extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
+    mvn"org.slf4j:slf4j-nop:2.0.7"
+  )
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-9-programmable-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/9-programmable-module-deps/Foo.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| moduleDeps: [bar]
+package foo;
+
+public class Foo {
+  public static void main(String[] args) throws Exception {
+    System.out.println(bar.Bar.generateHtml(args[0]));
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.java hello
+&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_custom_script_module_classes"><a class="anchor" href="#_custom_script_module_classes"></a>Custom Script Module Classes</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1189,7 +1343,7 @@ file generated by processing the source file of the script, this can be done in 
 <code>LineCountJavaModule</code> as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">Qux.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-7-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/7-custom-class/Qux.java">browse</a>)</div>
+<div class="title">Qux.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-10-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/10-custom-class/Qux.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| extends: [millbuild.LineCountJavaModule]
 package qux;
@@ -1207,7 +1361,7 @@ public class Qux {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-7-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/7-custom-class/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountJavaModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-10-custom-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/10-custom-class/mill-build/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 import mill.*, javalib.*
@@ -1250,126 +1404,11 @@ it across all scripts that inherit it via <code>extends.</code></p>
 </div>
 <div class="paragraph">
 <p>Note that single-file scripts can only inherit from a single concrete module <code>class</code>,
-unlike normal <a href="intro.html#_config_based_modules" class="xref page">config-based</a> or
-<a href="intro.html#_programmatic_modules" class="xref page">programmatic modules</a> that can inherit
+unlike normal <a href="intro.html#_declarative_configuration" class="xref page">declarative</a> or
+<a href="intro.html#_programmable_configuration" class="xref page">programmable modules</a> that can inherit
 from one-or-more abstract module `trait`s. This difference arises from the way scripts
 are instantiated dynamically when resolved, rather than being compiled ahead-of-time like
 other modules are.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_relative_and_absolute_script_moduledeps"><a class="anchor" href="#_relative_and_absolute_script_moduledeps"></a>Relative and Absolute Script moduleDeps</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill single-file scripts can import each other via either relative or absolute imports.
-For example, given a <code>bar/Bar.java</code> file such as below:</p>
-</div>
-<div class="listingblock">
-<div class="title">bar/Bar.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-8-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/8-relative-imports/bar/Bar.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package bar;
-
-public class Bar {
-  public static String generateHtml(String text) {
-    return "&lt;h1&gt;" + text + "&lt;/h1&gt;";
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It can be imported via a <code>./Bar.java</code> import relative to its own enclosing folder
-(in this case <code>bar/</code>), as shown below where it is imported from the <code>bar/BarTests.java</code>
-test suite in the same folder:</p>
-</div>
-<div class="listingblock">
-<div class="title">bar/BarTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-8-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/8-relative-imports/bar/BarTests.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| extends: [mill.script.JavaModule.Junit4]
-//| moduleDeps: [./Bar.java]
-package bar;
-
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
-
-public class BarTests {
-  @Test
-  public void simple() {
-    assertEquals("&lt;h1&gt;hello&lt;/h1&gt;", Bar.generateHtml("hello"));
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Or it can be imported via <code>bar/Bar.java</code> absolute import, as shown below where it
-is imported from the <code>foo/Foo.java</code></p>
-</div>
-<div class="listingblock">
-<div class="title">foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-8-relative-imports.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/8-relative-imports/foo/Foo.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| moduleDeps: [bar/Bar.java]
-package foo;
-
-public class Foo {
-  public static void main(String[] args) throws Exception {
-    System.out.println(bar.Bar.generateHtml(args[0]));
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This examples can be exercised as follows:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar/Bar.java:compile
-&gt; ./mill bar/BarTests.java
-&gt; ./mill foo/Foo.java hello</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_project_moduledeps"><a class="anchor" href="#_project_moduledeps"></a>Project <code>moduleDeps</code></h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Single-file scripts can depend on programmatic modules. This can be useful to integrate
-your scripts into a large project, where your scripts may make of classes and methods
-defined in your library or application code to perform domain-specific actions that may
-not be available in the standard library or third-party libraries.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-9-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/9-programmatic-module-deps">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
-
-object bar extends JavaModule {
-  def mvnDeps = Seq(
-    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",
-    mvn"org.slf4j:slf4j-nop:2.0.7"
-  )
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-9-programmatic-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/9-programmatic-module-deps/Foo.java">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| moduleDeps: [bar]
-package foo;
-
-public class Foo {
-  public static void main(String[] args) throws Exception {
-    System.out.println(bar.Bar.generateHtml(args[0]));
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill Foo.java hello
-&lt;h1&gt;hello&lt;/h1&gt;</code></pre>
-</div>
 </div>
 </div>
 </div>
@@ -1381,9 +1420,9 @@ public class Foo {
 default, but you can include them via a <code>resources</code> key in the build header:</p>
 </div>
 <div class="listingblock">
-<div class="title">Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-10-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/10-resources/Foo.java">browse</a>)</div>
+<div class="title">Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-11-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/11-resources/Foo.java">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| resources: ["./resources"]
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| resources: [resources/]
 package foo;
 
 public class Foo {
@@ -1473,7 +1512,9 @@ follow the <code>.gitignore</code> syntax, allowing:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>This can be useful if your proj</p>
+<p>This can be useful if your project has Java, Scala, or Kotlin source files
+in non-traditional folder layouts that may cause issues when loaded into
+your IDE as scripts</p>
 </div>
 </div>
 </div>
@@ -1482,12 +1523,12 @@ follow the <code>.gitignore</code> syntax, allowing:</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill single-file Java modules use version zulu:21 of the JVM
-by default. You can customize it by specifying a <code>jvmId</code> in the script header:</p>
+by default. You can customize it by specifying a <code>jvmVersion</code> in the script header:</p>
 </div>
 <div class="listingblock">
-<div class="title">Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC3/mill-dist-1.1.0-RC3-example-javalib-script-11-jvm-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC3/example/javalib/script/11-jvm-version/Foo.java">browse</a>)</div>
+<div class="title">Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-javalib-script-12-jvm-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/script/12-jvm-version/Foo.java">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| jvmId: 11.0.21
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| jvmVersion: 11.0.21
 
 public class Foo {
   public static void main(String[] args) {
@@ -1505,8 +1546,8 @@ java.version 11.0.21</code></pre>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="config.html">Config-Based Java Modules</a></span>
-  <span class="next"><a href="module-config.html">Java Module Configuration</a></span>
+  <span class="prev"><a href="spring-boot.html">Spring Boot Projects</a></span>
+  <span class="next"><a href="../scalalib/intro.html">Building Scala with Mill</a></span>
 </nav>
 </article>
   </div>
