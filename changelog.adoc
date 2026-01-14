@@ -23,7 +23,9 @@ _2025-12-12_
 
 _Changes since {prev-version}:_
 
-* Updated `build.mill` files to use to Scala 3.8.0 final
+* Updated `build.mill` files to use to Scala 3.8.0 final {link-pr}/6577[#6577]
+* Ensure changes in `mill-version` or `mill-jvm-version` trigger selective execution
+  for all tasks {link-pr}/6582[#6582]
 * Add `resolvedMvnSources` task to simplify downloading a module's dependencies' source jars
   and unpacking them, for browsing by humans and LLMs {link-pr}/6537[#6537]
 * Fix "Can't clean external worker" {link-pr}/6559[#6559]
