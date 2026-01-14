@@ -24,14 +24,19 @@ _2025-12-12_
 _Changes since {prev-version}:_
 
 * Updated `build.mill` files to use to Scala 3.8.0 final
+* Fix "Can't clean external worker" {link-pr}/6559[#6559]
+* Improvements to Android support {link-pr}/6527[#6527] {link-pr}/6551[#6551]
+* Improvements to `./mill init` {link-pr}/6566[#6566] {link-pr}/6567[#6567]
+* `./mill init` now generates declarative `.mill.yaml` files for Maven and Gradle import
+  by default  {link-pr}/6441[#6441]
 * Cross module command-line syntax has been changed from `foo[js,2.12.20].bar` to
   `foo.js.2_12_20.bar`, with dot-separated labels and any dots within cross values substituted
-  by `_`s {link-pr}/6376[#6376]
+  by `_`s. The old syntax continues to be supported for backwards compatibility {link-pr}/6376[#6376]
 * Integrate Kotlin incremental compilation {link-pr}/6360[#6360]
 * Syntax-highlight Java compilation errors {link-pr}/6354[#6354]
 * Improvements to `ZincWorkerMain` compile-worker stability when using custom `def jvmId`
   {link-pr}/6348[#6348] {link-pr}/6349[#6349]
-* Improvements to GraalVM Native Image support {link-pr}/6315[#6315]
+* Improvements to GraalVM Native Image support {link-pr}/6315[#6315] {link-pr}/6547[#6547]
 * Ensure `must be defs defined in a Module class/trait/object body` error happens reliably
   for commands {link-pr}/6336[#6336]
 * Lock around info, warn, error, debug logs to avoid interleaving {link-pr}/6321[#6321]
