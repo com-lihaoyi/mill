@@ -19,6 +19,8 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
   override def allSourceFiles = Task {
     val original = scriptSource().path
     val modified = Task.dest / original.last
+    val sanitizedName = original.last.map(c => if(Character.isJavaIdentifierPart(c)) c else '_')
+    val selfReference = s"${sanitizedName}_millScriptMainSelf"
     os.write(
       modified,
       s"//SOURCECODE_ORIGINAL_FILE_PATH=$original\n" +
@@ -26,7 +28,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
         os.read(original) +
         System.lineSeparator +
         // Squeeze this onto one line so as not to affect line counts too much
-        s"type main = mainargs.main; private def `${original.baseName}_millScriptMainSelf` = this; object `MillScriptMain_${original.baseName}` { def main(args: Array[String]): Unit = this.getClass.getMethods.find(m => m.getName == \"main\" && m.getParameters.map(_.getType) == Seq(classOf[Array[String]]) && m.getReturnType == classOf[Unit]) match{ case Some(m) => m.invoke(`${original.baseName}_millScriptMainSelf`, args); case None => mainargs.Parser(`${original.baseName}_millScriptMainSelf`).runOrExit(args) }}"
+        s"type main = mainargs.main; private def $selfReference = this; object MillScriptMain_${sanitizedName} { def main(args: Array[String]): Unit = this.getClass.getMethods.find(m => m.getName == \"main\" && m.getParameters.map(_.getType) == Seq(classOf[Array[String]]) && m.getReturnType == classOf[Unit]) match{ case Some(m) => m.invoke($selfReference, args); case None => mainargs.Parser($selfReference).runOrExit(args) }}"
     )
 
     Seq(PathRef(modified))
