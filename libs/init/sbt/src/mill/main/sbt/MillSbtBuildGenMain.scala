@@ -8,7 +8,7 @@ import pprint.Util.literalize
 import scala.util.Properties.isWin
 import scala.util.Using
 
-object SbtBuildGenMain {
+object MillSbtBuildGenMain {
 
   def main(args: Array[String]): Unit = mainargs.Parser(this).runOrExit(args.toSeq)
 

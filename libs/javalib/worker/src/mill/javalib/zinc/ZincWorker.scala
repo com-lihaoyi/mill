@@ -586,13 +586,13 @@ class ZincWorker(jobs: Int, useFileLocks: Boolean = false) extends AutoCloseable
         scaladocJar(msg, processConfig).asInstanceOf[op.Response]
 
       case msg: ZincOp.DiscoverTests =>
-        mill.javalib.testrunner.DiscoverTestsMain(msg).asInstanceOf[op.Response]
+        mill.javalib.testrunner.DiscoverTests(msg).asInstanceOf[op.Response]
 
       case msg: ZincOp.GetTestTasks =>
-        mill.javalib.testrunner.GetTestTasksMain(msg).asInstanceOf[op.Response]
+        mill.javalib.testrunner.GetTestTasks(msg).asInstanceOf[op.Response]
 
       case msg: ZincOp.DiscoverJunit5Tests =>
-        mill.javalib.testrunner.DiscoverJunit5TestsMain(msg).asInstanceOf[op.Response]
+        mill.javalib.testrunner.DiscoverJunit5Tests(msg).asInstanceOf[op.Response]
     }
   }
 }

@@ -12,5 +12,5 @@ object InitGradleModule extends ExternalModule with BuildGenModule {
     Dep.millProjectModule("mill-libs-init-gradle")
   )
 
-  def buildGenMainClass: T[String] = "mill.main.gradle.GradleBuildGenMain"
+  def buildGenMainClass: T[String] = "mill.main.gradle.MillGradleBuildGenMain"
 }
