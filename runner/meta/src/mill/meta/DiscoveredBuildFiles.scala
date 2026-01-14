@@ -102,7 +102,12 @@ object DiscoveredBuildFiles {
                   s"${s.relativeTo(topLevelProjectRoot)} does not match " +
                   s"folder structure. Expected: $expectedImport"
               }
-              errors.append(Result.Failure(errorMsg))
+              val lines = content.linesIterator.toVector
+              val packageLineIndex = lines.indexWhere(_.trim.startsWith("package"))
+              val index =
+                if (packageLineIndex >= 0) lines.take(packageLineIndex).map(_.length + 1).sum
+                else 0
+              errors.append(Result.Failure(errorMsg, path = s.toNIO, index = index))
             }
             seenScripts(s) = prefix + stmts.mkString
           case Left(error) =>
