@@ -167,7 +167,7 @@ object app extends AndroidAppKotlinModule {
 // The android tests (existing typically in androidTest directory, aka instrumented tests)
 // typically run on an android device.
 // The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
-// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
+// and the startAndroidEmulator command starts the AVD. The `it` task runs the integration tests
 // against the available AVD. The stopAndroidEmulator command stops the AVD and the
 // destroyAndroidVirtualDevice command destroys the AVD.
 // The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.
