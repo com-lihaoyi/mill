@@ -1,0 +1,41 @@
+package build.`multi-module`.webapp
+
+import mill.*
+import mill.javalib.*
+import mill.javalib.publish.*
+import millbuild.*
+
+object `package` extends ProjectBaseModule {
+
+  def moduleDeps = Seq(build.`multi-module`.server)
+
+  def compileMvnDeps =
+    Seq(mvn"javax.servlet:servlet-api:2.5", mvn"javax.servlet.jsp:jsp-api:2.2")
+
+  def depManagement = Seq(
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"javax.servlet.jsp:jsp-api:2.2",
+    mvn"junit:junit-dep:4.10",
+    mvn"org.hamcrest:hamcrest-core:1.2.1",
+    mvn"org.hamcrest:hamcrest-library:1.2.1",
+    mvn"org.mockito:mockito-core:1.8.5"
+  )
+
+  def artifactName = "webapp"
+
+  def pomPackagingType = "war"
+
+  def pomParentProject = Some(
+    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
+  )
+
+  def pomSettings = PomSettings(
+    "Webapp.",
+    "",
+    "",
+    Seq(),
+    VersionControl(None, None, None, None),
+    Seq()
+  )
+
+}

@@ -12,6 +12,7 @@ import mill.api.{
   SelectMode,
   Task
 }
+import mill.api.internal.ParseArgs
 
 object Resolve {
   object Segments extends Resolve[Segments] {

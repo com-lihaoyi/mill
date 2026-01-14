@@ -63,6 +63,8 @@ object BspServerTestUtil {
       }.replaceAll("\"javaHome\": \"[^\"]+\"", "\"javaHome\": \"java-home\"")
         .replaceAll("\"PATH\": \"[^\"]+\"", "\"PATH\": \"...\"")
         .replaceAll("\"PATH(\\\\u003d|=)[^\"]+\"", "\"PATH=...\"")
+        // Normalize third-party dependency versions to "..." but preserve already-normalized versions like <scala-version>
+        .replaceAll("\"version\": \"(?!<)[^\"]+\"", "\"version\": \"...\"")
 
     val jsonStr = normalizeLocalValues(
       gson.toJson(

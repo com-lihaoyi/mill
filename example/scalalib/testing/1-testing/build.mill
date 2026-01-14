@@ -11,7 +11,8 @@
 //   libraries that it needs
 //
 // - Test-module dependencies, here the `integration` module has a `moduleDeps` on `test`,
-//   giving access to code and utilities defined in `test/src/`
+//   giving access to code and utilities defined in `test/src/` (note the use of `!append`
+//   to ensure the default dependency on the module under test is not over-written)
 
 // These two test modules will expect their sources to be in their respective `test/` and
 // `integration/` folders respectively. This results in a module dependency graph that looks

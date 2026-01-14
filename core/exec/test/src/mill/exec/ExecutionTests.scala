@@ -51,6 +51,40 @@ object ExecutionTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  // Regress test for issue https://github.com/com-lihaoyi/mill/issues/XXX
+  // Tests circular task dependency detection
+  object circularTasks extends TestRootModule {
+    object module extends mill.Module {
+      object nested extends mill.Module {
+        def taskA: Task[String] = Task { taskB() }
+      }
+      def taskB: Task[String] = Task { taskC() }
+    }
+    def taskC: Task[String] = Task { module.nested.taskA() }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  // Test exclusive vs non-exclusive command dependencies
+  object exclusiveCommands extends TestRootModule {
+    def foo = Task { 1 }
+
+    def cleanClientWrong = Task {
+      cleanClientRight()()
+      "cleanClientWrong done"
+    }
+
+    def cleanClientRight() = Task.Command(exclusive = true) {
+      "cleanClientRight done"
+    }
+
+    def cleanClientDownstream() = Task.Command() {
+      cleanClientRight()()
+      "cleanClientDownstream done"
+    }
+
+    lazy val millDiscover = Discover[this.type]
+  }
+
   class Checker[T <: mill.testkit.TestRootModule](module: T)
       extends exec.Checker(module)
 
@@ -467,6 +501,60 @@ object ExecutionTests extends TestSuite {
 
         val res4 = tester.apply("overloaded", "-x", "1", "-y", "2")
         assert(res4 == Right(UnitTester.Result(Vector(4), 1)))
+      }
+    }
+
+    test("circularTaskDependency") {
+      // Ensure that circular task dependencies are detected
+      var caughtException: Option[Exception] = None
+      try {
+        UnitTester(circularTasks, null).scoped { tester =>
+          tester.apply(circularTasks.module.nested.taskA)
+        }
+      } catch {
+        case e: Exception => caughtException = Some(e)
+      }
+      assert(caughtException.isDefined)
+      val msg = caughtException.get.getMessage
+      assert(msg.contains("Circular task dependency detected"))
+      assert(msg.contains("module.nested.taskA"))
+      assert(msg.contains("module.taskB"))
+      assert(msg.contains("taskC"))
+    }
+
+    test("exclusiveCommandDependencies") {
+      test("wrongDependsOnExclusive") {
+        // A non-command task depending on an exclusive command should fail
+        UnitTester(exclusiveCommands, null).scoped { tester =>
+          val result = tester.apply(exclusiveCommands.cleanClientWrong)
+          assert(result.isLeft)
+          val Left(err) = result: @unchecked
+          val msg = err.toString
+          assert(
+            msg.contains("Non-Command task") &&
+              msg.contains("cannot depend on exclusive command")
+          )
+        }
+      }
+
+      test("exclusiveCommandWorks") {
+        // An exclusive command should work
+        UnitTester(exclusiveCommands, null).scoped { tester =>
+          val result = tester.apply(exclusiveCommands.cleanClientRight())
+          assert(result.isRight)
+          val Right(UnitTester.Result(value, _)) = result: @unchecked
+          assert(value == "cleanClientRight done")
+        }
+      }
+
+      test("commandDependsOnExclusive") {
+        // A non-exclusive command can depend on an exclusive command
+        UnitTester(exclusiveCommands, null).scoped { tester =>
+          val result = tester.apply(exclusiveCommands.cleanClientDownstream())
+          assert(result.isRight)
+          val Right(UnitTester.Result(value, _)) = result: @unchecked
+          assert(value == "cleanClientDownstream done")
+        }
       }
     }
   }

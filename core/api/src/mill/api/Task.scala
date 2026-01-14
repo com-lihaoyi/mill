@@ -32,6 +32,8 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
    */
   val inputs: Seq[Task[?]]
 
+  override private[mill] def inputsApi: Seq[TaskApi[?]] = inputs
+
   /**
    * Evaluate this task
    */
@@ -123,6 +125,17 @@ object Task {
   def offline(using ctx: mill.api.TaskCtx): Boolean = ctx.offline
 
   def fail(msg: String)(using ctx: mill.api.TaskCtx): Nothing = ctx.fail(msg)
+
+  /**
+   * Generate JSON representation for a worker task result.
+   * Workers don't have a JSON writer, so we generate a special JSON format.
+   */
+  def workerJson(taskName: String, value: Any, inputsHash: Int): ujson.Obj =
+    ujson.Obj(
+      "worker" -> ujson.Str(taskName),
+      "toString" -> ujson.Str(value.toString),
+      "inputsHash" -> ujson.Num(inputsHash)
+    )
 
   /**
    * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
@@ -496,6 +509,7 @@ object Task {
     override def sideHash: Int = util.Random.nextInt()
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
+    override private[mill] def isInputTask: Boolean = true
   }
 
   class Uncached[T](

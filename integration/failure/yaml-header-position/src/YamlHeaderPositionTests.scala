@@ -13,9 +13,11 @@ object YamlHeaderPositionTests extends UtestIntegrationTestSuite {
       val res = eval("version")
 
       assert(res.isSuccess == false)
-      assert(res.err.contains("[error] build.mill:3:1"))
-      assert(res.err.contains("//| mill-version: 1.0.0-RC1"))
-      assert(res.err.contains("^"))
+      res.assertContainsLines(
+        "[error] build.mill:3:1",
+        "//| mill-version: 1.0.0-RC1",
+        "^"
+      )
       assert(res.err.contains("YAML header comments can only occur at the start of the file"))
     }
   }

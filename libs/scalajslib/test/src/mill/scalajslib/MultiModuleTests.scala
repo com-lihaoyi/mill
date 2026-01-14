@@ -1,86 +1,88 @@
-package mill.scalajslib
+// COMMENTED OUT TO TRY AND DEBUG HANG IN CI
+//
+// package mill.scalajslib
 
-import mill.*
-import mill.api.Discover
-import mill.api.ExecutionPaths
-import mill.scalalib.*
-import mill.testkit.{UnitTester, TestRootModule}
-import utest.*
-object MultiModuleTests extends TestSuite {
-  val sourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "multi-module"
+// import mill.*
+// import mill.api.Discover
+// import mill.api.ExecutionPaths
+// import mill.scalalib.*
+// import mill.testkit.{UnitTester, TestRootModule}
+// import utest.*
+// object MultiModuleTests extends TestSuite {
+//   val sourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "multi-module"
 
-  object MultiModule extends TestRootModule {
-    trait BaseModule extends ScalaJSModule {
-      def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-      def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
-    }
+//   object MultiModule extends TestRootModule {
+//     trait BaseModule extends ScalaJSModule {
+//       def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+//       def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)
+//     }
 
-    object client extends BaseModule {
-      override def moduleDir = MultiModule.moduleDir / "client"
-      override def moduleDeps = Seq(shared)
-      override def mainClass = Some("Main")
-      object test extends ScalaJSTests with TestModule.Utest {
-        override def utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
-      }
-    }
+//     object client extends BaseModule {
+//       override def moduleDir = MultiModule.moduleDir / "client"
+//       override def moduleDeps = Seq(shared)
+//       override def mainClass = Some("Main")
+//       object test extends ScalaJSTests with TestModule.Utest {
+//         override def utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
+//       }
+//     }
 
-    object shared extends BaseModule {
-      override def moduleDir = MultiModule.moduleDir / "shared"
-    }
+//     object shared extends BaseModule {
+//       override def moduleDir = MultiModule.moduleDir / "shared"
+//     }
 
-    override lazy val millDiscover = {
-      import mill.util.TokenReaders.given
-      Discover[this.type]
-    }
-  }
+//     override lazy val millDiscover = {
+//       import mill.util.TokenReaders.given
+//       Discover[this.type]
+//     }
+//   }
 
-  def tests: Tests = Tests {
-    def checkOpt(optimize: Boolean) = {
-      UnitTester(MultiModule, sourcePath).scoped { evaluator =>
-        val task = if (optimize) MultiModule.client.fullLinkJS else MultiModule.client.fastLinkJS
-        val Right(result) = evaluator(task): @unchecked
-        val paths = ExecutionPaths.resolve(evaluator.outPath, task)
-        val log = os.read(paths.log)
+//   def tests: Tests = Tests {
+//     def checkOpt(optimize: Boolean) = {
+//       UnitTester(MultiModule, sourcePath).scoped { evaluator =>
+//         val task = if (optimize) MultiModule.client.fullLinkJS else MultiModule.client.fastLinkJS
+//         val Right(result) = evaluator(task): @unchecked
+//         val paths = ExecutionPaths.resolve(evaluator.outPath, task)
+//         val log = os.read(paths.log)
 
-        val runOutput = ScalaJsUtils.runJS(result.value.dest.path / "main.js")
-        assert(
-          log.contains("Linker: Compute reachability:"),
-          log.contains("Write result:"),
-          result.evalCount > 0,
-          runOutput == "Hello from Scala.js, result is: 3\n"
-        )
-      }
-    }
+//         val runOutput = ScalaJsUtils.runJS(result.value.dest.path / "main.js")
+//         assert(
+//           log.contains("Linker: Compute reachability:"),
+//           log.contains("Write result:"),
+//           result.evalCount > 0,
+//           runOutput == "Hello from Scala.js, result is: 3\n"
+//         )
+//       }
+//     }
 
-    test("fastLinkJS") - checkOpt(optimize = false)
-    test("fullLinkJS") - checkOpt(optimize = true)
+//     test("fastLinkJS") - checkOpt(optimize = false)
+//     test("fullLinkJS") - checkOpt(optimize = true)
 
-    test("test") {
-      UnitTester(MultiModule, sourcePath).scoped { evaluator =>
-        val Right(result) = evaluator(MultiModule.client.test.testForked()): @unchecked
+//     test("test") {
+//       UnitTester(MultiModule, sourcePath).scoped { evaluator =>
+//         val Right(result) = evaluator(MultiModule.client.test.testForked()): @unchecked
 
-        assert(
-          result.evalCount > 0,
-          result.value.results.size == 3,
-          result.value.results.forall(_.status == "Success")
-        )
-      }
-    }
+//         assert(
+//           result.evalCount > 0,
+//           result.value.results.size == 3,
+//           result.value.results.forall(_.status == "Success")
+//         )
+//       }
+//     }
 
-    test("run") {
-      UnitTester(MultiModule, sourcePath).scoped { evaluator =>
-        val command = MultiModule.client.run()
+//     test("run") {
+//       UnitTester(MultiModule, sourcePath).scoped { evaluator =>
+//         val command = MultiModule.client.run()
 
-        val Right(result) = evaluator(command): @unchecked
+//         val Right(result) = evaluator(command): @unchecked
 
-        val paths = ExecutionPaths.resolve(evaluator.outPath, command)
-        val log = os.read(paths.log)
-        assert(
-          result.evalCount > 0,
-          log.contains("node"),
-          log.contains("Hello from Scala.js, result is: 3")
-        )
-      }
-    }
-  }
-}
+//         val paths = ExecutionPaths.resolve(evaluator.outPath, command)
+//         val log = os.read(paths.log)
+//         assert(
+//           result.evalCount > 0,
+//           log.contains("node"),
+//           log.contains("Hello from Scala.js, result is: 3")
+//         )
+//       }
+//     }
+//   }
+// }

@@ -35,6 +35,7 @@ public class MillLauncherMain {
         "--jshell",
         "--repl",
         "--bsp",
+        "--bsp-install",
         "--help",
         "--use-file-locks")) {
       if (Arrays.stream(args).anyMatch(f -> f.equals(token))) needParsedConfig = true;
@@ -48,7 +49,8 @@ public class MillLauncherMain {
     // might have been passed, to avoid loading those classes on the common path for performance
     if (needParsedConfig) {
       var config = MillCliConfig.parse(args).toOption();
-      if (config.exists(c -> c.bsp().value())) bspMode = true;
+      // Use BSP output directory for both --bsp (server mode) and --bsp-install (setup)
+      if (config.exists(c -> c.bsp().value() || c.bspInstall().value())) bspMode = true;
       if (config.exists(c -> c.noDaemonEnabled() > 0)) runNoDaemon = true;
       if (config.exists(c -> c.useFileLocks().value())) useFileLocks = true;
     }
@@ -95,11 +97,17 @@ public class MillLauncherMain {
         });
 
     if (runNoDaemon) {
-      String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
-      // start in no-server mode
-      int exitCode = MillProcessLauncher.launchMillNoDaemon(
-          args, outMode, runnerClasspath, mainClass, useFileLocks);
-      System.exit(exitCode);
+      try {
+        String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
+        // start in no-server mode
+        int exitCode = MillProcessLauncher.launchMillNoDaemon(
+            args, outMode, runnerClasspath, mainClass, useFileLocks);
+        System.exit(exitCode);
+      } catch (mill.api.daemon.MillException e) {
+        // Print clean error message without stack trace for expected errors
+        System.err.println(e.getMessage());
+        System.exit(1);
+      }
     } else {
       var logs = new java.util.ArrayList<String>();
       try {
@@ -156,6 +164,12 @@ public class MillLauncherMain {
 
   private static void handleLauncherException(
       Exception e, String outDir, java.util.List<String> logs) {
+    // For MillException, just print the message without stack trace
+    if (e instanceof mill.api.daemon.MillException) {
+      System.err.println(e.getMessage());
+      return;
+    }
+
     Path errorFile = Paths.get(outDir, "mill-launcher-error.log");
     try (var writer = Files.newBufferedWriter(errorFile)) {
       writer.write("Mill launcher failed with unknown exception.\n\n");

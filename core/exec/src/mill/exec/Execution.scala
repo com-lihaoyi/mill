@@ -33,10 +33,15 @@ case class Execution(
     offline: Boolean,
     useFileLocks: Boolean,
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    depth: Int,
+    isFinalDepth: Boolean
 ) extends GroupExecution with AutoCloseable {
 
-  // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
+  // Track nesting depth of executeTasks calls to only show final status on outermost call
+  private val executionNestingDepth = new AtomicInteger(0)
+
+  // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(
       baseLogger: Logger,
       workspace: java.nio.file.Path,
@@ -56,28 +61,32 @@ case class Execution(
       offline: Boolean,
       useFileLocks: Boolean,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
-      enableTicker: Boolean
+      enableTicker: Boolean,
+      depth: Int,
+      isFinalDepth: Boolean
   ) = this(
-    baseLogger,
-    new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
-    os.Path(workspace),
-    os.Path(outPath),
-    os.Path(externalOutPath),
-    rootModule,
-    classLoaderSigHash,
-    classLoaderIdentityHash,
-    workerCache,
-    env,
-    failFast,
-    ec,
-    codeSignatures,
-    systemExit,
-    exclusiveSystemStreams,
-    getEvaluator,
-    offline,
-    useFileLocks,
-    staticBuildOverrideFiles,
-    enableTicker
+    baseLogger = baseLogger,
+    profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
+    workspace = os.Path(workspace),
+    outPath = os.Path(outPath),
+    externalOutPath = os.Path(externalOutPath),
+    rootModule = rootModule,
+    classLoaderSigHash = classLoaderSigHash,
+    classLoaderIdentityHash = classLoaderIdentityHash,
+    workerCache = workerCache,
+    env = env,
+    failFast = failFast,
+    ec = ec,
+    codeSignatures = codeSignatures,
+    systemExit = systemExit,
+    exclusiveSystemStreams = exclusiveSystemStreams,
+    getEvaluator = getEvaluator,
+    offline = offline,
+    useFileLocks = useFileLocks,
+    staticBuildOverrideFiles = staticBuildOverrideFiles,
+    enableTicker = enableTicker,
+    depth = depth,
+    isFinalDepth = isFinalDepth
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -95,9 +104,13 @@ case class Execution(
       serialCommandExec: Boolean = false
   ): Execution.Results = logger.prompt.withPromptUnpaused {
     os.makeDir.all(outPath)
-
-    PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
-      execute0(goals, logger, reporter, testReporter, serialCommandExec)
+    executionNestingDepth.incrementAndGet()
+    try {
+      PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
+        execute0(goals, logger, reporter, testReporter, serialCommandExec)
+      }
+    } finally {
+      executionNestingDepth.decrementAndGet()
     }
   }
 
@@ -147,13 +160,13 @@ case class Execution(
 
       val keySuffix = s"/${indexToTerminal.size}"
 
-      def formatHeaderPrefix() = {
+      def formatHeaderPrefix(completed: Boolean = false) = {
         val completedMsg = mill.api.internal.Util.leftPad(
           completedCount.get().toString,
           indexToTerminal.size.toString.length,
           '0'
         )
-        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), logger.prompt.errorColor)}"
+        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed, logger.prompt.errorColor, logger.prompt.successColor)}"
       }
 
       val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
@@ -317,8 +330,13 @@ case class Execution(
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
-      // Set final header showing success only if there are no failures
-      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix() + ", completed")
+      // Set final header showing SUCCESS/FAILED status:
+      // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
+      // - SUCCESS: only show for the final requested depth (depth 0 normally, or --meta-level if specified)
+      val isOutermostExecution = executionNestingDepth.get() == 1
+      val hasFailures = rootFailedCount.get() > 0
+      val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
+      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
 
       logger.prompt.clearPromptStatuses()
 
@@ -369,10 +387,21 @@ object Execution {
 
   /**
    * Format a failed count as a string to be used in status messages.
-   * Returns ", N failed" if count > 0, otherwise an empty string.
+   * When completed: returns ", N FAILED" if count > 0, otherwise ", SUCCESS"
+   * When in-progress: returns ", N failing" if count > 0, otherwise an empty string.
    */
-  def formatFailedCount(count: Int, color: String => String): String = {
-    if (count > 0) s", " + color(s"$count failed") else ""
+  def formatFailedCount(
+      failures: Int,
+      completed: Boolean,
+      errorColor: String => String,
+      successColor: String => String
+  ): String = {
+    (completed, failures) match {
+      case (false, 0) => ""
+      case (false, _) => ", " + errorColor(s"$failures failing")
+      case (true, 0) => ", " + successColor("SUCCESS")
+      case (true, _) => ", " + errorColor(s"$failures FAILED")
+    }
   }
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])

@@ -7,7 +7,8 @@ import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
-import mill.resolve.{ParseArgs, Resolve}
+import mill.resolve.Resolve
+import mill.api.internal.ParseArgs
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -30,6 +31,7 @@ final class EvaluatorImpl(
     ) => Seq[Result[ExternalModule]]
 ) extends Evaluator {
 
+  // this (shorter) constructor is used from [[mill.daemon.MillBuildBootstrap]] via reflection
   def this(allowPositionalCommandArgs: Boolean, selectiveExecution: Boolean, execution: Execution) =
     this(
       allowPositionalCommandArgs,

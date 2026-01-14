@@ -10,6 +10,7 @@ case class MillCliConfig(
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
     showVersion: Flag = Flag(),
     @arg(
+      hidden = true,
       name = "bell",
       short = 'b',
       doc = "Ring the bell once if the run completes successfully, twice if it fails."
@@ -21,7 +22,7 @@ case class MillCliConfig(
            tasks and where each log line came from"""
     )
     ticker: Option[Boolean] = None,
-    @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
+    @arg(hidden = true, name = "debug", short = 'd', doc = "Show debug output on STDOUT")
     debugLog: Flag = Flag(),
     @arg(
       short = 'k',
@@ -64,6 +65,7 @@ case class MillCliConfig(
     @arg(short = 'w', doc = "Watch and re-run the given tasks when when their inputs change.")
     watch: Flag = Flag(),
     @arg(
+      hidden = true,
       name = "notify-watch",
       doc = "Use filesystem based file watching instead of polling based one (defaults to true)."
     )
@@ -72,18 +74,22 @@ case class MillCliConfig(
     leftoverArgs: Leftover[String] = Leftover(),
     @arg(doc =
       """Toggle colored output; by default enabled only if the console is interactive
-         or FORCE_COLOR environment variable is set, and NO_COLOR environment variable is not set"""
+         or FORCE_COLOR environment variable is set, and NO_COLOR is not set"""
     )
     color: Option[Boolean] = None,
     @arg(
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
-           level 1 the first meta-build in `mill-build/build.mill`, etc."""
+           level 1 the first meta-build in `mill-build/build.mill`, etc.
+           If negative, -1 means the deepest meta-build (boostrap build), -2 the second deepest meta-build, etc."""
     )
     metaLevel: Option[Int] = None,
 
     // ==================== ADVANCED CLI FLAGS ====================
-    @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
+    @arg(
+      hidden = true,
+      doc = "Allows command args to be passed positionally without `--arg` by default"
+    )
     allowPositional: Flag = Flag(),
     @arg(
       hidden = true,
@@ -112,6 +118,7 @@ case class MillCliConfig(
     )
     noWaitForBuildLock: Flag = Flag(),
     @arg(
+      hidden = true,
       doc = """
         Try to work offline.
         This tells modules that support it to work offline and avoid any access to the internet.
@@ -121,6 +128,7 @@ case class MillCliConfig(
     )
     offline: Flag = Flag(),
     @arg(
+      hidden = true,
       doc = """
         Globally disables the checks that prevent you from reading and writing to disallowed
         files or folders during evaluation. Useful as an escape hatch in case you desperately
@@ -138,6 +146,7 @@ case class MillCliConfig(
     )
     useFileLocks: Flag = Flag(),
     @arg(
+      hidden = true,
       doc = """Runs Mill in tab-completion mode"""
     )
     tabComplete: Flag = Flag(),
@@ -162,8 +171,7 @@ case class MillCliConfig(
     disableTicker: Flag,
     @arg(
       doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
-               This is useful for interactively testing and debugging your build logic.
-               Implies options `--meta-level 1` and `--no-server`."""
+               This is useful for interactively testing and debugging your build logic."""
     )
     jshell: Flag = Flag()
 ) {
@@ -201,6 +209,8 @@ Task cheat sheet:
   mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
   mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
   mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
+
+  mill foo.resolvedMvnSources    # resolve `foo`'s third-party dependencies' source code for browsing
 
   mill foo.assembly              # generate an executable assembly of the module `foo`
   mill show foo.assembly         # print the output path of the assembly of module `foo`

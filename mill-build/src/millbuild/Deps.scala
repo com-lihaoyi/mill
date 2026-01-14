@@ -6,7 +6,7 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.8.0-RC5"
+  val scalaVersion = "3.8.0"
 
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.18"
@@ -83,11 +83,11 @@ object Deps {
 
   val acyclic = mvn"com.lihaoyi:::acyclic:0.3.20"
   val ammoniteVersion = "3.0.4"
-  val asmTree = mvn"org.ow2.asm:asm-tree:9.9"
+  val asmTree = mvn"org.ow2.asm:asm-tree:9.9.1"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.184"
-  val coursierVersion = "2.1.25-M22"
+  val coursierVersion = "2.1.25-M23"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierArchiveCache =
     mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
@@ -142,7 +142,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.8"
-  val millModuledefsVersion = "0.12.8"
+  val millModuledefsVersion = "0.13.0"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -167,7 +167,7 @@ object Deps {
     .exclude("org.scala-sbt" -> "compiler-interface")
 
   def scalaCompilerInterface = mvn"org.scala-sbt:compiler-interface:${zinc.version}"
-  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.9.4".withDottyCompat(scalaVersion)
+  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.10.3".withDottyCompat(scalaVersion)
   def scalaReflect(scalaVersion: String) =
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
@@ -182,13 +182,13 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.1"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.11.1"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.5.5"
-  val upickle = mvn"com.lihaoyi::upickle:4.4.2-RC2"
-  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.4.2-RC2"
+  val upickle = mvn"com.lihaoyi::upickle:4.4.2"
+  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:${upickle.version}"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
@@ -200,8 +200,8 @@ object Deps {
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.27.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
-  val requests = mvn"com.lihaoyi::requests:0.9.0"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.21"
+  val requests = mvn"com.lihaoyi::requests:0.9.2"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.24"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"
@@ -311,7 +311,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.9.4"
+    val utest = mvn"com.lihaoyi::utest:0.9.5"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 

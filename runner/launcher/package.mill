@@ -24,11 +24,11 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def buildInfoObjectName = "Versions"
 
   def buildInfoMembers = Task {
-    val jlineNativeVersion = compileClasspath().map(_.path.last)
+    val jlineNativeVersion = resolvedMvnDeps().map(_.path.last)
       .find(name => name.startsWith("jline-native-") && name.endsWith(".jar"))
       .map(_.stripPrefix("jline-native-").stripSuffix(".jar"))
       .getOrElse {
-        sys.error("Cannot get jline-native version from compile class path")
+        sys.error("Cannot get jline-native version from resolved mvn deps")
       }
     Seq(
       BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion),

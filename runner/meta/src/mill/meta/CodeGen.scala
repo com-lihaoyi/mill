@@ -3,11 +3,12 @@ package mill.meta
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.constants.CodeGenConstants as CGConst
 import mill.api.Result
+import mill.api.internal.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig}
 import mill.internal.Util.backtickWrap
+import mill.api.internal.*
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.internal.HeaderData
-import mill.api.daemon.Segment
 
 import scala.util.control.Breaks.*
 
@@ -28,6 +29,9 @@ object CodeGen {
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
 
+    // Collect moduleDeps configuration from all YAML files to write to a classpath resource
+    val moduleDepsConfig = collection.mutable.Map.empty[String, ModuleDepsConfig]
+
     // Provide `build` as an alias to the root `build_.package_`, since from the user's
     // perspective it looks like they're writing things that live in `package build`,
     // but at compile-time we rename things, we so provide an alias to preserve the fiction
@@ -35,7 +39,7 @@ object CodeGen {
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
-      val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
+      val packageSegments = DiscoveredBuildFiles.fileImportToSegments(projectRoot, scriptPath)
       val wrappedDestFile = wrappedDest / packageSegments
       val pkgSegments = packageSegments.drop(1).dropRight(1)
       def pkgSelector0(pre: Option[String], s: Option[String]) =
@@ -149,51 +153,50 @@ object CodeGen {
               renderTemplate(s"object $k", nestedData, path :+ k)
           ).filter(_.nonEmpty)
 
-          def parseRender(moduleDep: String) = {
-            mill.resolve.ParseArgs.extractSegments(moduleDep) match {
-              case f: Result.Failure =>
-                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + f.error)
-              case Result.Success((rootModulePrefix, taskSegments)) =>
-                val renderedSegments = taskSegments.value
-                  .map {
-                    case Segment.Label(s) => backtickWrap(s)
-                    case Segment.Cross(vs) => "lookup(" + vs.map(literalize(_)).mkString(", ") + ")"
-                  }
-                  .mkString(".")
-
-                rootModulePrefix match {
-                  case "" => renderedSegments
-                  case s"$externalModulePrefix/" => s"$externalModulePrefix.$renderedSegments"
-                }
-            }
+          // Helper to extract ModuleDepsEntry from HeaderData field
+          // Each Located[String] contains (path, index, value) - we extract (value, index)
+          def extractEntry(deps: Located[Appendable[Seq[Located[String]]]]): ModuleDepsEntry = {
+            val appendable = deps.value
+            ModuleDepsEntry(appendable.value.map(loc => (loc.value, loc.index)), appendable.append)
           }
 
-          val moduleDepsSnippet =
-            if (data.moduleDeps.value.isEmpty) ""
-            else
-              s"override def moduleDeps = Seq(${data.moduleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+          // Collect moduleDeps config for this module path and store in the map
+          val modulePathKey = path.mkString(".")
+          val moduleDepsEntry = extractEntry(data.moduleDeps)
+          val compileModuleDepsEntry = extractEntry(data.compileModuleDeps)
+          val runModuleDepsEntry = extractEntry(data.runModuleDeps)
+          val bomModuleDepsEntry = extractEntry(data.bomModuleDeps)
 
-          val compileModuleDepsSnippet =
-            if (data.compileModuleDeps.value.isEmpty) ""
-            else
-              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+          val config = ModuleDepsConfig(
+            yamlPath = scriptPath.toString,
+            moduleDeps = moduleDepsEntry,
+            compileModuleDeps = compileModuleDepsEntry,
+            runModuleDeps = runModuleDepsEntry,
+            bomModuleDeps = bomModuleDepsEntry
+          )
 
-          val runModuleDepsSnippet =
-            if (data.runModuleDeps.value.isEmpty) ""
-            else
-              s"override def runModuleDeps = Seq(${data.runModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+          moduleDepsConfig(modulePathKey) = config
+
+          // Always generate defs without override - use macro to get super value if it exists
+          val pathLiteral = literalize(modulePathKey)
+          def moduleDepsSnippet(name: String) =
+            s"def $name = _root_.mill.api.internal.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.internal.ModuleDepsResolver.superMethod(${literalize(name)}))"
+
+          val moduleDepsSnippets = Seq(
+            moduleDepsSnippet("moduleDeps"),
+            moduleDepsSnippet("compileModuleDeps"),
+            moduleDepsSnippet("runModuleDeps"),
+            moduleDepsSnippet("bomModuleDeps")
+          )
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
               s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[?]]"
             else " extends AutoOverride[_root_.mill.T[?]]"
 
-          val allSnippets = Seq(
-            moduleDepsSnippet,
-            compileModuleDepsSnippet,
-            runModuleDepsSnippet,
+          val allSnippets = moduleDepsSnippets ++ Seq(
             "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
-          ).filter(_.nonEmpty) ++ definitions
+          ) ++ definitions
 
           s"""$prefix$extendsSnippet {
              |  ${allSnippets.mkString("\n  ")}
@@ -292,6 +295,13 @@ object CodeGen {
         }
       }
     }
+
+    val resourceFile = resourceDest / "mill" / "module-deps-config.json"
+    os.write.over(
+      resourceFile,
+      upickle.default.write(moduleDepsConfig.toMap, indent = 2),
+      createFolders = true
+    )
   }
 
   private def calcSegments(scriptFolderPath: os.Path, projectRoot: os.Path) =

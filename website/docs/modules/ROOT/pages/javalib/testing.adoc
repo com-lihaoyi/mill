@@ -30,9 +30,3 @@ include::partial$example/javalib/testing/6-test-grouping.adoc[]
 === Test Grouping & Test Parallelism together
 
 include::partial$example/javalib/testing/7-test-group-parallel.adoc[]
-
-== Github Actions Test Reports
-
-If you use Github Actions for CI, you can use https://github.com/mikepenz/action-junit-report in
-your pipeline to render the generated `test-report.xml` files nicely on Github. See
-https://github.com/com-lihaoyi/mill/pull/4218/files for an example integration

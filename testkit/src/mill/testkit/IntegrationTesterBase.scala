@@ -13,7 +13,7 @@ trait IntegrationTesterBase {
 
   def millTestSuiteEnv: Map[String, String] = {
     val javaHomeBin = sys.props("java.home") + "/bin"
-    val newPath = sys.env.get("PATH") match {
+    val newPath = sys.env.find(_._1.equalsIgnoreCase("PATH")).map(_._2) match {
       case None => javaHomeBin
       case Some(p) => s"$javaHomeBin${System.getProperty("path.separator")}${p}"
     }
