@@ -33,7 +33,8 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
     test("ticker") - integrationTest { tester =>
       import tester.*
 
-      val res = eval(("--ticker", "true", "--color=false", "run", "--text", "hello"), propagateEnv = false)
+      val res =
+        eval(("--ticker", "true", "--color=false", "run", "--text", "hello"), propagateEnv = false)
       res.isSuccess ==> true
 
       assertGoldenLiteral(
