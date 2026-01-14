@@ -51,7 +51,7 @@ final class EvaluatorImpl(
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
   override def useFileLocks: Boolean = execution.useFileLocks
-  def invalidateAllHashes: Int = execution.invalidateAllHashes
+  override def invalidateAllHashes: Int = execution.invalidateAllHashes
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
