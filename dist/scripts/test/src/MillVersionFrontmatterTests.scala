@@ -23,7 +23,11 @@ object MillVersionFrontmatterTests extends TestSuite {
       val res = os.call(
         cmd,
         cwd = wd,
-        env = Map("MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"),
+        env = Map(
+          "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1",
+          // Remove DEFAULT_MILL_VERSION to avoid it leaking from the parent process
+          "DEFAULT_MILL_VERSION" -> null
+        ),
         stderr = os.Pipe,
         check = false
       )
