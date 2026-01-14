@@ -19,7 +19,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
   override def allSourceFiles = Task {
     val original = scriptSource().path
     val modified = Task.dest / original.last
-    val sanitizedName = original.last.map(c => if(Character.isJavaIdentifierPart(c)) c else '_')
+    val sanitizedName = original.last.map(c => if (Character.isJavaIdentifierPart(c)) c else '_')
     val selfReference = s"${sanitizedName}_millScriptMainSelf"
     os.write(
       modified,
