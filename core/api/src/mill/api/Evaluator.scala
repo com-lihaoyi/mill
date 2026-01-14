@@ -35,6 +35,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def useFileLocks: Boolean = false
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()
+  private[mill] def invalidateAllHashes: Int
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(
