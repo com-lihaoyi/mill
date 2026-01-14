@@ -1,5 +1,7 @@
 package mill.constants;
 
+import mill.api.daemon.MillException;
+
 import java.io.Console;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;

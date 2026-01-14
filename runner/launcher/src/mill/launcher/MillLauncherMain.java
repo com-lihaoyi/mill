@@ -159,7 +159,7 @@ public class MillLauncherMain {
   private static void handleLauncherException(
       Exception e, String outDir, java.util.List<String> logs) {
     // For MillException, just print the message without stack trace
-    if (e instanceof mill.constants.MillException) {
+    if (e instanceof mill.api.daemon.MillException) {
       System.err.println(e.getMessage());
       return;
     }

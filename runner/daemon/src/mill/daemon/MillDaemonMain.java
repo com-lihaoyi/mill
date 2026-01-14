@@ -1,6 +1,6 @@
 package mill.daemon;
 
-import mill.constants.MillException;
+import mill.api.daemon.MillException;
 
 public class MillDaemonMain {
   public static void main(String[] args) {
