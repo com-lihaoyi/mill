@@ -14,7 +14,7 @@
 var player = AsciinemaPlayer.create(
     '{cast-file}',
     document.getElementById('mill-maven-comparison'),
-    {startAt: 12, markers: [12, 70], pauseOnMarkers: true}
+    {startAt: 12, markers: [12, 70], pauseOnMarkers: true, poster: "npt:00:12"}
 );
 </script>
 ++++
