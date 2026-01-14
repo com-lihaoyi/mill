@@ -6,7 +6,7 @@ import mill.javalib.api.*
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "3.8.0-RC5"
+  val scalaVersion = "3.8.0"
 
   val scalaVersionJava11 = "3.7.4"
   val scala2Version = "2.13.18"
@@ -142,7 +142,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.8"
-  val millModuledefsVersion = "0.12.8"
+  val millModuledefsVersion = "0.13.0"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -167,7 +167,7 @@ object Deps {
     .exclude("org.scala-sbt" -> "compiler-interface")
 
   def scalaCompilerInterface = mvn"org.scala-sbt:compiler-interface:${zinc.version}"
-  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.9.4".withDottyCompat(scalaVersion)
+  val scalafmtDynamic = mvn"org.scalameta::scalafmt-dynamic:3.10.3".withDottyCompat(scalaVersion)
   def scalaReflect(scalaVersion: String) =
     if (JvmWorkerUtil.isScala3(scalaVersion))
       mvn"org.scala-lang:scala-reflect:${Deps.scala2Version}"
@@ -182,7 +182,7 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.1"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.11.1"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
@@ -200,8 +200,8 @@ object Deps {
   val fansi = mvn"com.lihaoyi::fansi:0.5.1"
   val javaparser = mvn"com.github.javaparser:javaparser-core:3.27.1"
   val jarjarabrams = mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.16.0"
-  val requests = mvn"com.lihaoyi::requests:0.9.0"
-  val logback = mvn"ch.qos.logback:logback-classic:1.5.21"
+  val requests = mvn"com.lihaoyi::requests:0.9.2"
+  val logback = mvn"ch.qos.logback:logback-classic:1.5.24"
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.6.0"
   val kotlinVersion = "2.1.20"
   val kspVersion = "2.0.1"

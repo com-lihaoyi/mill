@@ -7,7 +7,8 @@ import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
-import mill.resolve.{ParseArgs, Resolve}
+import mill.resolve.Resolve
+import mill.api.internal.ParseArgs
 
 /**
  * [[EvaluatorImpl]] is the primary API through which a user interacts with the Mill
@@ -50,6 +51,7 @@ final class EvaluatorImpl(
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
   override def useFileLocks: Boolean = execution.useFileLocks
+  override def invalidateAllHashes: Int = execution.invalidateAllHashes
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,

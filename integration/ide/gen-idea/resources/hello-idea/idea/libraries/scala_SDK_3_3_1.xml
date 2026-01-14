@@ -3,19 +3,19 @@
         <properties>
             <language-level>Scala_3_3</language-level>
             <compiler-classpath>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.7.0/protobuf-java-3.7.0.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.5.0-scala-1/scala-asm-9.5.0-scala-1.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.1/scala3-compiler_3-3.3.1.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.1/scala3-interfaces-3.3.1.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.1/scala3-library_3-3.3.1.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.1/tasty-core_3-3.3.1.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.3.5/compiler-interface-1.3.5.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.3.0/util-interface-1.3.0.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/<version>/protobuf-java-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/<version>/jna-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/<version>/jline-reader-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/<version>/jline-terminal-jna-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/<version>/jline-terminal-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/<version>/scala-asm-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<version>/scala-library-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/<version>/scala3-compiler_3-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/<version>/scala3-interfaces-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<version>/scala3-library_3-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/<version>/tasty-core_3-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/<version>/compiler-interface-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/<version>/util-interface-<version>.jar"/>
             </compiler-classpath>
         </properties>
     </library>

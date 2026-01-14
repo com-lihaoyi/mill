@@ -96,7 +96,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
-        val mainClass = "mill.javalib.worker.JvmWorkerMain"
+        val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
         val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
         val locks = {
           Locks(

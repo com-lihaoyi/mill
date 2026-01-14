@@ -1165,6 +1165,7 @@ case class UnpackedDep(
     repackagedJars: Seq[PathRef],
     proguardRules: Option[PathRef],
     androidResources: Option[PathRef],
+    assets: Option[PathRef],
     manifest: Option[PathRef],
     lintJar: Option[PathRef],
     metaInf: Option[PathRef],
