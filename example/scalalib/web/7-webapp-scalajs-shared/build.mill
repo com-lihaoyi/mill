@@ -6,7 +6,7 @@ trait AppScalaModule extends ScalaModule {
 }
 
 trait AppScalaJSModule extends AppScalaModule, ScalaJSModule {
-  def scalaJSVersion = "1.19.0"
+  def scalaJSVersion = "1.20.2"
 }
 
 object `package` extends AppScalaModule {

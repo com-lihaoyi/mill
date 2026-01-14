@@ -2,7 +2,7 @@ package build
 import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "3.7.1"
+  def scalaVersion = "3.8.0"
   def mvnDeps = Seq(
     mvn"org.http4s::http4s-ember-server::0.23.30",
     mvn"org.http4s::http4s-dsl::0.23.30",

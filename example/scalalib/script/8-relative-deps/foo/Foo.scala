@@ -1,5 +1,5 @@
 //| moduleDeps: [//bar/Bar.scala]
-//| scalaVersion: 3.7.1
+//| scalaVersion: 3.8.0
 
 package foo
 

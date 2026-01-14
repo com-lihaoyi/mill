@@ -1,5 +1,5 @@
 //| extends: millbuild.LineCountScalaModule
-//| scalaVersion: 3.7.3
+//| scalaVersion: 3.8.0
 package qux
 
 def getLineCount() = {

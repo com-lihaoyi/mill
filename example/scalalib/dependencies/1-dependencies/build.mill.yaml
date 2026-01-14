@@ -1,5 +1,5 @@
 extends: ScalaModule
-scalaVersion: 3.7.3
+scalaVersion: 3.8.0
 
 # Add library dependencies that are visible to the compiler at compile-time but
 # not visible at runtime. This is commonly used for "optional" dependencies that
