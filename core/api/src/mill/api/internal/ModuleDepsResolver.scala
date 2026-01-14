@@ -19,9 +19,7 @@ import scala.reflect.ClassTag
    * @param append If true, append to super.moduleDeps; if false, replace it
    */
   case class ModuleDepsEntry(deps: Seq[(String, Int)], append: Boolean)
-  object ModuleDepsEntry {
-    implicit val rw: upickle.default.ReadWriter[ModuleDepsEntry] = upickle.default.macroRW
-  }
+      derives upickle.default.ReadWriter
 
   /** Configuration for all moduleDeps fields of a module */
   case class ModuleDepsConfig(
@@ -30,10 +28,7 @@ import scala.reflect.ClassTag
       compileModuleDeps: ModuleDepsEntry,
       runModuleDeps: ModuleDepsEntry,
       bomModuleDeps: ModuleDepsEntry
-  )
-  object ModuleDepsConfig {
-    implicit val rw: upickle.default.ReadWriter[ModuleDepsConfig] = upickle.default.macroRW
-  }
+  ) derives upickle.default.ReadWriter
 
   /**
    * Macro that returns super.methodName if the enclosing class has a parent with that method,
@@ -90,14 +85,10 @@ import scala.reflect.ClassTag
       fieldName: String,
       default: => Seq[T]
   )(implicit ct: ClassTag[T]): Seq[T] = {
-    // Load config using the build's classloader (accessed via rootModule).
-    // We can't cache this because ModuleDepsResolver is in core/api which uses Mill's
-    // classloader, not the build's classloader that has the config resource.
     val classLoader = rootModule.getClass.getClassLoader
     val content = os.read(os.resource(classLoader) / "mill/module-deps-config.json")
     val configFromClasspath = upickle.default.read[Map[String, ModuleDepsConfig]](content)
 
-    // If no config found for this module path, return default (no override specified in YAML)
     val config = configFromClasspath(modulePath)
 
     val entry = fieldName match {
