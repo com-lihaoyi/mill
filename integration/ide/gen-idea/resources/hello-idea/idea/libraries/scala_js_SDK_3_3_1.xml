@@ -9,7 +9,7 @@
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/<version>/jline-terminal-jna-<version>.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/<version>/jline-terminal-<version>.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/<version>/scalajs-javalib-<version>.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.12.0/scalajs-library_2.13-1.12.0.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/<version>/scalajs-library_2.13-<version>.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/<version>/scala-asm-<version>.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<version>/scala-library-<version>.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/<version>/scala3-compiler_3-<version>.jar"/>
