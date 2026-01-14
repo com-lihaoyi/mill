@@ -156,7 +156,10 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       val runWithCompileModuleDeps = eval(("show", "sub.runClasspath"))
       assert(runWithCompileModuleDeps.isSuccess)
       // Root module's classes are at out/compile.dest/classes (not out/sub/compile.dest/classes)
-      assert(!runWithCompileModuleDeps.out.replace("\\", "/").contains("out/compile.dest/classes\""))
+      assert(!runWithCompileModuleDeps.out.replace(
+        "\\",
+        "/"
+      ).contains("out/compile.dest/classes\""))
 
       // Switch to runModuleDeps
       modifyFile(
@@ -167,7 +170,10 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
       // runModuleDeps should NOT appear in compileClasspath (check for root module's classes specifically)
       val compileWithRunModuleDeps = eval(("show", "sub.compileClasspath"))
       assert(compileWithRunModuleDeps.isSuccess)
-      assert(!compileWithRunModuleDeps.out.replace("\\", "/").contains("out/compile.dest/classes\""))
+      assert(!compileWithRunModuleDeps.out.replace(
+        "\\",
+        "/"
+      ).contains("out/compile.dest/classes\""))
       assert(!compileWithRunModuleDeps.err.contains(compilingScala))
 
       // runModuleDeps should appear in runClasspath

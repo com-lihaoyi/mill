@@ -1,7 +1,5 @@
 package mill.constants;
 
-import mill.api.daemon.MillException;
-
 import java.io.Console;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -17,6 +15,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import mill.api.daemon.MillException;
 
 public class Util {
 
