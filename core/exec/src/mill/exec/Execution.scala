@@ -147,13 +147,13 @@ case class Execution(
 
       val keySuffix = s"/${indexToTerminal.size}"
 
-      def formatHeaderPrefix() = {
+      def formatHeaderPrefix(completed: Boolean = false) = {
         val completedMsg = mill.api.internal.Util.leftPad(
           completedCount.get().toString,
           indexToTerminal.size.toString.length,
           '0'
         )
-        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), logger.prompt.errorColor)}"
+        s"$completedMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get(), completed)}"
       }
 
       val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(indexToTerminal)).toSet
@@ -317,8 +317,8 @@ case class Execution(
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
-      // Set final header showing success only if there are no failures
-      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix() + ", completed")
+      // Set final header showing SUCCESS/FAILED status
+      logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = true))
 
       logger.prompt.clearPromptStatuses()
 
@@ -369,10 +369,16 @@ object Execution {
 
   /**
    * Format a failed count as a string to be used in status messages.
-   * Returns ", N failed" if count > 0, otherwise an empty string.
+   * When completed: returns ", N FAILED" if count > 0, otherwise ", SUCCESS"
+   * When in-progress: returns ", N failing" if count > 0, otherwise an empty string.
    */
-  def formatFailedCount(count: Int, color: String => String): String = {
-    if (count > 0) s", " + color(s"$count failed") else ""
+  def formatFailedCount(failures: Int, completed: Boolean): String = {
+    (completed, failures) match{
+      case (false, 0) => ""
+      case (false, n) => ", " + fansi.Color.Red(s"$failures failing")
+      case (true, 0) => ", " + fansi.Color.Green("SUCCESS")
+      case (true, n) =>  ", " + fansi.Color.Red(s"$failures FAILED")
+    }
   }
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
