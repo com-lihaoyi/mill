@@ -13,9 +13,11 @@ object YamlHeaderValueTests extends UtestIntegrationTestSuite {
       val res = eval("version")
 
       assert(res.isSuccess == false)
-      assert(res.err.contains("[error] build.mill:1:14"))
-      assert(res.err.contains("//| mvnDeps: lols"))
-      assert(res.err.contains("             ^"))
+      res.assertContainsLines(
+        "[error] build.mill:1:14",
+        "//| mvnDeps: lols",
+        "             ^"
+      )
       assert(
         res.err.contains("Failed de-serializing config override: expected sequence got string")
       )

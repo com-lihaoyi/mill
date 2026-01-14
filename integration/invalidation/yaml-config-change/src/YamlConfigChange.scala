@@ -108,5 +108,94 @@ object YamlConfigChange extends UtestIntegrationTestSuite {
           backToDefault.out.contains("\\src\"")
       )
     }
+
+    test("moduleDeps") - integrationTest { tester =>
+      import tester.*
+
+      // String to check for Scala compilation - used to verify compilation happens
+      // initially and does NOT happen when only moduleDeps config changes
+      val compilingScala = "compiling"
+
+      // Compile root module first so its classes exist
+      val compileRoot = eval(("compile"))
+      assert(compileRoot.isSuccess)
+      // Verify compilation actually happened so we know the string check is valid
+      assert(compileRoot.err.contains(compilingScala))
+
+      // Get baseline compileClasspath for sub module (no moduleDeps yet)
+      val baseline = eval(("show", "sub.compileClasspath"))
+      assert(baseline.isSuccess)
+      assert(!baseline.out.replace("\\\\", "/").contains("/compile.dest/classes"))
+
+      // Add moduleDeps on root module
+      modifyFile(workspacePath / "sub/package.mill.yaml", _ + "\nmoduleDeps: [build]")
+      val withModuleDeps = eval(("show", "sub.compileClasspath"))
+      assert(withModuleDeps.isSuccess)
+      assert(withModuleDeps.out.replace("\\\\", "/").contains("/compile.dest/classes"))
+      // Changing moduleDeps should NOT trigger Scala compilation of the build
+      assert(!withModuleDeps.err.contains(compilingScala))
+
+      // Remove moduleDeps - should no longer include root module's classes
+      modifyFile(
+        workspacePath / "sub/package.mill.yaml",
+        _.replace("\nmoduleDeps: [build]", "")
+      )
+      val withoutModuleDeps = eval(("show", "sub.compileClasspath"))
+      assert(withoutModuleDeps.isSuccess)
+      assert(!withoutModuleDeps.out.replace("\\\\", "/").contains("/compile.dest/classes"))
+      assert(!withoutModuleDeps.err.contains(compilingScala))
+
+      // Test compileModuleDeps
+      modifyFile(workspacePath / "sub/package.mill.yaml", _ + "\ncompileModuleDeps: [build]")
+      val withCompileModuleDeps = eval(("show", "sub.compileClasspath"))
+      assert(withCompileModuleDeps.isSuccess)
+      assert(withCompileModuleDeps.out.replace("\\\\", "/").contains("/compile.dest/classes"))
+      assert(!withCompileModuleDeps.err.contains(compilingScala))
+
+      // compileModuleDeps should NOT appear in runClasspath (check for root module's classes specifically)
+      val runWithCompileModuleDeps = eval(("show", "sub.runClasspath"))
+      assert(runWithCompileModuleDeps.isSuccess)
+      // Root module's classes are at out/compile.dest/classes (not out/sub/compile.dest/classes)
+      assert(!runWithCompileModuleDeps.out.replace(
+        "\\\\",
+        "/"
+      ).contains("out/compile.dest/classes\""))
+
+      // Switch to runModuleDeps
+      modifyFile(
+        workspacePath / "sub/package.mill.yaml",
+        _.replace("\ncompileModuleDeps: [build]", "\nrunModuleDeps: [build]")
+      )
+
+      // runModuleDeps should NOT appear in compileClasspath (check for root module's classes specifically)
+      val compileWithRunModuleDeps = eval(("show", "sub.compileClasspath"))
+      assert(compileWithRunModuleDeps.isSuccess)
+      assert(!compileWithRunModuleDeps.out.replace(
+        "\\\\",
+        "/"
+      ).contains("out/compile.dest/classes\""))
+      assert(!compileWithRunModuleDeps.err.contains(compilingScala))
+
+      // runModuleDeps should appear in runClasspath
+      val runWithRunModuleDeps = eval(("show", "sub.runClasspath"))
+      assert(runWithRunModuleDeps.isSuccess)
+      assert(runWithRunModuleDeps.out.replace("\\\\", "/").contains("out/compile.dest/classes\""))
+
+      // Test circular dependency detection: create a cycle between root and sub
+      // First, clear sub's runModuleDeps
+      modifyFile(
+        workspacePath / "sub/package.mill.yaml",
+        _.replace("\nrunModuleDeps: [build]", "")
+      )
+      // Add moduleDeps: [sub] to root module
+      modifyFile(workspacePath / "build.mill.yaml", _ + "\nmoduleDeps: [sub]")
+      // Add moduleDeps: [build] to sub module (creates cycle: build -> sub -> build)
+      modifyFile(workspacePath / "sub/package.mill.yaml", _ + "\nmoduleDeps: [build]")
+
+      // Evaluating should produce a cycle detection error
+      val withCycle = eval(("show", "sub.compileClasspath"))
+      assert(!withCycle.isSuccess)
+      assert(withCycle.err.contains("cycle detected"))
+    }
   }
 }

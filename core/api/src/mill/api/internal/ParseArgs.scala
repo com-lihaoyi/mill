@@ -1,13 +1,16 @@
-package mill.resolve
+package mill.api.internal
 
-import mill.api.Result
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse.*
-import mill.api.{Segment, Segments, SelectMode}
+import mill.api.{Result, Segment, Segments, SelectMode}
 
 import scala.annotation.tailrec
 
-object ParseArgs {
+/**
+ * Parsing utilities for Mill task selectors and module references.
+ * This is internal to Mill and not part of the public API.
+ */
+private[mill] object ParseArgs {
 
   type TasksWithParams = (Seq[(String, Segments)], Seq[String])
 

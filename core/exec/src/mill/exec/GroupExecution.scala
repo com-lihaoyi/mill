@@ -345,19 +345,15 @@ trait GroupExecution {
         // Helper to evaluate build override only (no task evaluation)
         def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
             : GroupExecution.Results = {
-          lazy val originalText = os.read(located.path)
-          lazy val strippedText = originalText.replace("\n//|", "\n")
-          lazy val lookupLineSuffix = fastparse
-            .IndexedParserInput(strippedText)
-            .prettyIndex(located.index)
-            .takeWhile(_ != ':')
 
           val (execRes, serializedPaths) =
             if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
+              val msg =
+                s"Build header config conflicts with task defined in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
               (
                 ExecResult.Failure(
-                  s"Build header config in ${located.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
-                    s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
+                  msg,
+                  Some(Result.Failure(msg, path = located.path.toNIO, index = located.index))
                 ),
                 Nil
               )

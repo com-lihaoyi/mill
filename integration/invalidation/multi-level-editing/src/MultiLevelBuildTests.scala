@@ -254,7 +254,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         checkChangedClassloaders(tester, null, true, true)
 
         causeParseError(workspacePath / "build.mill")
-        evalCheckErr(tester, "\n[error] generatedScriptSources", "build.mill")
+        evalCheckErr(tester, "\n[error] parseBuildFiles", "build.mill")
         // exactly which files get watched here can be non-deterministic depending on
         // how far evaluation gets before it terminates due to the task failure
         // checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
@@ -270,7 +270,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         causeParseError(workspacePath / "mill-build/build.mill")
         evalCheckErr(
           tester,
-          "\n[error] generatedScriptSources",
+          "\n[error] parseBuildFiles",
           "mill-build/build.mill"
         )
         // checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), Nil)
@@ -279,7 +279,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
 
         fixParseError(workspacePath / "mill-build/build.mill")
         causeParseError(workspacePath / "build.mill")
-        evalCheckErr(tester, "\n[error] generatedScriptSources", "build.mill")
+        evalCheckErr(tester, "\n[error] parseBuildFiles", "build.mill")
         // checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
         if (tester.daemonMode) checkChangedClassloaders(tester, null, null, true)
         else checkChangedClassloaders(tester, null, null, true)

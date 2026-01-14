@@ -1,11 +1,10 @@
-package mill.resolve
+package mill.api.internal
 
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse.*
-
 import mill.api.Result
 
-private object ExpandBraces {
+private[mill] object ExpandBraces {
   private sealed trait Fragment
   private object Fragment {
     case class Keep(value: String) extends Fragment
@@ -31,7 +30,7 @@ private object ExpandBraces {
       }
   }
 
-  def expandBraces(selectorString: String): mill.api.Result[Seq[String]] = {
+  def expandBraces(selectorString: String): Result[Seq[String]] = {
     parse(selectorString, parser(using _)) match {
       case f: Parsed.Failure => Result.Failure(s"Parsing exception ${f.msg}")
       case Parsed.Success(fragmentLists, _) =>

@@ -97,11 +97,17 @@ public class MillLauncherMain {
         });
 
     if (runNoDaemon) {
-      String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
-      // start in no-server mode
-      int exitCode = MillProcessLauncher.launchMillNoDaemon(
-          args, outMode, runnerClasspath, mainClass, useFileLocks);
-      System.exit(exitCode);
+      try {
+        String mainClass = bspMode ? "mill.daemon.MillBspMain" : "mill.daemon.MillNoDaemonMain";
+        // start in no-server mode
+        int exitCode = MillProcessLauncher.launchMillNoDaemon(
+            args, outMode, runnerClasspath, mainClass, useFileLocks);
+        System.exit(exitCode);
+      } catch (mill.api.daemon.MillException e) {
+        // Print clean error message without stack trace for expected errors
+        System.err.println(e.getMessage());
+        System.exit(1);
+      }
     } else {
       var logs = new java.util.ArrayList<String>();
       try {
@@ -158,6 +164,12 @@ public class MillLauncherMain {
 
   private static void handleLauncherException(
       Exception e, String outDir, java.util.List<String> logs) {
+    // For MillException, just print the message without stack trace
+    if (e instanceof mill.api.daemon.MillException) {
+      System.err.println(e.getMessage());
+      return;
+    }
+
     Path errorFile = Paths.get(outDir, "mill-launcher-error.log");
     try (var writer = Files.newBufferedWriter(errorFile)) {
       writer.write("Mill launcher failed with unknown exception.\n\n");

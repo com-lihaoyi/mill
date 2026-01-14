@@ -124,6 +124,13 @@ object ExecResult {
     exceptionToFailure(ex, new ExecResult.OuterStack(base.getStackTrace))
   }
   private[mill] def exceptionToFailure(ex: Throwable, outerStack: OuterStack): Result.Failure = {
+    // If this is a Result.Exception with an existing failure, preserve it
+    ex match {
+      case re: Result.Exception if re.failure.isDefined =>
+        return re.failure.get
+      case _ =>
+    }
+
     var current = List(ex)
     while (current.head.getCause != null) current = current.head.getCause :: current
 

@@ -1,6 +1,7 @@
 package mill.meta
 
 import mill.api.daemon.internal.internal
+import mill.api.daemon.Result
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.OutFiles.*
 import mill.api.daemon.internal.MillScalaParser
@@ -9,25 +10,20 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.internal.Util.backtickWrap
 
 /**
- * @param seenScripts
- * @param repos
- * @param mvnDeps
- * @param importGraphEdges
- * @param errors
- * @param metaBuild If `true`, a meta-build is enabled
+ * @param seenScripts Map of script paths to their processed content
  */
 @internal
-case class FileImportGraph(seenScripts: Map[os.Path, String], errors: Seq[String])
+case class DiscoveredBuildFiles(seenScripts: Map[os.Path, String])
 
 /**
  * Logic around traversing the `import $file` graph, extracting necessary info
  * and converting it to a convenient data structure for downstream code to use
  */
 @internal
-object FileImportGraph {
+object DiscoveredBuildFiles {
 
   import mill.api.JsonFormatters.pathReadWrite
-  implicit val readWriter: upickle.ReadWriter[FileImportGraph] = upickle.macroRW
+  implicit val readWriter: upickle.ReadWriter[DiscoveredBuildFiles] = upickle.macroRW
 
   /**
    * We perform a depth-first traversal of the import graph of `.mill` files,
@@ -41,9 +37,9 @@ object FileImportGraph {
       parser: MillScalaParser,
       walked: Seq[os.Path],
       colored: Boolean
-  ): FileImportGraph = {
+  ): DiscoveredBuildFiles = {
     val seenScripts = mutable.Map.empty[os.Path, String]
-    val errors = mutable.Buffer.empty[String]
+    val errors = mutable.Buffer.empty[Result.Failure]
 
     def processScript(s: os.Path): Unit =
       try {
@@ -70,21 +66,30 @@ object FileImportGraph {
               val expectedImport =
                 if (expectedImportSegments.isEmpty) "<none>"
                 else s"\"package $expectedImportSegments\""
-              errors.append(
+              val message =
                 s"Package declaration \"package $importSegments\" in " +
                   s"${s.relativeTo(topLevelProjectRoot)} does not match " +
                   s"folder structure. Expected: $expectedImport"
-              )
+
+              // Find the package line in the source to get the character index
+              val lines = content.linesIterator.toVector
+              val packageLineIndex = lines.indexWhere(_.trim.startsWith("package"))
+              val index =
+                if (packageLineIndex >= 0) lines.take(packageLineIndex).map(_.length + 1).sum
+                else 0
+
+              errors.append(Result.Failure(message, path = s.toNIO, index = index))
             }
             seenScripts(s) = prefix + stmts.mkString
           case Left(error) =>
             seenScripts(s) = ""
-            errors.append(error)
+            // Error is already formatted with position info from the parser
+            errors.append(Result.Failure(error))
         }
       } catch {
         case ex: Throwable =>
           seenScripts(s) = ""
-          errors.append(ex.getClass.getName + " " + ex.getMessage)
+          errors.append(Result.Failure(ex.getClass.getName + " " + ex.getMessage))
       }
 
     val (isDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
@@ -95,7 +100,12 @@ object FileImportGraph {
 
     walked.filter(_ != foundRootBuildFile).foreach(processScript(_))
 
-    new FileImportGraph(seenScripts.toMap, errors.toSeq)
+    if (errors.nonEmpty) {
+      val joinedFailure = Result.Failure.join(errors.toSeq)
+      throw Result.Exception(joinedFailure.error, Some(joinedFailure))
+    }
+
+    new DiscoveredBuildFiles(seenScripts.toMap)
   }
 
   def findRootBuildFiles(projectRoot: os.Path) = {
