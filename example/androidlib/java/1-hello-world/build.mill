@@ -199,7 +199,8 @@ object app extends AndroidAppModule {
 // You can combine multiple `-e` options as needed.
 /** Usage
 
-> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.AnotherLogicInstrumentedTest
+> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.AnotherLogicInstrumentedTest \
+  -e package com.helloworld.app
 
 */
 
