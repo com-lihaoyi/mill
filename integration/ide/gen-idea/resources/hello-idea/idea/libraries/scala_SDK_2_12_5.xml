@@ -3,10 +3,10 @@
         <properties>
             <language-level>Scala_2_12</language-level>
             <compiler-classpath>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.5/scala-compiler-2.12.5.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.5/scala-library-2.12.5.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.5/scala-reflect-2.12.5.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/<version>/scala-xml_2.12-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<version>/scala-compiler-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<version>/scala-library-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<version>/scala-reflect-<version>.jar"/>
             </compiler-classpath>
         </properties>
     </library>

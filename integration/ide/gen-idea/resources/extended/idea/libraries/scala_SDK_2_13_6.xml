@@ -3,11 +3,11 @@
         <properties>
             <language-level>Scala_2_13</language-level>
             <compiler-classpath>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"/>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/<version>/jna-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline/<version>/jline-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<version>/scala-compiler-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<version>/scala-library-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<version>/scala-reflect-<version>.jar"/>
             </compiler-classpath>
         </properties>
     </library>
