@@ -13,6 +13,62 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#1-1-0-RC4]
+=== 1.1.0-RC4
+:version: 1.1.0-RC4
+:milestone-name: 1.1.0-RC4
+:milestone: 136
+:prev-version: 1.1.0-RC3
+_2025-12-12_
+
+_Changes since {prev-version}:_
+
+* Updated `build.mill` files to use to Scala 3.8.0 final {link-pr}/6577[#6577]
+* Ensure changes in `mill-version` or `mill-jvm-version` trigger selective execution
+  for all tasks {link-pr}/6582[#6582]
+* Add `resolvedMvnSources` task to simplify downloading a module's dependencies' source jars
+  and unpacking them, for browsing by humans and LLMs {link-pr}/6537[#6537]
+* Fix "Can't clean external worker" {link-pr}/6559[#6559]
+* Support selecting the deepest meta-build with `--meta-build -1` {link-pr}/6516[#6516]
+* Add ability to run `./mill path` between queries resolving multiple `src` and `dest` tasks
+  {link-pr}/6512[#6512]
+* Provide `./mill java`, `./mill javac`, etc. builtin commands to streamline using Mill as the
+  sole source of a Java installation {link-pr}/6493[#6493]
+* Rename `def jvmId` to `def jvmVersion` {link-pr}/6493[#6493]
+* Add `updateMillScripts` builtin command to easily update your `./mill` and `./mill.bat`
+  bootstrap scripts to a specified version {link-pr}/6492[#6492]
+* Make client-server lock use atomic file creation rather than native file locks {link-pr}/6472[#6472]
+* Build Mill's Graal native image launchers in compatibility mode {link-pr}/6491[#6491]
+* Allow users to specify `.super` when invoking tasks from the command line {link-pr}/6482[#6482]
+* Make `mill.scalalib.scalafmt.ScalafmtModule/` default to `/scalafmt` {link-pr}/6478[#6478]
+* Fix `bspClean` {link-pr}/6477[#6477]
+* Disable `finishProjectCompilation` to resolve intermittent crashes in Kotlin compilation
+  {link-pr}/6476[#6476]
+* Silence spurious warnings on newer JDK versions {link-pr}/6475[#6475]
+* Support proguard for Java modules {link-pr}/6473[#6473]
+* Consolidate ScalaModule#console into ScalaModule#repl {link-pr}/6455[#6455]
+* Add a `.bsp/out/mill-chrome-profile.json` file for Mill's BSP server, making it easier to
+  investigate where Mill's IDE import and integration is spending its time {link-pr}/6508[#6508]
+* Improvements to Android support {link-pr}/6527[#6527] {link-pr}/6551[#6551]
+* Improvements to `./mill init` {link-pr}/6566[#6566] {link-pr}/6567[#6567] {link-pr}/6434[#6434]
+* `./mill init` now generates declarative `.mill.yaml` files for Maven and Gradle import
+  by default  {link-pr}/6441[#6441]
+* Cross module command-line syntax has been changed from `foo[js,2.12.20].bar` to
+  `foo.js.2_12_20.bar`, with dot-separated labels and any dots within cross values substituted
+  by ``_``s. The old syntax continues to be supported for backwards compatibility {link-pr}/6376[#6376]
+* Integrate Kotlin incremental compilation {link-pr}/6360[#6360]
+* Syntax-highlight Java compilation errors {link-pr}/6354[#6354]
+* Improvements to `ZincWorkerMain` compile-worker stability when using custom `def jvmId`
+  {link-pr}/6348[#6348] {link-pr}/6349[#6349]
+* Improvements to GraalVM Native Image support {link-pr}/6315[#6315] {link-pr}/6547[#6547] {link-pr}/6315[#6315]
+* Ensure `must be defs defined in a Module class/trait/object body` error happens reliably
+  for commands {link-pr}/6336[#6336]
+* Lock around info, warn, error, debug logs to avoid interleaving {link-pr}/6321[#6321]
+* Add a new task type `Task.Uncached` {link-pr}/6436[#6436]
+* `ScalaModule#repl` now spawns a default Scala REPL rather than an Ammonite REPL, unless
+  `def ammoniteRepl = true` is set {link-pr}/6455[#6455]
+* Allow un-prefixed dependencies in `--import` {link-pr}/6461[#6461]
+
 [#1-1-0-RC3]
 === 1.1.0-RC3
 :version: 1.1.0-RC3
