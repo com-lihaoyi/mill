@@ -229,14 +229,11 @@ class MillBuildBootstrap(
                   Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
                 )
 
-              case Result.Success(true) =>
-                processFinalTasks(nestedState, buildFileApi, evaluator)
+              case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
 
-              case Result.Success(false) if depth == requestedDepth =>
-                processFinalTasks(nestedState, buildFileApi, evaluator)
-
-              case Result.Success(false) if depth > requestedDepth =>
-                processRunClasspath(
+              case Result.Success(false)  =>
+                if (depth > requestedDepth) {
+                  processRunClasspath(
                   nestedState,
                   buildFileApi,
                   evaluator,
@@ -244,9 +241,9 @@ class MillBuildBootstrap(
                   prevOuterFrameOpt,
                   depth
                 )
-
-              case Result.Success(false) =>
-                nestedState // depth < requestedDepth, already handled at deeper level
+              } else if (depth == requestedDepth) {
+                processFinalTasks(nestedState, buildFileApi, evaluator)
+              } else nestedState
             }
           }
       }
