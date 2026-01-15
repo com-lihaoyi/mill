@@ -91,6 +91,8 @@ case class Execution(
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
 
+  def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
+
   /**
    * @param goals The tasks that need to be evaluated
    * @param reporter A function that will accept a module id and provide a listener for build problems in that module

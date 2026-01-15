@@ -60,6 +60,13 @@ final class EvaluatorImpl(
     scriptModuleInit
   )
 
+  override def withIsFinalDepth(isFinalDepth: Boolean): EvaluatorImpl = new EvaluatorImpl(
+    allowPositionalCommandArgs,
+    selectiveExecution,
+    execution.withIsFinalDepth(isFinalDepth),
+    scriptModuleInit
+  )
+
   /**
    * Takes query selector tokens and resolves them to a list of [[Segments]]
    * representing concrete tasks or modules that match that selector

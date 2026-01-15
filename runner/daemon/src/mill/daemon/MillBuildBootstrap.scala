@@ -211,23 +211,24 @@ class MillBuildBootstrap(
               .map(_.hashCode())
               .getOrElse(0),
             depth = depth,
-            isFinalDepth = depth == requestedDepth || canPotentiallyShortCircuit,
             actualBuildFileName = nestedState.buildFile,
             enableTicker = enableTicker,
             staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
-          )) { evaluator =>
+          )) { evaluator0 =>
             // Check if all requested tasks are @nonBootstrapped
             val shouldShortCircuit =
               if (!canPotentiallyShortCircuit) Result.Success(false)
               else
-                evaluator.areAllNonBootstrapped(
+                evaluator0.areAllNonBootstrapped(
                   tasksAndParams,
                   SelectMode.Separated,
                   allowPositionalCommandArgs
                 )
 
             shouldShortCircuit match {
-              case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
+              case Result.Success(true) =>
+                val evaluator = evaluator0.withIsFinalDepth(true)
+                processFinalTasks(nestedState, buildFileApi, evaluator)
 
               // For both Success(false) and Failure, proceed with normal evaluation.
               // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
@@ -237,12 +238,13 @@ class MillBuildBootstrap(
                   processRunClasspath(
                     nestedState,
                     buildFileApi,
-                    evaluator,
+                    evaluator0,
                     prevFrameOpt,
                     prevOuterFrameOpt,
                     depth
                   )
                 } else if (depth == requestedDepth) {
+                  val evaluator = evaluator0.withIsFinalDepth(true)
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else ??? // should be handled by outer conditional
             }
@@ -431,7 +433,6 @@ object MillBuildBootstrap {
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
       depth: Int,
-      isFinalDepth: Boolean,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String]
@@ -477,7 +478,7 @@ object MillBuildBootstrap {
           staticBuildOverrideFiles,
           enableTicker,
           depth,
-          isFinalDepth
+          false // isFinalDepth: set later via withIsFinalDepth when needed
         )
       ).asInstanceOf[EvaluatorApi]
 
