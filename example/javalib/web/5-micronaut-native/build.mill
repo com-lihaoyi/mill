@@ -2,23 +2,18 @@ package build
 
 import mill.*
 import javalib.*
-import javalib.micronaut.MicronautAotModule
+import javalib.micronaut.MicronautNativeAotModule
 import mill.api.{PathRef, Task}
 import os.zip.ZipSource
 
 import java.util.jar.JarInputStream
 
-object `package` extends MavenModule, MicronautAotModule { outer =>
+object `package` extends MavenModule, MicronautNativeAotModule {
+
+  def micronautPackage = "hello.world"
 
   override def bomMvnDeps = Seq(
-    mvn"io.micronaut.platform:micronaut-platform:4.10.3",
-    // AOT bom
-    mvn"io.micronaut.aot:micronaut-aot-bom:2.9.0"
-  )
-
-  // TODO is this used?
-  def nettyDeps = Seq(
-    mvn"io.micronaut:micronaut-http-server-netty"
+    mvn"io.micronaut.platform:micronaut-platform:4.10.3"
   )
 
   def mvnDeps = Seq(
@@ -30,13 +25,11 @@ object `package` extends MavenModule, MicronautAotModule { outer =>
 
   def finalMainClass = "hello.world.Application"
 
-  // TODO should this be in MicronautAotModule?
   def annotationProcessorsMvnDeps = Seq(
     mvn"io.micronaut:micronaut-http-validation",
     mvn"io.micronaut.serde:micronaut-serde-processor"
   )
 
-  // TODO should this be in MicronautAotModule?
   override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
     "-Amicronaut.processing.incremental=true",
     "-Amicronaut.processing.annotations=hello.world.*"

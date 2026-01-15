@@ -7,34 +7,53 @@ import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
 
 trait MicronautAotModule extends JavaModule, NativeImageModule {
 
-  def resolvedMicronautAotCli: T[Seq[PathRef]] = defaultResolver().classpath(
-    Seq(
-      mvn"io.micronaut.aot:micronaut-aot-cli",
-      mvn"io.micronaut.aot:micronaut-aot-api",
-      mvn"io.micronaut.aot:micronaut-aot-core",
-      mvn"io.micronaut.aot:micronaut-aot-std-optimizers"
-    ),
-    boms = allBomDeps()
-  )
+  def micronautPackage: String
+
+  protected def aotRuntime: T[String] = Task {
+    "jit"
+  }
+
+  def resolvedMicronautAotCli: T[Seq[PathRef]] = Task {
+    try {
+      defaultResolver().classpath(
+        Seq(
+          mvn"io.micronaut.aot:micronaut-aot-cli",
+          mvn"io.micronaut.aot:micronaut-aot-api",
+          mvn"io.micronaut.aot:micronaut-aot-core",
+          mvn"io.micronaut.aot:micronaut-aot-std-optimizers"
+        ),
+        boms = allBomDeps()
+      )
+    } catch {
+      case e: RuntimeException =>
+        Task.fail(
+          s"Failed to resolve Micronaut AOT CLI dependencies. Make sure to include the micronaut-platform or micronaut-aot-bom in your bomMvnDeps.\n${e.getMessage}"
+        )
+    }
+  }
 
   /**
+   * Configuration properties to be used for Micronaut AOT processing.
    * More information on configuring Micronaut AOT can be found
    * in [[https://micronaut-projects.github.io/micronaut-aot/latest/guide/configurationreference.html]]
    */
-  def aotConfigFile: T[PathRef] = Task {
+  def micronautAotConfigProperties: T[Map[String, String]] = Task {
+    Map(
+      "logback.xml.to.java.enabled" -> "true",
+      "netty.properties.enabled" -> "true",
+      "deduce.environment.enabled" -> "true",
+      "serviceloading.jit.enabled" -> "false",
+      "precompute.environment.properties.enabled" -> "true",
+      "sealed.property.source.enabled" -> "true",
+      "cached.environment.enabled" -> "true"
+    )
+  }
+
+  def micronautAotConfigFile: T[PathRef] = Task {
     val file = Task.dest / "micronaut-aot.properties"
     os.write(
       file,
-      """
-        |logback.xml.to.java.enabled=true
-        |netty.properties.enabled=true
-        |deduce.environment.enabled=true
-        |serviceloading.native.enabled=false
-        |precompute.environment.properties.enabled=true
-        |sealed.property.source.enabled=true
-        |cached.environment.enabled=true
-        |graalvm.config.enabled=true
-      """.stripMargin
+      micronautAotConfigProperties().map { case (k, v) => s"$k=$v" }.mkString("\n")
     )
     PathRef(file)
   }
@@ -50,11 +69,11 @@ trait MicronautAotModule extends JavaModule, NativeImageModule {
       "--classpath",
       (runClasspath() ++ resolvedMicronautAotCli()).map(_.path).mkString(":"),
       "--package",
-      "hello.world",
+      micronautPackage,
       "--runtime",
-      "native",
+      aotRuntime(),
       "--config",
-      aotConfigFile().path.toString,
+      micronautAotConfigFile().path.toString,
       "--output",
       dest.toString
     )
@@ -68,18 +87,9 @@ trait MicronautAotModule extends JavaModule, NativeImageModule {
     PathRef(dest)
   }
 
-  override def nativeImageClasspath: Task.Simple[Seq[PathRef]] = Task {
+  override def runClasspath: Task.Simple[Seq[PathRef]] = Task {
     val aotClasses = Seq(PathRef(micronautProcessAOT().path / "classes"))
-    super.nativeImageClasspath() ++ aotClasses
-  }
-
-  override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
-    val configurationsPath = micronautProcessAOT().path / "classes/META-INF"
-    super.nativeImageOptions() ++ Seq(
-      "--no-fallback",
-      "--configurations-path",
-      configurationsPath.toString
-    )
+    super.runClasspath() ++ aotClasses
   }
 
 }
