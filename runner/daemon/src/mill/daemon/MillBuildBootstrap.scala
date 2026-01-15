@@ -285,14 +285,21 @@ class MillBuildBootstrap(
                 // Check if we can short-circuit bootstrapping for nonBootstrapped tasks.
                 // This allows commands like `version`, `shutdown`, `clean` to run even when
                 // the root build.mill has compile errors, as long as the meta-level build is valid.
+                // We use Discover to check for the @nonBootstrapped annotation via reflection.
                 val shouldShortCircuit = requestedMetaLevel.isEmpty && depth > 0 && {
                   evaluator.asInstanceOf[Evaluator].resolveTasks(
                     tasksAndParams,
                     SelectMode.Separated,
                     allowPositionalCommandArgs
                   ) match {
-                    case Result.Success(resolvedTasks) =>
-                      resolvedTasks.nonEmpty && resolvedTasks.forall(_.isNonBootstrapped)
+                    case Result.Success(resolvedTasks) if resolvedTasks.nonEmpty =>
+                      val discover = buildFileApi.rootModule.asInstanceOf[RootModule].millDiscover
+                      resolvedTasks.forall {
+                        case t: mill.api.Task.Named[_] =>
+                          val taskName = t.ctx.segments.parts.last
+                          discover.isNonBootstrapped(t.ctx.enclosingCls, taskName)
+                        case _ => false
+                      }
                     case _ => false
                   }
                 }

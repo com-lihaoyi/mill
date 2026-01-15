@@ -35,7 +35,8 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
   /**
    * Show the mill version.
    */
-  def version(): Command[String] = Task.Command(exclusive = true, nonBootstrapped = true) {
+  @nonBootstrapped
+  def version(): Command[String] = Task.Command(exclusive = true) {
     val res = BuildInfo.millVersion
     println(res)
     res
@@ -52,12 +53,13 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    * @param shellScriptPath Override the location of the shell script, e.g "~/bin/mill".
    * @param batScriptPath Override the location of the Windows batch script.
    */
+  @nonBootstrapped
   def updateMillScripts(
       @mainargs.arg(positional = true) version: String,
       shellScriptPath: String = null,
       batScriptPath: String = null
   ): Command[Seq[PathRef]] =
-    Task.Command(exclusive = true, nonBootstrapped = true) {
+    Task.Command(exclusive = true) {
       val mavenRepoUrl = "https://repo1.maven.org/maven2"
       val baseUrl = s"$mavenRepoUrl/com/lihaoyi/mill-dist/$version"
 
@@ -224,8 +226,9 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    * Deletes the given targets from the out directory. Providing no targets
    * will clean everything.
    */
+  @nonBootstrapped
   def clean(evaluator: Evaluator, tasks: String*): Command[Seq[PathRef]] =
-    Task.Command(exclusive = true, nonBootstrapped = true) { cleanTask(evaluator, tasks*)() }
+    Task.Command(exclusive = true) { cleanTask(evaluator, tasks*)() }
 
   def cleanTask(evaluator: Evaluator, tasks: String*) = Task.Anon {
     val rootDir = evaluator.outPath
@@ -311,7 +314,8 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
   /**
    * Shuts down mill's background daemon
    */
-  def shutdown(): Command[Unit] = Task.Command(exclusive = true, nonBootstrapped = true) {
+  @nonBootstrapped
+  def shutdown(): Command[Unit] = Task.Command(exclusive = true) {
     Task.log.info("Shutting down Mill server...")
     Task.ctx().systemExitWithReason("`shutdown` command received", 0)
     ()
@@ -344,8 +348,9 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    * It prompts you to enter project name and creates a folder with that name.
    * There are lots of templates out there for many frameworks and tools!
    */
+  @nonBootstrapped
   def init(evaluator: Evaluator, args: String*): Command[Unit] =
-    Task.Command(exclusive = true, nonBootstrapped = true) {
+    Task.Command(exclusive = true) {
 
       val parser = mainargs.Parser[InitArgs]
       val parsed = parser.constructOrThrow(args)
