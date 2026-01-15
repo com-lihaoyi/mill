@@ -214,14 +214,14 @@ class MillBuildBootstrap(
             staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
           )) { evaluator =>
             // Check if all requested tasks are @nonBootstrapped
-            val shouldShortCircuit: Result[Boolean] =
-              if (canPotentiallyShortCircuit)
+            val shouldShortCircuit =
+              if (!canPotentiallyShortCircuit) Result.Success(false)
+              else 
                 evaluator.areAllNonBootstrapped(
                   tasksAndParams,
                   SelectMode.Separated,
                   allowPositionalCommandArgs
                 )
-              else Result.Success(false)
 
             shouldShortCircuit match {
               case f: Result.Failure =>
