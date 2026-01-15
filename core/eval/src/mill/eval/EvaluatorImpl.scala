@@ -136,13 +136,31 @@ final class EvaluatorImpl(
    * Resolves tasks using resolveRaw and checks if all of them are marked with @nonBootstrapped annotation.
    * Used by MillBuildBootstrap to determine if we can short-circuit the bootstrap process.
    * Uses resolveRaw instead of resolveTasks to avoid instantiating the tasks.
+   *
+   * Returns false if any selector contains wildcards (`_` or `__`) since wildcards
+   * could resolve to many tasks and we shouldn't short-circuit for those.
    */
   override def areAllNonBootstrapped(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean
   ): mill.api.Result[Boolean] = {
-    resolveRaw(scriptArgs, selectMode, allowPositionalCommandArgs) match {
+    // First, parse the selectors to check for wildcards
+    val parsedResults = ParseArgs(scriptArgs, selectMode)
+    val hasWildcards = parsedResults.exists {
+      case Result.Success((selectors, _)) =>
+        selectors.exists { case (_, segments) =>
+          segments.value.exists {
+            case Segment.Label(v) =>
+              v == "_" || v == "__" || v.startsWith("_:") || v.startsWith("__:")
+            case _ => false
+          }
+        }
+      case _ => false
+    }
+
+    if (hasWildcards) Result.Success(false)
+    else resolveRaw(scriptArgs, selectMode, allowPositionalCommandArgs) match {
       case Result.Success(Nil) => Result.Success(false) // No tasks resolved
       case Result.Success(resolved) =>
         Result.Success(

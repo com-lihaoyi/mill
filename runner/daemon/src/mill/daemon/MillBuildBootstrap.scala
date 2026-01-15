@@ -209,8 +209,8 @@ class MillBuildBootstrap(
             staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
           )) { evaluator =>
             // Check if all requested tasks are @nonBootstrapped
-            val shouldShortCircuit = 
-              // When there is an explicit `--meta-level`, use that and ignore any 
+            val shouldShortCircuit =
+              // When there is an explicit `--meta-level`, use that and ignore any
               // `@nonBootstrapped` annotations
               if (requestedMetaLevel.nonEmpty) Result.Success(false)
               else
