@@ -220,7 +220,7 @@ but the following stackoverflow answer gives us a hint in how to do so:
 
 [source,console]
 ----
-> ./mvnw clean; time ./mvnw -e -X -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
+> ./mvnw clean; time ./mvnw -e -X -pl common -Pfast -Denforcer.skip=true install
 ----
 
 If you grep the output for `-classpath`, we see:
@@ -284,7 +284,7 @@ Or the benchmark of clean-compiling the Netty-Common codebase using Maven or Mil
 
 [source,console]
 ----
-$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
+$ ./mvnw clean; time ./mvnw -pl common -Pfast -Denforcer.skip=true -Dmaven.test.skip=true install
 4.85s
 4.96s
 4.89s
