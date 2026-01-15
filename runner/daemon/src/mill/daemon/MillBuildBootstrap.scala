@@ -116,8 +116,9 @@ class MillBuildBootstrap(
       case None => 0
     }
 
-    if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
-    else if (depth == 0 && (requestedDepth > nestedState.frames.size || requestedDepth < 0)) {
+    if (nestedState.errorOpt.isDefined) {
+      nestedState.add(errorOpt = nestedState.errorOpt)
+    } else if (depth == 0 && (requestedDepth > nestedState.frames.size || requestedDepth < 0)) {
       // User has requested a frame depth, we actually don't have
       val msg =
         s"Invalid selected meta-level ${requestedMetaLevel.getOrElse(0)}. " +
@@ -228,14 +229,13 @@ class MillBuildBootstrap(
                 )
 
             shouldShortCircuit match {
-              case f: Result.Failure =>
-                nestedState.add(errorOpt =
-                  Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
-                )
+              case Result.Success(true) =>
+                processFinalTasks(nestedState, buildFileApi, evaluator)
 
-              case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
-
-              case Result.Success(false) =>
+              // For both Success(false) and Failure, proceed with normal evaluation.
+              // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
+              // evaluation will also fail, but moduleWatched will be properly captured.
+              case _ =>
                 if (depth > requestedDepth) {
                   processRunClasspath(
                     nestedState,
@@ -335,7 +335,6 @@ class MillBuildBootstrap(
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks, as well as all the workers in each subsequent
           // frame's `workerCache`s that may depend on classes loaded by that classloader
-
           prevRunnerState.frames.lift(depth - 1).foreach(
             _.workerCache.collect { case (_, (_, Val(v: AutoCloseable))) => v.close() }
           )
@@ -380,7 +379,6 @@ class MillBuildBootstrap(
       buildFileApi: BuildFileApi,
       evaluator: EvaluatorApi
   ): RunnerState = {
-
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) = evaluateWithWatches(
@@ -590,16 +588,47 @@ object MillBuildBootstrap {
       : Result[BuildFileApi] = {
     // Try loading the compiled BuildFileImpl first. If it doesn't exist (dummy build case
     // where there's no build.mill to compile), fall back to the pre-compiled DummyBuildFile.
+    mill.constants.DebugLog.println(s"getRootModule classLoader=$runClassLoader")
     val buildClass =
       try runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl")
       catch {
         case _: ClassNotFoundException =>
           runClassLoader.loadClass("mill.util.internal.DummyBuildFile")
       }
+    mill.constants.DebugLog.println(s"  buildClass=$buildClass, classLoader=${buildClass.getClassLoader}")
 
     val valueMethod = buildClass.getMethod("value")
     mill.api.ExecResult.catchWrapException {
-      valueMethod.invoke(null).asInstanceOf[BuildFileApi]
+      val result = valueMethod.invoke(null).asInstanceOf[BuildFileApi]
+      mill.constants.DebugLog.println(s"  rootModule=${result.rootModule}")
+      mill.constants.DebugLog.println(s"  rootModule.class=${result.rootModule.getClass}")
+      mill.constants.DebugLog.println(s"  moduleWatchedValues=${result.moduleWatchedValues}")
+      // Try to get moduleNames value
+      try {
+        val moduleNamesField = result.rootModule.getClass.getMethod("moduleNames")
+        val moduleNames = moduleNamesField.invoke(result.rootModule)
+        mill.constants.DebugLog.println(s"  moduleNames=$moduleNames")
+      } catch {
+        case e: Exception => mill.constants.DebugLog.println(s"  moduleNames error: ${e.getMessage}")
+      }
+      // Try to get modules submodule info
+      try {
+        val modulesField = result.rootModule.getClass.getMethod("modules")
+        val modules = modulesField.invoke(result.rootModule)
+        mill.constants.DebugLog.println(s"  modules=$modules")
+        mill.constants.DebugLog.println(s"  modules.class=${modules.getClass}")
+        // Try to get the items of Cross module
+        try {
+          val itemsMethod = modules.getClass.getMethod("items")
+          val items = itemsMethod.invoke(modules)
+          mill.constants.DebugLog.println(s"  modules.items=$items")
+        } catch {
+          case e: Exception => mill.constants.DebugLog.println(s"  modules.items error: ${e.getMessage}")
+        }
+      } catch {
+        case e: Exception => mill.constants.DebugLog.println(s"  modules error: ${e.getMessage}")
+      }
+      result
     }
   }
 
