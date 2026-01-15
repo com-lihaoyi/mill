@@ -1,6 +1,12 @@
 package mill.daemon
 
-import mill.api.daemon.internal.{BuildFileApi, CompileProblemReporter, EvaluatorApi, PathRefApi, RootModuleApi}
+import mill.api.daemon.internal.{
+  BuildFileApi,
+  CompileProblemReporter,
+  EvaluatorApi,
+  PathRefApi,
+  RootModuleApi
+}
 import mill.api.{BuildCtx, Evaluator, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
@@ -115,15 +121,11 @@ class MillBuildBootstrap(
       // User has requested a frame depth, we actually don't have
       val msg =
         s"Invalid selected meta-level ${requestedMetaLevel.getOrElse(0)}. " +
-        s"Valid range: 0 .. ${nestedState.frames.size} (or -1 .. -${nestedState.frames.size + 1})"
+          s"Valid range: 0 .. ${nestedState.frames.size} (or -1 .. -${nestedState.frames.size + 1})"
 
       nestedState.add(errorOpt = Some(msg))
-    } else if (
-      // Skip this depth if final tasks already ran at a deeper level, either because:
-      // - User requested a specific --meta-level deeper than this
-      // - Short-circuit happened for @nonBootstrapped tasks (indicated by classLoaderOpt.isEmpty)
-      nestedState.frames.headOption.exists(_.classLoaderOpt.isEmpty)
-    ) {
+    } else if (nestedState.frames.headOption.exists(_.classLoaderOpt.isEmpty)) {
+      // Skip this depth if final tasks already ran at a deeper level, and `classLoaderOpt` is empty
       nestedState.add(frame = RunnerState.Frame.empty)
     } else {
       val rootModuleRes = nestedState.frames.headOption match {
@@ -142,7 +144,9 @@ class MillBuildBootstrap(
         (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
       } match {
         case f: Result.Failure =>
-          nestedState.add(errorOpt = Some(mill.internal.Util.formatError(f, logger.prompt.errorColor)))
+          nestedState.add(errorOpt =
+            Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+          )
 
         case Result.Success((buildFileApi, staticBuildOverrides0)) =>
 
@@ -231,7 +235,7 @@ class MillBuildBootstrap(
 
               case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
 
-              case Result.Success(false)  =>
+              case Result.Success(false) =>
                 if (depth > requestedDepth) {
                   processRunClasspath(
                     nestedState,

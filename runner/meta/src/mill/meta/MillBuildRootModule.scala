@@ -420,7 +420,7 @@ object MillBuildRootModule {
   }
 
   class BootstrapModule(foundRootBuildFile: os.Path)(using rootModuleInfo: RootModule.Info)
-    extends MainRootModule() with MillBuildRootModule() {
+      extends MainRootModule() with MillBuildRootModule() {
     override def moduleCtx = super.moduleCtx.withFileName(foundRootBuildFile.toString)
     override lazy val millDiscover = Discover[this.type]
   }
