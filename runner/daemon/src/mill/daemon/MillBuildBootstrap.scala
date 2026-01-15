@@ -122,7 +122,7 @@ class MillBuildBootstrap(
       // Skip this depth if final tasks already ran at a deeper level, either because:
       // - User requested a specific --meta-level deeper than this
       // - Short-circuit happened for @nonBootstrapped tasks (indicated by classLoaderOpt.isEmpty)
-      depth < requestedDepth || nestedState.frames.headOption.exists(_.classLoaderOpt.isEmpty)
+      nestedState.frames.headOption.exists(_.classLoaderOpt.isEmpty)
     ) {
       nestedState.add(frame = RunnerState.Frame.empty)
     } else {
