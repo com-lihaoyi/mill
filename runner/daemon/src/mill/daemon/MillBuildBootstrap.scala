@@ -155,13 +155,6 @@ class MillBuildBootstrap(
             staticBuildOverrides0.toSeq ++
               nestedState.frames.headOption.fold(Map())(_.buildOverrideFiles)
 
-          // Short-circuit for @nonBootstrapped tasks:
-          // When root build.mill has compile errors, tasks marked @nonBootstrapped
-          // (like `version`, `clean`, `shutdown`) can still run on the bootstrap module
-          // or on the meta-build if one exists. This is only possible when no explicit
-          // --meta-level is specified (targeting root build at depth 0).
-          val canPotentiallyShortCircuit = requestedMetaLevel.isEmpty
-
           val classloaderChanged =
             prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
               nestedState.frames.headOption.flatMap(_.classLoaderOpt)
@@ -216,8 +209,10 @@ class MillBuildBootstrap(
             staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
           )) { evaluator =>
             // Check if all requested tasks are @nonBootstrapped
-            val shouldShortCircuit =
-              if (!canPotentiallyShortCircuit) Result.Success(false)
+            val shouldShortCircuit = 
+              // When there is an explicit `--meta-level`, use that and ignore any 
+              // `@nonBootstrapped` annotations
+              if (requestedMetaLevel.nonEmpty) Result.Success(false)
               else
                 evaluator.areAllNonBootstrapped(
                   tasksAndParams,
