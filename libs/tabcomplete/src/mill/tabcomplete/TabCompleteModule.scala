@@ -292,9 +292,9 @@ private object TabCompleteModule extends ExternalModule {
     dest match {
       case null =>
         val dataDir = Task.env.getOrElse("XDG_DATA_HOME", "~/.local/share/")
-        val destPath = os.Path.expandUser(dataDir) /  "mill/completion/mill-completion.sh"
+        val destPath = os.Path.expandUser(dataDir) / "mill/completion/mill-completion.sh"
         val homeDest =
-          if(destPath.startsWith(os.home)) s"~/${destPath.relativeTo(os.home)}"
+          if (destPath.startsWith(os.home)) s"~/${destPath.relativeTo(os.home)}"
           else destPath.toString
 
         writeLoudly(destPath, script)
