@@ -243,7 +243,7 @@ class MillBuildBootstrap(
                 )
               } else if (depth == requestedDepth) {
                 processFinalTasks(nestedState, buildFileApi, evaluator)
-              } else nestedState
+              } else ??? // should be handled by outer conditional
             }
           }
       }
