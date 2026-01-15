@@ -226,7 +226,6 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    * Deletes the given targets from the out directory. Providing no targets
    * will clean everything.
    */
-  @nonBootstrapped
   def clean(evaluator: Evaluator, tasks: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) { cleanTask(evaluator, tasks*)() }
 
