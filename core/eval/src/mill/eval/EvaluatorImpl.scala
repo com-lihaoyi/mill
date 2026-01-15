@@ -304,9 +304,9 @@ final class EvaluatorImpl(
     @scala.annotation.nowarn("msg=cannot be checked at runtime")
     val watched = allResults.collect {
       case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
-        ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
+        ps.map(r => Watchable.Path.from(r))
       case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
-        Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
+        Seq(Watchable.Path.from(p))
       case (t: Task.Input[_], result) =>
 
         val ctx = new mill.api.TaskCtx.Impl(

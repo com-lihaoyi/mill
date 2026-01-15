@@ -51,12 +51,12 @@ object BuildCtx {
   }
 
   def watch(p: os.Path): os.Path = withFilesystemCheckerDisabled {
-    val watchable = Watchable.Path(p.toNIO, false, PathRef(p).sig)
+    val watchable = Watchable.Path.from(PathRef(p))
     watchedValues.append(watchable)
     p
   }
   def evalWatch(p: os.Path): os.Path = withFilesystemCheckerDisabled {
-    val watchable = Watchable.Path(p.toNIO, false, PathRef(p).sig)
+    val watchable = Watchable.Path.from(PathRef(p))
     evalWatchedValues.append(watchable)
     p
   }

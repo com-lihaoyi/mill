@@ -93,20 +93,14 @@ class MillBuildBootstrap(
       else {
         val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
 
-        val bootstrapEvalWatched0 = PathRef(topLevelProjectRoot / foundRootBuildFileName)
-        val bootstrapEvalWatched = Watchable.Path(
-          bootstrapEvalWatched0.path.toNIO,
-          bootstrapEvalWatched0.quick,
-          bootstrapEvalWatched0.sig
-        )
+        val bootstrapEvalWatched = 
+          Watchable.Path.from(PathRef(topLevelProjectRoot / foundRootBuildFileName))
 
         val state =
           if (currentRootContainsBuildFile) evaluateRec(depth + 1)
           else {
             mill.api.ExecResult.catchWrapException {
-              new MillBuildRootModule.BootstrapModule(
-                (currentRoot / foundRootBuildFileName).toString
-              )(
+              new MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)(
                 using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
               )
             } match {
