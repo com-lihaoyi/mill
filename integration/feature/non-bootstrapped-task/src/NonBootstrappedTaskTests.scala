@@ -14,7 +14,7 @@ import utest.*
  */
 object NonBootstrappedTaskTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    integrationTest {  tester =>
+    integrationTest { tester =>
       import tester.*
 
       // version should work even with broken build.mill

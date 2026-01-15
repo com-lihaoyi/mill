@@ -244,6 +244,15 @@ class MillBuildBootstrap(
                 staticBuildOverrides0.toSeq ++
                   nestedState.frames.headOption.fold(Map())(_.buildOverrideFiles)
 
+              // Short-circuit for @nonBootstrapped tasks:
+              // When root build.mill has compile errors, tasks marked @nonBootstrapped
+              // (like `version`, `clean`, `shutdown`) can still run on the meta-build.
+              // This is only possible when:
+              // - No explicit --meta-level (targeting root build at depth 0)
+              // - A compiled meta-build exists (nestedState.frames.nonEmpty)
+              val canPotentiallyShortCircuit =
+                requestedMetaLevel.isEmpty && nestedState.frames.nonEmpty
+
               Using.resource(makeEvaluator(
                 projectRoot = topLevelProjectRoot,
                 output = output,
@@ -279,53 +288,45 @@ class MillBuildBootstrap(
                   .map(_.hashCode())
                   .getOrElse(0),
                 depth = depth,
-                // isFinalDepth is true if this is the requested depth, or if we might short-circuit
-                // for nonBootstrapped tasks (when we have a compiled meta-build to fall back on).
-                // If short-circuit doesn't happen, this depth won't run final tasks anyway.
-                isFinalDepth = depth == requestedDepth || (requestedMetaLevel.isEmpty && nestedState.frames.nonEmpty),
+                isFinalDepth = depth == requestedDepth || canPotentiallyShortCircuit,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
                 staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
               )) { evaluator =>
-                // Check if we can short-circuit bootstrapping for nonBootstrapped tasks.
-                // This allows commands like `version`, `shutdown`, `clean` to run even when
-                // the root build.mill has compile errors, as long as the meta-level build is valid.
-                // We only check when we have a compiled meta-build (frames.nonEmpty) because
-                // user-defined @nonBootstrapped tasks only exist after compilation.
-                val shortCircuitResult: Option[Result[Boolean]] =
-                  if (requestedMetaLevel.isEmpty && nestedState.frames.nonEmpty) {
-                    Some(evaluator.areAllNonBootstrapped(
+                // Check if all requested tasks are @nonBootstrapped
+                val shouldShortCircuit: Result[Boolean] =
+                  if (canPotentiallyShortCircuit)
+                    evaluator.areAllNonBootstrapped(
                       tasksAndParams,
                       SelectMode.Separated,
                       allowPositionalCommandArgs
-                    ))
-                  } else None
+                    )
+                  else Result.Success(false)
 
-                shortCircuitResult match {
-                  case Some(f: Result.Failure) =>
-                    // Task resolution failed, propagate the error
+                shouldShortCircuit match {
+                  case f: Result.Failure =>
                     nestedState.add(errorOpt =
                       Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
                     )
-                  case Some(Result.Success(true)) =>
-                    // All tasks are nonBootstrapped, short-circuit and run at this depth
+
+                  case Result.Success(true) =>
                     processFinalTasks(nestedState, buildFileApi, evaluator)
 
-                  case _ =>
-                    // Normal flow: either not checking for short-circuit, or tasks aren't all nonBootstrapped
-                    if (depth == requestedDepth) {
-                      processFinalTasks(nestedState, buildFileApi, evaluator)
-                    } else if (depth <= requestedDepth) nestedState
-                    else {
-                      processRunClasspath(
-                        nestedState,
-                        buildFileApi,
-                        evaluator,
-                        prevFrameOpt,
-                        prevOuterFrameOpt,
-                        depth
-                      )
-                    }
+                  case Result.Success(false) if depth == requestedDepth =>
+                    processFinalTasks(nestedState, buildFileApi, evaluator)
+
+                  case Result.Success(false) if depth > requestedDepth =>
+                    processRunClasspath(
+                      nestedState,
+                      buildFileApi,
+                      evaluator,
+                      prevFrameOpt,
+                      prevOuterFrameOpt,
+                      depth
+                    )
+
+                  case Result.Success(false) =>
+                    nestedState // depth < requestedDepth, already handled at deeper level
                 }
               }
           }
