@@ -3,9 +3,9 @@ package mill.javalib.micronaut
 import mill.{T, Task}
 import mill.api.PathRef
 import mill.util.Jvm
-import mill.javalib.{Dep, DepSyntax, JavaModule, NativeImageModule}
+import mill.javalib.{Dep, DepSyntax, JavaModule}
 
-trait MicronautAotModule extends JavaModule, NativeImageModule {
+trait MicronautAotModule extends JavaModule {
 
   def micronautPackage: String
 
@@ -87,9 +87,8 @@ trait MicronautAotModule extends JavaModule, NativeImageModule {
     PathRef(dest)
   }
 
-  override def runClasspath: Task.Simple[Seq[PathRef]] = Task {
-    val aotClasses = Seq(PathRef(micronautProcessAOT().path / "classes"))
-    super.runClasspath() ++ aotClasses
+  def micronautAotClasspath: T[Seq[PathRef]] = Task {
+    Seq(PathRef(micronautProcessAOT().path / "classes"))
   }
 
 }
