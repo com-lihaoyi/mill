@@ -281,6 +281,10 @@
       },
       "mainClasses": [
         {
+          "className": "build.MillScriptMain_script_scala",
+          "arguments": []
+        },
+        {
           "className": "build.script$package",
           "arguments": []
         }
@@ -407,6 +411,10 @@
         "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
+        {
+          "className": "build.MillScriptMain_script_scala",
+          "arguments": []
+        },
         {
           "className": "build.script$package",
           "arguments": []

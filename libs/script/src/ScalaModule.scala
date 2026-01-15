@@ -79,7 +79,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     // and use the user-provided main method instead
     super.allLocalMainClasses().filter(!syntheticMainargsMainClasses().contains(_)) match {
       case Seq(single) => Seq(single)
-      case multiple => multiple.filter(!_.startsWith("MillScriptMain_"))
+      case multiple => multiple.filter(!_.contains("MillScriptMain_"))
     }
   }
 }
