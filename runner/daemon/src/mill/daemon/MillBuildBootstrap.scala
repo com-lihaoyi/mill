@@ -15,7 +15,7 @@ import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.MillBuildRootModule
-import mill.meta.CliImports
+import mill.api.daemon.CliImports
 import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
@@ -379,7 +379,8 @@ class MillBuildBootstrap(
             runClasspath.map(p => os.Path(p.javaPath)),
             null,
             sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
-            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
+            sharedPrefixes =
+              Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
           )
           cl
         } else {

@@ -1,4 +1,4 @@
-package mill.meta
+package mill.api.daemon
 
 import scala.util.DynamicVariable
 
