@@ -57,7 +57,7 @@ object Discover {
     lazy val declaredTaskNameSet = declaredTasks.map(_.name).toSet
     lazy val nonBootstrappedTaskNames = declaredTasks.filter(_.nonBootstrapped).map(_.name).toSet
   }
-  final class TaskInfo(val name: String, val nonBootstrapped: Boolean = false)
+  final class TaskInfo(val name: String, @com.lihaoyi.unroll val nonBootstrapped: Boolean = false)
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }
 
