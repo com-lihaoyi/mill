@@ -4,9 +4,9 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
 /**
- * Tests for the nonBootstrapped flag on tasks.
+ * Tests for the @nonBootstrapped annotation on tasks.
  *
- * When a task is marked as nonBootstrapped = true, it can be run even when the
+ * When a task is marked with @nonBootstrapped, it can be run even when the
  * root build.mill file has compile errors, as long as the meta-build level compiles.
  *
  * This is useful for commands like `version`, `shutdown`, `clean`, `init` that
@@ -14,17 +14,36 @@ import utest.*
  */
 object NonBootstrappedTaskTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    test("builtin nonBootstrapped commands work with broken build.mill") - integrationTest {
+    test("builtins") - integrationTest {
       tester =>
         import tester.*
 
         // version should work even with broken build.mill
         val versionResult = eval("version")
         assert(versionResult.isSuccess)
+        
+        val shutdownResult = eval("shutdown")
+        assert(shutdownResult.isSuccess)
+    }
 
-        // clean with no args should work
-        val cleanResult = eval("clean")
-        assert(cleanResult.isSuccess)
+    test("custom") - integrationTest {
+      tester =>
+        import tester.*
+
+        // Custom @nonBootstrapped command defined in mill-build/build.mill should work
+        val customResult = eval("mill.build/myNonBootstrappedTask")
+        assert(customResult.isSuccess)
+        assert(customResult.out.contains("Running myNonBootstrappedTask"))
+    }
+
+    test("regularFails") - integrationTest { tester =>
+      import tester.*
+
+      // Regular command (not @nonBootstrapped) should fail because build.mill has errors
+      val regularResult = eval("mill.build/myRegularTask")
+      assert(!regularResult.isSuccess)
+      // The error should mention the build.mill error
+      assert(regularResult.err.contains("boom"))
     }
   }
 }

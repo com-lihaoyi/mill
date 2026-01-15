@@ -1,7 +1,7 @@
 package build
 
 import mill.*
-import mill.api.Discover
+import mill.api.{Discover, nonBootstrapped}
 import mill.meta.MillBuildRootModule
 
 object `package` extends MillBuildRootModule {
@@ -10,8 +10,9 @@ object `package` extends MillBuildRootModule {
   /**
    * A custom nonBootstrapped task that can be run even when the root build.mill has errors.
    */
+  @nonBootstrapped
   def myNonBootstrappedTask(): Command[String] =
-    Task.Command(exclusive = true, nonBootstrapped = true) {
+    Task.Command(exclusive = true) {
       println("Running myNonBootstrappedTask")
       "success"
     }
