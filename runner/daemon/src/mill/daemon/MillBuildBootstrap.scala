@@ -216,7 +216,7 @@ class MillBuildBootstrap(
             // Check if all requested tasks are @nonBootstrapped
             val shouldShortCircuit =
               if (!canPotentiallyShortCircuit) Result.Success(false)
-              else 
+              else
                 evaluator.areAllNonBootstrapped(
                   tasksAndParams,
                   SelectMode.Separated,
