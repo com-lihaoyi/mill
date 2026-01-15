@@ -280,9 +280,9 @@ class MillBuildBootstrap(
                   .getOrElse(0),
                 depth = depth,
                 // isFinalDepth is true if this is the requested depth, or if we might short-circuit
-                // for nonBootstrapped tasks (depth > 0 with no explicit meta-level).
+                // for nonBootstrapped tasks (when we have a compiled meta-build to fall back on).
                 // If short-circuit doesn't happen, this depth won't run final tasks anyway.
-                isFinalDepth = depth == requestedDepth || (requestedMetaLevel.isEmpty && depth > 0),
+                isFinalDepth = depth == requestedDepth || (requestedMetaLevel.isEmpty && nestedState.frames.nonEmpty),
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
                 staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
@@ -290,30 +290,42 @@ class MillBuildBootstrap(
                 // Check if we can short-circuit bootstrapping for nonBootstrapped tasks.
                 // This allows commands like `version`, `shutdown`, `clean` to run even when
                 // the root build.mill has compile errors, as long as the meta-level build is valid.
-                // We use areAllNonBootstrapped to check for the @nonBootstrapped annotation.
-                val shouldShortCircuit = requestedMetaLevel.isEmpty && depth > 0 && {
-                  evaluator.areAllNonBootstrapped(
-                    tasksAndParams,
-                    SelectMode.Separated,
-                    allowPositionalCommandArgs
-                  ) match {
-                    case Result.Success(allNonBootstrapped) => allNonBootstrapped
-                    case _ => false
-                  }
-                }
+                // We only check when we have a compiled meta-build (frames.nonEmpty) because
+                // user-defined @nonBootstrapped tasks only exist after compilation.
+                val shortCircuitResult: Option[Result[Boolean]] =
+                  if (requestedMetaLevel.isEmpty && nestedState.frames.nonEmpty) {
+                    Some(evaluator.areAllNonBootstrapped(
+                      tasksAndParams,
+                      SelectMode.Separated,
+                      allowPositionalCommandArgs
+                    ))
+                  } else None
 
-                if (depth == requestedDepth || shouldShortCircuit) {
-                  processFinalTasks(nestedState, buildFileApi, evaluator)
-                } else if (depth <= requestedDepth) nestedState
-                else {
-                  processRunClasspath(
-                    nestedState,
-                    buildFileApi,
-                    evaluator,
-                    prevFrameOpt,
-                    prevOuterFrameOpt,
-                    depth
-                  )
+                shortCircuitResult match {
+                  case Some(f: Result.Failure) =>
+                    // Task resolution failed, propagate the error
+                    nestedState.add(errorOpt =
+                      Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+                    )
+                  case Some(Result.Success(true)) =>
+                    // All tasks are nonBootstrapped, short-circuit and run at this depth
+                    processFinalTasks(nestedState, buildFileApi, evaluator)
+
+                  case _ =>
+                    // Normal flow: either not checking for short-circuit, or tasks aren't all nonBootstrapped
+                    if (depth == requestedDepth) {
+                      processFinalTasks(nestedState, buildFileApi, evaluator)
+                    } else if (depth <= requestedDepth) nestedState
+                    else {
+                      processRunClasspath(
+                        nestedState,
+                        buildFileApi,
+                        evaluator,
+                        prevFrameOpt,
+                        prevOuterFrameOpt,
+                        depth
+                      )
+                    }
                 }
               }
           }
