@@ -4202,7 +4202,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/meta/AsmPositionUpdater$.html#postProcess-fffffb79","e":false,"i":"","n":"postProcess","t":"postProcess(lineNumberOffset: Int, clsInputStream: InputStream): Array[Byte]","d":"mill.meta.AsmPositionUpdater","k":"def","x":""},
 {"l":"mill/meta/BuildInfo$.html#","e":false,"i":"","n":"BuildInfo","t":"BuildInfo","d":"mill.meta","k":"object","x":""},
 {"l":"mill/meta/BuildInfo$.html#millRunnerMetaVersion-0","e":false,"i":"","n":"millRunnerMetaVersion","t":"millRunnerMetaVersion: String","d":"mill.meta.BuildInfo","k":"val","x":""},
-{"l":"mill/meta/CliImports$.html#","e":false,"i":"","n":"CliImports","t":"CliImports extends DynamicVariable[Seq[String]]","d":"mill.meta","k":"object","x":""},
 {"l":"mill/meta/CodeGen$.html#","e":false,"i":"","n":"CodeGen","t":"CodeGen","d":"mill.meta","k":"object","x":""},
 {"l":"mill/meta/CodeGen$.html#generateBuildFileImpl-fffff2ca","e":false,"i":"","n":"generateBuildFileImpl","t":"generateBuildFileImpl(pkg: String): String","d":"mill.meta.CodeGen","k":"def","x":""},
 {"l":"mill/meta/CodeGen$.html#generateWrappedAndSupportSources-540","e":false,"i":"","n":"generateWrappedAndSupportSources","t":"generateWrappedAndSupportSources(projectRoot: Path, allScriptCode: Map[Path, String], wrappedDest: Path, supportDest: Path, resourceDest: Path, millTopLevelProjectRoot: Path, output: Path, parser: MillScalaParser): Unit","d":"mill.meta.CodeGen","k":"def","x":""},
