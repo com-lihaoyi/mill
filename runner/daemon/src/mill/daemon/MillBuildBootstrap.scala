@@ -83,41 +83,14 @@ class MillBuildBootstrap(
   def evaluateRec(depth: Int): RunnerState = logger.withChromeProfile(s"meta-level $depth") {
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val currentRoot = recRoot(topLevelProjectRoot, depth)
-    val prevFrameOpt = prevRunnerState.frames.lift(depth)
-    val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
     val currentRootContainsBuildFile = rootBuildFileNames.asScala.exists(rootBuildFileName =>
       os.exists(currentRoot / rootBuildFileName)
     )
 
     val nestedState =
-      if (depth == 0) {
-        lazy val state = evaluateRec(depth + 1)
-        if (currentRootContainsBuildFile) state
-        else {
-          val rootFileNamesStr = rootBuildFileNames.asScala.mkString(", ")
-          val msg =
-            s"No build file ($rootFileNamesStr) found in $topLevelProjectRoot. Are you in a Mill project directory?"
-
-          state match {
-            case RunnerState(
-                  bootstrapModuleOpt,
-                  frames,
-                  Some(error),
-                  None,
-                  bootstrapEvalWatched
-                ) =>
-              // Add a potential clue (missing build.mill) to the underlying error message
-              RunnerState(
-                bootstrapModuleOpt,
-                frames,
-                Some(msg + "\n" + error),
-                bootstrapEvalWatched = bootstrapEvalWatched
-              )
-            case state => state
-          }
-        }
-      } else {
+      if (depth == 0) evaluateRec(depth + 1)
+      else {
         val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
 
         val bootstrapEvalWatched0 = PathRef(topLevelProjectRoot / foundRootBuildFileName)
@@ -170,17 +143,6 @@ class MillBuildBootstrap(
       case None => 0
     }
 
-    val classloaderChanged =
-      prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
-        nestedState.frames.headOption.flatMap(_.classLoaderOpt)
-
-    // If the classloader changed, it means the old classloader was closed
-    // and all workers were closed as well, so we return an empty workerCache
-    // for the next evaluation
-    val newWorkerCache =
-      if (classloaderChanged) Map.empty
-      else prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
-
     if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
     else if (depth == 0 && (requestedDepth > nestedState.frames.size || requestedDepth < 0)) {
       // User has requested a frame depth, we actually don't have
@@ -193,7 +155,7 @@ class MillBuildBootstrap(
       // We already evaluated on a deeper level, hence we just need to make sure,
       // we return a proper structure with all already existing watch data
       val evalState = RunnerState.Frame(
-        workerCache = newWorkerCache,
+        workerCache = Map.empty,
         evalWatched = Seq.empty,
         moduleWatched = Seq.empty,
         codeSignatures = Map.empty,
@@ -250,6 +212,20 @@ class MillBuildBootstrap(
           // - A compiled meta-build exists (nestedState.frames.nonEmpty)
           val canPotentiallyShortCircuit =
             requestedMetaLevel.isEmpty && nestedState.frames.nonEmpty
+
+          val classloaderChanged =
+            prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
+              nestedState.frames.headOption.flatMap(_.classLoaderOpt)
+
+          val prevFrameOpt = prevRunnerState.frames.lift(depth)
+          val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
+
+          // If the classloader changed, it means the old classloader was closed
+          // and all workers were closed as well, so we return an empty workerCache
+          // for the next evaluation
+          val newWorkerCache =
+            if (classloaderChanged) Map.empty
+            else prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
 
           Using.resource(makeEvaluator(
             projectRoot = topLevelProjectRoot,
