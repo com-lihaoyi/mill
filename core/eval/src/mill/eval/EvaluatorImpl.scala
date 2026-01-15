@@ -136,16 +136,15 @@ final class EvaluatorImpl(
       allowPositionalCommandArgs: Boolean
   ): mill.api.Result[Boolean] = {
     resolveRaw(scriptArgs, selectMode, allowPositionalCommandArgs) match {
-      case Result.Success(resolved) if resolved.nonEmpty =>
-        val allNonBootstrapped = resolved.forall { r =>
-          val taskName = r.taskSegments.parts.last
-          r.rootModule.millDiscover.isNonBootstrapped(r.cls, taskName)
-        }
-        Result.Success(allNonBootstrapped)
-      case Result.Success(_) =>
-        Result.Success(false) // No tasks resolved
-      case f: Result.Failure =>
-        f // Pass through failure
+      case Result.Success(Nil) => Result.Success(false) // No tasks resolved
+      case Result.Success(resolved) =>
+        Result.Success(
+          resolved.forall { r =>
+            r.rootModule.millDiscover.isNonBootstrapped(r.cls, r.taskSegments.parts.last)
+          }
+        )
+
+      case f: Result.Failure => f // Pass through failure
     }
   }
 

@@ -14,30 +14,20 @@ import utest.*
  */
 object NonBootstrappedTaskTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    test("builtins") - integrationTest {
-      tester =>
-        import tester.*
-
-        // version should work even with broken build.mill
-        val versionResult = eval("version")
-        assert(versionResult.isSuccess)
-
-        val shutdownResult = eval("shutdown")
-        assert(shutdownResult.isSuccess)
-    }
-
-    test("custom") - integrationTest {
-      tester =>
-        import tester.*
-
-        // Custom @nonBootstrapped command defined in mill-build/build.mill should work
-        val customResult = eval("myNonBootstrappedTask")
-        assert(customResult.isSuccess)
-        assert(customResult.out.contains("Running myNonBootstrappedTask"))
-    }
-
-    test("regularFails") - integrationTest { tester =>
+    integrationTest {  tester =>
       import tester.*
+
+      // version should work even with broken build.mill
+      val versionResult = eval("version")
+      assert(versionResult.isSuccess)
+
+      val shutdownResult = eval("shutdown")
+      assert(shutdownResult.isSuccess)
+
+      // Custom @nonBootstrapped command defined in mill-build/build.mill should work
+      val customResult = eval("myNonBootstrappedTask")
+      assert(customResult.isSuccess)
+      assert(customResult.out.contains("Running myNonBootstrappedTask"))
 
       // Regular command (not @nonBootstrapped) should fail because build.mill has errors
       val regularResult = eval("myRegularTask")
