@@ -126,19 +126,20 @@ final class EvaluatorImpl(
   }
 
   /**
-   * Resolves tasks and checks if all of them are marked with @nonBootstrapped annotation.
+   * Resolves tasks using resolveRaw and checks if all of them are marked with @nonBootstrapped annotation.
    * Used by MillBuildBootstrap to determine if we can short-circuit the bootstrap process.
+   * Uses resolveRaw instead of resolveTasks to avoid instantiating the tasks.
    */
   override def areAllNonBootstrapped(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean
   ): mill.api.Result[Boolean] = {
-    resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs) match {
-      case Result.Success(resolvedTasks) if resolvedTasks.nonEmpty =>
-        val allNonBootstrapped = resolvedTasks.forall { task =>
-          val taskName = task.ctx.segments.parts.last
-          rootModule.millDiscover.isNonBootstrapped(task.ctx.enclosingCls, taskName)
+    resolveRaw(scriptArgs, selectMode, allowPositionalCommandArgs) match {
+      case Result.Success(resolved) if resolved.nonEmpty =>
+        val allNonBootstrapped = resolved.forall { r =>
+          val taskName = r.taskSegments.parts.last
+          r.rootModule.millDiscover.isNonBootstrapped(r.cls, taskName)
         }
         Result.Success(allNonBootstrapped)
       case Result.Success(_) =>
