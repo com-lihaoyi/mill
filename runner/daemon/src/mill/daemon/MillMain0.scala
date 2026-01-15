@@ -467,7 +467,13 @@ object MillMain0 {
                       config.leftoverArgs.value == Seq("mill.idea/")
                     ) {
                       val runnerState =
-                        runMillBootstrap(false, None, Seq("resolve", "_"), streams, "BSP:initialize")
+                        runMillBootstrap(
+                          false,
+                          None,
+                          Seq("resolve", "_"),
+                          streams,
+                          "BSP:initialize"
+                        )
                       new mill.idea.GenIdeaImpl(runnerState.frames.flatMap(_.evaluator))
                         .run()
                       (true, RunnerState(None, Nil, None))
@@ -477,7 +483,13 @@ object MillMain0 {
                       config.leftoverArgs.value == Seq("mill.eclipse/")
                     ) {
                       val runnerState =
-                        runMillBootstrap(false, None, Seq("resolve", "_"), streams, "BSP:initialize")
+                        runMillBootstrap(
+                          false,
+                          None,
+                          Seq("resolve", "_"),
+                          streams,
+                          "BSP:initialize"
+                        )
                       new mill.eclipse.GenEclipseImpl(runnerState.frames.flatMap(_.evaluator))
                         .run()
                       (true, RunnerState(None, Nil, None))
