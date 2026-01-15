@@ -234,16 +234,16 @@ class MillBuildBootstrap(
               case Result.Success(false)  =>
                 if (depth > requestedDepth) {
                   processRunClasspath(
-                  nestedState,
-                  buildFileApi,
-                  evaluator,
-                  prevFrameOpt,
-                  prevOuterFrameOpt,
-                  depth
-                )
-              } else if (depth == requestedDepth) {
-                processFinalTasks(nestedState, buildFileApi, evaluator)
-              } else ??? // should be handled by outer conditional
+                    nestedState,
+                    buildFileApi,
+                    evaluator,
+                    prevFrameOpt,
+                    prevOuterFrameOpt,
+                    depth
+                  )
+                } else if (depth == requestedDepth) {
+                  processFinalTasks(nestedState, buildFileApi, evaluator)
+                } else ??? // should be handled by outer conditional
             }
           }
       }
