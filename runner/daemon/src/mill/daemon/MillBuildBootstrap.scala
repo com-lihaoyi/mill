@@ -7,12 +7,11 @@ import mill.api.daemon.internal.{
   PathRefApi,
   RootModuleApi
 }
-import mill.api.{Logger, Result, SystemStreams, Val}
+import mill.api.{BuildCtx, Evaluator, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
-import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.MillBuildRootModule
 import mill.meta.CliImports
@@ -209,6 +208,13 @@ class MillBuildBootstrap(
             buildOverrideFiles = Map()
           )
           nestedState.add(frame = evalState, errorOpt = None)
+        } else if (
+          // Check if short-circuit already happened at a deeper level
+          // (indicated by a frame with an evaluator but no classloader)
+          nestedState.frames.headOption.exists(f => f.evaluator.isDefined && f.classLoaderOpt.isEmpty)
+        ) {
+          // Short-circuit happened at a deeper level, just pass through the result
+          nestedState
         } else {
           val rootModuleRes = nestedState.frames.headOption match {
             case None =>
@@ -276,7 +282,22 @@ class MillBuildBootstrap(
                 enableTicker = enableTicker,
                 staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
               )) { evaluator =>
-                if (depth == requestedDepth) {
+                // Check if we can short-circuit bootstrapping for nonBootstrapped tasks.
+                // This allows commands like `version`, `shutdown`, `clean` to run even when
+                // the root build.mill has compile errors, as long as the meta-level build is valid.
+                val shouldShortCircuit = requestedMetaLevel.isEmpty && depth > 0 && {
+                  evaluator.asInstanceOf[Evaluator].resolveTasks(
+                    tasksAndParams,
+                    SelectMode.Separated,
+                    allowPositionalCommandArgs
+                  ) match {
+                    case Result.Success(resolvedTasks) =>
+                      resolvedTasks.nonEmpty && resolvedTasks.forall(_.isNonBootstrapped)
+                    case _ => false
+                  }
+                }
+
+                if (depth == requestedDepth || shouldShortCircuit) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else if (depth <= requestedDepth) nestedState
                 else {

@@ -35,7 +35,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
   /**
    * Show the mill version.
    */
-  def version(): Command[String] = Task.Command(exclusive = true) {
+  def version(): Command[String] = Task.Command(exclusive = true, nonBootstrapped = true) {
     val res = BuildInfo.millVersion
     println(res)
     res
@@ -57,7 +57,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
       shellScriptPath: String = null,
       batScriptPath: String = null
   ): Command[Seq[PathRef]] =
-    Task.Command(exclusive = true) {
+    Task.Command(exclusive = true, nonBootstrapped = true) {
       val mavenRepoUrl = "https://repo1.maven.org/maven2"
       val baseUrl = s"$mavenRepoUrl/com/lihaoyi/mill-dist/$version"
 
@@ -225,7 +225,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    * will clean everything.
    */
   def clean(evaluator: Evaluator, tasks: String*): Command[Seq[PathRef]] =
-    Task.Command(exclusive = true) { cleanTask(evaluator, tasks*)() }
+    Task.Command(exclusive = true, nonBootstrapped = true) { cleanTask(evaluator, tasks*)() }
 
   def cleanTask(evaluator: Evaluator, tasks: String*) = Task.Anon {
     val rootDir = evaluator.outPath
@@ -311,7 +311,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
   /**
    * Shuts down mill's background daemon
    */
-  def shutdown(): Command[Unit] = Task.Command(exclusive = true) {
+  def shutdown(): Command[Unit] = Task.Command(exclusive = true, nonBootstrapped = true) {
     Task.log.info("Shutting down Mill server...")
     Task.ctx().systemExitWithReason("`shutdown` command received", 0)
     ()
@@ -345,7 +345,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    * There are lots of templates out there for many frameworks and tools!
    */
   def init(evaluator: Evaluator, args: String*): Command[Unit] =
-    Task.Command(exclusive = true) {
+    Task.Command(exclusive = true, nonBootstrapped = true) {
 
       val parser = mainargs.Parser[InitArgs]
       val parsed = parser.constructOrThrow(args)

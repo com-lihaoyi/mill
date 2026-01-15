@@ -57,6 +57,16 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
     case c: Task.Command[_] if c.exclusive => true
     case _ => false
   }
+
+  /**
+   * Whether this task can be run without bootstrapping the full build.
+   * Tasks marked as nonBootstrapped can be run even when the main build.mill
+   * has compile errors, as long as the meta-level build.mill is valid.
+   */
+  private[mill] def isNonBootstrapped: Boolean = this match {
+    case c: Task.Command[_] if c.nonBootstrapped => true
+    case _ => false
+  }
 }
 
 object Task {
@@ -237,7 +247,7 @@ object Task {
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Command[T] =
-    ${ Macros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, persistent = '{ false }) }
+    ${ Macros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, persistent = '{ false }, nonBootstrapped = '{ false }) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -248,18 +258,23 @@ object Task {
    *                  to the user.
    * @param persistent If true the `Task.dest` directory is not cleaned between
    *                   runs.
+   * @param nonBootstrapped If true, this command can be run without bootstrapping
+   *                        the full build. This is useful for commands that don't
+   *                        require the user's build.mill to be compiled, such as
+   *                        `version`, `shutdown`, `clean`, etc.
    */
   def Command(
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
-      persistent: Boolean = false
-  ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
-  class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean) {
+      persistent: Boolean = false,
+      nonBootstrapped: Boolean = false
+  ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent, nonBootstrapped = nonBootstrapped)
+  class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean, val nonBootstrapped: Boolean) {
     inline def apply[T](inline t: Result[T])(using
         inline w: Writer[T],
         inline ctx: ModuleCtx
     ): Command[T] =
-      ${ Macros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.persistent }) }
+      ${ Macros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.persistent }, '{ this.nonBootstrapped }) }
   }
 
   /**
@@ -481,7 +496,8 @@ object Task {
       val writer: Writer[?],
       val isPrivate: Option[Boolean],
       val exclusive: Boolean,
-      override val persistent: Boolean
+      override val persistent: Boolean,
+      val nonBootstrapped: Boolean = false
   ) extends Task.Named[T] {
 
     override def asCommand: Some[Command[T]] = Some(this)
@@ -713,7 +729,8 @@ object Task {
         w: Expr[Writer[T]],
         ctx: Expr[mill.api.ModuleCtx],
         exclusive: Expr[Boolean],
-        persistent: Expr[Boolean]
+        persistent: Expr[Boolean],
+        nonBootstrapped: Expr[Boolean]
     ): Expr[Command[T]] = {
       assertTaskShapeOwner("Task.Command", 1)
       appImpl[Command, T](
@@ -726,7 +743,8 @@ object Task {
               $w,
               ${ taskIsPrivate() },
               exclusive = $exclusive,
-              persistent = $persistent
+              persistent = $persistent,
+              nonBootstrapped = $nonBootstrapped
             )
           },
         t

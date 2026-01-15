@@ -28,7 +28,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 @internal
 trait MillBuildRootModule()(using
     rootModuleInfo: RootModule.Info
-) extends ScalaModule with MillBuildRootModuleApi {
+) extends ScalaModule with MillBuildRootModuleApi with mill.util.MainModule {
 
   def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
 

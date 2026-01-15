@@ -1,0 +1,8 @@
+// A build.mill with a compile error to test nonBootstrapped tasks
+import mill.*
+
+sys.error("boom")
+
+object foo extends Module {
+  def bar = Task { "hello" }
+}
