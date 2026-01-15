@@ -157,12 +157,10 @@ class MillBuildBootstrap(
 
           // Short-circuit for @nonBootstrapped tasks:
           // When root build.mill has compile errors, tasks marked @nonBootstrapped
-          // (like `version`, `clean`, `shutdown`) can still run on the meta-build.
-          // This is only possible when:
-          // - No explicit --meta-level (targeting root build at depth 0)
-          // - A compiled meta-build exists (nestedState.frames.nonEmpty)
-          val canPotentiallyShortCircuit =
-            requestedMetaLevel.isEmpty && nestedState.frames.nonEmpty
+          // (like `version`, `clean`, `shutdown`) can still run on the bootstrap module
+          // or on the meta-build if one exists. This is only possible when no explicit
+          // --meta-level is specified (targeting root build at depth 0).
+          val canPotentiallyShortCircuit = requestedMetaLevel.isEmpty
 
           val classloaderChanged =
             prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
@@ -229,8 +227,7 @@ class MillBuildBootstrap(
                 )
 
             shouldShortCircuit match {
-              case Result.Success(true) =>
-                processFinalTasks(nestedState, buildFileApi, evaluator)
+              case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
 
               // For both Success(false) and Failure, proceed with normal evaluation.
               // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
@@ -588,47 +585,16 @@ object MillBuildBootstrap {
       : Result[BuildFileApi] = {
     // Try loading the compiled BuildFileImpl first. If it doesn't exist (dummy build case
     // where there's no build.mill to compile), fall back to the pre-compiled DummyBuildFile.
-    mill.constants.DebugLog.println(s"getRootModule classLoader=$runClassLoader")
     val buildClass =
       try runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl")
       catch {
         case _: ClassNotFoundException =>
           runClassLoader.loadClass("mill.util.internal.DummyBuildFile")
       }
-    mill.constants.DebugLog.println(s"  buildClass=$buildClass, classLoader=${buildClass.getClassLoader}")
 
     val valueMethod = buildClass.getMethod("value")
     mill.api.ExecResult.catchWrapException {
-      val result = valueMethod.invoke(null).asInstanceOf[BuildFileApi]
-      mill.constants.DebugLog.println(s"  rootModule=${result.rootModule}")
-      mill.constants.DebugLog.println(s"  rootModule.class=${result.rootModule.getClass}")
-      mill.constants.DebugLog.println(s"  moduleWatchedValues=${result.moduleWatchedValues}")
-      // Try to get moduleNames value
-      try {
-        val moduleNamesField = result.rootModule.getClass.getMethod("moduleNames")
-        val moduleNames = moduleNamesField.invoke(result.rootModule)
-        mill.constants.DebugLog.println(s"  moduleNames=$moduleNames")
-      } catch {
-        case e: Exception => mill.constants.DebugLog.println(s"  moduleNames error: ${e.getMessage}")
-      }
-      // Try to get modules submodule info
-      try {
-        val modulesField = result.rootModule.getClass.getMethod("modules")
-        val modules = modulesField.invoke(result.rootModule)
-        mill.constants.DebugLog.println(s"  modules=$modules")
-        mill.constants.DebugLog.println(s"  modules.class=${modules.getClass}")
-        // Try to get the items of Cross module
-        try {
-          val itemsMethod = modules.getClass.getMethod("items")
-          val items = itemsMethod.invoke(modules)
-          mill.constants.DebugLog.println(s"  modules.items=$items")
-        } catch {
-          case e: Exception => mill.constants.DebugLog.println(s"  modules.items error: ${e.getMessage}")
-        }
-      } catch {
-        case e: Exception => mill.constants.DebugLog.println(s"  modules error: ${e.getMessage}")
-      }
-      result
+      valueMethod.invoke(null).asInstanceOf[BuildFileApi]
     }
   }
 
