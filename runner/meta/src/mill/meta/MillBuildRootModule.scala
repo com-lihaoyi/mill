@@ -12,6 +12,7 @@ import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
+import mill.api.daemon.internal.CliImports
 import mill.api.daemon.internal.{MillBuildRootModuleApi, MillScalaParser}
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}

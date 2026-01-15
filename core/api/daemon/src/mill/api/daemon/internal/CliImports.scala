@@ -1,8 +1,8 @@
-package mill.meta
+package mill.api.daemon.internal
 
 import scala.util.DynamicVariable
 
 /**
  * Hold additional runtime dependencies given via the `--import` cli option.
  */
-object CliImports extends DynamicVariable[Seq[String]](Seq.empty)
+private[mill] object CliImports extends DynamicVariable[Seq[String]](Seq.empty)
