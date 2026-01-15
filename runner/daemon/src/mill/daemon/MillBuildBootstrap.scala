@@ -236,7 +236,7 @@ class MillBuildBootstrap(
                   processRunClasspath(
                     nestedState,
                     buildFileApi,
-                    evaluator0,
+                    evaluator,
                     prevFrameOpt,
                     prevOuterFrameOpt,
                     depth
