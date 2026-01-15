@@ -279,7 +279,10 @@ class MillBuildBootstrap(
                   .map(_.hashCode())
                   .getOrElse(0),
                 depth = depth,
-                isFinalDepth = depth == requestedDepth,
+                // isFinalDepth is true if this is the requested depth, or if we might short-circuit
+                // for nonBootstrapped tasks (depth > 0 with no explicit meta-level).
+                // If short-circuit doesn't happen, this depth won't run final tasks anyway.
+                isFinalDepth = depth == requestedDepth || (requestedMetaLevel.isEmpty && depth > 0),
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
                 staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
