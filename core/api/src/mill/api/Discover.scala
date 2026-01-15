@@ -17,13 +17,13 @@ import scala.collection.mutable
  */
 final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
   private[mill] val allTaskNames = classInfo.values.flatMap(_.declaredTaskNameSet).toSet
-  private[mill] val allNonBootstrappedTaskNames = classInfo.values.flatMap(_.nonBootstrappedTaskNames).toSet
 
   /**
-   * Check if the given task name is marked as nonBootstrapped in any of the classes.
+   * Check if the given task name is marked as nonBootstrapped for the given class.
+   * Looks up the class hierarchy to find if any parent class has this task marked as nonBootstrapped.
    */
   private[mill] def isNonBootstrapped(cls: Class[?], name: String): Boolean = {
-    resolveClassInfos(cls).exists { case (_, info) =>
+    resolveClassInfos(cls).exists { case (cls2, info) =>
       info.nonBootstrappedTaskNames.contains(name)
     }
   }
@@ -122,7 +122,10 @@ object Discover {
       // otherwise the compiler likes to give us stuff in random orders, which
       // causes the code to be generated in random order resulting in code hashes
       // changing unnecessarily
-      val mapping: Seq[(TypeRepr, (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[(String, Boolean)]))] =
+      val mapping: Seq[(
+          TypeRepr,
+          (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[(String, Boolean)])
+      )] =
         for (curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)) yield {
           val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)
 
@@ -133,7 +136,8 @@ object Discover {
           )
 
           val names = taskMethods.map { m =>
-            val hasNonBootstrapped = m.annotations.exists(_.tpe =:= TypeRepr.of[mill.api.nonBootstrapped])
+            val hasNonBootstrapped =
+              m.annotations.exists(_.tpe =:= TypeRepr.of[mill.api.nonBootstrapped])
             (m.name, hasNonBootstrapped)
           }
           val entryPoints = for {

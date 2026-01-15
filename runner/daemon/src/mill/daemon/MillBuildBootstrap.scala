@@ -211,7 +211,9 @@ class MillBuildBootstrap(
         } else if (
           // Check if short-circuit already happened at a deeper level
           // (indicated by a frame with an evaluator but no classloader)
-          nestedState.frames.headOption.exists(f => f.evaluator.isDefined && f.classLoaderOpt.isEmpty)
+          nestedState.frames.headOption.exists(f =>
+            f.evaluator.isDefined && f.classLoaderOpt.isEmpty
+          )
         ) {
           // Short-circuit happened at a deeper level, just pass through the result
           nestedState
@@ -285,21 +287,14 @@ class MillBuildBootstrap(
                 // Check if we can short-circuit bootstrapping for nonBootstrapped tasks.
                 // This allows commands like `version`, `shutdown`, `clean` to run even when
                 // the root build.mill has compile errors, as long as the meta-level build is valid.
-                // We use Discover to check for the @nonBootstrapped annotation via reflection.
+                // We use areAllNonBootstrapped to check for the @nonBootstrapped annotation.
                 val shouldShortCircuit = requestedMetaLevel.isEmpty && depth > 0 && {
-                  evaluator.asInstanceOf[Evaluator].resolveTasks(
+                  evaluator.areAllNonBootstrapped(
                     tasksAndParams,
                     SelectMode.Separated,
                     allowPositionalCommandArgs
                   ) match {
-                    case Result.Success(resolvedTasks) if resolvedTasks.nonEmpty =>
-                      val discover = buildFileApi.rootModule.asInstanceOf[RootModule].millDiscover
-                      resolvedTasks.forall {
-                        case t: mill.api.Task.Named[_] =>
-                          val taskName = t.ctx.segments.parts.last
-                          discover.isNonBootstrapped(t.ctx.enclosingCls, taskName)
-                        case _ => false
-                      }
+                    case Result.Success(allNonBootstrapped) => allNonBootstrapped
                     case _ => false
                   }
                 }

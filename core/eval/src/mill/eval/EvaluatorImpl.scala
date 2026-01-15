@@ -125,6 +125,29 @@ final class EvaluatorImpl(
     }
   }
 
+  /**
+   * Resolves tasks and checks if all of them are marked with @nonBootstrapped annotation.
+   * Used by MillBuildBootstrap to determine if we can short-circuit the bootstrap process.
+   */
+  override def areAllNonBootstrapped(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean
+  ): mill.api.Result[Boolean] = {
+    resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs) match {
+      case Result.Success(resolvedTasks) if resolvedTasks.nonEmpty =>
+        val allNonBootstrapped = resolvedTasks.forall { task =>
+          val taskName = task.ctx.segments.parts.last
+          rootModule.millDiscover.isNonBootstrapped(task.ctx.enclosingCls, taskName)
+        }
+        Result.Success(allNonBootstrapped)
+      case Result.Success(_) =>
+        Result.Success(false) // No tasks resolved
+      case f: Result.Failure =>
+        f // Pass through failure
+    }
+  }
+
   def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]): Seq[Result.Failure] = {
     val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
     val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
