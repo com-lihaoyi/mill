@@ -291,9 +291,13 @@ private object TabCompleteModule extends ExternalModule {
     }
     dest match {
       case null =>
-        val homeDest = ".cache/mill/download/mill-completion.sh"
+        val dataDir = Task.env.getOrElse("XDG_DATA_HOME", "~/.local/share/")
+        val destPath = os.Path.expandUser(dataDir) /  "mill/completion/mill-completion.sh"
+        val homeDest =
+          if(destPath.startsWith(os.home)) s"~/${destPath.relativeTo(os.home)}"
+          else destPath.toString
 
-        writeLoudly(os.home / os.SubPath(homeDest), script)
+        writeLoudly(destPath, script)
         for (fileName <- Seq(".bash_profile", ".zshrc", ".bashrc")) {
           val file = os.home / fileName
           // We use the marker comment to help remove any previous `source` line before
@@ -306,12 +310,12 @@ private object TabCompleteModule extends ExternalModule {
 
           val updated = prevLines
             .filter(!_.contains(markerComment))
-            .++(Seq(s"source ~/$homeDest $markerComment\n"))
+            .++(Seq(s"source $homeDest $markerComment\n"))
             .mkString("\n")
 
           writeLoudly(file, updated)
         }
-        println(s"Please restart your shell or `source ~/$homeDest` to enable completions")
+        println(s"Please restart your shell or `source $homeDest` to enable completions")
 
       case dest => writeLoudly(dest, script)
     }
