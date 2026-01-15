@@ -140,7 +140,9 @@ final class EvaluatorImpl(
       case Result.Success(resolved) =>
         Result.Success(
           resolved.forall { r =>
-            r.rootModule.millDiscover.isNonBootstrapped(r.cls, r.taskSegments.parts.last)
+            r.taskSegments.parts.lastOption.exists { taskName =>
+              r.rootModule.millDiscover.isNonBootstrapped(r.cls, taskName)
+            }
           }
         )
 
