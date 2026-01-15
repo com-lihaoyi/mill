@@ -9,12 +9,13 @@ Module dependencies of test:
 {
   "mandatoryMvnDeps": [],
   "test.mandatoryMvnDeps": [
-    "com.github.sbt.junit:jupiter-interface:0.11.4"
+    "com.github.sbt.junit:jupiter-interface:0.13.3"
   ]
 }
 {
   "mvnDeps": [],
   "test.mvnDeps": [
+    "com.github.sbt.junit:jupiter-interface:0.11.4",
     "org.junit.jupiter:junit-jupiter:5.7.0",
     "org.junit.jupiter:junit-jupiter-params:5.7.0",
     "info.picocli:picocli-codegen:4.5.2"
@@ -50,11 +51,7 @@ Module dependencies of test:
     "UTF-8"
   ]
 }
-{
-  "group": "org.fusesource",
-  "id": "fusesource-pom",
-  "version": "1.12"
-}
+null
 {
   "description": "Jansi is a java library for generating and interpreting ANSI escape sequences.",
   "organization": "org.fusesource.jansi",
@@ -62,24 +59,18 @@ Module dependencies of test:
   "licenses": [
     {
       "name": "Apache License, Version 2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0.txt",
-      "distribution": "repo"
+      "url": ""
     }
   ],
   "versionControl": {
-    "browsableRepository": "https://github.com/fusesource/jansi",
-    "connection": "scm:git:git://github.com/fusesource/jansi.git",
-    "developerConnection": "scm:git:ssh://git@github.com/fusesource/jansi.git",
-    "tag": "jansi-2.4.2"
+    "browsableRepository": "https://github.com/fusesource/jansi"
   },
   "developers": [
     {
-      "id": "chirino",
       "name": "Hiram Chirino",
       "url": "http://hiramchirino.com"
     },
     {
-      "id": "gnodet",
       "name": "Guillaume Nodet"
     }
   ]

@@ -91,6 +91,7 @@ class UnitTester(
         infoColor = mill.internal.Colors.Default.info,
         warnColor = mill.internal.Colors.Default.warn,
         errorColor = mill.internal.Colors.Default.error,
+        successColor = mill.internal.Colors.Default.success,
         systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         titleText = "",
@@ -137,7 +138,9 @@ class UnitTester(
     offline = offline,
     useFileLocks = false,
     enableTicker = false,
-    staticBuildOverrideFiles = Map()
+    staticBuildOverrideFiles = Map(),
+    depth = 0,
+    isFinalDepth = true
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

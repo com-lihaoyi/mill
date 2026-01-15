@@ -43,6 +43,13 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): (Set[Task[?]], Seq[Task[Any]]) = {
+    // If the invalidateAllHash changed (e.g., Mill version or JVM changed),
+    // treat all tasks as changed
+    if (oldHashes.invalidateAllHash != newHashes.invalidateAllHash) {
+      val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
+      return (allTasks, transitiveNamed.map(t => t: Task[Any]))
+    }
+
     val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
 
     def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
@@ -250,7 +257,9 @@ object SelectiveExecutionImpl {
             // since a JSON string may deserialize into a `PathRef` that changes depending on
             // the files and folders on disk
             value <- transitiveNamedMap.get(k)
-          } yield (k, value.##)
+          } yield (k, value.##),
+          forceRunTasks = Set(),
+          invalidateAllHash = evaluator.invalidateAllHashes
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

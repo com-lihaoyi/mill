@@ -5,7 +5,7 @@ import mill.*, scalalib.*
 import scalatags.Text.all.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "3.7.4"
+  def scalaVersion = "3.8.0"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:${millbuild.DepVersions.scalatagsVersion}",
     mvn"com.lihaoyi::os-lib:0.10.7"

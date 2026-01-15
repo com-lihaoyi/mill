@@ -12,6 +12,7 @@ import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
+import mill.api.daemon.internal.CliImports
 import mill.api.daemon.internal.{MillBuildRootModuleApi, MillScalaParser}
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
@@ -62,7 +63,7 @@ trait MillBuildRootModule()(using
 
   val scriptSourcesPaths = BuildCtx.watchValue {
     BuildCtx.withFilesystemCheckerDisabled {
-      FileImportGraph
+      DiscoveredBuildFiles
         .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
         .sorted // Ensure ordering is deterministic
     }
@@ -74,9 +75,9 @@ trait MillBuildRootModule()(using
    */
   def scriptSources: T[Seq[PathRef]] = Task.Sources(scriptSourcesPaths*)
 
-  def parseBuildFiles: T[FileImportGraph] = Task {
+  def parseBuildFiles: T[DiscoveredBuildFiles] = Task {
     BuildCtx.withFilesystemCheckerDisabled {
-      FileImportGraph.parseBuildFiles(
+      DiscoveredBuildFiles.parseBuildFiles(
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.projectRoot / os.up,
         rootModuleInfo.output,
@@ -130,6 +131,10 @@ trait MillBuildRootModule()(using
     generatedScriptSources().support
   }
 
+  override def resources: T[Seq[PathRef]] = Task {
+    super.resources() ++ generatedScriptSources().resources
+  }
+
   /**
    * Additional script files, we generate, since not all Mill source
    * files (`*.mill` can be fed to the compiler as-is.
@@ -144,24 +149,21 @@ trait MillBuildRootModule()(using
     val resources = Task.dest / "resources"
 
     val parsed = parseBuildFiles()
-    if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
-    else {
-      CodeGen.generateWrappedAndSupportSources(
-        rootModuleInfo.projectRoot / os.up,
-        parsed.seenScripts,
-        wrapped,
-        support,
-        resources,
-        rootModuleInfo.topLevelProjectRoot,
-        rootModuleInfo.output,
-        MillScalaParser.current.value
-      )
-      (
-        wrapped = Seq(PathRef(wrapped)),
-        support = Seq(PathRef(support)),
-        resources = Seq(PathRef(resources))
-      )
-    }
+    CodeGen.generateWrappedAndSupportSources(
+      rootModuleInfo.projectRoot / os.up,
+      parsed.seenScripts,
+      wrapped,
+      support,
+      resources,
+      rootModuleInfo.topLevelProjectRoot,
+      rootModuleInfo.output,
+      MillScalaParser.current.value
+    )
+    (
+      wrapped = Seq(PathRef(wrapped)),
+      support = Seq(PathRef(support)),
+      resources = Seq(PathRef(resources))
+    )
   }
 
   def millBuildRootModuleResult = Task {
@@ -309,62 +311,72 @@ trait MillBuildRootModule()(using
   def millVersion: T[String] = Task.Input { BuildInfo.millVersion }
 
   override def compile: T[CompilationResult] = Task(persistent = true) {
-    val mv = millVersion()
+    val sources = allSourceFiles()
 
-    val prevMillVersionFile = Task.dest / s"mill-version"
-    val prevMillVersion = Option(prevMillVersionFile)
-      .filter(os.exists)
-      .map(os.read(_).trim)
-      .getOrElse("?")
+    // For dummy builds (no build.mill), there are no sources to compile.
+    // Return an empty compilation result with an empty classes directory.
+    if (sources.isEmpty) {
+      val emptyClasses = Task.dest / "classes"
+      os.makeDir.all(emptyClasses)
+      Result.Success(CompilationResult(Task.dest / "zinc", PathRef(emptyClasses)))
+    } else {
+      val mv = millVersion()
 
-    if (prevMillVersion != mv) {
-      // Mill version changed, drop all previous incremental state
-      // see https://github.com/com-lihaoyi/mill/issues/3874
-      Task.log.debug(
-        s"Detected Mill version change ${prevMillVersion} -> ${mv}. Dropping previous incremental compilation state"
-      )
-      os.remove.all(Task.dest)
-      os.makeDir(Task.dest)
-      os.write(prevMillVersionFile, mv)
-    }
+      val prevMillVersionFile = Task.dest / s"mill-version"
+      val prevMillVersion = Option(prevMillVersionFile)
+        .filter(os.exists)
+        .map(os.read(_).trim)
+        .getOrElse("?")
 
-    // copied from `ScalaModule`
-    val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
-    val worker = jvmWorker().internalWorker()
-    worker.apply(
-      ZincOp.CompileMixed(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = Seq.from(allSourceFiles().map(_.path)),
-        compileClasspath = compileClasspath().map(_.path),
-        javacOptions = jOpts.compiler,
-        scalaVersion = scalaVersion(),
-        scalaOrganization = scalaOrganization(),
-        scalacOptions = allScalacOptions(),
-        compilerClasspath = scalaCompilerClasspath(),
-        scalacPluginClasspath = scalacPluginClasspath(),
-        compilerBridgeOpt = scalaCompilerBridge(),
-        incrementalCompilation = zincIncrementalCompilation(),
-        auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
-        workDir = Task.dest
-      ),
-      javaHome = javaHome().map(_.path),
-      javaRuntimeOptions = jOpts.runtime,
-      reporter = Task.reporter.apply(hashCode),
-      reportCachedProblems = zincReportCachedProblems()
-    ).map {
-      res =>
-        // Perform the line-number updating in a copy of the classfiles, because
-        // mangling the original class files messes up zinc incremental compilation
-        val transformedClasses = Task.dest / "transformed-classes"
-        os.remove.all(transformedClasses)
-        os.copy(res.classes.path, transformedClasses)
-
-        MillBuildRootModule.updateLineNumbers(
-          transformedClasses,
-          generatedScriptSources().wrapped.head.path
+      if (prevMillVersion != mv) {
+        // Mill version changed, drop all previous incremental state
+        // see https://github.com/com-lihaoyi/mill/issues/3874
+        Task.log.debug(
+          s"Detected Mill version change ${prevMillVersion} -> ${mv}. Dropping previous incremental compilation state"
         )
+        os.remove.all(Task.dest)
+        os.makeDir(Task.dest)
+        os.write(prevMillVersionFile, mv)
+      }
 
-        res.copy(classes = PathRef(transformedClasses))
+      // copied from `ScalaModule`
+      val jOpts = JavaCompilerOptions.split(javacOptions() ++ mandatoryJavacOptions())
+      val worker = jvmWorker().internalWorker()
+      worker.apply(
+        ZincOp.CompileMixed(
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = Seq.from(sources.map(_.path)),
+          compileClasspath = compileClasspath().map(_.path),
+          javacOptions = jOpts.compiler,
+          scalaVersion = scalaVersion(),
+          scalaOrganization = scalaOrganization(),
+          scalacOptions = allScalacOptions(),
+          compilerClasspath = scalaCompilerClasspath(),
+          scalacPluginClasspath = scalacPluginClasspath(),
+          compilerBridgeOpt = scalaCompilerBridge(),
+          incrementalCompilation = zincIncrementalCompilation(),
+          auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions(),
+          workDir = Task.dest
+        ),
+        javaHome = javaHome().map(_.path),
+        javaRuntimeOptions = jOpts.runtime,
+        reporter = Task.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems()
+      ).map {
+        res =>
+          // Perform the line-number updating in a copy of the classfiles, because
+          // mangling the original class files messes up zinc incremental compilation
+          val transformedClasses = Task.dest / "transformed-classes"
+          os.remove.all(transformedClasses)
+          os.copy(res.classes.path, transformedClasses)
+
+          MillBuildRootModule.updateLineNumbers(
+            transformedClasses,
+            generatedScriptSources().wrapped.head.path
+          )
+
+          res.copy(classes = PathRef(transformedClasses))
+      }
     }
   }
 

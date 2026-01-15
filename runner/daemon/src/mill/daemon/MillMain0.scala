@@ -591,6 +591,7 @@ object MillMain0 {
       infoColor = colors.info,
       warnColor = colors.warn,
       errorColor = colors.error,
+      successColor = colors.success,
       systemStreams0 = streams,
       debugEnabled = config.debugLog.value,
       titleText = config.leftoverArgs.value.mkString(" "),

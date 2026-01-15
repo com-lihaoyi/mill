@@ -3,8 +3,7 @@ import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import utest.{assert, assertGoldenFile, assertGoldenLiteral}
 trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
   def checkImport(
-      gitUrl: String,
-      gitBranch: String,
+      repoName: String,
       initArgs: Seq[String] = Nil,
       configsGoldenFile: os.SubPath = null,
       passingTasks: Seq[os.Shellable] = Nil,
@@ -20,11 +19,11 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
     ) {
       override val workspacePath = {
         val cwd = os.temp.dir(dir = baseWorkspacePath, deleteOnExit = false)
-        // Clone into a new directory to preserve repo dir name.
-        os.proc("git", "clone", gitUrl, "--depth", 1, "--branch", gitBranch)
-          .call(cwd = cwd)
-        os.list(cwd).head
+        val destPath = cwd / repoName
+        os.copy(os.Path(sys.env(s"MILL_INIT_REPO_$repoName")), destPath)
+        destPath
       }
+
       override def initWorkspace() = {}
     }
     try {
@@ -33,6 +32,19 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
       assert(initRes.isSuccess)
 
       if (configsGoldenFile != null) {
+        // Tasks that may not exist on all modules (e.g., errorProneDeps only on ErrorProneModule)
+        // or may have incomplete configuration in YAML (e.g., pomSettings for child modules)
+        val expectedFailureTasks = Set(
+          "errorProneDeps",
+          "errorProneOptions",
+          "pomSettings",
+          "scalaVersion",
+          "scalacOptions",
+          "scalacPluginMvnDeps",
+          "scalaJSVersion",
+          "moduleKind",
+          "scalaNativeVersion"
+        )
         val taskNames = Seq(
           "repositories",
           "mandatoryMvnDeps",
@@ -57,9 +69,22 @@ trait MillInitImportTestSuite extends UtestIntegrationTestSuite {
           "testParallelism",
           "testSandboxWorkingDir"
         )
-        val showModuleDepsOut = eval("__.showModuleDeps").out
+        def evalTask(task: String): String = {
+          val result = eval(("show", s"__.$task"))
+          if (!result.isSuccess && !expectedFailureTasks.contains(task)) {
+            throw new Exception(s"Command failed: show __.$task\n${result.debugString}")
+          }
+          result.out
+        }
+        val showModuleDepsResult = eval("__.showModuleDeps")
+        if (!showModuleDepsResult.isSuccess) {
+          throw new Exception(
+            s"Command failed: __.showModuleDeps\n${showModuleDepsResult.debugString}"
+          )
+        }
+        val showModuleDepsOut = showModuleDepsResult.out
         val actualConfigs = taskNames
-          .map(task => eval(("show", s"__.$task")).out)
+          .map(evalTask)
           .mkString(
             s"""$showModuleDepsOut
                |""".stripMargin,

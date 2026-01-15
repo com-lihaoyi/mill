@@ -70,5 +70,33 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           Seq("Computing quxCommand!")
       )
     }
+
+    test("invalidateAllHash-triggers-full-rerun") - integrationTest { tester =>
+      import tester.*
+
+      // Prepare selective execution with multiple tasks
+      eval(("selective.prepare", "{foo,bar}._"), check = true)
+
+      // Without any changes, selective.resolve should return nothing
+      val resolve1 = eval(("selective.resolve", "{foo,bar}._"), check = true)
+      assert(resolve1.out == "")
+
+      // Modify the invalidateAllHash in the metadata file to simulate
+      // a Mill version or JVM change
+      val metadataPath = workspacePath / "out/mill-selective-execution.json"
+      val metadata = ujson.read(os.read(metadataPath))
+      val originalHash = metadata("invalidateAllHash").num.toInt
+      metadata("invalidateAllHash") = originalHash + 1
+      os.write.over(metadataPath, ujson.write(metadata, indent = 2))
+
+      // Now selective.resolve should return all tasks since the hash changed
+      val resolve2 = eval(("selective.resolve", "{foo,bar}._"), check = true)
+      val resolvedTasks = resolve2.out.linesIterator.toList.sorted
+
+      // All tasks should be invalidated
+      assert(resolvedTasks.nonEmpty)
+      assert(resolvedTasks.contains("foo.fooCommand"))
+      assert(resolvedTasks.contains("bar.barCommand"))
+    }
   }
 }

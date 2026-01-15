@@ -157,9 +157,9 @@ class ScriptModuleInit extends ((String, Evaluator) => Seq[Result[ExternalModule
             moduleFor(
               scriptFile,
               parsedHeaderData.`extends`.value.value.headOption,
-              parsedHeaderData.moduleDeps.value,
-              parsedHeaderData.compileModuleDeps.value,
-              parsedHeaderData.runModuleDeps.value,
+              parsedHeaderData.moduleDeps.value.value,
+              parsedHeaderData.compileModuleDeps.value.value,
+              parsedHeaderData.runModuleDeps.value.value,
               eval,
               parsedHeaderData
             )

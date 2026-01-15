@@ -15,8 +15,8 @@ import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.MillBuildRootModule
-import mill.meta.CliImports
-import mill.meta.FileImportGraph.findRootBuildFiles
+import mill.api.daemon.internal.CliImports
+import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
 
@@ -271,6 +271,7 @@ class MillBuildBootstrap(
                   .map(_.hashCode())
                   .getOrElse(0),
                 depth = depth,
+                isFinalDepth = depth == requestedDepth,
                 actualBuildFileName = nestedState.buildFile,
                 enableTicker = enableTicker,
                 staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
@@ -469,6 +470,7 @@ object MillBuildBootstrap {
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
       depth: Int,
+      isFinalDepth: Boolean,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
       staticBuildOverrideFiles: Map[java.nio.file.Path, String]
@@ -512,7 +514,9 @@ object MillBuildBootstrap {
           offline,
           useFileLocks,
           staticBuildOverrideFiles,
-          enableTicker
+          enableTicker,
+          depth,
+          isFinalDepth
         )
       ).asInstanceOf[EvaluatorApi]
 
@@ -618,7 +622,14 @@ object MillBuildBootstrap {
 
   def getRootModule(runClassLoader: URLClassLoader)
       : Result[BuildFileApi] = {
-    val buildClass = runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl")
+    // Try loading the compiled BuildFileImpl first. If it doesn't exist (dummy build case
+    // where there's no build.mill to compile), fall back to the pre-compiled DummyBuildFile.
+    val buildClass =
+      try runClassLoader.loadClass(s"$globalPackagePrefix.BuildFileImpl")
+      catch {
+        case _: ClassNotFoundException =>
+          runClassLoader.loadClass("mill.util.internal.DummyBuildFile")
+      }
 
     val valueMethod = buildClass.getMethod("value")
     mill.api.ExecResult.catchWrapException {

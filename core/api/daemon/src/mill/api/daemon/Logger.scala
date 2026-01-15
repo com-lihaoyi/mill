@@ -195,6 +195,7 @@ object Logger {
     def infoColor(s: String): String
     def warnColor(s: String): String
     def errorColor(s: String): String
+    def successColor(s: String): String
     def colored: Boolean
   }
   private[mill] object Prompt {
@@ -224,6 +225,7 @@ object Logger {
       def infoColor(s: String): String = s
       def warnColor(s: String): String = s
       def errorColor(s: String): String = s
+      def successColor(s: String): String = s
       def colored: Boolean = false
     }
   }

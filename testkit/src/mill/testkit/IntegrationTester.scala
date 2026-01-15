@@ -74,6 +74,27 @@ object IntegrationTester {
          |$err
          |""".stripMargin
     }
+
+    /**
+     * Asserts that the given lines appear as exact consecutive lines in the combined
+     * stdout/stderr output. Normalizes backslashes to forward slashes for cross-platform compatibility.
+     */
+    def assertContainsLines(expectedLines: String*): Unit = {
+      val combined = geny.ByteData.Chunks(result.chunks.map {
+        case Left(b) => b
+        case Right(b) => b
+      }).text()
+      val combinedNormalized = fansi.Str(combined, errorMode = fansi.ErrorMode.Strip)
+        .plainText
+        .replace('\\', '/')
+      val actualLines = combinedNormalized.linesIterator.toVector
+
+      val found = actualLines.sliding(expectedLines.size).exists(_ == expectedLines)
+      assert(
+        found,
+        s"Expected consecutive lines not found:\n${expectedLines.mkString("\n")}\n\nActual output:\n${actualLines.mkString("\n")}"
+      )
+    }
   }
 
   /**
@@ -301,7 +322,7 @@ object IntegrationTester {
        * Returns the raw text of the `.json` metadata file
        */
       def text: String = {
-        val Seq(res) = mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
+        val Seq(res) = mill.api.internal.ParseArgs.apply(Seq(selector0), SelectMode.Separated)
 
         val (Seq((rootModulePrefix, taskSegments)), _) = res.get
 

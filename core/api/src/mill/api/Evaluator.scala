@@ -33,7 +33,9 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
   private[mill] def useFileLocks: Boolean = false
-  private[mill] def staticBuildOverrides: Map[String, Located[BufferedValue]] = Map()
+  private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
+    Map()
+  private[mill] def invalidateAllHashes: Int = 0
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(

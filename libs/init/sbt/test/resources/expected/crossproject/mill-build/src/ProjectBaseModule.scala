@@ -17,7 +17,7 @@ trait ProjectBaseModule extends PublishModule, SbtPlatformModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  trait Tests extends SbtPlatformTests {
+  trait ProjectBaseTests extends SbtPlatformTests {
 
     def mvnDeps = Seq(Deps.utest)
 
