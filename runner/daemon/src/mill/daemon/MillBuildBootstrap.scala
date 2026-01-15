@@ -214,21 +214,19 @@ class MillBuildBootstrap(
             actualBuildFileName = nestedState.buildFile,
             enableTicker = enableTicker,
             staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
-          )) { evaluator0 =>
+          )) { evaluator =>
             // Check if all requested tasks are @nonBootstrapped
             val shouldShortCircuit =
               if (!canPotentiallyShortCircuit) Result.Success(false)
               else
-                evaluator0.areAllNonBootstrapped(
+                evaluator.areAllNonBootstrapped(
                   tasksAndParams,
                   SelectMode.Separated,
                   allowPositionalCommandArgs
                 )
 
             shouldShortCircuit match {
-              case Result.Success(true) =>
-                val evaluator = evaluator0.withIsFinalDepth(true)
-                processFinalTasks(nestedState, buildFileApi, evaluator)
+              case Result.Success(true) => processFinalTasks(nestedState, buildFileApi, evaluator)
 
               // For both Success(false) and Failure, proceed with normal evaluation.
               // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
@@ -244,7 +242,6 @@ class MillBuildBootstrap(
                     depth
                   )
                 } else if (depth == requestedDepth) {
-                  val evaluator = evaluator0.withIsFinalDepth(true)
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else ??? // should be handled by outer conditional
             }
@@ -376,10 +373,11 @@ class MillBuildBootstrap(
   def processFinalTasks(
       nestedState: RunnerState,
       buildFileApi: BuildFileApi,
-      evaluator: EvaluatorApi
+      evaluator0: EvaluatorApi
   ): RunnerState = {
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
+    val evaluator = evaluator0.withIsFinalDepth(true)
     val (evaled, evalWatched, moduleWatches) = evaluateWithWatches(
       buildFileApi = buildFileApi,
       evaluator = evaluator,
