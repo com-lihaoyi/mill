@@ -76,7 +76,9 @@ object Watching {
         val result = evaluate(skipSelectiveExecution = false, previousState = None)
         handleError(result.errorOpt)
         handleSkippedInteractive(result.skippedInteractiveTasks)
-        (result.errorOpt.isEmpty && result.skippedInteractiveTasks.isEmpty, result)
+        // Return success=true if no errors, even if there are skipped interactive tasks.
+        // The launcher will re-run skipped tasks when exit code is 0 and metadata is present.
+        (result.errorOpt.isEmpty, result)
 
       case Some(watchArgs) =>
         var prevState: Option[T] = None

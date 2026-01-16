@@ -349,7 +349,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
    */
   @nonBootstrapped
   def init(evaluator: Evaluator, args: String*): Command[Unit] =
-    Task.Command(exclusive = true) {
+    Task.Command(interactive = true) {
 
       val parser = mainargs.Parser[InitArgs]
       val parsed = parser.constructOrThrow(args)

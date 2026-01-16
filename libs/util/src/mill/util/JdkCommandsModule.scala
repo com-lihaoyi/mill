@@ -35,37 +35,37 @@ trait JdkCommandsModule extends mill.api.Module {
   @Task.rename("java")
   @mainargs.main(name = "java")
   @nonBootstrapped
-  def javaRun(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+  def javaRun(args: String*): Command[Unit] = Task.Command(interactive = true) {
     Task.ctx().systemExit(callJdk("java", jdkCommandsJavaHome(), args))
   }
 
   /** Runs the `javac` command from this module's [[jdkCommandsJavaHome]] */
   @nonBootstrapped
-  def javac(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+  def javac(args: String*): Command[Unit] = Task.Command(interactive = true) {
     Task.ctx().systemExit(callJdk("javac", jdkCommandsJavaHome(), args))
   }
 
   /** Runs the `javap` command from this module's [[jdkCommandsJavaHome]] */
   @nonBootstrapped
-  def javap(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+  def javap(args: String*): Command[Unit] = Task.Command(interactive = true) {
     Task.ctx().systemExit(callJdk("javap", jdkCommandsJavaHome(), args))
   }
 
   /** Runs the `jstack` command from this module's [[jdkCommandsJavaHome]] */
   @nonBootstrapped
-  def jstack(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+  def jstack(args: String*): Command[Unit] = Task.Command(interactive = true) {
     Task.ctx().systemExit(callJdk("jstack", jdkCommandsJavaHome(), args))
   }
 
   /** Runs the `jps` command from this module's [[jdkCommandsJavaHome]] */
   @nonBootstrapped
-  def jps(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+  def jps(args: String*): Command[Unit] = Task.Command(interactive = true) {
     Task.ctx().systemExit(callJdk("jps", jdkCommandsJavaHome(), args))
   }
 
   /** Runs the `jfr` command from this module's [[jdkCommandsJavaHome]] */
   @nonBootstrapped
-  def jfr(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+  def jfr(args: String*): Command[Unit] = Task.Command(interactive = true) {
     Task.ctx().systemExit(callJdk("jfr", jdkCommandsJavaHome(), args))
   }
 }

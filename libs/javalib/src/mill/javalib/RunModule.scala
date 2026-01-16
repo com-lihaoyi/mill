@@ -122,7 +122,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * Runs this module's code in a subprocess and waits for it to finish
    */
   def run(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] =
-    Task.Command(exclusive = true) {
+    Task.Command(interactive = true) {
       runForkedTask(finalMainClass, args)()
     }
 
@@ -142,7 +142,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    */
   def runMain(@arg(positional = true) mainClass: String, args: String*): Task.Command[Unit] = {
     val task = runForkedTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
-    Task.Command(exclusive = true) { task() }
+    Task.Command(interactive = true) { task() }
   }
 
   /**

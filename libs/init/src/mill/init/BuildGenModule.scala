@@ -24,7 +24,7 @@ trait BuildGenModule extends CoursierModule with DefaultTaskModule {
     PathRef(out)
   }
 
-  def init(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+  def init(args: String*): Command[Unit] = Task.Command(interactive = true) {
     val root = moduleDir
 
     val mainClass = buildGenMainClass()

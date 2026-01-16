@@ -381,7 +381,10 @@ case class Execution(
         val skipped = leafInteractiveCommands.collect {
           case t: Task.Named[_] => t.toString
         }
-        (Nil, skipped.toSeq)
+        // Add entries with None for skipped tasks so they appear in finishedOptsMap
+        val skippedEntries: Seq[(Task[?], Option[GroupExecution.Results])] =
+          leafInteractiveCommands.map(t => (t, None))
+        (skippedEntries, skipped.toSeq)
       } else {
         (evaluateTerminals(leafInteractiveCommands, exclusive = true), Nil)
       }
