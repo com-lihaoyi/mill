@@ -14,5 +14,5 @@ object `package` extends MillPublishScalaModule {
       build.libs.javalib.backgroundwrapper
     )
 
-  def testModuleDeps = super.testModuleDeps ++ Seq(build.runner.client)
+  def testModuleDeps = super.testModuleDeps
 }

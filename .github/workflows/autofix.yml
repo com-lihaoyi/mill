@@ -3,6 +3,7 @@ on:
   pull_request:
 jobs:
   autofix:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

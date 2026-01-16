@@ -74,9 +74,6 @@ Options:
                            available cores, or `C-2` meaning 2 threads less than the number of
                            cores. `1` disables parallelism and `0` (the default) uses 1 thread per
                            core.
-  --jshell                 Open a JShell REPL with the classpath of the meta-level 1 build module
-                           (mill-build/). This is useful for interactively testing and debugging
-                           your build logic. Implies options `--meta-level 1` and `--no-server`.
   -k --keep-going          Continue build, even after build failures.
   --meta-level <int>       Select a meta-level to run the given tasks. Level 0 is the main project
                            in `build.mill`, level 1 the first meta-build in `mill-build/build.mill`,
@@ -93,8 +90,6 @@ Options:
                            and avoid any access to the internet. This is on a best effort basis.
                            There are currently no guarantees that modules don't attempt to fetch
                            remote sources.
-  --repl                   Open a Scala REPL with the classpath of the meta-level 1 build module
-                           (mill-build/). Implies options `--meta-level 1` and `--no-server`.
   --tab-complete           Runs Mill in tab-completion mode
   --ticker <bool>          Enable or disable the ticker log, which provides information on running
                            tasks and where each log line came from

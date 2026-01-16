@@ -37,7 +37,6 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(build.runner.server)
     def compileModuleDeps = Seq(
       build.runner.bsp,
-      build.runner.client,
       build.core.api.daemon,
       build.core.internal,
       build.libs.javalib,

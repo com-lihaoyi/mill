@@ -6,6 +6,7 @@ import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.maven.MavenRepository
 import coursier.util.Task
 import coursier.core.Module
+import mill.constants.BuildInfo
 
 import java.io.File
 
@@ -29,7 +30,7 @@ object CoursierClient {
         .withCache(coursierCache0)
         .withDependencies(Seq(Dependency(
           Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
-          VersionConstraint(mill.client.BuildInfo.millVersion)
+          VersionConstraint(BuildInfo.millVersion)
         )))
         .withRepositories(testOverridesRepos ++ Resolve.defaultRepositories)
 

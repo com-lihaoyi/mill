@@ -28,10 +28,17 @@ trait JdkCommandsModule extends mill.api.Module {
       .exitCode
   }
 
-  /**
-   * Runs the `java` command from this module's [[jdkCommandsJavaHome]].
-   * Renamed to `java` on the command line.
-   */
+  private def callJdkInteractive(
+      toolName: String,
+      javaHome: Option[PathRef],
+      args: Seq[String]
+  ): Int = {
+    Jvm.runInteractiveCommand(
+      cmd = Seq(jdkTool(toolName, javaHome.map(_.path))) ++ args
+    )
+  }
+
+  /** Runs the `java` command from Mill's JVM */
   @Task.rename("java")
   @mainargs.main(name = "java")
   @nonBootstrapped
@@ -39,31 +46,31 @@ trait JdkCommandsModule extends mill.api.Module {
     Task.ctx().systemExit(callJdk("java", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `javac` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `javac` command from Mill's JVM */
   @nonBootstrapped
   def javac(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("javac", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `javap` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `javap` command from Mill's JVM */
   @nonBootstrapped
   def javap(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("javap", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `jstack` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `jstack` command from Mill's JVM */
   @nonBootstrapped
   def jstack(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("jstack", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `jps` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `jps` command from Mill's JVM */
   @nonBootstrapped
   def jps(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("jps", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `jfr` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `jfr` command from Mill's JVM */
   @nonBootstrapped
   def jfr(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("jfr", jdkCommandsJavaHome(), args))

@@ -1,8 +1,9 @@
 package mill.server
 
-import mill.api.daemon.StartThread
+import mill.api.daemon.{StartThread, SystemStreams}
 import mill.client.lock.{Lock, Locks, TryLocked}
 import mill.constants.{DaemonFiles, SocketUtil}
+import mill.constants.OutFiles.OutFiles
 import mill.server.Server.ConnectionData
 import sun.misc.{Signal, SignalHandler}
 
@@ -13,7 +14,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
-import scala.util.Try
+import scala.util.{Try, Using}
 import scala.util.control.NonFatal
 
 /**
@@ -192,6 +193,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           s"shutting down server with exit code $exitCode"
       )
 
+      // Notify all other connected clients before shutting down, so they can retry
+      connectionTracker.closeOtherConnections(clientSocket)
       endConnection(connectionData, data, Some(exitCode))
       closeServer0(Some(exitCode))
     }
@@ -439,4 +442,46 @@ object Server {
       serverToClient: BufferedOutputStream,
       initialSystemProperties: Map[String, String]
   )
+
+  /**
+   * Acquires the output folder lock before running the given block.
+   * Used to coordinate access to the output folder between concurrent Mill processes.
+   */
+  def withOutLock[T](
+      noBuildLock: Boolean,
+      noWaitForBuildLock: Boolean,
+      out: os.Path,
+      millActiveCommandMessage: String,
+      streams: SystemStreams,
+      outLock: Lock,
+      setIdle: Boolean => Unit
+  )(t: => T): T = {
+    if (noBuildLock) t
+    else {
+      def activeTaskString =
+        try os.read(out / OutFiles.millActiveCommand)
+        catch {
+          case NonFatal(_) => "<unknown>"
+        }
+
+      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
+
+      setIdle(true)
+      Using.resource {
+        val tryLocked = outLock.tryLock()
+        if (tryLocked.isLocked) tryLocked
+        else if (noWaitForBuildLock) throw new Exception(s"$activeTaskPrefix failing")
+        else {
+          streams.err.println(s"$activeTaskPrefix waiting for it to be done...")
+          outLock.lock()
+        }
+      } { _ =>
+        setIdle(false)
+        if (Thread.interrupted()) throw new InterruptedException()
+        os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
+        try t
+        finally os.remove.all(out / OutFiles.millActiveCommand)
+      }
+    }
+  }
 }
