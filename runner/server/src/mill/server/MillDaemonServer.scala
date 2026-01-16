@@ -12,12 +12,12 @@ import java.net.Socket
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicReference}
 import scala.concurrent.duration.FiniteDuration
 
-abstract class MillDaemonRpcServer[State](
+abstract class MillDaemonServer[State](
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends Server[MillDaemonRpcServer.DaemonServerData, Int](Server.Args(
+) extends Server[MillDaemonServer.DaemonServerData, Int](Server.Args(
       daemonDir = daemonDir,
       acceptTimeout = Some(acceptTimeout),
       locks = locks,
@@ -41,7 +41,7 @@ abstract class MillDaemonRpcServer[State](
   // For RPC, we don't need heartbeats - the RPC protocol handles connection state
   override def checkIfClientAlive(
       connectionData: ConnectionData,
-      data: MillDaemonRpcServer.DaemonServerData
+      data: MillDaemonServer.DaemonServerData
   ): Boolean = {
     // The RPC protocol handles heartbeats via empty lines
     // We just need to check if the connection is still open
@@ -58,9 +58,9 @@ abstract class MillDaemonRpcServer[State](
   override def prepareConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer
-  ): MillDaemonRpcServer.DaemonServerData = {
+  ): MillDaemonServer.DaemonServerData = {
     serverLog(s"prepareConnection ${connectionData.socketName}")
-    MillDaemonRpcServer.DaemonServerData(
+    MillDaemonServer.DaemonServerData(
       writtenExitCode = AtomicBoolean(false),
       exitCode = AtomicInteger(-1),
       shutdownRequest = AtomicReference(Option.empty[(String, Int)]),
@@ -72,7 +72,7 @@ abstract class MillDaemonRpcServer[State](
       connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
-      data: MillDaemonRpcServer.DaemonServerData
+      data: MillDaemonServer.DaemonServerData
   ): Int = {
     serverLog("handleConnection: starting RPC server")
 
@@ -199,9 +199,9 @@ abstract class MillDaemonRpcServer[State](
   }
 
   override def endConnection(
-      connectionData: ConnectionData,
-      data: Option[MillDaemonRpcServer.DaemonServerData],
-      result: Option[Int]
+                              connectionData: ConnectionData,
+                              data: Option[MillDaemonServer.DaemonServerData],
+                              result: Option[Int]
   ): Unit = {
     serverLog(s"endConnection: result=$result")
     System.out.flush()
@@ -251,7 +251,7 @@ abstract class MillDaemonRpcServer[State](
   ): (Boolean, State)
 }
 
-object MillDaemonRpcServer {
+object MillDaemonServer {
   case class DaemonServerData(
       writtenExitCode: AtomicBoolean,
       exitCode: AtomicInteger,

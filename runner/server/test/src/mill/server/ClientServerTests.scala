@@ -4,7 +4,7 @@ import mill.api.daemon.SystemStreams
 import mill.client.lock.Locks
 import mill.client.LaunchedServer
 import mill.constants.{DaemonFiles, Util}
-import mill.launcher.{DaemonRpc, MillRpcServerLauncher}
+import mill.launcher.{DaemonRpc, MillServerLauncher}
 import mill.rpc.MillRpcChannel
 import utest.*
 
@@ -38,7 +38,7 @@ trait ClientServerTestsBase extends TestSuite {
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean,
       commandSleepMillis: Int = 0
-  ) extends MillDaemonRpcServer[Option[Int]](
+  ) extends MillDaemonServer[Option[Int]](
         daemonDir,
         1000.millis,
         locks,
@@ -112,7 +112,7 @@ trait ClientServerTestsBase extends TestSuite {
       val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
-      val initServerFactory: MillRpcServerLauncher.InitServerFactory = (daemonDir, locks) => {
+      val initServerFactory: MillServerLauncher.InitServerFactory = (daemonDir, locks) => {
         nextServerId += 1
         // Use a negative process ID to indicate we're not a real process.
         val processId = -nextServerId
@@ -127,7 +127,7 @@ trait ClientServerTestsBase extends TestSuite {
         t.start()
         LaunchedServer.NewThread(t, () => { /* do nothing */ })
       }
-      val result = new MillRpcServerLauncher(
+      val result = new MillServerLauncher(
         stdin = in,
         stdout = out,
         stderr = err,

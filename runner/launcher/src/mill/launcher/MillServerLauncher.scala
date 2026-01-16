@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 import scala.jdk.CollectionConverters.*
 
-class MillRpcServerLauncher(
+class MillServerLauncher(
     stdin: InputStream,
     stdout: OutputStream,
     stderr: OutputStream,
@@ -20,7 +20,7 @@ class MillRpcServerLauncher(
     args: Array[String],
     forceFailureForTestingMillisDelay: Int,
     useFileLocks: Boolean,
-    initServerFactory: MillRpcServerLauncher.InitServerFactory
+    initServerFactory: MillServerLauncher.InitServerFactory
 ) {
   private val serverInitWaitMillis = 10000
 
@@ -120,7 +120,7 @@ class MillRpcServerLauncher(
   }
 }
 
-object MillRpcServerLauncher {
+object MillServerLauncher {
   @FunctionalInterface
   trait InitServerFactory {
     @throws[Exception]

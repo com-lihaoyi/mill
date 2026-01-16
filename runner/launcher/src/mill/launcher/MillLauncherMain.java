@@ -118,12 +118,12 @@ public class MillLauncherMain {
         final OutFolderMode outModeFinal = outMode;
 
         // Use the new RPC-based launcher
-        MillRpcServerLauncher.InitServerFactory initServerFactory =
+        MillServerLauncher.InitServerFactory initServerFactory =
             (daemonDir, locks) -> new LaunchedServer.OsProcess(MillProcessLauncher.launchMillDaemon(
                     daemonDir, outModeFinal, runnerClasspathFinal, useFileLocksFinal)
                 .toHandle());
 
-        var launcher = new MillRpcServerLauncher(
+        var launcher = new MillServerLauncher(
             System.in,
             System.out,
             System.err,
