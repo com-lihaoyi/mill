@@ -7,7 +7,7 @@ import mill.api.daemon.internal.{
   PathRefApi,
   RootModuleApi
 }
-import mill.api.{BuildCtx, Evaluator, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
+import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.internal.Util

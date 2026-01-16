@@ -23,7 +23,7 @@ final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
    * Looks up the class hierarchy to find if any parent class has this task marked as nonBootstrapped.
    */
   private[mill] def isNonBootstrapped(cls: Class[?], name: String): Boolean = {
-    resolveClassInfos(cls).exists { case (cls2, info) =>
+    resolveClassInfos(cls).exists { case (_, info) =>
       info.nonBootstrappedTaskNames.contains(name)
     }
   }
