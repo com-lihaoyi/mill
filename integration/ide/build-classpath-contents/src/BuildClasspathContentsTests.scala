@@ -37,7 +37,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-core-constants-SNAPSHOT.jar",
             "mill-libs-androidlib-databinding_3-SNAPSHOT.jar",
             "mill-libs-androidlib_3-SNAPSHOT.jar",
-            "mill-libs-daemon-client-SNAPSHOT.jar",
+            "mill-libs-daemon-client_3-SNAPSHOT.jar",
             "mill-libs-daemon-server_3-SNAPSHOT.jar",
             "mill-libs-groovylib-api_3-SNAPSHOT.jar",
             "mill-libs-groovylib_3-SNAPSHOT.jar",
