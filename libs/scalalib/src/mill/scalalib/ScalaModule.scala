@@ -426,7 +426,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /** Use `repl` instead */
   def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
     Task.Command(exclusive = true) {
-      if (!mill.constants.Util.hasConsole()) {
+      // Check if we have a way to run interactively (either via launcher or local console)
+      val canRunInteractive = mill.api.daemon.LauncherSubprocess.value.isDefined ||
+        mill.constants.Util.hasConsole()
+
+      if (!canRunInteractive) {
         Task.fail("console needs to be run with the -i/--interactive flag")
       } else {
         val useJavaCp = "-usejavacp"
@@ -437,7 +441,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
         }
 
-        Jvm.callProcess(
+        Jvm.callInteractiveProcess(
           mainClass =
             if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
             else "scala.tools.nsc.MainGenericRunner",
@@ -446,9 +450,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           env = allForkEnv(),
           mainArgs =
             Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
-          cwd = forkWorkingDir(),
-          stdin = os.Inherit,
-          stdout = os.Inherit
+          cwd = forkWorkingDir()
         )
         ()
       }
@@ -519,20 +521,22 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   def repl(replOptions: String*): Command[Unit] = {
     if (ammoniteRepl) {
       Task.Command(exclusive = true) {
-        if (Task.log.streams.in == DummyInputStream) {
+        // Check if we have a way to run interactively (either via launcher or local console)
+        val canRunInteractive = mill.api.daemon.LauncherSubprocess.value.isDefined ||
+          Task.log.streams.in != DummyInputStream
+
+        if (!canRunInteractive) {
           Task.fail("repl needs to be run with the -i/--interactive flag")
         } else {
           val mainClass = ammoniteMainClass()
           Task.log.debug(s"Using ammonite main class: ${mainClass}")
-          Jvm.callProcess(
+          Jvm.callInteractiveProcess(
             mainClass = mainClass,
             classPath = ammoniteReplClasspath().map(_.path).toVector,
             jvmArgs = forkArgs(),
             env = allForkEnv(),
             mainArgs = replOptions,
-            cwd = forkWorkingDir(),
-            stdin = os.Inherit,
-            stdout = os.Inherit
+            cwd = forkWorkingDir()
           )
           ()
         }

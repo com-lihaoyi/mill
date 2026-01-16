@@ -41,7 +41,8 @@ class DaemonRpcServer(
                 req,
                 PrintStream(clientStdout.asStream),
                 PrintStream(clientStderr.asStream),
-                setIdle
+                setIdle,
+                serverToClient
               )
               mill.constants.DebugLog.println(s"DaemonRpcServer RunCommand result: $result")
               result.asInstanceOf[input.Response]
@@ -61,6 +62,7 @@ object DaemonRpcServer {
       DaemonRpc.ClientToServer.RunCommand,
       PrintStream, // stdout
       PrintStream, // stderr
-      Server.SetIdle
+      Server.SetIdle,
+      MillRpcChannel[DaemonRpc.ServerToClient] // channel to send requests to the launcher
   ) => DaemonRpc.ClientToServer.RunCommand#Response
 }

@@ -1306,7 +1306,11 @@ trait JavaModule
    * for you to test and operate your code interactively.
    */
   def jshell(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    if (!mill.constants.Util.hasConsole()) {
+    // Check if we have a way to run interactively (either via launcher or local console)
+    val canRunInteractive = mill.api.daemon.LauncherSubprocess.value.isDefined ||
+      mill.constants.Util.hasConsole()
+
+    if (!canRunInteractive) {
       Task.fail("jshell needs to be run with the -i/--interactive flag")
     } else {
       val classPath = runClasspath()
@@ -1316,13 +1320,27 @@ trait JavaModule
       val jshellArgs = Seq("--class-path", classPath.mkString(java.io.File.pathSeparator)) ++ args
 
       val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
-      os.call(
-        cmd = cmd,
-        env = allForkEnv(),
-        cwd = forkWorkingDir(),
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
+      val env = allForkEnv()
+      val cwd = forkWorkingDir()
+
+      mill.api.daemon.LauncherSubprocess.value match {
+        case Some(runner) =>
+          // Run on the launcher where the actual terminal is
+          runner(mill.api.daemon.LauncherSubprocess.Config(
+            cmd = cmd,
+            env = env,
+            cwd = cwd.toString
+          ))
+        case None =>
+          // Run locally with inherited I/O
+          os.call(
+            cmd = cmd,
+            env = env,
+            cwd = cwd,
+            stdin = os.Inherit,
+            stdout = os.Inherit
+          )
+      }
       ()
     }
   }

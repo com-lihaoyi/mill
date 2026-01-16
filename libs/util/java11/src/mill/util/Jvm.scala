@@ -219,6 +219,82 @@ object Jvm {
   def javaExe: String = javaExe(None)
 
   /**
+   * Runs a JVM subprocess interactively with inherited stdin/stdout/stderr.
+   * If `LauncherSubprocess` is available (daemon mode), runs the subprocess on the launcher
+   * where the actual terminal is. Otherwise runs locally.
+   *
+   * This is used for interactive commands like repl, console, and jshell.
+   *
+   * @param mainClass The main class to run
+   * @param mainArgs Args passed to the `mainClass` main method
+   * @param javaHome Optional Java Home override
+   * @param jvmArgs Arguments given to the forked JVM
+   * @param classPath The classpath
+   * @param cpPassingJarPath When `Some`, a temporary JAR is created with a Class-Path manifest entry
+   * @param env Environment variables
+   * @param cwd Working directory
+   * @param propagateEnv If `true` then current environment variables are propagated
+   * @return exit code of the subprocess
+   */
+  def callInteractiveProcess(
+      mainClass: String,
+      mainArgs: os.Shellable = Seq.empty,
+      javaHome: Option[os.Path] = None,
+      jvmArgs: os.Shellable = Seq.empty,
+      classPath: Iterable[os.Path],
+      cpPassingJarPath: Option[os.Path] = None,
+      env: Map[String, String] = Map.empty,
+      cwd: os.Path = null,
+      propagateEnv: Boolean = true
+  )(using ctx: TaskCtx): Int = {
+    val cp = cpPassingJarPath match {
+      case Some(passingJarPath) if classPath.nonEmpty =>
+        createClasspathPassingJar(passingJarPath, classPath.toSeq)
+        Seq(passingJarPath)
+      case _ => classPath
+    }
+
+    val commandArgs = Vector(javaExe(javaHome)) ++
+      jvmArgs.value ++
+      Option.when(cp.nonEmpty)(Vector(
+        "-cp",
+        cp.mkString(java.io.File.pathSeparator)
+      )).getOrElse(Vector.empty) ++
+      Vector(mainClass) ++
+      mainArgs.value
+
+    if (cwd != null) os.makeDir.all(cwd)
+
+    ctx.log.debug(
+      s"Running interactive: ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
+    )
+
+    LauncherSubprocess.value match {
+      case Some(runner) =>
+        // Run on the launcher where the actual terminal is
+        runner(LauncherSubprocess.Config(
+          cmd = commandArgs,
+          env = env,
+          cwd = Option(cwd).getOrElse(os.pwd).toString,
+          propagateEnv = propagateEnv
+        ))
+      case None =>
+        // Run locally with inherited I/O
+        val result = os.proc(commandArgs)
+          .call(
+            cwd = cwd,
+            env = env,
+            propagateEnv = propagateEnv,
+            stdin = os.Inherit,
+            stdout = os.Inherit,
+            stderr = os.Inherit,
+            check = false
+          )
+        result.exitCode
+    }
+  }
+
+  /**
    * Detects the major version of a JVM by running `java -version`.
    * Returns 0 if the version cannot be determined.
    */

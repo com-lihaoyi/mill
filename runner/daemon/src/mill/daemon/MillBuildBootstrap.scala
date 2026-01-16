@@ -64,7 +64,7 @@ class MillBuildBootstrap(
     enableTicker: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
-
+  os.call
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 

@@ -101,7 +101,7 @@ abstract class MillDaemonRpcServer[State](
       transport = transport,
       setIdle = setIdle,
       writeToLocalLog = serverLog,
-      runCommand = (init, req, stdout, stderr, setIdleInner) => {
+      runCommand = (init, req, stdout, stderr, setIdleInner, serverToClient) => {
         mill.constants.DebugLog.println(s"MillDaemonRpcServer.runCommand: $init")
 
         // Check for version changes
@@ -152,7 +152,8 @@ abstract class MillDaemonRpcServer[State](
           setIdle = setIdleInner(_),
           userSpecifiedProperties = init.userSpecifiedProperties,
           initialSystemProperties = connectionData.initialSystemProperties,
-          stopServer = stopServer
+          stopServer = stopServer,
+          serverToClient = serverToClient
         )
 
         stateCache = newStateCache
@@ -213,7 +214,8 @@ abstract class MillDaemonRpcServer[State](
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      stopServer: Server.StopServer
+      stopServer: Server.StopServer,
+      serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]
   ): (Boolean, State)
 }
 

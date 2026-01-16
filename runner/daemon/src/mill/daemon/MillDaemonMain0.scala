@@ -95,7 +95,8 @@ class MillDaemonMain0(
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Server.StopServer
+      systemExit: Server.StopServer,
+      serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]
   ): (Boolean, RunnerState) = {
     try MillMain0.main0(
         args = args,
@@ -108,7 +109,8 @@ class MillDaemonMain0(
         initialSystemProperties = initialSystemProperties,
         systemExit = systemExit,
         daemonDir = daemonDir,
-        outLock = outLock
+        outLock = outLock,
+        serverToClient = Some(serverToClient)
       )
     catch MillMain0.handleMillException(streams.err, stateCache)
   }
