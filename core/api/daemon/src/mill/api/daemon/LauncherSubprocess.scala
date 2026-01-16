@@ -11,9 +11,7 @@ object LauncherSubprocess
       cwd: String,
       timeoutMillis: Long = -1,
       mergeErrIntoOut: Boolean = false,
-      shutdownGracePeriodMillis: Long = -1,
-      propagateEnv: Boolean = true,
-      destroyOnExit: Boolean = true
+      propagateEnv: Boolean = true
   )
 
   trait Runner {

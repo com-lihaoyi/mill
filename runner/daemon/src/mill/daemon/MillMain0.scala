@@ -18,7 +18,7 @@ import mill.internal.{
   PromptLogger,
   BspLogger
 }
-import mill.server.{MillDaemonServer, Server}
+import mill.server.Server
 import mill.util.BuildInfo
 import mill.api
 import mill.api.daemon.internal.bsp.BspServerResult
@@ -124,9 +124,7 @@ object MillMain0 {
             cwd = config.cwd,
             timeoutMillis = config.timeoutMillis,
             mergeErrIntoOut = config.mergeErrIntoOut,
-            shutdownGracePeriodMillis = config.shutdownGracePeriodMillis,
-            propagateEnv = config.propagateEnv,
-            destroyOnExit = config.destroyOnExit
+            propagateEnv = config.propagateEnv
           )
           channel(req).exitCode
         }
@@ -277,7 +275,7 @@ object MillMain0 {
                             _ => _ => None,
                           extraEnv: Seq[(String, String)] = Nil,
                           metaLevelOverride: Option[Int] = None
-                      ): RunnerState = MillDaemonServer.withOutLock(
+                      ): RunnerState = Server.withOutLock(
                         noBuildLock = config.noBuildLock.value,
                         noWaitForBuildLock = config.noWaitForBuildLock.value,
                         out = out,

@@ -36,9 +36,7 @@ object DaemonRpc {
         cwd: String,
         timeoutMillis: Long,
         mergeErrIntoOut: Boolean,
-        shutdownGracePeriodMillis: Long,
-        propagateEnv: Boolean,
-        destroyOnExit: Boolean
+        propagateEnv: Boolean
     ) extends ServerToClient {
       type Response = SubprocessResult
     }

@@ -6,7 +6,7 @@ import mill.bsp.worker.Utils.groupList
 import mill.client.lock.Lock
 import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
-import mill.server.MillDaemonServer
+import mill.server.Server
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.util.concurrent.{CompletableFuture, LinkedBlockingQueue, TimeUnit}
@@ -207,7 +207,7 @@ private abstract class MillBuildServer(
 
           for ((handler, logger, requestName) <- pendingRequest) {
             Await.result(bspEvaluators.future, Duration.Inf)
-            MillDaemonServer.withOutLock(
+            Server.withOutLock(
               noBuildLock = false,
               noWaitForBuildLock = false,
               out = out,

@@ -241,10 +241,8 @@ object Jvm {
 
     val commandArgs = Vector(javaExe(javaHome)) ++
       jvmArgs.value ++
-      Option.when(cp.nonEmpty)(Vector(
-        "-cp",
-        cp.mkString(java.io.File.pathSeparator)
-      )).getOrElse(Vector.empty) ++
+      Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
+        .getOrElse(Vector.empty) ++
       Vector(mainClass) ++
       mainArgs.value
 
@@ -282,16 +280,16 @@ object Jvm {
         ))
       case None =>
         // Run locally with inherited I/O
-        val result = os.proc(cmd)
-          .call(
-            cwd = cwd,
-            env = env,
-            propagateEnv = propagateEnv,
-            stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit,
-            check = false
-          )
+        val result = os.call(
+          cmd = cmd,
+          cwd = cwd,
+          env = env,
+          propagateEnv = propagateEnv,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit,
+          check = false
+        )
         result.exitCode
     }
   }

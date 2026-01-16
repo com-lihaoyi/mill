@@ -93,7 +93,7 @@ abstract class MillDaemonRpcServer[State](
         val javaVersionChanged = lastJavaVersion.exists(_ != init.clientJavaVersion)
 
         if (millVersionChanged || javaVersionChanged) {
-          MillDaemonServer.withOutLock(
+          Server.withOutLock(
             noBuildLock = false,
             noWaitForBuildLock = false,
             out = outFolder,
