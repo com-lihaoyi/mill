@@ -276,8 +276,12 @@ if [%~1%]==[--bsp] (
         if [%~1%]==[--no-daemon] (
           set MILL_FIRST_ARG=%1%
         ) else (
-          if [%~1%]==[--help] (
+          if [%~1%]==[--repl] (
             set MILL_FIRST_ARG=%1%
+          ) else (
+            if [%~1%]==[--help] (
+              set MILL_FIRST_ARG=%1%
+            )
           )
         )
       )

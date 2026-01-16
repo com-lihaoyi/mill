@@ -30,6 +30,8 @@ public class MillLauncherMain {
         "--interactive",
         "--no-server",
         "--no-daemon",
+        "--jshell",
+        "--repl",
         "--bsp",
         "--bsp-install",
         "--help",
