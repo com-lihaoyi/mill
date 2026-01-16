@@ -136,12 +136,6 @@ public class OutFiles {
      * Any active Mill command that is currently run, for debugging purposes
      */
     public final String millJavaHome = "mill-java-home";
-
-    /**
-     * File containing interactive tasks that were skipped in daemon mode
-     * and should be re-run by the launcher in no-daemon mode
-     */
-    public final String millSkippedInteractiveTasks = "mill-skipped-interactive-tasks.json";
   }
 
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */

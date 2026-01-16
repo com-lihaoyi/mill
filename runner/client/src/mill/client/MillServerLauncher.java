@@ -47,7 +47,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
    */
   public abstract LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception;
 
-  public int run(Path daemonDir, String javaHome, Consumer<String> log) throws Exception {
+  public Result run(Path daemonDir, String javaHome, Consumer<String> log) throws Exception {
     Files.createDirectories(daemonDir);
 
     var initData = new ClientInitData(
@@ -78,7 +78,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
         log,
         true /*openSocket*/)) {
       log.accept("runWithConnection: " + launched);
-      var result = runWithConnection(
+      var result = runWithConnectionResult(
           launched.socket,
           streams,
           false,
@@ -97,7 +97,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
           },
           "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
               + launched.socket.getRemoteSocketAddress() + "]");
-      log.accept("runWithConnection exit code: " + result);
+      log.accept("runWithConnection result: exitCode=" + result.exitCode() + ", metadata=" + result.metadata());
       return result;
     }
   }

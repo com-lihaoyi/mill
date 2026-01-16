@@ -44,10 +44,25 @@ public class ProxyStream {
   }
 
   public static void sendEnd(OutputStream out, int exitCode) throws IOException {
+    sendEnd(out, exitCode, "");
+  }
+
+  /**
+   * Send END packet with exit code and optional metadata.
+   * Format: END (0) + exitCode (1 byte) + metadataLength (2 bytes big-endian) + metadata (variable)
+   */
+  public static void sendEnd(OutputStream out, int exitCode, String metadata) throws IOException {
     synchronized (out) {
       try {
         out.write(ProxyStream.END);
         out.write(exitCode);
+        // Write metadata length and data
+        byte[] data = metadata != null ? metadata.getBytes(java.nio.charset.StandardCharsets.UTF_8) : new byte[0];
+        out.write((data.length >> 8) & 0xFF);
+        out.write(data.length & 0xFF);
+        if (data.length > 0) {
+          out.write(data);
+        }
         out.flush();
       } catch (SocketException e) {
         // If the client has already closed the connection, we don't really care about sending the
@@ -128,6 +143,8 @@ public class ProxyStream {
     private final Object synchronizer;
     public volatile int exitCode = 255;
     public volatile boolean exitCodeSet = false;
+    /** Metadata received from the server, if any */
+    public volatile String metadata = null;
 
     public Pumper(
         InputStream src, OutputStream destOut, OutputStream destErr, Object synchronizer) {
@@ -163,6 +180,24 @@ public class ProxyStream {
           else if (header == END) {
             exitCode = src.read();
             exitCodeSet = true;
+            // Read metadata length (2 bytes big-endian)
+            int lenHigh = src.read();
+            int lenLow = src.read();
+            if (lenHigh != -1 && lenLow != -1) {
+              int length = (lenHigh << 8) | lenLow;
+              if (length > 0) {
+                byte[] metadataBytes = new byte[length];
+                int offset = 0;
+                while (offset < length) {
+                  int read = src.read(metadataBytes, offset, length - offset);
+                  if (read == -1) break;
+                  offset += read;
+                }
+                if (offset == length) {
+                  metadata = new String(metadataBytes, java.nio.charset.StandardCharsets.UTF_8);
+                }
+              }
+            }
             break;
           } else if (header == HEARTBEAT) continue;
           else {

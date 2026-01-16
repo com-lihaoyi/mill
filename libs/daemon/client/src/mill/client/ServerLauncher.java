@@ -38,6 +38,25 @@ import mill.constants.ProxyStream;
 ///     indicating server has finished execution and all data has been received
 public abstract class ServerLauncher {
 
+  /** Result of running a command via the server, including exit code and optional metadata */
+  public static class Result {
+    private final int exitCode;
+    private final String metadata;
+
+    public Result(int exitCode, String metadata) {
+      this.exitCode = exitCode;
+      this.metadata = metadata;
+    }
+
+    public int exitCode() {
+      return exitCode;
+    }
+
+    public String metadata() {
+      return metadata;
+    }
+  }
+
   /// Run a client logic with a connection established to a Mill server (via [#connectToServer]).
   ///
   /// @param connection     the socket connected to the server
@@ -47,6 +66,27 @@ public abstract class ServerLauncher {
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
   public static int runWithConnection(
+      Socket connection,
+      Streams streams,
+      boolean closeConnectionAfterClientLogic,
+      Consumer<OutputStream> sendInitData,
+      Runnable runClientLogic,
+      String debugName)
+      throws Exception {
+    return runWithConnectionResult(
+            connection, streams, closeConnectionAfterClientLogic, sendInitData, runClientLogic, debugName)
+        .exitCode();
+  }
+
+  /// Run a client logic with a connection established to a Mill server (via [#connectToServer]).
+  ///
+  /// @param connection     the socket connected to the server
+  /// @param streams        streams to use for the client logic
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the
+  // client logic
+  /// @param runClientLogic the client logic to run
+  /// @return the result including exit code and metadata
+  public static Result runWithConnectionResult(
       Socket connection,
       Streams streams,
       boolean closeConnectionAfterClientLogic,
@@ -69,7 +109,7 @@ public abstract class ServerLauncher {
     runClientLogic.run();
     if (closeConnectionAfterClientLogic) socketInputStream.close();
     pumperThread.join();
-    return pumperThread.exitCode();
+    return new Result(pumperThread.exitCode(), pumperThread.metadata());
   }
 
   /// Run a client logic with a connection established to a Mill server (via [#connectToServer]).
@@ -373,6 +413,11 @@ public abstract class ServerLauncher {
       }
 
       return runnable.exitCode;
+    }
+
+    /** Returns metadata sent by the server, or null if none was sent */
+    public String metadata() {
+      return runnable.metadata;
     }
   }
 }

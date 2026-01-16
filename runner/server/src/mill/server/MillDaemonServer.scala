@@ -27,7 +27,7 @@ abstract class MillDaemonServer[State](
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends Server[DaemonServerData, Int](Server.Args(
+) extends Server[DaemonServerData, (Int, String)](Server.Args(
       daemonDir = daemonDir,
       acceptTimeout = Some(acceptTimeout),
       locks = locks,
@@ -61,7 +61,7 @@ abstract class MillDaemonServer[State](
    */
   override def prepareConnection(
       connectionData: ConnectionData,
-      stopServer: Server.StopServer
+      stopServer: Server.StopServer0[(Int, String)]
   ): DaemonServerData = {
     val stdout =
       new PrintStream(
@@ -114,7 +114,7 @@ abstract class MillDaemonServer[State](
 
         stopServer(
           s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
-          ClientUtil.ServerExitPleaseRetry()
+          (ClientUtil.ServerExitPleaseRetry(), "")
         )
       }
     }
@@ -126,10 +126,10 @@ abstract class MillDaemonServer[State](
 
   override def handleConnection(
       connectionData: ConnectionData,
-      stopServer: Server.StopServer,
+      stopServer: Server.StopServer0[(Int, String)],
       setIdle: Server.SetIdle,
       data: DaemonServerData
-  ): Int = {
+  ): (Int, String) = {
     val (result, newStateCache) = main0(
       data.clientData.args,
       stateCache,
@@ -146,13 +146,16 @@ abstract class MillDaemonServer[State](
     val exitCode = if (result) 0 else 1
 
     serverLog(s"connection handler finished, sending exitCode $exitCode to client")
-    exitCode
+    (exitCode, getMetadata(newStateCache))
   }
+
+  /** Override to provide metadata to send to the client with the exit code */
+  def getMetadata(state: State): String = ""
 
   override def endConnection(
       connectionData: ConnectionData,
       data: Option[DaemonServerData],
-      result: Option[Int]
+      result: Option[(Int, String)]
   ): Unit = {
     // flush before closing the socket
     System.out.flush()
@@ -160,7 +163,8 @@ abstract class MillDaemonServer[State](
 
     if (!data.exists(_.writtenExitCode.getAndSet(true) == true)) {
       try {
-        ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
+        val (exitCode, metadata) = result.getOrElse((1, ""))
+        ProxyStream.sendEnd(connectionData.serverToClient, exitCode, metadata)
         connectionData.serverToClient.flush()
         connectionData.serverToClient.close()
       } catch {
@@ -171,9 +175,12 @@ abstract class MillDaemonServer[State](
     }
   }
 
-  def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
+  def systemExit(exitCode: (Int, String)): Nothing = sys.exit(exitCode._1)
 
-  def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry()
+  def exitCodeServerTerminated: (Int, String) = (ClientUtil.ServerExitPleaseRetry(), "")
+
+  /** StopServer type for MillDaemonServer uses (Int, String) for exit code + metadata */
+  type StopServer = Server.StopServer0[(Int, String)]
 
   def main0(
       args: Array[String],
@@ -184,7 +191,7 @@ abstract class MillDaemonServer[State](
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      stopServer: Server.StopServer
+      stopServer: StopServer
   ): (Boolean, State)
 
 }

@@ -62,7 +62,7 @@ object MillDaemonMain0 {
         acceptTimeout = acceptTimeout,
         Locks.forDirectory(args.daemonDir.toString, args.useFileLocks),
         outMode = args.outMode
-      ).run().getOrElse(0)
+      ).run().map(_._1).getOrElse(0)
 
       System.exit(exitCode)
     }
@@ -86,6 +86,10 @@ class MillDaemonMain0(
 
   val outLock = MillMain0.doubleLock(outFolder)
 
+  /** Send skipped interactive tasks as metadata to the launcher */
+  override def getMetadata(state: RunnerState): String =
+    state.skippedInteractiveTasks.mkString("\n")
+
   def main0(
       args: Array[String],
       stateCache: RunnerState,
@@ -95,33 +99,23 @@ class MillDaemonMain0(
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Server.StopServer
+      stopServer: Server.StopServer0[(Int, String)]
   ): (Boolean, RunnerState) = {
-    val (result, newState) =
-      try MillMain0.main0(
-          args = args,
-          stateCache = stateCache,
-          mainInteractive = mainInteractive,
-          streams0 = streams,
-          env = env,
-          setIdle = setIdle,
-          userSpecifiedProperties0 = userSpecifiedProperties,
-          initialSystemProperties = initialSystemProperties,
-          systemExit = systemExit,
-          daemonDir = daemonDir,
-          outLock = outLock
-        )
-      catch MillMain0.handleMillException(streams.err, stateCache)
-
-    // Write skipped interactive tasks to file for the launcher to re-run
-    // One task per line for easy parsing in Java launcher
-    val skippedTasksFile = outFolder / OutFiles.millSkippedInteractiveTasks
-    if (newState.skippedInteractiveTasks.nonEmpty) {
-      os.write.over(skippedTasksFile, newState.skippedInteractiveTasks.mkString("\n"))
-    } else {
-      os.remove(skippedTasksFile, checkExists = false)
-    }
-
-    (result, newState)
+    // Adapt the StopServer to the simpler Server.StopServer type expected by MillMain0
+    val systemExit: Server.StopServer = (reason, exitCode) => stopServer(reason, (exitCode, ""))
+    try MillMain0.main0(
+        args = args,
+        stateCache = stateCache,
+        mainInteractive = mainInteractive,
+        streams0 = streams,
+        env = env,
+        setIdle = setIdle,
+        userSpecifiedProperties0 = userSpecifiedProperties,
+        initialSystemProperties = initialSystemProperties,
+        systemExit = systemExit,
+        daemonDir = daemonDir,
+        outLock = outLock
+      )
+    catch MillMain0.handleMillException(streams.err, stateCache)
   }
 }

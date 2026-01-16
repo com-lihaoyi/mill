@@ -137,21 +137,23 @@ public class MillLauncherMain {
         String javaHome = MillProcessLauncher.javaHome(outMode);
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir);
-        var exitCode = launcher.run(daemonDir, javaHome, log);
+        var result = launcher.run(daemonDir, javaHome, log);
         // Retry if server requests it. This can happen when:
         // - There's a version mismatch between client and server
         // - The server was terminated while this client was waiting
         int maxRetries = 10;
-        for (int i = 0; i < maxRetries && exitCode == ClientUtil.ServerExitPleaseRetry(); i++) {
-          exitCode = launcher.run(daemonDir, javaHome, log);
+        for (int i = 0; i < maxRetries && result.exitCode() == ClientUtil.ServerExitPleaseRetry(); i++) {
+          result = launcher.run(daemonDir, javaHome, log);
         }
-        if (exitCode == ClientUtil.ServerExitPleaseRetry()) {
+        if (result.exitCode() == ClientUtil.ServerExitPleaseRetry()) {
           System.err.println("Max launcher retries exceeded (" + maxRetries + "), exiting");
         }
 
+        int exitCode = result.exitCode();
+
         // Check for skipped interactive tasks that need to be re-run in no-daemon mode
-        if (exitCode == 0) {
-          exitCode = rerunSkippedInteractiveTasks(outDir, outMode, runnerClasspath, useFileLocks);
+        if (exitCode == 0 && result.metadata() != null && !result.metadata().isEmpty()) {
+          exitCode = rerunSkippedInteractiveTasks(result.metadata(), outMode, runnerClasspath, useFileLocks);
         }
 
         System.exit(exitCode);
@@ -169,30 +171,14 @@ public class MillLauncherMain {
   }
 
   /**
-   * Check for interactive tasks that were skipped in daemon mode and re-run them in no-daemon mode.
-   * Returns the exit code from re-running the tasks, or 0 if there were no tasks to re-run.
+   * Re-run interactive tasks that were skipped in daemon mode.
+   * @param metadata newline-separated list of task names to re-run
+   * @return the exit code from re-running the tasks
    */
   private static int rerunSkippedInteractiveTasks(
-      String outDir, OutFolderMode outMode, String[] runnerClasspath, boolean useFileLocks)
+      String metadata, OutFolderMode outMode, String[] runnerClasspath, boolean useFileLocks)
       throws Exception {
-    Path skippedTasksFile = Paths.get(outDir, OutFiles.millSkippedInteractiveTasks);
-    if (!Files.exists(skippedTasksFile)) {
-      return 0;
-    }
-
-    String content = Files.readString(skippedTasksFile).trim();
-    if (content.isEmpty()) {
-      Files.deleteIfExists(skippedTasksFile);
-      return 0;
-    }
-
-    String[] skippedTasks = content.split("\n");
-    // Delete the file before re-running to prevent infinite loops
-    Files.deleteIfExists(skippedTasksFile);
-
-    if (skippedTasks.length == 0) {
-      return 0;
-    }
+    String[] skippedTasks = metadata.split("\n");
 
     System.err.println();
     System.err.println("Re-running " + skippedTasks.length + " interactive task(s) in no-daemon mode...");

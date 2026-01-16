@@ -57,10 +57,10 @@ trait ClientServerTestsBase extends TestSuite {
     }
 
     @volatile var runCompleted = false
-    override def run(): Option[Int] = {
-      val exitCode = super.run()
+    override def run(): Option[(Int, String)] = {
+      val result = super.run()
       runCompleted = true
-      exitCode
+      result
     }
     def main0(
         args: Array[String],
@@ -69,10 +69,10 @@ trait ClientServerTestsBase extends TestSuite {
         streams: SystemStreams,
         env: Map[String, String],
         setIdle: Boolean => Unit,
-        systemProperties: Map[String, String],
+        userSpecifiedProperties: Map[String, String],
         initialSystemProperties: Map[String, String],
-        systemExit: Server.StopServer
-    ) = {
+        stopServer: Server.StopServer0[(Int, String)]
+    ): (Boolean, Option[Int]) = {
       Thread.sleep(commandSleepMillis)
       if (!runCompleted) {
         val reader = new BufferedReader(new InputStreamReader(streams.in))
@@ -144,7 +144,7 @@ trait ClientServerTestsBase extends TestSuite {
       )
 
       ClientResult(
-        result,
+        result.exitCode(),
         daemonDir,
         outDir,
         out.toString,
