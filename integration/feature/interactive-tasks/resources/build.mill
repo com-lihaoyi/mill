@@ -17,17 +17,29 @@ def isInNoDaemonMode(): Boolean = {
   }
 }
 
+def printModeInfo(prefix: String): Unit = {
+  println(s"${prefix}IS_DAEMON_MODE=${isInDaemonMode()}")
+  println(s"${prefix}IS_NO_DAEMON_MODE=${isInNoDaemonMode()}")
+}
+
 // A simple non-interactive task
 def hello() = Task.Command {
-  println(s"IS_DAEMON_MODE=${isInDaemonMode()}")
-  println(s"IS_NO_DAEMON_MODE=${isInNoDaemonMode()}")
+  printModeInfo("")
   println("NORMAL_TASK_EXECUTED")
+}
+
+// An upstream task that interactive tasks depend on
+def upstreamHello = Task {
+  printModeInfo("UPSTREAM_")
+  println("UPSTREAM_TASK_EXECUTED")
+  "upstream-result"
 }
 
 // An interactive task that requires direct terminal access
 // When run in daemon mode, this should be skipped and re-run in no-daemon mode
 def interactiveHello() = Task.Command(interactive = true) {
-  println(s"IS_DAEMON_MODE=${isInDaemonMode()}")
-  println(s"IS_NO_DAEMON_MODE=${isInNoDaemonMode()}")
+  val upstream = upstreamHello()
+  println(s"UPSTREAM_RESULT={$upstream}")
+  printModeInfo("")
   println("INTERACTIVE_TASK_EXECUTED")
 }
