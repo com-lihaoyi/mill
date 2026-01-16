@@ -1,0 +1,33 @@
+package build
+
+import mill._
+
+// Check if running in daemon mode by inspecting stack traces
+def isInDaemonMode(): Boolean = {
+  import scala.jdk.CollectionConverters._
+  Thread.getAllStackTraces.asScala.values.flatten.exists { frame =>
+    frame.getClassName.contains("MillDaemonMain")
+  }
+}
+
+def isInNoDaemonMode(): Boolean = {
+  import scala.jdk.CollectionConverters._
+  Thread.getAllStackTraces.asScala.values.flatten.exists { frame =>
+    frame.getClassName.contains("MillNoDaemonMain")
+  }
+}
+
+// A simple non-interactive task
+def hello() = Task.Command {
+  println(s"IS_DAEMON_MODE=${isInDaemonMode()}")
+  println(s"IS_NO_DAEMON_MODE=${isInNoDaemonMode()}")
+  println("NORMAL_TASK_EXECUTED")
+}
+
+// An interactive task that requires direct terminal access
+// When run in daemon mode, this should be skipped and re-run in no-daemon mode
+def interactiveHello() = Task.Command(interactive = true) {
+  println(s"IS_DAEMON_MODE=${isInDaemonMode()}")
+  println(s"IS_NO_DAEMON_MODE=${isInNoDaemonMode()}")
+  println("INTERACTIVE_TASK_EXECUTED")
+}
