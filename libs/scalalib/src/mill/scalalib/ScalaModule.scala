@@ -513,25 +513,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   def repl(replOptions: String*): Command[Unit] = {
     if (ammoniteRepl) {
       Task.Command(exclusive = true) {
-        // Check if we have a way to run interactively (either via launcher or local console)
-        val canRunInteractive = mill.api.daemon.LauncherSubprocess.value.isDefined ||
-          Task.log.streams.in != DummyInputStream
-
-        if (!canRunInteractive) {
-          Task.fail("repl needs to be run with the -i/--interactive flag")
-        } else {
-          val mainClass = ammoniteMainClass()
-          Task.log.debug(s"Using ammonite main class: ${mainClass}")
-          Jvm.callInteractiveProcess(
-            mainClass = mainClass,
-            classPath = ammoniteReplClasspath().map(_.path).toVector,
-            jvmArgs = forkArgs(),
-            env = allForkEnv(),
-            mainArgs = replOptions,
-            cwd = forkWorkingDir()
-          )
-          ()
-        }
+        val mainClass = ammoniteMainClass()
+        Task.log.debug(s"Using ammonite main class: ${mainClass}")
+        Jvm.callInteractiveProcess(
+          mainClass = mainClass,
+          classPath = ammoniteReplClasspath().map(_.path).toVector,
+          jvmArgs = forkArgs(),
+          env = allForkEnv(),
+          mainArgs = replOptions,
+          cwd = forkWorkingDir()
+        )
+        ()
       }
     } else console(mill.api.Args(replOptions))
   }
