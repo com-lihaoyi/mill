@@ -30,16 +30,17 @@ class PidLock(path: String) extends Lock {
     if (!isLockValid) {
       tryDeleteLockFile()
       try {
-        // Use os.write with createFolders=false to ensure atomic creation
-        // This will fail if the file already exists
-        if (!os.exists(lockPath)) {
-          os.write(lockPath, createLockContent(), createFolders = false)
-          new PidTryLocked(Some(lockPath), locked = true)
-        } else {
-          new PidTryLocked(None, locked = false)
-        }
+        // Use Java NIO with CREATE_NEW for atomic file creation
+        // This fails atomically if the file already exists
+        java.nio.file.Files.write(
+          lockPath.toNIO,
+          createLockContent().getBytes(java.nio.charset.StandardCharsets.UTF_8),
+          java.nio.file.StandardOpenOption.CREATE_NEW,
+          java.nio.file.StandardOpenOption.WRITE
+        )
+        new PidTryLocked(Some(lockPath), locked = true)
       } catch {
-        case _: java.nio.file.FileAlreadyExistsException | _: java.io.IOException =>
+        case _: java.nio.file.FileAlreadyExistsException =>
           // Another process grabbed it - that's fine
           new PidTryLocked(None, locked = false)
       }

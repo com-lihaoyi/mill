@@ -84,7 +84,9 @@ object MillProcessLauncher {
       if (opts.nonEmpty) Map("JDK_JAVA_OPTIONS" -> opts) else Map.empty
     }
 
-    os.proc(cmd).spawn(cwd = sandbox, env = env, stdout = stdout, stderr = stderr).wrapped
+    // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
+    // The daemon is a long-lived background process that should survive client disconnections.
+    os.proc(cmd).spawn(cwd = sandbox, env = env, stdout = stdout, stderr = stderr, destroyOnExit = false).wrapped
   }
 
   def loadMillConfig(outMode: OutFolderMode, key: String): Seq[String] = {
