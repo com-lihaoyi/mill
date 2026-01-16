@@ -8,7 +8,7 @@ object JvmVersionTests extends UtestIntegrationTestSuite {
   def captureOutErr = true
   val tests: Tests = Tests {
     test - integrationTest { tester =>
-      val res = tester.eval("version")
+      val res = tester.eval(("resolve", "_"))
       assert(!res.isSuccess)
       assert(
         res.err.contains(

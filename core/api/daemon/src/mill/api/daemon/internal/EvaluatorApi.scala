@@ -27,6 +27,24 @@ trait EvaluatorApi extends AutoCloseable {
   private[mill] def baseLogger: Logger
   private[mill] def rootModule: BaseModuleApi
   private[mill] def outPathJava: java.nio.file.Path
+
+  /**
+   * Resolves tasks from script arguments and checks if all resolved tasks are marked
+   * with @nonBootstrapped annotation. Returns Success(true) if all tasks are nonBootstrapped,
+   * Success(false) if any task is not nonBootstrapped, or Failure if task resolution fails.
+   */
+  private[mill] def areAllNonBootstrapped(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false
+  ): Result[Boolean] = Result.Success(false)
+
+  /**
+   * Returns a copy of this evaluator with the isFinalDepth flag set to the given value.
+   * Used to defer the decision of whether this is the final depth until after
+   * determining if we should short-circuit for @nonBootstrapped tasks.
+   */
+  private[mill] def withIsFinalDepth(isFinalDepth: Boolean): EvaluatorApi = this
 }
 object EvaluatorApi {
   trait Result[T] {

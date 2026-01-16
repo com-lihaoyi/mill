@@ -60,6 +60,13 @@ final class EvaluatorImpl(
     scriptModuleInit
   )
 
+  override def withIsFinalDepth(isFinalDepth: Boolean): EvaluatorImpl = new EvaluatorImpl(
+    allowPositionalCommandArgs,
+    selectiveExecution,
+    execution.withIsFinalDepth(isFinalDepth),
+    scriptModuleInit
+  )
+
   /**
    * Takes query selector tokens and resolves them to a list of [[Segments]]
    * representing concrete tasks or modules that match that selector
@@ -122,6 +129,49 @@ final class EvaluatorImpl(
       }.flatMap { f =>
         Result.sequence(validateModuleOverrides(f.map(_.ctx.enclosingModule).distinct)).map(_ => f)
       }
+    }
+  }
+
+  /**
+   * Resolves tasks using resolveRaw and checks if all of them are marked with @nonBootstrapped annotation.
+   * Used by MillBuildBootstrap to determine if we can short-circuit the bootstrap process.
+   * Uses resolveRaw instead of resolveTasks to avoid instantiating the tasks.
+   *
+   * Returns false if any selector contains wildcards (`_` or `__`) since wildcards
+   * could resolve to many tasks and we shouldn't short-circuit for those.
+   */
+  override def areAllNonBootstrapped(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean
+  ): mill.api.Result[Boolean] = {
+    // First, parse the selectors to check for wildcards
+    val parsedResults = ParseArgs(scriptArgs, selectMode)
+    val hasWildcards = parsedResults.exists {
+      case Result.Success((selectors, _)) =>
+        selectors.exists { case (_, segments) =>
+          segments.value.exists {
+            case Segment.Label(v) =>
+              v == "_" || v == "__" || v.startsWith("_:") || v.startsWith("__:")
+            case _ => false
+          }
+        }
+      case _ => false
+    }
+
+    if (hasWildcards) Result.Success(false)
+    else resolveRaw(scriptArgs, selectMode, allowPositionalCommandArgs) match {
+      case Result.Success(Nil) => Result.Success(false) // No tasks resolved
+      case Result.Success(resolved) =>
+        Result.Success(
+          resolved.forall { r =>
+            r.taskSegments.parts.lastOption.exists { taskName =>
+              r.rootModule.millDiscover.isNonBootstrapped(r.cls, taskName)
+            }
+          }
+        )
+
+      case f: Result.Failure => f // Pass through failure
     }
   }
 
@@ -279,9 +329,9 @@ final class EvaluatorImpl(
     @scala.annotation.nowarn("msg=cannot be checked at runtime")
     val watched = allResults.collect {
       case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
-        ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
+        ps.map(r => Watchable.Path.from(r))
       case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
-        Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
+        Seq(Watchable.Path.from(p))
       case (t: Task.Input[_], result) =>
 
         val ctx = new mill.api.TaskCtx.Impl(

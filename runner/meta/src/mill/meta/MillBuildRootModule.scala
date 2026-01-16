@@ -29,7 +29,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 @internal
 trait MillBuildRootModule()(using
     rootModuleInfo: RootModule.Info
-) extends ScalaModule with MillBuildRootModuleApi {
+) extends ScalaModule with MillBuildRootModuleApi with mill.util.MainModule {
 
   def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
 
@@ -419,10 +419,9 @@ object MillBuildRootModule {
     }
   }
 
-  class BootstrapModule(foundRootBuildFile: String)(using
-      rootModuleInfo: RootModule.Info
-  ) extends MainRootModule() with MillBuildRootModule() {
-    override def moduleCtx = super.moduleCtx.withFileName(foundRootBuildFile)
+  class BootstrapModule(foundRootBuildFile: os.Path)(using rootModuleInfo: RootModule.Info)
+      extends MainRootModule() with MillBuildRootModule() {
+    override def moduleCtx = super.moduleCtx.withFileName(foundRootBuildFile.toString)
     override lazy val millDiscover = Discover[this.type]
   }
 
