@@ -1,9 +1,10 @@
 package mill.javalib.micronaut
 
-import mill.api.PathRef
+import mill.api.{PathRef, experimental}
 import mill.javalib.NativeImageModule
 import mill.{T, Task}
 
+@experimental
 trait MicronautNativeAotModule extends MicronautAotModule, NativeImageModule {
 
   override def aotRuntime: T[String] = Task {

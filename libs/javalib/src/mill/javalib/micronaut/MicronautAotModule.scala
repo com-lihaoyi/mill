@@ -1,10 +1,11 @@
 package mill.javalib.micronaut
 
 import mill.{T, Task}
-import mill.api.PathRef
+import mill.api.{PathRef, experimental}
 import mill.util.Jvm
 import mill.javalib.{Dep, DepSyntax, JavaModule}
 
+@experimental
 trait MicronautAotModule extends JavaModule {
 
   def micronautPackage: String
@@ -13,14 +14,18 @@ trait MicronautAotModule extends JavaModule {
     "jit"
   }
 
+  /**
+   * The Micronaut AOT CLI dependencies resolved.
+   *
+   * The version is expected to be managed
+   * via the micronaut-platform or micronaut-aot-bom
+   * in the [[bomMvnDeps]].
+   */
   def resolvedMicronautAotCli: T[Seq[PathRef]] = Task {
     try {
       defaultResolver().classpath(
         Seq(
-          mvn"io.micronaut.aot:micronaut-aot-cli",
-          mvn"io.micronaut.aot:micronaut-aot-api",
-          mvn"io.micronaut.aot:micronaut-aot-core",
-          mvn"io.micronaut.aot:micronaut-aot-std-optimizers"
+          mvn"io.micronaut.aot:micronaut-aot-cli"
         ),
         boms = allBomDeps()
       )
@@ -49,6 +54,10 @@ trait MicronautAotModule extends JavaModule {
     )
   }
 
+  /**
+   * Generates the Micronaut AOT configuration file
+   * with the properties from [[micronautAotConfigProperties]]
+   */
   def micronautAotConfigFile: T[PathRef] = Task {
     val file = Task.dest / "micronaut-aot.properties"
     os.write(
@@ -87,6 +96,10 @@ trait MicronautAotModule extends JavaModule {
     PathRef(dest)
   }
 
+  /**
+   * The generated classes from Micronaut AOT processing to be
+   * included in the classpath for running, or building native images.
+   */
   def micronautAotClasspath: T[Seq[PathRef]] = Task {
     Seq(PathRef(micronautProcessAOT().path / "classes"))
   }
