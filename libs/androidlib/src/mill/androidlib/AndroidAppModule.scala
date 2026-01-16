@@ -645,7 +645,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val bootMessage: Option[String] = startEmuCmd.stdout.buffered.lines().filter(l => {
       Task.log.debug(l.trim())
-      l.contains("Boot completed in")
+      l.contains("Boot completed in") || l.contains("Successfully loaded snapshot")
     }).findFirst().toScala
 
     if (bootMessage.isEmpty) {
@@ -666,7 +666,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Stops the android emulator
    */
-  def stopAndroidEmulator: T[String] = Task {
+  def stopAndroidEmulator(): Command[String] = Task.Command {
     val emulator = runningEmulator()
     os.call(
       (androidSdkModule().adbExe().path, "-s", emulator, "emu", "kill")
@@ -674,7 +674,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
     emulator
   }
 
-  /** The emulator port where adb connects to. Defaults to 5554 */
+  /**
+   * Port number for the android emulator console to listen on
+   * It is suggested to use even numbers between 5554 and 5584
+   *
+   * See more at `-port` on:
+   * [[https://developer.android.com/studio/run/emulator-commandline#common]]
+   */
   def androidEmulatorPort: String = "5554"
 
   /**
