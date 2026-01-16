@@ -54,7 +54,8 @@ object MillNoDaemonMain0 {
           initialSystemProperties = sys.props.toMap,
           systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
           daemonDir = args.daemonDir,
-          outLock = outLock
+          outLock = outLock,
+          daemonMode = false
         )
       catch handleMillException(initialSystemStreams.err, ())
 

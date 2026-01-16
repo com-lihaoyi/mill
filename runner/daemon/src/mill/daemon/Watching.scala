@@ -51,15 +51,6 @@ object Watching {
       doRingBell(hasError = errorOpt.isDefined)
     }
 
-    def handleSkippedInteractive(skipped: Seq[String]): Unit = {
-      if (skipped.nonEmpty) {
-        streams.err.println(
-          s"\nThe following interactive tasks will be re-run in no-daemon mode:"
-        )
-        skipped.foreach(task => streams.err.println(s"  - $task"))
-      }
-    }
-
     def doRingBell(hasError: Boolean): Unit = {
       if (!ringBell) return
 
@@ -75,7 +66,6 @@ object Watching {
       case None =>
         val result = evaluate(skipSelectiveExecution = false, previousState = None)
         handleError(result.errorOpt)
-        handleSkippedInteractive(result.skippedInteractiveTasks)
         // Return success=true if no errors, even if there are skipped interactive tasks.
         // The launcher will re-run skipped tasks when exit code is 0 and metadata is present.
         (result.errorOpt.isEmpty, result)
@@ -89,7 +79,6 @@ object Watching {
           val result = evaluate(skipSelectiveExecution, prevState)
           prevState = Some(result)
           handleError(result.errorOpt)
-          handleSkippedInteractive(result.skippedInteractiveTasks)
 
           try {
             watchArgs.setIdle(true)

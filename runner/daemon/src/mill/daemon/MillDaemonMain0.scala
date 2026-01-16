@@ -114,7 +114,8 @@ class MillDaemonMain0(
         initialSystemProperties = initialSystemProperties,
         systemExit = systemExit,
         daemonDir = daemonDir,
-        outLock = outLock
+        outLock = outLock,
+        daemonMode = true
       )
     catch MillMain0.handleMillException(streams.err, stateCache)
   }

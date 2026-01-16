@@ -180,9 +180,6 @@ public class MillLauncherMain {
       throws Exception {
     String[] skippedTasks = metadata.split("\n");
 
-    System.err.println();
-    System.err.println("Re-running " + skippedTasks.length + " interactive task(s) in no-daemon mode...");
-
     // Re-run the skipped tasks in no-daemon mode
     return MillProcessLauncher.launchMillNoDaemon(
         skippedTasks, outMode, runnerClasspath, "mill.daemon.MillNoDaemonMain", useFileLocks);

@@ -109,7 +109,8 @@ object MillMain0 {
       initialSystemProperties: Map[String, String],
       systemExit: Server.StopServer,
       daemonDir: os.Path,
-      outLock: Lock
+      outLock: Lock,
+      daemonMode: Boolean
   ): (Boolean, RunnerState) =
     mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
       os.SubProcess.env.withValue(env) {
@@ -297,8 +298,7 @@ object MillMain0 {
                                 useFileLocks = config.useFileLocks.value,
                                 reporter = reporter,
                                 enableTicker = enableTicker,
-                                // daemonMode is true when not in interactive/no-daemon mode
-                                daemonMode = !mainInteractive
+                                daemonMode = daemonMode
                               ).evaluate()
                             }
                           }

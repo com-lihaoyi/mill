@@ -140,7 +140,8 @@ class UnitTester(
     enableTicker = false,
     staticBuildOverrideFiles = Map(),
     depth = 0,
-    isFinalDepth = true
+    isFinalDepth = true,
+    daemonMode = false
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

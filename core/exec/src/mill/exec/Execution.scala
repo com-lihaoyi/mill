@@ -36,7 +36,7 @@ case class Execution(
     enableTicker: Boolean,
     depth: Int,
     isFinalDepth: Boolean,
-    daemonMode: Boolean = false
+    daemonMode: Boolean
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -370,13 +370,18 @@ case class Execution(
       // given but run the commands in linear order
       val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
+      mill.api.Debug(nonExclusiveResults)
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
+      mill.api.Debug(exclusiveResults)
+      mill.api.Debug(daemonMode)
+      mill.api.Debug(leafInteractiveCommands.nonEmpty)
 
       // Interactive tasks run at the very end, after exclusive tasks,
       // with the same single-threaded configuration and direct IO streams.
       // In daemon mode, interactive tasks are skipped and their names are
       // collected so the launcher can re-run them in no-daemon mode.
       val (interactiveResults, skippedInteractive) = if (daemonMode && leafInteractiveCommands.nonEmpty) {
+        mill.api.Debug("branchA")
         // Skip interactive tasks in daemon mode - mark them as skipped
         val skipped = leafInteractiveCommands.collect {
           case t: Task.Named[_] => t.toString
@@ -386,6 +391,7 @@ case class Execution(
           leafInteractiveCommands.map(t => (t, None))
         (skippedEntries, skipped.toSeq)
       } else {
+        mill.api.Debug("branchB")
         (evaluateTerminals(leafInteractiveCommands, exclusive = true), Nil)
       }
 
