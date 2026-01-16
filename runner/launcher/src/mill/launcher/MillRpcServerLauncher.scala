@@ -99,9 +99,7 @@ class MillRpcServerLauncher(
           } catch { case _: Exception => }
         })
         commandThread.start()
-        log.accept(
-          s"Force failure for testing in ${forceFailureForTestingMillisDelay}ms: $daemonDir"
-        )
+        log(s"Force failure for testing in ${forceFailureForTestingMillisDelay}ms: $daemonDir")
         Thread.sleep(forceFailureForTestingMillisDelay)
         // Let the test exception propagate (not caught below)
         throw new RuntimeException(s"Force failure for testing: $daemonDir")
