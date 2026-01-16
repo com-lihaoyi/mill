@@ -4,6 +4,10 @@ import mill.api.{PathRef, experimental}
 import mill.javalib.NativeImageModule
 import mill.{T, Task}
 
+/**
+ * An extension of [[MicronautAotModule]] that provides
+ * configuration of Micronaut AOT processing for native GraalVM images.
+ */
 @experimental
 trait MicronautNativeAotModule extends MicronautAotModule, NativeImageModule {
 

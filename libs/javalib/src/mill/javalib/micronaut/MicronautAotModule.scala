@@ -5,6 +5,14 @@ import mill.api.{PathRef, experimental}
 import mill.util.Jvm
 import mill.javalib.{Dep, DepSyntax, JavaModule}
 
+/**
+ * A module that provides Micronaut AOT processing functionality
+ * that can be mixed into modules building Micronaut applications.
+ *
+ * The Micronaut AOT is integrated via its CLI tool,
+ * as recommended in the [[https://micronaut-projects.github.io/micronaut-aot/latest/guide/index.html#_micronaut_aot_projects]]
+ * documentation.
+ */
 @experimental
 trait MicronautAotModule extends JavaModule {
 
