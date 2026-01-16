@@ -751,7 +751,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-11-95ad41/mill-dist-1.1.0-RC4-11-95ad41-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-12-125184/mill-dist-1.1.0-RC4-12-125184-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -795,7 +795,7 @@ import coursier.maven.MavenRepository</code></pre>
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDevice = super.androidVirtualDevice().withName("kotlin-test")
-  override def androidEmulatorPort: String = "5564"
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5556")
 
   override def androidIsDebug: T[Boolean] = Task { false }
 
@@ -886,7 +886,7 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; ./mill show app.startAndroidEmulator
 
 &gt; ./mill show app.adbDevices
-...emulator-5564...device...
+...emulator-...device...
 
 &gt; ./mill show app.it
 ...

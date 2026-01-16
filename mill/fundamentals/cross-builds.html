@@ -752,15 +752,15 @@ trait FooModule extends Cross.Module[String] {
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 294.19,-348 294.19,-240 8,-240"/>
 <text text-anchor="middle" x="151.09" y="-331.4" font-family="Times,serif" font-size="14.00">foo.2_10</text>
 </g>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 294.19,-116 294.19,-8 8,-8"/>
-<text text-anchor="middle" x="151.09" y="-99.4" font-family="Times,serif" font-size="14.00">foo.2_12</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 294.19,-232 294.19,-124 8,-124"/>
 <text text-anchor="middle" x="151.09" y="-215.4" font-family="Times,serif" font-size="14.00">foo.2_11</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-116 294.19,-116 294.19,-8 8,-8"/>
+<text text-anchor="middle" x="151.09" y="-99.4" font-family="Times,serif" font-size="14.00">foo.2_12</text>
 </g>
 <!-- foo.2_12.suffix -->
 <g id="node1" class="node">
@@ -1046,20 +1046,20 @@ def qux = Task { s"hello ${foo("2.10").suffix()} world ${foo("2.12").suffix()}" 
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 195.32,-231 195.32,4 -4,4"/>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 126.32,-219 126.32,-154 8,-154"/>
-<text text-anchor="middle" x="67.16" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_12</text>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 126.32,-73 126.32,-8 8,-8"/>
+<text text-anchor="middle" x="67.16" y="-56.4" font-family="Times,serif" font-size="14.00">foo.2_10</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 126.32,-146 126.32,-81 8,-81"/>
 <text text-anchor="middle" x="67.16" y="-129.4" font-family="Times,serif" font-size="14.00">foo.2_11</text>
 </g>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 126.32,-73 126.32,-8 8,-8"/>
-<text text-anchor="middle" x="67.16" y="-56.4" font-family="Times,serif" font-size="14.00">foo.2_10</text>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 126.32,-219 126.32,-154 8,-154"/>
+<text text-anchor="middle" x="67.16" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_12</text>
 </g>
 <!-- foo.2_12.suffix -->
 <g id="node1" class="node">
@@ -1164,35 +1164,35 @@ trait BarModule extends Cross.Module[String] {
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 296.08,-231 296.08,4 -4,4"/>
-<g id="clust3" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 126.32,-219 126.32,-154 8,-154"/>
-<text text-anchor="middle" x="67.16" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_10</text>
+<g id="clust6" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-154 146.32,-219 284.08,-219 284.08,-154 146.32,-154"/>
+<text text-anchor="middle" x="215.2" y="-202.4" font-family="Times,serif" font-size="14.00">bar.2_10</text>
 </g>
 <g id="clust4" class="cluster">
 <title>cluster_4</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-81 146.32,-146 284.08,-146 284.08,-81 146.32,-81"/>
 <text text-anchor="middle" x="215.2" y="-129.4" font-family="Times,serif" font-size="14.00">bar.2_11</text>
 </g>
-<g id="clust1" class="cluster">
-<title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 126.32,-73 126.32,-8 8,-8"/>
-<text text-anchor="middle" x="67.16" y="-56.4" font-family="Times,serif" font-size="14.00">foo.2_12</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 126.32,-146 126.32,-81 8,-81"/>
-<text text-anchor="middle" x="67.16" y="-129.4" font-family="Times,serif" font-size="14.00">foo.2_11</text>
-</g>
 <g id="clust5" class="cluster">
 <title>cluster_5</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-8 146.32,-73 284.08,-73 284.08,-8 146.32,-8"/>
 <text text-anchor="middle" x="215.2" y="-56.4" font-family="Times,serif" font-size="14.00">bar.2_12</text>
 </g>
-<g id="clust6" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="146.32,-154 146.32,-219 284.08,-219 284.08,-154 146.32,-154"/>
-<text text-anchor="middle" x="215.2" y="-202.4" font-family="Times,serif" font-size="14.00">bar.2_10</text>
+<g id="clust1" class="cluster">
+<title>cluster_2</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 126.32,-73 126.32,-8 8,-8"/>
+<text text-anchor="middle" x="67.16" y="-56.4" font-family="Times,serif" font-size="14.00">foo.2_12</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_0</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-154 8,-219 126.32,-219 126.32,-154 8,-154"/>
+<text text-anchor="middle" x="67.16" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_10</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-81 8,-146 126.32,-146 126.32,-81 8,-81"/>
+<text text-anchor="middle" x="67.16" y="-129.4" font-family="Times,serif" font-size="14.00">foo.2_11</text>
 </g>
 <!-- foo.2_12.suffix -->
 <g id="node1" class="node">
@@ -1315,35 +1315,30 @@ def bar = Task { s"hello ${foo("2.10", "jvm").suffix()}" }</code></pre>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 231.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-231 557.1,-231 557.1,4 -4,4"/>
+<g id="clust6" class="cluster">
+<title>cluster_1</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="184.03,-154 184.03,-219 491.22,-219 491.22,-154 184.03,-154"/>
+<text text-anchor="middle" x="337.63" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_11.jvm</text>
+</g>
 <g id="clust7" class="cluster">
 <title>cluster_2</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 327.63,-219 327.63,-154 14.21,-154"/>
-<text text-anchor="middle" x="170.92" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_12.jvm</text>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.21,-154 14.21,-219 157.81,-219 157.81,-154 14.21,-154"/>
+<text text-anchor="middle" x="86.01" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_12.jvm</text>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_6</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-8 8,-73 164.03,-73 164.03,-8 8,-8"/>
 <text text-anchor="middle" x="86.01" y="-56.4" font-family="Times,serif" font-size="14.00">foo.2_12.native</text>
 </g>
+<g id="clust4" class="cluster">
+<title>cluster_5</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 321.4,-146 321.4,-81 20.44,-81"/>
+<text text-anchor="middle" x="170.92" y="-129.4" font-family="Times,serif" font-size="14.00">foo.2_12.js</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_3</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="353.85,-81 353.85,-146 485,-146 485,-81 353.85,-81"/>
 <text text-anchor="middle" x="419.42" y="-129.4" font-family="Times,serif" font-size="14.00">foo.2_10.js</text>
-</g>
-<g id="clust3" class="cluster">
-<title>cluster_4</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="190.25,-81 190.25,-146 321.4,-146 321.4,-81 190.25,-81"/>
-<text text-anchor="middle" x="255.83" y="-129.4" font-family="Times,serif" font-size="14.00">foo.2_11.js</text>
-</g>
-<g id="clust5" class="cluster">
-<title>cluster_0</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="347.63,-154 347.63,-219 491.22,-219 491.22,-154 347.63,-154"/>
-<text text-anchor="middle" x="419.42" y="-202.4" font-family="Times,serif" font-size="14.00">foo.2_10.jvm</text>
-</g>
-<g id="clust4" class="cluster">
-<title>cluster_5</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="20.44,-81 20.44,-146 151.59,-146 151.59,-81 20.44,-81"/>
-<text text-anchor="middle" x="86.01" y="-129.4" font-family="Times,serif" font-size="14.00">foo.2_12.js</text>
 </g>
 <!-- foo.2_12.native.suffix -->
 <g id="node1" class="node">
