@@ -44,17 +44,8 @@ object MillNoDaemonMain0 {
     val outLock = MillMain0.doubleLock(out)
 
     // Create runner that executes subprocesses locally with inherited I/O
-    val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner = config => {
-      val req = DaemonRpc.ServerToClient.RunSubprocess(
-        cmd = config.cmd,
-        env = config.env,
-        cwd = config.cwd,
-        timeoutMillis = config.timeoutMillis,
-        mergeErrIntoOut = config.mergeErrIntoOut,
-        propagateEnv = config.propagateEnv
-      )
-      DaemonRpc.defaultRunSubprocess(req).exitCode
-    }
+    val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
+      config => DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
 
     val (result, _) =
       try MillMain0.main0(

@@ -99,17 +99,8 @@ class MillDaemonMain0(
       serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]
   ): (Boolean, RunnerState) = {
     // Create runner that sends subprocess requests to the launcher via RPC
-    val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner = config => {
-      val req = mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(
-        cmd = config.cmd,
-        env = config.env,
-        cwd = config.cwd,
-        timeoutMillis = config.timeoutMillis,
-        mergeErrIntoOut = config.mergeErrIntoOut,
-        propagateEnv = config.propagateEnv
-      )
-      serverToClient(req).exitCode
-    }
+    val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
+      config => serverToClient(mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
 
     try MillMain0.main0(
         args = args,
@@ -126,6 +117,8 @@ class MillDaemonMain0(
         launcherSubprocessRunner = launcherRunner
       )
     catch {
+      // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)
+      case e: InterruptedException => throw e
       case e if MillMain0.handleMillException(streams.err, stateCache).isDefinedAt(e) =>
         MillMain0.handleMillException(streams.err, stateCache)(e)
     }

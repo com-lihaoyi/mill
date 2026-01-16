@@ -1,6 +1,6 @@
 package mill.launcher
 
-import mill.api.daemon.Logger
+import mill.api.daemon.{LauncherSubprocess, Logger}
 import mill.rpc.*
 import upickle.ReadWriter
 
@@ -10,6 +10,8 @@ import java.io.{BufferedReader, PrintStream}
  * RPC message types for launcher-daemon communication.
  */
 object DaemonRpc {
+  // ReadWriter for LauncherSubprocess.Config (defined in core/api/daemon which has no upickle dependency)
+  given ReadWriter[LauncherSubprocess.Config] = upickle.default.macroRW
   case class Initialize(
       interactive: Boolean,
       clientMillVersion: String,
@@ -30,14 +32,7 @@ object DaemonRpc {
   object ServerToClient {
 
     /** Request to run a subprocess on the launcher with inherited I/O. */
-    case class RunSubprocess(
-        cmd: Seq[String],
-        env: Map[String, String],
-        cwd: String,
-        timeoutMillis: Long,
-        mergeErrIntoOut: Boolean,
-        propagateEnv: Boolean
-    ) extends ServerToClient {
+    case class RunSubprocess(config: mill.api.daemon.LauncherSubprocess.Config) extends ServerToClient {
       type Response = SubprocessResult
     }
   }
@@ -78,16 +73,17 @@ object DaemonRpc {
   }
 
   def defaultRunSubprocess(req: ServerToClient.RunSubprocess): SubprocessResult = {
+    val c = req.config
     try {
-      val result = os.proc(req.cmd).call(
-        cwd = os.Path(req.cwd),
-        env = req.env,
+      val result = os.proc(c.cmd).call(
+        cwd = os.Path(c.cwd),
+        env = c.env,
         stdin = os.Inherit,
         stdout = os.Inherit,
         stderr = os.Inherit,
-        mergeErrIntoOut = req.mergeErrIntoOut,
-        timeout = req.timeoutMillis,
-        propagateEnv = req.propagateEnv,
+        mergeErrIntoOut = c.mergeErrIntoOut,
+        timeout = c.timeoutMillis,
+        propagateEnv = c.propagateEnv,
         check = false
       )
       SubprocessResult(result.exitCode)
