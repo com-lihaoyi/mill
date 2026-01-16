@@ -173,7 +173,12 @@ case class MillCliConfig(
       doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
                This is useful for interactively testing and debugging your build logic."""
     )
-    jshell: Flag = Flag()
+    jshell: Flag = Flag(),
+    @arg(
+      hidden = true,
+      doc = """Internal flag used when re-running interactive tasks to suppress the header."""
+    )
+    disablePromptHeader: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(

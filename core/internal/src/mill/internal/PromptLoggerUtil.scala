@@ -99,7 +99,10 @@ private object PromptLoggerUtil {
     val maxHeight = math.max(1, consoleHeight / 3 - 1)
     val headerSuffix = mill.api.internal.Util.renderSecondsSuffix(now - startTimeMillis)
 
-    val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
+    // Skip header when titleText is empty (e.g., for interactive task continuation)
+    val header =
+      if (titleText.isEmpty) None
+      else Some(renderHeader(headerPrefix, titleText, headerSuffix, maxWidth))
 
     val body0 = statuses
       .flatMap {
@@ -144,7 +147,7 @@ private object PromptLoggerUtil {
         s"... and ${nonEmptyBodyCount - maxHeight + 1} more threads"
       )
 
-    header :: body
+    header.toList ++ body
   }
 
   // Wrap the prompt in the necessary clear-screens/newlines/move-cursors

@@ -398,9 +398,11 @@ case class Execution(
       // Set final header showing SUCCESS/FAILED status:
       // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
       // - SUCCESS: only show for the final requested depth (depth 0 normally, or --meta-level if specified)
+      //            but NOT when there are skipped interactive tasks that still need to run
       val isOutermostExecution = executionNestingDepth.get() == 1
       val hasFailures = rootFailedCount.get() > 0
-      val showFinalStatus = isOutermostExecution && (hasFailures || isFinalDepth)
+      val hasSkippedInteractive = skippedInteractive.nonEmpty
+      val showFinalStatus = isOutermostExecution && (hasFailures || (isFinalDepth && !hasSkippedInteractive))
       logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
 
       logger.prompt.clearPromptStatuses()

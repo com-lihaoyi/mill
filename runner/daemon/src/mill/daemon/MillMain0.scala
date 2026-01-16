@@ -599,6 +599,11 @@ object MillMain0 {
       colors: Colors,
       out: os.Path
   ): Logger & AutoCloseable = {
+    // When disablePromptHeader is set (interactive continuation), suppress the header
+    // by using empty titleText
+    val titleText =
+      if (config.disablePromptHeader.value) ""
+      else config.leftoverArgs.value.mkString(" ")
     val promptLogger = new PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
@@ -608,7 +613,7 @@ object MillMain0 {
       successColor = colors.success,
       systemStreams0 = streams,
       debugEnabled = config.debugLog.value,
-      titleText = config.leftoverArgs.value.mkString(" "),
+      titleText = titleText,
       terminfoPath = daemonDir / DaemonFiles.terminfo,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)

@@ -180,9 +180,14 @@ public class MillLauncherMain {
       throws Exception {
     String[] skippedTasks = metadata.split("\n");
 
+    // Build args with --disable-prompt-header flag to suppress redundant header output
+    String[] argsWithFlag = new String[skippedTasks.length + 1];
+    argsWithFlag[0] = "--disable-prompt-header";
+    System.arraycopy(skippedTasks, 0, argsWithFlag, 1, skippedTasks.length);
+
     // Re-run the skipped tasks in no-daemon mode
     return MillProcessLauncher.launchMillNoDaemon(
-        skippedTasks, outMode, runnerClasspath, "mill.daemon.MillNoDaemonMain", useFileLocks);
+        argsWithFlag, outMode, runnerClasspath, "mill.daemon.MillNoDaemonMain", useFileLocks);
   }
 
   private static void handleLauncherException(
