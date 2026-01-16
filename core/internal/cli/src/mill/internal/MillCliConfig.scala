@@ -178,8 +178,6 @@ case class MillCliConfig(
   def noDaemonEnabled =
     Seq(
       interactive,
-      jshell,
-      repl,
       noDaemon,
       noServer,
       bsp
