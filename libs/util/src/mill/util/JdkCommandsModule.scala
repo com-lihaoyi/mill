@@ -28,6 +28,16 @@ trait JdkCommandsModule extends mill.api.Module {
       .exitCode
   }
 
+  private def callJdkInteractive(
+      toolName: String,
+      javaHome: Option[PathRef],
+      args: Seq[String]
+  ): Int = {
+    Jvm.runInteractiveCommand(
+      cmd = Seq(jdkTool(toolName, javaHome.map(_.path))) ++ args
+    )
+  }
+
   /**
    * Runs the `java` command from this module's [[jdkCommandsJavaHome]].
    * Renamed to `java` on the command line.
@@ -67,5 +77,14 @@ trait JdkCommandsModule extends mill.api.Module {
   @nonBootstrapped
   def jfr(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("jfr", jdkCommandsJavaHome(), args))
+  }
+
+  /**
+   * Opens a JShell REPL using this module's [[jdkCommandsJavaHome]].
+   * This is an interactive shell for exploring and testing Java code.
+   */
+  @nonBootstrapped
+  def jshell(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+    Task.ctx().systemExit(callJdkInteractive("jshell", jdkCommandsJavaHome(), args))
   }
 }

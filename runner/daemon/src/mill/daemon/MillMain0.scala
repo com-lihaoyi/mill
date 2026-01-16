@@ -222,9 +222,7 @@ object MillMain0 {
                   if (bspInstallModeJobCountOpt.isDefined) {
                     BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
                     (true, stateCache)
-                  } else if (
-                    !bspMode && !config.jshell.value && !config.repl.value && config.leftoverArgs.value.isEmpty
-                  ) {
+                  } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
                     println(MillCliConfig.shortUsageText)
 
                     (true, stateCache)
@@ -323,29 +321,7 @@ object MillMain0 {
                         }
                       }
 
-                      if (config.jshell.value) {
-                        val bootstrapped = runMillBootstrap(
-                          skipSelectiveExecution = false,
-                          prevState = Some(stateCache),
-                          tasksAndParams = Seq("jshell") ++ config.leftoverArgs.value,
-                          streams = streams,
-                          millActiveCommandMessage = "jshell",
-                          metaLevelOverride = Some(1)
-                        )
-
-                        (true, bootstrapped)
-                      } else if (config.repl.value) {
-                        val bootstrapped = runMillBootstrap(
-                          skipSelectiveExecution = false,
-                          prevState = Some(stateCache),
-                          tasksAndParams = Seq("repl") ++ config.leftoverArgs.value,
-                          streams = streams,
-                          millActiveCommandMessage = "repl",
-                          metaLevelOverride = Some(1)
-                        )
-
-                        (true, bootstrapped)
-                      } else if (config.tabComplete.value) {
+                      if (config.tabComplete.value) {
                         val bootstrapped = runMillBootstrap(
                           skipSelectiveExecution = false,
                           Some(stateCache),

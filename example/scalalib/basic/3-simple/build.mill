@@ -163,16 +163,6 @@ compiling 1 Scala source to...
 // > ./mill -i repl       # start an Ammonite Scala REPL within your project
 // ----
 //
-// You can also start a standalone Scala REPL with the
-// xref:fundamentals/bundled-libraries.adoc[Bundled Libraries]
-// included via `./mill --repl`. This is useful if you just need a Scala REPL to experiment
-// with at the command line without being attached to a particular project or module.
-//
-// [source,console]
-// ----
-// > ./mill --repl
-// ----
-//
 //// SNIPPET:END
 //
 // The most common *tasks* that Mill can run are cached tasks, such as

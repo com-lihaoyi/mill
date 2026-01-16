@@ -76,7 +76,13 @@ object Jvm {
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
     val commandArgs = buildJvmCommand(
-      mainClass, mainArgs, javaHome, jvmArgs, classPath, cpPassingJarPath, cwd
+      mainClass,
+      mainArgs,
+      javaHome,
+      jvmArgs,
+      classPath,
+      cpPassingJarPath,
+      cwd
     )
 
     ctx.log.debug(
@@ -143,7 +149,13 @@ object Jvm {
       destroyOnExit: Boolean = true
   ): os.SubProcess = {
     val commandArgs = buildJvmCommand(
-      mainClass, mainArgs, javaHome, jvmArgs, classPath, cpPassingJarPath, cwd
+      mainClass,
+      mainArgs,
+      javaHome,
+      jvmArgs,
+      classPath,
+      cpPassingJarPath,
+      cwd
     )
 
     os.proc(commandArgs).spawn(
@@ -232,7 +244,13 @@ object Jvm {
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
     val commandArgs = buildJvmCommand(
-      mainClass, mainArgs, javaHome, jvmArgs, classPath, cpPassingJarPath, cwd
+      mainClass,
+      mainArgs,
+      javaHome,
+      jvmArgs,
+      classPath,
+      cpPassingJarPath,
+      cwd
     )
 
     ctx.log.debug(
