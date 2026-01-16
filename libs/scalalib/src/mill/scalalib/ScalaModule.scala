@@ -426,34 +426,26 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /** Use `repl` instead */
   def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
     Task.Command(exclusive = true) {
-      // Check if we have a way to run interactively (either via launcher or local console)
-      val canRunInteractive = mill.api.daemon.LauncherSubprocess.value.isDefined ||
-        mill.constants.Util.hasConsole()
+      val useJavaCp = "-usejavacp"
 
-      if (!canRunInteractive) {
-        Task.fail("console needs to be run with the -i/--interactive flag")
-      } else {
-        val useJavaCp = "-usejavacp"
-
-        // Workaround for https://github.com/scala/scala3/issues/20421
-        // Remove module-info.class from classpath entries to fix REPL autocomplete
-        val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
-          ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
-        }
-
-        Jvm.callInteractiveProcess(
-          mainClass =
-            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
-            else "scala.tools.nsc.MainGenericRunner",
-          classPath = classPath,
-          jvmArgs = forkArgs(),
-          env = allForkEnv(),
-          mainArgs =
-            Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
-          cwd = forkWorkingDir()
-        )
-        ()
+      // Workaround for https://github.com/scala/scala3/issues/20421
+      // Remove module-info.class from classpath entries to fix REPL autocomplete
+      val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
+        ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
       }
+
+      Jvm.callInteractiveProcess(
+        mainClass =
+          if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
+          else "scala.tools.nsc.MainGenericRunner",
+        classPath = classPath,
+        jvmArgs = forkArgs(),
+        env = allForkEnv(),
+        mainArgs =
+          Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
+        cwd = forkWorkingDir()
+      )
+      ()
     }
 
   /**

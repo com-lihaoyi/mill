@@ -153,56 +153,19 @@ object DaemonRpc {
     mill.constants.DebugLog.println(s"DaemonRpc.defaultRunSubprocess: running ${cmd.mkString(" ")}")
 
     try {
-      val builder = new ProcessBuilder(cmd: _*)
-        .directory(new java.io.File(cwd))
-        .inheritIO()
-
-      // Set up environment
-      val procEnv = builder.environment()
-      if (!propagateEnv) {
-        procEnv.clear()
-      }
-      env.foreach { case (k, v) => procEnv.put(k, v) }
-
-      if (mergeErrIntoOut) {
-        builder.redirectErrorStream(true)
-      }
-
-      val process = builder.start()
-
-      // Handle destroyOnExit
-      if (destroyOnExit) {
-        Runtime.getRuntime.addShutdownHook(new Thread(() => {
-          if (process.isAlive) {
-            process.destroy()
-          }
-        }))
-      }
-
-      // Wait for the process with optional timeout
-      val exitCode = if (timeoutMillis > 0) {
-        val finished = process.waitFor(timeoutMillis, java.util.concurrent.TimeUnit.MILLISECONDS)
-        if (!finished) {
-          // Handle graceful shutdown
-          if (shutdownGracePeriodMillis > 0) {
-            process.destroy()
-            val gracefulExit = process.waitFor(shutdownGracePeriodMillis, java.util.concurrent.TimeUnit.MILLISECONDS)
-            if (!gracefulExit) {
-              process.destroyForcibly()
-            }
-          } else {
-            process.destroyForcibly()
-          }
-          process.waitFor()
-        } else {
-          process.exitValue()
-        }
-      } else {
-        process.waitFor()
-      }
-
-      mill.constants.DebugLog.println(s"DaemonRpc.defaultRunSubprocess: exitCode=$exitCode")
-      SubprocessResult(exitCode)
+      val result = os.proc(cmd).call(
+        cwd = os.Path(cwd),
+        env = env,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = if (mergeErrIntoOut) os.Inherit else os.Inherit,
+        mergeErrIntoOut = mergeErrIntoOut,
+        timeout = if (timeoutMillis > 0) timeoutMillis else -1,
+        propagateEnv = propagateEnv,
+        check = false
+      )
+      mill.constants.DebugLog.println(s"DaemonRpc.defaultRunSubprocess: exitCode=${result.exitCode}")
+      SubprocessResult(result.exitCode)
     } catch {
       case e: Exception =>
         mill.constants.DebugLog.println(s"DaemonRpc.defaultRunSubprocess: exception: $e")
