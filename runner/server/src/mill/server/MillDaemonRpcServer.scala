@@ -4,7 +4,7 @@ import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.Locks
 import mill.launcher.DaemonRpc
-import mill.rpc.MillRpcWireTransport
+import mill.rpc.{MillRpcServerToClient, MillRpcWireTransport}
 import mill.server.Server.ConnectionData
 
 import java.io.*
@@ -63,7 +63,8 @@ abstract class MillDaemonRpcServer[State](
     MillDaemonRpcServer.DaemonServerData(
       writtenExitCode = AtomicBoolean(false),
       exitCode = AtomicInteger(-1),
-      shutdownRequest = AtomicReference(Option.empty[(String, Int)])
+      shutdownRequest = AtomicReference(Option.empty[(String, Int)]),
+      rpcTransport = AtomicReference(Option.empty[MillRpcWireTransport])
     )
   }
 
@@ -81,6 +82,9 @@ abstract class MillDaemonRpcServer[State](
       clientToServer = new PrintStream(connectionData.serverToClient, true),
       writeSynchronizer = new Object
     )
+
+    // Store the transport so endConnection can send an RPC response if needed
+    data.rpcTransport.set(Some(transport))
 
     // Create a deferred stopServer that stores the request and throws an exception.
     // This allows the RPC response to be sent before the server shuts down.
@@ -157,6 +161,7 @@ abstract class MillDaemonRpcServer[State](
           stateCache = newStateCache
           val exitCode = if (result) 0 else 1
           data.exitCode.set(exitCode)
+          data.writtenExitCode.set(true) // Mark that RPC response will be sent
           DaemonRpc.RunCommandResult(exitCode)
         } catch {
           case e: MillDaemonRpcServer.DeferredShutdownException =>
@@ -165,6 +170,7 @@ abstract class MillDaemonRpcServer[State](
               s"runCommand: caught DeferredShutdownException, returning exitCode=${e.exitCode}"
             )
             data.exitCode.set(e.exitCode)
+            data.writtenExitCode.set(true) // Mark that RPC response will be sent
             DaemonRpc.RunCommandResult(e.exitCode)
         }
       }
@@ -198,6 +204,27 @@ abstract class MillDaemonRpcServer[State](
     serverLog(s"endConnection: result=$result")
     System.out.flush()
     System.err.flush()
+
+    // If this connection is being closed externally (e.g., another client was interrupted),
+    // send an RPC response so the client doesn't see "wire broken"
+    for {
+      d <- data
+      exitCode <- result
+      transport <- d.rpcTransport.get()
+      // Only send if we haven't already written an exit code (i.e., RPC hasn't completed normally)
+      if d.writtenExitCode.compareAndSet(false, true)
+    } {
+      serverLog(s"endConnection: sending RPC response with exitCode=$exitCode before closing")
+      try {
+        val response = MillRpcServerToClient.Response(
+          Right(DaemonRpc.RunCommandResult(exitCode))
+        )
+        transport.writeSerialized(response, serverLog)
+      } catch {
+        case _: Exception => // Ignore errors, connection might already be broken
+      }
+    }
+
     try {
       connectionData.serverToClient.flush()
       connectionData.serverToClient.close()
@@ -226,7 +253,9 @@ object MillDaemonRpcServer {
   case class DaemonServerData(
       writtenExitCode: AtomicBoolean,
       exitCode: AtomicInteger,
-      shutdownRequest: AtomicReference[Option[(String, Int)]]
+      shutdownRequest: AtomicReference[Option[(String, Int)]],
+      // Store the RPC transport so we can send a response when connection is closed externally
+      rpcTransport: AtomicReference[Option[MillRpcWireTransport]]
   )
 
   /**

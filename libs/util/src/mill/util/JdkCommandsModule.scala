@@ -75,14 +75,4 @@ trait JdkCommandsModule extends mill.api.Module {
   def jfr(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("jfr", jdkCommandsJavaHome(), args))
   }
-
-  /** Runs the `jshell` interactive Java shell from Mill's JVM */
-  def jshell(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    Task.ctx().systemExit(callJdkInteractive("jshell", jdkCommandsJavaHome(), args))
-  }
-
-  /** Runs the Scala REPL */
-  def repl(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    Task.ctx().systemExit(Jvm.runInteractiveCommand(cmd = Seq("scala") ++ args))
-  }
 }
