@@ -49,7 +49,8 @@ class MillRpcServerLauncher(
       log.accept(s"runWithConnection exit code: $result")
       result
     } finally {
-      try launched.close() catch { case _: Exception => }
+      try launched.close()
+      catch { case _: Exception => }
     }
   }
 

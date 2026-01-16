@@ -28,6 +28,7 @@ object DaemonRpc {
 
   sealed trait ServerToClient extends MillRpcChannel.Message derives ReadWriter
   object ServerToClient {
+
     /** Request to run a subprocess on the launcher with inherited I/O. */
     case class RunSubprocess(
         cmd: Seq[String],
