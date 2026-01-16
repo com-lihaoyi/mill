@@ -73,17 +73,16 @@ object DaemonRpc {
   }
 
   def defaultRunSubprocess(req: ServerToClient.RunSubprocess): SubprocessResult = {
-    val c = req.config
     try {
-      val result = os.proc(c.cmd).call(
-        cwd = os.Path(c.cwd),
-        env = c.env,
+      val result = os.proc(req.config.cmd).call(
+        cwd = os.Path(req.config.cwd),
+        env = req.config.env,
         stdin = os.Inherit,
         stdout = os.Inherit,
         stderr = os.Inherit,
-        mergeErrIntoOut = c.mergeErrIntoOut,
-        timeout = c.timeoutMillis,
-        propagateEnv = c.propagateEnv,
+        mergeErrIntoOut = req.config.mergeErrIntoOut,
+        timeout = req.config.timeoutMillis,
+        propagateEnv = req.config.propagateEnv,
         check = false
       )
       SubprocessResult(result.exitCode)
