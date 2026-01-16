@@ -75,43 +75,27 @@ object Jvm {
       destroyOnExit: Boolean = true,
       check: Boolean = true
   )(using ctx: TaskCtx): os.CommandResult = {
-    val cp = cpPassingJarPath match {
-      case Some(passingJarPath) if classPath.nonEmpty =>
-        createClasspathPassingJar(passingJarPath, classPath.toSeq)
-        Seq(passingJarPath)
-      case _ => classPath
-    }
-
-    val commandArgs = Vector(javaExe(javaHome)) ++
-      jvmArgs.value ++
-      Option.when(cp.nonEmpty)(Vector(
-        "-cp",
-        cp.mkString(java.io.File.pathSeparator)
-      )).getOrElse(Vector.empty) ++
-      Vector(mainClass) ++
-      mainArgs.value
-
-    if (cwd != null) os.makeDir.all(cwd)
+    val commandArgs = buildJvmCommand(
+      mainClass, mainArgs, javaHome, jvmArgs, classPath, cpPassingJarPath, cwd
+    )
 
     ctx.log.debug(
       s"Running ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
     )
 
-    val processResult = os.proc(commandArgs)
-      .call(
-        cwd = cwd,
-        env = env,
-        propagateEnv = propagateEnv,
-        stdin = stdin,
-        stdout = stdout,
-        stderr = stderr,
-        mergeErrIntoOut = mergeErrIntoOut,
-        timeout = timeout,
-        shutdownGracePeriod = shutdownGracePeriod,
-        destroyOnExit = destroyOnExit,
-        check = check
-      )
-    processResult
+    os.proc(commandArgs).call(
+      cwd = cwd,
+      env = env,
+      propagateEnv = propagateEnv,
+      stdin = stdin,
+      stdout = stdout,
+      stderr = stderr,
+      mergeErrIntoOut = mergeErrIntoOut,
+      timeout = timeout,
+      shutdownGracePeriod = shutdownGracePeriod,
+      destroyOnExit = destroyOnExit,
+      check = check
+    )
   }
 
   /**
@@ -158,24 +142,11 @@ object Jvm {
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true
   ): os.SubProcess = {
-    val cp = cpPassingJarPath match {
-      case Some(passingJarPath) if classPath.nonEmpty =>
-        createClasspathPassingJar(passingJarPath, classPath.toSeq)
-        Seq(passingJarPath)
-      case _ => classPath
-    }
+    val commandArgs = buildJvmCommand(
+      mainClass, mainArgs, javaHome, jvmArgs, classPath, cpPassingJarPath, cwd
+    )
 
-    val commandArgs = Vector(javaExe(javaHome)) ++
-      jvmArgs.value ++
-      Option.when(cp.nonEmpty)(
-        Vector("-cp", cp.mkString(java.io.File.pathSeparator))
-      ).getOrElse(Vector.empty) ++
-      Vector(mainClass) ++
-      mainArgs.value
-
-    if (cwd != null) os.makeDir.all(cwd)
-
-    val process = os.proc(commandArgs).spawn(
+    os.proc(commandArgs).spawn(
       cwd = cwd,
       env = env,
       stdin = stdin,
@@ -186,7 +157,6 @@ object Jvm {
       shutdownGracePeriod = shutdownGracePeriod,
       destroyOnExit = destroyOnExit
     )
-    process
   }
 
   /**
@@ -219,6 +189,35 @@ object Jvm {
   def javaExe: String = javaExe(None)
 
   /**
+   * Builds JVM command arguments with classpath handling.
+   */
+  private def buildJvmCommand(
+      mainClass: String,
+      mainArgs: os.Shellable,
+      javaHome: Option[os.Path],
+      jvmArgs: os.Shellable,
+      classPath: Iterable[os.Path],
+      cpPassingJarPath: Option[os.Path],
+      cwd: os.Path
+  ): Vector[String] = {
+    val cp = cpPassingJarPath match {
+      case Some(passingJarPath) if classPath.nonEmpty =>
+        createClasspathPassingJar(passingJarPath, classPath.toSeq)
+        Seq(passingJarPath)
+      case _ => classPath
+    }
+
+    if (cwd != null) os.makeDir.all(cwd)
+
+    Vector(javaExe(javaHome)) ++
+      jvmArgs.value ++
+      Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
+        .getOrElse(Vector.empty) ++
+      Vector(mainClass) ++
+      mainArgs.value
+  }
+
+  /**
    * Runs a JVM subprocess interactively, delegating to the launcher in daemon mode.
    */
   def callInteractiveProcess(
@@ -232,21 +231,9 @@ object Jvm {
       cwd: os.Path = null,
       propagateEnv: Boolean = true
   )(using ctx: TaskCtx): Int = {
-    val cp = cpPassingJarPath match {
-      case Some(passingJarPath) if classPath.nonEmpty =>
-        createClasspathPassingJar(passingJarPath, classPath.toSeq)
-        Seq(passingJarPath)
-      case _ => classPath
-    }
-
-    val commandArgs = Vector(javaExe(javaHome)) ++
-      jvmArgs.value ++
-      Option.when(cp.nonEmpty)(Vector("-cp", cp.mkString(java.io.File.pathSeparator)))
-        .getOrElse(Vector.empty) ++
-      Vector(mainClass) ++
-      mainArgs.value
-
-    if (cwd != null) os.makeDir.all(cwd)
+    val commandArgs = buildJvmCommand(
+      mainClass, mainArgs, javaHome, jvmArgs, classPath, cpPassingJarPath, cwd
+    )
 
     ctx.log.debug(
       s"Running interactive: ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
