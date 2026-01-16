@@ -149,7 +149,7 @@ abstract class MillDaemonServer[State](
             // This sends RPC response and throws InterruptedException to stop the RPC loop
             deferredStopServer(
               s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
-              ClientUtil.ServerExitPleaseRetry()
+              ClientUtil.ServerExitPleaseRetry
             )
           }
         }
@@ -158,7 +158,7 @@ abstract class MillDaemonServer[State](
 
         // Run the actual command
         val (result, newStateCache) = main0(
-          args = init.args,
+          args = init.args.toArray,
           stateCache = stateCache,
           mainInteractive = init.interactive,
           streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
@@ -235,7 +235,7 @@ abstract class MillDaemonServer[State](
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
 
-  def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry()
+  def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry
 
   def main0(
       args: Array[String],

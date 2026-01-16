@@ -16,7 +16,7 @@ object DaemonRpc {
       interactive: Boolean,
       clientMillVersion: String,
       clientJavaVersion: String,
-      args: Array[String],
+      args: Seq[String],
       env: Map[String, String],
       userSpecifiedProperties: Map[String, String]
   ) derives ReadWriter

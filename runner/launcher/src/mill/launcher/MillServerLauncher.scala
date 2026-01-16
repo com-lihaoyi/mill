@@ -6,48 +6,44 @@ import mill.client.lock.Locks
 import mill.constants.Util
 import mill.rpc.RpcConsole
 
-import java.io.{BufferedReader, InputStream, InputStreamReader, OutputStream, PrintStream}
+import java.io.{BufferedReader, InputStreamReader, PrintStream}
 import java.net.Socket
-import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.function.Consumer
-import scala.jdk.CollectionConverters.*
 
 class MillServerLauncher(
-    stdin: InputStream,
-    stdout: OutputStream,
-    stderr: OutputStream,
-    env: java.util.Map[String, String],
-    args: Array[String],
+    stdout: java.io.OutputStream,
+    stderr: java.io.OutputStream,
+    env: Map[String, String],
+    args: Seq[String],
     forceFailureForTestingMillisDelay: Int,
     useFileLocks: Boolean,
-    initServerFactory: MillServerLauncher.InitServerFactory
+    initServerFactory: (os.Path, Locks) => LaunchedServer
 ) {
   private val serverInitWaitMillis = 10000
 
-  def run(daemonDir: Path, javaHome: String, log: Consumer[String]): Int = {
-    Files.createDirectories(daemonDir)
+  def run(daemonDir: os.Path, javaHome: String, log: String => Unit): Int = {
+    os.makeDir.all(daemonDir)
     val locks = Locks.forDirectory(daemonDir.toString, useFileLocks)
-    log.accept(s"launchOrConnectToServer: $locks")
+    log(s"launchOrConnectToServer: $locks")
 
     val launched = ServerLauncher.launchOrConnectToServer(
       locks,
-      daemonDir,
+      daemonDir.toNIO,
       serverInitWaitMillis,
-      () => initServerFactory.create(daemonDir, locks),
+      () => initServerFactory(daemonDir, locks),
       serverDied => {
         System.err.println("Server died during startup:")
         System.err.println(serverDied.toString)
         System.exit(1)
       },
-      log,
+      s => log(s),
       true
     )
 
     try {
-      log.accept(s"runWithConnection (RPC): $launched")
-      val result = runRpc(launched.socket, javaHome, daemonDir, log.accept)
-      log.accept(s"runWithConnection exit code: $result")
+      log(s"runWithConnection (RPC): $launched")
+      val result = runRpc(launched.socket, javaHome, daemonDir, log)
+      log(s"runWithConnection exit code: $result")
       result
     } finally {
       try launched.close()
@@ -55,7 +51,7 @@ class MillServerLauncher(
     }
   }
 
-  def runRpc(socket: Socket, javaHome: String, daemonDir: Path, log: String => Unit): Int = {
+  private def runRpc(socket: Socket, javaHome: String, daemonDir: os.Path, log: String => Unit): Int = {
     val exitCode = new AtomicInteger(-1)
     try {
       val socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream))
@@ -66,8 +62,8 @@ class MillServerLauncher(
         clientMillVersion = BuildInfo.millVersion,
         clientJavaVersion = javaHome,
         args = args,
-        env = env.asScala.toMap,
-        userSpecifiedProperties = ClientUtil.getUserSetProperties().asScala.toMap
+        env = env,
+        userSpecifiedProperties = ClientUtil.getUserSetProperties()
       )
 
       val stdoutPs = new PrintStream(stdout, true)
@@ -102,7 +98,6 @@ class MillServerLauncher(
         commandThread.start()
         log(s"Force failure for testing in ${forceFailureForTestingMillisDelay}ms: $daemonDir")
         Thread.sleep(forceFailureForTestingMillisDelay)
-        // Let the test exception propagate (not caught below)
         throw new RuntimeException(s"Force failure for testing: $daemonDir")
       }
 
@@ -118,13 +113,5 @@ class MillServerLauncher(
         if (exitCode.get() < 0) exitCode.set(1)
         exitCode.get()
     }
-  }
-}
-
-object MillServerLauncher {
-  @FunctionalInterface
-  trait InitServerFactory {
-    @throws[Exception]
-    def create(daemonDir: Path, locks: Locks): LaunchedServer
   }
 }
