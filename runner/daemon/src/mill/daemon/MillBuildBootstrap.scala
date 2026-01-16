@@ -557,7 +557,12 @@ object MillBuildBootstrap {
           case f: Result.Failure =>
             (f, res.watchable ++ evalWatchedValues, moduleWatchedValues, skippedInteractive)
           case Result.Success(results) =>
-            (Result.Success(results), res.watchable ++ evalWatchedValues, moduleWatchedValues, skippedInteractive)
+            (
+              Result.Success(results),
+              res.watchable ++ evalWatchedValues,
+              moduleWatchedValues,
+              skippedInteractive
+            )
         }
     }
   }

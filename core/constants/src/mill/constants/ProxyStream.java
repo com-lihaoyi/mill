@@ -57,7 +57,9 @@ public class ProxyStream {
         out.write(ProxyStream.END);
         out.write(exitCode);
         // Write metadata length and data
-        byte[] data = metadata != null ? metadata.getBytes(java.nio.charset.StandardCharsets.UTF_8) : new byte[0];
+        byte[] data = metadata != null
+            ? metadata.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+            : new byte[0];
         out.write((data.length >> 8) & 0xFF);
         out.write(data.length & 0xFF);
         if (data.length > 0) {

@@ -97,7 +97,8 @@ public abstract class MillServerLauncher extends ServerLauncher {
           },
           "MillServerLauncher[" + launched.socket.getLocalSocketAddress() + " -> "
               + launched.socket.getRemoteSocketAddress() + "]");
-      log.accept("runWithConnection result: exitCode=" + result.exitCode() + ", metadata=" + result.metadata());
+      log.accept("runWithConnection result: exitCode=" + result.exitCode() + ", metadata="
+          + result.metadata());
       return result;
     }
   }

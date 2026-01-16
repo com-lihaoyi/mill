@@ -142,7 +142,9 @@ public class MillLauncherMain {
         // - There's a version mismatch between client and server
         // - The server was terminated while this client was waiting
         int maxRetries = 10;
-        for (int i = 0; i < maxRetries && result.exitCode() == ClientUtil.ServerExitPleaseRetry(); i++) {
+        for (int i = 0;
+            i < maxRetries && result.exitCode() == ClientUtil.ServerExitPleaseRetry();
+            i++) {
           result = launcher.run(daemonDir, javaHome, log);
         }
         if (result.exitCode() == ClientUtil.ServerExitPleaseRetry()) {
@@ -153,7 +155,8 @@ public class MillLauncherMain {
 
         // Check for skipped interactive tasks that need to be re-run in no-daemon mode
         if (exitCode == 0 && result.metadata() != null && !result.metadata().isEmpty()) {
-          exitCode = rerunSkippedInteractiveTasks(result.metadata(), outMode, runnerClasspath, useFileLocks);
+          exitCode = rerunSkippedInteractiveTasks(
+              result.metadata(), outMode, runnerClasspath, useFileLocks);
         }
 
         System.exit(exitCode);

@@ -380,20 +380,21 @@ case class Execution(
       // with the same single-threaded configuration and direct IO streams.
       // In daemon mode, interactive tasks are skipped and their names are
       // collected so the launcher can re-run them in no-daemon mode.
-      val (interactiveResults, skippedInteractive) = if (daemonMode && leafInteractiveCommands.nonEmpty) {
-        mill.api.Debug("branchA")
-        // Skip interactive tasks in daemon mode - mark them as skipped
-        val skipped = leafInteractiveCommands.collect {
-          case t: Task.Named[_] => t.toString
+      val (interactiveResults, skippedInteractive) =
+        if (daemonMode && leafInteractiveCommands.nonEmpty) {
+          mill.api.Debug("branchA")
+          // Skip interactive tasks in daemon mode - mark them as skipped
+          val skipped = leafInteractiveCommands.collect {
+            case t: Task.Named[_] => t.toString
+          }
+          // Add entries with None for skipped tasks so they appear in finishedOptsMap
+          val skippedEntries: Seq[(Task[?], Option[GroupExecution.Results])] =
+            leafInteractiveCommands.map(t => (t, None))
+          (skippedEntries, skipped.toSeq)
+        } else {
+          mill.api.Debug("branchB")
+          (evaluateTerminals(leafInteractiveCommands, exclusive = true), Nil)
         }
-        // Add entries with None for skipped tasks so they appear in finishedOptsMap
-        val skippedEntries: Seq[(Task[?], Option[GroupExecution.Results])] =
-          leafInteractiveCommands.map(t => (t, None))
-        (skippedEntries, skipped.toSeq)
-      } else {
-        mill.api.Debug("branchB")
-        (evaluateTerminals(leafInteractiveCommands, exclusive = true), Nil)
-      }
 
       // Set final header showing SUCCESS/FAILED status:
       // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
@@ -402,7 +403,8 @@ case class Execution(
       val isOutermostExecution = executionNestingDepth.get() == 1
       val hasFailures = rootFailedCount.get() > 0
       val hasSkippedInteractive = skippedInteractive.nonEmpty
-      val showFinalStatus = isOutermostExecution && (hasFailures || (isFinalDepth && !hasSkippedInteractive))
+      val showFinalStatus =
+        isOutermostExecution && (hasFailures || (isFinalDepth && !hasSkippedInteractive))
       logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(completed = showFinalStatus))
 
       logger.prompt.clearPromptStatuses()

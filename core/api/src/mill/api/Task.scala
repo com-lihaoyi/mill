@@ -241,7 +241,15 @@ object Task {
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Command[T] =
-    ${ Macros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, interactive = '{ false }, persistent = '{ false }) }
+    ${
+      Macros.commandImpl[T]('t)(
+        'w,
+        'ctx,
+        exclusive = '{ false },
+        interactive = '{ false },
+        persistent = '{ false }
+      )
+    }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -263,13 +271,26 @@ object Task {
       exclusive: Boolean = false,
       interactive: Boolean = false,
       persistent: Boolean = false
-  ): CommandFactory = new CommandFactory(exclusive = exclusive, interactive = interactive, persistent = persistent)
-  class CommandFactory private[mill] (val exclusive: Boolean, val interactive: Boolean, val persistent: Boolean) {
+  ): CommandFactory =
+    new CommandFactory(exclusive = exclusive, interactive = interactive, persistent = persistent)
+  class CommandFactory private[mill] (
+      val exclusive: Boolean,
+      val interactive: Boolean,
+      val persistent: Boolean
+  ) {
     inline def apply[T](inline t: Result[T])(using
         inline w: Writer[T],
         inline ctx: ModuleCtx
     ): Command[T] =
-      ${ Macros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.interactive }, '{ this.persistent }) }
+      ${
+        Macros.commandImpl[T]('t)(
+          'w,
+          'ctx,
+          '{ this.exclusive },
+          '{ this.interactive },
+          '{ this.persistent }
+        )
+      }
   }
 
   /**

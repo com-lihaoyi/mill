@@ -74,7 +74,12 @@ public abstract class ServerLauncher {
       String debugName)
       throws Exception {
     return runWithConnectionResult(
-            connection, streams, closeConnectionAfterClientLogic, sendInitData, runClientLogic, debugName)
+            connection,
+            streams,
+            closeConnectionAfterClientLogic,
+            sendInitData,
+            runClientLogic,
+            debugName)
         .exitCode();
   }
 
