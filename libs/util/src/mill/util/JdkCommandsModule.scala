@@ -38,10 +38,7 @@ trait JdkCommandsModule extends mill.api.Module {
     )
   }
 
-  /**
-   * Runs the `java` command from this module's [[jdkCommandsJavaHome]].
-   * Renamed to `java` on the command line.
-   */
+  /** Runs the `java` command from Mill's JVM */
   @Task.rename("java")
   @mainargs.main(name = "java")
   @nonBootstrapped
@@ -49,42 +46,43 @@ trait JdkCommandsModule extends mill.api.Module {
     Task.ctx().systemExit(callJdk("java", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `javac` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `javac` command from Mill's JVM */
   @nonBootstrapped
   def javac(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("javac", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `javap` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `javap` command from Mill's JVM */
   @nonBootstrapped
   def javap(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("javap", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `jstack` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `jstack` command from Mill's JVM */
   @nonBootstrapped
   def jstack(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("jstack", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `jps` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `jps` command from Mill's JVM */
   @nonBootstrapped
   def jps(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("jps", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `jfr` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `jfr` command from Mill's JVM */
   @nonBootstrapped
   def jfr(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdk("jfr", jdkCommandsJavaHome(), args))
   }
 
-  /**
-   * Opens a JShell REPL using this module's [[jdkCommandsJavaHome]].
-   * This is an interactive shell for exploring and testing Java code.
-   */
-  @nonBootstrapped
+  /** Runs the `jshell` interactive Java shell from Mill's JVM */
   def jshell(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     Task.ctx().systemExit(callJdkInteractive("jshell", jdkCommandsJavaHome(), args))
+  }
+
+  /** Runs the Scala REPL */
+  def repl(args: String*): Command[Unit] = Task.Command(exclusive = true) {
+    Task.ctx().systemExit(Jvm.runInteractiveCommand(cmd = Seq("scala") ++ args))
   }
 }
