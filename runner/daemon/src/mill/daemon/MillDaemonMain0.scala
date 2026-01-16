@@ -125,6 +125,13 @@ class MillDaemonMain0(
         outLock = outLock,
         launcherSubprocessRunner = launcherRunner
       )
-    catch MillMain0.handleMillException(streams.err, stateCache)
+    catch {
+      case e: mill.api.DeferredExitException =>
+        // Shutdown was requested via systemExit - return success with the exit code
+        // The exception is used to unwind the stack since systemExit returns Nothing
+        (e.exitCode == 0, stateCache)
+      case e if MillMain0.handleMillException(streams.err, stateCache).isDefinedAt(e) =>
+        MillMain0.handleMillException(streams.err, stateCache)(e)
+    }
   }
 }

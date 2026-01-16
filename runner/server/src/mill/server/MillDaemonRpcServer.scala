@@ -9,7 +9,7 @@ import mill.server.Server.ConnectionData
 
 import java.io.*
 import java.net.Socket
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicReference}
 import scala.concurrent.duration.FiniteDuration
 
 abstract class MillDaemonRpcServer[State](
@@ -62,7 +62,8 @@ abstract class MillDaemonRpcServer[State](
     serverLog(s"prepareConnection ${connectionData.socketName}")
     MillDaemonRpcServer.DaemonServerData(
       writtenExitCode = AtomicBoolean(false),
-      exitCode = AtomicInteger(-1)
+      exitCode = AtomicInteger(-1),
+      shutdownRequest = AtomicReference(Option.empty[(String, Int)])
     )
   }
 
@@ -80,6 +81,17 @@ abstract class MillDaemonRpcServer[State](
       clientToServer = new PrintStream(connectionData.serverToClient, true),
       writeSynchronizer = new Object
     )
+
+    // Create a deferred stopServer that stores the request and throws an exception.
+    // This allows the RPC response to be sent before the server shuts down.
+    // We throw an exception because systemExitWithReason expects to never return (Nothing type).
+    val deferredStopServer: Server.StopServer = (reason, exitCode) => {
+      serverLog(
+        s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)"
+      )
+      data.shutdownRequest.set(Some((reason, exitCode)))
+      throw new MillDaemonRpcServer.DeferredShutdownException(reason, exitCode)
+    }
 
     val rpcServer = new DaemonRpcServer(
       serverName = s"MillDaemon-${connectionData.socketName}",
@@ -117,7 +129,7 @@ abstract class MillDaemonRpcServer[State](
               )
             }
 
-            stopServer(
+            deferredStopServer(
               s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
               ClientUtil.ServerExitPleaseRetry()
             )
@@ -126,24 +138,34 @@ abstract class MillDaemonRpcServer[State](
         lastMillVersion = Some(init.clientMillVersion)
         lastJavaVersion = Some(init.clientJavaVersion)
 
-        // Run the actual command
-        val (result, newStateCache) = main0(
-          args = init.args,
-          stateCache = stateCache,
-          mainInteractive = init.interactive,
-          streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
-          env = init.env,
-          setIdle = setIdleInner(_),
-          userSpecifiedProperties = init.userSpecifiedProperties,
-          initialSystemProperties = connectionData.initialSystemProperties,
-          stopServer = stopServer,
-          serverToClient = serverToClient
-        )
+        // Run the actual command, catching DeferredShutdownException for graceful shutdown
+        try {
+          val (result, newStateCache) = main0(
+            args = init.args,
+            stateCache = stateCache,
+            mainInteractive = init.interactive,
+            streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
+            env = init.env,
+            setIdle = setIdleInner(_),
+            userSpecifiedProperties = init.userSpecifiedProperties,
+            initialSystemProperties = connectionData.initialSystemProperties,
+            stopServer = deferredStopServer,
+            serverToClient = serverToClient
+          )
 
-        stateCache = newStateCache
-        val exitCode = if (result) 0 else 1
-        data.exitCode.set(exitCode)
-        DaemonRpc.RunCommandResult(exitCode)
+          stateCache = newStateCache
+          val exitCode = if (result) 0 else 1
+          data.exitCode.set(exitCode)
+          DaemonRpc.RunCommandResult(exitCode)
+        } catch {
+          case e: MillDaemonRpcServer.DeferredShutdownException =>
+            // Shutdown was requested - return the exit code from the exception
+            serverLog(
+              s"runCommand: caught DeferredShutdownException, returning exitCode=${e.exitCode}"
+            )
+            data.exitCode.set(e.exitCode)
+            DaemonRpc.RunCommandResult(e.exitCode)
+        }
       }
     )
 
@@ -152,6 +174,18 @@ abstract class MillDaemonRpcServer[State](
 
     val exitCode = data.exitCode.get()
     serverLog(s"handleConnection: RPC server finished, exitCode=$exitCode")
+
+    // Now that the RPC response has been sent, execute any pending shutdown request
+    data.shutdownRequest.get() match {
+      case Some((reason, shutdownExitCode)) =>
+        serverLog(
+          s"handleConnection: executing deferred shutdown (reason=$reason, exitCode=$shutdownExitCode)"
+        )
+        stopServer(reason, shutdownExitCode)
+      case None =>
+      // No shutdown requested
+    }
+
     exitCode
   }
 
@@ -190,6 +224,14 @@ abstract class MillDaemonRpcServer[State](
 object MillDaemonRpcServer {
   case class DaemonServerData(
       writtenExitCode: AtomicBoolean,
-      exitCode: AtomicInteger
+      exitCode: AtomicInteger,
+      shutdownRequest: AtomicReference[Option[(String, Int)]]
   )
+
+  /**
+   * Error thrown to signal a deferred shutdown request.
+   * Extends DeferredExitException which is handled specially by the task evaluation framework.
+   */
+  class DeferredShutdownException(reason: String, exitCode: Int)
+      extends mill.api.DeferredExitException(reason, exitCode)
 }

@@ -520,6 +520,10 @@ trait GroupExecution {
               }
             } catch {
               case ex: Result.Exception => ExecResult.Failure(ex.error, ex.failure)
+              // Handle deferred shutdown as a success - the exception is used for control flow
+              // to unwind the stack from systemExitWithReason which returns Nothing
+              case e: mill.api.DeferredExitException =>
+                ExecResult.Success(Val(()))
               case NonFatal(e) =>
                 ExecResult.Exception(
                   e,
