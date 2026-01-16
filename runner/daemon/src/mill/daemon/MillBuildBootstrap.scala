@@ -68,7 +68,6 @@ class MillBuildBootstrap(
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
 
-
   def evaluate(): RunnerState = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
 
@@ -225,7 +224,6 @@ class MillBuildBootstrap(
       staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
     )
   }
-
 
   private def makeBootstrapModule(currentRoot: Path, foundRootBuildFileName: String) = {
     mill.api.ExecResult.catchWrapException {
@@ -581,7 +579,10 @@ object MillBuildBootstrap {
   def containsBuildFile(root: os.Path): Boolean =
     rootBuildFileNames.asScala.exists(name => os.exists(root / name))
 
-  def tryReadParent(currentRoot: os.Path, fileName: String): Option[(java.nio.file.Path, String)] = {
+  def tryReadParent(
+      currentRoot: os.Path,
+      fileName: String
+  ): Option[(java.nio.file.Path, String)] = {
     val p = currentRoot / ".." / fileName
     Option.when(os.exists(p)) {
       p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName)
