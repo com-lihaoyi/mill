@@ -166,29 +166,24 @@ object MillProcessLauncher {
     val jvmVersion = millJvmVersion(outMode).getOrElse(BuildInfo.defaultJvmVersion)
     val jvmIndexVersion = millJvmIndexVersion(outMode)
 
-    val resolvedHome =
-      if (jvmVersion != null) {
-        // Include JVM index version in the cache key to invalidate cache when index version changes
-        val cacheKey = jvmIndexVersion.map(v => s"$jvmVersion:$v").getOrElse(jvmVersion)
-        cachedComputedValue0(
-          outMode,
-          "java-home",
-          cacheKey,
-          () => Seq(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion.orNull).getAbsolutePath),
-          // Make sure we check to see if the saved java home exists before using
-          // it, since it may have been since uninstalled, or the `out/` folder
-          // may have been transferred to a different machine
-          value => os.exists(os.Path(value.head))
-        ).head
-      } else null
-
+    // Handle "system" specially - return null to use PATH-based Java lookup
+    // (javaExe returns "java" when javaHome is null, using PATH lookup)
     if (jvmVersion == "system") {
-      if (resolvedHome == null || resolvedHome.isEmpty) {
-        sys.props.get("java.home")
-          .orElse(sys.env.get("JAVA_HOME"))
-          .orNull
-      } else resolvedHome
-    } else resolvedHome
+      null
+    } else if (jvmVersion != null) {
+      // Include JVM index version in the cache key to invalidate cache when index version changes
+      val cacheKey = jvmIndexVersion.map(v => s"$jvmVersion:$v").getOrElse(jvmVersion)
+      cachedComputedValue0(
+        outMode,
+        "java-home",
+        cacheKey,
+        () => Seq(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion.orNull).getAbsolutePath),
+        // Make sure we check to see if the saved java home exists before using
+        // it, since it may have been since uninstalled, or the `out/` folder
+        // may have been transferred to a different machine
+        value => os.exists(os.Path(value.head))
+      ).head
+    } else null
   }
 
   def javaExe(outMode: OutFolderMode): String = {

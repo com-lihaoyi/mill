@@ -13,7 +13,7 @@ import java.net.{InetAddress, Socket}
 object ServerLauncher {
 
   case class Launched(port: Int, socket: Option[Socket], launchedServer: LaunchedServer)
-    extends AutoCloseable {
+      extends AutoCloseable {
     override def close(): Unit = {
       // Swallow exceptions if the close fails
       try socket.foreach(_.close())
@@ -59,31 +59,12 @@ object ServerLauncher {
         try {
           log("launchOrConnectToServer attempt")
 
-          val result = ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log)
-          result match {
+          ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log) match {
             case ServerLaunchResult.Success(server) =>
-              log(s"Reading server port: $daemonDir")
-              val port = os.read(daemonDir / DaemonFiles.socketPort).toInt
-
-              log("Read server port")
-              val socket = Option.when(openSocket) {
-                log(s"Connecting: $port")
-                new Socket(InetAddress.getLoopbackAddress, port)
-              }
-
-              Some(Launched(port, socket, server))
+              Some(connectToServer(daemonDir, server, openSocket, log))
 
             case ServerLaunchResult.AlreadyRunning(server) =>
-              log(s"Reading server port: $daemonDir")
-              val port = os.read(daemonDir / DaemonFiles.socketPort).toInt
-
-              log("Read server port")
-              val socket = Option.when(openSocket) {
-                log(s"Connecting: $port")
-                new Socket(InetAddress.getLoopbackAddress, port)
-              }
-
-              Some(Launched(port, socket, server))
+              Some(connectToServer(daemonDir, server, openSocket, log))
 
             case processDied: ServerLaunchResult.ServerDied =>
               onFailure(processDied)
@@ -96,6 +77,24 @@ object ServerLauncher {
     } finally {
       locked.release()
     }
+  }
+
+  private def connectToServer(
+      daemonDir: os.Path,
+      server: LaunchedServer,
+      openSocket: Boolean,
+      log: String => Unit
+  ): Launched = {
+    log(s"Reading server port: $daemonDir")
+    val port = os.read(daemonDir / DaemonFiles.socketPort).toInt
+
+    log("Read server port")
+    val socket = Option.when(openSocket) {
+      log(s"Connecting: $port")
+      new Socket(InetAddress.getLoopbackAddress, port)
+    }
+
+    Launched(port, socket, server)
   }
 
   def retryWithTimeout[A](timeoutMillis: Long, errorMessage: String)(supplier: () => Option[A]): A = {
@@ -114,7 +113,6 @@ object ServerLauncher {
     }
 
     current.getOrElse(throw new Exception(s"$errorMessage (timeout was ${timeoutMillis}ms)", throwable))
-    }
   }
 
   /**
@@ -140,8 +138,7 @@ object ServerLauncher {
             log(s"The server has started: $launchedServer")
 
             log(s"Waiting for the server to take the daemon lock: ${locks.daemonLock}")
-            val maybeLaunchFailed = waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, launchedServer)
-            maybeLaunchFailed match {
+            waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, launchedServer) match {
               case Some(outputs) =>
                 log(s"The server $launchedServer failed to start: $outputs")
                 Some(ServerLaunchResult.ServerDied(launchedServer, outputs))
@@ -192,8 +189,7 @@ object ServerLauncher {
       server: LaunchedServer
   ): Option[ServerLaunchOutputs] = {
     while (daemonLock.probe()) {
-      val maybeLaunchFailed = Option.when(!server.isAlive){readOutputs(daemonDir)}
-      if (maybeLaunchFailed.isDefined) return maybeLaunchFailed
+      if (!server.isAlive) return Some(readOutputs(daemonDir))
       Thread.sleep(1)
     }
     None
@@ -203,8 +199,8 @@ object ServerLauncher {
     val stdout = daemonDir / DaemonFiles.stdout
     val stderr = daemonDir / DaemonFiles.stderr
 
-    val stdoutStr = Option.when(os.exists(stdout) && os.size(stdout) > 0){ os.read(stdout)}
-    val stderrStr = Option.when(os.exists(stderr) && os.size(stderr) > 0) { os.read(stderr)}
+    val stdoutStr = Option.when(os.exists(stdout) && os.size(stdout) > 0)(os.read(stdout))
+    val stderrStr = Option.when(os.exists(stderr) && os.size(stderr) > 0)(os.read(stderr))
 
     ServerLaunchOutputs(stdoutStr, stderrStr)
   }

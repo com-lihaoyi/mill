@@ -109,16 +109,15 @@ trait ClientServerTestsBase extends TestSuite {
         args: Array[String] = Array(),
         forceFailureForTestingMillisDelay: Int = -1
     ) = {
-      val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
-      val initServerFactory: MillServerLauncher.InitServerFactory = (daemonDir, locks) => {
+      val initServerFactory: (os.Path, Locks) => LaunchedServer = (daemonDir, locks) => {
         nextServerId += 1
         // Use a negative process ID to indicate we're not a real process.
         val processId = -nextServerId
         val server = EchoServer(
           processId,
-          os.Path(daemonDir, os.pwd),
+          daemonDir,
           locks,
           testLogEvenWhenServerIdWrong,
           commandSleepMillis = commandSleepMillis
@@ -128,16 +127,15 @@ trait ClientServerTestsBase extends TestSuite {
         LaunchedServer.NewThread(t, () => { /* do nothing */ })
       }
       val result = new MillServerLauncher(
-        stdin = in,
         stdout = out,
         stderr = err,
-        env = env.asJava,
-        args = args,
+        env = env,
+        args = args.toSeq,
         forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay,
         useFileLocks = false,
         initServerFactory = initServerFactory
       ).run(
-        daemonDir.relativeTo(os.pwd).toNIO,
+        daemonDir,
         "",
         msg => println(s"MillRpcServerLauncher: $msg")
       )
