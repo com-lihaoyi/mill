@@ -212,12 +212,8 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
    * for you to test and operate your code interactively.
    */
   def console(): Command[Unit] = Task.Command(interactive = true) {
-    if (!mill.constants.Util.hasConsole()) {
-      Task.fail("console needs to be run with the -i/--interactive flag")
-    } else {
-      runner().run()
-      ()
-    }
+    assert(mill.constants.Util.hasConsole())
+    runner().run()
   }
 
   /** Bundles the project into a single PEX executable(bundle.pex). */

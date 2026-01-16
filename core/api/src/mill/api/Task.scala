@@ -54,7 +54,8 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
   private[mill] def asCommand: Option[Task.Command[T]] = None
   private[mill] def asWorker: Option[Task.Worker[T]] = None
   private[mill] def isExclusiveCommand: Boolean = this match {
-    case c: Task.Command[_] if c.exclusive => true
+    // Interactive commands are implicitly exclusive
+    case c: Task.Command[_] if c.exclusive || c.interactive => true
     case _ => false
   }
   private[mill] def isInteractiveCommand: Boolean = this match {
@@ -271,8 +272,14 @@ object Task {
       exclusive: Boolean = false,
       interactive: Boolean = false,
       persistent: Boolean = false
-  ): CommandFactory =
+  ): CommandFactory = {
+    require(
+      !(exclusive && interactive),
+      "Cannot specify both exclusive = true and interactive = true. " +
+        "Use interactive = true alone, as interactive commands are implicitly exclusive."
+    )
     new CommandFactory(exclusive = exclusive, interactive = interactive, persistent = persistent)
+  }
   class CommandFactory private[mill] (
       val exclusive: Boolean,
       val interactive: Boolean,
