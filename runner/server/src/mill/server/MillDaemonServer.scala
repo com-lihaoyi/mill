@@ -199,9 +199,9 @@ abstract class MillDaemonServer[State](
   }
 
   override def endConnection(
-                              connectionData: ConnectionData,
-                              data: Option[MillDaemonServer.DaemonServerData],
-                              result: Option[Int]
+      connectionData: ConnectionData,
+      data: Option[MillDaemonServer.DaemonServerData],
+      result: Option[Int]
   ): Unit = {
     serverLog(s"endConnection: result=$result")
     System.out.flush()

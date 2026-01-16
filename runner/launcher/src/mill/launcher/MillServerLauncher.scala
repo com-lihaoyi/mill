@@ -1,6 +1,7 @@
 package mill.launcher
 
-import mill.client.{BuildInfo, ClientUtil, LaunchedServer, ServerLauncher}
+import mill.client.{ClientUtil, LaunchedServer, ServerLauncher}
+import mill.constants.BuildInfo
 import mill.client.lock.Locks
 import mill.constants.Util
 import mill.rpc.RpcConsole

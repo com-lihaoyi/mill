@@ -100,7 +100,8 @@ class MillDaemonMain0(
   ): (Boolean, RunnerState) = {
     // Create runner that sends subprocess requests to the launcher via RPC
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
-      config => serverToClient(mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
+      config =>
+        serverToClient(mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
 
     try MillMain0.main0(
         args = args,

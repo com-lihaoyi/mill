@@ -32,7 +32,8 @@ object DaemonRpc {
   object ServerToClient {
 
     /** Request to run a subprocess on the launcher with inherited I/O. */
-    case class RunSubprocess(config: mill.api.daemon.LauncherSubprocess.Config) extends ServerToClient {
+    case class RunSubprocess(config: mill.api.daemon.LauncherSubprocess.Config)
+        extends ServerToClient {
       type Response = SubprocessResult
     }
   }

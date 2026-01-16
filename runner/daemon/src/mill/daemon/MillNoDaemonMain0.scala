@@ -45,7 +45,8 @@ object MillNoDaemonMain0 {
 
     // Create runner that executes subprocesses locally with inherited I/O
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
-      config => DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
+      config =>
+        DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
 
     val (result, _) =
       try MillMain0.main0(

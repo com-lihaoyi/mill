@@ -15,7 +15,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.*;
 import java.util.stream.Stream;
-import mill.client.BuildInfo;
 import mill.client.ClientUtil;
 import mill.constants.*;
 
