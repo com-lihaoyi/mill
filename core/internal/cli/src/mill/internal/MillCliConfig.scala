@@ -152,11 +152,6 @@ case class MillCliConfig(
     tabComplete: Flag = Flag(),
     @arg(hidden = true, short = 'h', doc = "Unsupported, but kept for compatibility")
     home: os.Path = os.home,
-    @arg(doc =
-      """Open a Scala REPL with the classpath of the meta-level 1 build module (mill-build/).
-        Implies options `--meta-level 1` and `--no-server`."""
-    )
-    repl: Flag = Flag(),
     @arg(hidden = true, doc = "Deprecated, use `--no-deamon` instead")
     noServer: Flag = Flag(),
     @arg(hidden = true, short = 's', doc = "Unsupported, but kept for compatibility")
@@ -168,12 +163,7 @@ case class MillCliConfig(
     @arg(hidden = true, doc = "Unsupported, but kept for compatibility")
     enableTicker: Option[Boolean] = None,
     @arg(hidden = true, doc = "Deprecated, use `--ticker false` instead")
-    disableTicker: Flag,
-    @arg(
-      doc = """Open a JShell REPL with the classpath of the meta-level 1 build module (mill-build/).
-               This is useful for interactively testing and debugging your build logic."""
-    )
-    jshell: Flag = Flag()
+    disableTicker: Flag
 ) {
   def noDaemonEnabled =
     Seq(

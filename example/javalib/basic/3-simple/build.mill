@@ -66,14 +66,8 @@ Test foo.FooTest.testEscaping finished...
 // > ./mill -i test.jshell
 // ----
 //
-// You can also start a standalone JShell console
-// via `./mill --jshell`. This is useful if you just need a JShell console to experiment
-// with at the command line without being attached to a particular project or module.
-//
-// [source,console]
-// ----
-// > ./mill --jshell
-// ----
+// You can also start a standalone JShell console via `./mill -i jshell` from any directory,
+// even without a `build.mill` file present.
 //
 //// SNIPPET:END
 //
