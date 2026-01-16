@@ -51,15 +51,6 @@
       },
       "classes": [
         {
-          "class": "build.MillScriptMain_script_scala",
-          "arguments": [],
-          "jvmOptions": [],
-          "environmentVariables": [
-            "PATH=...",
-            "MILL_WORKSPACE_ROOT\u003d/workspace"
-          ]
-        },
-        {
           "class": "build.script$package",
           "arguments": [],
           "jvmOptions": [],
@@ -75,15 +66,6 @@
         "uri": "file:///workspace/scripts/foldershared/script.scala"
       },
       "classes": [
-        {
-          "class": "build.MillScriptMain_script_scala",
-          "arguments": [],
-          "jvmOptions": [],
-          "environmentVariables": [
-            "PATH=...",
-            "MILL_WORKSPACE_ROOT\u003d/workspace"
-          ]
-        },
         {
           "class": "build.script$package",
           "arguments": [],
