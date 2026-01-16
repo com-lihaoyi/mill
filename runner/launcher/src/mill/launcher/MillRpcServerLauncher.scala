@@ -54,12 +54,7 @@ class MillRpcServerLauncher(
     }
   }
 
-  private def runRpc(
-      socket: Socket,
-      javaHome: String,
-      daemonDir: Path,
-      log: Consumer[String]
-  ): Int = {
+  def runRpc(socket: Socket, javaHome: String, daemonDir: Path, log: String => Unit): Int = {
     val exitCode = new AtomicInteger(-1)
     try {
       val socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream))

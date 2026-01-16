@@ -86,7 +86,7 @@ object DaemonRpc {
         stdout = os.Inherit,
         stderr = os.Inherit,
         mergeErrIntoOut = req.mergeErrIntoOut,
-        timeout = if (req.timeoutMillis > 0) req.timeoutMillis else -1,
+        timeout = req.timeoutMillis,
         propagateEnv = req.propagateEnv,
         check = false
       )
