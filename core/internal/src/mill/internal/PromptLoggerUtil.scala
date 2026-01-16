@@ -156,7 +156,8 @@ private object PromptLoggerUtil {
       currentPromptLines: Seq[String],
       interactive: Boolean
   ): String = {
-    if (!interactive) currentPromptLines.mkString("\n") + "\n"
+    if (currentPromptLines.isEmpty) ""
+    else if (!interactive) currentPromptLines.mkString("\n") + "\n"
     else currentPromptLines.map(_ + AnsiNav.clearLine(0)).mkString("\n") + "\n"
   }
 
