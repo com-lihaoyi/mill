@@ -270,8 +270,8 @@ object Task {
   def Command(
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
-      interactive: Boolean = false,
-      persistent: Boolean = false
+      persistent: Boolean = false,
+      @com.lihaoyi.unroll interactive: Boolean = false
   ): CommandFactory = {
     require(
       !(exclusive && interactive),
