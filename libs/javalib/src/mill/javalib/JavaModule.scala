@@ -1311,29 +1311,13 @@ trait JavaModule
       .filter(_.ext != "pom")
       .filter(os.exists)
     val jshellArgs = Seq("--class-path", classPath.mkString(java.io.File.pathSeparator)) ++ args
-
     val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
-    val env = allForkEnv()
-    val cwd = forkWorkingDir()
 
-    mill.api.daemon.LauncherSubprocess.value match {
-      case Some(runner) =>
-        // Run on the launcher where the actual terminal is
-        runner(mill.api.daemon.LauncherSubprocess.Config(
-          cmd = cmd,
-          env = env,
-          cwd = cwd.toString
-        ))
-      case None =>
-        // Run locally with inherited I/O
-        os.call(
-          cmd = cmd,
-          env = env,
-          cwd = cwd,
-          stdin = os.Inherit,
-          stdout = os.Inherit
-        )
-    }
+    Jvm.runInteractiveCommand(
+      cmd = cmd,
+      env = allForkEnv(),
+      cwd = forkWorkingDir()
+    )
     ()
   }
 

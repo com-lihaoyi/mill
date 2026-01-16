@@ -269,18 +269,43 @@ object Jvm {
       s"Running interactive: ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
     )
 
+    runInteractiveCommand(
+      cmd = commandArgs,
+      env = env,
+      cwd = Option(cwd).getOrElse(os.pwd),
+      propagateEnv = propagateEnv
+    )
+  }
+
+  /**
+   * Runs any command interactively with inherited stdin/stdout/stderr.
+   * If `LauncherSubprocess` is available (daemon mode), runs on the launcher
+   * where the actual terminal is. Otherwise runs locally.
+   *
+   * @param cmd The command to run
+   * @param env Environment variables
+   * @param cwd Working directory
+   * @param propagateEnv If `true` then current environment variables are propagated
+   * @return exit code of the subprocess
+   */
+  def runInteractiveCommand(
+      cmd: Seq[String],
+      env: Map[String, String] = Map.empty,
+      cwd: os.Path = os.pwd,
+      propagateEnv: Boolean = true
+  ): Int = {
     LauncherSubprocess.value match {
       case Some(runner) =>
         // Run on the launcher where the actual terminal is
         runner(LauncherSubprocess.Config(
-          cmd = commandArgs,
+          cmd = cmd,
           env = env,
-          cwd = Option(cwd).getOrElse(os.pwd).toString,
+          cwd = cwd.toString,
           propagateEnv = propagateEnv
         ))
       case None =>
         // Run locally with inherited I/O
-        val result = os.proc(commandArgs)
+        val result = os.proc(cmd)
           .call(
             cwd = cwd,
             env = env,
