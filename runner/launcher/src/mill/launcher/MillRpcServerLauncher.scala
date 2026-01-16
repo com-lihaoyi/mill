@@ -45,8 +45,7 @@ class MillRpcServerLauncher(
 
     try {
       log.accept(s"runWithConnection (RPC): $launched")
-      forceTestFailure(daemonDir, log)
-      val result = runRpc(launched.socket, javaHome)
+      val result = runRpc(launched.socket, javaHome, daemonDir, log)
       log.accept(s"runWithConnection exit code: $result")
       result
     } finally {
@@ -54,7 +53,12 @@ class MillRpcServerLauncher(
     }
   }
 
-  private def runRpc(socket: Socket, javaHome: String): Int = {
+  private def runRpc(
+      socket: Socket,
+      javaHome: String,
+      daemonDir: Path,
+      log: Consumer[String]
+  ): Int = {
     val exitCode = new AtomicInteger(-1)
     try {
       val socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream))
@@ -90,24 +94,34 @@ class MillRpcServerLauncher(
         stderr = stderrHandler
       )
 
+      // For testing: run command in background while main thread throws after delay
+      if (forceFailureForTestingMillisDelay > 0) {
+        val commandThread = new Thread(() => {
+          try {
+            val result = client(DaemonRpc.ClientToServer.RunCommand())
+            exitCode.set(result.exitCode)
+          } catch { case _: Exception => }
+        })
+        commandThread.start()
+        log.accept(
+          s"Force failure for testing in ${forceFailureForTestingMillisDelay}ms: $daemonDir"
+        )
+        Thread.sleep(forceFailureForTestingMillisDelay)
+        // Let the test exception propagate (not caught below)
+        throw new RuntimeException(s"Force failure for testing: $daemonDir")
+      }
+
       val result = client(DaemonRpc.ClientToServer.RunCommand())
       exitCode.set(result.exitCode)
       client.close()
+      exitCode.get()
     } catch {
+      case e: RuntimeException if e.getMessage.startsWith("Force failure for testing:") =>
+        throw e // Re-throw test exceptions
       case e: Exception =>
         e.printStackTrace(new PrintStream(stderr))
         if (exitCode.get() < 0) exitCode.set(1)
-    }
-    exitCode.get()
-  }
-
-  private def forceTestFailure(daemonDir: Path, log: Consumer[String]): Unit = {
-    if (forceFailureForTestingMillisDelay > 0) {
-      log.accept(s"Force failure for testing in ${forceFailureForTestingMillisDelay}ms: $daemonDir")
-      Thread.sleep(forceFailureForTestingMillisDelay)
-      throw new RuntimeException(s"Force failure for testing: $daemonDir")
-    } else {
-      log.accept(s"No force failure for testing: $daemonDir")
+        exitCode.get()
     }
   }
 }

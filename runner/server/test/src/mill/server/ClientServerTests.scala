@@ -1,14 +1,14 @@
 package mill.server
 
-import mill.api.SystemStreams
+import mill.api.daemon.SystemStreams
 import mill.client.lock.Locks
-import mill.client.{LaunchedServer, MillServerLauncher, ServerLauncher}
+import mill.client.LaunchedServer
 import mill.constants.{DaemonFiles, Util}
+import mill.launcher.{DaemonRpc, MillRpcServerLauncher}
+import mill.rpc.MillRpcChannel
 import utest.*
 
 import java.io.*
-import java.util.Optional
-import java.nio.file.Path
 import scala.jdk.CollectionConverters.*
 import concurrent.duration.*
 
@@ -38,7 +38,7 @@ trait ClientServerTestsBase extends TestSuite {
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean,
       commandSleepMillis: Int = 0
-  ) extends MillDaemonServer[Option[Int]](
+  ) extends MillDaemonRpcServer[Option[Int]](
         daemonDir,
         1000.millis,
         locks,
@@ -71,21 +71,20 @@ trait ClientServerTestsBase extends TestSuite {
         setIdle: Boolean => Unit,
         systemProperties: Map[String, String],
         initialSystemProperties: Map[String, String],
-        systemExit: Server.StopServer
+        stopServer: Server.StopServer,
+        serverToClient: MillRpcChannel[DaemonRpc.ServerToClient]
     ) = {
       Thread.sleep(commandSleepMillis)
       if (!runCompleted) {
-        val reader = new BufferedReader(new InputStreamReader(streams.in))
-        val str = reader.readLine()
-        Thread.sleep(200)
+        // The RPC server doesn't have stdin - print env vars directly
         if (args.nonEmpty) {
-          streams.out.println(str + args(0))
+          streams.out.println("hello" + args(0))
         }
         env.toSeq.sortBy(_._1).foreach {
           case (key, value) => streams.out.println(s"$key=$value")
         }
         if (args.nonEmpty) {
-          streams.err.println(str.toUpperCase + args(0))
+          streams.err.println("HELLO" + args(0))
         }
         streams.out.flush()
         streams.err.flush()
@@ -97,7 +96,6 @@ trait ClientServerTestsBase extends TestSuite {
   class Tester(testLogEvenWhenServerIdWrong: Boolean, commandSleepMillis: Int = 0) {
 
     var nextServerId: Int = 0
-    val terminatedServers = collection.mutable.Set.empty[String]
     val dest = os.pwd / "out"
     os.makeDir.all(dest)
     val outDir = os.temp.dir(dest, deleteOnExit = false)
@@ -114,33 +112,34 @@ trait ClientServerTestsBase extends TestSuite {
       val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
-      val result = new MillServerLauncher(
-        ServerLauncher.Streams(in, out, err),
-        env.asJava,
-        args,
-        Optional.of(locks),
-        forceFailureForTestingMillisDelay,
-        /*useFileLocks */ false
-      ) {
-        def initServer(daemonDir: Path, locks: Locks) = {
-          nextServerId += 1
-          // Use a negative process ID to indicate we're not a real process.
-          val processId = -nextServerId
-          val server = EchoServer(
-            processId,
-            os.Path(daemonDir, os.pwd),
-            locks,
-            testLogEvenWhenServerIdWrong,
-            commandSleepMillis = commandSleepMillis
-          )
-          val t = Thread(() => { server.run(); () })
-          t.start()
-          LaunchedServer.NewThread(t, () => { /* do nothing */ })
-        }
-      }.run(
+      val initServerFactory: MillRpcServerLauncher.InitServerFactory = (daemonDir, locks) => {
+        nextServerId += 1
+        // Use a negative process ID to indicate we're not a real process.
+        val processId = -nextServerId
+        val server = EchoServer(
+          processId,
+          os.Path(daemonDir, os.pwd),
+          locks,
+          testLogEvenWhenServerIdWrong,
+          commandSleepMillis = commandSleepMillis
+        )
+        val t = Thread(() => { server.run(); () })
+        t.start()
+        LaunchedServer.NewThread(t, () => { /* do nothing */ })
+      }
+      val result = new MillRpcServerLauncher(
+        stdin = in,
+        stdout = out,
+        stderr = err,
+        env = env.asJava,
+        args = args,
+        forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay,
+        useFileLocks = false,
+        initServerFactory = initServerFactory
+      ).run(
         daemonDir.relativeTo(os.pwd).toNIO,
         "",
-        msg => println(s"MillServerLauncher: $msg")
+        msg => println(s"MillRpcServerLauncher: $msg")
       )
 
       ClientResult(
@@ -278,7 +277,9 @@ trait ClientServerTestsBase extends TestSuite {
     }
 
     test("clientLockReleasedOnFailure") {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      // Use commandSleepMillis > forceFailureForTestingMillisDelay to ensure
+      // the server is still processing when the client fails
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false, commandSleepMillis = 500)
       // When the client gets interrupted via Ctrl-C, we exit the server immediately. This
       // is because Mill ends up executing arbitrary JVM code, and there is no generic way
       // to interrupt such an execution. The two options are to leave the server running

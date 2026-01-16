@@ -60,13 +60,7 @@ object DaemonRpc {
       writeSynchronizer = new Object
     )
 
-    val log = new Logger.Actions {
-      def error(msg: String): Unit = ()
-      def warn(msg: String): Unit = ()
-      def info(msg: String): Unit = ()
-      def debug(msg: String): Unit = ()
-      def ticker(msg: String): Unit = ()
-    }
+    val log = Logger.Actions.noOp
 
     val serverMessageHandler = new MillRpcChannel[ServerToClient] {
       override def apply(input: ServerToClient): input.Response = input match {

@@ -2,8 +2,7 @@ package mill.server
 
 import mill.api.daemon.SystemStreams
 import mill.client.*
-import mill.client.lock.{Lock, Locks}
-import mill.constants.OutFiles.OutFiles
+import mill.client.lock.Locks
 import mill.launcher.DaemonRpc
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server.ConnectionData
@@ -12,8 +11,6 @@ import java.io.*
 import java.net.Socket
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.concurrent.duration.FiniteDuration
-import scala.util.Using
-import scala.util.control.NonFatal
 
 abstract class MillDaemonRpcServer[State](
     daemonDir: os.Path,
@@ -89,7 +86,7 @@ abstract class MillDaemonRpcServer[State](
       transport = transport,
       setIdle = setIdle,
       writeToLocalLog = serverLog,
-      runCommand = (init, req, stdout, stderr, setIdleInner, serverToClient) => {
+      runCommand = (init, _, stdout, stderr, setIdleInner, serverToClient) => {
 
         // Check for version changes
         val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
