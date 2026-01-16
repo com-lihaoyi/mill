@@ -1,8 +1,5 @@
 package mill.client.lock
 
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, StandardOpenOption}
-
 /**
  * A lock implementation that uses atomic file creation and PID + timestamp checking.
  * This works on filesystems that don't support file locking (e.g. Docker containers on macOS),
@@ -12,7 +9,7 @@ import java.nio.file.{Files, Path, StandardOpenOption}
  * PIDs are reused after a process dies.
  */
 class PidLock(path: String) extends Lock {
-  private val lockPath: Path = Path.of(path)
+  private val lockPath: os.Path = os.Path(path)
   private val pid: Long = ProcessHandle.current().pid()
 
   private def createLockContent(): String = s"$pid:${PidLock.PROCESS_START_TIME}"
@@ -33,21 +30,22 @@ class PidLock(path: String) extends Lock {
     if (!isLockValid) {
       tryDeleteLockFile()
       try {
-        Files.write(
-          lockPath,
-          createLockContent().getBytes(StandardCharsets.UTF_8),
-          StandardOpenOption.CREATE_NEW,
-          StandardOpenOption.WRITE
-        )
-        new PidTryLocked(lockPath, locked = true)
+        // Use os.write with createFolders=false to ensure atomic creation
+        // This will fail if the file already exists
+        if (!os.exists(lockPath)) {
+          os.write(lockPath, createLockContent(), createFolders = false)
+          new PidTryLocked(Some(lockPath), locked = true)
+        } else {
+          new PidTryLocked(None, locked = false)
+        }
       } catch {
-        case _: java.nio.file.FileAlreadyExistsException =>
+        case _: java.nio.file.FileAlreadyExistsException | _: java.io.IOException =>
           // Another process grabbed it - that's fine
-          new PidTryLocked(null, locked = false)
+          new PidTryLocked(None, locked = false)
       }
     } else {
       // Lock is held by a living process
-      new PidTryLocked(null, locked = false)
+      new PidTryLocked(None, locked = false)
     }
   }
 
@@ -72,7 +70,8 @@ class PidLock(path: String) extends Lock {
 
   private def readLockInfo(): Option[PidLock.LockInfo] = {
     try {
-      val content = Files.readString(lockPath, StandardCharsets.UTF_8).trim
+      if (!os.exists(lockPath)) return None
+      val content = os.read(lockPath).trim
       val parts = content.split(":")
       if (parts.length < 2) None
       else {
@@ -90,7 +89,7 @@ class PidLock(path: String) extends Lock {
   }
 
   private def tryDeleteLockFile(): Unit = {
-    try Files.deleteIfExists(lockPath)
+    try os.remove(lockPath, checkExists = false)
     catch {
       case _: java.io.IOException => // Ignore - another process might have deleted it
     }
@@ -104,9 +103,9 @@ private[lock] object PidLock {
   private case class LockInfo(pid: Long, timestamp: Long)
 }
 
-private[lock] class PidTryLocked(lockPath: Path, locked: Boolean) extends TryLocked {
+private[lock] class PidTryLocked(lockPath: Option[os.Path], locked: Boolean) extends TryLocked {
   override def isLocked: Boolean = locked
   override def release(): Unit = {
-    if (locked && lockPath != null) Files.deleteIfExists(lockPath)
+    if (locked) lockPath.foreach(p => os.remove(p, checkExists = false))
   }
 }

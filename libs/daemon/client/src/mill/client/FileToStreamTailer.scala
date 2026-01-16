@@ -1,9 +1,8 @@
 package mill.client
 
-import java.io.{BufferedReader, File, PrintStream}
-import java.nio.file.Files
+import java.io.{BufferedReader, InputStreamReader, PrintStream}
 
-class FileToStreamTailer(file: File, stream: PrintStream, intervalMsec: Int)
+class FileToStreamTailer(file: os.Path, stream: PrintStream, intervalMsec: Int)
     extends Thread("FileToStreamTailerThread") with AutoCloseable {
 
   setDaemon(true)
@@ -25,7 +24,7 @@ class FileToStreamTailer(file: File, stream: PrintStream, intervalMsec: Int)
           // Init reader, if not already done
           if (reader == null) {
             try {
-              reader = Files.newBufferedReader(file.toPath)
+              reader = new BufferedReader(new InputStreamReader(os.read.inputStream(file)))
             } catch {
               case _: java.io.IOException =>
                 // nothing to ignore if file is initially missing

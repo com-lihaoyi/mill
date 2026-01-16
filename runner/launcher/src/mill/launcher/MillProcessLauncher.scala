@@ -52,7 +52,7 @@ object MillProcessLauncher {
       useFileLocks: Boolean
   ): Process = {
     val cmd = millLaunchJvmCommand(outMode, runnerClasspath) ++
-      Seq("mill.daemon.MillDaemonMain", daemonDir.toIO.getCanonicalPath, outMode.asString, useFileLocks.toString)
+      Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
 
     configureRunMillProcess(
       cmd,
@@ -72,7 +72,7 @@ object MillProcessLauncher {
     os.makeDir.all(sandbox)
 
     val env = Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> os.pwd.toIO.getCanonicalPath,
+      EnvVars.MILL_WORKSPACE_ROOT -> os.pwd.toString,
       EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"
     ) ++ (
       if (sys.env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
@@ -89,7 +89,7 @@ object MillProcessLauncher {
 
   def loadMillConfig(outMode: OutFolderMode, key: String): Seq[String] = {
     val configFile = os.pwd / s".$key"
-    val workspaceDir = os.pwd.toIO.getCanonicalPath
+    val workspaceDir = os.pwd.toString
 
     // Build environment map for variable interpolation
     val env = sys.env ++ Map(
@@ -103,8 +103,7 @@ object MillProcessLauncher {
     )
 
     if (os.exists(configFile)) {
-      import scala.jdk.CollectionConverters._
-      ClientUtil.readOptsFileLines(configFile.toNIO.toAbsolutePath, env.asJava).asScala.toSeq
+      ClientUtil.readOptsFileLines(configFile, env)
     } else {
       import scala.jdk.CollectionConverters._
       CodeGenConstants.rootBuildFileNames.asScala.toSeq
@@ -278,30 +277,30 @@ object MillProcessLauncher {
 
   private val memoizedTerminalDims = new AtomicReference[String]()
 
-  private lazy val canUseNativeTerminal: Boolean = {
+  // Returns native terminal size if available, avoiding calling getSize twice
+  private def getNativeTerminalSize(): Option[(Int, Int)] = {
     JLineNativeLoader.initJLineNative()
     if (Util.hasConsole()) {
       try {
-        NativeTerminal.getSize
-        true
+        val size = NativeTerminal.getSize
+        Some((size.getWidth, size.getHeight))
       } catch {
-        case _: Throwable => false
+        case _: Throwable => None
       }
-    } else false
+    } else None
   }
 
-  private def writeTerminalDims(tputExists: Boolean, daemonDir: os.Path): Unit = {
+  private def writeTerminalDims(daemonDir: os.Path): Unit = {
     val str =
       try {
         if (!Util.hasConsole()) "0 0"
-        else if (canUseNativeTerminal) {
-          val size = NativeTerminal.getSize
-          s"${size.getWidth} ${size.getHeight}"
-        } else if (!tputExists) {
-          // Hardcoded size of a quarter screen terminal on 13" windows laptop
-          "78 24"
-        } else {
-          s"${getTerminalDim("cols", inheritError = true)} ${getTerminalDim("lines", inheritError = true)}"
+        else getNativeTerminalSize() match {
+          case Some((width, height)) => s"$width $height"
+          case None if !tputExists =>
+            // Hardcoded size of a quarter screen terminal on 13" windows laptop
+            "78 24"
+          case None =>
+            s"${getTerminalDim("cols", inheritError = true)} ${getTerminalDim("lines", inheritError = true)}"
         }
       } catch {
         case _: Exception => "0 0"
@@ -316,7 +315,8 @@ object MillProcessLauncher {
     }
   }
 
-  private def checkTputExists(): Boolean = {
+  // Lazy so we only shell out to tput when canUseNativeTerminal is false
+  private lazy val tputExists: Boolean = {
     try {
       getTerminalDim("cols", inheritError = false)
       getTerminalDim("lines", inheritError = false)
@@ -332,15 +332,14 @@ object MillProcessLauncher {
     os.remove(daemonDir / DaemonFiles.terminfo, checkExists = false)
 
     os.makeDir.all(daemonDir / DaemonFiles.sandbox)
-    val tputExists = checkTputExists()
 
-    writeTerminalDims(tputExists, daemonDir)
+    writeTerminalDims(daemonDir)
 
     val termInfoPropagatorThread = new Thread(
       () => {
         try {
           while (true) {
-            writeTerminalDims(tputExists, daemonDir)
+            writeTerminalDims(daemonDir)
             Thread.sleep(100)
           }
         } catch {

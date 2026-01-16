@@ -28,7 +28,7 @@ class MillServerLauncher(
 
     val launched = ServerLauncher.launchOrConnectToServer(
       locks,
-      daemonDir.toNIO,
+      daemonDir,
       serverInitWaitMillis,
       () => initServerFactory(daemonDir, locks),
       serverDied => {
@@ -42,7 +42,7 @@ class MillServerLauncher(
 
     try {
       log(s"runWithConnection (RPC): $launched")
-      val result = runRpc(launched.socket, javaHome, daemonDir, log)
+      val result = runRpc(launched.socket.get, javaHome, daemonDir, log)
       log(s"runWithConnection exit code: $result")
       result
     } finally {

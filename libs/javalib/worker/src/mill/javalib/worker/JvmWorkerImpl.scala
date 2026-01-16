@@ -120,7 +120,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
 
         val launched = ServerLauncher.launchOrConnectToServer(
           locks,
-          daemonDir.toNIO,
+          daemonDir,
           10 * 1000,
           () => {
             val process = Jvm.spawnProcess(

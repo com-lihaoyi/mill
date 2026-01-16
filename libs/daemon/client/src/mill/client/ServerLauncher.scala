@@ -5,8 +5,6 @@ import mill.constants.DaemonFiles
 
 import java.io.{BufferedInputStream, BufferedOutputStream, OutputStream}
 import java.net.{InetAddress, Socket}
-import java.nio.file.{Files, Path}
-import scala.compiletime.uninitialized
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic
@@ -14,24 +12,16 @@ import scala.compiletime.uninitialized
  */
 object ServerLauncher {
 
-  class Launched extends AutoCloseable {
-    var port: Int = 0
-    var socket: Socket = uninitialized
-    var launchedServer: LaunchedServer = uninitialized
-
+  case class Launched(
+      port: Int,
+      socket: Option[Socket],
+      launchedServer: LaunchedServer
+  ) extends AutoCloseable {
     override def close(): Unit = {
       // Swallow exceptions if the close fails
-      try socket.close()
+      try socket.foreach(_.close())
       catch { case _: Exception => }
     }
-  }
-
-  trait InitServer {
-    def init(): LaunchedServer
-  }
-
-  trait RunClientLogicWithStreams[A] {
-    def run(inStream: BufferedInputStream, outStream: BufferedOutputStream): A
   }
 
   /**
@@ -41,13 +31,13 @@ object ServerLauncher {
       connection: Socket,
       closeConnectionAfterClientLogic: Boolean,
       sendInitData: OutputStream => Unit,
-      runClientLogic: RunClientLogicWithStreams[A]
+      runClientLogic: (BufferedInputStream, BufferedOutputStream) => A
   ): A = {
     val socketInputStream = new BufferedInputStream(connection.getInputStream)
     val socketOutputStream = new BufferedOutputStream(connection.getOutputStream)
     sendInitData(socketOutputStream)
     socketOutputStream.flush()
-    val result = runClientLogic.run(socketInputStream, socketOutputStream)
+    val result = runClientLogic(socketInputStream, socketOutputStream)
     if (closeConnectionAfterClientLogic) socketInputStream.close()
     result
   }
@@ -58,9 +48,9 @@ object ServerLauncher {
    */
   def launchOrConnectToServer(
       locks: Locks,
-      daemonDir: Path,
+      daemonDir: os.Path,
       serverInitWaitMillis: Int,
-      initServer: InitServer,
+      initServer: () => LaunchedServer,
       onFailure: ServerLaunchResult.ServerDied => Unit,
       log: String => Unit,
       openSocket: Boolean
@@ -75,34 +65,28 @@ object ServerLauncher {
           val result = ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log)
           result match {
             case ServerLaunchResult.Success(server) =>
-              log(s"Reading server port: ${daemonDir.toAbsolutePath}")
-              val port = Files.readString(daemonDir.resolve(DaemonFiles.socketPort)).toInt
+              log(s"Reading server port: $daemonDir")
+              val port = os.read(daemonDir / DaemonFiles.socketPort).toInt
 
-              val launched = new Launched()
-              launched.port = port
               log("Read server port")
-              if (openSocket) {
+              val socket = if (openSocket) {
                 log(s"Connecting: $port")
-                val connected = new Socket(InetAddress.getLoopbackAddress, port)
-                launched.socket = connected
-              }
-              launched.launchedServer = server
-              Some(launched)
+                Some(new Socket(InetAddress.getLoopbackAddress, port))
+              } else None
+
+              Some(Launched(port, socket, server))
 
             case ServerLaunchResult.AlreadyRunning(server) =>
-              log(s"Reading server port: ${daemonDir.toAbsolutePath}")
-              val port = Files.readString(daemonDir.resolve(DaemonFiles.socketPort)).toInt
+              log(s"Reading server port: $daemonDir")
+              val port = os.read(daemonDir / DaemonFiles.socketPort).toInt
 
-              val launched = new Launched()
-              launched.port = port
               log("Read server port")
-              if (openSocket) {
+              val socket = if (openSocket) {
                 log(s"Connecting: $port")
-                val connected = new Socket(InetAddress.getLoopbackAddress, port)
-                launched.socket = connected
-              }
-              launched.launchedServer = server
-              Some(launched)
+                Some(new Socket(InetAddress.getLoopbackAddress, port))
+              } else None
+
+              Some(Launched(port, socket, server))
 
             case processDied: ServerLaunchResult.ServerDied =>
               onFailure(processDied)
@@ -140,16 +124,16 @@ object ServerLauncher {
   }
 
   /**
-   * Attempts to start a server process using InitServer if needed.
+   * Attempts to start a server process using initServer if needed.
    */
   def ensureServerIsRunning(
       locks: Locks,
-      daemonDir: Path,
-      initServer: InitServer,
+      daemonDir: os.Path,
+      initServer: () => LaunchedServer,
       timeoutMillis: Long,
       log: String => Unit
   ): ServerLaunchResult = {
-    Files.createDirectories(daemonDir)
+    os.makeDir.all(daemonDir)
 
     log(s"Checking if the daemon lock is available: ${locks.daemonLock}")
     retryWithTimeout(timeoutMillis, "Failed to determine server status") { () =>
@@ -157,7 +141,7 @@ object ServerLauncher {
         if (locks.daemonLock.probe()) {
           log("The daemon lock is available, starting the server.")
           try {
-            val launchedServer = initServer.init()
+            val launchedServer = initServer()
 
             log(s"The server has started: $launchedServer")
 
@@ -176,10 +160,10 @@ object ServerLauncher {
           }
         } else {
           log("The daemon lock is not available, there is already a server running.")
-          val pidFile = daemonDir.resolve(DaemonFiles.processId)
-          log(s"Trying to read the process ID of a running daemon from ${pidFile.toAbsolutePath}")
+          val pidFile = daemonDir / DaemonFiles.processId
+          log(s"Trying to read the process ID of a running daemon from $pidFile")
           try {
-            val contents = Files.readString(pidFile)
+            val contents = os.read(pidFile)
             val pid = contents.toLong
             log(s"Read PID: $pid")
 
@@ -212,7 +196,7 @@ object ServerLauncher {
    */
   private def waitUntilDaemonTakesTheLock(
       daemonLock: Lock,
-      daemonDir: Path,
+      daemonDir: os.Path,
       server: LaunchedServer
   ): Option[ServerLaunchOutputs] = {
     while (daemonLock.probe()) {
@@ -223,21 +207,21 @@ object ServerLauncher {
     None
   }
 
-  private def checkIfLaunchFailed(daemonDir: Path, server: LaunchedServer): Option[ServerLaunchOutputs] = {
+  private def checkIfLaunchFailed(daemonDir: os.Path, server: LaunchedServer): Option[ServerLaunchOutputs] = {
     if (server.isAlive) None
     else Some(readOutputs(daemonDir))
   }
 
-  private def readOutputs(daemonDir: Path): ServerLaunchOutputs = {
-    val stdout = daemonDir.toAbsolutePath.resolve(DaemonFiles.stdout)
-    val stderr = daemonDir.toAbsolutePath.resolve(DaemonFiles.stderr)
+  private def readOutputs(daemonDir: os.Path): ServerLaunchOutputs = {
+    val stdout = daemonDir / DaemonFiles.stdout
+    val stderr = daemonDir / DaemonFiles.stderr
 
     val stdoutStr =
-      if (Files.exists(stdout) && Files.size(stdout) > 0) Some(Files.readString(stdout))
+      if (os.exists(stdout) && os.size(stdout) > 0) Some(os.read(stdout))
       else None
 
     val stderrStr =
-      if (Files.exists(stderr) && Files.size(stderr) > 0) Some(Files.readString(stderr))
+      if (os.exists(stderr) && os.size(stderr) > 0) Some(os.read(stderr))
       else None
 
     ServerLaunchOutputs(stdoutStr, stderrStr)

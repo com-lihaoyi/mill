@@ -2,16 +2,15 @@ package mill.client
 
 import utest._
 
-import java.io.{ByteArrayOutputStream, File, PrintStream}
-import java.nio.file.Files
+import java.io.{ByteArrayOutputStream, PrintStream}
 
 object FileToStreamTailerTests extends TestSuite {
   val tests = Tests {
     test("handleNonExistingFile") {
       val bas = new ByteArrayOutputStream()
       val ps = new PrintStream(bas)
-      val file = File.createTempFile("tailer", "")
-      assert(file.delete())
+      val file = os.temp(deleteOnExit = false)
+      os.remove(file)
 
       val tailer = new FileToStreamTailer(file, ps, 10)
       try {
@@ -26,8 +25,8 @@ object FileToStreamTailerTests extends TestSuite {
     test("handleNoExistingFileThatAppearsLater") {
       val bas = new ByteArrayOutputStream()
       val ps = new PrintStream(bas)
-      val file = File.createTempFile("tailer", "")
-      assert(file.delete())
+      val file = os.temp(deleteOnExit = false)
+      os.remove(file)
 
       val tailer = new FileToStreamTailer(file, ps, 10)
       try {
@@ -35,10 +34,10 @@ object FileToStreamTailerTests extends TestSuite {
         Thread.sleep(100)
         assert(bas.toString == "")
 
-        val out = new PrintStream(Files.newOutputStream(file.toPath))
+        val out = new PrintStream(os.write.outputStream(file))
         try {
           out.println("log line")
-          assert(file.exists())
+          assert(os.exists(file))
           Thread.sleep(100)
           assert(bas.toString == s"log line${System.lineSeparator()}")
         } finally {
@@ -52,8 +51,8 @@ object FileToStreamTailerTests extends TestSuite {
     test("handleExistingInitiallyEmptyFile") {
       val bas = new ByteArrayOutputStream()
       val ps = new PrintStream(bas)
-      val file = File.createTempFile("tailer", "")
-      assert(file.exists())
+      val file = os.temp(deleteOnExit = false)
+      assert(os.exists(file))
 
       val tailer = new FileToStreamTailer(file, ps, 10)
       try {
@@ -61,10 +60,10 @@ object FileToStreamTailerTests extends TestSuite {
         Thread.sleep(100)
         assert(bas.toString == "")
 
-        val out = new PrintStream(Files.newOutputStream(file.toPath))
+        val out = new PrintStream(os.write.outputStream(file))
         try {
           out.println("log line")
-          assert(file.exists())
+          assert(os.exists(file))
           Thread.sleep(100)
           assert(bas.toString == s"log line${System.lineSeparator()}")
         } finally {
@@ -78,10 +77,10 @@ object FileToStreamTailerTests extends TestSuite {
     test("handleExistingFileWithOldContent") {
       val bas = new ByteArrayOutputStream()
       val ps = new PrintStream(bas)
-      val file = File.createTempFile("tailer", "")
-      assert(file.exists())
+      val file = os.temp(deleteOnExit = false)
+      assert(os.exists(file))
 
-      val out = new PrintStream(Files.newOutputStream(file.toPath))
+      val out = new PrintStream(os.write.outputStream(file))
       try {
         out.println("old line 1")
         out.println("old line 2")
@@ -91,7 +90,7 @@ object FileToStreamTailerTests extends TestSuite {
           Thread.sleep(500)
           assert(bas.toString == "")
           out.println("log line")
-          assert(file.exists())
+          assert(os.exists(file))
           Thread.sleep(500)
           assert(bas.toString.trim == "log line")
         } finally {
