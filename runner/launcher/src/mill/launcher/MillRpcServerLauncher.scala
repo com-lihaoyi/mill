@@ -45,7 +45,7 @@ class MillRpcServerLauncher(
 
     try {
       log.accept(s"runWithConnection (RPC): $launched")
-      val result = runRpc(launched.socket, javaHome, daemonDir, log)
+      val result = runRpc(launched.socket, javaHome, daemonDir, log.accept)
       log.accept(s"runWithConnection exit code: $result")
       result
     } finally {
