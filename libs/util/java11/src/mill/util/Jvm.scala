@@ -219,11 +219,7 @@ object Jvm {
   def javaExe: String = javaExe(None)
 
   /**
-   * Runs a JVM subprocess interactively with inherited stdin/stdout/stderr.
-   * If `LauncherSubprocess` is available (daemon mode), runs the subprocess on the launcher
-   * where the actual terminal is. Otherwise runs locally.
-   *
-   * This is used for interactive commands like repl, console, and jshell.
+   * Runs a JVM subprocess interactively, delegating to the launcher in daemon mode.
    */
   def callInteractiveProcess(
       mainClass: String,
@@ -267,15 +263,7 @@ object Jvm {
   }
 
   /**
-   * Runs any command interactively with inherited stdin/stdout/stderr.
-   * If `LauncherSubprocess` is available (daemon mode), runs on the launcher
-   * where the actual terminal is. Otherwise runs locally.
-   *
-   * @param cmd The command to run
-   * @param env Environment variables
-   * @param cwd Working directory
-   * @param propagateEnv If `true` then current environment variables are propagated
-   * @return exit code of the subprocess
+   * Runs a command interactively, delegating to the launcher in daemon mode.
    */
   def runInteractiveCommand(
       cmd: Seq[String],

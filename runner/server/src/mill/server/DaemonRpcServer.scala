@@ -6,9 +6,6 @@ import mill.rpc.*
 
 import java.io.PrintStream
 
-/**
- * RPC server for the Mill daemon. Handles requests from the launcher to run commands.
- */
 class DaemonRpcServer(
     serverName: String,
     transport: MillRpcWireTransport,
@@ -27,42 +24,31 @@ class DaemonRpcServer(
       clientStdout: RpcConsole,
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[DaemonRpc.ServerToClient]
-  ): MillRpcChannel[DaemonRpc.ClientToServer] = {
-    mill.constants.DebugLog.println(s"DaemonRpcServer.initialize: $init")
-
+  ): MillRpcChannel[DaemonRpc.ClientToServer] =
     new MillRpcChannel[DaemonRpc.ClientToServer] {
-      override def apply(input: DaemonRpc.ClientToServer): input.Response = {
-        mill.constants.DebugLog.println(s"DaemonRpcServer received request: $input")
-        input match {
-          case req: DaemonRpc.ClientToServer.RunCommand =>
-            setIdle.doWork {
-              val result = runCommand(
-                init,
-                req,
-                PrintStream(clientStdout.asStream),
-                PrintStream(clientStderr.asStream),
-                setIdle,
-                serverToClient
-              )
-              mill.constants.DebugLog.println(s"DaemonRpcServer RunCommand result: $result")
-              result.asInstanceOf[input.Response]
-            }
-        }
+      override def apply(input: DaemonRpc.ClientToServer): input.Response = input match {
+        case req: DaemonRpc.ClientToServer.RunCommand =>
+          setIdle.doWork {
+            runCommand(
+              init,
+              req,
+              PrintStream(clientStdout.asStream),
+              PrintStream(clientStderr.asStream),
+              setIdle,
+              serverToClient
+            ).asInstanceOf[input.Response]
+          }
       }
     }
-  }
 }
 
 object DaemonRpcServer {
-  /**
-   * Handler for running commands. Returns exit code and optional metadata (e.g., skipped interactive tasks).
-   */
   type RunCommandHandler = (
       DaemonRpc.Initialize,
       DaemonRpc.ClientToServer.RunCommand,
-      PrintStream, // stdout
-      PrintStream, // stderr
+      PrintStream,
+      PrintStream,
       Server.SetIdle,
-      MillRpcChannel[DaemonRpc.ServerToClient] // channel to send requests to the launcher
+      MillRpcChannel[DaemonRpc.ServerToClient]
   ) => DaemonRpc.ClientToServer.RunCommand#Response
 }

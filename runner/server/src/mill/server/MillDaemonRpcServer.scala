@@ -15,10 +15,6 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.Using
 import scala.util.control.NonFatal
 
-/**
- * RPC-based daemon server that uses the mill.rpc framework for communication
- * instead of the ProxyStream protocol.
- */
 abstract class MillDaemonRpcServer[State](
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
@@ -66,10 +62,7 @@ abstract class MillDaemonRpcServer[State](
       connectionData: ConnectionData,
       stopServer: Server.StopServer
   ): MillDaemonRpcServer.DaemonServerData = {
-    mill.constants.DebugLog.println(s"MillDaemonRpcServer.prepareConnection: ${connectionData.socketName}")
     serverLog(s"prepareConnection ${connectionData.socketName}")
-
-    // Just return minimal data - RPC will handle initialization
     MillDaemonRpcServer.DaemonServerData(
       writtenExitCode = AtomicBoolean(false),
       exitCode = AtomicInteger(-1)
@@ -82,10 +75,8 @@ abstract class MillDaemonRpcServer[State](
       setIdle: Server.SetIdle,
       data: MillDaemonRpcServer.DaemonServerData
   ): Int = {
-    mill.constants.DebugLog.println(s"MillDaemonRpcServer.handleConnection: starting RPC server")
     serverLog("handleConnection: starting RPC server")
 
-    // Create the wire transport for RPC
     val transport = MillRpcWireTransport(
       name = s"DaemonRpcServer-${connectionData.socketName}",
       serverToClient = new BufferedReader(new InputStreamReader(connectionData.clientToServer)),
@@ -93,16 +84,12 @@ abstract class MillDaemonRpcServer[State](
       writeSynchronizer = new Object
     )
 
-    mill.constants.DebugLog.println(s"MillDaemonRpcServer.handleConnection: transport created")
-
-    // Create the RPC server
     val rpcServer = new DaemonRpcServer(
       serverName = s"MillDaemon-${connectionData.socketName}",
       transport = transport,
       setIdle = setIdle,
       writeToLocalLog = serverLog,
       runCommand = (init, req, stdout, stderr, setIdleInner, serverToClient) => {
-        mill.constants.DebugLog.println(s"MillDaemonRpcServer.runCommand: $init")
 
         // Check for version changes
         val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
@@ -158,24 +145,16 @@ abstract class MillDaemonRpcServer[State](
 
         stateCache = newStateCache
         val exitCode = if (result) 0 else 1
-
-        mill.constants.DebugLog.println(s"MillDaemonRpcServer.runCommand: exitCode=$exitCode")
         data.exitCode.set(exitCode)
-
         DaemonRpc.RunCommandResult(exitCode)
       }
     )
 
-    mill.constants.DebugLog.println(s"MillDaemonRpcServer.handleConnection: running RPC server")
     serverLog("handleConnection: running RPC server")
-
-    // Run the RPC server - this blocks until the client disconnects
     rpcServer.run()
 
     val exitCode = data.exitCode.get()
-    mill.constants.DebugLog.println(s"MillDaemonRpcServer.handleConnection: RPC server finished, exitCode=$exitCode")
     serverLog(s"handleConnection: RPC server finished, exitCode=$exitCode")
-
     exitCode
   }
 
@@ -184,21 +163,13 @@ abstract class MillDaemonRpcServer[State](
       data: Option[MillDaemonRpcServer.DaemonServerData],
       result: Option[Int]
   ): Unit = {
-    mill.constants.DebugLog.println(s"MillDaemonRpcServer.endConnection: result=$result")
     serverLog(s"endConnection: result=$result")
-
-    // Flush before closing
     System.out.flush()
     System.err.flush()
-
-    // Close the connection
     try {
       connectionData.serverToClient.flush()
       connectionData.serverToClient.close()
-    } catch {
-      case _: Exception =>
-      // Client may have died
-    }
+    } catch { case _: Exception => }
   }
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
