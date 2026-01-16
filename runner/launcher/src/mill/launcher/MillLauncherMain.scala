@@ -103,7 +103,7 @@ object MillLauncherMain {
             )
         )
 
-        val daemonDir = os.pwd / outDir / OutFiles.OutFiles.millDaemon
+        val daemonDir = os.Path(outDir, os.pwd) / OutFiles.OutFiles.millDaemon
         val javaHome = MillProcessLauncher.javaHome(outMode)
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir)
@@ -146,7 +146,7 @@ object MillLauncherMain {
       case _ =>
     }
 
-    val errorFile = os.pwd / outDir / "mill-launcher-error.log"
+    val errorFile = os.Path(outDir, os.pwd) / "mill-launcher-error.log"
     try {
       val sw = new StringWriter()
       e.printStackTrace(new PrintWriter(sw))

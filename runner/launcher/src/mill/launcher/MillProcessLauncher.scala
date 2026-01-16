@@ -18,7 +18,7 @@ object MillProcessLauncher {
       useFileLocks: Boolean
   ): Int = {
     val sig = f"${UUID.randomUUID().hashCode}%08x"
-    val processDir = os.pwd / OutFiles.OutFiles.outFor(outMode) / OutFiles.OutFiles.millNoDaemon / sig
+    val processDir = os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / OutFiles.OutFiles.millNoDaemon / sig
 
     prepareMillRunFolder(processDir)
 
@@ -238,7 +238,7 @@ object MillProcessLauncher {
       block: () => Seq[String],
       validate: Seq[String] => Boolean
   ): Seq[String] = {
-    val cacheFile = os.pwd / OutFiles.OutFiles.outFor(outMode) / "mill-launcher" / name
+    val cacheFile = os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / "mill-launcher" / name
 
     val cachedValue: Option[Seq[String]] =
       if (os.exists(cacheFile)) {
