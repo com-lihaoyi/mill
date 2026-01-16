@@ -42,13 +42,22 @@ case class RunnerState(
     // Any watches that take place during bootstrap module instantiation. Necessary because
     // if bootstrap instantiation fails, there are no `frames` to hold `evalWatches`, so we
     // need to track them separately
-    bootstrapEvalWatched: Seq[Watchable] = Nil
+    bootstrapEvalWatched: Seq[Watchable] = Nil,
+    // Interactive tasks that were skipped because they require no-daemon mode.
+    // When running in daemon mode, these tasks are not executed and should be
+    // re-run by the launcher in no-daemon mode.
+    skippedInteractiveTasks: Seq[String] = Nil
 ) extends Watching.Result {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,
-      errorOpt: Option[String] = None
+      errorOpt: Option[String] = None,
+      skippedInteractiveTasks: Seq[String] = Nil
   ): RunnerState = {
-    this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
+    this.copy(
+      frames = Seq(frame) ++ frames,
+      errorOpt = errorOpt,
+      skippedInteractiveTasks = this.skippedInteractiveTasks ++ skippedInteractiveTasks
+    )
   }
 
   def watched: Seq[Watchable] =

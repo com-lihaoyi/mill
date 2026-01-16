@@ -65,6 +65,11 @@ trait ExecutionResultsApi {
   def uncached: Seq[TaskApi[?]]
 
   def values: Seq[Val]
+
+  /**
+   * Interactive tasks that were skipped because they require no-daemon mode.
+   */
+  def skippedInteractiveTasks: Seq[String] = Nil
 }
 object ExecutionResultsApi { // stub for binary compatibility
 

@@ -61,7 +61,8 @@ class MillBuildBootstrap(
     offline: Boolean,
     useFileLocks: Boolean,
     reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
-    enableTicker: Boolean
+    enableTicker: Boolean,
+    daemonMode: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -206,7 +207,8 @@ class MillBuildBootstrap(
             depth = depth,
             actualBuildFileName = nestedState.buildFile,
             enableTicker = enableTicker,
-            staticBuildOverrideFiles = staticBuildOverrideFiles.toMap
+            staticBuildOverrideFiles = staticBuildOverrideFiles.toMap,
+            daemonMode = daemonMode
           )) { evaluator =>
             // Check if all requested tasks are @nonBootstrapped
             val shouldShortCircuit =
@@ -279,7 +281,7 @@ class MillBuildBootstrap(
       selectiveExecution = false,
       reporter = reporter(evaluator)
     ) match {
-      case (f: Result.Failure, evalWatches, moduleWatches) =>
+      case (f: Result.Failure, evalWatches, moduleWatches, _) =>
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
           evalWatched = evalWatches,
@@ -305,7 +307,8 @@ class MillBuildBootstrap(
               buildOverrideFiles: Map[java.nio.file.Path, String]
             ))),
             evalWatches,
-            moduleWatches
+            moduleWatches,
+            _ // skippedInteractive not relevant for internal millBuildRootModuleResult task
           ) =>
         val runClasspathChanged = !prevFrameOpt.exists(
           _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
@@ -373,7 +376,7 @@ class MillBuildBootstrap(
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val evaluator = evaluator0.withIsFinalDepth(true)
-    val (evaled, evalWatched, moduleWatches) = evaluateWithWatches(
+    val (evaled, evalWatched, moduleWatches, skippedInteractive) = evaluateWithWatches(
       buildFileApi = buildFileApi,
       evaluator = evaluator,
       tasksAndParams = tasksAndParams,
@@ -398,7 +401,8 @@ class MillBuildBootstrap(
       errorOpt = evaled match {
         case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
         case _ => None
-      }
+      },
+      skippedInteractiveTasks = skippedInteractive
     )
   }
 
@@ -428,7 +432,8 @@ object MillBuildBootstrap {
       depth: Int,
       actualBuildFileName: Option[String] = None,
       enableTicker: Boolean,
-      staticBuildOverrideFiles: Map[java.nio.file.Path, String]
+      staticBuildOverrideFiles: Map[java.nio.file.Path, String],
+      daemonMode: Boolean
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -471,7 +476,8 @@ object MillBuildBootstrap {
           staticBuildOverrideFiles,
           enableTicker,
           depth,
-          false // isFinalDepth: set later via withIsFinalDepth when needed
+          false, // isFinalDepth: set later via withIsFinalDepth when needed
+          daemonMode
         )
       ).asInstanceOf[EvaluatorApi]
 
@@ -552,7 +558,7 @@ object MillBuildBootstrap {
       tasksAndParams: Seq[String],
       selectiveExecution: Boolean,
       reporter: Int => Option[CompileProblemReporter]
-  ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
+  ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable], Seq[String]) = {
     import buildFileApi.*
     evalWatchedValues.clear()
     val evalTaskResult = evaluator.evaluate(
@@ -564,13 +570,14 @@ object MillBuildBootstrap {
 
     evalTaskResult match {
       case f: Result.Failure =>
-        (f, evalWatchedValues.toSeq, moduleWatchedValues)
+        (f, evalWatchedValues.toSeq, moduleWatchedValues, Nil)
       case Result.Success(res: EvaluatorApi.Result[Any]) =>
+        val skippedInteractive = res.executionResults.skippedInteractiveTasks
         res.values match {
           case f: Result.Failure =>
-            (f, res.watchable ++ evalWatchedValues, moduleWatchedValues)
+            (f, res.watchable ++ evalWatchedValues, moduleWatchedValues, skippedInteractive)
           case Result.Success(results) =>
-            (Result.Success(results), res.watchable ++ evalWatchedValues, moduleWatchedValues)
+            (Result.Success(results), res.watchable ++ evalWatchedValues, moduleWatchedValues, skippedInteractive)
         }
     }
   }

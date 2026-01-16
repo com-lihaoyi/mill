@@ -296,7 +296,9 @@ object MillMain0 {
                                 offline = config.offline.value,
                                 useFileLocks = config.useFileLocks.value,
                                 reporter = reporter,
-                                enableTicker = enableTicker
+                                enableTicker = enableTicker,
+                                // daemonMode is true when not in interactive/no-daemon mode
+                                daemonMode = !mainInteractive
                               ).evaluate()
                             }
                           }

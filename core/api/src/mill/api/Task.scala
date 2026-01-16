@@ -57,6 +57,10 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
     case c: Task.Command[_] if c.exclusive => true
     case _ => false
   }
+  private[mill] def isInteractiveCommand: Boolean = this match {
+    case c: Task.Command[_] if c.interactive => true
+    case _ => false
+  }
 }
 
 object Task {
@@ -237,7 +241,7 @@ object Task {
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Command[T] =
-    ${ Macros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, persistent = '{ false }) }
+    ${ Macros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, interactive = '{ false }, persistent = '{ false }) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -246,20 +250,26 @@ object Task {
    *                  These are normally used for "top level" commands which are
    *                  run directly to perform some action or display some output
    *                  to the user.
+   * @param interactive Interactive commands are similar to exclusive commands but
+   *                    require direct terminal access. When run in daemon mode,
+   *                    interactive commands are skipped and passed back to the
+   *                    launcher, which then runs them in no-daemon mode so they
+   *                    can interact with the terminal directly.
    * @param persistent If true the `Task.dest` directory is not cleaned between
    *                   runs.
    */
   def Command(
       @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
+      interactive: Boolean = false,
       persistent: Boolean = false
-  ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
-  class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean) {
+  ): CommandFactory = new CommandFactory(exclusive = exclusive, interactive = interactive, persistent = persistent)
+  class CommandFactory private[mill] (val exclusive: Boolean, val interactive: Boolean, val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(using
         inline w: Writer[T],
         inline ctx: ModuleCtx
     ): Command[T] =
-      ${ Macros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.persistent }) }
+      ${ Macros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.interactive }, '{ this.persistent }) }
   }
 
   /**
@@ -481,6 +491,7 @@ object Task {
       val writer: Writer[?],
       val isPrivate: Option[Boolean],
       val exclusive: Boolean,
+      val interactive: Boolean,
       override val persistent: Boolean
   ) extends Task.Named[T] {
 
@@ -713,6 +724,7 @@ object Task {
         w: Expr[Writer[T]],
         ctx: Expr[mill.api.ModuleCtx],
         exclusive: Expr[Boolean],
+        interactive: Expr[Boolean],
         persistent: Expr[Boolean]
     ): Expr[Command[T]] = {
       assertTaskShapeOwner("Task.Command", 1)
@@ -726,6 +738,7 @@ object Task {
               $w,
               ${ taskIsPrivate() },
               exclusive = $exclusive,
+              interactive = $interactive,
               persistent = $persistent
             )
           },

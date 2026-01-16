@@ -42,4 +42,11 @@ trait ExecutionResults extends ExecutionResultsApi {
    * The values returned by successful tasks in [[results]]
    */
   def values: Seq[Val] = results.collect { case ExecResult.Success(v) => v }
+
+  /**
+   * Interactive tasks that were skipped because they require no-daemon mode.
+   * When running in daemon mode, interactive tasks are not executed and their
+   * names are returned here so the launcher can re-run them in no-daemon mode.
+   */
+  def skippedInteractiveTasks: Seq[String] = Nil
 }

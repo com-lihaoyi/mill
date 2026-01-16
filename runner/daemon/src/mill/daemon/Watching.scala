@@ -18,6 +18,7 @@ object Watching {
   trait Result {
     def watched: Seq[Watchable]
     def errorOpt: Option[String]
+    def skippedInteractiveTasks: Seq[String] = Nil
   }
 
   trait Evaluate[T <: Result] {
@@ -50,6 +51,18 @@ object Watching {
       doRingBell(hasError = errorOpt.isDefined)
     }
 
+    def handleSkippedInteractive(skipped: Seq[String]): Unit = {
+      if (skipped.nonEmpty) {
+        streams.err.println(
+          s"\nThe following interactive tasks were skipped because they require direct terminal access:"
+        )
+        skipped.foreach(task => streams.err.println(s"  - $task"))
+        streams.err.println(
+          s"\nTo run these tasks, use: mill --no-daemon ${skipped.mkString(" ")}"
+        )
+      }
+    }
+
     def doRingBell(hasError: Boolean): Unit = {
       if (!ringBell) return
 
@@ -65,7 +78,8 @@ object Watching {
       case None =>
         val result = evaluate(skipSelectiveExecution = false, previousState = None)
         handleError(result.errorOpt)
-        (result.errorOpt.isEmpty, result)
+        handleSkippedInteractive(result.skippedInteractiveTasks)
+        (result.errorOpt.isEmpty && result.skippedInteractiveTasks.isEmpty, result)
 
       case Some(watchArgs) =>
         var prevState: Option[T] = None
@@ -76,6 +90,7 @@ object Watching {
           val result = evaluate(skipSelectiveExecution, prevState)
           prevState = Some(result)
           handleError(result.errorOpt)
+          handleSkippedInteractive(result.skippedInteractiveTasks)
 
           try {
             watchArgs.setIdle(true)

@@ -35,7 +35,8 @@ case class Execution(
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean,
     depth: Int,
-    isFinalDepth: Boolean
+    isFinalDepth: Boolean,
+    daemonMode: Boolean = false
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -63,7 +64,8 @@ case class Execution(
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean,
       depth: Int,
-      isFinalDepth: Boolean
+      isFinalDepth: Boolean,
+      daemonMode: Boolean
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -86,7 +88,8 @@ case class Execution(
     staticBuildOverrideFiles = staticBuildOverrideFiles,
     enableTicker = enableTicker,
     depth = depth,
-    isFinalDepth = isFinalDepth
+    isFinalDepth = isFinalDepth,
+    daemonMode = daemonMode
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -181,6 +184,12 @@ case class Execution(
           downstreamEdges.getOrElse(t, Set())
         )
 
+      val allInteractiveCommands = tasksTransitive.filter(_.isInteractiveCommand)
+      val downstreamOfInteractive =
+        mill.internal.SpanningForest.breadthFirst[Task[?]](allInteractiveCommands)(t =>
+          downstreamEdges.getOrElse(t, Set())
+        )
+
       def evaluateTerminals(
           terminals: Seq[Task[?]],
           exclusive: Boolean
@@ -199,11 +208,32 @@ case class Execution(
 
           val group = plan.sortedGroups.lookupKey(terminal)
           val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
+          val interactiveDeps = deps.filter(d => d.isInteractiveCommand)
 
           if (terminal.asCommand.isEmpty && downstreamOfExclusive.contains(terminal)) {
             val failure = ExecResult.Failure(
               s"Non-Command task ${terminal} cannot depend on exclusive command " +
                 exclusiveDeps.mkString(", ")
+            )
+            val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
+              .map(t => (t, failure))
+              .toMap
+
+            futures(terminal) = Future.successful(
+              Some(GroupExecution.Results(
+                newResults = taskResults,
+                newEvaluated = group.toSeq,
+                cached = false,
+                inputsHash = -1,
+                previousInputsHash = -1,
+                valueHashChanged = false,
+                serializedPaths = Nil
+              ))
+            )
+          } else if (terminal.asCommand.isEmpty && downstreamOfInteractive.contains(terminal)) {
+            val failure = ExecResult.Failure(
+              s"Non-Command task ${terminal} cannot depend on interactive command " +
+                interactiveDeps.mkString(", ")
             )
             val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
               .map(t => (t, failure))
@@ -321,9 +351,19 @@ case class Execution(
         terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       }
 
-      val (nonExclusiveTasks, leafExclusiveCommands) = indexToTerminal.partition {
-        case t: Task.Named[_] => !downstreamOfExclusive.contains(t)
+      // Partition tasks into three groups:
+      // 1. Non-exclusive/non-interactive tasks (run in parallel)
+      // 2. Exclusive tasks that are not interactive (run serially)
+      // 3. Interactive tasks (run serially at the very end)
+      val (nonExclusiveTasks, exclusiveOrInteractiveTasks) = indexToTerminal.partition {
+        case t: Task.Named[_] =>
+          !downstreamOfExclusive.contains(t) && !downstreamOfInteractive.contains(t)
         case _ => !serialCommandExec
+      }
+
+      val (leafExclusiveCommands, leafInteractiveCommands) = exclusiveOrInteractiveTasks.partition {
+        case t: Task.Named[_] => !downstreamOfInteractive.contains(t)
+        case _ => true
       }
 
       // Run all non-command tasks according to the threads
@@ -331,6 +371,20 @@ case class Execution(
       val nonExclusiveResults = evaluateTerminals(nonExclusiveTasks, exclusive = false)
 
       val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
+
+      // Interactive tasks run at the very end, after exclusive tasks,
+      // with the same single-threaded configuration and direct IO streams.
+      // In daemon mode, interactive tasks are skipped and their names are
+      // collected so the launcher can re-run them in no-daemon mode.
+      val (interactiveResults, skippedInteractive) = if (daemonMode && leafInteractiveCommands.nonEmpty) {
+        // Skip interactive tasks in daemon mode - mark them as skipped
+        val skipped = leafInteractiveCommands.collect {
+          case t: Task.Named[_] => t.toString
+        }
+        (Nil, skipped.toSeq)
+      } else {
+        (evaluateTerminals(leafInteractiveCommands, exclusive = true), Nil)
+      }
 
       // Set final header showing SUCCESS/FAILED status:
       // - FAILED: show for any outermost execution with failures (meta-build failures terminate bootstrapping)
@@ -342,7 +396,7 @@ case class Execution(
 
       logger.prompt.clearPromptStatuses()
 
-      val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
+      val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults ++ interactiveResults).toMap
 
       ExecutionLogs.logInvalidationTree(
         interGroupDeps = interGroupDeps,
@@ -375,7 +429,8 @@ case class Execution(
         goals.toIndexedSeq.map(results(_).map(_._1)),
         finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
         results.map { case (k, v) => (k, v.map(_._1)) },
-        prefixes.asScala.toMap
+        prefixes.asScala.toMap,
+        skippedInteractive
       )
     }
   }
@@ -425,6 +480,7 @@ object Execution {
       results: Seq[ExecResult[Val]],
       uncached: Seq[Task[?]],
       transitiveResults: Map[Task[?], ExecResult[Val]],
-      override val transitivePrefixes: Map[Task[?], Seq[String]]
+      override val transitivePrefixes: Map[Task[?], Seq[String]],
+      override val skippedInteractiveTasks: Seq[String] = Nil
   ) extends mill.api.ExecutionResults
 }
