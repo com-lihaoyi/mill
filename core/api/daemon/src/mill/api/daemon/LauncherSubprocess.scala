@@ -11,16 +11,7 @@ package mill.api.daemon
 object LauncherSubprocess extends scala.util.DynamicVariable[Option[LauncherSubprocess.Runner]](None) {
 
   /**
-   * Configuration for running a subprocess.
-   *
-   * @param cmd the command to run (executable and arguments)
-   * @param env environment variables to set
-   * @param cwd working directory as a string path
-   * @param timeoutMillis timeout in milliseconds (-1 for no timeout)
-   * @param mergeErrIntoOut whether to merge stderr into stdout
-   * @param shutdownGracePeriodMillis grace period for shutdown (-1 for default)
-   * @param propagateEnv whether to propagate the current environment variables
-   * @param destroyOnExit whether to destroy the subprocess when the JVM exits
+   * Configuration for running a subprocess, basically a serializable version of `os.call`
    */
   case class Config(
       cmd: Seq[String],
