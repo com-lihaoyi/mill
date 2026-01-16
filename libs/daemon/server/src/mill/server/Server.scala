@@ -193,6 +193,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           s"shutting down server with exit code $exitCode"
       )
 
+      // Notify all other connected clients before shutting down, so they can retry
+      connectionTracker.closeOtherConnections(clientSocket)
       endConnection(connectionData, data, Some(exitCode))
       closeServer0(Some(exitCode))
     }

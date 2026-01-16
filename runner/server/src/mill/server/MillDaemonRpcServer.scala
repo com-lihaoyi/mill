@@ -86,15 +86,29 @@ abstract class MillDaemonRpcServer[State](
     // Store the transport so endConnection can send an RPC response if needed
     data.rpcTransport.set(Some(transport))
 
-    // Create a deferred stopServer that stores the request and throws an exception.
-    // This allows the RPC response to be sent before the server shuts down.
-    // We throw an exception because systemExitWithReason expects to never return (Nothing type).
+    // Create a deferred stopServer that sends the RPC response immediately, then throws
+    // InterruptedException to stop the RPC server loop. We throw an exception because
+    // systemExitWithReason expects to never return (Nothing type).
     val deferredStopServer: Server.StopServer = (reason, exitCode) => {
       serverLog(
-        s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)"
+        s"deferredStopServer: sending RPC response and storing shutdown request (reason=$reason, exitCode=$exitCode)"
       )
+      // Send the RPC response immediately
+      if (data.writtenExitCode.compareAndSet(false, true)) {
+        data.exitCode.set(exitCode)
+        try {
+          val response = MillRpcServerToClient.Response(
+            Right(DaemonRpc.RunCommandResult(exitCode))
+          )
+          transport.writeSerialized(response, serverLog)
+        } catch {
+          case _: Exception => // Ignore errors, connection might already be broken
+        }
+      }
+      // Store the shutdown request for execution after runCommand returns
       data.shutdownRequest.set(Some((reason, exitCode)))
-      throw new MillDaemonRpcServer.DeferredShutdownException(reason, exitCode)
+      // Throw InterruptedException to stop the RPC server loop (handled specially by MillRpcServer)
+      throw new InterruptedException(s"Shutdown requested: $reason")
     }
 
     val rpcServer = new DaemonRpcServer(
@@ -103,76 +117,64 @@ abstract class MillDaemonRpcServer[State](
       setIdle = setIdle,
       writeToLocalLog = serverLog,
       runCommand = (init, _, stdout, stderr, setIdleInner, serverToClient) => {
-        // Wrap entire runCommand in try-catch to handle DeferredShutdownException
-        // from both version mismatch checks and shutdown command
-        try {
-          // Check for version changes
-          val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
-          val javaVersionChanged = lastJavaVersion.exists(_ != init.clientJavaVersion)
+        // Check for version changes
+        val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
+        val javaVersionChanged = lastJavaVersion.exists(_ != init.clientJavaVersion)
 
-          if (millVersionChanged || javaVersionChanged) {
-            Server.withOutLock(
-              noBuildLock = false,
-              noWaitForBuildLock = false,
-              out = outFolder,
-              millActiveCommandMessage = "checking server mill version and java version",
-              streams = new SystemStreams(
-                new PrintStream(mill.api.daemon.DummyOutputStream),
-                new PrintStream(mill.api.daemon.DummyOutputStream),
-                mill.api.daemon.DummyInputStream
-              ),
-              outLock = outLock,
-              setIdle = _ => ()
-            ) {
-              if (millVersionChanged) {
-                stderr.println(
-                  s"Mill version changed (${lastMillVersion.getOrElse("<unknown>")} -> ${init.clientMillVersion}), re-starting server"
-                )
-              }
-              if (javaVersionChanged) {
-                stderr.println(
-                  s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${Option(init.clientJavaVersion).getOrElse("<system>")}), re-starting server"
-                )
-              }
-
-              deferredStopServer(
-                s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
-                ClientUtil.ServerExitPleaseRetry()
+        if (millVersionChanged || javaVersionChanged) {
+          Server.withOutLock(
+            noBuildLock = false,
+            noWaitForBuildLock = false,
+            out = outFolder,
+            millActiveCommandMessage = "checking server mill version and java version",
+            streams = new SystemStreams(
+              new PrintStream(mill.api.daemon.DummyOutputStream),
+              new PrintStream(mill.api.daemon.DummyOutputStream),
+              mill.api.daemon.DummyInputStream
+            ),
+            outLock = outLock,
+            setIdle = _ => ()
+          ) {
+            if (millVersionChanged) {
+              stderr.println(
+                s"Mill version changed (${lastMillVersion.getOrElse("<unknown>")} -> ${init.clientMillVersion}), re-starting server"
               )
             }
-          }
-          lastMillVersion = Some(init.clientMillVersion)
-          lastJavaVersion = Some(init.clientJavaVersion)
+            if (javaVersionChanged) {
+              stderr.println(
+                s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${Option(init.clientJavaVersion).getOrElse("<system>")}), re-starting server"
+              )
+            }
 
-          // Run the actual command
-          val (result, newStateCache) = main0(
-            args = init.args,
-            stateCache = stateCache,
-            mainInteractive = init.interactive,
-            streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
-            env = init.env,
-            setIdle = setIdleInner(_),
-            userSpecifiedProperties = init.userSpecifiedProperties,
-            initialSystemProperties = connectionData.initialSystemProperties,
-            stopServer = deferredStopServer,
-            serverToClient = serverToClient
-          )
-
-          stateCache = newStateCache
-          val exitCode = if (result) 0 else 1
-          data.exitCode.set(exitCode)
-          data.writtenExitCode.set(true) // Mark that RPC response will be sent
-          DaemonRpc.RunCommandResult(exitCode)
-        } catch {
-          case e: MillDaemonRpcServer.DeferredShutdownException =>
-            // Shutdown/restart was requested - return the exit code from the exception
-            serverLog(
-              s"runCommand: caught DeferredShutdownException, returning exitCode=${e.exitCode}"
+            // This sends RPC response and throws InterruptedException to stop the RPC loop
+            deferredStopServer(
+              s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
+              ClientUtil.ServerExitPleaseRetry()
             )
-            data.exitCode.set(e.exitCode)
-            data.writtenExitCode.set(true) // Mark that RPC response will be sent
-            DaemonRpc.RunCommandResult(e.exitCode)
+          }
         }
+        lastMillVersion = Some(init.clientMillVersion)
+        lastJavaVersion = Some(init.clientJavaVersion)
+
+        // Run the actual command
+        val (result, newStateCache) = main0(
+          args = init.args,
+          stateCache = stateCache,
+          mainInteractive = init.interactive,
+          streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
+          env = init.env,
+          setIdle = setIdleInner(_),
+          userSpecifiedProperties = init.userSpecifiedProperties,
+          initialSystemProperties = connectionData.initialSystemProperties,
+          stopServer = deferredStopServer,
+          serverToClient = serverToClient
+        )
+
+        stateCache = newStateCache
+        val exitCode = if (result) 0 else 1
+        data.exitCode.set(exitCode)
+        data.writtenExitCode.set(true) // Mark that RPC response will be sent
+        DaemonRpc.RunCommandResult(exitCode)
       }
     )
 
@@ -257,11 +259,4 @@ object MillDaemonRpcServer {
       // Store the RPC transport so we can send a response when connection is closed externally
       rpcTransport: AtomicReference[Option[MillRpcWireTransport]]
   )
-
-  /**
-   * Error thrown to signal a deferred shutdown request.
-   * Extends DeferredExitException which is handled specially by the task evaluation framework.
-   */
-  class DeferredShutdownException(reason: String, exitCode: Int)
-      extends mill.api.DeferredExitException(reason, exitCode)
 }
