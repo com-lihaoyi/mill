@@ -53,11 +53,9 @@ private[launcher] class JLineNativeLoader(jlineNativeVersion: String) {
       os.makeDir.all(millJLineNativeLibLocation / os.up)
 
       val is = Thread.currentThread().getContextClassLoader.getResourceAsStream(resourcePath)
-      try {
-        os.write(tmpLocation, is)
-      } finally {
-        is.close()
-      }
+
+      try os.write(tmpLocation, is)
+      finally is.close()
 
       // Concurrent Mill processes might try to create millJLineNativeLibLocation too, so we ignore
       // errors if the file has been written by another process in the mean time.

@@ -12,11 +12,8 @@ import java.net.{InetAddress, Socket}
  */
 object ServerLauncher {
 
-  case class Launched(
-      port: Int,
-      socket: Option[Socket],
-      launchedServer: LaunchedServer
-  ) extends AutoCloseable {
+  case class Launched(port: Int, socket: Option[Socket], launchedServer: LaunchedServer)
+    extends AutoCloseable {
     override def close(): Unit = {
       // Swallow exceptions if the close fails
       try socket.foreach(_.close())
@@ -69,10 +66,10 @@ object ServerLauncher {
               val port = os.read(daemonDir / DaemonFiles.socketPort).toInt
 
               log("Read server port")
-              val socket = if (openSocket) {
+              val socket = Option.when(openSocket) {
                 log(s"Connecting: $port")
-                Some(new Socket(InetAddress.getLoopbackAddress, port))
-              } else None
+                new Socket(InetAddress.getLoopbackAddress, port)
+              }
 
               Some(Launched(port, socket, server))
 
@@ -81,10 +78,10 @@ object ServerLauncher {
               val port = os.read(daemonDir / DaemonFiles.socketPort).toInt
 
               log("Read server port")
-              val socket = if (openSocket) {
+              val socket = Option.when(openSocket) {
                 log(s"Connecting: $port")
-                Some(new Socket(InetAddress.getLoopbackAddress, port))
-              } else None
+                new Socket(InetAddress.getLoopbackAddress, port)
+              }
 
               Some(Launched(port, socket, server))
 
@@ -108,18 +105,15 @@ object ServerLauncher {
     val timeoutNanos = timeoutMillis * 1000 * 1000
 
     while (current.isEmpty && System.nanoTime() - startTimeMonotonicNanos < timeoutNanos) {
-      try {
-        current = supplier()
-      } catch {
+      try current = supplier()
+      catch {
         case e: Throwable =>
           throwable = e
           Thread.sleep(1)
       }
     }
 
-    current match {
-      case Some(value) => value
-      case None => throw new Exception(s"$errorMessage (timeout was ${timeoutMillis}ms)", throwable)
+    current.getOrElse(throw new Exception(s"$errorMessage (timeout was ${timeoutMillis}ms)", throwable))
     }
   }
 
@@ -174,10 +168,8 @@ object ServerLauncher {
                     new IllegalStateException(s"No process found for PID $pid")
                   )
                 )
-              } else {
-                // PID < 0 is only used in tests
-                LaunchedServer.TestStub
-              }
+              } else LaunchedServer.TestStub // PID < 0 is only used in tests
+
             Some(ServerLaunchResult.AlreadyRunning(launchedServer))
           } catch {
             case _: java.io.IOException | _: NumberFormatException =>
@@ -200,29 +192,19 @@ object ServerLauncher {
       server: LaunchedServer
   ): Option[ServerLaunchOutputs] = {
     while (daemonLock.probe()) {
-      val maybeLaunchFailed = checkIfLaunchFailed(daemonDir, server)
+      val maybeLaunchFailed = Option.when(!server.isAlive){readOutputs(daemonDir)}
       if (maybeLaunchFailed.isDefined) return maybeLaunchFailed
       Thread.sleep(1)
     }
     None
   }
 
-  private def checkIfLaunchFailed(daemonDir: os.Path, server: LaunchedServer): Option[ServerLaunchOutputs] = {
-    if (server.isAlive) None
-    else Some(readOutputs(daemonDir))
-  }
-
   private def readOutputs(daemonDir: os.Path): ServerLaunchOutputs = {
     val stdout = daemonDir / DaemonFiles.stdout
     val stderr = daemonDir / DaemonFiles.stderr
 
-    val stdoutStr =
-      if (os.exists(stdout) && os.size(stdout) > 0) Some(os.read(stdout))
-      else None
-
-    val stderrStr =
-      if (os.exists(stderr) && os.size(stderr) > 0) Some(os.read(stderr))
-      else None
+    val stdoutStr = Option.when(os.exists(stdout) && os.size(stdout) > 0){ os.read(stdout)}
+    val stderrStr = Option.when(os.exists(stderr) && os.size(stderr) > 0) { os.read(stderr)}
 
     ServerLaunchOutputs(stdoutStr, stderrStr)
   }

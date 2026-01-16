@@ -19,10 +19,7 @@ object ClientUtil {
     val bannedPrefixes = Set("path", "line", "native", "sun", "os", "java", "file", "jdk", "user")
     val props = System.getProperties
     props.stringPropertyNames().asScala.iterator
-      .filterNot { key =>
-        val prefix = key.split("\\.")(0)
-        bannedPrefixes.contains(prefix)
-      }
+      .filterNot(key => bannedPrefixes.contains(key.split("\\.")(0)))
       .map(key => key -> props.getProperty(key))
       .toMap
   }
@@ -34,9 +31,8 @@ object ClientUtil {
    */
   def readOptsFileLines(file: os.Path, env: Map[String, String]): Seq[String] = {
     import scala.jdk.CollectionConverters.*
-    if (!os.exists(file)) {
-      Seq.empty
-    } else {
+    if (!os.exists(file)) Seq.empty
+    else {
       os.read.lines(file)
         .filter(line => line.trim.nonEmpty && !line.trim.startsWith("#"))
         .map(line => mill.constants.Util.interpolateEnvVars(line, env.asJava))

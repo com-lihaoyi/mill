@@ -151,14 +151,14 @@ object MillLauncherMain {
       val sw = new StringWriter()
       e.printStackTrace(new PrintWriter(sw))
 
-      val content = new StringBuilder()
-      content.append("Mill launcher failed with unknown exception.\n\n")
-      content.append("Exception:\n")
-      content.append(sw.toString)
-      content.append("\nLogs:\n")
-      logs.foreach(log => content.append(log + "\n"))
+      val content =
+        "Mill launcher failed with unknown exception.\n\n" +
+          "Exception:\n" +
+          sw.toString +
+          "\nLogs:\n" +
+          logs.map(_ + "\n").mkString
 
-      os.write.over(errorFile, content.toString)
+      os.write.over(errorFile, content)
     } catch {
       case writeEx: Exception =>
         // If we can't write to file, fall back to stderr
