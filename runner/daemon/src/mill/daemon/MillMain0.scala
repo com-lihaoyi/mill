@@ -110,28 +110,9 @@ object MillMain0 {
       systemExit: Server.StopServer,
       daemonDir: os.Path,
       outLock: Lock,
-      serverToClient: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]] = None
+      launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner
   ): (Boolean, RunnerState) = {
-    // Create a launcher subprocess runner if we have an RPC channel to the launcher.
-    // This allows interactive commands (repl, console, jshell) to run their subprocess
-    // on the launcher where the actual terminal is, rather than in the daemon.
-    val launcherRunnerOpt = serverToClient.map { channel =>
-      new mill.api.daemon.LauncherSubprocess.Runner {
-        override def apply(config: mill.api.daemon.LauncherSubprocess.Config): Int = {
-          val req = mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(
-            cmd = config.cmd,
-            env = config.env,
-            cwd = config.cwd,
-            timeoutMillis = config.timeoutMillis,
-            mergeErrIntoOut = config.mergeErrIntoOut,
-            propagateEnv = config.propagateEnv
-          )
-          channel(req).exitCode
-        }
-      }
-    }
-
-    mill.api.daemon.LauncherSubprocess.withValue(launcherRunnerOpt) {
+    mill.api.daemon.LauncherSubprocess.withValue(launcherSubprocessRunner) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
         os.SubProcess.env.withValue(env) {
           val parserResult = MillCliConfig.parse(args)

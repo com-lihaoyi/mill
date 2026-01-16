@@ -1,10 +1,10 @@
 package mill.api.daemon
 
 /**
- * Context for running interactive subprocesses on the launcher in daemon mode.
+ * Context for running interactive subprocesses via the launcher.
  */
 object LauncherSubprocess
-    extends scala.util.DynamicVariable[Option[LauncherSubprocess.Runner]](None) {
+    extends scala.util.DynamicVariable[LauncherSubprocess.Runner](null) {
   case class Config(
       cmd: Seq[String],
       env: Map[String, String],

@@ -261,7 +261,7 @@ object Jvm {
   }
 
   /**
-   * Runs a command interactively, delegating to the launcher in daemon mode.
+   * Runs a command interactively via the launcher subprocess runner.
    */
   def runInteractiveCommand(
       cmd: Seq[String],
@@ -269,29 +269,12 @@ object Jvm {
       cwd: os.Path = os.pwd,
       propagateEnv: Boolean = true
   ): Int = {
-    LauncherSubprocess.value match {
-      case Some(runner) =>
-        // Run on the launcher where the actual terminal is
-        runner(LauncherSubprocess.Config(
-          cmd = cmd,
-          env = env,
-          cwd = cwd.toString,
-          propagateEnv = propagateEnv
-        ))
-      case None =>
-        // Run locally with inherited I/O
-        val result = os.call(
-          cmd = cmd,
-          cwd = cwd,
-          env = env,
-          propagateEnv = propagateEnv,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit,
-          check = false
-        )
-        result.exitCode
-    }
+    LauncherSubprocess.value(LauncherSubprocess.Config(
+      cmd = cmd,
+      env = env,
+      cwd = cwd.toString,
+      propagateEnv = propagateEnv
+    ))
   }
 
   /**

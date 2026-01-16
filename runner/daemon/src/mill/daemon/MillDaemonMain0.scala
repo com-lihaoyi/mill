@@ -98,6 +98,19 @@ class MillDaemonMain0(
       systemExit: Server.StopServer,
       serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]
   ): (Boolean, RunnerState) = {
+    // Create runner that sends subprocess requests to the launcher via RPC
+    val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner = config => {
+      val req = mill.launcher.DaemonRpc.ServerToClient.RunSubprocess(
+        cmd = config.cmd,
+        env = config.env,
+        cwd = config.cwd,
+        timeoutMillis = config.timeoutMillis,
+        mergeErrIntoOut = config.mergeErrIntoOut,
+        propagateEnv = config.propagateEnv
+      )
+      serverToClient(req).exitCode
+    }
+
     try MillMain0.main0(
         args = args,
         stateCache = stateCache,
@@ -110,7 +123,7 @@ class MillDaemonMain0(
         systemExit = systemExit,
         daemonDir = daemonDir,
         outLock = outLock,
-        serverToClient = Some(serverToClient)
+        launcherSubprocessRunner = launcherRunner
       )
     catch MillMain0.handleMillException(streams.err, stateCache)
   }
