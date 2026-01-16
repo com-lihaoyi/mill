@@ -148,6 +148,12 @@ public class MillLauncherMain {
         if (exitCode == ClientUtil.ServerExitPleaseRetry()) {
           System.err.println("Max launcher retries exceeded (" + maxRetries + "), exiting");
         }
+
+        // Check for skipped interactive tasks that need to be re-run in no-daemon mode
+        if (exitCode == 0) {
+          exitCode = rerunSkippedInteractiveTasks(outDir, outMode, runnerClasspath, useFileLocks);
+        }
+
         System.exit(exitCode);
       } catch (Exception e) {
         handleLauncherException(e, outDir, logs);
@@ -160,6 +166,40 @@ public class MillLauncherMain {
     if (System.getenv("MILL_TEST_EXIT_AFTER_BSP_CHECK") != null) {
       System.exit(0);
     }
+  }
+
+  /**
+   * Check for interactive tasks that were skipped in daemon mode and re-run them in no-daemon mode.
+   * Returns the exit code from re-running the tasks, or 0 if there were no tasks to re-run.
+   */
+  private static int rerunSkippedInteractiveTasks(
+      String outDir, OutFolderMode outMode, String[] runnerClasspath, boolean useFileLocks)
+      throws Exception {
+    Path skippedTasksFile = Paths.get(outDir, OutFiles.millSkippedInteractiveTasks);
+    if (!Files.exists(skippedTasksFile)) {
+      return 0;
+    }
+
+    String content = Files.readString(skippedTasksFile).trim();
+    if (content.isEmpty()) {
+      Files.deleteIfExists(skippedTasksFile);
+      return 0;
+    }
+
+    String[] skippedTasks = content.split("\n");
+    // Delete the file before re-running to prevent infinite loops
+    Files.deleteIfExists(skippedTasksFile);
+
+    if (skippedTasks.length == 0) {
+      return 0;
+    }
+
+    System.err.println();
+    System.err.println("Re-running " + skippedTasks.length + " interactive task(s) in no-daemon mode...");
+
+    // Re-run the skipped tasks in no-daemon mode
+    return MillProcessLauncher.launchMillNoDaemon(
+        skippedTasks, outMode, runnerClasspath, "mill.daemon.MillNoDaemonMain", useFileLocks);
   }
 
   private static void handleLauncherException(

@@ -97,19 +97,31 @@ class MillDaemonMain0(
       initialSystemProperties: Map[String, String],
       systemExit: Server.StopServer
   ): (Boolean, RunnerState) = {
-    try MillMain0.main0(
-        args = args,
-        stateCache = stateCache,
-        mainInteractive = mainInteractive,
-        streams0 = streams,
-        env = env,
-        setIdle = setIdle,
-        userSpecifiedProperties0 = userSpecifiedProperties,
-        initialSystemProperties = initialSystemProperties,
-        systemExit = systemExit,
-        daemonDir = daemonDir,
-        outLock = outLock
-      )
-    catch MillMain0.handleMillException(streams.err, stateCache)
+    val (result, newState) =
+      try MillMain0.main0(
+          args = args,
+          stateCache = stateCache,
+          mainInteractive = mainInteractive,
+          streams0 = streams,
+          env = env,
+          setIdle = setIdle,
+          userSpecifiedProperties0 = userSpecifiedProperties,
+          initialSystemProperties = initialSystemProperties,
+          systemExit = systemExit,
+          daemonDir = daemonDir,
+          outLock = outLock
+        )
+      catch MillMain0.handleMillException(streams.err, stateCache)
+
+    // Write skipped interactive tasks to file for the launcher to re-run
+    // One task per line for easy parsing in Java launcher
+    val skippedTasksFile = outFolder / OutFiles.millSkippedInteractiveTasks
+    if (newState.skippedInteractiveTasks.nonEmpty) {
+      os.write.over(skippedTasksFile, newState.skippedInteractiveTasks.mkString("\n"))
+    } else {
+      os.remove(skippedTasksFile, checkExists = false)
+    }
+
+    (result, newState)
   }
 }

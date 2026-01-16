@@ -54,12 +54,9 @@ object Watching {
     def handleSkippedInteractive(skipped: Seq[String]): Unit = {
       if (skipped.nonEmpty) {
         streams.err.println(
-          s"\nThe following interactive tasks were skipped because they require direct terminal access:"
+          s"\nThe following interactive tasks will be re-run in no-daemon mode:"
         )
         skipped.foreach(task => streams.err.println(s"  - $task"))
-        streams.err.println(
-          s"\nTo run these tasks, use: mill --no-daemon ${skipped.mkString(" ")}"
-        )
       }
     }
 
