@@ -118,20 +118,24 @@ public class MillLauncherMain {
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"));
         Consumer<String> log = (s) -> logs.add(formatter.format(Instant.now()) + " " + s);
         final boolean useFileLocksFinal = useFileLocks;
-        MillServerLauncher launcher =
-            new MillServerLauncher(
-                new MillServerLauncher.Streams(System.in, System.out, System.err),
-                System.getenv(),
-                optsArgs.toArray(new String[0]),
-                Optional.empty(),
-                -1,
-                useFileLocksFinal) {
-              public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-                return new LaunchedServer.OsProcess(MillProcessLauncher.launchMillDaemon(
-                        daemonDir, outMode, runnerClasspath, useFileLocksFinal)
-                    .toHandle());
-              }
-            };
+        final String[] runnerClasspathFinal = runnerClasspath;
+        final OutFolderMode outModeFinal = outMode;
+
+        // Use the new RPC-based launcher
+        MillRpcServerLauncher.InitServerFactory initServerFactory =
+            (daemonDir, locks) -> new LaunchedServer.OsProcess(MillProcessLauncher.launchMillDaemon(
+                    daemonDir, outModeFinal, runnerClasspathFinal, useFileLocksFinal)
+                .toHandle());
+
+        var launcher = new MillRpcServerLauncher(
+            System.in,
+            System.out,
+            System.err,
+            System.getenv(),
+            optsArgs.toArray(new String[0]),
+            -1, // forceFailureForTestingMillisDelay
+            useFileLocksFinal,
+            initServerFactory);
 
         var daemonDir = Paths.get(outDir, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome(outMode);

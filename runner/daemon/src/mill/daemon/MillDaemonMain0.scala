@@ -74,7 +74,7 @@ class MillDaemonMain0(
     acceptTimeout: FiniteDuration,
     locks: Locks,
     outMode: OutFolderMode
-) extends mill.server.MillDaemonServer[RunnerState](
+) extends mill.server.MillDaemonRpcServer[RunnerState](
       daemonDir,
       acceptTimeout,
       locks
