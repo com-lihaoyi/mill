@@ -99,47 +99,48 @@ abstract class MillDaemonRpcServer[State](
       setIdle = setIdle,
       writeToLocalLog = serverLog,
       runCommand = (init, _, stdout, stderr, setIdleInner, serverToClient) => {
-
-        // Check for version changes
-        val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
-        val javaVersionChanged = lastJavaVersion.exists(_ != init.clientJavaVersion)
-
-        if (millVersionChanged || javaVersionChanged) {
-          Server.withOutLock(
-            noBuildLock = false,
-            noWaitForBuildLock = false,
-            out = outFolder,
-            millActiveCommandMessage = "checking server mill version and java version",
-            streams = new SystemStreams(
-              new PrintStream(mill.api.daemon.DummyOutputStream),
-              new PrintStream(mill.api.daemon.DummyOutputStream),
-              mill.api.daemon.DummyInputStream
-            ),
-            outLock = outLock,
-            setIdle = _ => ()
-          ) {
-            if (millVersionChanged) {
-              stderr.println(
-                s"Mill version changed (${lastMillVersion.getOrElse("<unknown>")} -> ${init.clientMillVersion}), re-starting server"
-              )
-            }
-            if (javaVersionChanged) {
-              stderr.println(
-                s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${Option(init.clientJavaVersion).getOrElse("<system>")}), re-starting server"
-              )
-            }
-
-            deferredStopServer(
-              s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
-              ClientUtil.ServerExitPleaseRetry()
-            )
-          }
-        }
-        lastMillVersion = Some(init.clientMillVersion)
-        lastJavaVersion = Some(init.clientJavaVersion)
-
-        // Run the actual command, catching DeferredShutdownException for graceful shutdown
+        // Wrap entire runCommand in try-catch to handle DeferredShutdownException
+        // from both version mismatch checks and shutdown command
         try {
+          // Check for version changes
+          val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
+          val javaVersionChanged = lastJavaVersion.exists(_ != init.clientJavaVersion)
+
+          if (millVersionChanged || javaVersionChanged) {
+            Server.withOutLock(
+              noBuildLock = false,
+              noWaitForBuildLock = false,
+              out = outFolder,
+              millActiveCommandMessage = "checking server mill version and java version",
+              streams = new SystemStreams(
+                new PrintStream(mill.api.daemon.DummyOutputStream),
+                new PrintStream(mill.api.daemon.DummyOutputStream),
+                mill.api.daemon.DummyInputStream
+              ),
+              outLock = outLock,
+              setIdle = _ => ()
+            ) {
+              if (millVersionChanged) {
+                stderr.println(
+                  s"Mill version changed (${lastMillVersion.getOrElse("<unknown>")} -> ${init.clientMillVersion}), re-starting server"
+                )
+              }
+              if (javaVersionChanged) {
+                stderr.println(
+                  s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${Option(init.clientJavaVersion).getOrElse("<system>")}), re-starting server"
+                )
+              }
+
+              deferredStopServer(
+                s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
+                ClientUtil.ServerExitPleaseRetry()
+              )
+            }
+          }
+          lastMillVersion = Some(init.clientMillVersion)
+          lastJavaVersion = Some(init.clientJavaVersion)
+
+          // Run the actual command
           val (result, newStateCache) = main0(
             args = init.args,
             stateCache = stateCache,
@@ -159,7 +160,7 @@ abstract class MillDaemonRpcServer[State](
           DaemonRpc.RunCommandResult(exitCode)
         } catch {
           case e: MillDaemonRpcServer.DeferredShutdownException =>
-            // Shutdown was requested - return the exit code from the exception
+            // Shutdown/restart was requested - return the exit code from the exception
             serverLog(
               s"runCommand: caught DeferredShutdownException, returning exitCode=${e.exitCode}"
             )
