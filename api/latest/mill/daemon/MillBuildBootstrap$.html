@@ -132,6 +132,66 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="computeRequestedDepth-aea">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildBootstrap$.html#computeRequestedDepth-aea" t="n" class="documentableName ">computeRequestedDepth</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">requestedMetaLevel</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">depth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">framesSize</span>: <span data-unresolved-link="" t="t">Int</span>): <span data-unresolved-link="" t="t">Int</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/daemon/src/mill/daemon/MillBuildBootstrap.scala" target="_blank">MillBuildBootstrap.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="containsBuildFile-5b1">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildBootstrap$.html#containsBuildFile-5b1" t="n" class="documentableName ">containsBuildFile</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">root</span>: <span data-unresolved-link="" t="t">Path</span>): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/daemon/src/mill/daemon/MillBuildBootstrap.scala" target="_blank">MillBuildBootstrap.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="evaluateWithWatches-2aa">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -192,12 +252,42 @@ node3 -> node2;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="makeEvaluator-9c7">
+        <div class="documentableElement" id="invalidLevelMsg-ffffffef">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildBootstrap$.html#makeEvaluator-9c7" t="n" class="documentableName ">makeEvaluator</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">projectRoot</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">output</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">keepGoing</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">env</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">logger</span>: <a href="../api.html#Logger-0" t="t">Logger</a>, <span t="k"></span><span data-unresolved-link="" t="n">ec</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">ThreadPoolExecutor</span>], <span t="k"></span><span data-unresolved-link="" t="n">allowPositionalCommandArgs</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">systemExit</span>: <a href="../server/Server$.html#StopServer-0" t="t">StopServer</a>, <span t="k"></span><span data-unresolved-link="" t="n">streams0</span>: <a href="../api.html#SystemStreams-0" t="t">SystemStreams</a>, <span t="k"></span><span data-unresolved-link="" t="n">selectiveExecution</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">offline</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">useFileLocks</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">workerCache</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Int</span>, <a href="../api.html#Val-0" t="t">Val</a>)], <span t="k"></span><span data-unresolved-link="" t="n">codeSignatures</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">rootModule</span>: <a href="../api/daemon/internal/RootModuleApi.html" t="t">RootModuleApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">millClassloaderSigHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">millClassloaderIdentityHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">depth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">actualBuildFileName</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>] = ..., <span t="k"></span><span data-unresolved-link="" t="n">enableTicker</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">staticBuildOverrideFiles</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">String</span>]): <a href="../api/daemon/internal/EvaluatorApi.html" t="t">EvaluatorApi</a>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildBootstrap$.html#invalidLevelMsg-ffffffef" t="n" class="documentableName ">invalidLevelMsg</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">requestedMetaLevel</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">framesSize</span>: <span data-unresolved-link="" t="t">Int</span>): <span data-unresolved-link="" t="t">String</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/daemon/src/mill/daemon/MillBuildBootstrap.scala" target="_blank">MillBuildBootstrap.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="makeEvaluator0-9c7">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildBootstrap$.html#makeEvaluator0-9c7" t="n" class="documentableName ">makeEvaluator0</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">projectRoot</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">output</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">keepGoing</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">env</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">logger</span>: <a href="../api.html#Logger-0" t="t">Logger</a>, <span t="k"></span><span data-unresolved-link="" t="n">ec</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">ThreadPoolExecutor</span>], <span t="k"></span><span data-unresolved-link="" t="n">allowPositionalCommandArgs</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">systemExit</span>: <a href="../server/Server$.html#StopServer-0" t="t">StopServer</a>, <span t="k"></span><span data-unresolved-link="" t="n">streams0</span>: <a href="../api.html#SystemStreams-0" t="t">SystemStreams</a>, <span t="k"></span><span data-unresolved-link="" t="n">selectiveExecution</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">offline</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">useFileLocks</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">workerCache</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Int</span>, <a href="../api.html#Val-0" t="t">Val</a>)], <span t="k"></span><span data-unresolved-link="" t="n">codeSignatures</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">rootModule</span>: <a href="../api/daemon/internal/RootModuleApi.html" t="t">RootModuleApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">millClassloaderSigHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">millClassloaderIdentityHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">depth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">actualBuildFileName</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>] = ..., <span t="k"></span><span data-unresolved-link="" t="n">enableTicker</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">staticBuildOverrideFiles</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">String</span>]): <a href="../api/daemon/internal/EvaluatorApi.html" t="t">EvaluatorApi</a>
            </div>
           </div>
          </div>
@@ -288,6 +378,36 @@ node3 -> node2;
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildBootstrap$.html#recRoot-d17" t="n" class="documentableName ">recRoot</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">projectRoot</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">depth</span>: <span data-unresolved-link="" t="t">Int</span>): <span data-unresolved-link="" t="t">Path</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/runner/daemon/src/mill/daemon/MillBuildBootstrap.scala" target="_blank">MillBuildBootstrap.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="tryReadParent-fffff2b1">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MillBuildBootstrap$.html#tryReadParent-fffff2b1" t="n" class="documentableName ">tryReadParent</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">currentRoot</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">fileName</span>: <span data-unresolved-link="" t="t">String</span>): <span data-unresolved-link="" t="t">Option</span>[(<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">String</span>)]
            </div>
           </div>
          </div>
