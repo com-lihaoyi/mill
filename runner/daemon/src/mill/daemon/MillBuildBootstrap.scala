@@ -87,129 +87,35 @@ class MillBuildBootstrap(
     // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val currentRoot = recRoot(topLevelProjectRoot, depth)
 
-    val currentRootContainsBuildFile = rootBuildFileNames.asScala
-      .exists(rootBuildFileName => os.exists(currentRoot / rootBuildFileName))
-
     val nestedState =
-      if (depth == 0) evaluateRec(depth + 1)
-      else if (currentRootContainsBuildFile) evaluateRec(depth + 1)
-      else {
-        val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
+      if (containsBuildFile(currentRoot)) evaluateRec(depth + 1)
+      else makeBootstrapState(currentRoot)
 
-        val (mod, error) = makeBootstrapModule(currentRoot, foundRootBuildFileName) match {
-          case Result.Success(bootstrapModule) => (Some(bootstrapModule), None)
-          case f: Result.Failure => (None, Some(Util.formatError(f, logger.prompt.errorColor)))
-        }
+    val nestedFrames = nestedState.frames
 
-        val bootstrapEvalWatched =
-          Watchable.Path.from(PathRef(topLevelProjectRoot / foundRootBuildFileName))
+    val requestedDepth = computeRequestedDepth(requestedMetaLevel, depth, nestedFrames.size)
 
-        RunnerState(mod, Nil, error, Some(foundRootBuildFileName), Seq(bootstrapEvalWatched))
-      }
-
-    val totalMetaLevels = depth + nestedState.frames.size
-
-    // positive (0-based):  0 means workspace build,  1 means first meta-build, ...
-    // negative (1-based): -1 means bootstrap build, -2 means one level above, ...
-    val requestedDepth = requestedMetaLevel match {
-      case Some(l) if l >= 0 => l
-      case Some(l) if l < 0 => totalMetaLevels + 1 + l
-      case None => 0
-    }
-
-    if (nestedState.errorOpt.isDefined) {
-      nestedState.add(errorOpt = nestedState.errorOpt)
-    } else if (depth == 0 && (requestedDepth > nestedState.frames.size || requestedDepth < 0)) {
+    // If an earlier frame errored out, just propagate the error to this frame
+    if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
+    else if (depth == 0 && (requestedDepth > nestedFrames.size || requestedDepth < 0)) {
       // User has requested a frame depth, we actually don't have
-      val msg =
-        s"Invalid selected meta-level ${requestedMetaLevel.getOrElse(0)}. " +
-          s"Valid range: 0 .. ${nestedState.frames.size} (or -1 .. -${nestedState.frames.size + 1})"
-
-      nestedState.add(errorOpt = Some(msg))
-    } else if (nestedState.frames.headOption.exists(_.classLoaderOpt.isEmpty)) {
-      // Skip this depth if final tasks already ran at a deeper level, and `classLoaderOpt` is empty
+      nestedState.add(errorOpt = Some(invalidLevelMsg(requestedMetaLevel, nestedFrames.size)))
+    } else if (nestedFrames.headOption.exists(_.classLoaderOpt.isEmpty)) {
+      // Skip this depth if final tasks already ran at a deeper level due to `--meta-level`
+      // or `@nonBootstrapped`, and `classLoaderOpt` is empty
       nestedState.add(frame = RunnerState.Frame.empty)
     } else {
-      val rootModuleRes = nestedState.frames.headOption match {
+      val rootModuleRes = nestedFrames.headOption match {
         case None => Result.Success(BuildFileApi.Bootstrap(nestedState.bootstrapModuleOpt.get))
         case Some(nestedFrame) => getRootModule(nestedFrame.classLoaderOpt.get)
       }
 
-      rootModuleRes.flatMap { buildFileApi =>
-        def tryReadParent(fileName: String) = {
-          val p = currentRoot / ".." / fileName
-          Option.when(os.exists(p)) {
-            p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName)
-          }
-        }
-
-        (buildFileApi, tryReadParent("build.mill.yaml").orElse(tryReadParent("build.mill")))
-      } match {
+      rootModuleRes match {
         case f: Result.Failure =>
-          nestedState.add(errorOpt =
-            Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
-          )
+          nestedState.add(errorOpt = Some(Util.formatError(f, logger.prompt.errorColor)))
 
-        case Result.Success((buildFileApi, staticBuildOverrides0)) =>
-
-          val staticBuildOverrideFiles =
-            staticBuildOverrides0.toSeq ++
-              nestedState.frames.headOption.fold(Map())(_.buildOverrideFiles)
-
-          val classloaderChanged =
-            prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
-              nestedState.frames.headOption.flatMap(_.classLoaderOpt)
-
-          val prevFrameOpt = prevRunnerState.frames.lift(depth)
-          val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
-
-          // If the classloader changed, it means the old classloader was closed
-          // and all workers were closed as well, so we return an empty workerCache
-          // for the next evaluation
-          val newWorkerCache =
-            if (classloaderChanged) Map.empty
-            else prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
-
-          Using.resource(makeEvaluator(
-            projectRoot = topLevelProjectRoot,
-            output = output,
-            keepGoing = keepGoing,
-            env = env,
-            logger = logger,
-            ec = ec,
-            allowPositionalCommandArgs = allowPositionalCommandArgs,
-            systemExit = systemExit,
-            streams0 = streams0,
-            selectiveExecution = selectiveExecution,
-            offline = offline,
-            useFileLocks = useFileLocks,
-            workerCache = newWorkerCache,
-            codeSignatures =
-              nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
-            rootModule = buildFileApi.rootModule,
-            // We want to use the grandparent buildHash, rather than the parent
-            // buildHash, because the parent build changes are instead detected
-            // by analyzing the scriptImportGraph in a more fine-grained manner.
-            millClassloaderSigHash = nestedState
-              .frames
-              .dropRight(1)
-              .headOption
-              .map(_.runClasspath)
-              .getOrElse(millBootClasspathPathRefs)
-              .map(p => (os.Path(p.javaPath), p.sig))
-              .hashCode(),
-            millClassloaderIdentityHash = nestedState
-              .frames
-              .headOption
-              .flatMap(_.classLoaderOpt)
-              .map(_.hashCode())
-              .getOrElse(0),
-            depth = depth,
-            actualBuildFileName = nestedState.buildFile,
-            enableTicker = enableTicker,
-            staticBuildOverrideFiles = staticBuildOverrideFiles.toMap,
-            daemonMode = daemonMode
-          )) { evaluator =>
+        case Result.Success(buildFileApi) =>
+          Using.resource(makeEvaluator(nestedState, buildFileApi.rootModule, depth)) { evaluator =>
             // Check if all requested tasks are @nonBootstrapped
             val shouldShortCircuit =
               // When there is an explicit `--meta-level`, use that and ignore any
@@ -230,14 +136,7 @@ class MillBuildBootstrap(
               // evaluation will also fail, but moduleWatched will be properly captured.
               case _ =>
                 if (depth > requestedDepth) {
-                  processRunClasspath(
-                    nestedState,
-                    buildFileApi,
-                    evaluator,
-                    prevFrameOpt,
-                    prevOuterFrameOpt,
-                    depth
-                  )
+                  processRunClasspath(nestedState, buildFileApi, evaluator, depth)
                 } else if (depth == requestedDepth) {
                   processFinalTasks(nestedState, buildFileApi, evaluator)
                 } else ??? // should be handled by outer conditional
@@ -245,7 +144,87 @@ class MillBuildBootstrap(
           }
       }
     }
+  }
 
+  private def makeBootstrapState(currentRoot: os.Path): RunnerState = {
+    val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
+
+    val (mod, error) = makeBootstrapModule(currentRoot, foundRootBuildFileName) match {
+      case Result.Success(bootstrapModule) => (Some(bootstrapModule), None)
+      case f: Result.Failure => (None, Some(Util.formatError(f, logger.prompt.errorColor)))
+    }
+
+    val bootstrapEvalWatched =
+      Watchable.Path.from(PathRef(topLevelProjectRoot / foundRootBuildFileName))
+
+    RunnerState(mod, Nil, error, Some(foundRootBuildFileName), Seq(bootstrapEvalWatched))
+  }
+
+  def makeEvaluator(
+      nestedState: RunnerState,
+      rootModule: RootModuleApi,
+      depth: Int
+  ): EvaluatorApi = {
+    val currentRoot = recRoot(topLevelProjectRoot, depth)
+    val staticBuildOverrides0 = tryReadParent(currentRoot, "build.mill.yaml")
+      .orElse(tryReadParent(currentRoot, "build.mill"))
+
+    val staticBuildOverrideFiles =
+      staticBuildOverrides0.toSeq ++
+        nestedState.frames.headOption.fold(Map())(_.buildOverrideFiles)
+
+    val classloaderChanged =
+      prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
+        nestedState.frames.headOption.flatMap(_.classLoaderOpt)
+
+    val prevFrameOpt = prevRunnerState.frames.lift(depth)
+
+    // If the classloader changed, it means the old classloader was closed
+    // and all workers were closed as well, so we return an empty workerCache
+    // for the next evaluation
+    val workerCache =
+      if (classloaderChanged) Map.empty
+      else prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
+
+    makeEvaluator0(
+      projectRoot = topLevelProjectRoot,
+      output = output,
+      keepGoing = keepGoing,
+      env = env,
+      logger = logger,
+      ec = ec,
+      allowPositionalCommandArgs = allowPositionalCommandArgs,
+      systemExit = systemExit,
+      streams0 = streams0,
+      selectiveExecution = selectiveExecution,
+      offline = offline,
+      useFileLocks = useFileLocks,
+      workerCache = workerCache,
+      codeSignatures = nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+      rootModule = rootModule,
+      // We want to use the grandparent buildHash, rather than the parent
+      // buildHash, because the parent build changes are instead detected
+      // by analyzing the scriptImportGraph in a more fine-grained manner.
+      millClassloaderSigHash = nestedState
+        .frames
+        .dropRight(1)
+        .headOption
+        .map(_.runClasspath)
+        .getOrElse(millBootClasspathPathRefs)
+        .map(p => (os.Path(p.javaPath), p.sig))
+        .hashCode(),
+      millClassloaderIdentityHash = nestedState
+        .frames
+        .headOption
+        .flatMap(_.classLoaderOpt)
+        .map(_.hashCode())
+        .getOrElse(0),
+      depth = depth,
+      actualBuildFileName = nestedState.buildFile,
+      enableTicker = enableTicker,
+      staticBuildOverrideFiles = staticBuildOverrideFiles.toMap,
+      daemonMode = daemonMode
+    )
   }
 
   private def makeBootstrapModule(currentRoot: Path, foundRootBuildFileName: String) = {
@@ -270,10 +249,11 @@ class MillBuildBootstrap(
       nestedState: RunnerState,
       buildFileApi: BuildFileApi,
       evaluator: EvaluatorApi,
-      prevFrameOpt: Option[RunnerState.Frame],
-      prevOuterFrameOpt: Option[RunnerState.Frame],
       depth: Int
   ): RunnerState = {
+    val prevFrameOpt = prevRunnerState.frames.lift(depth)
+    val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
+
     evaluateWithWatches(
       buildFileApi,
       evaluator,
@@ -411,7 +391,7 @@ class MillBuildBootstrap(
 object MillBuildBootstrap {
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
-  def makeEvaluator(
+  def makeEvaluator0(
       projectRoot: os.Path,
       output: os.Path,
       keepGoing: Boolean,
@@ -602,5 +582,33 @@ object MillBuildBootstrap {
   def recRoot(projectRoot: os.Path, depth: Int): os.Path = projectRoot / Seq.fill(depth)(millBuild)
 
   def recOut(output: os.Path, depth: Int): os.Path = output / Seq.fill(depth)(millBuild)
+
+  def containsBuildFile(root: os.Path): Boolean =
+    rootBuildFileNames.asScala.exists(name => os.exists(root / name))
+
+  def tryReadParent(
+      currentRoot: os.Path,
+      fileName: String
+  ): Option[(java.nio.file.Path, String)] = {
+    val p = currentRoot / ".." / fileName
+    Option.when(os.exists(p)) {
+      p.toNIO -> mill.constants.Util.readBuildHeader(p.toNIO, fileName)
+    }
+  }
+
+  def invalidLevelMsg(requestedMetaLevel: Option[Int], framesSize: Int): String =
+    s"Invalid selected meta-level ${requestedMetaLevel.getOrElse(0)}. " +
+      s"Valid range: 0 .. $framesSize (or -1 .. -${framesSize + 1})"
+
+  // positive (0-based):  0 means workspace build,  1 means first meta-build, ...
+  // negative (1-based): -1 means bootstrap build, -2 means one level above, ...
+  def computeRequestedDepth(requestedMetaLevel: Option[Int], depth: Int, framesSize: Int): Int =
+    requestedMetaLevel match {
+      case Some(l) if l >= 0 => l
+      case Some(l) if l < 0 =>
+        val totalMetaLevels = depth + framesSize
+        totalMetaLevels + 1 + l
+      case None => 0
+    }
 
 }

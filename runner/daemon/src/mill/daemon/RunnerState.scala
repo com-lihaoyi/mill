@@ -46,7 +46,7 @@ case class RunnerState(
     // Interactive tasks that were skipped because they require no-daemon mode.
     // When running in daemon mode, these tasks are not executed and should be
     // re-run by the launcher in no-daemon mode.
-    skippedInteractiveTasks: Seq[String] = Nil
+    override val skippedInteractiveTasks: Seq[String] = Nil
 ) extends Watching.Result {
   def add(
       frame: RunnerState.Frame = RunnerState.Frame.empty,

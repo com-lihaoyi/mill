@@ -48,5 +48,5 @@ trait ExecutionResults extends ExecutionResultsApi {
    * When running in daemon mode, interactive tasks are not executed and their
    * names are returned here so the launcher can re-run them in no-daemon mode.
    */
-  def skippedInteractiveTasks: Seq[String] = Nil
+  override def skippedInteractiveTasks: Seq[String] = Nil
 }
