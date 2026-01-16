@@ -1,5 +1,5 @@
-// As an example of running a task on the meta-build, you can run the `inspect` or
-// `visualizePlan` or `runClasspath`commands to see what tasks the meta-build runs to compile your
+// As an example of running a task on the meta-build, you can run the `inspect`,
+// `visualizePlan` or `runClasspath` commands to see what tasks the meta-build runs to compile your
 // `build.mill` files and get them ready to use
 
 package build
@@ -25,6 +25,11 @@ Inputs:
 ]
 
 > ./mill --meta-level 1 show runClasspath
+[
+  ".../mill-libs_3-....jar",
+  ".../scala-library-....jar",
+  ...
+]
 
 */
 
