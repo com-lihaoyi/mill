@@ -224,17 +224,6 @@ object Jvm {
    * where the actual terminal is. Otherwise runs locally.
    *
    * This is used for interactive commands like repl, console, and jshell.
-   *
-   * @param mainClass The main class to run
-   * @param mainArgs Args passed to the `mainClass` main method
-   * @param javaHome Optional Java Home override
-   * @param jvmArgs Arguments given to the forked JVM
-   * @param classPath The classpath
-   * @param cpPassingJarPath When `Some`, a temporary JAR is created with a Class-Path manifest entry
-   * @param env Environment variables
-   * @param cwd Working directory
-   * @param propagateEnv If `true` then current environment variables are propagated
-   * @return exit code of the subprocess
    */
   def callInteractiveProcess(
       mainClass: String,
