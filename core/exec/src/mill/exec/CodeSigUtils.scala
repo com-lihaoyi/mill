@@ -102,10 +102,22 @@ object CodeSigUtils {
 
     val methodClass = methodOpt
       .nextOption()
-      .getOrElse(throw new MillException(
-        s"Could not detect the parent class of task ${namedTask}. " +
-          s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
-      ))
+      .getOrElse {
+        mill.constants.DebugLog.println(s"DEBUG codeSigForTask: namedTask=$namedTask")
+        mill.constants.DebugLog.println(s"DEBUG codeSigForTask: segments=${namedTask.ctx.segments.value}")
+        mill.constants.DebugLog.println(s"DEBUG codeSigForTask: superTaskName=$superTaskName")
+        mill.constants.DebugLog.println(s"DEBUG codeSigForTask: encodedTaskName=$encodedTaskName")
+        mill.constants.DebugLog.println(s"DEBUG codeSigForTask: superClassName=$superClassName")
+        mill.constants.DebugLog.println(s"DEBUG codeSigForTask: enclosingCls=${namedTask.ctx.enclosingCls}")
+        mill.constants.DebugLog.println(s"DEBUG codeSigForTask: transitiveClasses=${classToTransitiveClasses(namedTask.ctx.enclosingCls)}")
+        for (parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls)) {
+          mill.constants.DebugLog.println(s"DEBUG codeSigForTask: parentCls=$parentCls, matches=${superClassName.forall(scn => classNameMatches(parentCls, scn))}, methods=${allTransitiveClassMethods(parentCls).keys.toSeq.sorted}")
+        }
+        throw new MillException(
+          s"Could not detect the parent class of task ${namedTask}. " +
+            s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
+        )
+      }
       .getDeclaringClass.getName
 
     val expectedName = methodClass + "#" + encodedTaskName + "()mill.api.Task$Simple"

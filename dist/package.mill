@@ -9,6 +9,7 @@ import mill.testkit.Chunk
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import millbuild.*
 import mill.api.BuildCtx
+import mill.contrib.proguard.Proguard
 import scala.util.Using
 import scala.util.Properties
 import java.nio.file.Files
@@ -380,5 +381,49 @@ object `package` extends MillJavaModule with DistModule {
     )
 
     def jvmId = Settings.graalvmJvmId
+  }
+
+  object minified extends MillJavaModule with Proguard with DistModule {
+    def proguardVersion = "7.8.2"
+
+    def artifactName = Task { s"${build.dist.artifactName()}-minified" }
+
+    def localBinName = "mill-minified.jar"
+
+    // Use the dist assembly as input
+    override def inJar: T[PathRef] = build.dist.assembly()
+
+    // Inherit classpath and main class from dist
+    override def moduleDeps = Seq(build.dist)
+    override def mainClass = Task { build.dist.mainClass() }
+
+    def executableRaw = Task {
+      val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+      os.copy(proguard().path, Task.dest / filename)
+      PathRef(Task.dest / filename)
+    }
+
+    // Disable obfuscation - Mill is open source and obfuscation breaks reflection
+    override def obfuscate = Task { false }
+
+    // Disable optimization - it corrupts bytecode stack map frames in complex Scala code
+    override def optimize = Task { false }
+
+    override def additionalOptions: T[Seq[String]] = Task {
+      Seq(
+        // From Proguard trait defaults
+        "-dontwarn java.lang.invoke.MethodHandle",
+        "-dontwarn scala.AnyKind",
+        // Suppress all other warnings about missing classes - the Mill jar bundles many
+        // dependencies that have optional runtime dependencies we don't need
+        "-dontwarn **",
+
+        // Keep Scala lazy val fields (used by Scala 3 lazy val implementation)
+        "-keepclassmembers class * { ** *$lzy1; }",
+
+        // Keep all fields accessed via MethodHandles/VarHandles (used by Scala 3 lazy vals)
+        "-keepclassmembers class * { !transient <fields>; }"
+      )
+    }
   }
 }
