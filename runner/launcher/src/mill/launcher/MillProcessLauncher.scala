@@ -31,17 +31,13 @@ object MillProcessLauncher {
       args
 
     var interrupted = false
-    try {
-      val p = configureRunMillProcess(cmd, processDir)
-      p.waitFor()
-    } catch {
+    try configureRunMillProcess(cmd, processDir).waitFor()
+    catch {
       case e: InterruptedException =>
         interrupted = true
         throw e
     } finally {
-      if (!interrupted && os.exists(processDir)) {
-        os.remove.all(processDir)
-      }
+      if (!interrupted && os.exists(processDir)) os.remove.all(processDir)
     }
   }
 

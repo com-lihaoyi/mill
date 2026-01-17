@@ -30,9 +30,11 @@ object MillLauncherMain {
     val runNoDaemon = parsedConfig.exists(_.noDaemonEnabled > 0) || bspMode
 
     val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
-    exitInTestsAfterBspCheck()
+    if (System.getenv("MILL_TEST_EXIT_AFTER_BSP_CHECK") != null) System.exit(0)
     val outDir = OutFiles.OutFiles.outFor(outMode)
-
+    val logFile = os.Path(outDir, os.pwd) / "mill-launcher/log"
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
+    val log: String => Unit = s => os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n")
     if (outMode == OutFolderMode.BSP) {
       val message = if (OutFiles.OutFiles.mergeBspOut) {
         s"Mill is running in BSP mode and '${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable " +
@@ -57,9 +59,8 @@ object MillLauncherMain {
       () => CoursierClient.resolveMillDaemon(),
       value => value.forall(s => os.exists(os.Path(s)))
     )
-
-    if (runNoDaemon) {
-      try {
+    try {
+      if (runNoDaemon) {
         val mainClass = if (bspMode) "mill.daemon.MillBspMain" else "mill.daemon.MillNoDaemonMain"
         val exitCode = MillProcessLauncher.launchMillNoDaemon(
           args.toSeq,
@@ -69,19 +70,11 @@ object MillLauncherMain {
           useFileLocks
         )
         System.exit(exitCode)
-      } catch {
-        case e: mill.api.daemon.MillException =>
-          // Print clean error message without stack trace for expected errors
-          System.err.println(e.getMessage)
-          System.exit(1)
-      }
-    } else {
-      val logs = ArrayBuffer[String]()
-      try {
+      } else {
         // start in client-server mode
         val optsArgs = MillProcessLauncher.millOpts(outMode) ++ args
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
-        val log: String => Unit = s => logs += s"${formatter.format(Instant.now())} $s"
+
+
 
         val launcher = new MillServerLauncher(
           stdout = System.out,
@@ -116,38 +109,19 @@ object MillLauncherMain {
           System.err.println(s"Max launcher retries exceeded ($maxRetries), exiting")
         }
         System.exit(exitCode)
-      } catch {
-        case e: Exception =>
-          handleLauncherException(e, outDir, logs.toSeq)
-          System.exit(1)
       }
-    }
-  }
-
-  private def exitInTestsAfterBspCheck(): Unit = {
-    if (System.getenv("MILL_TEST_EXIT_AFTER_BSP_CHECK") != null) {
-      System.exit(0)
-    }
-  }
-
-  private def handleLauncherException(e: Exception, outDir: String, logs: Seq[String]): Unit = {
-    // For MillException, just print the message without stack trace
-    e match {
-      case _: mill.api.daemon.MillException => System.err.println(e.getMessage)
-      case _ =>
-        val errorFile = os.Path(outDir, os.pwd) / "mill-launcher-error.log"
+    } catch {
+      case e: mill.api.daemon.MillException =>
+        System.err.println(e.getMessage)
+        System.exit(1)
+      case e =>
         val sw = new StringWriter()
         e.printStackTrace(new PrintWriter(sw))
 
-        val content =
-          "Mill launcher failed with unknown exception.\n\n" +
-            "Exception:\n" +
-            sw.toString +
-            "\nLogs:\n" +
-            logs.map(_ + "\n").mkString
+        log(sw.toString)
 
-        os.write.over(errorFile, content, createFolders = true)
-        System.err.println(s"Mill launcher failed. See ${errorFile.relativeTo(os.pwd)} for details.")
-    }=
+        System.err.println(s"Mill launcher failed. See ${logFile.relativeTo(os.pwd)} for details.")
+        System.exit(1)
+    }
   }
 }
