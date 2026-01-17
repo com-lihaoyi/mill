@@ -6,6 +6,13 @@ import upickle.{Reader, Writer}
 
 import scala.util.control.NonFatal
 
+/**
+ * Exception thrown to stop the RPC server loop while still sending a response.
+ * This allows a controlled shutdown where the client receives a proper response
+ * before the server stops processing requests.
+ */
+class StopWithResponse[R](val response: R) extends Exception
+
 /** Default implementation for the [[MillRpcServer]]. */
 trait MillRpcServer[
     Initialize: Reader,
@@ -69,6 +76,10 @@ trait MillRpcServer[
     val result =
       try Right(run())
       catch {
+        case e: StopWithResponse[Response @unchecked] =>
+          // Send the response, then stop the RPC loop
+          sendToClient(MillRpcServerToClient.Response(Right(e.response)))
+          return false
         case _: InterruptedException => return false
         case NonFatal(e) => Left(RpcThrowable(e))
       }
