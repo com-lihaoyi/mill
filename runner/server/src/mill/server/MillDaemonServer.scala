@@ -100,10 +100,13 @@ abstract class MillDaemonServer[State](
     val consoleLogFile = daemonDir / DaemonFiles.consoleLog
     val consoleLogStream = os.write.outputStream(consoleLogFile, createFolders = true)
 
+<<<<<<< HEAD
     // Track the exit code from normal command completion.
     // Initialize to exitCodeServerTerminated so interrupted clients get the right code.
     var commandExitCode = exitCodeServerTerminated
 
+=======
+>>>>>>> main
     val rpcServer = new DaemonRpcServer(
       serverName = s"MillDaemon-${connectionData.socketName}",
       transport = transport,
@@ -139,7 +142,11 @@ abstract class MillDaemonServer[State](
             }
             if (javaVersionChanged) {
               teeStderr.println(
+<<<<<<< HEAD
                 s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${init.clientJavaVersion.getOrElse("<system>")}), re-starting server"
+=======
+                s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${Option(init.clientJavaVersion).getOrElse("<system>")}), re-starting server"
+>>>>>>> main
               )
             }
 

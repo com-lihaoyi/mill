@@ -163,8 +163,8 @@ object MillProcessLauncher {
 
     val jvmIndexVersion = loadMillConfig(ConfigConstants.millJvmIndexVersion).headOption
 
-    // Handle "system" specially - return null to use PATH-based Java lookup
-    // (javaExe returns "java" when javaHome is null, using PATH lookup)
+    // Handle "system" specially - return None to use PATH-based Java lookup
+    // (javaExe returns "java" when javaHome is None, using PATH lookup)
     if (jvmVersion == "system") None
     else if (jvmVersion != null) Some(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion))
     else None

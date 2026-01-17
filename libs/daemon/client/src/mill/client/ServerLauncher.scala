@@ -84,6 +84,7 @@ object ServerLauncher {
         try {
           log("launchOrConnectToServer attempt")
 
+<<<<<<< HEAD
           ensureServerIsRunning(
             locks,
             daemonDir,
@@ -92,6 +93,9 @@ object ServerLauncher {
             log,
             millVersion
           ) match {
+=======
+          ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log, millVersion) match {
+>>>>>>> main
             case ServerLaunchResult.Success(server) =>
               Some(connectToServer(daemonDir, server, openSocket, log))
 

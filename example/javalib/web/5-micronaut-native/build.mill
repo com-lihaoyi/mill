@@ -2,99 +2,19 @@ package build
 
 import mill.*
 import javalib.*
+import javalib.micronaut.MicronautNativeAotModule
 import mill.api.{PathRef, Task}
-import mill.util.Jvm
 import os.zip.ZipSource
 
 import java.util.jar.JarInputStream
 
-object `package` extends MavenModule, NativeImageModule { outer =>
+object `package` extends MavenModule, MicronautNativeAotModule {
+
+  def micronautPackage = "hello.world"
 
   override def bomMvnDeps = Seq(
     mvn"io.micronaut.platform:micronaut-platform:4.10.3"
   )
-
-  /**
-   * TODO Mill support for AOT
-   */
-  def resolvedMicronautAotCli: T[Seq[PathRef]] = defaultResolver().classpath(
-    Seq(
-      mvn"io.micronaut.aot:micronaut-aot-cli:2.9.0",
-      mvn"io.micronaut.aot:micronaut-aot-api:2.9.0",
-      mvn"io.micronaut.aot:micronaut-aot-core:2.9.0",
-      mvn"io.micronaut.aot:micronaut-aot-std-optimizers:2.9.0"
-    )
-  )
-
-  /**
-   * TODO Mill support for AOT
-   * More information on configuring Micronaut AOT can be found
-   * in [[https://micronaut-projects.github.io/micronaut-aot/latest/guide/configurationreference.html]]
-   */
-  def aotConfigFile: T[PathRef] = Task {
-    val file = Task.dest / "micronaut-aot.properties"
-    os.write(
-      file,
-      """
-        |logback.xml.to.java.enabled=true
-        |netty.properties.enabled=true
-        |deduce.environment.enabled=true
-        |serviceloading.native.enabled=false
-        |precompute.environment.properties.enabled=true
-        |sealed.property.source.enabled=true
-        |cached.environment.enabled=true
-        |graalvm.config.enabled=true
-      """.stripMargin
-    )
-    PathRef(file)
-  }
-
-  /**
-   * The settings can be found in
-   * [[https://github.com/micronaut-projects/micronaut-aot/blob/3.0.x/aot-cli/src/main/java/io/micronaut/aot/cli/Main.java]]
-   */
-  def micronautProcessAOT: T[PathRef] = Task {
-    val dest = Task.dest
-
-    val args = Seq(
-      "--classpath",
-      (runClasspath() ++ resolvedMicronautAotCli()).map(_.path).mkString(":"),
-      "--package",
-      "hello.world",
-      "--runtime",
-      "native",
-      "--config",
-      aotConfigFile().path.toString,
-      "--output",
-      dest.toString
-    )
-
-    Jvm.callProcess(
-      mainClass = "io.micronaut.aot.cli.Main",
-      mainArgs = args,
-      classPath = resolvedMicronautAotCli().map(_.path)
-    )
-
-    PathRef(dest)
-  }
-
-  override def nativeImageClasspath: Task.Simple[Seq[PathRef]] = Task {
-    val aotClasses = Seq(PathRef(outer.micronautProcessAOT().path / "classes"))
-    super.nativeImageClasspath() ++ aotClasses
-  }
-
-  def nettyDeps: T[Seq[Dep]] = Seq(
-    mvn"io.micronaut:micronaut-http-server-netty"
-  )
-
-  override def nativeImageOptions: Task.Simple[Seq[String]] = Task {
-    val configurationsPath = outer.micronautProcessAOT().path / "classes/META-INF"
-    super.nativeImageOptions() ++ Seq(
-      "--no-fallback",
-      "--configurations-path",
-      configurationsPath.toString
-    )
-  }
 
   def mvnDeps = Seq(
     mvn"io.micronaut:micronaut-http-client",
@@ -130,8 +50,8 @@ object `package` extends MavenModule, NativeImageModule { outer =>
 
 }
 
-// This example demonstrates how to configure mill for a simple micronaut project.
-// It manually configures Micronaut's AOT and feeds the result into the native image process.
+// This example demonstrates how to configure mill for a simple micronaut native project.
+// It uses Micronaut AOT to optimize the application for the native image generation.
 
 /** Usage
 
