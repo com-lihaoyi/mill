@@ -346,7 +346,7 @@ object Resolve {
     } match {
       case mainargs.Result.Success(v: Task.Command[_]) => Result.Success(v)
       case mainargs.Result.Failure.Exception(e) =>
-        mill.api.daemon.ExecResult.exceptionToFailure(e, new java.lang.Exception())
+        Result.Failure.fromException(e, new java.lang.Exception().getStackTrace.length)
       case f: mainargs.Result.Failure =>
         Result.Failure(
           mainargs.Renderer.renderResult(

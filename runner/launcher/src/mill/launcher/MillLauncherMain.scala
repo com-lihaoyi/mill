@@ -1,7 +1,7 @@
 package mill.launcher
 
 import mill.client._
-import mill.constants.{BuildInfo, EnvVars, OutFiles, OutFolderMode}
+import mill.constants.{ConfigConstants, EnvVars, OutFiles, OutFolderMode}
 import mill.internal.MillCliConfig
 
 import java.io.{PrintWriter, StringWriter}
@@ -36,7 +36,7 @@ object MillLauncherMain {
     val formatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
     val log: String => Unit =
-      s => os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n")
+      s => os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
     if (outMode == OutFolderMode.BSP) {
       val message = if (OutFiles.OutFiles.mergeBspOut) {
         s"Mill is running in BSP mode and '${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable " +
@@ -54,13 +54,7 @@ object MillLauncherMain {
 
     coursier.Resolve.proxySetup()
 
-    val runnerClasspath = MillProcessLauncher.cachedComputedValue0(
-      outMode,
-      "resolve-runner",
-      BuildInfo.millVersion,
-      () => CoursierClient.resolveMillDaemon(),
-      value => value.forall(s => os.exists(os.Path(s)))
-    )
+    val runnerClasspath = CoursierClient.resolveMillDaemon()
     try {
       if (runNoDaemon) {
         val mainClass = if (bspMode) "mill.daemon.MillBspMain" else "mill.daemon.MillNoDaemonMain"
@@ -74,7 +68,7 @@ object MillLauncherMain {
         System.exit(exitCode)
       } else {
         // start in client-server mode
-        val optsArgs = MillProcessLauncher.millOpts(outMode) ++ args
+        val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts) ++ args
 
         val launcher = new MillServerLauncher(
           stdout = System.out,
@@ -95,7 +89,7 @@ object MillLauncherMain {
         )
 
         val daemonDir = os.Path(outDir, os.pwd) / OutFiles.OutFiles.millDaemon
-        val javaHome = MillProcessLauncher.javaHome(outMode)
+        val javaHome = MillProcessLauncher.javaHome()
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir)
         var exitCode = launcher.run(daemonDir, javaHome, log)

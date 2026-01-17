@@ -464,6 +464,7 @@ object Server {
         }
 
       def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
+      def consoleLogPath = out / OutFiles.millDaemon / DaemonFiles.consoleLog
 
       setIdle(true)
       Using.resource {
@@ -471,7 +472,10 @@ object Server {
         if (tryLocked.isLocked) tryLocked
         else if (noWaitForBuildLock) throw new Exception(s"$activeTaskPrefix failing")
         else {
-          streams.err.println(s"$activeTaskPrefix waiting for it to be done...")
+          streams.err.println(
+            s"$activeTaskPrefix waiting for it to be done... " +
+              s"(tail -f ${consoleLogPath.relativeTo(os.pwd)} to see its progress)"
+          )
           outLock.lock()
         }
       } { _ =>

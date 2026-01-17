@@ -314,6 +314,40 @@ trait ClientServerTestsBase extends TestSuite {
       )
     }
 
+    test("versionMismatchRestartsDaemon") - retry(3) {
+      if (!Util.isWindows) {
+        val tester = new Tester(testLogEvenWhenServerIdWrong = true)
+
+        // First client spawns server pid:-1
+        val res1 = tester(args = Array("world"))
+        assert(
+          res1.out == s"helloworld$ENDL",
+          res1.err == s"HELLOworld$ENDL"
+        )
+
+        // Mangle the version file to simulate a version mismatch
+        val versionFile = res1.daemonDir / DaemonFiles.millVersion
+        os.write.over(versionFile, "wrong-version")
+
+        // Second client should detect mismatch, terminate old server, and spawn new one (pid:-2)
+        val res2 = tester(args = Array(" WORLD"))
+        assert(
+          res2.out == s"hello WORLD$ENDL",
+          res2.err == s"HELLO WORLD$ENDL"
+        )
+
+        // Wait for logs to be written
+        Thread.sleep(500)
+
+        // Verify that the old server (pid:-1) was terminated due to processId file being removed
+        // (which happens when version mismatch is detected)
+        assert(res2.logsForServerId("pid:-1").exists(_.contains("processId file missing")))
+
+        // Verify that a new server (pid:-2) was spawned
+        assert(res2.logsForServerId("pid:-2").nonEmpty)
+      }
+    }
+
     test("envVars") - retry(3) {
       val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       // Make sure the simple "have the client start a server and

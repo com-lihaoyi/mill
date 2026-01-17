@@ -17,7 +17,8 @@ class MillServerLauncher(
     args: Seq[String],
     forceFailureForTestingMillisDelay: Int,
     useFileLocks: Boolean,
-    initServerFactory: (os.Path, Locks) => LaunchedServer
+    initServerFactory: (os.Path, Locks) => LaunchedServer,
+    millVersion: String = BuildInfo.millVersion
 ) {
   private val serverInitWaitMillis = 10000
 
@@ -37,7 +38,8 @@ class MillServerLauncher(
         System.exit(1)
       },
       s => log(s),
-      true
+      true,
+      millVersion = Some(millVersion)
     )
 
     try {
