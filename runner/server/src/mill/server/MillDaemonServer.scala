@@ -114,9 +114,9 @@ abstract class MillDaemonServer[State](
         val teeStdout = new mill.internal.MultiStream(stdout, consoleLogStream)
         val teeStderr = new mill.internal.MultiStream(stderr, consoleLogStream)
 
-        // Check for version changes
+        // Check for version changes (only if we already have a stored version)
         val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
-        val javaVersionChanged = lastJavaVersion != init.clientJavaVersion
+        val javaVersionChanged = lastJavaVersion.isDefined && lastJavaVersion != init.clientJavaVersion
 
         if (millVersionChanged || javaVersionChanged) {
           Server.withOutLock(
