@@ -439,7 +439,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
           else "scala.tools.nsc.MainGenericRunner",
         classPath = classPath,
-        jvmArgs = forkArgs(),
+        jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
         env = allForkEnv(),
         mainArgs =
           Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
@@ -518,7 +518,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         Jvm.callInteractiveProcess(
           mainClass = mainClass,
           classPath = ammoniteReplClasspath().map(_.path).toVector,
-          jvmArgs = forkArgs(),
+          jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
           env = allForkEnv(),
           mainArgs = replOptions,
           cwd = forkWorkingDir()

@@ -109,14 +109,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           )
         }
 
-        val javaMajorVersion = Jvm.getJavaMajorVersion(key.javaHome)
-        val suppressArgs =
-          // Suppress Unsafe warnings on Java >=23, since we use Scala modules built in Scala-3.7 for
-          // compatibility with Java >=11, and Scala-3.7 generates such warnings spuriously
-          Option.when(javaMajorVersion >= 23) { "--sun-misc-unsafe-memory-access=allow" } ++
-            // Silence another benign warning, this one raised by a `com.swoval:file-tree-views`
-            // which is transitively used by Zinc for faster filesystem operations
-            Option.when(javaMajorVersion >= 16) { "--enable-native-access=ALL-UNNAMED" }
+        val suppressArgs = Jvm.getJvmSuppressionArgs(key.javaHome)
 
         val launched = ServerLauncher.launchOrConnectToServer(
           locks,
