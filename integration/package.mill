@@ -191,7 +191,7 @@ object `package` extends mill.Module {
       def millIntegrationLauncher = build.dist.native.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
     }
-    object minified extends IntegrationLauncherModule {
+    object proguard extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
     }
