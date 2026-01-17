@@ -1,7 +1,7 @@
 package mill.server
 
 import mill.api.daemon.{StartThread, SystemStreams}
-import mill.client.lock.{Lock, Locks, TryLocked}
+import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, SocketUtil}
 import mill.constants.OutFiles.OutFiles
 import mill.server.Server.ConnectionData
