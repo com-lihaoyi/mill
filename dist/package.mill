@@ -15,17 +15,13 @@ import scala.util.Properties
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 
-trait DistModule extends Module {
+trait DistModule extends RunModule {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.moduleInternal.modules.collect {
     case m: MillPublishJavaModule => m
   }
 
-  /**
-   * A standalone executable JAR with shell script prepended.
-   * This is what gets installed via `installLocal`.
-   */
   def executableRaw: T[PathRef]
 
   def localRepo: T[PathRef] = Task {
@@ -37,18 +33,20 @@ trait DistModule extends Module {
   }
 
   def executable = Task {
-    val jar = executableRaw()
-    val localRepoPath = localRepo().path.toString
+    val rawExecutable = executableRaw()
     if (Properties.isWin) {
       val launcher = Task.dest / "mill.bat"
       val launcherContent =
         s"""@echo off
-           |if defined MILL_LOCAL_TEST_REPO (
-           |  set "MILL_LOCAL_TEST_REPO=$localRepoPath;%MILL_LOCAL_TEST_REPO%"
+           |set "NEW_COURSIER_REPOSITORIES=${localRepo().path.toNIO.toUri.toASCIIString}|ivy2Local|central"
+           |if defined COURSIER_REPOSITORIES (
+           |  set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|%COURSIER_REPOSITORIES%"
            |) else (
-           |  set "MILL_LOCAL_TEST_REPO=$localRepoPath"
+           |  set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|ivy2Local|central"
            |)
-           |"${jar.path.toString.replace("\"", "\\\"")}" %*
+           |set "COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%"
+           |set NEW_COURSIER_REPOSITORIES=
+           |"${rawExecutable.path.toString.replace("\"", "\\\"")}" %*
            |if errorlevel 1 exit /b %errorlevel%
            |""".stripMargin
       os.write(launcher, launcherContent)
@@ -58,8 +56,8 @@ trait DistModule extends Module {
       val launcherContent =
         s"""#!/usr/bin/env bash
            |set -e
-           |export MILL_LOCAL_TEST_REPO="$localRepoPath$${MILL_LOCAL_TEST_REPO:+:$$MILL_LOCAL_TEST_REPO}"
-           |exec '${jar.path.toString.replace("'", "\\'")}' "$$@"
+           |export COURSIER_REPOSITORIES="${localRepo().path.toNIO.toUri.toASCIIString}|$${COURSIER_REPOSITORIES:-ivy2Local|central}"
+           |exec '${rawExecutable.path.toString.replace("'", "\\'")}' "$$@"
            |""".stripMargin
       os.write(launcher, launcherContent)
       val perms = Files.getPosixFilePermissions(launcher.toNIO)
@@ -165,6 +163,23 @@ trait DistModule extends Module {
       )
     )
   }
+
+  def millClientJvmArgs = Seq(
+    // Avoid reserving a lot of memory for the client, as the client only forward information
+    "-Xmx128m",
+    // Set UTF-8 encoding to fix Unicode character display issues on Windows
+    "-Dfile.encoding=UTF-8",
+    "-Dsun.stdout.encoding=UTF-8",
+    "-Dsun.stderr.encoding=UTF-8"
+  )
+
+  def forkArgs = Task{
+    millClientJvmArgs ++ Seq(
+      // Workaround for Zinc/JNA bug
+      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+      "-Djna.nosys=true"
+    )
+  }
 }
 
 /**
@@ -178,10 +193,10 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
   def localTestExtraModules = allPublishModules
 
-  def localBinName = "mill-proguard-assembly.jar"
+  def localBinName = "mill-proguard.jar"
 
   // Use the raw assembly as input to ProGuard
-  override def inJar: T[PathRef] = raw.assembly()
+  override def inJar: T[PathRef] = assembly()
 
   override def mainClass = Some("mill.launcher.MillLauncherMain")
 
@@ -208,17 +223,94 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     "-keepclassmembers class * { !transient <fields>; }"
   )
 
-  // The executable JAR is the proguard output with the standard shell script prepended,
-  // making it directly executable like the raw assembly
-  def executableRaw: T[PathRef] = Task {
-    val proguardJar = proguard().path
-    val dest = Task.dest / "mill.jar"
-    val script = prependShellScript()
-    val lineSep = if (!script.endsWith("\n")) "\n\r\n" else ""
-    os.write(dest, script + lineSep)
-    os.write.append(dest, os.read.bytes(proguardJar))
-    os.perms.set(dest, "rwxrwxrwx")
-    PathRef(dest)
+  def executableRaw: T[PathRef] = proguard()
+
+  def launcher = Task {
+    val isWin = scala.util.Properties.isWin
+    val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
+
+    val launcherForkArgs = testArgs()
+    val (millArgs, otherArgs) =
+      launcherForkArgs.partition(arg =>
+        arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
+      )
+
+    // Pass Mill options via file, due to small max args limit in Windows
+    val vmOptionsFile = Task.dest / "mill.properties"
+    val millOptionsContent = millArgs
+      .map(_.drop(2).replace("\\", "/")) // drop -D prefix, replace \ with /
+      .mkString("\r\n")
+
+    os.write(vmOptionsFile, millOptionsContent)
+    val jvmArgs = otherArgs ++ millClientJvmArgs ++ List(
+      s"-DMILL_OPTIONS_PATH=$vmOptionsFile"
+    )
+    val classpath = runClasspath().map(_.path.toString)
+    val classpathJar = Task.dest / "classpath.jar"
+    Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+
+    val script = Jvm.launcherUniversalScript(
+      mainClass = mainClass().get,
+      shellClassPath = classpath,
+      cmdClassPath = Seq(classpathJar.toString()),
+      jvmArgs = jvmArgs
+    )
+
+    os.write(outputPath, script)
+
+    if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
+
+    PathRef(outputPath)
+  }
+
+  /**
+   * The raw (unminified) assembly module. Used for integration and example tests
+   * where startup time matters less than build time.
+   */
+  object raw extends MillJavaModule with DistModule {
+
+    def moduleDeps = Seq(build.runner.launcher)
+
+    def localTestExtraModules = allPublishModules
+
+    def localBinName = "mill-assembly.jar"
+
+    def assemblyRules = super.assemblyRules ++ Seq(
+      mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
+    )
+
+    def mainClass = Some("mill.launcher.MillLauncherMain")
+
+    def executableRaw = Task {
+      val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+      os.copy(assembly().path, Task.dest / filename)
+      PathRef(Task.dest / filename)
+    }
+
+    def artifactName = "mill-" + super.artifactName() + "-raw"
+  }
+
+  def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
+    args().value match {
+      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.raw.run")
+      case wd0 +: rest =>
+        val wd = os.Path(wd0, BuildCtx.workspaceRoot)
+        assert(os.exists(wd), s"Folder $wd does not exist")
+        try {
+          os.call(
+            cmd = (launcher().path.toString, rest),
+            env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
+            cwd = wd,
+            stdin = os.Inherit,
+            stdout = os.Inherit,
+            stderr = os.Inherit
+          )
+          mill.api.Result.Success(())
+        } catch {
+          case e: Throwable =>
+            mill.api.Result.Failure(s"dist.raw.run failed with an exception. ${e.getMessage()}")
+        }
+    }
   }
 
   def bootstrapLauncher = Task {
@@ -273,7 +365,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     }
   }
 
-  override def publishArtifacts = Task {
+  def publishArtifacts = Task {
     super.publishArtifacts().copy(payload =
       super.publishArtifacts().payload ++
         exampleZips().map(z => (z, z.path.last)) ++
@@ -285,109 +377,6 @@ object `package` extends MillJavaModule with Proguard with DistModule {
   }
 
   def artifactName = "mill-" + super.artifactName()
-
-  /**
-   * The raw (unminified) assembly module. Used for integration and example tests
-   * where startup time matters less than build time.
-   */
-  object raw extends MillJavaModule with DistModule {
-
-    def moduleDeps = Seq(build.runner.launcher)
-
-    def localTestExtraModules = allPublishModules
-
-    def localBinName = "mill-assembly.jar"
-
-    private def millClientJvmArgs = Seq(
-      // Avoid reserving a lot of memory for the client, as the client only forward information
-      "-Xmx128m",
-      // Set UTF-8 encoding to fix Unicode character display issues on Windows
-      "-Dfile.encoding=UTF-8",
-      "-Dsun.stdout.encoding=UTF-8",
-      "-Dsun.stderr.encoding=UTF-8"
-    )
-
-    def launcher = Task {
-      val isWin = scala.util.Properties.isWin
-      val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
-
-      val launcherForkArgs = testArgs()
-      val (millArgs, otherArgs) =
-        launcherForkArgs.partition(arg =>
-          arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
-        )
-
-      // Pass Mill options via file, due to small max args limit in Windows
-      val vmOptionsFile = Task.dest / "mill.properties"
-      val millOptionsContent = millArgs
-        .map(_.drop(2).replace("\\", "/")) // drop -D prefix, replace \ with /
-        .mkString("\r\n")
-
-      os.write(vmOptionsFile, millOptionsContent)
-      val jvmArgs = otherArgs ++ millClientJvmArgs ++ List(
-        s"-DMILL_OPTIONS_PATH=$vmOptionsFile"
-      )
-      val classpath = runClasspath().map(_.path.toString)
-      val classpathJar = Task.dest / "classpath.jar"
-      Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
-
-      val script = Jvm.launcherUniversalScript(
-        mainClass = mainClass().get,
-        shellClassPath = classpath,
-        cmdClassPath = Seq(classpathJar.toString()),
-        jvmArgs = jvmArgs
-      )
-
-      os.write(outputPath, script)
-
-      if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
-
-      PathRef(outputPath)
-    }
-
-    def assemblyRules = super.assemblyRules ++ Seq(
-      mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
-    )
-
-    def forkArgs = millClientJvmArgs ++ Seq(
-      // Workaround for Zinc/JNA bug
-      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-      "-Djna.nosys=true"
-    )
-
-    def mainClass = Some("mill.launcher.MillLauncherMain")
-
-    def executableRaw = Task {
-      val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-      os.copy(assembly().path, Task.dest / filename)
-      PathRef(Task.dest / filename)
-    }
-
-    def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
-      args().value match {
-        case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.raw.run")
-        case wd0 +: rest =>
-          val wd = os.Path(wd0, BuildCtx.workspaceRoot)
-          assert(os.exists(wd), s"Folder $wd does not exist")
-          try {
-            os.call(
-              cmd = (launcher().path.toString, rest),
-              env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
-              cwd = wd,
-              stdin = os.Inherit,
-              stdout = os.Inherit,
-              stderr = os.Inherit
-            )
-            mill.api.Result.Success(())
-          } catch {
-            case e: Throwable =>
-              mill.api.Result.Failure(s"dist.raw.run failed with an exception. ${e.getMessage()}")
-          }
-      }
-    }
-
-    def artifactName = "mill-" + super.artifactName() + "-raw"
-  }
 
   object native extends mill.scalalib.NativeImageModule with DistModule {
     def finalMainClass = build.dist.raw.finalMainClass()
