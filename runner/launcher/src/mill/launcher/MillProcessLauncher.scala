@@ -201,7 +201,6 @@ object MillProcessLauncher {
       Seq("-cp", runnerClasspath.mkString(File.pathSeparator))
   }
 
-
   private def getTerminalDim(s: String, inheritError: Boolean): Int = {
     val result = os.proc("tput", s).call(
       stdin = os.Inherit,

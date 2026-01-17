@@ -100,7 +100,6 @@ object CoursierClient {
 
     val cacheKey = s"$id:$indexVersion" // Cache key includes jvm id and index version
 
-
     cached[os.Path](
       cacheFile = cacheDir / "java-home",
       cacheKey = cacheKey,

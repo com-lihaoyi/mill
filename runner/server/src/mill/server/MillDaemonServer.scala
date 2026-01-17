@@ -88,7 +88,9 @@ abstract class MillDaemonServer[State](
     // Create a deferred stopServer that stores the shutdown request and throws StopWithResponse
     // to stop the RPC server loop while still sending a proper response to the client.
     val deferredStopServer: Server.StopServer = (reason, exitCode) => {
-      serverLog(s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)")
+      serverLog(
+        s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)"
+      )
       data.shutdownRequest.set(Some((reason, exitCode)))
       // Throw StopWithResponse to stop the RPC loop and send the response
       throw new StopWithResponse(DaemonRpc.RunCommandResult(exitCode))

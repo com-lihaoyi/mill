@@ -6,6 +6,7 @@ import upickle.ReadWriter
 
 import java.io.{BufferedReader, PrintStream}
 import mill.api.JsonFormatters.*
+
 /**
  * RPC message types for launcher-daemon communication.
  */
