@@ -67,4 +67,9 @@ public class DaemonFiles {
    * Terminal information that we need to propagate from client to server
    */
   public static final String terminfo = "terminfo";
+
+  /**
+   * Console log file containing output from the running Mill command
+   */
+  public static final String consoleLog = "console.log";
 }

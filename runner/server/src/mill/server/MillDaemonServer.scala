@@ -3,6 +3,7 @@ package mill.server
 import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.Locks
+import mill.constants.DaemonFiles
 import mill.launcher.DaemonRpc
 import mill.rpc.{MillRpcServerToClient, MillRpcWireTransport}
 import mill.server.Server.ConnectionData
@@ -111,12 +112,20 @@ abstract class MillDaemonServer[State](
       throw new InterruptedException(s"Shutdown requested: $reason")
     }
 
+    // Console log file for monitoring progress when another process is waiting
+    val consoleLogFile = daemonDir / DaemonFiles.consoleLog
+    val consoleLogStream = os.write.outputStream(consoleLogFile, createFolders = true)
+
     val rpcServer = new DaemonRpcServer(
       serverName = s"MillDaemon-${connectionData.socketName}",
       transport = transport,
       setIdle = setIdle,
       writeToLocalLog = serverLog,
       runCommand = (init, _, stdout, stderr, setIdleInner, serverToClient) => {
+        // Wrap stdout/stderr to also write to console log file
+        val teeStdout = new mill.internal.MultiStream(stdout, consoleLogStream)
+        val teeStderr = new mill.internal.MultiStream(stderr, consoleLogStream)
+
         // Check for version changes
         val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
         val javaVersionChanged = lastJavaVersion.exists(_ != init.clientJavaVersion)
@@ -136,12 +145,12 @@ abstract class MillDaemonServer[State](
             setIdle = _ => ()
           ) {
             if (millVersionChanged) {
-              stderr.println(
+              teeStderr.println(
                 s"Mill version changed (${lastMillVersion.getOrElse("<unknown>")} -> ${init.clientMillVersion}), re-starting server"
               )
             }
             if (javaVersionChanged) {
-              stderr.println(
+              teeStderr.println(
                 s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${Option(init.clientJavaVersion).getOrElse("<system>")}), re-starting server"
               )
             }
@@ -161,7 +170,7 @@ abstract class MillDaemonServer[State](
           args = init.args.toArray,
           stateCache = stateCache,
           mainInteractive = init.interactive,
-          streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
+          streams = new SystemStreams(teeStdout, teeStderr, mill.api.daemon.DummyInputStream),
           env = init.env,
           setIdle = setIdleInner(_),
           userSpecifiedProperties = init.userSpecifiedProperties,
@@ -179,7 +188,8 @@ abstract class MillDaemonServer[State](
     )
 
     serverLog("handleConnection: running RPC server")
-    rpcServer.run()
+    try rpcServer.run()
+    finally consoleLogStream.close()
 
     val exitCode = data.exitCode.get()
     serverLog(s"handleConnection: RPC server finished, exitCode=$exitCode")
