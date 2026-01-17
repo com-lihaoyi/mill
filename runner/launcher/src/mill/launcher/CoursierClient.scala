@@ -6,7 +6,7 @@ import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.maven.MavenRepository
 import coursier.util.Task
 import coursier.core.Module
-import mill.constants.BuildInfo
+import mill.constants.{BuildInfo, OutFiles, OutFolderMode}
 import upickle.default.*
 
 import java.io.File
@@ -15,7 +15,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import mill.api.JsonFormatters.*
 object CoursierClient {
 
-  private val cacheDir = os.pwd / "out" / "mill-daemon" / "cache"
+  // Use the proper output directory that respects MILL_OUTPUT_DIR
+  private val cacheDir =
+    os.Path(OutFiles.OutFiles.outFor(OutFolderMode.REGULAR), os.pwd) / "mill-daemon" / "cache"
 
   /**
    * Single-entry disk cache for expensive Coursier resolutions, as even when everything
