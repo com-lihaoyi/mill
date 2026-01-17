@@ -1,6 +1,6 @@
 package mill.launcher
 
-import coursier.{Artifacts, Dependency, LocalRepositories, ModuleName, Organization, Resolve, VersionConstraint}
+import coursier.{Artifacts, Dependency, ModuleName, Organization, Resolve, VersionConstraint}
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.maven.MavenRepository
@@ -80,11 +80,7 @@ object CoursierClient {
             Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
             VersionConstraint(BuildInfo.millVersion)
           )))
-          .withRepositories(
-            testOverridesMavenRepos ++
-              Seq(LocalRepositories.ivy2Local) ++
-              Resolve.defaultRepositories
-          )
+          .withRepositories(testOverridesMavenRepos ++ Resolve.defaultRepositories)
 
         val result = resolve.either().flatMap { v =>
           Artifacts(coursierCache0)
