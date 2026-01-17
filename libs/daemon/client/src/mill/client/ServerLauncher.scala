@@ -97,7 +97,10 @@ object ServerLauncher {
     Launched(port, socket, server)
   }
 
-  def retryWithTimeout[A](timeoutMillis: Long, errorMessage: String)(supplier: () => Option[A]): A = {
+  def retryWithTimeout[A](
+      timeoutMillis: Long,
+      errorMessage: String
+  )(supplier: () => Option[A]): A = {
     val startTimeMonotonicNanos = System.nanoTime()
     var current: Option[A] = None
     var throwable: Throwable = null
@@ -112,7 +115,10 @@ object ServerLauncher {
       }
     }
 
-    current.getOrElse(throw new Exception(s"$errorMessage (timeout was ${timeoutMillis}ms)", throwable))
+    current.getOrElse(throw new Exception(
+      s"$errorMessage (timeout was ${timeoutMillis}ms)",
+      throwable
+    ))
   }
 
   /**

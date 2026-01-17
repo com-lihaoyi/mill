@@ -54,7 +54,8 @@ private[lock] class FileLocked(lock: java.nio.channels.FileLock) extends Locked 
   override def release(): Unit = lock.release()
 }
 
-private[lock] class FileTryLocked(lock: java.nio.channels.FileLock) extends FileLocked(lock) with TryLocked {
+private[lock] class FileTryLocked(lock: java.nio.channels.FileLock) extends FileLocked(lock)
+    with TryLocked {
   override def isLocked: Boolean = lock != null
   override def release(): Unit = if (isLocked) super.release()
 }

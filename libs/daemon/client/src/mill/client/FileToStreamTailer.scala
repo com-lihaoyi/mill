@@ -38,7 +38,9 @@ class FileToStreamTailer(file: os.Path, stream: PrintStream, intervalMsec: Int)
               }
 
               this.ignoreHead = false // we ignored once
-            } catch { case _: java.io.IOException =>  /* could not read line or file vanished*/ }
+            } catch {
+              case _: java.io.IOException => /* could not read line or file vanished*/
+            }
           }
         } finally {
           if (keepReading) {

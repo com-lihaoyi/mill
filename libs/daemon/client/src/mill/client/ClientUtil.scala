@@ -1,6 +1,7 @@
 package mill.client
 
 object ClientUtil {
+
   /**
    * Exit code indicating the server shut down and the client should retry.
    * This can happen due to version mismatch or when the server is terminated

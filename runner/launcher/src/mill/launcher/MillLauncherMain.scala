@@ -33,8 +33,10 @@ object MillLauncherMain {
     if (System.getenv("MILL_TEST_EXIT_AFTER_BSP_CHECK") != null) System.exit(0)
     val outDir = OutFiles.OutFiles.outFor(outMode)
     val logFile = os.Path(outDir, os.pwd) / "mill-launcher/log"
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
-    val log: String => Unit = s => os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n")
+    val formatter =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
+    val log: String => Unit =
+      s => os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n")
     if (outMode == OutFolderMode.BSP) {
       val message = if (OutFiles.OutFiles.mergeBspOut) {
         s"Mill is running in BSP mode and '${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable " +
@@ -74,8 +76,6 @@ object MillLauncherMain {
         // start in client-server mode
         val optsArgs = MillProcessLauncher.millOpts(outMode) ++ args
 
-
-
         val launcher = new MillServerLauncher(
           stdout = System.out,
           stderr = System.err,
@@ -85,7 +85,12 @@ object MillLauncherMain {
           useFileLocks = useFileLocks,
           initServerFactory = (daemonDir, _) =>
             new LaunchedServer.OsProcess(
-              MillProcessLauncher.launchMillDaemon(daemonDir, outMode, runnerClasspath, useFileLocks).toHandle
+              MillProcessLauncher.launchMillDaemon(
+                daemonDir,
+                outMode,
+                runnerClasspath,
+                useFileLocks
+              ).toHandle
             )
         )
 

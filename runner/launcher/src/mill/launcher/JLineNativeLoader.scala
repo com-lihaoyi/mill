@@ -18,7 +18,8 @@ import java.util.UUID
  * by writing its library in a new temporary location upon each run.
  */
 private[launcher] class JLineNativeLoader(jlineNativeVersion: String) {
-  private val isWindows = System.getProperty("os.name").toLowerCase(java.util.Locale.ROOT).startsWith("windows")
+  private val isWindows =
+    System.getProperty("os.name").toLowerCase(java.util.Locale.ROOT).startsWith("windows")
 
   private val baseDir: os.Path = {
     if (isWindows) os.Path(System.getenv("UserProfile")) / ".cache" / "mill"
@@ -35,7 +36,7 @@ private[launcher] class JLineNativeLoader(jlineNativeVersion: String) {
 
   val millJLineNativeLibLocation: os.Path = {
     val libName = System.mapLibraryName("jlinenative").replace(".dylib", ".jnilib")
-    millJLineNativeDir / OSInfo.getNativeLibFolderPathForCurrentOS / libName
+    millJLineNativeDir / os.SubPath(OSInfo.getNativeLibFolderPathForCurrentOS) / libName
   }
 
   def tryLoadFast: Boolean = os.exists(millJLineNativeLibLocation)
@@ -47,7 +48,8 @@ private[launcher] class JLineNativeLoader(jlineNativeVersion: String) {
     val libName = System.mapLibraryName("jlinenative").replace(".dylib", ".jnilib")
     val resourcePath = s"org/jline/nativ/${OSInfo.getNativeLibFolderPathForCurrentOS}/$libName"
 
-    val tmpLocation = millJLineNativeLibLocation / os.up / s"${millJLineNativeLibLocation.last}-${UUID.randomUUID()}"
+    val tmpLocation =
+      millJLineNativeLibLocation / os.up / s"${millJLineNativeLibLocation.last}-${UUID.randomUUID()}"
 
     try {
       os.makeDir.all(millJLineNativeLibLocation / os.up)
