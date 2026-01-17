@@ -2,7 +2,7 @@
 
 set -e
 
-if [ -z "${DEFAULT_MILL_VERSION}" ] ; then DEFAULT_MILL_VERSION="1.1.0-RC4"; fi
+if [ -z "${DEFAULT_MILL_VERSION}" ] ; then DEFAULT_MILL_VERSION="1.1.0-RC4-18-0577b3"; fi
 
 if [ -z "${GITHUB_RELEASE_CDN}" ] ; then GITHUB_RELEASE_CDN=""; fi
 
