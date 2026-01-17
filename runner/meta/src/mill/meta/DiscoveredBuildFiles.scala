@@ -87,9 +87,9 @@ object DiscoveredBuildFiles {
             errors.append(Result.Failure(error))
         }
       } catch {
-        case ex: Throwable =>
+        case e: Throwable =>
           seenScripts(s) = ""
-          errors.append(Result.Failure(ex.getClass.getName + " " + ex.getMessage))
+          errors.append(Result.Failure.fromException(e))
       }
 
     val (isDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
@@ -143,7 +143,7 @@ object DiscoveredBuildFiles {
 
       val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
         .flatMap(os.list(_))
-        .filter(p => buildFileExtensions.asScala.exists(ext => p.last.endsWith("." + ext)))
+        .filter(p => buildFileExtensions.asScala.exists(ext => p.baseName.nonEmpty && p.last.endsWith("." + ext)))
 
       buildFiles ++ adjacentScripts
     }

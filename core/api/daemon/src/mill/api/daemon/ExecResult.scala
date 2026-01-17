@@ -111,39 +111,13 @@ object ExecResult {
   }
 
   def catchWrapException[T](t: => T): Result[T] = {
+    val base = new java.lang.Exception()
     try Result.Success(t)
     catch {
       case e: InvocationTargetException =>
-        exceptionToFailure(e.getCause, new java.lang.Exception())
+        Result.Failure.fromException(e.getCause, base.getStackTrace.length)
       case e: java.lang.Exception =>
-        exceptionToFailure(e, new java.lang.Exception())
+        Result.Failure.fromException(e, base.getStackTrace.length)
     }
-  }
-
-  private[mill] def exceptionToFailure(ex: Throwable, base: Throwable): Result.Failure = {
-    exceptionToFailure(ex, new ExecResult.OuterStack(base.getStackTrace))
-  }
-  private[mill] def exceptionToFailure(ex: Throwable, outerStack: OuterStack): Result.Failure = {
-    // If this is a Result.Exception with an existing failure, preserve it
-    ex match {
-      case re: Result.Exception if re.failure.isDefined =>
-        return re.failure.get
-      case _ =>
-    }
-
-    var current = List(ex)
-    while (current.head.getCause != null) current = current.head.getCause :: current
-
-    val exceptionInfos = current.reverse.map { e =>
-      val elements = e.getStackTrace.dropRight(outerStack.value.length)
-      Result.Failure.ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
-    }
-    Result.Failure("", exception = exceptionInfos)
-  }
-
-  @deprecated("use `exceptionToFailure` instead")
-  def makeResultException(e: Throwable, base: java.lang.Exception): Left[String, Nothing] = {
-    val outerStack = new ExecResult.OuterStack(base.getStackTrace)
-    Left(ExecResult.Exception(e, outerStack).toString)
   }
 }

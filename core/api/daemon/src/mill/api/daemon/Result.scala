@@ -65,6 +65,31 @@ object Result {
 
   object Failure {
     case class ExceptionInfo(clsName: String, msg: String, stack: Seq[StackTraceElement])
+
+    /**
+     * Creates a Failure from an exception, handling cause chains properly.
+     * If the exception is a Result.Exception with an existing failure, that failure is preserved.
+     *
+     * @param ex the exception to convert
+     * @param outerStackLength optional length of outer stack frames to drop from stack traces
+     */
+    def fromException(ex: Throwable, outerStackLength: Int = 0): Failure = {
+      // If this is a Result.Exception with an existing failure, preserve it
+      ex match {
+        case re: Result.Exception if re.failure.isDefined => return re.failure.get
+        case _ =>
+      }
+
+      var current = List(ex)
+      while (current.head.getCause != null) current = current.head.getCause :: current
+
+      val exceptionInfos = current.reverse.map { e =>
+        val elements = e.getStackTrace.dropRight(outerStackLength)
+        ExceptionInfo(e.getClass.getName, e.getMessage, elements.toSeq)
+      }
+      Failure("", exception = exceptionInfos)
+    }
+
     def split(f: Failure) = Iterator
       .unfold(Option(f))(_.map(t => t.copy(next = None) -> t.next))
       // Sometimes multiple code paths result in exactly the same failure,
