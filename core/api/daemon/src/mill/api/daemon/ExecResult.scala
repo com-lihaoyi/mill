@@ -120,4 +120,10 @@ object ExecResult {
         Result.Failure.fromException(e, base.getStackTrace.length)
     }
   }
+
+  @deprecated("use `exceptionToFailure` instead")
+  def makeResultException(e: Throwable, base: java.lang.Exception): Left[String, Nothing] = {
+    val outerStack = new ExecResult.OuterStack(base.getStackTrace)
+    Left(ExecResult.Exception(e, outerStack).toString)
+  }
 }
