@@ -16,10 +16,10 @@ object `package` extends MillPublishScalaModule {
   def sources = super.sources() ++ sources0()
 
   def localTestExtraModules =
-    super.localTestExtraModules ++ build.dist.localTestExtraModules
+    super.localTestExtraModules ++ build.dist.raw.localTestExtraModules
 
   def forkEnv =
     super.forkEnv() ++
-      Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString()) ++
-      build.dist.testForkEnv()
+      Map("MILL_EXECUTABLE_PATH" -> build.dist.raw.launcher().path.toString()) ++
+      build.dist.raw.testForkEnv()
 }

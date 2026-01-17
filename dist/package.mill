@@ -165,101 +165,49 @@ trait DistModule extends Module {
   }
 }
 
-object `package` extends MillJavaModule with DistModule {
+/**
+ * The main dist module produces a ProGuard-minified assembly jar.
+ * For integration/example tests, use `dist.raw` which provides the unminified assembly.
+ */
+object `package` extends MillJavaModule with Proguard with DistModule {
+  def proguardVersion = "7.8.2"
 
   def moduleDeps = Seq(build.runner.launcher)
 
-  def localTestExtraModules =
-    allPublishModules
+  def localTestExtraModules = allPublishModules
 
   def localBinName = "mill-assembly.jar"
 
-  private def millClientJvmArgs = Seq(
-    // Avoid reserving a lot of memory for the client, as the client only forward information
-    "-Xmx128m",
-    // Set UTF-8 encoding to fix Unicode character display issues on Windows
-    "-Dfile.encoding=UTF-8",
-    "-Dsun.stdout.encoding=UTF-8",
-    "-Dsun.stderr.encoding=UTF-8"
+  // Use the raw assembly as input to ProGuard
+  override def inJar: T[PathRef] = raw.assembly()
+
+  override def mainClass = Some("mill.launcher.MillLauncherMain")
+
+  // Disable obfuscation as it breaks reflection
+  override def obfuscate = Task { false }
+
+  // Disable optimization as it corrupts bytecode stack map frames in complex Scala code
+  override def optimize = Task { false }
+
+  override def additionalOptions: T[Seq[String]] = Seq(
+    // From Proguard trait defaults
+    "-dontwarn java.lang.invoke.MethodHandle",
+    "-dontwarn scala.AnyKind",
+
+    // Suppress all other warnings about missing classes - the Mill jar bundles many
+    // dependencies that have optional runtime dependencies we don't need
+    "-dontwarn **",
+
+    // Keep Scala lazy val fields (used by Scala 3 lazy val implementation)
+    "-keepclassmembers class * { ** *$lzy1; }",
+    "-keepclassmembers class * { !transient <fields>; }"
   )
-
-  def launcher = Task {
-    val isWin = scala.util.Properties.isWin
-    val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
-
-    val launcherForkArgs = testArgs()
-    val (millArgs, otherArgs) =
-      launcherForkArgs.partition(arg =>
-        arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
-      )
-
-    // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = Task.dest / "mill.properties"
-    val millOptionsContent = millArgs
-      .map(_.drop(2).replace("\\", "/")) // drop -D prefix, replace \ with /
-      .mkString("\r\n")
-
-    os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ millClientJvmArgs ++ List(
-      s"-DMILL_OPTIONS_PATH=$vmOptionsFile"
-    )
-    val classpath = runClasspath().map(_.path.toString)
-    val classpathJar = Task.dest / "classpath.jar"
-    Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
-
-    val script = Jvm.launcherUniversalScript(
-      mainClass = mainClass().get,
-      shellClassPath = classpath,
-      cmdClassPath = Seq(classpathJar.toString()),
-      jvmArgs = jvmArgs
-    )
-
-    os.write(outputPath, script)
-
-    if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
-
-    PathRef(outputPath)
-  }
-
-  def assemblyRules = super.assemblyRules ++ Seq(
-    mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
-  )
-
-  def forkArgs = millClientJvmArgs ++ Seq(
-    // Workaround for Zinc/JNA bug
-    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-    "-Djna.nosys=true"
-  )
-
-  def mainClass = Some("mill.launcher.MillLauncherMain")
 
   def executableRaw = Task {
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-    os.copy(assembly().path, Task.dest / filename)
+    os.copy(proguard().path, Task.dest / filename)
+    if (!scala.util.Properties.isWin) os.perms.set(Task.dest / filename, "rwxrwxrwx")
     PathRef(Task.dest / filename)
-  }
-
-  def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
-    args().value match {
-      case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.run")
-      case wd0 +: rest =>
-        val wd = os.Path(wd0, BuildCtx.workspaceRoot)
-        assert(os.exists(wd), s"Folder $wd does not exist")
-        try {
-          os.call(
-            cmd = (launcher().path.toString, rest),
-            env = forkEnv() ++ build.dist.localTestOverridesEnv(),
-            cwd = wd,
-            stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit
-          )
-          mill.api.Result.Success(())
-        } catch {
-          case e: Throwable =>
-            mill.api.Result.Failure(s"dist.run failed with an exception. ${e.getMessage()}")
-        }
-    }
   }
 
   def bootstrapLauncher = Task {
@@ -314,7 +262,7 @@ object `package` extends MillJavaModule with DistModule {
     }
   }
 
-  def publishArtifacts = Task {
+  override def publishArtifacts = Task {
     super.publishArtifacts().copy(payload =
       super.publishArtifacts().payload ++
         exampleZips().map(z => (z, z.path.last)) ++
@@ -327,9 +275,112 @@ object `package` extends MillJavaModule with DistModule {
 
   def artifactName = "mill-" + super.artifactName()
 
+  /**
+   * The raw (unminified) assembly module. Used for integration and example tests
+   * where startup time matters less than build time.
+   */
+  object raw extends MillJavaModule with DistModule {
+
+    def moduleDeps = Seq(build.runner.launcher)
+
+    def localTestExtraModules = allPublishModules
+
+    def localBinName = "mill-assembly-raw.jar"
+
+    private def millClientJvmArgs = Seq(
+      // Avoid reserving a lot of memory for the client, as the client only forward information
+      "-Xmx128m",
+      // Set UTF-8 encoding to fix Unicode character display issues on Windows
+      "-Dfile.encoding=UTF-8",
+      "-Dsun.stdout.encoding=UTF-8",
+      "-Dsun.stderr.encoding=UTF-8"
+    )
+
+    def launcher = Task {
+      val isWin = scala.util.Properties.isWin
+      val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
+
+      val launcherForkArgs = testArgs()
+      val (millArgs, otherArgs) =
+        launcherForkArgs.partition(arg =>
+          arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
+        )
+
+      // Pass Mill options via file, due to small max args limit in Windows
+      val vmOptionsFile = Task.dest / "mill.properties"
+      val millOptionsContent = millArgs
+        .map(_.drop(2).replace("\\", "/")) // drop -D prefix, replace \ with /
+        .mkString("\r\n")
+
+      os.write(vmOptionsFile, millOptionsContent)
+      val jvmArgs = otherArgs ++ millClientJvmArgs ++ List(
+        s"-DMILL_OPTIONS_PATH=$vmOptionsFile"
+      )
+      val classpath = runClasspath().map(_.path.toString)
+      val classpathJar = Task.dest / "classpath.jar"
+      Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
+
+      val script = Jvm.launcherUniversalScript(
+        mainClass = mainClass().get,
+        shellClassPath = classpath,
+        cmdClassPath = Seq(classpathJar.toString()),
+        jvmArgs = jvmArgs
+      )
+
+      os.write(outputPath, script)
+
+      if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
+
+      PathRef(outputPath)
+    }
+
+    def assemblyRules = super.assemblyRules ++ Seq(
+      mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
+    )
+
+    def forkArgs = millClientJvmArgs ++ Seq(
+      // Workaround for Zinc/JNA bug
+      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+      "-Djna.nosys=true"
+    )
+
+    def mainClass = Some("mill.launcher.MillLauncherMain")
+
+    def executableRaw = Task {
+      val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+      os.copy(assembly().path, Task.dest / filename)
+      PathRef(Task.dest / filename)
+    }
+
+    def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
+      args().value match {
+        case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.raw.run")
+        case wd0 +: rest =>
+          val wd = os.Path(wd0, BuildCtx.workspaceRoot)
+          assert(os.exists(wd), s"Folder $wd does not exist")
+          try {
+            os.call(
+              cmd = (launcher().path.toString, rest),
+              env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
+              cwd = wd,
+              stdin = os.Inherit,
+              stdout = os.Inherit,
+              stderr = os.Inherit
+            )
+            mill.api.Result.Success(())
+          } catch {
+            case e: Throwable =>
+              mill.api.Result.Failure(s"dist.raw.run failed with an exception. ${e.getMessage()}")
+          }
+      }
+    }
+
+    def artifactName = "mill-" + super.artifactName() + "-raw"
+  }
+
   object native extends mill.scalalib.NativeImageModule with DistModule {
-    def finalMainClass = build.dist.finalMainClass()
-    def runClasspath = build.dist.runClasspath()
+    def finalMainClass = build.dist.raw.finalMainClass()
+    def runClasspath = build.dist.raw.runClasspath()
     def artifactOsSuffix = Task {
       val osName = System.getProperty("os.name").toLowerCase
       if (osName.contains("mac")) "mac"
@@ -381,49 +432,5 @@ object `package` extends MillJavaModule with DistModule {
     )
 
     def jvmId = Settings.graalvmJvmId
-  }
-
-  object minified extends MillJavaModule with Proguard with DistModule {
-    def proguardVersion = "7.8.2"
-
-    def artifactName = Task { s"${build.dist.artifactName()}-minified" }
-
-    def localBinName = "mill-minified.jar"
-
-    // Use the dist assembly as input
-    override def inJar: T[PathRef] = build.dist.assembly()
-
-    // Inherit classpath and main class from dist
-    override def moduleDeps = Seq(build.dist)
-    override def mainClass = Task { build.dist.mainClass() }
-
-    def executableRaw = Task {
-      val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-      os.copy(proguard().path, Task.dest / filename)
-      PathRef(Task.dest / filename)
-    }
-
-    // Disable obfuscation - Mill is open source and obfuscation breaks reflection
-    override def obfuscate = Task { false }
-
-    // Disable optimization - it corrupts bytecode stack map frames in complex Scala code
-    override def optimize = Task { false }
-
-    override def additionalOptions: T[Seq[String]] = Task {
-      Seq(
-        // From Proguard trait defaults
-        "-dontwarn java.lang.invoke.MethodHandle",
-        "-dontwarn scala.AnyKind",
-        // Suppress all other warnings about missing classes - the Mill jar bundles many
-        // dependencies that have optional runtime dependencies we don't need
-        "-dontwarn **",
-
-        // Keep Scala lazy val fields (used by Scala 3 lazy val implementation)
-        "-keepclassmembers class * { ** *$lzy1; }",
-
-        // Keep all fields accessed via MethodHandles/VarHandles (used by Scala 3 lazy vals)
-        "-keepclassmembers class * { !transient <fields>; }"
-      )
-    }
   }
 }

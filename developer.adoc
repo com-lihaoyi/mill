@@ -122,15 +122,17 @@ remaining modules to `~/.ivy2/local`.
 This results in a more realistic test environment, but at the cost of taking tens-of-seconds
 more to run a test after making a code change.
 
-You can reproduce these tests manually using `dist.installLocal`:
+You can reproduce these tests manually using `dist.raw.installLocal`:
 
 [source,console]
 ----
-> ./mill dist.installLocal && (cd example/javalib/basic/3-simple && ../../../../mill-assembly.jar run --text hello)
+> ./mill dist.raw.installLocal && (cd example/javalib/basic/3-simple && ../../../../mill-assembly.jar run --text hello)
 ----
 
-You can also use `dist.native.installLocal` for a Graal Native Image executable,
-which is slower to create but faster to start than the default executable assembly.
+You can also use `dist.native.installLocal` for a Graal Native Image executable
+(which is slower to create but faster to start than the default executable assembly)
+or `dist.installLocal` which is the proguarded launcher assembly we publish (which
+is also slower to create and faster to start than the raw jar).
 
 There are six of these tests, `.{packaged,shared,native}.{daemon,nodaemon}`.
 
@@ -140,6 +142,10 @@ The first label specifies how the Mill code is packaged before testing
 
 1. `.packaged` runs using the compiled Mill code either packaged into an assembly or into jars.
 This is the default for commands like `example.basic.3-simple`
+
+2. `.proguard` is similar to `.packaged`, but uses a proguard-optimized assembly jar. This is
+typically not used manually since it adds ~15s overhead optimizing the jar, but some CI jobs
+use this to make sure the proguarded launcher assemblies work since that's what we publish
 
 3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
 This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.

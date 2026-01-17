@@ -153,7 +153,7 @@ object `package` extends mill.Module {
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           ) ++
-          (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.localTestOverridesEnv())
+          (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.raw.localTestOverridesEnv())
       }
 
       def millIntegrationLauncher: T[PathRef]
@@ -162,7 +162,7 @@ object `package` extends mill.Module {
       def millIntegrationIsPackagedLauncher: Task[Boolean]
 
       def forkArgs = Task {
-        super.forkArgs() ++ IntegrationTestModule.this.forkArgs() ++ build.dist.forkArgs()
+        super.forkArgs() ++ IntegrationTestModule.this.forkArgs() ++ build.dist.raw.forkArgs()
       }
 
       def resources = IntegrationTestModule.this.resources()
@@ -180,15 +180,19 @@ object `package` extends mill.Module {
 
     object shared extends IntegrationLauncherModule {
       override def useSharedOut = true
-      def millIntegrationLauncher = build.dist.launcher()
+      def millIntegrationLauncher = build.dist.raw.launcher()
       def millIntegrationIsPackagedLauncher = Task(false)
     }
     object packaged extends IntegrationLauncherModule {
-      def millIntegrationLauncher = build.dist.executable()
+      def millIntegrationLauncher = build.dist.raw.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
     }
     object native extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.native.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
+    }
+    object minified extends IntegrationLauncherModule {
+      def millIntegrationLauncher = build.dist.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
     }
     trait IntegrationLauncherModule extends Module {
@@ -253,7 +257,7 @@ object `package` extends mill.Module {
   def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     Task {
-      val executable = build.dist.executable().path
+      val executable = build.dist.raw.executable().path
       val dest = Task.dest / name
       os.copy.over(executable, dest)
       PathRef(dest)
