@@ -222,11 +222,9 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     "-keepclassmembers class * { ** *$lzy1; }",
     "-keepclassmembers class * { !transient <fields>; }",
 
-    // Keep Coursier classes - they use reflection and dynamic dispatch extensively
+    // Keep Coursier and scala-xml classes otherwise things break for some reason
     "-keep class coursier.** { *; }",
-
-    // Keep os-lib classes - used by Mill for path handling
-    "-keep class os.** { *; }"
+    "-keep class scala.xml.** { *; }"
   )
 
   def executableRaw: T[PathRef] = proguard()
