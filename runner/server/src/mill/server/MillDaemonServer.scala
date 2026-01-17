@@ -149,7 +149,7 @@ abstract class MillDaemonServer[State](
             // This sends RPC response and throws InterruptedException to stop the RPC loop
             deferredStopServer(
               s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
-              ClientUtil.ServerExitPleaseRetry()
+              ClientUtil.ServerExitPleaseRetry
             )
           }
         }
@@ -158,7 +158,7 @@ abstract class MillDaemonServer[State](
 
         // Run the actual command
         val (result, newStateCache) = main0(
-          args = init.args,
+          args = init.args.toArray,
           stateCache = stateCache,
           mainInteractive = init.interactive,
           streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
@@ -203,9 +203,8 @@ abstract class MillDaemonServer[State](
       data: Option[MillDaemonServer.DaemonServerData],
       result: Option[Int]
   ): Unit = {
-    serverLog(s"endConnection: result=$result")
-    System.out.flush()
-    System.err.flush()
+    // NOTE: System.out/err.flush() calls were removed - they can cause issues when
+    // stdout/stderr are redirected to a broken pipe after client disconnects
 
     // If this connection is being closed externally (e.g., another client was interrupted),
     // send an RPC response so the client doesn't see "wire broken"
@@ -216,7 +215,6 @@ abstract class MillDaemonServer[State](
       // Only send if we haven't already written an exit code (i.e., RPC hasn't completed normally)
       if d.writtenExitCode.compareAndSet(false, true)
     } {
-      serverLog(s"endConnection: sending RPC response with exitCode=$exitCode before closing")
       try {
         val response = MillRpcServerToClient.Response(
           Right(DaemonRpc.RunCommandResult(exitCode))
@@ -235,7 +233,7 @@ abstract class MillDaemonServer[State](
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
 
-  def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry()
+  def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry
 
   def main0(
       args: Array[String],

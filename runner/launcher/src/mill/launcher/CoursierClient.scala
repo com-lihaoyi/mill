@@ -45,7 +45,7 @@ object CoursierClient {
       }
     }
 
-    artifactsResultOrError.artifacts.map(_._2.toString).toArray
+    artifactsResultOrError.artifacts.map(_._2.toString).toSeq
   }
 
   def resolveJavaHome(id: String, jvmIndexVersion: String = null): java.io.File = {

@@ -13,7 +13,7 @@ object YamlHeaderSyntaxTests extends UtestIntegrationTestSuite {
       val res = eval(("resolve", "_"))
 
       assert(res.isSuccess == false)
-      val expectedError = "Failed de-serializing build header in build.mill:"
+      val expectedError = "Failed parsing build header:"
       assert(res.err.contains(expectedError))
       // make sure we truncate the exception to the relevant bits
       assert(res.err.linesIterator.toList.length < 30)

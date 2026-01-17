@@ -1,7 +1,7 @@
 package mill.server
 
 import mill.api.daemon.{StartThread, SystemStreams}
-import mill.client.lock.{Lock, Locks, TryLocked}
+import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, SocketUtil}
 import mill.constants.OutFiles.OutFiles
 import mill.server.Server.ConnectionData
@@ -411,13 +411,12 @@ object Server {
     // process, we want to fail loudly rather than blocking and hanging forever
     val l = mill.client.ServerLauncher.retryWithTimeout(
       100,
-      "Mill server process already present",
-      () => {
-        val l = lock.tryLock()
-        if (l.isLocked) java.util.Optional.of[TryLocked](l)
-        else java.util.Optional.empty[TryLocked]()
-      }
-    )
+      "Mill server process already present"
+    ) { () =>
+      val l = lock.tryLock()
+      if (l.isLocked) Some(l)
+      else None
+    }
 
     val autoCloseable = new AutoCloseable {
       @volatile private var closed = false
