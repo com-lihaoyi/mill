@@ -34,7 +34,7 @@ abstract class MillDaemonServer[State](
   def initialStateCache: State
 
   private var lastMillVersion = Option.empty[String]
-  private var lastJavaVersion = Option.empty[String]
+  private var lastJavaVersion = Option.empty[os.Path]
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
@@ -137,7 +137,7 @@ abstract class MillDaemonServer[State](
             }
             if (javaVersionChanged) {
               teeStderr.println(
-                s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${Option(init.clientJavaVersion).getOrElse("<system>")}), re-starting server"
+                s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${init.clientJavaVersion.getOrElse("<system>")}), re-starting server"
               )
             }
 
@@ -149,7 +149,7 @@ abstract class MillDaemonServer[State](
           }
         }
         lastMillVersion = Some(init.clientMillVersion)
-        lastJavaVersion = Some(init.clientJavaVersion)
+        lastJavaVersion = init.clientJavaVersion
 
         // Run the actual command
         val (result, newStateCache) = main0(

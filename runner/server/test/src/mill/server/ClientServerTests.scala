@@ -136,7 +136,7 @@ trait ClientServerTestsBase extends TestSuite {
         initServerFactory = initServerFactory
       ).run(
         daemonDir,
-        "",
+        None,
         msg => println(s"MillRpcServerLauncher: $msg")
       )
 

@@ -13,7 +13,7 @@ object MillProcessLauncher {
   def launchMillNoDaemon(
       args: Seq[String],
       outMode: OutFolderMode,
-      runnerClasspath: Seq[String],
+      runnerClasspath: Seq[os.Path],
       mainClass: String,
       useFileLocks: Boolean
   ): Int = {
@@ -45,7 +45,7 @@ object MillProcessLauncher {
   def launchMillDaemon(
       daemonDir: os.Path,
       outMode: OutFolderMode,
-      runnerClasspath: Seq[String],
+      runnerClasspath: Seq[os.Path],
       useFileLocks: Boolean
   ): Process = {
     val cmd = millLaunchJvmCommand(runnerClasspath) ++
@@ -156,30 +156,30 @@ object MillProcessLauncher {
 
   def isWin: Boolean = System.getProperty("os.name", "").startsWith("Windows")
 
-  def javaHome(): String = {
-    val jvmVersion =
-      loadMillConfig(ConfigConstants.millJvmVersion).headOption.getOrElse(BuildInfo.defaultJvmVersion)
+  def javaHome(): Option[os.Path] = {
+    val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion)
+      .headOption
+      .getOrElse(BuildInfo.defaultJvmVersion)
+
     val jvmIndexVersion = loadMillConfig(ConfigConstants.millJvmIndexVersion).headOption
 
     // Handle "system" specially - return null to use PATH-based Java lookup
     // (javaExe returns "java" when javaHome is null, using PATH lookup)
-    if (jvmVersion == "system") {
-      null
-    } else if (jvmVersion != null) {
-      CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion.orNull).getAbsolutePath
-    } else null
+    if (jvmVersion == "system") None
+    else if (jvmVersion != null) Some(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion))
+    else None
   }
 
   def javaExe(): String = {
-    Option(javaHome()) match {
+    javaHome() match {
       case None => "java"
       case Some(home) =>
         val exeName = if (isWin) "java.exe" else "java"
-        (os.Path(home) / "bin" / exeName).toString
+        (home / "bin" / exeName).toString
     }
   }
 
-  def millLaunchJvmCommand(runnerClasspath: Seq[String]): Seq[String] = {
+  def millLaunchJvmCommand(runnerClasspath: Seq[os.Path]): Seq[String] = {
     val millProps = sys.props.toSeq
       .filter(_._1.startsWith("MILL_"))
       .map { case (k, v) => s"-D$k=$v" }

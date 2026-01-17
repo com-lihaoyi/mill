@@ -15,7 +15,9 @@ import scala.jdk.CollectionConverters._
  */
 object MillLauncherMain {
 
+  val p = new mill.constants.Profiler()
   def main(args: Array[String]): Unit = {
+
     val parsedConfig = MillCliConfig.parse(args).toOption
 
     val bspMode = parsedConfig.exists(c => c.bsp.value || c.bspInstall.value)
@@ -36,7 +38,9 @@ object MillLauncherMain {
     val formatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
     val log: String => Unit =
-      s => os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
+      s =>
+        os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
+
     if (outMode == OutFolderMode.BSP) {
       val message = if (OutFiles.OutFiles.mergeBspOut) {
         s"Mill is running in BSP mode and '${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable " +
@@ -51,9 +55,9 @@ object MillLauncherMain {
       }
       System.err.println(message)
     }
-
+    p.tick("coursier.Resolve.proxySetup()")
     coursier.Resolve.proxySetup()
-
+    p.tick("CoursierClient.resolveMillDaemon()")
     val runnerClasspath = CoursierClient.resolveMillDaemon()
     try {
       if (runNoDaemon) {
@@ -68,8 +72,9 @@ object MillLauncherMain {
         System.exit(exitCode)
       } else {
         // start in client-server mode
+        MillLauncherMain.p.tick("MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts)")
         val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts) ++ args
-
+        p.tick("new MillServerLauncher")
         val launcher = new MillServerLauncher(
           stdout = System.out,
           stderr = System.err,
@@ -89,9 +94,11 @@ object MillLauncherMain {
         )
 
         val daemonDir = os.Path(outDir, os.pwd) / OutFiles.OutFiles.millDaemon
+        p.tick("MillProcessLauncher.javaHome()")
         val javaHome = MillProcessLauncher.javaHome()
-
+        p.tick("new MillProcessLauncher.prepareMillRunFolder(daemonDir)")
         MillProcessLauncher.prepareMillRunFolder(daemonDir)
+        p.tick("launcher.run(daemonDir, javaHome, log)")
         var exitCode = launcher.run(daemonDir, javaHome, log)
 
         // Retry if server requests it. This can happen when:
@@ -107,6 +114,7 @@ object MillLauncherMain {
         if (exitCode == ClientUtil.ServerExitPleaseRetry) {
           System.err.println(s"Max launcher retries exceeded ($maxRetries), exiting")
         }
+        p.tick("System.exit(exitCode)")
         System.exit(exitCode)
       }
     } catch {
