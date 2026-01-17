@@ -34,7 +34,7 @@ jobs:
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
-        - os: macos-14
+        - os: macos-15-intel
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
