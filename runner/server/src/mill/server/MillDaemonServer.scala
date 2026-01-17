@@ -116,7 +116,7 @@ abstract class MillDaemonServer[State](
 
         // Check for version changes
         val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
-        val javaVersionChanged = lastJavaVersion.exists(_ != init.clientJavaVersion)
+        val javaVersionChanged = lastJavaVersion != init.clientJavaVersion
 
         if (millVersionChanged || javaVersionChanged) {
           Server.withOutLock(
