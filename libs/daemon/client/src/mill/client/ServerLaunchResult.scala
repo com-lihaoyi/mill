@@ -1,6 +1,7 @@
 package mill.client
 
 enum ServerLaunchResult {
+
   /** The server process was not running, so it was started and is now running. */
   case Success(server: LaunchedServer)
 

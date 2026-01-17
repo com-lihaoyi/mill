@@ -18,7 +18,8 @@ object MillProcessLauncher {
       useFileLocks: Boolean
   ): Int = {
     val sig = f"${UUID.randomUUID().hashCode}%08x"
-    val processDir = os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / OutFiles.OutFiles.millNoDaemon / sig
+    val processDir =
+      os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / OutFiles.OutFiles.millNoDaemon / sig
 
     prepareMillRunFolder(processDir)
 
@@ -83,7 +84,14 @@ object MillProcessLauncher {
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
     // The daemon is a long-lived background process that should survive client disconnections.
-    os.proc(cmd).spawn(cwd = sandbox, env = env, stdin = stdin, stdout = stdout, stderr = stderr, destroyOnExit = false).wrapped
+    os.proc(cmd).spawn(
+      cwd = sandbox,
+      env = env,
+      stdin = stdin,
+      stdout = stdout,
+      stderr = stderr,
+      destroyOnExit = false
+    ).wrapped
   }
 
   def loadMillConfig(outMode: OutFolderMode, key: String): Seq[String] = {
@@ -122,7 +130,11 @@ object MillProcessLauncher {
     }
   }
 
-  private def parseConfigFromHeader(headerData: String, key: String, env: Map[String, String]): Seq[String] = {
+  private def parseConfigFromHeader(
+      headerData: String,
+      key: String,
+      env: Map[String, String]
+  ): Seq[String] = {
     import scala.jdk.CollectionConverters._
     mill.internal.Util.parseYaml0(
       "build header",
@@ -176,7 +188,8 @@ object MillProcessLauncher {
         outMode,
         "java-home",
         cacheKey,
-        () => Seq(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion.orNull).getAbsolutePath),
+        () =>
+          Seq(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion.orNull).getAbsolutePath),
         // Make sure we check to see if the saved java home exists before using
         // it, since it may have been since uninstalled, or the `out/` folder
         // may have been transferred to a different machine
