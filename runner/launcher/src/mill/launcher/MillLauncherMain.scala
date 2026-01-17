@@ -15,7 +15,9 @@ import scala.jdk.CollectionConverters._
  */
 object MillLauncherMain {
 
+  val p = new mill.constants.Profiler()
   def main(args: Array[String]): Unit = {
+
     val parsedConfig = MillCliConfig.parse(args).toOption
 
     val bspMode = parsedConfig.exists(c => c.bsp.value || c.bspInstall.value)
@@ -53,9 +55,9 @@ object MillLauncherMain {
       }
       System.err.println(message)
     }
-
+    p.tick("coursier.Resolve.proxySetup()")
     coursier.Resolve.proxySetup()
-
+    p.tick("CoursierClient.resolveMillDaemon()")
     val runnerClasspath = CoursierClient.resolveMillDaemon()
     try {
       if (runNoDaemon) {
@@ -70,8 +72,9 @@ object MillLauncherMain {
         System.exit(exitCode)
       } else {
         // start in client-server mode
+        MillLauncherMain.p.tick("MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts)")
         val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts) ++ args
-
+        p.tick("new MillServerLauncher")
         val launcher = new MillServerLauncher(
           stdout = System.out,
           stderr = System.err,
@@ -91,9 +94,11 @@ object MillLauncherMain {
         )
 
         val daemonDir = os.Path(outDir, os.pwd) / OutFiles.OutFiles.millDaemon
+        p.tick("MillProcessLauncher.javaHome()")
         val javaHome = MillProcessLauncher.javaHome()
-
+        p.tick("new MillProcessLauncher.prepareMillRunFolder(daemonDir)")
         MillProcessLauncher.prepareMillRunFolder(daemonDir)
+        p.tick("launcher.run(daemonDir, javaHome, log)")
         var exitCode = launcher.run(daemonDir, javaHome, log)
 
         // Retry if server requests it. This can happen when:
@@ -109,6 +114,7 @@ object MillLauncherMain {
         if (exitCode == ClientUtil.ServerExitPleaseRetry) {
           System.err.println(s"Max launcher retries exceeded ($maxRetries), exiting")
         }
+        p.tick("System.exit(exitCode)")
         System.exit(exitCode)
       }
     } catch {
