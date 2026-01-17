@@ -22,7 +22,7 @@ class MillServerLauncher(
 ) {
   private val serverInitWaitMillis = 10000
 
-  def run(daemonDir: os.Path, javaHome: String, log: String => Unit): Int = {
+  def run(daemonDir: os.Path, javaHome: Option[os.Path], log: String => Unit): Int = {
     os.makeDir.all(daemonDir)
     val locks = Locks.forDirectory(daemonDir.toString, useFileLocks)
     log(s"launchOrConnectToServer: $locks")
@@ -55,7 +55,7 @@ class MillServerLauncher(
 
   private def runRpc(
       socket: Socket,
-      javaHome: String,
+      javaHome: Option[os.Path],
       daemonDir: os.Path,
       log: String => Unit
   ): Int = {

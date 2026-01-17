@@ -5,12 +5,13 @@ import mill.client.*
 import mill.client.lock.Locks
 import mill.constants.DaemonFiles
 import mill.launcher.DaemonRpc
-import mill.rpc.{MillRpcServerToClient, MillRpcWireTransport}
+import mill.api.daemon.StopWithResponse
+import mill.rpc.MillRpcWireTransport
 import mill.server.Server.ConnectionData
 
 import java.io.*
 import java.net.Socket
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger, AtomicReference}
+import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
 
 abstract class MillDaemonServer[State](
@@ -34,7 +35,7 @@ abstract class MillDaemonServer[State](
   def initialStateCache: State
 
   private var lastMillVersion = Option.empty[String]
-  private var lastJavaVersion = Option.empty[String]
+  private var lastJavaVersion = Option.empty[os.Path]
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
@@ -62,8 +63,6 @@ abstract class MillDaemonServer[State](
   ): MillDaemonServer.DaemonServerData = {
     serverLog(s"prepareConnection ${connectionData.socketName}")
     MillDaemonServer.DaemonServerData(
-      writtenExitCode = AtomicBoolean(false),
-      exitCode = AtomicInteger(-1),
       shutdownRequest = AtomicReference(Option.empty[(String, Int)]),
       rpcTransport = AtomicReference(Option.empty[MillRpcWireTransport])
     )
@@ -87,34 +86,24 @@ abstract class MillDaemonServer[State](
     // Store the transport so endConnection can send an RPC response if needed
     data.rpcTransport.set(Some(transport))
 
-    // Create a deferred stopServer that sends the RPC response immediately, then throws
-    // InterruptedException to stop the RPC server loop. We throw an exception because
-    // systemExitWithReason expects to never return (Nothing type).
+    // Create a deferred stopServer that stores the shutdown request and throws StopWithResponse
+    // to stop the RPC server loop while still sending a proper response to the client.
     val deferredStopServer: Server.StopServer = (reason, exitCode) => {
       serverLog(
-        s"deferredStopServer: sending RPC response and storing shutdown request (reason=$reason, exitCode=$exitCode)"
+        s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)"
       )
-      // Send the RPC response immediately
-      if (data.writtenExitCode.compareAndSet(false, true)) {
-        data.exitCode.set(exitCode)
-        try {
-          val response = MillRpcServerToClient.Response(
-            Right(DaemonRpc.RunCommandResult(exitCode))
-          )
-          transport.writeSerialized(response, serverLog)
-        } catch {
-          case _: Exception => // Ignore errors, connection might already be broken
-        }
-      }
-      // Store the shutdown request for execution after runCommand returns
       data.shutdownRequest.set(Some((reason, exitCode)))
-      // Throw InterruptedException to stop the RPC server loop (handled specially by MillRpcServer)
-      throw new InterruptedException(s"Shutdown requested: $reason")
+      // Throw StopWithResponse to stop the RPC loop and send the response
+      throw new StopWithResponse(DaemonRpc.RunCommandResult(exitCode))
     }
 
     // Console log file for monitoring progress when another process is waiting
     val consoleLogFile = daemonDir / DaemonFiles.consoleLog
     val consoleLogStream = os.write.outputStream(consoleLogFile, createFolders = true)
+
+    // Track the exit code from normal command completion.
+    // Initialize to exitCodeServerTerminated so interrupted clients get the right code.
+    var commandExitCode = exitCodeServerTerminated
 
     val rpcServer = new DaemonRpcServer(
       serverName = s"MillDaemon-${connectionData.socketName}",
@@ -126,9 +115,10 @@ abstract class MillDaemonServer[State](
         val teeStdout = new mill.internal.MultiStream(stdout, consoleLogStream)
         val teeStderr = new mill.internal.MultiStream(stderr, consoleLogStream)
 
-        // Check for version changes
+        // Check for version changes (only if we already have a stored version)
         val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
-        val javaVersionChanged = lastJavaVersion.exists(_ != init.clientJavaVersion)
+        val javaVersionChanged =
+          lastJavaVersion.isDefined && lastJavaVersion != init.clientJavaVersion
 
         if (millVersionChanged || javaVersionChanged) {
           Server.withOutLock(
@@ -151,7 +141,7 @@ abstract class MillDaemonServer[State](
             }
             if (javaVersionChanged) {
               teeStderr.println(
-                s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${Option(init.clientJavaVersion).getOrElse("<system>")}), re-starting server"
+                s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${init.clientJavaVersion.getOrElse("<system>")}), re-starting server"
               )
             }
 
@@ -163,7 +153,7 @@ abstract class MillDaemonServer[State](
           }
         }
         lastMillVersion = Some(init.clientMillVersion)
-        lastJavaVersion = Some(init.clientJavaVersion)
+        lastJavaVersion = init.clientJavaVersion
 
         // Run the actual command
         val (result, newStateCache) = main0(
@@ -180,10 +170,8 @@ abstract class MillDaemonServer[State](
         )
 
         stateCache = newStateCache
-        val exitCode = if (result) 0 else 1
-        data.exitCode.set(exitCode)
-        data.writtenExitCode.set(true) // Mark that RPC response will be sent
-        DaemonRpc.RunCommandResult(exitCode)
+        commandExitCode = if (result) 0 else 1
+        DaemonRpc.RunCommandResult(commandExitCode)
       }
     )
 
@@ -191,18 +179,18 @@ abstract class MillDaemonServer[State](
     try rpcServer.run()
     finally consoleLogStream.close()
 
-    val exitCode = data.exitCode.get()
-    serverLog(s"handleConnection: RPC server finished, exitCode=$exitCode")
-
-    // Now that the RPC response has been sent, execute any pending shutdown request
-    data.shutdownRequest.get() match {
+    // Check for pending shutdown request and execute it
+    val exitCode = data.shutdownRequest.get() match {
       case Some((reason, shutdownExitCode)) =>
         serverLog(
           s"handleConnection: executing deferred shutdown (reason=$reason, exitCode=$shutdownExitCode)"
         )
         stopServer(reason, shutdownExitCode)
+        shutdownExitCode
       case None =>
-      // No shutdown requested
+        // Normal completion
+        serverLog(s"handleConnection: RPC server finished normally, exitCode=$commandExitCode")
+        commandExitCode
     }
 
     exitCode
@@ -217,15 +205,16 @@ abstract class MillDaemonServer[State](
     // stdout/stderr are redirected to a broken pipe after client disconnects
 
     // If this connection is being closed externally (e.g., another client was interrupted),
-    // send an RPC response so the client doesn't see "wire broken"
+    // and there was no controlled shutdown, try to send a response so the client can retry.
+    // If shutdownRequest is set, response was already sent via StopWithResponse.
     for {
       d <- data
       exitCode <- result
       transport <- d.rpcTransport.get()
-      // Only send if we haven't already written an exit code (i.e., RPC hasn't completed normally)
-      if d.writtenExitCode.compareAndSet(false, true)
+      if d.shutdownRequest.get().isEmpty // Only send if not a controlled shutdown
     } {
       try {
+        import mill.rpc.MillRpcServerToClient
         val response = MillRpcServerToClient.Response(
           Right(DaemonRpc.RunCommandResult(exitCode))
         )
@@ -261,8 +250,6 @@ abstract class MillDaemonServer[State](
 
 object MillDaemonServer {
   case class DaemonServerData(
-      writtenExitCode: AtomicBoolean,
-      exitCode: AtomicInteger,
       shutdownRequest: AtomicReference[Option[(String, Int)]],
       // Store the RPC transport so we can send a response when connection is closed externally
       rpcTransport: AtomicReference[Option[MillRpcWireTransport]]

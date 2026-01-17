@@ -28,16 +28,6 @@ trait JdkCommandsModule extends mill.api.Module {
       .exitCode
   }
 
-  private def callJdkInteractive(
-      toolName: String,
-      javaHome: Option[PathRef],
-      args: Seq[String]
-  ): Int = {
-    Jvm.runInteractiveCommand(
-      cmd = Seq(jdkTool(toolName, javaHome.map(_.path))) ++ args
-    )
-  }
-
   /** Runs the `java` command from Mill's JVM */
   @Task.rename("java")
   @mainargs.main(name = "java")
