@@ -61,6 +61,7 @@ object MillProcessLauncher {
   private def configureRunMillProcess(
       cmd: Seq[String],
       daemonDir: os.Path,
+      stdin: os.ProcessInput = os.Inherit,
       stdout: os.ProcessOutput = os.Inherit,
       stderr: os.ProcessOutput = os.Inherit
   ): Process = {
@@ -82,7 +83,7 @@ object MillProcessLauncher {
 
     // destroyOnExit = false to prevent the daemon from being killed when the Mill client exits.
     // The daemon is a long-lived background process that should survive client disconnections.
-    os.proc(cmd).spawn(cwd = sandbox, env = env, stdout = stdout, stderr = stderr, destroyOnExit = false).wrapped
+    os.proc(cmd).spawn(cwd = sandbox, env = env, stdin = stdin, stdout = stdout, stderr = stderr, destroyOnExit = false).wrapped
   }
 
   def loadMillConfig(outMode: OutFolderMode, key: String): Seq[String] = {
