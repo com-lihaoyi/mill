@@ -36,7 +36,7 @@ private[launcher] class JLineNativeLoader(jlineNativeVersion: String) {
 
   val millJLineNativeLibLocation: os.Path = {
     val libName = System.mapLibraryName("jlinenative").replace(".dylib", ".jnilib")
-    millJLineNativeDir / OSInfo.getNativeLibFolderPathForCurrentOS / libName
+    millJLineNativeDir / os.SubPath(OSInfo.getNativeLibFolderPathForCurrentOS) / libName
   }
 
   def tryLoadFast: Boolean = os.exists(millJLineNativeLibLocation)
