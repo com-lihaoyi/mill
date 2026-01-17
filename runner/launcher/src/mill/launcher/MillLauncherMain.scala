@@ -43,7 +43,7 @@ object MillLauncherMain {
 
     coursier.Resolve.proxySetup()
 
-    val runnerClasspath = CoursierClient.resolveMillDaemon()
+    val runnerClasspath = CoursierClient.resolveMillDaemon(outMode)
     try {
       val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts) ++ args
       if (runNoDaemon) {
@@ -76,7 +76,7 @@ object MillLauncherMain {
         )
 
         val daemonDir = os.Path(outDir, os.pwd) / OutFiles.OutFiles.millDaemon
-        val javaHome = MillProcessLauncher.javaHome()
+        val javaHome = MillProcessLauncher.javaHome(outMode)
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir)
         var exitCode = launcher.run(daemonDir, javaHome, log)

@@ -15,9 +15,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import mill.api.JsonFormatters.*
 object CoursierClient {
 
-  // Use the proper output directory that respects MILL_OUTPUT_DIR
-  private val cacheDir =
-    os.Path(OutFiles.OutFiles.outFor(OutFolderMode.REGULAR), os.pwd) / "mill-daemon" / "cache"
+  // Compute the cache directory based on outMode, respecting MILL_OUTPUT_DIR
+  private def cacheDir(outMode: OutFolderMode): os.Path =
+    os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / "mill-daemon" / "cache"
 
   /**
    * Single-entry disk cache for expensive Coursier resolutions, as even when everything
@@ -53,7 +53,7 @@ object CoursierClient {
     }
   }
 
-  def resolveMillDaemon(): Seq[os.Path] = {
+  def resolveMillDaemon(outMode: OutFolderMode): Seq[os.Path] = {
     val testOverridesRepos = Option(System.getenv("MILL_LOCAL_TEST_REPO"))
       .toSeq
       .flatMap(_.split(File.pathSeparator).toSeq)
@@ -62,7 +62,7 @@ object CoursierClient {
     val cacheKey = s"${BuildInfo.millVersion}:${testOverridesRepos.sorted.mkString(":")}"
 
     cached[Seq[os.Path]](
-      cacheFile = cacheDir / "mill-daemon-classpath",
+      cacheFile = cacheDir(outMode) / "mill-daemon-classpath",
       cacheKey = cacheKey,
       validate = paths => paths.forall(os.exists(_))
     ) {
@@ -97,13 +97,17 @@ object CoursierClient {
     }
   }
 
-  def resolveJavaHome(id: String, jvmIndexVersionOpt: Option[String]): os.Path = {
+  def resolveJavaHome(
+      id: String,
+      jvmIndexVersionOpt: Option[String],
+      outMode: OutFolderMode
+  ): os.Path = {
     val indexVersion = jvmIndexVersionOpt.getOrElse(mill.client.Versions.coursierJvmIndexVersion)
 
     val cacheKey = s"$id:$indexVersion" // Cache key includes jvm id and index version
 
     cached[os.Path](
-      cacheFile = cacheDir / "java-home",
+      cacheFile = cacheDir(outMode) / "java-home",
       cacheKey = cacheKey,
       validate = os.isDir(_)
     ) {

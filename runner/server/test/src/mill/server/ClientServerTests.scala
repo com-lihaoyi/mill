@@ -9,7 +9,6 @@ import mill.rpc.MillRpcChannel
 import utest.*
 
 import java.io.*
-import scala.jdk.CollectionConverters.*
 import concurrent.duration.*
 
 object ClientServerTests extends ClientServerTestsBase {

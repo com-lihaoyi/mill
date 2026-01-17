@@ -25,7 +25,7 @@ object MillProcessLauncher {
 
     val userPropsSeq = ClientUtil.getUserSetProperties().map { case (k, v) => s"-D$k=$v" }.toSeq
 
-    val cmd = millLaunchJvmCommand(runnerClasspath) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode) ++
       userPropsSeq ++
       Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
       loadMillConfig(ConfigConstants.millOpts) ++
@@ -48,7 +48,7 @@ object MillProcessLauncher {
       runnerClasspath: Seq[os.Path],
       useFileLocks: Boolean
   ): Process = {
-    val cmd = millLaunchJvmCommand(runnerClasspath) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode) ++
       Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
 
     configureRunMillProcess(
@@ -156,7 +156,7 @@ object MillProcessLauncher {
 
   def isWin: Boolean = System.getProperty("os.name", "").startsWith("Windows")
 
-  def javaHome(): Option[os.Path] = {
+  def javaHome(outMode: OutFolderMode): Option[os.Path] = {
     val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion)
       .headOption
       .getOrElse(BuildInfo.defaultJvmVersion)
@@ -166,12 +166,13 @@ object MillProcessLauncher {
     // Handle "system" specially - return None to use PATH-based Java lookup
     // (javaExe returns "java" when javaHome is None, using PATH lookup)
     if (jvmVersion == "system") None
-    else if (jvmVersion != null) Some(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion))
+    else if (jvmVersion != null)
+      Some(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion, outMode))
     else None
   }
 
-  def javaExe(): String = {
-    javaHome() match {
+  def javaExe(outMode: OutFolderMode): String = {
+    javaHome(outMode) match {
       case None => "java"
       case Some(home) =>
         val exeName = if (isWin) "java.exe" else "java"
@@ -179,7 +180,7 @@ object MillProcessLauncher {
     }
   }
 
-  def millLaunchJvmCommand(runnerClasspath: Seq[os.Path]): Seq[String] = {
+  def millLaunchJvmCommand(runnerClasspath: Seq[os.Path], outMode: OutFolderMode): Seq[String] = {
     val millProps = sys.props.toSeq
       .filter(_._1.startsWith("MILL_"))
       .map { case (k, v) => s"-D$k=$v" }
@@ -193,7 +194,7 @@ object MillProcessLauncher {
       "-Dsun.stderr.encoding=UTF-8"
     )
 
-    Seq(javaExe()) ++
+    Seq(javaExe(outMode)) ++
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++
