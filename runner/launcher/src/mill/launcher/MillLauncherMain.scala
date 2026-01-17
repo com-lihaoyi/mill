@@ -16,17 +16,10 @@ import scala.jdk.CollectionConverters._
 object MillLauncherMain {
 
   def main(args: Array[String]): Unit = {
-    var runNoDaemon = false
-    var bspMode = false
-    var useFileLocks = false
+    val parsedConfig = MillCliConfig.parse(args).toOption
 
-    MillCliConfig.parse(args).toOption match {
-      case Some(config) =>
-        if (config.bsp.value || config.bspInstall.value) bspMode = true
-        if (config.noDaemonEnabled > 0) runNoDaemon = true
-        if (config.useFileLocks.value) useFileLocks = true
-      case None =>
-    }
+    val bspMode = parsedConfig.exists(c => c.bsp.value || c.bspInstall.value)
+    val useFileLocks = parsedConfig.exists(_.useFileLocks.value)
 
     // Ensure that if we're running in BSP mode we don't start a daemon.
     //
@@ -34,7 +27,7 @@ object MillLauncherMain {
     // server lurks around waiting for the next client to connect.
     // This is unintuitive from the user's perspective and wastes resources, as most people expect
     // everything related to the BSP server to be killed when closing the editor.
-    if (bspMode) runNoDaemon = true
+    val runNoDaemon = parsedConfig.exists(_.noDaemonEnabled > 0) || bspMode
 
     val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
     exitInTestsAfterBspCheck()
@@ -140,31 +133,21 @@ object MillLauncherMain {
   private def handleLauncherException(e: Exception, outDir: String, logs: Seq[String]): Unit = {
     // For MillException, just print the message without stack trace
     e match {
-      case _: mill.api.daemon.MillException =>
-        System.err.println(e.getMessage)
-        return
+      case _: mill.api.daemon.MillException => System.err.println(e.getMessage)
       case _ =>
-    }
+        val errorFile = os.Path(outDir, os.pwd) / "mill-launcher-error.log"
+        val sw = new StringWriter()
+        e.printStackTrace(new PrintWriter(sw))
 
-    val errorFile = os.Path(outDir, os.pwd) / "mill-launcher-error.log"
-    try {
-      val sw = new StringWriter()
-      e.printStackTrace(new PrintWriter(sw))
+        val content =
+          "Mill launcher failed with unknown exception.\n\n" +
+            "Exception:\n" +
+            sw.toString +
+            "\nLogs:\n" +
+            logs.map(_ + "\n").mkString
 
-      val content =
-        "Mill launcher failed with unknown exception.\n\n" +
-          "Exception:\n" +
-          sw.toString +
-          "\nLogs:\n" +
-          logs.map(_ + "\n").mkString
-
-      os.write.over(errorFile, content)
-    } catch {
-      case writeEx: Exception =>
-        // If we can't write to file, fall back to stderr
-        System.err.println(s"Mill launcher failed. Could not write error log: $writeEx")
-        e.printStackTrace()
-    }
-    System.err.println(s"Mill launcher failed. See $errorFile for details.")
+        os.write.over(errorFile, content, createFolders = true)
+        System.err.println(s"Mill launcher failed. See ${errorFile.relativeTo(os.pwd)} for details.")
+    }=
   }
 }
