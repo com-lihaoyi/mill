@@ -28,8 +28,6 @@ trait JdkCommandsModule extends mill.api.Module {
       .exitCode
   }
 
-  
-
   /** Runs the `java` command from Mill's JVM */
   @Task.rename("java")
   @mainargs.main(name = "java")
