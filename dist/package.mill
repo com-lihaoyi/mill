@@ -227,11 +227,35 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     "-keep class scala.xml.** { *; }"
   )
 
-  def executableRaw: T[PathRef] = proguard()
+  private def writeExecutableScript(
+      dest: os.Path,
+      mainClass: String,
+      shellClassPath: Seq[String],
+      cmdClassPath: Seq[String],
+      jvmArgs: Seq[String] = Nil,
+      jarToAppend: Option[os.Path] = None
+  ): Unit = {
+    val script = Jvm.launcherUniversalScript(mainClass, shellClassPath, cmdClassPath, jvmArgs)
+    val lineSep = if (!script.endsWith("\n")) "\n\r\n" else ""
+    os.write(dest, script + lineSep)
+    jarToAppend.foreach { jar =>
+      scala.util.Using.resource(os.read.inputStream(jar)) { is =>
+        os.write.append(dest, is)
+      }
+    }
+    if (!scala.util.Properties.isWin) os.perms.set(dest, "rwxrwxrwx")
+  }
+
+  def executableRaw: T[PathRef] = Task {
+    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    val dest = Task.dest / filename
+    writeExecutableScript(dest, mainClass().get, Seq("$0"), Seq("%~dpnx0"), jarToAppend = Some(proguard().path))
+    PathRef(dest)
+  }
 
   def launcher = Task {
-    val isWin = scala.util.Properties.isWin
-    val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
+    val filename = if (scala.util.Properties.isWin) "run.bat" else "run"
+    val dest = Task.dest / filename
 
     val launcherForkArgs = testArgs()
     val (millArgs, otherArgs) =
@@ -253,18 +277,8 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     val classpathJar = Task.dest / "classpath.jar"
     Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
 
-    val script = Jvm.launcherUniversalScript(
-      mainClass = mainClass().get,
-      shellClassPath = classpath,
-      cmdClassPath = Seq(classpathJar.toString()),
-      jvmArgs = jvmArgs
-    )
-
-    os.write(outputPath, script)
-
-    if (!isWin) os.perms.set(outputPath, "rwxrwxrwx")
-
-    PathRef(outputPath)
+    writeExecutableScript(dest, mainClass().get, classpath, Seq(classpathJar.toString()), jvmArgs)
+    PathRef(dest)
   }
 
   /**
