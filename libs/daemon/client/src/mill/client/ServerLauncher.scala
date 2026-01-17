@@ -42,6 +42,9 @@ object ServerLauncher {
   /**
    * Establishes a connection to the Mill server by acquiring necessary locks and potentially
    * starting a new server process if one is not already running.
+   *
+   * @param millVersion If provided, checks that any existing daemon has a matching version.
+   *                    If mismatched, terminates the old daemon before starting a new one.
    */
   def launchOrConnectToServer(
       locks: Locks,
@@ -50,16 +53,45 @@ object ServerLauncher {
       initServer: () => LaunchedServer,
       onFailure: ServerLaunchResult.ServerDied => Unit,
       log: String => Unit,
-      openSocket: Boolean
+      openSocket: Boolean,
+      millVersion: Option[String] = None
   ): Launched = {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
     val locked = locks.launcherLock.lock()
     try {
+      // Check if existing daemon has matching version, terminate if mismatched
+      millVersion.foreach { version =>
+        val versionFile = daemonDir / DaemonFiles.millVersion
+        val processIdFile = daemonDir / DaemonFiles.processId
+        if (os.exists(processIdFile)) {
+          val existingVersion = if (os.exists(versionFile)) os.read(versionFile).trim else ""
+          if (existingVersion != version) {
+            log(s"Version mismatch: daemon=$existingVersion, launcher=$version")
+            // Terminate the old daemon by removing the processId file
+            os.remove(processIdFile, checkExists = false)
+            os.remove(versionFile, checkExists = false)
+            // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
+            val deadline = System.currentTimeMillis() + 5000
+            while (!locks.daemonLock.probe() && System.currentTimeMillis() < deadline) {
+              Thread.sleep(100)
+            }
+            log("Old daemon terminated")
+          }
+        }
+      }
+
       retryWithTimeout(serverInitWaitMillis, "server launch failed") { () =>
         try {
           log("launchOrConnectToServer attempt")
 
-          ensureServerIsRunning(locks, daemonDir, initServer, serverInitWaitMillis / 3, log) match {
+          ensureServerIsRunning(
+            locks,
+            daemonDir,
+            initServer,
+            serverInitWaitMillis / 3,
+            log,
+            millVersion
+          ) match {
             case ServerLaunchResult.Success(server) =>
               Some(connectToServer(daemonDir, server, openSocket, log))
 
@@ -129,7 +161,8 @@ object ServerLauncher {
       daemonDir: os.Path,
       initServer: () => LaunchedServer,
       timeoutMillis: Long,
-      log: String => Unit
+      log: String => Unit,
+      millVersion: Option[String] = None
   ): ServerLaunchResult = {
     os.makeDir.all(daemonDir)
 
@@ -139,6 +172,8 @@ object ServerLauncher {
         if (locks.daemonLock.probe()) {
           log("The daemon lock is available, starting the server.")
           try {
+            // Write version file when spawning a new daemon
+            millVersion.foreach(v => os.write.over(daemonDir / DaemonFiles.millVersion, v))
             val launchedServer = initServer()
 
             log(s"The server has started: $launchedServer")

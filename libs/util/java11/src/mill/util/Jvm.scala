@@ -304,6 +304,25 @@ object Jvm {
   }
 
   /**
+   * Returns JVM arguments needed to suppress spurious deprecation warnings on newer JDK versions.
+   *
+   * - JDK 23+: `--sun-misc-unsafe-memory-access=allow` to suppress Unsafe warnings from Scala
+   * - JDK 16+: `--enable-native-access=ALL-UNNAMED` to suppress native access warnings from JLine
+   *
+   * @param javaHome Optional Java home to check the version of
+   * @return Sequence of JVM arguments to suppress warnings
+   */
+  def getJvmSuppressionArgs(javaHome: Option[os.Path]): Seq[String] = {
+    val javaMajorVersion = getJavaMajorVersion(javaHome)
+    // Suppress Unsafe warnings on Java >=23, since we use Scala modules built in Scala-3.7 for
+    // compatibility with Java >=11, and Scala-3.7 generates such warnings spuriously
+    Option.when(javaMajorVersion >= 23)("--sun-misc-unsafe-memory-access=allow").toSeq ++
+      // Silence another benign warning, this one raised by JLine and `com.swoval:file-tree-views`
+      // which is transitively used by Zinc for faster filesystem operations
+      Option.when(javaMajorVersion >= 16)("--enable-native-access=ALL-UNNAMED").toSeq
+  }
+
+  /**
    * Creates a `java.net.URLClassLoader` with specified parameters
    * @param classPath URLs from which to load classes and resources
    * @param parent parent class loader for delegation

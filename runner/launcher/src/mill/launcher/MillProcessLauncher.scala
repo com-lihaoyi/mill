@@ -13,7 +13,7 @@ object MillProcessLauncher {
   def launchMillNoDaemon(
       args: Seq[String],
       outMode: OutFolderMode,
-      runnerClasspath: Seq[String],
+      runnerClasspath: Seq[os.Path],
       mainClass: String,
       useFileLocks: Boolean
   ): Int = {
@@ -25,10 +25,10 @@ object MillProcessLauncher {
 
     val userPropsSeq = ClientUtil.getUserSetProperties().map { case (k, v) => s"-D$k=$v" }.toSeq
 
-    val cmd = millLaunchJvmCommand(outMode, runnerClasspath) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode) ++
       userPropsSeq ++
       Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
-      millOpts(outMode) ++
+      loadMillConfig(ConfigConstants.millOpts) ++
       args
 
     var interrupted = false
@@ -45,10 +45,10 @@ object MillProcessLauncher {
   def launchMillDaemon(
       daemonDir: os.Path,
       outMode: OutFolderMode,
-      runnerClasspath: Seq[String],
+      runnerClasspath: Seq[os.Path],
       useFileLocks: Boolean
   ): Process = {
-    val cmd = millLaunchJvmCommand(outMode, runnerClasspath) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode) ++
       Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
 
     configureRunMillProcess(
@@ -94,7 +94,7 @@ object MillProcessLauncher {
     ).wrapped
   }
 
-  def loadMillConfig(outMode: OutFolderMode, key: String): Seq[String] = {
+  def loadMillConfig(key: String): Seq[String] = {
     val configFile = os.pwd / s".$key"
     val workspaceDir = os.pwd.toString
 
@@ -119,12 +119,7 @@ object MillProcessLauncher {
         .map { buildFile =>
           val fileName = buildFile.last
           val headerData = Util.readBuildHeader(buildFile.toNIO, fileName)
-          cachedComputedValue(
-            outMode,
-            key,
-            headerData,
-            () => parseConfigFromHeader(headerData, key, env)
-          )
+          parseConfigFromHeader(headerData, key, env)
         }
         .getOrElse(Seq.empty)
     }
@@ -156,58 +151,36 @@ object MillProcessLauncher {
     }
   }
 
-  def millJvmOpts(outMode: OutFolderMode): Seq[String] =
-    loadMillConfig(outMode, ConfigConstants.millJvmOpts)
-
-  def millOpts(outMode: OutFolderMode): Seq[String] =
-    loadMillConfig(outMode, ConfigConstants.millOpts)
-
-  def millJvmVersion(outMode: OutFolderMode): Option[String] =
-    loadMillConfig(outMode, ConfigConstants.millJvmVersion).headOption
-
-  def millJvmIndexVersion(outMode: OutFolderMode): Option[String] =
-    loadMillConfig(outMode, ConfigConstants.millJvmIndexVersion).headOption
-
   def millServerTimeout: Option[String] =
     sys.env.get(EnvVars.MILL_SERVER_TIMEOUT_MILLIS)
 
   def isWin: Boolean = System.getProperty("os.name", "").startsWith("Windows")
 
-  def javaHome(outMode: OutFolderMode): String = {
-    val jvmVersion = millJvmVersion(outMode).getOrElse(BuildInfo.defaultJvmVersion)
-    val jvmIndexVersion = millJvmIndexVersion(outMode)
+  def javaHome(outMode: OutFolderMode): Option[os.Path] = {
+    val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion)
+      .headOption
+      .getOrElse(BuildInfo.defaultJvmVersion)
 
-    // Handle "system" specially - return null to use PATH-based Java lookup
-    // (javaExe returns "java" when javaHome is null, using PATH lookup)
-    if (jvmVersion == "system") {
-      null
-    } else if (jvmVersion != null) {
-      // Include JVM index version in the cache key to invalidate cache when index version changes
-      val cacheKey = jvmIndexVersion.map(v => s"$jvmVersion:$v").getOrElse(jvmVersion)
-      cachedComputedValue0(
-        outMode,
-        "java-home",
-        cacheKey,
-        () =>
-          Seq(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion.orNull).getAbsolutePath),
-        // Make sure we check to see if the saved java home exists before using
-        // it, since it may have been since uninstalled, or the `out/` folder
-        // may have been transferred to a different machine
-        value => os.exists(os.Path(value.head))
-      ).head
-    } else null
+    val jvmIndexVersion = loadMillConfig(ConfigConstants.millJvmIndexVersion).headOption
+
+    // Handle "system" specially - return None to use PATH-based Java lookup
+    // (javaExe returns "java" when javaHome is None, using PATH lookup)
+    if (jvmVersion == "system") None
+    else if (jvmVersion != null)
+      Some(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion, outMode))
+    else None
   }
 
   def javaExe(outMode: OutFolderMode): String = {
-    Option(javaHome(outMode)) match {
+    javaHome(outMode) match {
       case None => "java"
       case Some(home) =>
         val exeName = if (isWin) "java.exe" else "java"
-        (os.Path(home) / "bin" / exeName).toString
+        (home / "bin" / exeName).toString
     }
   }
 
-  def millLaunchJvmCommand(outMode: OutFolderMode, runnerClasspath: Seq[String]): Seq[String] = {
+  def millLaunchJvmCommand(runnerClasspath: Seq[os.Path], outMode: OutFolderMode): Seq[String] = {
     val millProps = sys.props.toSeq
       .filter(_._1.startsWith("MILL_"))
       .map { case (k, v) => s"-D$k=$v" }
@@ -225,50 +198,8 @@ object MillProcessLauncher {
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++
-      millJvmOpts(outMode) ++
+      loadMillConfig(ConfigConstants.millJvmOpts) ++
       Seq("-cp", runnerClasspath.mkString(File.pathSeparator))
-  }
-
-  private case class CachedValue(key: String, value: Seq[String])
-  private object CachedValue {
-    implicit val rw: upickle.default.ReadWriter[CachedValue] = upickle.default.macroRW
-  }
-
-  def cachedComputedValue(
-      outMode: OutFolderMode,
-      name: String,
-      key: String,
-      block: () => Seq[String]
-  ): Seq[String] = {
-    cachedComputedValue0(outMode, name, key, block, _ => true)
-  }
-
-  def cachedComputedValue0(
-      outMode: OutFolderMode,
-      name: String,
-      key: String,
-      block: () => Seq[String],
-      validate: Seq[String] => Boolean
-  ): Seq[String] = {
-    val cacheFile = os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / "mill-launcher" / name
-
-    val cachedValue: Option[Seq[String]] =
-      if (os.exists(cacheFile)) {
-        try {
-          val cached = upickle.default.read[CachedValue](os.read(cacheFile))
-          if (cached.key == key && validate(cached.value)) Some(cached.value)
-          else None
-        } catch {
-          case _: Exception => None // Ignore malformed cache files
-        }
-      } else None
-
-    cachedValue.getOrElse {
-      val value = block()
-      os.makeDir.all(cacheFile / os.up)
-      os.write.over(cacheFile, upickle.default.write(CachedValue(key, value)))
-      value
-    }
   }
 
   private def getTerminalDim(s: String, inheritError: Boolean): Int = {

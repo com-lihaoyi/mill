@@ -380,7 +380,7 @@ object Util {
           fs match {
             case f: ExecResult.Failure[_] => convertFailure(f)
             case ex: ExecResult.Exception =>
-              mill.api.daemon.ExecResult.exceptionToFailure(ex.throwable, ex.outerStack).copy(
+              Result.Failure.fromException(ex.throwable, ex.outerStack.value.length).copy(
                 error = key.toString,
                 tickerPrefix = keyPrefix
               )

@@ -303,6 +303,8 @@ case class Execution(
                   }
                 }
               } catch {
+                // Let StopWithResponse propagate - it's a controlled shutdown signal
+                case e: mill.api.daemon.StopWithResponse[?] => throw e
                 // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
                 // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
                 case e: Throwable if !scala.util.control.NonFatal(e) =>
