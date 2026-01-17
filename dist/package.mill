@@ -22,7 +22,11 @@ trait DistModule extends Module {
     case m: MillPublishJavaModule => m
   }
 
-  def executableRaw: T[PathRef]
+  /**
+   * A standalone executable JAR with shell script prepended.
+   * This is what gets installed via `installLocal`.
+   */
+  def standaloneJar: T[PathRef]
 
   def localRepo: T[PathRef] = Task {
     val dest = Task.dest
@@ -33,20 +37,18 @@ trait DistModule extends Module {
   }
 
   def executable = Task {
-    val rawExecutable = executableRaw()
+    val jar = standaloneJar()
+    val localRepoPath = localRepo().path.toString
     if (Properties.isWin) {
       val launcher = Task.dest / "mill.bat"
       val launcherContent =
         s"""@echo off
-           |set "NEW_COURSIER_REPOSITORIES=${localRepo().path.toNIO.toUri.toASCIIString}|ivy2Local|central"
-           |if defined COURSIER_REPOSITORIES (
-           |  set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|%COURSIER_REPOSITORIES%"
+           |if defined MILL_LOCAL_TEST_REPO (
+           |  set "MILL_LOCAL_TEST_REPO=$localRepoPath;%MILL_LOCAL_TEST_REPO%"
            |) else (
-           |  set "NEW_COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%|ivy2Local|central"
+           |  set "MILL_LOCAL_TEST_REPO=$localRepoPath"
            |)
-           |set "COURSIER_REPOSITORIES=%NEW_COURSIER_REPOSITORIES%"
-           |set NEW_COURSIER_REPOSITORIES=
-           |"${rawExecutable.path.toString.replace("\"", "\\\"")}" %*
+           |"${jar.path.toString.replace("\"", "\\\"")}" %*
            |if errorlevel 1 exit /b %errorlevel%
            |""".stripMargin
       os.write(launcher, launcherContent)
@@ -56,8 +58,8 @@ trait DistModule extends Module {
       val launcherContent =
         s"""#!/usr/bin/env bash
            |set -e
-           |export COURSIER_REPOSITORIES="${localRepo().path.toNIO.toUri.toASCIIString}|$${COURSIER_REPOSITORIES:-ivy2Local|central}"
-           |exec '${rawExecutable.path.toString.replace("'", "\\'")}' "$$@"
+           |export MILL_LOCAL_TEST_REPO="$localRepoPath$${MILL_LOCAL_TEST_REPO:+:$$MILL_LOCAL_TEST_REPO}"
+           |exec '${jar.path.toString.replace("'", "\\'")}' "$$@"
            |""".stripMargin
       os.write(launcher, launcherContent)
       val perms = Files.getPosixFilePermissions(launcher.toNIO)
@@ -124,7 +126,7 @@ trait DistModule extends Module {
       for (targetFile <- targetFiles0) {
         if (os.exists(targetFile))
           Task.log.info(s"Overwriting existing local Mill binary at $targetFile")
-        os.copy.over(executableRaw().path, targetFile, createFolders = true)
+        os.copy.over(standaloneJar().path, targetFile, createFolders = true)
       }
       Task.log.info(
         s"Published ${build.dist.allPublishModules.size} modules under ~/.ivy2/local and installed ${targetFiles0.mkString(", ")}"
@@ -176,7 +178,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
   def localTestExtraModules = allPublishModules
 
-  def localBinName = "mill-assembly.jar"
+  def localBinName = "mill-proguard-assembly.jar"
 
   // Use the raw assembly as input to ProGuard
   override def inJar: T[PathRef] = raw.assembly()
@@ -198,16 +200,31 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     // dependencies that have optional runtime dependencies we don't need
     "-dontwarn **",
 
+    // Keep all directory entries and resources in the output jar
+    "-keepdirectories",
+
     // Keep Scala lazy val fields (used by Scala 3 lazy val implementation)
     "-keepclassmembers class * { ** *$lzy1; }",
-    "-keepclassmembers class * { !transient <fields>; }"
+    "-keepclassmembers class * { !transient <fields>; }",
+
+    // Keep Coursier classes - they use reflection and dynamic dispatch extensively
+    "-keep class coursier.** { *; }",
+
+    // Keep os-lib classes - used by Mill for path handling
+    "-keep class os.** { *; }"
   )
 
-  def executableRaw = Task {
-    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-    os.copy(proguard().path, Task.dest / filename)
-    if (!scala.util.Properties.isWin) os.perms.set(Task.dest / filename, "rwxrwxrwx")
-    PathRef(Task.dest / filename)
+  // The standalone JAR is the proguard output with the standard shell script prepended,
+  // making it directly executable like the raw assembly
+  override def standaloneJar: T[PathRef] = Task {
+    val proguardJar = proguard().path
+    val dest = Task.dest / "mill.jar"
+    val script = prependShellScript()
+    val lineSep = if (!script.endsWith("\n")) "\n\r\n" else ""
+    os.write(dest, script + lineSep)
+    os.write.append(dest, os.read.bytes(proguardJar))
+    os.perms.set(dest, "rwxrwxrwx")
+    PathRef(dest)
   }
 
   def bootstrapLauncher = Task {
@@ -285,7 +302,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def localTestExtraModules = allPublishModules
 
-    def localBinName = "mill-assembly-raw.jar"
+    def localBinName = "mill-assembly.jar"
 
     private def millClientJvmArgs = Seq(
       // Avoid reserving a lot of memory for the client, as the client only forward information
@@ -346,7 +363,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def mainClass = Some("mill.launcher.MillLauncherMain")
 
-    def executableRaw = Task {
+    def standaloneJar = Task {
       val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
       os.copy(assembly().path, Task.dest / filename)
       PathRef(Task.dest / filename)
@@ -411,7 +428,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def cacheBinarySuffix = Task.Anon { s"-native-${artifactOsSuffix()}-${artifactCpuSuffix()}" }
 
-    def executableRaw = nativeImage()
+    def standaloneJar = nativeImage()
 
     def nativeImageOptions = Seq(
       "--no-fallback",
