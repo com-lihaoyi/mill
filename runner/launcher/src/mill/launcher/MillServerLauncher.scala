@@ -1,7 +1,7 @@
 package mill.launcher
 
 import mill.client.{ClientUtil, LaunchedServer, ServerLauncher}
-import mill.constants.{BuildInfo, DaemonFiles}
+import mill.constants.BuildInfo
 import mill.client.lock.Locks
 import mill.constants.Util
 import mill.rpc.RpcConsole
@@ -31,11 +31,7 @@ class MillServerLauncher(
       locks,
       daemonDir,
       serverInitWaitMillis,
-      () => {
-        // Write version file when spawning a new daemon
-        os.write.over(daemonDir / DaemonFiles.millVersion, millVersion)
-        initServerFactory(daemonDir, locks)
-      },
+      () => initServerFactory(daemonDir, locks),
       serverDied => {
         System.err.println("Server died during startup:")
         System.err.println(serverDied.toString)
@@ -43,26 +39,7 @@ class MillServerLauncher(
       },
       s => log(s),
       true,
-      preConnect = () => {
-        // Check if existing daemon has matching version, terminate if mismatched
-        val versionFile = daemonDir / DaemonFiles.millVersion
-        val processIdFile = daemonDir / DaemonFiles.processId
-        if (os.exists(processIdFile)) {
-          val existingVersion = if (os.exists(versionFile)) os.read(versionFile).trim else ""
-          if (existingVersion != millVersion) {
-            log(s"Version mismatch: daemon=$existingVersion, launcher=$millVersion")
-            // Terminate the old daemon by removing the processId file
-            os.remove(processIdFile, checkExists = false)
-            os.remove(versionFile, checkExists = false)
-            // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
-            val deadline = System.currentTimeMillis() + 5000
-            while (!locks.daemonLock.probe() && System.currentTimeMillis() < deadline) {
-              Thread.sleep(100)
-            }
-            log("Old daemon terminated")
-          }
-        }
-      }
+      millVersion = Some(millVersion)
     )
 
     try {
