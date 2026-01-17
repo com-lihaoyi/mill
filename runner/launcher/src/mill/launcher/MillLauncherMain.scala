@@ -1,21 +1,19 @@
 package mill.launcher
 
-import mill.client._
+import mill.api.daemon.MillException
+import mill.client.*
 import mill.constants.{ConfigConstants, EnvVars, OutFiles, OutFolderMode}
 import mill.internal.MillCliConfig
 
 import java.io.{PrintWriter, StringWriter}
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId}
-import scala.collection.mutable.ArrayBuffer
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 /**
  * Mill launcher main entry point.
  */
 object MillLauncherMain {
-
-  val p = new mill.constants.Profiler()
   def main(args: Array[String]): Unit = {
 
     val parsedConfig = MillCliConfig.parse(args).toOption
@@ -37,41 +35,28 @@ object MillLauncherMain {
     val logFile = os.Path(outDir, os.pwd) / "mill-launcher/log"
     val formatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
-    val log: String => Unit =
-      s =>
-        os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
-    if (outMode == OutFolderMode.BSP) {
-      val message = if (OutFiles.OutFiles.mergeBspOut) {
-        s"Mill is running in BSP mode and '${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable " +
-          s"is set, Mill will use the regular '$outDir' as the output directory. Unset this environment variable if you" +
-          " want to use a separate output directory for BSP. This will increase" +
-          " the CPU usage of the BSP server but make it more responsive."
-      } else {
-        s"Mill is running in BSP mode, using a separate output directory '$outDir'. " +
-          s"If you would like to reuse the regular `out/` directory, set the " +
-          s"'${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable. This will reduce the CPU usage " +
-          "of the BSP server but make it less responsive."
-      }
-      System.err.println(message)
-    }
+
+    def log(s: String) =
+      os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
+
+    if (outMode == OutFolderMode.BSP) logBspInfoMessage(outDir)
 
     coursier.Resolve.proxySetup()
 
     val runnerClasspath = CoursierClient.resolveMillDaemon()
     try {
+      val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts) ++ args
       if (runNoDaemon) {
         val mainClass = if (bspMode) "mill.daemon.MillBspMain" else "mill.daemon.MillNoDaemonMain"
         val exitCode = MillProcessLauncher.launchMillNoDaemon(
-          args.toSeq,
+          optsArgs,
           outMode,
           runnerClasspath,
           mainClass,
           useFileLocks
         )
         System.exit(exitCode)
-      } else {
-        // start in client-server mode
-        val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts) ++ args
+      } else { // start in client-server mode
         val launcher = new MillServerLauncher(
           stdout = System.out,
           stderr = System.err,
@@ -112,7 +97,7 @@ object MillLauncherMain {
         System.exit(exitCode)
       }
     } catch {
-      case e: mill.api.daemon.MillException =>
+      case e: MillException =>
         System.err.println(e.getMessage)
         System.exit(1)
       case e =>
@@ -124,5 +109,22 @@ object MillLauncherMain {
         System.err.println(s"Mill launcher failed. See ${logFile.relativeTo(os.pwd)} for details.")
         System.exit(1)
     }
+  }
+
+  private def logBspInfoMessage(outDir: String): Unit = {
+
+    val message = if (OutFiles.OutFiles.mergeBspOut) {
+      s"Mill is running in BSP mode and '${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable " +
+        s"is set, Mill will use the regular '$outDir' as the output directory. Unset this environment variable if you" +
+        " want to use a separate output directory for BSP. This will increase" +
+        " the CPU usage of the BSP server but make it more responsive."
+    } else {
+      s"Mill is running in BSP mode, using a separate output directory '$outDir'. " +
+        s"If you would like to reuse the regular `out/` directory, set the " +
+        s"'${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable. This will reduce the CPU usage " +
+        "of the BSP server but make it less responsive."
+    }
+    System.err.println(message)
+
   }
 }
