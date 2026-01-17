@@ -220,7 +220,13 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     // Keep Scala lazy val fields (used by Scala 3 lazy val implementation)
     "-keepclassmembers class * { ** *$lzy1; }",
-    "-keepclassmembers class * { !transient <fields>; }"
+    "-keepclassmembers class * { !transient <fields>; }",
+
+    // Keep Coursier classes - they use reflection and dynamic dispatch extensively
+    "-keep class coursier.** { *; }",
+
+    // Keep os-lib classes - used by Mill for path handling
+    "-keep class os.** { *; }"
   )
 
   def executableRaw: T[PathRef] = proguard()
