@@ -5,7 +5,8 @@ import mill.client.*
 import mill.client.lock.Locks
 import mill.constants.DaemonFiles
 import mill.launcher.DaemonRpc
-import mill.rpc.{MillRpcWireTransport, StopWithResponse}
+import mill.api.daemon.StopWithResponse
+import mill.rpc.MillRpcWireTransport
 import mill.server.Server.ConnectionData
 
 import java.io.*
@@ -116,7 +117,8 @@ abstract class MillDaemonServer[State](
 
         // Check for version changes (only if we already have a stored version)
         val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
-        val javaVersionChanged = lastJavaVersion.isDefined && lastJavaVersion != init.clientJavaVersion
+        val javaVersionChanged =
+          lastJavaVersion.isDefined && lastJavaVersion != init.clientJavaVersion
 
         if (millVersionChanged || javaVersionChanged) {
           Server.withOutLock(

@@ -1,17 +1,11 @@
 package mill.rpc
 
 import mill.api.daemon.Logger
+import mill.api.daemon.StopWithResponse
 import pprint.TPrint
 import upickle.{Reader, Writer}
 
 import scala.util.control.NonFatal
-
-/**
- * Exception thrown to stop the RPC server loop while still sending a response.
- * This allows a controlled shutdown where the client receives a proper response
- * before the server stops processing requests.
- */
-class StopWithResponse[R](val response: R) extends Exception
 
 /** Default implementation for the [[MillRpcServer]]. */
 trait MillRpcServer[
