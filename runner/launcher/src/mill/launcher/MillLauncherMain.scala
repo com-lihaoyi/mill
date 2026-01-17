@@ -36,7 +36,9 @@ object MillLauncherMain {
     val formatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
     val log: String => Unit =
-      s => os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
+      s =>
+        os.write.append(logFile, s"${formatter.format(Instant.now())} $s\n", createFolders = true)
+
     if (outMode == OutFolderMode.BSP) {
       val message = if (OutFiles.OutFiles.mergeBspOut) {
         s"Mill is running in BSP mode and '${EnvVars.MILL_NO_SEPARATE_BSP_OUTPUT_DIR}' environment variable " +
