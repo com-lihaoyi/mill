@@ -143,7 +143,11 @@ object DiscoveredBuildFiles {
 
       val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
         .flatMap(os.list(_))
-        .filter(p => buildFileExtensions.asScala.exists(ext => p.baseName.nonEmpty && p.last.endsWith("." + ext)))
+        .filter(p =>
+          buildFileExtensions.asScala.exists(ext =>
+            p.baseName.nonEmpty && p.last.endsWith("." + ext)
+          )
+        )
 
       buildFiles ++ adjacentScripts
     }

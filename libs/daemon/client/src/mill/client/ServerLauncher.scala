@@ -50,11 +50,13 @@ object ServerLauncher {
       initServer: () => LaunchedServer,
       onFailure: ServerLaunchResult.ServerDied => Unit,
       log: String => Unit,
-      openSocket: Boolean
+      openSocket: Boolean,
+      preConnect: () => Unit = () => ()
   ): Launched = {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
     val locked = locks.launcherLock.lock()
     try {
+      preConnect()
       retryWithTimeout(serverInitWaitMillis, "server launch failed") { () =>
         try {
           log("launchOrConnectToServer attempt")
