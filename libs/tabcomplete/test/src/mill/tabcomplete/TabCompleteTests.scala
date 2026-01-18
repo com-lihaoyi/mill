@@ -10,6 +10,8 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.annotation.unused
 import scala.collection.immutable.HashSet
 
+
+
 object TabCompleteTests extends TestSuite {
   object mainModule extends TestRootModule {
     lazy val millDiscover = Discover[this.type]
