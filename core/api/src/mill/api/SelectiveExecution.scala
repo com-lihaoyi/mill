@@ -56,21 +56,13 @@ object SelectiveExecution {
 
   implicit val rw: upickle.ReadWriter[Metadata] = upickle.macroRW
 
-  /** Reason why a task was invalidated */
-  sealed trait InvalidationReason
-  object InvalidationReason {
-    /** Mill version changed */
-    case class MillVersionChanged(oldVersion: String, newVersion: String) extends InvalidationReason
-    /** Mill JVM version changed */
-    case class MillJvmVersionChanged(oldVersion: String, newVersion: String) extends InvalidationReason
-    /** Task input hash changed */
-    case object InputChanged extends InvalidationReason
-    /** Task code signature changed */
-    case object CodeChanged extends InvalidationReason
-    /** Build override changed */
-    case object BuildOverrideChanged extends InvalidationReason
-    /** Task was explicitly marked for forced re-run */
-    case object ForcedRun extends InvalidationReason
+  enum InvalidationReason {
+    case MillVersionChanged(oldVersion: String, newVersion: String)
+    case MillJvmVersionChanged(oldVersion: String, newVersion: String)
+    case InputChanged
+    case CodeChanged
+    case BuildOverrideChanged
+    case ForcedRun
   }
 
   case class ChangedTasks(

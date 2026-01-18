@@ -62,17 +62,11 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   ): DownstreamResult = {
     import SelectiveExecution.InvalidationReason
 
-    // Check if mill version changed
-    val millVersionChanged: Option[(String, String)] =
-      if (oldHashes.millVersion.nonEmpty && oldHashes.millVersion != newHashes.millVersion)
-        Some((oldHashes.millVersion, newHashes.millVersion))
-      else None
+    def versionChanged(oldV: String, newV: String): Option[(String, String)] =
+      Option.when(oldV.nonEmpty && oldV != newV)((oldV, newV))
 
-    // Check if mill JVM version changed
-    val millJvmVersionChanged: Option[(String, String)] =
-      if (oldHashes.millJvmVersion.nonEmpty && oldHashes.millJvmVersion != newHashes.millJvmVersion)
-        Some((oldHashes.millJvmVersion, newHashes.millJvmVersion))
-      else None
+    val millVersionChanged = versionChanged(oldHashes.millVersion, newHashes.millVersion)
+    val millJvmVersionChanged = versionChanged(oldHashes.millJvmVersion, newHashes.millJvmVersion)
 
     // If either version changed, treat all tasks as changed
     if (millVersionChanged.isDefined || millJvmVersionChanged.isDefined) {
