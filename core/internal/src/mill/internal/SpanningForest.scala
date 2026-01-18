@@ -115,6 +115,130 @@ object SpanningForest {
   }
 
   /**
+   * Builds an invalidation tree that combines:
+   * - Task dependency spanning forest
+   * - Code signature spanning tree (showing method call chains)
+   * - Version change nodes (mill-version-changed, mill-jvm-version-changed)
+   * - Invalidation reason grouping (input changed, code changed, etc.)
+   *
+   * @param taskEdges Map from task name to downstream task names
+   * @param interestingTasks All tasks that should appear in the tree
+   * @param codeSignatureTree Optional code signature spanning tree (JSON string to avoid classloader issues)
+   * @param millVersionChanged Optional (oldVersion, newVersion) if mill version changed
+   * @param millJvmVersionChanged Optional (oldVersion, newVersion) if mill JVM version changed
+   * @param invalidationReasons Optional map from task name to reason string (e.g. "<input changed>")
+   * @param resolvedTasks Optional set of task names that were directly resolved (for filtering)
+   */
+  def buildInvalidationTree(
+      taskEdges: Map[String, Seq[String]],
+      interestingTasks: Set[String],
+      codeSignatureTree: Option[String] = None,
+      millVersionChanged: Option[(String, String)] = None,
+      millJvmVersionChanged: Option[(String, String)] = None,
+      invalidationReasons: Map[String, String] = Map.empty,
+      resolvedTasks: Option[Set[String]] = None
+  ): ujson.Obj = {
+    // Build the base task spanning forest
+    val allTasks = (taskEdges.keys ++ taskEdges.values.flatten ++ interestingTasks).toArray.distinct.sorted
+    val taskToIndex = allTasks.zipWithIndex.toMap
+    val indexEdges = allTasks.map(t => taskEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
+    val interestingIndices = interestingTasks.flatMap(taskToIndex.get)
+
+    val baseForest = SpanningForest(indexEdges, interestingIndices, limitToImportantVertices = true)
+    val baseTree = spanningTreeToJsonTree(baseForest, allTasks(_))
+
+    // Simplify to only show paths to resolved tasks if specified
+    val simplifiedTree = resolvedTasks match {
+      case Some(resolved) => simplifyToResolved(baseTree, resolved)
+      case None => baseTree
+    }
+
+    // Parse code signature tree if provided
+    val parsedCodeSigTree: Option[ujson.Obj] = codeSignatureTree.flatMap { jsonStr =>
+      try {
+        ujson.read(jsonStr) match {
+          case obj: ujson.Obj if obj.value.nonEmpty => Some(obj)
+          case _ => None
+        }
+      } catch {
+        case _: Exception => None
+      }
+    }
+
+    // Handle version changes - all tasks go under version change node
+    if (millVersionChanged.isDefined || millJvmVersionChanged.isDefined) {
+      val result = ujson.Obj()
+      millVersionChanged.foreach { case (oldV, newV) =>
+        result(s"mill-version-changed:$oldV->$newV") = simplifiedTree
+      }
+      millJvmVersionChanged.foreach { case (oldV, newV) =>
+        result(s"mill-jvm-version-changed:$oldV->$newV") = simplifiedTree
+      }
+      return result
+    }
+
+    // Group tasks by invalidation reason
+    if (invalidationReasons.nonEmpty) {
+      val tasksByReason = invalidationReasons.groupMap(_._2)(_._1)
+      val result = ujson.Obj()
+
+      for ((reason, tasks) <- tasksByReason.toSeq.sortBy(_._1)) {
+        val taskSet = tasks.toSet
+        val filteredTree = filterTreeToTasks(simplifiedTree, taskSet)
+
+        if (reason == "<code changed>" && parsedCodeSigTree.isDefined) {
+          // Merge code signature tree for code changes
+          val merged = mergeCodeSignatureTree(filteredTree, parsedCodeSigTree.get)
+          // Add merged entries directly to result (not under a reason key)
+          merged.value.foreach { case (k, v) => result(k) = v }
+        } else {
+          result(reason) = filteredTree
+        }
+      }
+      result
+    } else {
+      // No reason grouping - just merge with code signature tree
+      parsedCodeSigTree match {
+        case Some(codeSigTree) => mergeCodeSignatureTree(simplifiedTree, codeSigTree)
+        case None => simplifiedTree
+      }
+    }
+  }
+
+  /**
+   * Simplifies a tree to only show paths that lead to resolved tasks.
+   */
+  private def simplifyToResolved(tree: ujson.Obj, resolvedTasks: Set[String]): ujson.Obj = {
+    def simplify(j: ujson.Obj): Option[ujson.Obj] = {
+      val filtered = j.value.flatMap {
+        case (k, v: ujson.Obj) =>
+          simplify(v)
+            .map((k, _))
+            .orElse(Option.when(resolvedTasks.contains(k))(k -> v))
+        case other => Some(other)
+      }
+      Option.when(filtered.nonEmpty)(ujson.Obj.from(filtered))
+    }
+    simplify(tree).getOrElse(ujson.Obj())
+  }
+
+  /**
+   * Filters a tree to only include paths that start from or lead to specified tasks.
+   */
+  private def filterTreeToTasks(tree: ujson.Obj, tasks: Set[String]): ujson.Obj = {
+    def filter(j: ujson.Obj): ujson.Obj = {
+      ujson.Obj.from(j.value.flatMap {
+        case (k, v: ujson.Obj) =>
+          val filtered = filter(v)
+          if (tasks.contains(k) || filtered.value.nonEmpty) Some(k -> filtered)
+          else None
+        case other => Some(other)
+      })
+    }
+    filter(tree)
+  }
+
+  /**
    * Merges the code signature spanning tree with the task invalidation tree.
    * Groups tasks by their code path and wraps each group together to preserve
    * the task dependency hierarchy.

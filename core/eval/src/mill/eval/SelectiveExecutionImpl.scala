@@ -223,140 +223,46 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         .keys()
         .toArray
         .filter(t => taskSet.contains(t))
-        .sortBy(_.toString) // Sort to ensure determinism
+        .sortBy(_.toString)
 
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
       val reverseInterGroupDeps = SpanningForest.reverseEdges(
-        interGroupDeps.toSeq.sortBy(_._1.toString) // sort to ensure determinism
+        interGroupDeps.toSeq.sortBy(_._1.toString)
       )
 
-      val ( /*vertexToIndex*/ _, edgeIndices) =
-        SpanningForest.graphMapToIndices(indexToTerminal, reverseInterGroupDeps)
+      // Build task edges map (task name -> downstream task names)
+      val taskEdges: Map[String, Seq[String]] = reverseInterGroupDeps
+        .view
+        .map { case (k, vs) => k.toString -> vs.map(_.toString) }
+        .toMap
 
-      val json = SpanningForest.writeJson(
-        indexEdges = edgeIndices,
-        interestingIndices = indexToTerminal.indices.toSet,
-        render = indexToTerminal(_).toString
-      )
-
-      // Simplify the tree structure to only show the direct paths to the tasks
-      // resolved directly, removing the other branches, since those tasks are
-      // the ones that the user probably cares about
+      val interestingTasks = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
       val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
-      def simplifyJson(j: ujson.Obj): Option[ujson.Obj] = {
-        val map = j.value.flatMap {
-          case (k, v: ujson.Obj) =>
-            simplifyJson(v)
-              .map((k, _))
-              .orElse(Option.when(resolvedTaskLabels.contains(k)) { k -> v })
-          case _ => ???
-        }
-        Option.when(map.nonEmpty)(ujson.Obj.from(map))
+
+      // Convert invalidation reasons to string labels
+      val invalidationReasons: Map[String, String] = changedTasks.invalidationReasons.map {
+        case (taskName, InvalidationReason.InputChanged) => taskName -> "<input changed>"
+        case (taskName, InvalidationReason.CodeChanged) => taskName -> "<code changed>"
+        case (taskName, InvalidationReason.BuildOverrideChanged) => taskName -> "<build override changed>"
+        case (taskName, InvalidationReason.ForcedRun) => taskName -> "<forced run>"
+        case (taskName, _) => taskName -> "<unknown>"
       }
 
-      val simplifiedJson = simplifyJson(json).getOrElse(ujson.Obj())
+      // Read the code signature spanning tree from disk
+      val spanningTreePath =
+        evaluator.outPath / "mill-build" / "codeSignaturesAndSpanningTree.dest" / "current" / "spanningInvalidationTree.json"
+      val codeSignatureTree: Option[String] =
+        Option.when(os.exists(spanningTreePath))(os.read(spanningTreePath))
 
-      // Build a tree that shows invalidation reasons at the root
-      if (changedTasks.millVersionChanged.isDefined || changedTasks.millJvmVersionChanged.isDefined) {
-        // All tasks invalidated due to mill-version or mill-jvm-version change
-        val result = ujson.Obj()
-        changedTasks.millVersionChanged.foreach { case (oldV, newV) =>
-          result(s"mill-version-changed:$oldV->$newV") = simplifiedJson
-        }
-        changedTasks.millJvmVersionChanged.foreach { case (oldV, newV) =>
-          result(s"mill-jvm-version-changed:$oldV->$newV") = simplifiedJson
-        }
-        result
-      } else if (changedTasks.invalidationReasons.nonEmpty) {
-        // Group root tasks by their invalidation reason
-        val tasksByReason = changedTasks.invalidationReasons.groupBy(_._2).map {
-          case (reason, tasks) => (reason, tasks.keys.toSeq.sorted)
-        }
-
-        // For code changes, try to load the spanningInvalidationTree.json
-        val codeChangedTasks = tasksByReason.getOrElse(InvalidationReason.CodeChanged, Seq.empty)
-        val codeChangeTree: ujson.Value =
-          if (codeChangedTasks.isEmpty) ujson.Obj()
-          else {
-            // Build a base tree from code-changed tasks with their downstream tasks
-            val codeChangeTaskTree = ujson.Obj.from(codeChangedTasks.sorted.flatMap { taskName =>
-              // Find the downstream tasks for this task in simplifiedJson
-              def getSubtreeForTask(name: String, json: ujson.Obj): Option[(String, ujson.Value)] = {
-                json.value.get(name) match {
-                  case Some(subtree) => Some(name -> subtree)
-                  case None =>
-                    // Search recursively for the task
-                    json.value.view.flatMap {
-                      case (_, v: ujson.Obj) => getSubtreeForTask(name, v)
-                      case _ => None
-                    }.headOption
-                }
-              }
-              getSubtreeForTask(taskName, simplifiedJson).orElse(Some(taskName -> ujson.Obj()))
-            })
-
-            // Try to read the spanningInvalidationTree.json from the mill-build codeSignaturesAndSpanningTree
-            val spanningTreePath =
-              evaluator.outPath / "mill-build" / "codeSignaturesAndSpanningTree.dest" / "current" / "spanningInvalidationTree.json"
-
-            val spanningTree: Option[ujson.Value] =
-              if (os.exists(spanningTreePath)) {
-                try Some(ujson.read(os.read(spanningTreePath)))
-                catch { case _: Exception => None }
-              } else None
-
-            // Use the shared utility to merge code paths with task tree
-            spanningTree match {
-              case Some(tree) => SpanningForest.mergeCodeSignatureTree(codeChangeTaskTree, tree)
-              case None => codeChangeTaskTree
-            }
-          }
-
-        // Build sub-trees for each task under each reason
-        def buildSubTree(taskNames: Seq[String]): ujson.Obj = {
-          val taskNameSet = taskNames.toSet
-          def filterTree(j: ujson.Obj): ujson.Obj = {
-            ujson.Obj.from(j.value.flatMap {
-              case (k, v: ujson.Obj) =>
-                val filtered = filterTree(v)
-                if (taskNameSet.contains(k) || filtered.value.nonEmpty) Some(k -> filtered)
-                else None
-              case other => Some(other)
-            })
-          }
-          filterTree(simplifiedJson)
-        }
-
-        val result = ujson.Obj()
-
-        // Add input changes
-        tasksByReason.get(InvalidationReason.InputChanged).foreach { tasks =>
-          result("<input changed>") = buildSubTree(tasks)
-        }
-
-        // Add code changes with the detailed spanning tree merged directly into result
-        // (showing the method/call chain from spanningInvalidationTree.json)
-        if (codeChangedTasks.nonEmpty) {
-          codeChangeTree match {
-            case obj: ujson.Obj => obj.value.foreach { case (k, v) => result(k) = v }
-            case _ => // ignore non-object trees
-          }
-        }
-
-        // Add build override changes
-        tasksByReason.get(InvalidationReason.BuildOverrideChanged).foreach { tasks =>
-          result("<build override changed>") = buildSubTree(tasks)
-        }
-
-        // Add forced runs
-        tasksByReason.get(InvalidationReason.ForcedRun).foreach { tasks =>
-          result("<forced run>") = buildSubTree(tasks)
-        }
-
-        result
-      } else {
-        simplifiedJson
-      }
+      SpanningForest.buildInvalidationTree(
+        taskEdges = taskEdges,
+        interestingTasks = interestingTasks,
+        codeSignatureTree = codeSignatureTree,
+        millVersionChanged = changedTasks.millVersionChanged,
+        millJvmVersionChanged = changedTasks.millJvmVersionChanged,
+        invalidationReasons = invalidationReasons,
+        resolvedTasks = Some(resolvedTaskLabels)
+      )
     }
   }
 
