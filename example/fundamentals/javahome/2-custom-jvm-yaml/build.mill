@@ -1,0 +1,23 @@
+// Mill's JVM can be configured via the
+// xref:cli/build-header.adoc#_mill_jvm_version[mill-jvm-version] key in your
+// declarative `build.mill.yaml` file:
+
+
+/** See Also: build.mill.yaml */
+
+/** Usage
+
+> ./mill java -version
+openjdk version "19..." ...
+
+> echo 'System.getProperty("java.version")' | ./mill jshell
+...19...
+
+> echo 'System.getProperty("java.version")' | ./mill repl
+...19...
+
+*/
+
+// This is useful for easily trying out different Java versions: you can quickly change
+// your `build.mill.yaml` and run `java`, `javac`, `jshell`, or `repl` with the new Java
+// version to use it to compile and run code

@@ -1,8 +1,6 @@
 //| mill-jvm-version: 19
 
-//
-// Mill's JVM can be configured via the
-// xref:cli/build-header.adoc#_mill_jvm_version[//| mill-jvm-version] key in your build header.
+// For programmable builds, you can se the JVM version via the `//| mill-jvm-version` build header:
 
 /** Usage
 
