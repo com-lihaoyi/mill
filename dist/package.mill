@@ -173,7 +173,7 @@ trait DistModule extends RunModule {
     "-Dsun.stderr.encoding=UTF-8"
   )
 
-  def forkArgs = Task{
+  def forkArgs = Task {
     millClientJvmArgs ++ Seq(
       // Workaround for Zinc/JNA bug
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
@@ -232,24 +232,21 @@ object `package` extends MillJavaModule with Proguard with DistModule {
       mainClass: String,
       shellClassPath: Seq[String],
       cmdClassPath: Seq[String],
-      jvmArgs: Seq[String] = Nil,
-      jarToAppend: Option[os.Path] = None
+      jvmArgs: Seq[String] = Nil
   ): Unit = {
     val script = Jvm.launcherUniversalScript(mainClass, shellClassPath, cmdClassPath, jvmArgs)
     val lineSep = if (!script.endsWith("\n")) "\n\r\n" else ""
     os.write(dest, script + lineSep)
-    jarToAppend.foreach { jar =>
-      scala.util.Using.resource(os.read.inputStream(jar)) { is =>
-        os.write.append(dest, is)
-      }
-    }
     if (!scala.util.Properties.isWin) os.perms.set(dest, "rwxrwxrwx")
   }
 
   def executableRaw: T[PathRef] = Task {
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     val dest = Task.dest / filename
-    writeExecutableScript(dest, mainClass().get, Seq("$0"), Seq("%~dpnx0"), jarToAppend = Some(proguard().path))
+    writeExecutableScript(dest, mainClass().get, Seq("$0"), Seq("%~dpnx0"))
+    scala.util.Using.resource(os.read.inputStream(proguard().path)) { is =>
+      os.write.append(dest, is)
+    }
     PathRef(dest)
   }
 
@@ -257,22 +254,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     val filename = if (scala.util.Properties.isWin) "run.bat" else "run"
     val dest = Task.dest / filename
 
-    val launcherForkArgs = testArgs()
-    val (millArgs, otherArgs) =
-      launcherForkArgs.partition(arg =>
-        arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
-      )
-
-    // Pass Mill options via file, due to small max args limit in Windows
-    val vmOptionsFile = Task.dest / "mill.properties"
-    val millOptionsContent = millArgs
-      .map(_.drop(2).replace("\\", "/")) // drop -D prefix, replace \ with /
-      .mkString("\r\n")
-
-    os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ millClientJvmArgs ++ List(
-      s"-DMILL_OPTIONS_PATH=$vmOptionsFile"
-    )
+    val jvmArgs = testArgs() ++ millClientJvmArgs
     val classpath = runClasspath().map(_.path.toString)
     val classpathJar = Task.dest / "classpath.jar"
     Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
