@@ -280,8 +280,6 @@ class MillBuildBootstrap(
           evaluator = Option(evaluator),
           buildOverrideFiles = Map(),
           spanningInvalidationTree = None,
-          millVersion = MillBuildBootstrap.currentMillVersion,
-          millJvmVersion = MillBuildBootstrap.currentMillJvmVersion,
           millVersionChanged = millVersionChanged,
           millJvmVersionChanged = millJvmVersionChanged
         )
@@ -353,8 +351,6 @@ class MillBuildBootstrap(
           buildOverrideFiles = buildOverrideFiles,
           // Only pass the spanning tree when classloader changed (meta-build was recompiled)
           spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree),
-          millVersion = MillBuildBootstrap.currentMillVersion,
-          millJvmVersion = MillBuildBootstrap.currentMillJvmVersion,
           millVersionChanged = millVersionChanged,
           millJvmVersionChanged = millJvmVersionChanged
         )
@@ -400,8 +396,6 @@ class MillBuildBootstrap(
       evaluator = Option(evaluator),
       buildOverrideFiles = Map(),
       spanningInvalidationTree = None,
-      millVersion = MillBuildBootstrap.currentMillVersion,
-      millJvmVersion = MillBuildBootstrap.currentMillJvmVersion,
       millVersionChanged = millVersionChanged,
       millJvmVersionChanged = millJvmVersionChanged
     )

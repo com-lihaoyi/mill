@@ -126,7 +126,7 @@ out/mill-daemon
 [
   {
     "label": "mill.javalib.JvmWorkerModule/internalWorker",
-    "millis": 0,
+    "millis": ...,
     "cached": true,
     "valueHashChanged": false,
     "dependencies": [
