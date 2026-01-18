@@ -934,7 +934,6 @@ jobs:
         # No windows-arm support becaues Graal native image doesn't support it
         # https://github.com/oracle/graal/issues/9215
     env:
-      MILL_STABLE_VERSION: 1
       MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
       MILL_PGP_SECRET_BASE64: ${{ secrets.SONATYPE_PGP_PRIVATE_KEY }}
