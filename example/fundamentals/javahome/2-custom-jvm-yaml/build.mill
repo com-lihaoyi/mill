@@ -17,6 +17,4 @@ openjdk version "19..." ...
 
 */
 
-// This is useful for easily trying out different Java versions: you can quickly change
-// your `build.mill.yaml` and run `java`, `javac`, `jshell`, or `repl` with the new Java
-// version to use it to compile and run code
+// For programmable builds, you can se the JVM version via the `//| mill-jvm-version` build header:
