@@ -284,64 +284,38 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         val codeChangeTree: ujson.Value =
           if (codeChangedTasks.isEmpty) ujson.Obj()
           else {
-            // Try to read the spanningInvalidationTree.json from the mill-build codeSignatures
+            // Build a base tree from code-changed tasks with their downstream tasks
+            val codeChangeTaskTree = ujson.Obj.from(codeChangedTasks.sorted.flatMap { taskName =>
+              // Find the downstream tasks for this task in simplifiedJson
+              def getSubtreeForTask(name: String, json: ujson.Obj): Option[(String, ujson.Value)] = {
+                json.value.get(name) match {
+                  case Some(subtree) => Some(name -> subtree)
+                  case None =>
+                    // Search recursively for the task
+                    json.value.view.flatMap {
+                      case (_, v: ujson.Obj) => getSubtreeForTask(name, v)
+                      case _ => None
+                    }.headOption
+                }
+              }
+              getSubtreeForTask(taskName, simplifiedJson).orElse(Some(taskName -> ujson.Obj()))
+            })
+
+            // Try to read the spanningInvalidationTree.json from the mill-build codeSignaturesAndSpanningTree
             val spanningTreePath =
-              evaluator.outPath / "mill-build" / "codeSignatures.dest" / "current" / "spanningInvalidationTree.json"
-            val rawTree =
+              evaluator.outPath / "mill-build" / "codeSignaturesAndSpanningTree.dest" / "current" / "spanningInvalidationTree.json"
+
+            val spanningTree: Option[ujson.Value] =
               if (os.exists(spanningTreePath)) {
-                try ujson.read(os.read(spanningTreePath))
-                catch { case _: Exception => ujson.Obj.from(codeChangedTasks.map(_ -> ujson.Obj())) }
-              } else {
-                ujson.Obj.from(codeChangedTasks.map(_ -> ujson.Obj()))
-              }
+                try Some(ujson.read(os.read(spanningTreePath)))
+                catch { case _: Exception => None }
+              } else None
 
-            // Add task names to the leaves of the spanning tree
-            // The spanning tree contains method signatures, we need to add the actual task names
-            // and their downstream tasks from the task dependency tree (simplifiedJson)
-            def getSubtreeForTask(taskName: String, json: ujson.Obj): ujson.Value = {
-              json.value.get(taskName) match {
-                case Some(subtree) => subtree
-                case None =>
-                  // Search recursively for the task
-                  json.value.collectFirst {
-                    case (_, v: ujson.Obj) =>
-                      getSubtreeForTask(taskName, v) match {
-                        case obj: ujson.Obj if obj.value.nonEmpty => obj
-                        case found if found != ujson.Obj() => found
-                        case _ => null
-                      }
-                  }.collect { case v if v != null => v }.getOrElse(ujson.Obj())
-              }
+            // Use the shared utility to merge code paths with task tree
+            spanningTree match {
+              case Some(tree) => SpanningForest.mergeCodeSignatureTree(codeChangeTaskTree, tree)
+              case None => codeChangeTaskTree
             }
-
-            def addTaskNamesToLeaves(tree: ujson.Value): ujson.Value = tree match {
-              case obj: ujson.Obj =>
-                ujson.Obj.from(obj.value.map { case (k, v) =>
-                  val newV = v match {
-                    case innerObj: ujson.Obj if innerObj.value.isEmpty =>
-                      // This is a leaf node - check if any task name matches this method signature
-                      val matchingTasks = codeChangedTasks.filter { taskName =>
-                        // Match task name to method signature
-                        // e.g., "bar.barCommand" matches "...#barCommand()..."
-                        val taskPart = taskName.split('.').last
-                        k.contains(s"#$taskPart(") || k.contains(s"!$taskPart(")
-                      }
-                      if (matchingTasks.nonEmpty) {
-                        // Add matching tasks with their downstream tasks from simplifiedJson
-                        ujson.Obj.from(matchingTasks.sorted.map { taskName =>
-                          taskName -> getSubtreeForTask(taskName, simplifiedJson)
-                        })
-                      } else {
-                        innerObj
-                      }
-                    case other => addTaskNamesToLeaves(other)
-                  }
-                  k -> newV
-                })
-              case other => other
-            }
-
-            addTaskNamesToLeaves(rawTree)
           }
 
         // Build sub-trees for each task under each reason

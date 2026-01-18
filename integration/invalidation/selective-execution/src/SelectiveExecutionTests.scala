@@ -51,7 +51,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       assert(
         cached.out.linesIterator.toList.sorted ==
-          Seq("bar.barCommandRenamed", "foo.fooCommand", "foo.fooTaskRenamed")
+          Seq("bar.barCommandRenamed", "bar.barCommandRenamed2", "foo.fooCommand", "foo.fooTaskRenamed")
       )
     }
     test("overrideSuper") - integrationTest { tester =>

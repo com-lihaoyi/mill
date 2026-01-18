@@ -200,6 +200,8 @@ class MillBuildBootstrap(
       useFileLocks = useFileLocks,
       workerCache = workerCache,
       codeSignatures = nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+      // Pass spanning tree from the frame - only populated when classloader changed
+      spanningInvalidationTree = nestedState.frames.headOption.flatMap(_.spanningInvalidationTree),
       rootModule = rootModule,
       // We want to use the grandparent buildHash, rather than the parent
       // buildHash, because the parent build changes are instead detected
@@ -269,7 +271,8 @@ class MillBuildBootstrap(
           runClasspath = Nil,
           compileOutput = None,
           evaluator = Option(evaluator),
-          buildOverrideFiles = Map()
+          buildOverrideFiles = Map(),
+          spanningInvalidationTree = None
         )
 
         nestedState.add(
@@ -278,11 +281,12 @@ class MillBuildBootstrap(
         )
 
       case (
-            Result.Success(Seq(Tuple4(
+            Result.Success(Seq(Tuple5(
               runClasspath: Seq[PathRefApi],
               compileClasses: PathRefApi,
               codeSignatures: Map[String, Int],
-              buildOverrideFiles: Map[java.nio.file.Path, String]
+              buildOverrideFiles: Map[java.nio.file.Path, String],
+              spanningInvalidationTree: String
             ))),
             evalWatches,
             moduleWatches
@@ -302,7 +306,9 @@ class MillBuildBootstrap(
         val moduleWatchChanged = prevOuterFrameOpt
           .exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
 
-        val classLoader = if (runClasspathChanged || moduleWatchChanged) {
+        val classLoaderChanged = runClasspathChanged || moduleWatchChanged
+
+        val classLoader = if (classLoaderChanged) {
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks, as well as all the workers in each subsequent
           // frame's `workerCache`s that may depend on classes loaded by that classloader
@@ -331,7 +337,9 @@ class MillBuildBootstrap(
           runClasspath = runClasspath,
           compileOutput = Some(compileClasses),
           evaluator = Option(evaluator),
-          buildOverrideFiles = buildOverrideFiles
+          buildOverrideFiles = buildOverrideFiles,
+          // Only pass the spanning tree when classloader changed (meta-build was recompiled)
+          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree)
         )
 
         nestedState.add(frame = evalState)
@@ -370,7 +378,8 @@ class MillBuildBootstrap(
       runClasspath = Nil,
       compileOutput = None,
       evaluator = Option(evaluator),
-      buildOverrideFiles = Map()
+      buildOverrideFiles = Map(),
+      spanningInvalidationTree = None
     )
 
     nestedState.add(
@@ -402,6 +411,8 @@ object MillBuildBootstrap {
       useFileLocks: Boolean,
       workerCache: Map[String, (Int, Val)],
       codeSignatures: Map[String, Int],
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: Option[String],
       rootModule: RootModuleApi,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
@@ -443,6 +454,7 @@ object MillBuildBootstrap {
           !keepGoing,
           ec,
           codeSignatures,
+          spanningInvalidationTree,
           (reason: String, exitCode: Int) => systemExit(reason, exitCode),
           streams0,
           () => evaluator,

@@ -170,17 +170,24 @@ trait MillBuildRootModule()(using
   }
 
   def millBuildRootModuleResult = Task {
-    Tuple4(
+    val (signatures, spanningTree) = codeSignaturesAndSpanningTree()
+    Tuple5(
       runClasspath(),
       compile().classes,
-      codeSignatures(),
+      signatures,
       parseBuildFiles().seenScripts.collect {
         case (k, v) if k.last.endsWith(".mill.yaml") => (k.toNIO, v)
-      }
+      },
+      // Serialize to string to avoid classloader issues when crossing classloader boundaries
+      spanningTree.render()
     )
   }
 
-  def codeSignatures: T[Map[String, Int]] = Task(persistent = true) {
+  /**
+   * Returns (transitiveCallGraphHashes, spanningInvalidationTree).
+   * The spanning tree shows the method-level code changes that caused invalidation.
+   */
+  def codeSignaturesAndSpanningTree: T[(Map[String, Int], ujson.Obj)] = Task(persistent = true) {
     os.remove.all(Task.dest / "previous")
     if (os.exists(Task.dest / "current"))
       os.move.over(Task.dest / "current", Task.dest / "previous")
@@ -260,7 +267,11 @@ trait MillBuildRootModule()(using
           )
       )
 
-    codesig.transitiveCallGraphHashes
+    (codesig.transitiveCallGraphHashes, codesig.spanningInvalidationTree)
+  }
+
+  def codeSignatures: T[Map[String, Int]] = Task {
+    codeSignaturesAndSpanningTree()._1
   }
 
   /**

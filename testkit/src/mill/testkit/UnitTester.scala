@@ -131,14 +131,15 @@ class UnitTester(
     failFast = failFast,
     ec = ec,
     codeSignatures = Map(),
+    spanningInvalidationTree = None,
     systemExit = (reason, exitCode) =>
       throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
     useFileLocks = false,
-    enableTicker = false,
     staticBuildOverrideFiles = Map(),
+    enableTicker = false,
     depth = 0,
     isFinalDepth = true
   )

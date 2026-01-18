@@ -27,6 +27,8 @@ case class Execution(
     failFast: Boolean,
     ec: Option[ThreadPoolExecutor],
     codeSignatures: Map[String, Int],
+    // JSON string to avoid classloader issues when crossing classloader boundaries
+    spanningInvalidationTree: Option[String],
     systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
@@ -55,6 +57,8 @@ case class Execution(
       failFast: Boolean,
       ec: Option[ThreadPoolExecutor],
       codeSignatures: Map[String, Int],
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: Option[String],
       systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
@@ -78,6 +82,7 @@ case class Execution(
     failFast = failFast,
     ec = ec,
     codeSignatures = codeSignatures,
+    spanningInvalidationTree = spanningInvalidationTree,
     systemExit = systemExit,
     exclusiveSystemStreams = exclusiveSystemStreams,
     getEvaluator = getEvaluator,
@@ -351,7 +356,8 @@ case class Execution(
         indexToTerminal = indexToTerminal,
         outPath = outPath,
         uncached = uncached,
-        changedValueHash = changedValueHash
+        changedValueHash = changedValueHash,
+        spanningInvalidationTree = spanningInvalidationTree
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
