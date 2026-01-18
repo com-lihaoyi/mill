@@ -1,14 +1,15 @@
 = Developer Documentation
 
 Mill is built using Mill. The `./mill` script will be sufficient to bootstrap the project.
+Run `./mill --help` for a quick primer on how to use `./mill` as a build tool.
 
-== Common Develoepr Workflow
+== Common Developer Workflow
 
 1. Import code into IntelliJ IDEA
 
 2. Make code changes
 
-3. Run `__.compile` to make sure you didn't screw up anything simple
+3. Run `./mill __.compile` to make sure you didn't screw up anything simple
    (you can use `-w`/`--watch` for convenience)
 
 4. Run specific unit tests (if any) e.g. `./mill core.api.test`
