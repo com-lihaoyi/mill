@@ -17,7 +17,7 @@ object YamlConfigTasksTests extends UtestIntegrationTestSuite {
         "^"
       )
       assert(res.err.contains(
-        "key \"scalaVersionn\" does not override any task, did you mean \"scalaVersion\"?"
+        "key \"scalaVersionn\" does not override any task on ScalaModule, did you mean \"scalaVersion\"?"
       ))
       res.assertContainsLines(
         "[error] test/package.mill.yaml:2:1",
