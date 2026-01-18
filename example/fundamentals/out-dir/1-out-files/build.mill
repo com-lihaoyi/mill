@@ -228,14 +228,13 @@ out/mill-daemon
 // Again, if there are multiple paths through which one task was invalidated by another,
 // one path is chosen arbitrarily to be shown in the spanning tree
 //
-// === `codeSignatures spanningInvalidationTree`
+// ==== Code Change Invalidation
 //
 // Sometimes invalidation can be caused by a code change in your `build.mill`/`package.mill`
 // files, rather than by a change in the project's source files or inputs. In such cases,
-// the root tasks in `mill-invalidation-tree.json` may not necessarily be inputs. In such
-// cases, you can look at `out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json`
-// to see an invalidation tree for how code changes in specfic methods propagate throughout
-// the `build.mill` codebase.
+// `mill-invalidation-tree.json` will show the method-level code changes that caused the
+// invalidation, with `def` and `call` nodes showing how the code change propagates through
+// the build definition to reach the invalidated tasks.
 
 /** Usage
 
@@ -243,27 +242,24 @@ out/mill-daemon
 
 > ./mill foo.compile # compile after changing build.mill
 
-> cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
+> cat out/mill-invalidation-tree.json
 {
-...
+  "call scala.Predef$#println(java.lang.Object)void": {
     "def build_.package_$foo$#<init>(build_.package_)void": {
       "call build_.package_$foo$!<init>(build_.package_)void": {
         "def build_.package_#foo$lzyINIT1()java.lang.Object": {
           "call build_.package_!foo$lzyINIT1()java.lang.Object": {
-            "def build_.package_#foo()build_.package_$foo$": {}
-          }
-        }
-      }
-    }
+            "def build_.package_#foo()build_.package_$foo$": {
+              "foo.compile": {},
 ...
-}
 
 */
 
-// In the `spanningInvalidationTree.json` above, we can see how to addition of the call
+// In the `mill-invalidation-tree.json` above, we can see how the addition of the call
 // to `scala.Predef.println` caused the `<init>` constructor method of `build_.package_.foo`
-// to invalidation, and ends up invalidating `def build_.package_#foo()` which is the method
-// representing the `build.foo` task that will thus need to be re-evaluated.
+// to be invalidated, and ends up invalidating `def build_.package_#foo()` which is the method
+// representing the `build.foo` module. All tasks defined in that module (including `foo.compile`)
+// are shown as invalidated underneath.
 //
 // Mill's code-change invalidation analysis is _approximate_ and _conservative_. That means
 // that it invalidates each task when any method it calls (transitively) is changed. This may

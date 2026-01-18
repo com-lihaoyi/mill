@@ -44,7 +44,6 @@ object SelectiveExecution {
       codeSignatures: Map[String, Int],
       @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map(),
       @com.lihaoyi.unroll forceRunTasks: Set[String] = Set(),
-      @com.lihaoyi.unroll invalidateAllHash: Int = 0, // deprecated, kept for backwards compat
       @com.lihaoyi.unroll millVersion: String = "",
       @com.lihaoyi.unroll millJvmVersion: String = ""
   )

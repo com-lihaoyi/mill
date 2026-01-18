@@ -103,14 +103,14 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       // Normalize the mill version in the output for comparison
       val normalizedTree = resolveTree.out.linesIterator.toSeq.map { line =>
-        line.replaceAll("<mill-version:0\\.0\\.0-old-version->[^>]+>", "<mill-version:OLD->NEW>")
+        line.replaceAll("<mill-version-changed:0\\.0\\.0-old-version->[^>]+>", "<mill-version-changed:OLD->NEW>")
       }
 
       assertGoldenLiteral(
         normalizedTree,
         Seq(
           "{",
-          "  \"<mill-version:OLD->NEW>\": {",
+          "  \"<mill-version-changed:OLD->NEW>\": {",
           "    \"foo.fooTask\": {",
           "      \"foo.fooCommand\": {}",
           "    },",
@@ -156,14 +156,14 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       // Normalize the JVM version in the output for comparison
       val normalizedTree = resolveTree.out.linesIterator.toSeq.map { line =>
-        line.replaceAll("<mill-jvm-version:1\\.0\\.0-old-jvm->[^>]+>", "<mill-jvm-version:OLD->NEW>")
+        line.replaceAll("<mill-jvm-version-changed:1\\.0\\.0-old-jvm->[^>]+>", "<mill-jvm-version-changed:OLD->NEW>")
       }
 
       assertGoldenLiteral(
         normalizedTree,
         Seq(
           "{",
-          "  \"<mill-jvm-version:OLD->NEW>\": {",
+          "  \"<mill-jvm-version-changed:OLD->NEW>\": {",
           "    \"foo.fooTask\": {",
           "      \"foo.fooCommand\": {}",
           "    },",

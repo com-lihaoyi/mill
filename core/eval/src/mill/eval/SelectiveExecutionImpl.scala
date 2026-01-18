@@ -267,10 +267,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         // All tasks invalidated due to mill-version or mill-jvm-version change
         val result = ujson.Obj()
         changedTasks.millVersionChanged.foreach { case (oldV, newV) =>
-          result(s"<mill-version:$oldV->$newV>") = simplifiedJson
+          result(s"<mill-version-changed:$oldV->$newV>") = simplifiedJson
         }
         changedTasks.millJvmVersionChanged.foreach { case (oldV, newV) =>
-          result(s"<mill-jvm-version:$oldV->$newV>") = simplifiedJson
+          result(s"<mill-jvm-version-changed:$oldV->$newV>") = simplifiedJson
         }
         result
       } else if (changedTasks.invalidationReasons.nonEmpty) {
@@ -446,7 +446,6 @@ object SelectiveExecutionImpl {
             value <- transitiveNamedMap.get(k)
           } yield (k, value.##),
           forceRunTasks = Set(),
-          invalidateAllHash = 0, // deprecated, kept for backwards compat
           millVersion = mill.constants.BuildInfo.millVersion,
           millJvmVersion = sys.props("java.version")
         ),
