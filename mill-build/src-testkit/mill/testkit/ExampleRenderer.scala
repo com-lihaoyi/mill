@@ -68,12 +68,12 @@ $title
 ----
 
 ${
-            if (seenFrontMatter) ""
-            else {
-              seenFrontMatter = true
-              frontMatter
+              if (seenFrontMatter) ""
+              else {
+                seenFrontMatter = true
+                frontMatter
+              }
             }
-          }
 
 ${lines.mkString("\n")}
 ----
