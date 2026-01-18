@@ -87,7 +87,7 @@ class MillBuildBootstrap(
     val currentRoot = recRoot(topLevelProjectRoot, depth)
 
     val nestedState =
-      if (containsBuildFile(currentRoot)) evaluateRec(depth + 1)
+      if (shouldCreateMetaBuild(currentRoot, depth)) evaluateRec(depth + 1)
       else makeBootstrapState(currentRoot)
 
     val nestedFrames = nestedState.frames
