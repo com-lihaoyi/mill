@@ -7,7 +7,7 @@ git stash -u
 git stash -a
 
 # Build Mill
-./mill -i dist.installLocal
+./mill -i dist.raw.installLocal
 
 # Clean up
 git stash -a -m "preserve mill-release" -- ./mill-assembly.jar
