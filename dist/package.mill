@@ -289,18 +289,16 @@ object `package` extends MillJavaModule with Proguard with DistModule {
         val wd = os.Path(wd0, BuildCtx.workspaceRoot)
         assert(os.exists(wd), s"Folder $wd does not exist")
         try {
-          os.call(
-            cmd = (launcher().path.toString, rest),
+          Jvm.runInteractiveCommand(
+            cmd = Seq(launcher().path.toString) ++ rest,
             env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
             cwd = wd,
-            stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit
+            propagateEnv = true
           )
           mill.api.Result.Success(())
         } catch {
           case e: Throwable =>
-            mill.api.Result.Failure(s"dist.raw.run failed with an exception. ${e.getMessage()}")
+            mill.api.Result.Failure(s"dist.run failed with ${e.getMessage()}")
         }
     }
   }

@@ -5,7 +5,7 @@ import mill.api.JsonFormatters.*
 
 case class MillCliConfig(
     // ==================== NORMAL CLI FLAGS ====================
-    @arg(doc = "Run without a long-lived background daemon. Must be the first argument.")
+    @arg(doc = "Run without a long-lived background daemon.")
     noDaemon: Flag = Flag(),
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
     showVersion: Flag = Flag(),
@@ -52,10 +52,10 @@ case class MillCliConfig(
     )
     imports: Seq[String] = Nil,
     @arg(
+      hidden = true,
       short = 'i',
       doc =
-        """Run Mill in interactive mode, suitable for opening REPLs and taking user input.
-          Identical to --no-daemon. Must be the first argument."""
+        """Alias for now `--no-daemon`. No longer needed for interactive commands since Mill 1.1.0"""
     )
     interactive: Flag = Flag(),
     @arg(doc = "Print this help message and exit.")
@@ -145,14 +145,11 @@ case class MillCliConfig(
       """
     )
     useFileLocks: Flag = Flag(),
-    @arg(
-      hidden = true,
-      doc = """Runs Mill in tab-completion mode"""
-    )
+    @arg(hidden = true, doc = """Runs Mill in tab-completion mode""")
     tabComplete: Flag = Flag(),
     @arg(hidden = true, short = 'h', doc = "Unsupported, but kept for compatibility")
     home: os.Path = os.home,
-    @arg(hidden = true, doc = "Deprecated, use `--no-deamon` instead")
+    @arg(hidden = true, doc = "Deprecated, use `--no-daemon` instead")
     noServer: Flag = Flag(),
     @arg(hidden = true, short = 's', doc = "Unsupported, but kept for compatibility")
     silent: Flag = Flag(),
@@ -185,30 +182,36 @@ Usage: mill [options] task [task-options] [+ task ...]
   val cheatSheet =
     """
 Task cheat sheet:
-  mill resolve _                 # see all top-level tasks and modules
-  mill resolve __.compile        # see all `compile` tasks in any module (recursively)
+  ./mill repl                      # open up a Scala REPL with Mill
+  ./mill jshell                    # open up a JShell Java Console with Mill
 
-  mill foo.bar.compile           # compile the module `foo.bar`
+  ./mill Foo.java                  # run a Java single-file script
+  ./mill Foo.scala:compile         # run the `compile` task on a Scala single-file script
 
-  mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
-  mill -i foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
+  ./mill resolve _                 # see all top-level tasks and modules
+  ./mill resolve __.compile        # see all `compile` tasks in any module (recursively)
 
-  mill foo.__.test               # run tests in modules nested within `foo` (recursively)
-  mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
-  mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
-  mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
+  ./mill foo.bar.compile           # compile the module `foo.bar`
 
-  mill foo.resolvedMvnSources    # resolve `foo`'s third-party dependencies' source code for browsing
+  ./mill foo.run --arg 1           # run the main method of the module `foo` and pass in `--arg 1`
+  ./mill -i foo.repl               # run the Scala repl for the module `foo` (if it is a ScalaModule)
 
-  mill foo.assembly              # generate an executable assembly of the module `foo`
-  mill show foo.assembly         # print the output path of the assembly of module `foo`
-  mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+  ./mill foo.__.test               # run tests in modules nested within `foo` (recursively)
+  ./mill foo.test arg1 arg2        # run tests in the `foo` module passing in test arguments `arg1 arg2`
+  ./mill foo.test + bar.test       # run tests in the `foo` module and `bar` module
+  ./mill '{foo,bar,qux}.test'      # run tests in the `foo` module, `bar` module, and `qux` module
 
-  mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
-  mill clean                     # delete the output of the entire build to force re-evaluation
+  ./mill foo.resolvedMvnSources    # resolve `foo`'s third-party dependencies' source code for browsing
 
-  mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
-  mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
+  ./mill foo.assembly              # generate an executable assembly of the module `foo`
+  ./mill show foo.assembly         # print the output path of the assembly of module `foo`
+  ./mill inspect foo.assembly      # show docs and metadata for the `assembly` task on module `foo`
+
+  ./mill clean foo.assembly        # delete the output of `foo.assembly` to force re-evaluation
+  ./mill clean                     # delete the output of the entire build to force re-evaluation
+
+  ./mill path foo.run foo.sources  # print the task chain showing how `foo.run` depends on `foo.sources`
+  ./mill visualize __.compile      # show how the `compile` tasks in each module depend on one another
 
 Options:
 """
@@ -245,8 +248,7 @@ Advanced Options:
       usageDoc +
       cheatSheet +
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
-      "\nPlease see the documentation at https://mill-build.org for more details,\n" +
-      "or `./mill --help-advanced` for a list of advanced flags"
+      "\nSee documentation at https://mill-build.org for more details"
 
   lazy val helpAdvancedUsageText: String =
     customName +

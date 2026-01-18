@@ -13,15 +13,17 @@ Mill is built using Mill. The `./mill` script will be sufficient to bootstrap th
 
 4. Run specific unit tests (if any) e.g. `./mill core.api.test`
 
-5. Run specific integration/example tests e.g. `./mill integration.feature.full-run-logs` or
+5. Test manually via `./mill dist.run scratch foo.scala`
+
+6. Run specific integration/example tests e.g. `./mill integration.feature.full-run-logs` or
    `./mill example.javalib.basic.1-script`
 
-6. Run broader integration/unit tests e.g. `./mill core.__.test` or
+7. Run broader integration/unit tests e.g. `./mill core.__.test` or
    `./mill example.javalib.basic._`
 
-7. Push to a PR and run all tests in CI
+8. Push to a PR and run all tests in CI
 
-8. If anything fails, go back to (2.)
+9. If anything fails, go back to (2.)
 
 == Manual & Automated Testing
 
