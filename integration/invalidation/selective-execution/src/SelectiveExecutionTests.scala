@@ -105,19 +105,17 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         line.replaceAll("mill-version-changed:0\\.0\\.0-old-version->[^\"]+", "mill-version-changed:OLD->NEW")
       }
 
+      // Version changes produce flat structure - all tasks are direct children of the
+      // version change node since they all share the same root cause
       assertGoldenLiteral(
         normalizedTree,
         Seq(
           "{",
           "  \"mill-version-changed:OLD->NEW\": {",
-          "    \"foo.fooTask\": {",
-          "      \"foo.fooCommand\": {}",
-          "    },",
-          "    \"bar.barTask\": {",
-          "      \"bar.barCommand\": {",
-          "        \"bar.barCommand2\": {}",
-          "      }",
-          "    }",
+          "    \"foo.fooCommand\": {},",
+          "    \"foo.fooTask\": {},",
+          "    \"bar.barCommand\": {},",
+          "    \"bar.barCommand2\": {}",
           "  }",
           "}"
         )
@@ -157,19 +155,17 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         line.replaceAll("mill-jvm-version-changed:1\\.0\\.0-old-jvm->[^\"]+", "mill-jvm-version-changed:OLD->NEW")
       }
 
+      // JVM version changes produce flat structure - all tasks are direct children of the
+      // version change node since they all share the same root cause
       assertGoldenLiteral(
         normalizedTree,
         Seq(
           "{",
           "  \"mill-jvm-version-changed:OLD->NEW\": {",
-          "    \"foo.fooTask\": {",
-          "      \"foo.fooCommand\": {}",
-          "    },",
-          "    \"bar.barTask\": {",
-          "      \"bar.barCommand\": {",
-          "        \"bar.barCommand2\": {}",
-          "      }",
-          "    }",
+          "    \"foo.fooCommand\": {},",
+          "    \"foo.fooTask\": {},",
+          "    \"bar.barCommand\": {},",
+          "    \"bar.barCommand2\": {}",
           "  }",
           "}"
         )

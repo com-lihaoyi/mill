@@ -9,7 +9,7 @@ import mill.api.daemon.internal.{
 }
 import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
-import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
+import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState, millVersionState}
 import mill.internal.Util
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
@@ -78,6 +78,9 @@ class MillBuildBootstrap(
         createFolders = true
       )
     }
+
+    // Write version state to disk so it persists across daemon restarts
+    MillBuildBootstrap.writeVersionState(output)
 
     runnerState
   }
@@ -202,6 +205,8 @@ class MillBuildBootstrap(
       codeSignatures = nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
       // Pass spanning tree from the frame - only populated when classloader changed
       spanningInvalidationTree = nestedState.frames.headOption.flatMap(_.spanningInvalidationTree),
+      millVersionChanged = nestedState.frames.headOption.flatMap(_.millVersionChanged),
+      millJvmVersionChanged = nestedState.frames.headOption.flatMap(_.millJvmVersionChanged),
       rootModule = rootModule,
       // We want to use the grandparent buildHash, rather than the parent
       // buildHash, because the parent build changes are instead detected
@@ -262,6 +267,8 @@ class MillBuildBootstrap(
       reporter = reporter(evaluator)
     ) match {
       case (f: Result.Failure, evalWatches, moduleWatches) =>
+        val (millVersionChanged, millJvmVersionChanged) =
+          MillBuildBootstrap.computeVersionChanges(output)
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
           evalWatched = evalWatches,
@@ -272,7 +279,11 @@ class MillBuildBootstrap(
           compileOutput = None,
           evaluator = Option(evaluator),
           buildOverrideFiles = Map(),
-          spanningInvalidationTree = None
+          spanningInvalidationTree = None,
+          millVersion = MillBuildBootstrap.currentMillVersion,
+          millJvmVersion = MillBuildBootstrap.currentMillJvmVersion,
+          millVersionChanged = millVersionChanged,
+          millJvmVersionChanged = millJvmVersionChanged
         )
 
         nestedState.add(
@@ -328,6 +339,8 @@ class MillBuildBootstrap(
           prevFrameOpt.get.classLoaderOpt.get
         }
 
+        val (millVersionChanged, millJvmVersionChanged) =
+          MillBuildBootstrap.computeVersionChanges(output)
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
           evalWatched = evalWatches,
@@ -339,7 +352,11 @@ class MillBuildBootstrap(
           evaluator = Option(evaluator),
           buildOverrideFiles = buildOverrideFiles,
           // Only pass the spanning tree when classloader changed (meta-build was recompiled)
-          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree)
+          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree),
+          millVersion = MillBuildBootstrap.currentMillVersion,
+          millJvmVersion = MillBuildBootstrap.currentMillJvmVersion,
+          millVersionChanged = millVersionChanged,
+          millJvmVersionChanged = millJvmVersionChanged
         )
 
         nestedState.add(frame = evalState)
@@ -369,6 +386,9 @@ class MillBuildBootstrap(
       reporter = reporter(evaluator)
     )
 
+    // Compare versions against disk-persisted state (survives daemon restarts)
+    val (millVersionChanged, millJvmVersionChanged) =
+      MillBuildBootstrap.computeVersionChanges(output)
     val evalState = RunnerState.Frame(
       workerCache = evaluator.workerCache.toMap,
       evalWatched = evalWatched,
@@ -379,7 +399,11 @@ class MillBuildBootstrap(
       compileOutput = None,
       evaluator = Option(evaluator),
       buildOverrideFiles = Map(),
-      spanningInvalidationTree = None
+      spanningInvalidationTree = None,
+      millVersion = MillBuildBootstrap.currentMillVersion,
+      millJvmVersion = MillBuildBootstrap.currentMillJvmVersion,
+      millVersionChanged = millVersionChanged,
+      millJvmVersionChanged = millJvmVersionChanged
     )
 
     nestedState.add(
@@ -394,6 +418,66 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
+  // Current version info for version change detection
+  val currentMillVersion: String = mill.constants.BuildInfo.millVersion
+  val currentMillJvmVersion: String = sys.props("java.version")
+
+  /**
+   * Version state that is persisted to disk to survive daemon restarts
+   */
+  case class VersionState(millVersion: String, millJvmVersion: String)
+  object VersionState {
+    implicit val rw: upickle.ReadWriter[VersionState] = upickle.macroRW
+  }
+
+  /**
+   * Reads the previously stored version state from disk.
+   */
+  def readVersionState(output: os.Path): Option[VersionState] = {
+    val path = output / millVersionState
+    if (os.exists(path)) {
+      try Some(upickle.read[VersionState](os.read(path)))
+      catch { case _: Exception => None }
+    } else None
+  }
+
+  /**
+   * Writes the current version state to disk.
+   */
+  def writeVersionState(output: os.Path): Unit = {
+    os.write.over(
+      output / millVersionState,
+      upickle.write(VersionState(currentMillVersion, currentMillJvmVersion), indent = 2),
+      createFolders = true
+    )
+  }
+
+  /**
+   * Computes version change info by comparing current versions against disk-persisted versions.
+   * Returns (millVersionChanged, millJvmVersionChanged) where each is Some((oldVersion, newVersion))
+   * if the version changed, or None if unchanged.
+   */
+  def computeVersionChanges(
+      output: os.Path
+  ): (Option[(String, String)], Option[(String, String)]) = {
+    def versionChanged(prevOpt: Option[String], current: String): Option[(String, String)] = {
+      prevOpt.flatMap { prev =>
+        Option.when(prev.nonEmpty && prev != current)((prev, current))
+      }
+    }
+
+    val prevState = readVersionState(output)
+    val millVersionChanged = versionChanged(
+      prevState.map(_.millVersion),
+      currentMillVersion
+    )
+    val millJvmVersionChanged = versionChanged(
+      prevState.map(_.millJvmVersion),
+      currentMillJvmVersion
+    )
+    (millVersionChanged, millJvmVersionChanged)
+  }
+
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
   def makeEvaluator0(
@@ -413,6 +497,8 @@ object MillBuildBootstrap {
       codeSignatures: Map[String, Int],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String],
+      millVersionChanged: Option[(String, String)],
+      millJvmVersionChanged: Option[(String, String)],
       rootModule: RootModuleApi,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
@@ -455,6 +541,8 @@ object MillBuildBootstrap {
           ec,
           codeSignatures,
           spanningInvalidationTree,
+          millVersionChanged,
+          millJvmVersionChanged,
           (reason: String, exitCode: Int) => systemExit(reason, exitCode),
           streams0,
           () => evaluator,

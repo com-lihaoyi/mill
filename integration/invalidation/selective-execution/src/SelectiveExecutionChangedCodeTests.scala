@@ -111,7 +111,21 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       // and then barCommand2 as a downstream task
       assertGoldenLiteral(
         resolveTree2.out.linesIterator.toSeq,
-        List("{", "  \"bar.barCommand\": {", "    \"bar.barCommand2\": {}", "  }", "}")
+        List(
+          "{",
+          "  \"def build_.package_$bar$#barHelper(os.Path)java.lang.String\": {",
+          "    \"call build_.package_$bar$#barHelper(os.Path)java.lang.String\": {",
+          "      \"def build_.package_$bar$#barCommand$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
+          "        \"call build_.package_$bar$!barCommand$$anonfun$1(scala.collection.immutable.Seq,mill.api.TaskCtx)mill.api.daemon.Result\": {",
+          "          \"def build_.package_$bar$#barCommand()mill.api.Task$Command\": {",
+          "            \"bar.barCommand\": {}",
+          "          }",
+          "        }",
+          "      }",
+          "    }",
+          "  }",
+          "}"
+        )
       )
     }
 

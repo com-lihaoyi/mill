@@ -250,6 +250,7 @@ out/mill-daemon
         "def build_.package_#foo$lzyINIT1()java.lang.Object": {
           "call build_.package_!foo$lzyINIT1()java.lang.Object": {
             "def build_.package_#foo()build_.package_$foo$": {
+              "foo.compileClasspath": {},
               "foo.compile": {},
 ...
 
@@ -266,6 +267,42 @@ out/mill-daemon
 // sometimes invalidate _too many_ tasks, but it generally does not invalidate _too few_ tasks,
 // except in code using Java Reflection or similar techniques which the code-change analysis
 // does not understand.
+//
+// ==== Mill Version and JVM Version Changes
+//
+// When Mill detects that the Mill version or JVM version has changed since the previous run,
+// all tasks are invalidated and the `mill-invalidation-tree.json` shows this as the root cause.
+// We can demonstrate this by adding a `//| mill-jvm-version` directive to the build header,
+// which tells Mill to use a specific JVM version:
+
+/** Usage
+
+> sed -i.bak '1s/^/\/\/| mill-jvm-version: 19\n/' build.mill
+
+> ./mill foo.compile # compile with JVM version directive
+
+> cat out/mill-invalidation-tree.json
+{
+  "mill-jvm-version-changed:...: {
+    "foo.compileClasspath": {},
+    "foo.compile": {},
+    ...
+  }
+}
+
+*/
+
+// The output shows that all tasks are invalidated because the JVM version changed
+// from the previous run's version to JVM 19. Since the version change invalidates
+// all tasks simultaneously, they all appear as direct children of the version change
+// node (the spanning tree algorithm produces a flat structure when all tasks share
+// the same root cause).
+//
+// Similarly, if the Mill version itself changes (e.g., upgrading from `0.12.0` to `0.12.1`),
+// you would see `mill-version-changed:0.12.0->0.12.1` as the root of the invalidation tree.
+//
+// This ensures that changes to the build environment are properly tracked and tasks are
+// re-evaluated when necessary to maintain correctness.
 //
 //
 // === `mill-build/`

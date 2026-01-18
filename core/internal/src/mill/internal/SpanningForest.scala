@@ -138,11 +138,27 @@ object SpanningForest {
       invalidationReasons: Map[String, String] = Map.empty,
       resolvedTasks: Option[Set[String]] = None
   ): ujson.Obj = {
-    // Build the base task spanning forest
-    val allTasks = (taskEdges.keys ++ taskEdges.values.flatten ++ interestingTasks).toArray.distinct.sorted
+    // Build version change node names
+    val versionChangeNodes = Seq(
+      millVersionChanged.map { case (oldV, newV) => s"mill-version-changed:$oldV->$newV" },
+      millJvmVersionChanged.map { case (oldV, newV) => s"mill-jvm-version-changed:$oldV->$newV" }
+    ).flatten
+
+    // Build the graph including version change nodes
+    // Version change nodes have edges to all interesting tasks (they invalidate everything)
+    val versionChangeEdges: Map[String, Seq[String]] =
+      if (versionChangeNodes.nonEmpty)
+        versionChangeNodes.map(node => node -> interestingTasks.toSeq).toMap
+      else Map.empty
+
+    val allEdges = taskEdges ++ versionChangeEdges
+    val allTasks = (allEdges.keys ++ allEdges.values.flatten ++ interestingTasks).toArray.distinct.sorted
     val taskToIndex = allTasks.zipWithIndex.toMap
-    val indexEdges = allTasks.map(t => taskEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
-    val interestingIndices = interestingTasks.flatMap(taskToIndex.get)
+    val indexEdges = allTasks.map(t => allEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
+
+    // Include version change nodes as interesting vertices so they appear in the tree
+    val allInteresting = interestingTasks ++ versionChangeNodes
+    val interestingIndices = allInteresting.flatMap(taskToIndex.get)
 
     val baseForest = SpanningForest(indexEdges, interestingIndices, limitToImportantVertices = true)
     val baseTree = spanningTreeToJsonTree(baseForest, allTasks(_))
@@ -165,16 +181,10 @@ object SpanningForest {
       }
     }
 
-    // Handle version changes - all tasks go under version change node
-    if (millVersionChanged.isDefined || millJvmVersionChanged.isDefined) {
-      val result = ujson.Obj()
-      millVersionChanged.foreach { case (oldV, newV) =>
-        result(s"mill-version-changed:$oldV->$newV") = simplifiedTree
-      }
-      millJvmVersionChanged.foreach { case (oldV, newV) =>
-        result(s"mill-jvm-version-changed:$oldV->$newV") = simplifiedTree
-      }
-      return result
+    // If version changes are present, the tree is already structured correctly
+    // (version change nodes are roots with tasks as children)
+    if (versionChangeNodes.nonEmpty) {
+      return simplifiedTree
     }
 
     // Group tasks by invalidation reason

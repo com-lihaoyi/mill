@@ -102,6 +102,12 @@ public class OutFiles {
     public final String millRunnerState = "mill-runner-state.json";
 
     /**
+     * Stores the Mill version and JVM version from the previous run, used to detect
+     * version changes that should invalidate all tasks.
+     */
+    public final String millVersionState = "mill-version-state.json";
+
+    /**
      * Subfolder of `out/` that contains the machinery necessary for a single Mill background
      * server: metadata files, pipes, logs, etc.
      */
@@ -167,6 +173,7 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millRunnerState = OutFiles.millRunnerState;
+  public static final String millVersionState = OutFiles.millVersionState;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millDaemon = OutFiles.millDaemon;

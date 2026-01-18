@@ -132,6 +132,8 @@ class UnitTester(
     ec = ec,
     codeSignatures = Map(),
     spanningInvalidationTree = None,
+    millVersionChanged = None,
+    millJvmVersionChanged = None,
     systemExit = (reason, exitCode) =>
       throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),

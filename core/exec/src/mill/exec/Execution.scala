@@ -29,6 +29,8 @@ case class Execution(
     codeSignatures: Map[String, Int],
     // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
+    millVersionChanged: Option[(String, String)],
+    millJvmVersionChanged: Option[(String, String)],
     systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
@@ -59,6 +61,8 @@ case class Execution(
       codeSignatures: Map[String, Int],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String],
+      millVersionChanged: Option[(String, String)],
+      millJvmVersionChanged: Option[(String, String)],
       systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
@@ -83,6 +87,8 @@ case class Execution(
     ec = ec,
     codeSignatures = codeSignatures,
     spanningInvalidationTree = spanningInvalidationTree,
+    millVersionChanged = millVersionChanged,
+    millJvmVersionChanged = millJvmVersionChanged,
     systemExit = systemExit,
     exclusiveSystemStreams = exclusiveSystemStreams,
     getEvaluator = getEvaluator,
@@ -357,7 +363,9 @@ case class Execution(
         outPath = outPath,
         uncached = uncached,
         changedValueHash = changedValueHash,
-        spanningInvalidationTree = spanningInvalidationTree
+        spanningInvalidationTree = spanningInvalidationTree,
+        millVersionChanged = millVersionChanged,
+        millJvmVersionChanged = millJvmVersionChanged
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
