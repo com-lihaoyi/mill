@@ -194,15 +194,19 @@ object SpanningForest {
 
       for ((reason, tasks) <- tasksByReason.toSeq.sortBy(_._1)) {
         val taskSet = tasks.toSet
-        val filteredTree = filterTreeToTasks(simplifiedTree, taskSet)
+        // For code changes, use the full simplified tree (preserves downstream deps)
+        // For other reasons, filter to just root causes
+        val treeForReason =
+          if (reason == "<code changed>") simplifiedTree
+          else filterTreeToTasks(simplifiedTree, taskSet)
 
         if (reason == "<code changed>" && parsedCodeSigTree.isDefined) {
           // Merge code signature tree for code changes
-          val merged = mergeCodeSignatureTree(filteredTree, parsedCodeSigTree.get)
+          val merged = mergeCodeSignatureTree(treeForReason, parsedCodeSigTree.get)
           // Add merged entries directly to result (not under a reason key)
           merged.value.foreach { case (k, v) => result(k) = v }
         } else {
-          result(reason) = filteredTree
+          result(reason) = treeForReason
         }
       }
       result
@@ -250,38 +254,20 @@ object SpanningForest {
 
   /**
    * Merges the code signature spanning tree with the task invalidation tree.
-   * Groups tasks by their code path and wraps each group together to preserve
-   * the task dependency hierarchy.
-   *
-   * Only merges if the base tree represents code-change invalidation (flat structure
-   * where all tasks are at root level with empty children). Nested structure indicates
-   * source/input changes where the spanning tree is irrelevant.
+   * For each root task with a code path, wraps it (and its children) with the code path.
+   * Preserves task dependency structure (nested tasks remain nested).
    */
   def mergeCodeSignatureTree(baseTree: ujson.Obj, spanningTree: ujson.Value): ujson.Obj = {
-    // Check if base tree has nested structure (non-code-change invalidation)
-    // If any root task has non-empty children, it means tasks were invalidated via
-    // dependency chains (source/input changes), not by code changes
-    val hasNestedStructure = baseTree.value.exists { case (_, subtree) =>
-      subtree match {
-        case obj: ujson.Obj => obj.value.nonEmpty
-        case _ => false
-      }
-    }
-
-    if (hasNestedStructure) {
-      // Don't merge - this is a source/input change, not a code change
-      return baseTree
-    }
-
     val result = ujson.Obj()
 
-    // Group tasks by their code path
+    // Group root tasks by their code path
     val tasksByPath = collection.mutable.Map[Seq[String], collection.mutable.Buffer[(String, ujson.Value)]]()
     val tasksWithoutPath = collection.mutable.Buffer[(String, ujson.Value)]()
 
     for ((taskName, subtree) <- baseTree.value) {
       findPathForTask(taskName, spanningTree) match {
         case Some(path) if path.nonEmpty =>
+          // Task has a code path - wrap it with the path, preserving its children
           tasksByPath.getOrElseUpdate(path, collection.mutable.Buffer()) += ((taskName, subtree))
         case _ =>
           tasksWithoutPath += ((taskName, subtree))
@@ -290,7 +276,7 @@ object SpanningForest {
 
     // For each unique code path, create a single entry with all tasks underneath
     for ((path, tasks) <- tasksByPath) {
-      // Combine all tasks into a single object
+      // Combine all tasks into a single object (preserving their subtrees)
       val combinedTasks = ujson.Obj()
       for ((taskName, subtree) <- tasks) {
         combinedTasks(taskName) = subtree
