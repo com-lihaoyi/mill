@@ -84,7 +84,6 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       // Modify the millVersion in the metadata file to simulate a Mill version change
       val metadataPath = workspacePath / "out/mill-selective-execution.json"
       val metadata = ujson.read(os.read(metadataPath))
-      val originalVersion = metadata("millVersion").str
       metadata("millVersion") = "0.0.0-old-version"
       os.write.over(metadataPath, ujson.write(metadata, indent = 2))
 
@@ -103,14 +102,14 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       // Normalize the mill version in the output for comparison
       val normalizedTree = resolveTree.out.linesIterator.toSeq.map { line =>
-        line.replaceAll("<mill-version-changed:0\\.0\\.0-old-version->[^>]+>", "<mill-version-changed:OLD->NEW>")
+        line.replaceAll("mill-version-changed:0\\.0\\.0-old-version->[^\"]+", "mill-version-changed:OLD->NEW")
       }
 
       assertGoldenLiteral(
         normalizedTree,
         Seq(
           "{",
-          "  \"<mill-version-changed:OLD->NEW>\": {",
+          "  \"mill-version-changed:OLD->NEW\": {",
           "    \"foo.fooTask\": {",
           "      \"foo.fooCommand\": {}",
           "    },",
@@ -138,7 +137,6 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       // Modify the millJvmVersion in the metadata file to simulate a JVM version change
       val metadataPath = workspacePath / "out/mill-selective-execution.json"
       val metadata = ujson.read(os.read(metadataPath))
-      val originalJvmVersion = metadata("millJvmVersion").str
       metadata("millJvmVersion") = "1.0.0-old-jvm"
       os.write.over(metadataPath, ujson.write(metadata, indent = 2))
 
@@ -156,14 +154,14 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       // Normalize the JVM version in the output for comparison
       val normalizedTree = resolveTree.out.linesIterator.toSeq.map { line =>
-        line.replaceAll("<mill-jvm-version-changed:1\\.0\\.0-old-jvm->[^>]+>", "<mill-jvm-version-changed:OLD->NEW>")
+        line.replaceAll("mill-jvm-version-changed:1\\.0\\.0-old-jvm->[^\"]+", "mill-jvm-version-changed:OLD->NEW")
       }
 
       assertGoldenLiteral(
         normalizedTree,
         Seq(
           "{",
-          "  \"<mill-jvm-version-changed:OLD->NEW>\": {",
+          "  \"mill-jvm-version-changed:OLD->NEW\": {",
           "    \"foo.fooTask\": {",
           "      \"foo.fooCommand\": {}",
           "    },",
