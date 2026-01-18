@@ -57,6 +57,8 @@ concurrency:
 
 env:
   FORCE_COLOR: '1'
+  # Use SNAPSHOT version for selective testing to avoid daemon version mismatches
+  MILL_UNSTABLE_VERSION: '1'
 
 jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
@@ -172,7 +174,7 @@ jobs:
             millargs: "'example.{cli,fundamentals,depth,extending,large}.__.shared.daemon'"
 
           - java-version: 21
-            millargs: "'integration.{feature,ide}.__.packaged.daemon'"
+            millargs: "'integration.{feature,ide}.__.proguard.daemon'"
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
@@ -214,7 +216,7 @@ jobs:
             millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
 
           - java-version: 17
-            millargs: '"example.scalalib.{basic,publishing}.__.packaged.daemon"'
+            millargs: '"example.scalalib.{basic,publishing}.__.proguard.daemon"'
 
           - java-version: 17
             millargs: "dist.scripts.test" # run this on both windows and mac to exercise bootstrap scripts

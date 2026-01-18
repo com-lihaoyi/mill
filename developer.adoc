@@ -1,27 +1,33 @@
 = Developer Documentation
 
 Mill is built using Mill. The `./mill` script will be sufficient to bootstrap the project.
+When starting out, please run:
 
-== Common Develoepr Workflow
+1. Run `./mill --help` for a quick primer on how to use `./mill` as a build tool.
+2. Run `./mill visualizeMillModules` to see the dependency structure of the codebase
+
+== Common Developer Workflow
 
 1. Import code into IntelliJ IDEA
 
 2. Make code changes
 
-3. Run `__.compile` to make sure you didn't screw up anything simple
+3. Run `./mill __.compile` to make sure you didn't screw up anything simple
    (you can use `-w`/`--watch` for convenience)
 
 4. Run specific unit tests (if any) e.g. `./mill core.api.test`
 
-5. Run specific integration/example tests e.g. `./mill integration.feature.full-run-logs` or
+5. Test manually via `./mill dist.run scratch foo.scala`
+
+6. Run specific integration/example tests e.g. `./mill integration.feature.full-run-logs` or
    `./mill example.javalib.basic.1-script`
 
-6. Run broader integration/unit tests e.g. `./mill core.__.test` or
+7. Run broader integration/unit tests e.g. `./mill core.__.test` or
    `./mill example.javalib.basic._`
 
-7. Push to a PR and run all tests in CI
+8. Push to a PR and run all tests in CI
 
-8. If anything fails, go back to (2.)
+9. If anything fails, go back to (2.)
 
 == Manual & Automated Testing
 
@@ -122,15 +128,17 @@ remaining modules to `~/.ivy2/local`.
 This results in a more realistic test environment, but at the cost of taking tens-of-seconds
 more to run a test after making a code change.
 
-You can reproduce these tests manually using `dist.installLocal`:
+You can reproduce these tests manually using `dist.raw.installLocal`:
 
 [source,console]
 ----
-> ./mill dist.installLocal && (cd example/javalib/basic/3-simple && ../../../../mill-assembly.jar run --text hello)
+> ./mill dist.raw.installLocal && (cd example/javalib/basic/3-simple && ../../../../mill-assembly.jar run --text hello)
 ----
 
-You can also use `dist.native.installLocal` for a Graal Native Image executable,
-which is slower to create but faster to start than the default executable assembly.
+You can also use `dist.native.installLocal` for a Graal Native Image executable
+(which is slower to create but faster to start than the default executable assembly)
+or `dist.installLocal` which is the proguarded launcher assembly we publish (which
+is also slower to create and faster to start than the raw jar).
 
 There are six of these tests, `.{packaged,shared,native}.{daemon,nodaemon}`.
 
@@ -140,6 +148,10 @@ The first label specifies how the Mill code is packaged before testing
 
 1. `.packaged` runs using the compiled Mill code either packaged into an assembly or into jars.
 This is the default for commands like `example.basic.3-simple`
+
+2. `.proguard` is similar to `.packaged`, but uses a proguard-optimized assembly jar. This is
+typically not used manually since it adds ~15s overhead optimizing the jar, but some CI jobs
+use this to make sure the proguarded launcher assemblies work since that's what we publish
 
 3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
 This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
