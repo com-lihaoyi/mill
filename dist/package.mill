@@ -164,7 +164,7 @@ trait DistModule extends RunModule {
     )
   }
 
-  def millClientJvmArgs = Seq(
+  def forkArgs = Seq(
     // Avoid reserving a lot of memory for the client, as the client only forward information
     "-Xmx128m",
     // Set UTF-8 encoding to fix Unicode character display issues on Windows
@@ -172,14 +172,6 @@ trait DistModule extends RunModule {
     "-Dsun.stdout.encoding=UTF-8",
     "-Dsun.stderr.encoding=UTF-8"
   )
-
-  def forkArgs = Task {
-    millClientJvmArgs ++ Seq(
-      // Workaround for Zinc/JNA bug
-      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-      "-Djna.nosys=true"
-    )
-  }
 }
 
 /**
@@ -254,7 +246,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     val filename = if (scala.util.Properties.isWin) "run.bat" else "run"
     val dest = Task.dest / filename
 
-    val jvmArgs = testArgs() ++ millClientJvmArgs
+    val jvmArgs = testArgs() ++ forkArgs()
     val classpath = runClasspath().map(_.path.toString)
     val classpathJar = Task.dest / "classpath.jar"
     Jvm.createClasspathPassingJar(classpathJar, runClasspath().map(_.path))
