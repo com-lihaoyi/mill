@@ -22,7 +22,7 @@ import mill.api.SelectMode
 import mill.T
 import mill.api.Cross
 import scala.util.Properties
-import mill.api.BuildCtx
+import mill.api.{BuildCtx, Evaluator}
 import mill.androidlib.AndroidSdkModule
 
 def millVersionIsStable0(using ctx: mill.api.TaskCtx) = !ctx.env.contains("MILL_UNSTABLE_VERSION")
@@ -223,4 +223,13 @@ trait AndroidDependencyFetchDummy extends DependencyFetchDummy {
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
+}
+
+def visualizeMillModules(evaluator: Evaluator): Command[Unit] = Task.Command(exclusive = true) {
+  val allPublishModules = build.moduleInternal.modules.collect {
+    case m: MillPublishJavaModule => m
+  }
+  val modulePaths = allPublishModules.map(_.toString + ".compile")
+  evaluator.evaluate(Seq("visualize") ++ modulePaths, SelectMode.Separated)
+  ()
 }

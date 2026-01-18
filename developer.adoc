@@ -1,7 +1,10 @@
 = Developer Documentation
 
 Mill is built using Mill. The `./mill` script will be sufficient to bootstrap the project.
-Run `./mill --help` for a quick primer on how to use `./mill` as a build tool.
+When starting out, please run:
+
+1. Run `./mill --help` for a quick primer on how to use `./mill` as a build tool.
+2. Run `./mill visualizeMillModules` to see the dependency structure of the codebase
 
 == Common Developer Workflow
 
