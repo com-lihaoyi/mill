@@ -13,7 +13,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
 import mill.api.BuildCtx
-import mill.testkit.Chunk
+import mill.testkit.{Chunk, ExampleRenderer}
 import java.util.concurrent.atomic.AtomicInteger
 
 object `package` extends Module {
@@ -289,80 +289,17 @@ object `package` extends Module {
     }
 
     def rendered = Task {
-      var seenCode = false
-      var seenFrontMatter = false
       val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
-      val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).map {
-        case Chunk.Yaml(lines) => lines.mkString("\n")
-      }.mkString("\n")
-      val withoutFrontMatter = parsed().dropWhile(_.isInstanceOf[Chunk.Yaml])
-      val hasScalaChunks = withoutFrontMatter.exists(_.isInstanceOf[Chunk.Scala])
       val exampleDashed = examplePath.segments.mkString("-")
       val download =
         s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
-      val renderedChunks = withoutFrontMatter
-        .map {
-          case Chunk.See(path, lines) =>
-            // avoid .stripMargin, as the embedded content may contain the margin symbol
-            val lang = os.FilePath(path).ext match {
-              case "mill" => "scala"
-              case s => s
-            }
-            s"""
-.$path ($download, {mill-example-url}/$examplePath/$path[browse])
-[source,$lang,subs="attributes,verbatim"]
-----
-${lines.mkString("\n")}
-----"""
-          case Chunk.Scala(lines) =>
-            val title =
-              if (seenCode) ""
-              else {
-                s".build.mill ($download, {mill-example-url}/$examplePath[browse])"
-              }
-            seenCode = true
-            // avoid .stripMargin, as the embedded content may contain the margin symbol
-            s"""
-$title
-[source,scala,subs="attributes,verbatim"]
-----
 
-${
-                if (seenFrontMatter) ""
-                else {
-                  seenFrontMatter = true
-                  frontMatter
-                }
-              }
+      val linkInfo = Some(ExampleRenderer.LinkInfo(
+        downloadUrl = download,
+        browseUrlPrefix = s"{mill-example-url}/$examplePath"
+      ))
 
-${lines.mkString("\n")}
-----
-"""
-          case Chunk.Comment(lines) => lines.mkString("\n") + "\n"
-          case Chunk.Usage(lines) =>
-            // avoid .stripMargin, as the embedded content may contain the margin symbol
-            s"""
-[source,console,subs="attributes,verbatim"]
-----
-${lines.mkString("\n")}
-----"""
-          case Chunk.Yaml(_) => ""
-        }
-        .mkString("\n")
-
-      // If no Scala chunks exist but we have front matter, include it at the top
-      val finalContent = if (!hasScalaChunks && frontMatter.nonEmpty) {
-        s"""
-.build.mill ($download, {mill-example-url}/$examplePath[browse])
-[source,scala,subs="attributes,verbatim"]
-----
-$frontMatter
-----
-""" + renderedChunks
-      } else {
-        renderedChunks
-      }
-
+      val finalContent = ExampleRenderer.render(parsed(), linkInfo)
       os.write(Task.dest / "example.adoc", finalContent)
       PathRef(Task.dest / "example.adoc")
     }

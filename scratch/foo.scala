@@ -1,3 +1,0 @@
-def main() = {
-  println("Hello")
-}

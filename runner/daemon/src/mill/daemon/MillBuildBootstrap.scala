@@ -579,23 +579,23 @@ object MillBuildBootstrap {
   def containsBuildFile(root: os.Path): Boolean =
     rootBuildFileNames.asScala.exists(name => os.exists(root / name))
 
-  def yamlHasExtendsKey(path: os.Path): Boolean = {                                                     
-    val content = os.read(path)                                                                         
-    content.linesIterator.exists(line => line.startsWith("extends:"))                                   
-  }                                                                                                     
-                                                                                               
-  def shouldCreateMetaBuild(root: os.Path, depth: Int): Boolean = {                                     
-    if (depth > 0) containsBuildFile(root)                                                              
-    else {                                                                                              
-      // At depth=0, check for build.mill first, then build.mill.yaml with extends                      
-      val buildMill = root / "build.mill"                                                               
-      val buildMillYaml = root / "build.mill.yaml"                                                      
-      if (os.exists(buildMill)) true                                                                    
-      else if (os.exists(buildMillYaml)) yamlHasExtendsKey(buildMillYaml)                               
-      else false                                                                                        
-    }                                                                                                   
-  }                                                                                                     
-  
+  def yamlHasExtendsKey(path: os.Path): Boolean = {
+    val content = os.read(path)
+    content.linesIterator.exists(line => line.startsWith("extends:"))
+  }
+
+  def shouldCreateMetaBuild(root: os.Path, depth: Int): Boolean = {
+    if (depth > 0) containsBuildFile(root)
+    else {
+      // At depth=0, check for build.mill first, then build.mill.yaml with extends
+      val buildMill = root / "build.mill"
+      val buildMillYaml = root / "build.mill.yaml"
+      if (os.exists(buildMill)) true
+      else if (os.exists(buildMillYaml)) yamlHasExtendsKey(buildMillYaml)
+      else false
+    }
+  }
+
   def tryReadParent(
       currentRoot: os.Path,
       fileName: String
