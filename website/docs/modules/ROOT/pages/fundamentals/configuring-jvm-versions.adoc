@@ -13,8 +13,8 @@ include::partial$example/fundamentals/javahome/1-builtin-jvm.adoc[]
 
 === Customizing Mill's JVM Version
 
-include::partial$example/fundamentals/javahome/2-custom-jvm.adoc[]
-include::partial$example/fundamentals/javahome/3-custom-jvm-yaml.adoc[]
+include::partial$example/fundamentals/javahome/2-custom-jvm-yaml.adoc[]
+include::partial$example/fundamentals/javahome/3-custom-jvm.adoc[]
 
 == Setting the JVM Version of a JavaModule
 
