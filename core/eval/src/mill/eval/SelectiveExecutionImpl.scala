@@ -38,16 +38,58 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       .toMap
   }
 
+  case class DownstreamResult(
+      changedRootTasks: Set[Task[?]],
+      downstreamTasks: Seq[Task[Any]],
+      invalidationReasons: Map[String, SelectiveExecution.InvalidationReason],
+      millVersionChanged: Option[(String, String)],
+      millJvmVersionChanged: Option[(String, String)]
+  )
+
   def computeDownstream(
       transitiveNamed: Seq[Task.Named[?]],
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): (Set[Task[?]], Seq[Task[Any]]) = {
-    // If the invalidateAllHash changed (e.g., Mill version or JVM changed),
-    // treat all tasks as changed
-    if (oldHashes.invalidateAllHash != newHashes.invalidateAllHash) {
+    val result = computeDownstreamDetailed(transitiveNamed, oldHashes, newHashes)
+    (result.changedRootTasks, result.downstreamTasks)
+  }
+
+  def computeDownstreamDetailed(
+      transitiveNamed: Seq[Task.Named[?]],
+      oldHashes: SelectiveExecution.Metadata,
+      newHashes: SelectiveExecution.Metadata
+  ): DownstreamResult = {
+    import SelectiveExecution.InvalidationReason
+
+    // Check if mill version changed
+    val millVersionChanged: Option[(String, String)] =
+      if (oldHashes.millVersion.nonEmpty && oldHashes.millVersion != newHashes.millVersion)
+        Some((oldHashes.millVersion, newHashes.millVersion))
+      else None
+
+    // Check if mill JVM version changed
+    val millJvmVersionChanged: Option[(String, String)] =
+      if (oldHashes.millJvmVersion.nonEmpty && oldHashes.millJvmVersion != newHashes.millJvmVersion)
+        Some((oldHashes.millJvmVersion, newHashes.millJvmVersion))
+      else None
+
+    // If either version changed, treat all tasks as changed
+    if (millVersionChanged.isDefined || millJvmVersionChanged.isDefined) {
       val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
-      return (allTasks, transitiveNamed.map(t => t: Task[Any]))
+      val reason = millVersionChanged match {
+        case Some((old, newV)) => InvalidationReason.MillVersionChanged(old, newV)
+        case None =>
+          val (old, newV) = millJvmVersionChanged.get
+          InvalidationReason.MillJvmVersionChanged(old, newV)
+      }
+      return DownstreamResult(
+        allTasks,
+        transitiveNamed.map(t => t: Task[Any]),
+        transitiveNamed.map(t => t.ctx.segments.render -> reason).toMap,
+        millVersionChanged = millVersionChanged,
+        millJvmVersionChanged = millJvmVersionChanged
+      )
     }
 
     val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
@@ -70,6 +112,13 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       newHashes.buildOverrideSignatures
     )
 
+    // Build the invalidation reasons map
+    val invalidationReasons: Map[String, InvalidationReason] =
+      changedInputNames.map(_ -> InvalidationReason.InputChanged).toMap ++
+        changedCodeNames.map(_ -> InvalidationReason.CodeChanged).toMap ++
+        changedBuildOverrides.map(_ -> InvalidationReason.BuildOverrideChanged).toMap ++
+        oldHashes.forceRunTasks.map(_ -> InvalidationReason.ForcedRun).toMap
+
     val changedRootTasks =
       (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
         .flatMap(namesToTasks.get(_): Option[Task[?]])
@@ -77,11 +126,14 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
     val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
 
-    (
+    DownstreamResult(
       changedRootTasks,
       breadthFirst(changedRootTasks) { t =>
         downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
-      }
+      },
+      invalidationReasons,
+      millVersionChanged = None,
+      millJvmVersionChanged = None
     )
   }
 
@@ -102,7 +154,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     ).map { tasks =>
       computeChangedTasks0(tasks, computeMetadata(tasks))
         // If we did not have the metadata, presume everything was changed.
-        .getOrElse(ChangedTasks.all(tasks))
+        .getOrElse(ChangedTasks.all(
+          tasks,
+          SelectiveExecution.InvalidationReason.MillVersionChanged("", mill.constants.BuildInfo.millVersion)
+        ))
     }
   }
 
@@ -124,17 +179,19 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     else Some {
       val transitiveNamed = PlanImpl.transitiveNamed(tasks)
       val oldMetadata = upickle.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      val (changedRootTasks, downstreamTasks) =
-        computeDownstream(
-          transitiveNamed,
-          oldMetadata,
-          computedMetadata.metadata
-        )
+      val result = computeDownstreamDetailed(
+        transitiveNamed,
+        oldMetadata,
+        computedMetadata.metadata
+      )
 
       ChangedTasks(
         tasks,
-        changedRootTasks.collect { case n: Task.Named[_] => n },
-        downstreamTasks.collect { case n: Task.Named[_] => n }
+        result.changedRootTasks.collect { case n: Task.Named[_] => n },
+        result.downstreamTasks.collect { case n: Task.Named[_] => n },
+        result.invalidationReasons,
+        millVersionChanged = result.millVersionChanged,
+        millJvmVersionChanged = result.millJvmVersionChanged
       )
     }
   }
@@ -162,6 +219,8 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value] = {
+    import SelectiveExecution.InvalidationReason
+
     for (changedTasks <- this.computeChangedTasks(tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[?]]
       val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
@@ -201,7 +260,135 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         Option.when(map.nonEmpty)(ujson.Obj.from(map))
       }
 
-      simplifyJson(json).getOrElse(ujson.Obj())
+      val simplifiedJson = simplifyJson(json).getOrElse(ujson.Obj())
+
+      // Build a tree that shows invalidation reasons at the root
+      if (changedTasks.millVersionChanged.isDefined || changedTasks.millJvmVersionChanged.isDefined) {
+        // All tasks invalidated due to mill-version or mill-jvm-version change
+        val result = ujson.Obj()
+        changedTasks.millVersionChanged.foreach { case (oldV, newV) =>
+          result(s"<mill-version:$oldV->$newV>") = simplifiedJson
+        }
+        changedTasks.millJvmVersionChanged.foreach { case (oldV, newV) =>
+          result(s"<mill-jvm-version:$oldV->$newV>") = simplifiedJson
+        }
+        result
+      } else if (changedTasks.invalidationReasons.nonEmpty) {
+        // Group root tasks by their invalidation reason
+        val tasksByReason = changedTasks.invalidationReasons.groupBy(_._2).map {
+          case (reason, tasks) => (reason, tasks.keys.toSeq.sorted)
+        }
+
+        // For code changes, try to load the spanningInvalidationTree.json
+        val codeChangedTasks = tasksByReason.getOrElse(InvalidationReason.CodeChanged, Seq.empty)
+        val codeChangeTree: ujson.Value =
+          if (codeChangedTasks.isEmpty) ujson.Obj()
+          else {
+            // Try to read the spanningInvalidationTree.json from the mill-build codeSignatures
+            val spanningTreePath =
+              evaluator.outPath / "mill-build" / "codeSignatures.dest" / "current" / "spanningInvalidationTree.json"
+            val rawTree =
+              if (os.exists(spanningTreePath)) {
+                try ujson.read(os.read(spanningTreePath))
+                catch { case _: Exception => ujson.Obj.from(codeChangedTasks.map(_ -> ujson.Obj())) }
+              } else {
+                ujson.Obj.from(codeChangedTasks.map(_ -> ujson.Obj()))
+              }
+
+            // Add task names to the leaves of the spanning tree
+            // The spanning tree contains method signatures, we need to add the actual task names
+            // and their downstream tasks from the task dependency tree (simplifiedJson)
+            def getSubtreeForTask(taskName: String, json: ujson.Obj): ujson.Value = {
+              json.value.get(taskName) match {
+                case Some(subtree) => subtree
+                case None =>
+                  // Search recursively for the task
+                  json.value.collectFirst {
+                    case (_, v: ujson.Obj) =>
+                      getSubtreeForTask(taskName, v) match {
+                        case obj: ujson.Obj if obj.value.nonEmpty => obj
+                        case found if found != ujson.Obj() => found
+                        case _ => null
+                      }
+                  }.collect { case v if v != null => v }.getOrElse(ujson.Obj())
+              }
+            }
+
+            def addTaskNamesToLeaves(tree: ujson.Value): ujson.Value = tree match {
+              case obj: ujson.Obj =>
+                ujson.Obj.from(obj.value.map { case (k, v) =>
+                  val newV = v match {
+                    case innerObj: ujson.Obj if innerObj.value.isEmpty =>
+                      // This is a leaf node - check if any task name matches this method signature
+                      val matchingTasks = codeChangedTasks.filter { taskName =>
+                        // Match task name to method signature
+                        // e.g., "bar.barCommand" matches "...#barCommand()..."
+                        val taskPart = taskName.split('.').last
+                        k.contains(s"#$taskPart(") || k.contains(s"!$taskPart(")
+                      }
+                      if (matchingTasks.nonEmpty) {
+                        // Add matching tasks with their downstream tasks from simplifiedJson
+                        ujson.Obj.from(matchingTasks.sorted.map { taskName =>
+                          taskName -> getSubtreeForTask(taskName, simplifiedJson)
+                        })
+                      } else {
+                        innerObj
+                      }
+                    case other => addTaskNamesToLeaves(other)
+                  }
+                  k -> newV
+                })
+              case other => other
+            }
+
+            addTaskNamesToLeaves(rawTree)
+          }
+
+        // Build sub-trees for each task under each reason
+        def buildSubTree(taskNames: Seq[String]): ujson.Obj = {
+          val taskNameSet = taskNames.toSet
+          def filterTree(j: ujson.Obj): ujson.Obj = {
+            ujson.Obj.from(j.value.flatMap {
+              case (k, v: ujson.Obj) =>
+                val filtered = filterTree(v)
+                if (taskNameSet.contains(k) || filtered.value.nonEmpty) Some(k -> filtered)
+                else None
+              case other => Some(other)
+            })
+          }
+          filterTree(simplifiedJson)
+        }
+
+        val result = ujson.Obj()
+
+        // Add input changes
+        tasksByReason.get(InvalidationReason.InputChanged).foreach { tasks =>
+          result("<input changed>") = buildSubTree(tasks)
+        }
+
+        // Add code changes with the detailed spanning tree merged directly into result
+        // (showing the method/call chain from spanningInvalidationTree.json)
+        if (codeChangedTasks.nonEmpty) {
+          codeChangeTree match {
+            case obj: ujson.Obj => obj.value.foreach { case (k, v) => result(k) = v }
+            case _ => // ignore non-object trees
+          }
+        }
+
+        // Add build override changes
+        tasksByReason.get(InvalidationReason.BuildOverrideChanged).foreach { tasks =>
+          result("<build override changed>") = buildSubTree(tasks)
+        }
+
+        // Add forced runs
+        tasksByReason.get(InvalidationReason.ForcedRun).foreach { tasks =>
+          result("<forced run>") = buildSubTree(tasks)
+        }
+
+        result
+      } else {
+        simplifiedJson
+      }
     }
   }
 
@@ -259,7 +446,9 @@ object SelectiveExecutionImpl {
             value <- transitiveNamedMap.get(k)
           } yield (k, value.##),
           forceRunTasks = Set(),
-          invalidateAllHash = evaluator.invalidateAllHashes
+          invalidateAllHash = 0, // deprecated, kept for backwards compat
+          millVersion = mill.constants.BuildInfo.millVersion,
+          millJvmVersion = sys.props("java.version")
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

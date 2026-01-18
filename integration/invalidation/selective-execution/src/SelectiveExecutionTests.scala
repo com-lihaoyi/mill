@@ -71,7 +71,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       )
     }
 
-    test("invalidateAllHash-triggers-full-rerun") - integrationTest { tester =>
+    test("mill-version-change-triggers-full-rerun") - integrationTest { tester =>
       import tester.*
 
       // Prepare selective execution with multiple tasks
@@ -81,15 +81,14 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       val resolve1 = eval(("selective.resolve", "{foo,bar}._"), check = true)
       assert(resolve1.out == "")
 
-      // Modify the invalidateAllHash in the metadata file to simulate
-      // a Mill version or JVM change
+      // Modify the millVersion in the metadata file to simulate a Mill version change
       val metadataPath = workspacePath / "out/mill-selective-execution.json"
       val metadata = ujson.read(os.read(metadataPath))
-      val originalHash = metadata("invalidateAllHash").num.toInt
-      metadata("invalidateAllHash") = originalHash + 1
+      val originalVersion = metadata("millVersion").str
+      metadata("millVersion") = "0.0.0-old-version"
       os.write.over(metadataPath, ujson.write(metadata, indent = 2))
 
-      // Now selective.resolve should return all tasks since the hash changed
+      // Now selective.resolve should return all tasks since the version changed
       val resolve2 = eval(("selective.resolve", "{foo,bar}._"), check = true)
       val resolvedTasks = resolve2.out.linesIterator.toList.sorted
 
@@ -97,6 +96,86 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
       assert(resolvedTasks.nonEmpty)
       assert(resolvedTasks.contains("foo.fooCommand"))
       assert(resolvedTasks.contains("bar.barCommand"))
+
+      // Check that resolveTree shows the mill-version changed reason
+      // with the full task tree nested underneath
+      val resolveTree = eval(("selective.resolveTree", "{foo,bar}._"), check = true)
+
+      // Normalize the mill version in the output for comparison
+      val normalizedTree = resolveTree.out.linesIterator.toSeq.map { line =>
+        line.replaceAll("<mill-version:0\\.0\\.0-old-version->[^>]+>", "<mill-version:OLD->NEW>")
+      }
+
+      assertGoldenLiteral(
+        normalizedTree,
+        Seq(
+          "{",
+          "  \"<mill-version:OLD->NEW>\": {",
+          "    \"foo.fooTask\": {",
+          "      \"foo.fooCommand\": {}",
+          "    },",
+          "    \"bar.barTask\": {",
+          "      \"bar.barCommand\": {",
+          "        \"bar.barCommand2\": {}",
+          "      }",
+          "    }",
+          "  }",
+          "}"
+        )
+      )
+    }
+
+    test("mill-jvm-version-change-triggers-full-rerun") - integrationTest { tester =>
+      import tester.*
+
+      // Prepare selective execution with multiple tasks
+      eval(("selective.prepare", "{foo,bar}._"), check = true)
+
+      // Without any changes, selective.resolve should return nothing
+      val resolve1 = eval(("selective.resolve", "{foo,bar}._"), check = true)
+      assert(resolve1.out == "")
+
+      // Modify the millJvmVersion in the metadata file to simulate a JVM version change
+      val metadataPath = workspacePath / "out/mill-selective-execution.json"
+      val metadata = ujson.read(os.read(metadataPath))
+      val originalJvmVersion = metadata("millJvmVersion").str
+      metadata("millJvmVersion") = "1.0.0-old-jvm"
+      os.write.over(metadataPath, ujson.write(metadata, indent = 2))
+
+      // Now selective.resolve should return all tasks since the JVM version changed
+      val resolve2 = eval(("selective.resolve", "{foo,bar}._"), check = true)
+      val resolvedTasks = resolve2.out.linesIterator.toList.sorted
+
+      // All tasks should be invalidated
+      assert(resolvedTasks.nonEmpty)
+      assert(resolvedTasks.contains("foo.fooCommand"))
+      assert(resolvedTasks.contains("bar.barCommand"))
+
+      // Check that resolveTree shows the mill-jvm-version changed reason
+      val resolveTree = eval(("selective.resolveTree", "{foo,bar}._"), check = true)
+
+      // Normalize the JVM version in the output for comparison
+      val normalizedTree = resolveTree.out.linesIterator.toSeq.map { line =>
+        line.replaceAll("<mill-jvm-version:1\\.0\\.0-old-jvm->[^>]+>", "<mill-jvm-version:OLD->NEW>")
+      }
+
+      assertGoldenLiteral(
+        normalizedTree,
+        Seq(
+          "{",
+          "  \"<mill-jvm-version:OLD->NEW>\": {",
+          "    \"foo.fooTask\": {",
+          "      \"foo.fooCommand\": {}",
+          "    },",
+          "    \"bar.barTask\": {",
+          "      \"bar.barCommand\": {",
+          "        \"bar.barCommand2\": {}",
+          "      }",
+          "    }",
+          "  }",
+          "}"
+        )
+      )
     }
   }
 }

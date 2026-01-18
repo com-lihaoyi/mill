@@ -26,10 +26,15 @@ object bar extends mill.api.DefaultTaskModule {
     barHelper(barTask().path)
   }
 
+  def barCommand2() = Task.Command{
+    barCommand()()
+  }
+
   def defaultTask(): String = "barCommand"
 }
 
 trait QuxModule extends Module {
+
   def quxCommand() = Task.Command {
     println("Computing quxCommand")
   }

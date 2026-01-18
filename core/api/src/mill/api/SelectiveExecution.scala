@@ -44,7 +44,9 @@ object SelectiveExecution {
       codeSignatures: Map[String, Int],
       @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map(),
       @com.lihaoyi.unroll forceRunTasks: Set[String] = Set(),
-      @com.lihaoyi.unroll invalidateAllHash: Int = 0
+      @com.lihaoyi.unroll invalidateAllHash: Int = 0, // deprecated, kept for backwards compat
+      @com.lihaoyi.unroll millVersion: String = "",
+      @com.lihaoyi.unroll millJvmVersion: String = ""
   )
   object Metadata {
     case class Computed(
@@ -55,14 +57,51 @@ object SelectiveExecution {
 
   implicit val rw: upickle.ReadWriter[Metadata] = upickle.macroRW
 
+  /** Reason why a task was invalidated */
+  sealed trait InvalidationReason
+  object InvalidationReason {
+    /** Mill version changed */
+    case class MillVersionChanged(oldVersion: String, newVersion: String) extends InvalidationReason
+    /** Mill JVM version changed */
+    case class MillJvmVersionChanged(oldVersion: String, newVersion: String) extends InvalidationReason
+    /** Task input hash changed */
+    case object InputChanged extends InvalidationReason
+    /** Task code signature changed */
+    case object CodeChanged extends InvalidationReason
+    /** Build override changed */
+    case object BuildOverrideChanged extends InvalidationReason
+    /** Task was explicitly marked for forced re-run */
+    case object ForcedRun extends InvalidationReason
+  }
+
   case class ChangedTasks(
       resolved: Seq[Task.Named[?]],
       changedRootTasks: Set[Task.Named[?]],
-      downstreamTasks: Seq[Task.Named[?]]
+      downstreamTasks: Seq[Task.Named[?]],
+      /** Maps task name to the reason it was invalidated (only for root tasks) */
+      invalidationReasons: Map[String, InvalidationReason] = Map.empty,
+      /** Set if all tasks were invalidated due to mill-version change */
+      millVersionChanged: Option[(String, String)] = None,
+      /** Set if all tasks were invalidated due to mill-jvm-version change */
+      millJvmVersionChanged: Option[(String, String)] = None
   )
   object ChangedTasks {
 
     /** Indicates that all of the passed in tasks were changed. */
-    def all(tasks: Seq[Task.Named[?]]): ChangedTasks = ChangedTasks(tasks, tasks.toSet, tasks)
+    def all(tasks: Seq[Task.Named[?]], reason: InvalidationReason): ChangedTasks = {
+      val (millVersionChanged, millJvmVersionChanged) = reason match {
+        case InvalidationReason.MillVersionChanged(old, newV) => (Some((old, newV)), None)
+        case InvalidationReason.MillJvmVersionChanged(old, newV) => (None, Some((old, newV)))
+        case _ => (None, None)
+      }
+      ChangedTasks(
+        tasks,
+        tasks.toSet,
+        tasks,
+        tasks.map(t => t.ctx.segments.render -> reason).toMap,
+        millVersionChanged = millVersionChanged,
+        millJvmVersionChanged = millJvmVersionChanged
+      )
+    }
   }
 }
