@@ -114,7 +114,7 @@ object InvalidationForest {
         val taskName = namedTask.ctx.segments.render
         val (methodClass, encodedTaskName) =
           CodeSigUtils.methodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-        Some(taskName -> Set(methodClass + "#" + encodedTaskName + "()"))
+        taskName -> Set(methodClass + "#" + encodedTaskName + "()")
       }
       .toMap
   }
