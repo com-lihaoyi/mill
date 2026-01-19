@@ -35,6 +35,10 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def useFileLocks: Boolean = false
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()
+  // JSON string to avoid classloader issues when crossing classloader boundaries
+  private[mill] def spanningInvalidationTree: Option[String] = None
+  private[mill] def millVersionChanged: Option[(String, String)] = None
+  private[mill] def millJvmVersionChanged: Option[(String, String)] = None
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(

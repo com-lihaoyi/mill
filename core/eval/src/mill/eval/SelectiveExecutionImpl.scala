@@ -240,26 +240,24 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
 
       // Convert invalidation reasons to string labels
+      // Note: MillVersionChanged/MillJvmVersionChanged are handled separately via
+      // the millVersionChanged/millJvmVersionChanged parameters, but we include them
+      // here for completeness
       val invalidationReasons: Map[String, String] = changedTasks.invalidationReasons.map {
         case (taskName, InvalidationReason.InputChanged) => taskName -> "<input changed>"
         case (taskName, InvalidationReason.CodeChanged) => taskName -> "<code changed>"
         case (taskName, InvalidationReason.BuildOverrideChanged) => taskName -> "<build override changed>"
         case (taskName, InvalidationReason.ForcedRun) => taskName -> "<forced run>"
-        case (taskName, _) => taskName -> "<unknown>"
+        case (taskName, InvalidationReason.MillVersionChanged(_, _)) => taskName -> "<mill version changed>"
+        case (taskName, InvalidationReason.MillJvmVersionChanged(_, _)) => taskName -> "<mill jvm version changed>"
       }
-
-      // Read the code signature spanning tree from disk
-      val spanningTreePath =
-        evaluator.outPath / "mill-build" / "codeSignaturesAndSpanningTree.dest" / "current" / "spanningInvalidationTree.json"
-      val codeSignatureTree: Option[String] =
-        Option.when(os.exists(spanningTreePath))(os.read(spanningTreePath))
 
       SpanningForest.buildInvalidationTree(
         taskEdges = taskEdges,
         interestingTasks = interestingTasks,
-        codeSignatureTree = codeSignatureTree,
-        millVersionChanged = changedTasks.millVersionChanged,
-        millJvmVersionChanged = changedTasks.millJvmVersionChanged,
+        codeSignatureTree = evaluator.spanningInvalidationTree,
+        millVersionChanged = changedTasks.millVersionChanged.orElse(evaluator.millVersionChanged),
+        millJvmVersionChanged = changedTasks.millJvmVersionChanged.orElse(evaluator.millJvmVersionChanged),
         invalidationReasons = invalidationReasons,
         resolvedTasks = Some(resolvedTaskLabels)
       )
