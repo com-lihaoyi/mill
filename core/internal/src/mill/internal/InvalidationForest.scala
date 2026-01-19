@@ -9,6 +9,9 @@ import mill.api.daemon.VersionState
  */
 object InvalidationForest {
 
+  // Regex to extract return type from method signature: "def class#method()ReturnType"
+  private val ReturnTypePattern = """\)([^\s]+)$""".r
+
   /**
    * Computes a version change node from previous versions.
    * Returns a formatted string like "mill-version-changed:0.12.0->0.12.1" for display,
@@ -65,11 +68,9 @@ object InvalidationForest {
       .map { case (k, vs) => k.toString -> vs.map(_.toString) }
 
     // Parse code signature tree and extract method -> method edges
-    val (methodEdges, codeRoots, allMethodNodes) = codeSignatureTree match {
-      case Some(json) =>
-        val tree = ujson.read(json).obj
-        extractMethodEdges(tree)
-      case None => (Map.empty[String, Seq[String]], Set.empty[String], Set.empty[String])
+    val (methodEdges, allMethodNodes) = codeSignatureTree match {
+      case Some(json) => extractMethodEdges(ujson.read(json).obj)
+      case None => (Map.empty[String, Seq[String]], Set.empty[String])
     }
 
     // Build method -> task edges
@@ -114,9 +115,7 @@ object InvalidationForest {
       // Connect leaf methods to tasks based on return type (module class)
       // Method pattern: "def ...()ModuleClassName" where return type is the module class
       val leafEdges = leafMethods.toSeq.flatMap { method =>
-        // Extract return type from method signature: "def class#method()ReturnType"
-        val returnTypePattern = """\)([^\s]+)$""".r
-        val returnType = returnTypePattern.findFirstMatchIn(method).map(_.group(1))
+        val returnType = ReturnTypePattern.findFirstMatchIn(method).map(_.group(1))
         val matchingTasks = returnType.flatMap(rt => moduleClassToTasks.get(rt)).getOrElse(Nil)
         matchingTasks.map(t => method -> t)
       }
@@ -193,15 +192,12 @@ object InvalidationForest {
       .toMap
 
     // Collect all nodes
-    val allNodes = (filteredEdges.keys ++ filteredEdges.values.flatten ++ rootTaskStrings ++ codeRoots.filter(relevantNodes))
+    val allNodes = (filteredEdges.keys ++ filteredEdges.values.flatten ++ rootTaskStrings)
       .toArray.distinct.sorted
-
-    // Important vertices: all relevant nodes
-    val importantStrings = relevantNodes
 
     val nodeToIndex = allNodes.zipWithIndex.toMap
     val indexEdges = allNodes.map(n => filteredEdges.getOrElse(n, Nil).flatMap(nodeToIndex.get).toArray)
-    val importantIndices = importantStrings.flatMap(nodeToIndex.get)
+    val importantIndices = relevantNodes.flatMap(nodeToIndex.get)
 
     val forest = SpanningForest(indexEdges, importantIndices, limitToImportantVertices = true)
     SpanningForest.spanningTreeToJsonTree(forest, allNodes(_))
@@ -209,30 +205,26 @@ object InvalidationForest {
 
   /**
    * Extracts method -> method edges from a code signature tree.
-   * Returns (edges map, root nodes set, all nodes set).
+   * Returns (edges map, all nodes set).
    */
-  private def extractMethodEdges(
-      tree: ujson.Obj
-  ): (Map[String, Seq[String]], Set[String], Set[String]) = {
+  private def extractMethodEdges(tree: ujson.Obj): (Map[String, Seq[String]], Set[String]) = {
     val edges = collection.mutable.Map[String, collection.mutable.Buffer[String]]()
-    val roots = collection.mutable.Set[String]()
     val allNodes = collection.mutable.Set[String]()
 
-    def traverse(node: ujson.Obj, parent: Option[String], isRoot: Boolean): Unit = {
+    def traverse(node: ujson.Obj, parent: Option[String]): Unit = {
       for ((key, value) <- node.value) {
         allNodes += key
-        if (isRoot) roots += key
         parent.foreach { p =>
           edges.getOrElseUpdate(p, collection.mutable.Buffer()) += key
         }
         value match {
-          case obj: ujson.Obj if obj.value.nonEmpty => traverse(obj, Some(key), isRoot = false)
+          case obj: ujson.Obj if obj.value.nonEmpty => traverse(obj, Some(key))
           case _ =>
         }
       }
     }
 
-    traverse(tree, None, isRoot = true)
-    (edges.view.mapValues(_.toSeq).toMap, roots.toSet, allNodes.toSet)
+    traverse(tree, None)
+    (edges.view.mapValues(_.toSeq).toMap, allNodes.toSet)
   }
 }
