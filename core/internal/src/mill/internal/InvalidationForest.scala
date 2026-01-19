@@ -43,6 +43,7 @@ object InvalidationForest {
       codeSignatureTree: Option[String],
       previousVersions: Option[VersionState]
   ): ujson.Obj = {
+    mill.constants.DebugLog.println(codeSignatureTree.map(ujson.read(_).render(indent = 2)).toString)
 
     val rootInvalidatedTaskStrings = rootInvalidatedTasks
       .collect { case t: Task.Named[?] => t.toString }
@@ -124,14 +125,28 @@ object InvalidationForest {
       val (classToTransitiveClasses, allTransitiveClassMethods) =
         CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
 
+      // Build constructorHashSignatures from tree nodes (signatures have "def " prefix)
+      // We use 0 for hash since we only need the signatures for matching, not the hashes
+      val constructorHashSignatures: Map[String, Seq[(String, Int)]] = nodes.toSeq
+        .collect { case sig @ s"def $prefix#<init>($_)void" => (prefix, sig.stripPrefix("def "), 0) }
+        .groupMap(_._1)(t => (t._2, t._3))
+
       // Map from method signature (with "def " prefix) to tasks affected by that method
       val sigToTasks0 = rootInvalidatedTasks.iterator
         .collect { case t: Task.Named[?] => t }
         .flatMap { namedTask =>
           try {
-            CodeSigUtils
-              .allMethodSignatures(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-              .map(sig => s"def $sig" -> namedTask.ctx.segments.render)
+            val methods = CodeSigUtils
+              .allMethodSignatures(
+                namedTask,
+                classToTransitiveClasses,
+                allTransitiveClassMethods,
+                constructorHashSignatures
+              )
+
+            mill.api.Debug(namedTask)
+            mill.api.Debug(methods)
+            methods.map(sig => s"def $sig" -> namedTask.ctx.segments.render)
           } catch { case _: mill.api.MillException => Nil }
         }
         .toSeq
