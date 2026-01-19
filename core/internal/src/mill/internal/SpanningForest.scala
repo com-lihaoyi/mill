@@ -117,6 +117,70 @@ object SpanningForest {
   }
 
   /**
+   * Computes the method signature prefixes for tasks.
+   * Returns a map from task name (e.g., "foo.compile") to a set of method signature prefixes
+   * that should match entries in the code signature spanning tree.
+   */
+  private def methodSignaturePrefixesForTasks(
+      transitiveNamed: Seq[Task.Named[?]],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
+  ): Map[String, Set[String]] = {
+    transitiveNamed.collect { case namedTask: Task.Named[?] =>
+      val taskName = namedTask.ctx.segments.render
+      try {
+        val (methodClass, encodedTaskName) =
+          computeMethodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
+        val taskMethodPrefix = methodClass + "#" + encodedTaskName + "()"
+        taskName -> Set(taskMethodPrefix)
+      } catch {
+        case _: mill.api.MillException => taskName -> Set.empty[String]
+      }
+    }.toMap
+  }
+
+  /**
+   * Helper to compute the method class and encoded task name for a named task.
+   */
+  private def computeMethodClassAndName(
+      namedTask: Task.Named[?],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
+  ): (String, String) = {
+    val superTaskName = namedTask.ctx.segments.value.collectFirst {
+      case mill.api.Segment.Label(s"$v.super") => v
+    }
+
+    val encodedTaskName = superTaskName match {
+      case Some(v) => v
+      case None => scala.reflect.NameTransformer.encode(namedTask.ctx.segments.last.pathSegments.head)
+    }
+
+    val superClassName = superTaskName.map(_ => namedTask.ctx.segments.last.pathSegments.head)
+
+    def classNameMatches(cls: Class[?], simpleName: String): Boolean = {
+      val clsName = cls.getName
+      clsName.endsWith("$" + simpleName) || clsName.endsWith("." + simpleName)
+    }
+
+    val methodOpt = for {
+      parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
+      if superClassName.forall(scn => classNameMatches(parentCls, scn))
+      m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
+    } yield m
+
+    val methodClass = methodOpt
+      .nextOption()
+      .getOrElse(throw new mill.api.MillException(
+        s"Could not detect the parent class of task ${namedTask}. " +
+          s"Please report this at ${mill.api.BuildInfo.millReportNewIssueUrl} . "
+      ))
+      .getDeclaringClass.getName
+
+    (methodClass, encodedTaskName)
+  }
+
+  /**
    * Builds an invalidation tree that combines:
    * - Task dependency spanning forest
    * - Code signature spanning tree (showing method call chains)
@@ -226,7 +290,7 @@ object SpanningForest {
       case Some(codeSigTree) =>
         val (classToTransitiveClasses, allTransitiveClassMethods) =
           CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
-        val taskMethodSignatures = CodeSigUtils.methodSignaturePrefixesForTasks(
+        val taskMethodSignatures = methodSignaturePrefixesForTasks(
           transitiveNamed,
           classToTransitiveClasses,
           allTransitiveClassMethods

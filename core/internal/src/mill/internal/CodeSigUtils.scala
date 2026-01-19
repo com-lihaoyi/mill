@@ -1,16 +1,12 @@
 package mill.internal
 
-import mill.api.{BuildInfo, MillException, Segment, Task}
+import mill.api.{BuildInfo, MillException}
+import mill.api.{Task, Segment}
 
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
 
 object CodeSigUtils {
-
-  /**
-   * Precomputes class hierarchy and method information for a set of named tasks.
-   * Returns (classToTransitiveClasses, allTransitiveClassMethods).
-   */
   def precomputeMethodNamesPerClass(transitiveNamed: Seq[Task.Named[?]])
       : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
 
@@ -41,7 +37,7 @@ object CodeSigUtils {
       .flatMap(_._2)
       .toSet
 
-    val allTransitiveClassMethods: Map[Class[?], Map[String, Method]] =
+    val allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]] =
       allTransitiveClasses
         .map { cls =>
           val cMangledName = cls.getName.replace('.', '$')
@@ -62,15 +58,21 @@ object CodeSigUtils {
     (classToTransitiveClasses, allTransitiveClassMethods)
   }
 
-  /**
-   * Helper to compute the method class and encoded task name for a named task.
-   * Returns (methodClass, encodedTaskName) or throws MillException if not found.
-   */
-  def computeMethodClassAndName(
-      namedTask: Task.Named[?],
-      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: Map[Class[?], Map[String, Method]]
-  ): (String, String) = {
+  def constructorHashSignatures(codeSignatures: Map[String, Int])
+      : Map[String, Seq[(String, Int)]] =
+    codeSignatures
+      .toSeq
+      .collect { case (method @ s"$prefix#<init>($_)void", hash) => (prefix, method, hash) }
+      .groupMap(_._1)(t => (t._2, t._3))
+
+  def codeSigForTask(
+      namedTask: => Task.Named[?],
+      classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
+      codeSignatures: => Map[String, Int],
+      constructorHashSignatures: => Map[String, Seq[(String, Int)]]
+  ): Iterable[Int] = {
+
     val superTaskName = namedTask.ctx.segments.value.collectFirst {
       case Segment.Label(s"$v.super") => v
     }
@@ -105,59 +107,6 @@ object CodeSigUtils {
           s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
       ))
       .getDeclaringClass.getName
-
-    (methodClass, encodedTaskName)
-  }
-
-  /**
-   * Computes the method signature prefixes for tasks.
-   * Returns a map from task name (e.g., "foo.compile") to a set of method signature prefixes
-   * that should match entries in the code signature spanning tree.
-   *
-   * These prefixes are used by findPathForTask to match task names to their
-   * corresponding method signatures in the invalidation tree.
-   *
-   * Note: We only return task method prefixes, not constructor prefixes. The spanning tree
-   * already contains the full path from constructors to task methods, so when we match
-   * the task method, we get the complete path including any constructor changes.
-   */
-  def methodSignaturePrefixesForTasks(
-      transitiveNamed: Seq[Task.Named[?]],
-      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: Map[Class[?], Map[String, Method]]
-  ): Map[String, Set[String]] = {
-    transitiveNamed.collect { case namedTask: Task.Named[?] =>
-      val taskName = namedTask.ctx.segments.render
-      try {
-        val (methodClass, encodedTaskName) =
-          computeMethodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-
-        // The task method signature prefix (matches Task$Simple or Task$Command return types)
-        val taskMethodPrefix = methodClass + "#" + encodedTaskName + "()"
-
-        taskName -> Set(taskMethodPrefix)
-      } catch {
-        case _: MillException => taskName -> Set.empty[String]
-      }
-    }.toMap
-  }
-
-  def constructorHashSignatures(codeSignatures: Map[String, Int])
-      : Map[String, Seq[(String, Int)]] =
-    codeSignatures
-      .toSeq
-      .collect { case (method @ s"$prefix#<init>($_)void", hash) => (prefix, method, hash) }
-      .groupMap(_._1)(t => (t._2, t._3))
-
-  def codeSigForTask(
-      namedTask: => Task.Named[?],
-      classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
-      codeSignatures: => Map[String, Int],
-      constructorHashSignatures: => Map[String, Seq[(String, Int)]]
-  ): Iterable[Int] = {
-    val (methodClass, encodedTaskName) =
-      computeMethodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
 
     val expectedName = methodClass + "#" + encodedTaskName + "()mill.api.Task$Simple"
     val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.api.Task$Command"
