@@ -82,23 +82,6 @@ object CodeSigUtils {
   }
 
   /**
-   * Returns the module accessor signatures for a task's enclosing modules.
-   * These are the signatures of methods that return the module containing this task.
-   */
-  def moduleAccessorSignatures(namedTask: Task.Named[?]): Seq[String] = {
-    enclosingModules(namedTask).sliding(2).flatMap {
-      case Vector(child, parent) =>
-        val parentClass = parent.getClass.getName
-        val childClass = child.getClass.getName
-        child.moduleCtx.segments.value.lastOption match {
-          case Some(Segment.Label(name)) => Some(s"$parentClass#${encode(name)}()$childClass")
-          case _ => None
-        }
-      case _ => None
-    }.toSeq
-  }
-
-  /**
    * Returns all method signatures relevant to a task: task method + module accessors.
    * Used for both code signature computation and invalidation tree building.
    */
@@ -139,10 +122,23 @@ object CodeSigUtils {
       ))
       .getDeclaringClass.getName
 
-    Seq(
+    val taskMethodSignatures = Seq(
       s"$methodClass#$encodedTaskName()mill.api.Task$$Simple",
       s"$methodClass#$encodedTaskName()mill.api.Task$$Command"
-    ) ++ moduleAccessorSignatures(namedTask)
+    )
+    
+    val moduleAccessorSignatures = enclosingModules(namedTask).sliding(2).flatMap {
+      case Vector(child, parent) =>
+        val parentClass = parent.getClass.getName
+        val childClass = child.getClass.getName
+        child.moduleCtx.segments.value.lastOption match {
+          case Some(Segment.Label(name)) => Some(s"$parentClass#${encode(name)}()$childClass")
+          case _ => None
+        }
+      case _ => None
+    }.toSeq
+
+    taskMethodSignatures ++ moduleAccessorSignatures
   }
 
   def codeSigForTask(
