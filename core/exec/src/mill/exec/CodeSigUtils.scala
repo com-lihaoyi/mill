@@ -8,55 +8,8 @@ import java.lang.reflect.Method
 
 object CodeSigUtils {
   def precomputeMethodNamesPerClass(transitiveNamed: Seq[Task.Named[?]])
-      : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
-
-    def resolveTransitiveParents(c: Class[?]): Iterable[Class[?]] = {
-      val seen = collection.mutable.LinkedHashSet(c) // Maintain first-seen ordering
-      val queue = collection.mutable.Queue(c)
-      while (queue.nonEmpty) {
-        val current = queue.dequeue()
-        for (
-          next <- Option(current.getSuperclass) ++ current.getInterfaces if !seen.contains(next)
-        ) {
-          seen.add(next)
-          queue.enqueue(next)
-        }
-      }
-
-      seen
-    }
-
-    val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = transitiveNamed
-      .map { case namedTask: Task.Named[?] => namedTask.ctx.enclosingCls }
-      .distinct
-      .map(cls => cls -> resolveTransitiveParents(cls).toVector)
-      .toMap
-
-    val allTransitiveClasses = classToTransitiveClasses
-      .iterator
-      .flatMap(_._2)
-      .toSet
-
-    val allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]] =
-      allTransitiveClasses
-        .map { cls =>
-          val cMangledName = cls.getName.replace('.', '$')
-          cls -> cls.getDeclaredMethods
-            .flatMap { m =>
-              Seq(
-                m.getName -> m,
-                // Handle scenarios where private method names get mangled when they are
-                // not really JVM-private due to being accessed by Scala nested objects
-                // or classes https://github.com/scala/bug/issues/9306
-                m.getName.stripPrefix(cMangledName + "$$") -> m,
-                m.getName.stripPrefix(cMangledName + "$") -> m
-              )
-            }.toMap
-        }
-        .toMap
-
-    (classToTransitiveClasses, allTransitiveClassMethods)
-  }
+      : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) =
+    SpanningForest.precomputeMethodNamesPerClass(transitiveNamed)
 
   def constructorHashSignatures(codeSignatures: Map[String, Int])
       : Map[String, Seq[(String, Int)]] =

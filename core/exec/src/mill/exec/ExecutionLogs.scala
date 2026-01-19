@@ -4,7 +4,6 @@ import mill.constants.OutFiles.OutFiles
 import mill.api.Task
 import mill.internal.SpanningForest
 
-import java.lang.reflect.Method
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
@@ -30,8 +29,6 @@ private object ExecutionLogs {
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
       transitiveNamed: Seq[Task.Named[?]],
-      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String] = None,
       millVersionChanged: Option[(String, String)] = None,
@@ -61,8 +58,6 @@ private object ExecutionLogs {
       taskEdges = taskEdges,
       interestingTasks = interestingTasks,
       transitiveNamed = transitiveNamed,
-      classToTransitiveClasses = classToTransitiveClasses,
-      allTransitiveClassMethods = allTransitiveClassMethods,
       codeSignatureTree = spanningInvalidationTree,
       millVersionChanged = millVersionChanged,
       millJvmVersionChanged = millJvmVersionChanged

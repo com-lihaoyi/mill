@@ -363,8 +363,6 @@ case class Execution(
         uncached = uncached,
         changedValueHash = changedValueHash,
         transitiveNamed = PlanImpl.transitiveNamed(Seq.from(indexToTerminal)),
-        classToTransitiveClasses = classToTransitiveClasses,
-        allTransitiveClassMethods = allTransitiveClassMethods,
         spanningInvalidationTree = spanningInvalidationTree,
         millVersionChanged = millVersionChanged,
         millJvmVersionChanged = millJvmVersionChanged

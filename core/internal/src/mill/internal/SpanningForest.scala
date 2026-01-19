@@ -119,6 +119,61 @@ object SpanningForest {
   }
 
   /**
+   * Precomputes class hierarchy and method information for a set of named tasks.
+   * Returns (classToTransitiveClasses, allTransitiveClassMethods).
+   */
+  def precomputeMethodNamesPerClass(transitiveNamed: Seq[Task.Named[?]])
+      : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
+
+    def resolveTransitiveParents(c: Class[?]): Iterable[Class[?]] = {
+      val seen = collection.mutable.LinkedHashSet(c) // Maintain first-seen ordering
+      val queue = collection.mutable.Queue(c)
+      while (queue.nonEmpty) {
+        val current = queue.dequeue()
+        for (
+          next <- Option(current.getSuperclass) ++ current.getInterfaces if !seen.contains(next)
+        ) {
+          seen.add(next)
+          queue.enqueue(next)
+        }
+      }
+
+      seen
+    }
+
+    val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = transitiveNamed
+      .map { case namedTask: Task.Named[?] => namedTask.ctx.enclosingCls }
+      .distinct
+      .map(cls => cls -> resolveTransitiveParents(cls).toVector)
+      .toMap
+
+    val allTransitiveClasses = classToTransitiveClasses
+      .iterator
+      .flatMap(_._2)
+      .toSet
+
+    val allTransitiveClassMethods: Map[Class[?], Map[String, Method]] =
+      allTransitiveClasses
+        .map { cls =>
+          val cMangledName = cls.getName.replace('.', '$')
+          cls -> cls.getDeclaredMethods
+            .flatMap { m =>
+              Seq(
+                m.getName -> m,
+                // Handle scenarios where private method names get mangled when they are
+                // not really JVM-private due to being accessed by Scala nested objects
+                // or classes https://github.com/scala/bug/issues/9306
+                m.getName.stripPrefix(cMangledName + "$$") -> m,
+                m.getName.stripPrefix(cMangledName + "$") -> m
+              )
+            }.toMap
+        }
+        .toMap
+
+    (classToTransitiveClasses, allTransitiveClassMethods)
+  }
+
+  /**
    * Helper to compute the method class and encoded task name for a named task.
    * Returns (methodClass, encodedTaskName) or throws MillException if not found.
    */
@@ -206,9 +261,7 @@ object SpanningForest {
    *
    * @param taskEdges Map from task name to downstream task names
    * @param interestingTasks All tasks that should appear in the tree
-   * @param transitiveNamed Tasks for computing method signatures
-   * @param classToTransitiveClasses Map from class to its transitive parent classes
-   * @param allTransitiveClassMethods Map from class to its declared methods
+   * @param transitiveNamed Tasks for computing method signatures (used when merging with code signature tree)
    * @param resolvedTasks Optional set of task names that were directly resolved (for filtering)
    * @param codeSignatureTree Optional code signature spanning tree (JSON string to avoid classloader issues)
    * @param millVersionChanged Optional (oldVersion, newVersion) if mill version changed
@@ -218,8 +271,6 @@ object SpanningForest {
       taskEdges: Map[String, Seq[String]],
       interestingTasks: Set[String],
       transitiveNamed: Seq[Task.Named[?]],
-      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       resolvedTasks: Option[Set[String]] = None,
       // JSON string to avoid classloader issues when crossing classloader boundaries
       codeSignatureTree: Option[String] = None,
@@ -278,6 +329,8 @@ object SpanningForest {
     // Merge with code signature tree if available
     parsedCodeSigTree match {
       case Some(codeSigTree) =>
+        val (classToTransitiveClasses, allTransitiveClassMethods) =
+          precomputeMethodNamesPerClass(transitiveNamed)
         val taskMethodSignatures = methodSignaturePrefixesForTasks(
           transitiveNamed,
           classToTransitiveClasses,

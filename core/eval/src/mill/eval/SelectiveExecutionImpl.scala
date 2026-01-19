@@ -211,17 +211,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       val interestingTasks = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
       val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
 
-      // Compute class metadata for method signature resolution
-      val transitiveNamed = PlanImpl.transitiveNamed(changedTasks.downstreamTasks)
-      val (classToTransitiveClasses, allTransitiveClassMethods) =
-        CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
-
       SpanningForest.buildInvalidationTree(
         taskEdges = taskEdges,
         interestingTasks = interestingTasks,
-        transitiveNamed = transitiveNamed,
-        classToTransitiveClasses = classToTransitiveClasses,
-        allTransitiveClassMethods = allTransitiveClassMethods,
+        transitiveNamed = PlanImpl.transitiveNamed(changedTasks.downstreamTasks),
         resolvedTasks = Some(resolvedTaskLabels),
         codeSignatureTree = evaluator.spanningInvalidationTree,
         millVersionChanged = changedTasks.millVersionChanged.orElse(evaluator.millVersionChanged),
