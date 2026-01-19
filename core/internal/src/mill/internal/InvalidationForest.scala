@@ -49,22 +49,18 @@ object InvalidationForest {
   ): ujson.Obj = {
     // All named tasks are group heads
     val transitiveNamed = interGroupDeps.keys.collect { case t: Task.Named[?] => t }.toSeq
-    // Compute reverse edges (task -> downstream dependents)
+
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 
-    // Apply edge filter
     val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(edgeFilter).toMap
 
-    // Convert task edges to string representation
     val taskEdges: Map[String, Seq[String]] = filteredReverseInterGroupDeps
       .view
       .map { case (k, vs) => k.toString -> vs.map(_.toString) }
       .toMap
 
-    // Convert root invalidated tasks to strings
     val rootInvalidatedTaskStrings = rootInvalidatedTasks.map(_.toString)
 
-    // Build version change node names by comparing previous versions to current
     val versionChangeNodes = computeVersionChangeNodes(previousVersions)
 
     // Build the graph including version change nodes
@@ -74,17 +70,20 @@ object InvalidationForest {
       else versionChangeNodes.map(node => node -> rootInvalidatedTaskStrings.toSeq).toMap
 
     val allEdges = taskEdges ++ versionChangeEdges
-    val allTasks =
-      (allEdges.keys ++ allEdges.values.flatten ++ rootInvalidatedTaskStrings).toArray.distinct.sorted
-    val taskToIndex = allTasks.zipWithIndex.toMap
-    val indexEdges = allTasks.map(t => allEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
+    val allNodes = (allEdges.keys ++ allEdges.values.flatten ++ rootInvalidatedTaskStrings)
+      .toArray
+      .distinct
+      .sorted
+
+    val taskToIndex = allNodes.zipWithIndex.toMap
+    val indexEdges = allNodes.map(t => allEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
 
     // Include version change nodes as root vertices so they appear in the tree
     val allRoots = rootInvalidatedTaskStrings ++ versionChangeNodes
     val rootIndices = allRoots.flatMap(taskToIndex.get)
 
     val baseForest = SpanningForest(indexEdges, rootIndices, limitToImportantVertices = true)
-    val baseTree = SpanningForest.spanningTreeToJsonTree(baseForest, allTasks(_))
+    val baseTree = SpanningForest.spanningTreeToJsonTree(baseForest, allNodes(_))
 
     // Parse code signature tree if provided
     val parsedCodeSigTree: Option[ujson.Obj] = codeSignatureTree.flatMap { jsonStr =>
