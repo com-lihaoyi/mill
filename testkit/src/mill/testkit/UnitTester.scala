@@ -140,9 +140,9 @@ class UnitTester(
     getEvaluator = () => evaluator,
     offline = offline,
     useFileLocks = false,
+    enableTicker = false,
     staticBuildOverrideFiles = Map(),
     depth = 0,
-    enableTicker = false,
     isFinalDepth = true
   )
 
