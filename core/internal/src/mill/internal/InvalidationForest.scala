@@ -61,70 +61,19 @@ object InvalidationForest {
         val taskEdges: Map[String, Seq[String]] = filteredTaskDeps
           .map { case (k, vs) => k.toString -> vs.map(_.toString) }
 
-        // Parse code signature tree and extract method -> method edges and method -> task edges
-        // Uses CodeSigUtils.allMethodSignatures for consistent matching with codeSigForTask.
-        val (methodEdges, allMethodNodes, methodToTaskEdges) = codeSignatureTree match {
-          case Some(json) =>
-            val (edges, nodes) = extractMethodEdges(ujson.read(json).obj)
+        val codeEdges = extractCodeEdges(codeSignatureTree, transitiveNamed, rootInvalidatedTasks)
 
-            val (classToTransitiveClasses, allTransitiveClassMethods) =
-              CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+        val allEdges = combineEdges(taskEdges, codeEdges)
 
-            // Map from method signature (with "def " prefix) to tasks affected by that method
-            val sigToTasks: Map[String, Seq[String]] = rootInvalidatedTasks.iterator
-              .collect { case t: Task.Named[?] => t }
-              .flatMap { namedTask =>
-                try {
-                  CodeSigUtils
-                    .allMethodSignatures(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-                    .map(sig => s"def $sig" -> namedTask.ctx.segments.render)
-                } catch { case _: mill.api.MillException => Nil }
-              }
-              .toSeq
-              .groupMap(_._1)(_._2)
-
-            // Connect any method node that matches a task signature to that task
-            // (not just leaf methods - the method may have "call" children that we filter out later)
-            val toTaskEdges = nodes.toSeq
-              .flatMap(m => sigToTasks.getOrElse(m, Nil).map(m -> _))
-              .groupMap(_._1)(_._2)
-
-            (edges, nodes, toTaskEdges)
-
-          case None =>
-            (Map.empty[String, Seq[String]], Set.empty[String], Map.empty[String, Seq[String]])
-        }
-
-        // Combine all edges: task->task, method->method, and method->task
-        // SpanningForest will pick the shortest path when multiple paths exist
-        val allEdges: Map[String, Seq[String]] = {
-          val combined = collection.mutable.Map[String, Seq[String]]()
-          for ((k, vs) <- taskEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
-          for ((k, vs) <- methodEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
-          for ((k, vs) <- methodToTaskEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
-          combined.toMap
-        }
-
-        // Find all relevant nodes by working backwards from root invalidated tasks
-        // 1. Start with root invalidated tasks
-        // 2. Find methods that connect to these tasks (reverse direction)
-        // 3. Find downstream tasks via forward traversal
         val rootTaskStrings = rootInvalidatedTasks.map(_.toString)
-
-        // Build reverse edge map for backward traversal
         val reverseAllEdges = SpanningForest.reverseEdges(allEdges)
 
-        // Find all relevant nodes:
-        // 1. Forward BFS from root tasks to find downstream tasks
-        // 2. Backward BFS from tasks to find method nodes that lead to them
-        val forwardReachable = SpanningForest
-          .breadthFirst(rootTaskStrings ++ methodToTaskEdges.values.flatten)(n =>
-            allEdges.getOrElse(n, Nil)
-          )
-
-        val taskNodes = forwardReachable.filterNot(allMethodNodes.contains)
+        // Find relevant nodes via BFS:
+        // 1. Forward from root tasks to find downstream tasks
+        // 2. Backward from all tasks to find method nodes that lead to them
+        val taskNodes = SpanningForest.breadthFirst(rootTaskStrings)(allEdges.getOrElse(_, Nil))
         val relevantNodes = SpanningForest
-          .breadthFirst(taskNodes)(n => reverseAllEdges.getOrElse(n, Nil))
+          .breadthFirst(taskNodes)(reverseAllEdges.getOrElse(_, Nil))
           .toSet
 
         // Filter to only include relevant nodes and edges
@@ -145,6 +94,49 @@ object InvalidationForest {
         SpanningForest.spanningTreeToJsonTree(forest, allNodes(_))
     }
 
+  }
+
+  /**
+   * Extracts method->method and method->task edges from a code signature tree.
+   * Uses CodeSigUtils.allMethodSignatures for consistent matching with codeSigForTask.
+   */
+  private def extractCodeEdges(
+      codeSignatureTree: Option[String],
+      transitiveNamed: Seq[Task.Named[?]],
+      rootInvalidatedTasks: Set[Task[?]]
+  ): Map[String, Seq[String]] = codeSignatureTree match {
+    case None => Map.empty
+    case Some(json) =>
+      val (methodEdges, nodes) = extractMethodEdges(ujson.read(json).obj)
+
+      val (classToTransitiveClasses, allTransitiveClassMethods) =
+        CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+
+      // Map from method signature (with "def " prefix) to tasks affected by that method
+      val sigToTasks: Map[String, Seq[String]] = rootInvalidatedTasks.iterator
+        .collect { case t: Task.Named[?] => t }
+        .flatMap { namedTask =>
+          try {
+            CodeSigUtils
+              .allMethodSignatures(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
+              .map(sig => s"def $sig" -> namedTask.ctx.segments.render)
+          } catch { case _: mill.api.MillException => Nil }
+        }
+        .toSeq
+        .groupMap(_._1)(_._2)
+
+      // Connect any method node that matches a task signature to that task
+      val methodToTaskEdges = nodes.toSeq
+        .flatMap(m => sigToTasks.getOrElse(m, Nil).map(m -> _))
+        .groupMap(_._1)(_._2)
+
+      combineEdges(methodEdges, methodToTaskEdges)
+  }
+
+  private def combineEdges(maps: Map[String, Seq[String]]*): Map[String, Seq[String]] = {
+    val combined = collection.mutable.Map[String, Seq[String]]()
+    for (m <- maps; (k, vs) <- m) combined(k) = combined.getOrElse(k, Nil) ++ vs
+    combined.toMap
   }
 
   /**
