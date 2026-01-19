@@ -29,161 +29,164 @@ object InvalidationForest {
   }
 
   /**
-   * Builds an invalidation tree that combines:
-   * - Task dependency spanning forest
-   * - Code signature spanning tree (showing method call chains)
-   * - Version change nodes (mill-version-changed, mill-jvm-version-changed)
+   * Builds an invalidation tree by combining all edge types into a single graph:
+   * - task -> task edges (from interGroupDeps)
+   * - method -> method edges (from codeSignatureTree)
+   * - method -> task edges (linking methods to their tasks)
+   * - versionchange -> task edges (when version changes)
+   *
+   * Then runs SpanningForest on the combined graph to produce the tree.
    */
   def buildInvalidationTree(
-      // The edges of the task graph, simplified to only consider task groups headed
-      // by named tasks so as to ignore the misc anonymous tasks used internally
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       rootInvalidatedTasks: Set[Task[?]],
-      // Other ways that tasks can be invalidated - due to code changes or due to mill/jvm
-      // version changes - so we can include them as causal nodes in the invalidation forest
       codeSignatureTree: Option[String],
       previousVersions: Option[VersionState]
   ): ujson.Obj = {
-    // All named tasks are group heads
     val transitiveNamed = interGroupDeps.keys.collect { case t: Task.Named[?] => t }.toSeq
 
+    // Check for version change - simple case with flat structure
     computeVersionChangeNode(previousVersions) match {
-      // If Mill or JVM version changed, everything is invalidated, so return a simple tree
-      // with version change as root and all tasks as direct children
-      // (no need for spanning forest computation)
       case Some(versionNode) =>
         val allTaskStrings = rootInvalidatedTasks
           .collect { case t: Task.Named[?] => t.toString }
           .toSeq
           .sorted
-        ujson.Obj(
+        return ujson.Obj(
           versionNode -> ujson.Obj.from(allTaskStrings.map(_ -> ujson.Obj()))
         )
-
       case None =>
-        val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
-        // Only include edges from root invalidated tasks
-        val filteredReverseInterGroupDeps =
-          reverseInterGroupDeps.view.filterKeys(rootInvalidatedTasks).toMap
-
-        val taskEdges: Map[String, Seq[String]] = filteredReverseInterGroupDeps
-          .view
-          .map { case (k, vs) => k.toString -> vs.map(_.toString) }
-          .toMap
-
-        val rootInvalidatedTaskStrings = rootInvalidatedTasks.map(_.toString)
-
-        val allNodes = (taskEdges.keys ++ taskEdges.values.flatten ++ rootInvalidatedTaskStrings)
-          .toArray
-          .distinct
-          .sorted
-
-        val taskToIndex = allNodes.zipWithIndex.toMap
-        val indexEdges = allNodes.map(t => taskEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
-
-        val rootIndices = rootInvalidatedTaskStrings.flatMap(taskToIndex.get)
-
-        val baseForest = SpanningForest(indexEdges, rootIndices, limitToImportantVertices = true)
-        val baseTree = SpanningForest.spanningTreeToJsonTree(baseForest, allNodes(_))
-
-        codeSignatureTree.map(ujson.read(_).obj) match {
-          case Some(codeSigTree) =>
-            val (classToTransitiveClasses, allTransitiveClassMethods) =
-              CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
-
-            val taskMethodSignatures = methodSignaturePrefixesForTasks(
-              transitiveNamed,
-              classToTransitiveClasses,
-              allTransitiveClassMethods
-            )
-            mergeCodeSignatureTree(baseTree, codeSigTree, taskMethodSignatures)
-          case None => baseTree
-        }
     }
+
+    // Build task -> task edges (reverse direction: source -> dependents)
+    val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
+    val filteredTaskDeps = reverseInterGroupDeps.view.filterKeys(rootInvalidatedTasks).toMap
+    val taskEdges: Map[String, Seq[String]] = filteredTaskDeps
+      .map { case (k, vs) => k.toString -> vs.map(_.toString) }
+
+    // Parse code signature tree and extract method -> method edges
+    val (methodEdges, codeRoots, allMethodNodes) = codeSignatureTree match {
+      case Some(json) =>
+        val tree = ujson.read(json).obj
+        extractMethodEdges(tree)
+      case None => (Map.empty[String, Seq[String]], Set.empty[String], Set.empty[String])
+    }
+
+    // Build method -> task edges
+    // 1. Match task method signatures to method nodes
+    // 2. Connect leaf methods (no children) to all root invalidated tasks
+    val methodToTaskEdges: Map[String, Seq[String]] = if (codeSignatureTree.isDefined) {
+      val (classToTransitiveClasses, allTransitiveClassMethods) =
+        CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+
+      val rootTaskNames = rootInvalidatedTasks.iterator
+        .collect { case t: Task.Named[?] => t.ctx.segments.render }
+        .toSeq
+
+      // Match methods to tasks by task method signature
+      val matchedEdges = rootInvalidatedTasks.iterator
+        .collect { case t: Task.Named[?] => t }
+        .flatMap { namedTask =>
+          val taskName = namedTask.ctx.segments.render
+          try {
+            val (methodClass, encodedTaskName) = CodeSigUtils
+              .methodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
+            val methodSig = s"def $methodClass#$encodedTaskName()"
+            // Find matching method node in all method nodes from code signature tree
+            val matchingMethod = allMethodNodes.find(m => m.startsWith(methodSig))
+            matchingMethod.map(m => m -> taskName)
+          } catch {
+            case _: mill.api.MillException => None
+          }
+        }
+        .toSeq
+
+      // Leaf methods (methods with no outgoing edges) should connect to all root tasks
+      val leafMethods = allMethodNodes.filter(m => !methodEdges.contains(m))
+      val leafEdges = leafMethods.toSeq.map(m => m -> rootTaskNames)
+
+      (matchedEdges ++ leafEdges.flatMap { case (m, ts) => ts.map(t => m -> t) })
+        .groupMap(_._1)(_._2)
+    } else Map.empty
+
+    // Combine all edges
+    val allEdges: Map[String, Seq[String]] = {
+      val combined = collection.mutable.Map[String, Seq[String]]()
+      for ((k, vs) <- taskEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
+      for ((k, vs) <- methodEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
+      for ((k, vs) <- methodToTaskEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
+      combined.toMap
+    }
+
+    // Find all relevant nodes:
+    // 1. All method nodes from the code signature tree (these form the invalidation chain)
+    // 2. All task nodes (root invalidated tasks and their downstreams)
+    val rootTaskStrings = rootInvalidatedTasks.map(_.toString)
+    val relevantNodes = {
+      val reachable = collection.mutable.Set.from(rootTaskStrings)
+      // Include all method nodes from the code signature tree
+      reachable ++= allMethodNodes
+      val queue = collection.mutable.Queue.from(rootTaskStrings)
+
+      // Downstream: find task nodes reachable from root tasks (via forward edges)
+      while (queue.nonEmpty) {
+        val current = queue.dequeue()
+        for (next <- allEdges.getOrElse(current, Nil) if !reachable.contains(next)) {
+          reachable += next
+          queue.enqueue(next)
+        }
+      }
+
+      reachable.toSet
+    }
+
+    // Filter to only include relevant nodes and edges
+    val filteredEdges = allEdges.view
+      .filterKeys(relevantNodes)
+      .mapValues(_.filter(relevantNodes))
+      .toMap
+
+    // Collect all nodes
+    val allNodes = (filteredEdges.keys ++ filteredEdges.values.flatten ++ rootTaskStrings ++ codeRoots.filter(relevantNodes))
+      .toArray.distinct.sorted
+
+    // Important vertices: all relevant nodes
+    val importantStrings = relevantNodes
+
+    val nodeToIndex = allNodes.zipWithIndex.toMap
+    val indexEdges = allNodes.map(n => filteredEdges.getOrElse(n, Nil).flatMap(nodeToIndex.get).toArray)
+    val importantIndices = importantStrings.flatMap(nodeToIndex.get)
+
+    val forest = SpanningForest(indexEdges, importantIndices, limitToImportantVertices = true)
+    SpanningForest.spanningTreeToJsonTree(forest, allNodes(_))
   }
 
   /**
-   * Computes the method signature prefixes for tasks.
-   * Returns a map from task name (e.g., "foo.compile") to a set of method signature prefixes
-   * that should match entries in the code signature spanning tree.
+   * Extracts method -> method edges from a code signature tree.
+   * Returns (edges map, root nodes set, all nodes set).
    */
-  private def methodSignaturePrefixesForTasks(
-      transitiveNamed: Seq[Task.Named[?]],
-      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
-  ): Map[String, Set[String]] = {
-    transitiveNamed.flatMap { namedTask =>
-      val taskName = namedTask.ctx.segments.render
-      try {
-        val (methodClass, encodedTaskName) = CodeSigUtils
-          .methodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-        Some(taskName -> Set(methodClass + "#" + encodedTaskName + "()"))
-      } catch {
-        case _: mill.api.MillException => None
-      }
-    }.toMap
-  }
+  private def extractMethodEdges(
+      tree: ujson.Obj
+  ): (Map[String, Seq[String]], Set[String], Set[String]) = {
+    val edges = collection.mutable.Map[String, collection.mutable.Buffer[String]]()
+    val roots = collection.mutable.Set[String]()
+    val allNodes = collection.mutable.Set[String]()
 
-  /**
-   * Merges the code signature spanning tree with the task invalidation tree.
-   * Does a single traversal of the code signature tree, attaching task subtrees
-   * at matching method nodes, and pruning branches with no matching tasks.
-   */
-  private def mergeCodeSignatureTree(
-      baseTree: ujson.Obj,
-      codeTree: ujson.Value,
-      taskMethodSignatures: Map[String, Set[String]]
-  ): ujson.Obj = {
-    // Build reverse map: method signature prefix -> list of (taskName, subtree)
-    val signatureToTasks: Map[String, Seq[(String, ujson.Value)]] = baseTree.value.toSeq
-      .flatMap { case (taskName, subtree) =>
-        taskMethodSignatures.getOrElse(taskName, Set.empty).map(sig => sig -> (taskName, subtree))
-      }
-      .groupMap(_._1)(_._2)
-
-    val matchedTasks = collection.mutable.Set[String]()
-
-    def findMatchingTasks(key: String): Seq[(String, ujson.Value)] = key match {
-      case s"def $signature" =>
-        signatureToTasks.iterator
-          .filter { case (sig, _) => signature.startsWith(sig) }
-          .flatMap(_._2)
-          .filterNot { case (taskName, _) => matchedTasks.contains(taskName) }
-          .toSeq
-      case _ => Nil
-    }
-
-    // Single-pass traversal: recurse into children, attach matching tasks, prune empty branches
-    def traverse(node: ujson.Value): Option[ujson.Obj] = {
-      val result = ujson.Obj()
-      for ((key, value) <- node.obj.value) {
-        // First, recurse into children
-        traverse(value).foreach(child => result(key) = child)
-
-        // Then check if this node matches any tasks
-        val tasks = findMatchingTasks(key)
-        if (tasks.nonEmpty) {
-          val tasksObj = result.value.get(key) match {
-            case Some(obj: ujson.Obj) => obj
-            case _ => ujson.Obj()
-          }
-          for ((taskName, subtree) <- tasks) {
-            tasksObj(taskName) = subtree
-            matchedTasks += taskName
-          }
-          result(key) = tasksObj
+    def traverse(node: ujson.Obj, parent: Option[String], isRoot: Boolean): Unit = {
+      for ((key, value) <- node.value) {
+        allNodes += key
+        if (isRoot) roots += key
+        parent.foreach { p =>
+          edges.getOrElseUpdate(p, collection.mutable.Buffer()) += key
+        }
+        value match {
+          case obj: ujson.Obj if obj.value.nonEmpty => traverse(obj, Some(key), isRoot = false)
+          case _ =>
         }
       }
-      if (result.value.nonEmpty) Some(result) else None
     }
 
-    val merged = traverse(codeTree).getOrElse(ujson.Obj())
-
-    // Add any tasks that weren't matched to a code path
-    for ((taskName, subtree) <- baseTree.value if !matchedTasks.contains(taskName)) {
-      merged(taskName) = subtree
-    }
-
-    merged
+    traverse(tree, None, isRoot = true)
+    (edges.view.mapValues(_.toSeq).toMap, roots.toSet, allNodes.toSet)
   }
 }
