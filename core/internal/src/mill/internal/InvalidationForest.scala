@@ -48,61 +48,53 @@ object InvalidationForest {
     // All named tasks are group heads
     val transitiveNamed = interGroupDeps.keys.collect { case t: Task.Named[?] => t }.toSeq
 
-    val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
-
-    val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(edgeFilter).toMap
-
-    val taskEdges: Map[String, Seq[String]] = filteredReverseInterGroupDeps
-      .view
-      .map { case (k, vs) => k.toString -> vs.map(_.toString) }
-      .toMap
-
-    val rootInvalidatedTaskStrings = rootInvalidatedTasks.map(_.toString)
-
-    val versionChangeNode = computeVersionChangeNode(previousVersions)
-
-    // Build the graph including version change node
-    // Version change node has edges to ALL named tasks (it invalidates everything)
-    val versionChangeEdges: Map[String, Seq[String]] = versionChangeNode match {
-      case Some(node) =>
-        val allNamedTaskStrings = transitiveNamed.map(_.toString)
-        Map(node -> allNamedTaskStrings)
-      case None => Map.empty
-    }
-
-    val allEdges = taskEdges ++ versionChangeEdges
-    val allNodes = (allEdges.keys ++ allEdges.values.flatten ++ rootInvalidatedTaskStrings)
-      .toArray
-      .distinct
-      .sorted
-
-    val taskToIndex = allNodes.zipWithIndex.toMap
-    val indexEdges = allNodes.map(t => allEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
-
-    // Include version change node as root vertex so it appears in the tree
-    val allRoots = rootInvalidatedTaskStrings ++ versionChangeNode
-    val rootIndices = allRoots.flatMap(taskToIndex.get)
-
-    val baseForest = SpanningForest(indexEdges, rootIndices, limitToImportantVertices = true)
-    val baseTree = SpanningForest.spanningTreeToJsonTree(baseForest, allNodes(_))
-
-    val parsedCodeSigTree: Option[ujson.Obj] = codeSignatureTree.map(ujson.read(_).obj)
-
-    // If version change is present, the tree is already structured correctly
-    // (version change node is root with tasks as children)
-    if (versionChangeNode.nonEmpty) baseTree
-    else parsedCodeSigTree match {
-      case Some(codeSigTree) =>
-        val (classToTransitiveClasses, allTransitiveClassMethods) =
-          CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
-
-        val taskMethodSignatures = methodSignaturePrefixesForTasks(
-          transitiveNamed,
-          classToTransitiveClasses,
-          allTransitiveClassMethods
+    computeVersionChangeNode(previousVersions) match {
+      // If Mill or JVM version changed, everything is invalidated, so return a simple tree
+      // with version change as root and all tasks as direct children
+      // (no need for spanning forest computation)
+      case Some(versionNode) =>
+        ujson.Obj(
+          versionNode ->
+            ujson.Obj.from(transitiveNamed.map(_.toString).sorted.map(_ -> ujson.Obj()))
         )
-        mergeCodeSignatureTree(baseTree, codeSigTree, taskMethodSignatures)
-      case None => baseTree
+
+      case None =>
+        val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
+        val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(edgeFilter).toMap
+
+        val taskEdges: Map[String, Seq[String]] = filteredReverseInterGroupDeps
+          .view
+          .map { case (k, vs) => k.toString -> vs.map(_.toString) }
+          .toMap
+
+        val rootInvalidatedTaskStrings = rootInvalidatedTasks.map(_.toString)
+
+        val allNodes = (taskEdges.keys ++ taskEdges.values.flatten ++ rootInvalidatedTaskStrings)
+          .toArray
+          .distinct
+          .sorted
+
+        val taskToIndex = allNodes.zipWithIndex.toMap
+        val indexEdges = allNodes.map(t => taskEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
+
+        val rootIndices = rootInvalidatedTaskStrings.flatMap(taskToIndex.get)
+
+        val baseForest = SpanningForest(indexEdges, rootIndices, limitToImportantVertices = true)
+        val baseTree = SpanningForest.spanningTreeToJsonTree(baseForest, allNodes(_))
+
+        codeSignatureTree.map(ujson.read(_).obj) match {
+          case Some(codeSigTree) =>
+            val (classToTransitiveClasses, allTransitiveClassMethods) =
+              CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+
+            val taskMethodSignatures = methodSignaturePrefixesForTasks(
+              transitiveNamed,
+              classToTransitiveClasses,
+              allTransitiveClassMethods
+            )
+            mergeCodeSignatureTree(baseTree, codeSigTree, taskMethodSignatures)
+          case None => baseTree
+        }
     }
   }
 
