@@ -74,8 +74,7 @@ object InvalidationForest {
         val rootTaskStrings = rootInvalidatedTasks.map(_.toString)
 
         // Find relevant nodes: forward BFS for downstream tasks, backward BFS for method chains
-        val taskNodes = SpanningForest.breadthFirst(rootTaskStrings)(downstreamAllEdges.getOrElse(_, Nil))
-        val relevantNodes = SpanningForest.breadthFirst(taskNodes)(upstreamAllEdges.getOrElse(_, Nil)).toSet
+        val relevantNodes = downstreamAllEdges.flatMap{case (k, vs) => k +: vs}.toSet
 
         // Filter edges to only include connections between relevant nodes
         val filteredEdges = downstreamAllEdges.view
