@@ -222,10 +222,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         transitiveNamed = transitiveNamed,
         classToTransitiveClasses = classToTransitiveClasses,
         allTransitiveClassMethods = allTransitiveClassMethods,
+        resolvedTasks = Some(resolvedTaskLabels),
         codeSignatureTree = evaluator.spanningInvalidationTree,
         millVersionChanged = changedTasks.millVersionChanged.orElse(evaluator.millVersionChanged),
-        millJvmVersionChanged = changedTasks.millJvmVersionChanged.orElse(evaluator.millJvmVersionChanged),
-        resolvedTasks = Some(resolvedTaskLabels)
+        millJvmVersionChanged = changedTasks.millJvmVersionChanged.orElse(evaluator.millJvmVersionChanged)
       )
     }
   }

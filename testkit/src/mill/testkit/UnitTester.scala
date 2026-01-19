@@ -141,8 +141,8 @@ class UnitTester(
     offline = offline,
     useFileLocks = false,
     staticBuildOverrideFiles = Map(),
-    enableTicker = false,
     depth = 0,
+    enableTicker = false,
     isFinalDepth = true
   )
 

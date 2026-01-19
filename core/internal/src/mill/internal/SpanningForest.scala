@@ -209,10 +209,10 @@ object SpanningForest {
    * @param transitiveNamed Tasks for computing method signatures
    * @param classToTransitiveClasses Map from class to its transitive parent classes
    * @param allTransitiveClassMethods Map from class to its declared methods
+   * @param resolvedTasks Optional set of task names that were directly resolved (for filtering)
    * @param codeSignatureTree Optional code signature spanning tree (JSON string to avoid classloader issues)
    * @param millVersionChanged Optional (oldVersion, newVersion) if mill version changed
    * @param millJvmVersionChanged Optional (oldVersion, newVersion) if mill JVM version changed
-   * @param resolvedTasks Optional set of task names that were directly resolved (for filtering)
    */
   def buildInvalidationTree(
       taskEdges: Map[String, Seq[String]],
@@ -220,10 +220,11 @@ object SpanningForest {
       transitiveNamed: Seq[Task.Named[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
+      resolvedTasks: Option[Set[String]] = None,
+      // JSON string to avoid classloader issues when crossing classloader boundaries
       codeSignatureTree: Option[String] = None,
       millVersionChanged: Option[(String, String)] = None,
-      millJvmVersionChanged: Option[(String, String)] = None,
-      resolvedTasks: Option[Set[String]] = None
+      millJvmVersionChanged: Option[(String, String)] = None
   ): ujson.Obj = {
     // Compute method signature prefixes for tasks
     val taskMethodSignatures = methodSignaturePrefixesForTasks(

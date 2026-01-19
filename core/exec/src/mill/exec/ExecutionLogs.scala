@@ -33,9 +33,9 @@ private object ExecutionLogs {
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String],
-      millVersionChanged: Option[(String, String)],
-      millJvmVersionChanged: Option[(String, String)]
+      spanningInvalidationTree: Option[String] = None,
+      millVersionChanged: Option[(String, String)] = None,
+      millJvmVersionChanged: Option[(String, String)] = None
   ): Unit = {
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
     val changedTerminals = changedValueHash.keys().asScala.toSet
