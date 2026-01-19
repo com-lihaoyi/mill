@@ -15,7 +15,8 @@ When starting out, please run:
 3. Run `./mill __.compile` to make sure you didn't screw up anything simple
    (you can use `-w`/`--watch` for convenience)
 
-4. Run specific unit tests (if any) e.g. `./mill core.api.test`
+4. Run specific unit tests (if any) e.g. `./mill core.api.test` or
+   `./mill core.api.test mill.api.PathRefTests`
 
 5. Test manually via `./mill dist.run scratch foo.scala`
 

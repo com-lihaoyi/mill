@@ -63,35 +63,39 @@ object InvalidationForest {
         val taskEdges: Map[String, Seq[String]] = filteredTaskDeps
           .map { case (k, vs) => k.toString -> vs.map(_.toString) }
 
-        // Parse code signature tree and extract method -> method edges
-        val (methodEdges, allMethodNodes) = codeSignatureTree match {
-          case Some(json) => extractMethodEdges(ujson.read(json).obj)
-          case None => (Map.empty[String, Seq[String]], Set.empty[String])
-        }
-
-        // Build method -> task edges for leaf methods only (methods with no children in the tree).
+        // Parse code signature tree and extract method -> method edges and method -> task edges
         // Uses CodeSigUtils.allMethodSignatures for consistent matching with codeSigForTask.
-        val methodToTaskEdges: Map[String, Seq[String]] = if (codeSignatureTree.isDefined) {
-          val (classToTransitiveClasses, allTransitiveClassMethods) =
-            CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+        val (methodEdges, allMethodNodes, methodToTaskEdges) = codeSignatureTree match {
+          case Some(json) =>
+            val (edges, nodes) = extractMethodEdges(ujson.read(json).obj)
 
-          // Map from method signature (with "def " prefix) to tasks affected by that method
-          val sigToTasks: Map[String, Seq[String]] = rootInvalidatedTasks.iterator
-            .collect { case t: Task.Named[?] => t }
-            .flatMap { namedTask =>
-              try {
-                CodeSigUtils
-                  .allMethodSignatures(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-                  .map(sig => s"def $sig" -> namedTask.ctx.segments.render)
-              } catch { case _: mill.api.MillException => Nil }
-            }
-            .toSeq
-            .groupMap(_._1)(_._2)
+            val (classToTransitiveClasses, allTransitiveClassMethods) =
+              CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
 
-          // Only connect leaf methods (no outgoing edges) to tasks
-          val leafMethods = allMethodNodes.filter(m => !methodEdges.contains(m))
-          leafMethods.toSeq.flatMap(m => sigToTasks.getOrElse(m, Nil).map(m -> _)).groupMap(_._1)(_._2)
-        } else Map.empty
+            // Map from method signature (with "def " prefix) to tasks affected by that method
+            val sigToTasks: Map[String, Seq[String]] = rootInvalidatedTasks.iterator
+              .collect { case t: Task.Named[?] => t }
+              .flatMap { namedTask =>
+                try {
+                  CodeSigUtils
+                    .allMethodSignatures(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
+                    .map(sig => s"def $sig" -> namedTask.ctx.segments.render)
+                } catch { case _: mill.api.MillException => Nil }
+              }
+              .toSeq
+              .groupMap(_._1)(_._2)
+
+            // Connect any method node that matches a task signature to that task
+            // (not just leaf methods - the method may have "call" children that we filter out later)
+            val toTaskEdges = nodes.toSeq
+              .flatMap(m => sigToTasks.getOrElse(m, Nil).map(m -> _))
+              .groupMap(_._1)(_._2)
+
+            (edges, nodes, toTaskEdges)
+
+          case None =>
+            (Map.empty[String, Seq[String]], Set.empty[String], Map.empty[String, Seq[String]])
+        }
 
         // Combine all edges
         // When we have code signature information, method->task edges show the root cause.
