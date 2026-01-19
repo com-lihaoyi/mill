@@ -71,10 +71,7 @@ object RunnerState {
       evaluator: Option[EvaluatorApi],
       buildOverrideFiles: Map[java.nio.file.Path, String],
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String],
-      // Version change info to pass to Execution (set when versions differ from previous run)
-      millVersionChanged: Option[(String, String)],
-      millJvmVersionChanged: Option[(String, String)]
+      spanningInvalidationTree: Option[String]
   ) {
 
     def loggedData: Frame.Logged = {
@@ -116,7 +113,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map(), None, None, None)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map(), None)
   }
 
 }

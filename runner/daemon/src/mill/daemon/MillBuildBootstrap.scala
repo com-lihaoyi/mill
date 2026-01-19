@@ -205,8 +205,6 @@ class MillBuildBootstrap(
       codeSignatures = nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
       // Pass spanning tree from the frame - only populated when classloader changed
       spanningInvalidationTree = nestedState.frames.headOption.flatMap(_.spanningInvalidationTree),
-      millVersionChanged = nestedState.frames.headOption.flatMap(_.millVersionChanged),
-      millJvmVersionChanged = nestedState.frames.headOption.flatMap(_.millJvmVersionChanged),
       rootModule = rootModule,
       // We want to use the grandparent buildHash, rather than the parent
       // buildHash, because the parent build changes are instead detected
@@ -267,8 +265,6 @@ class MillBuildBootstrap(
       reporter = reporter(evaluator)
     ) match {
       case (f: Result.Failure, evalWatches, moduleWatches) =>
-        val (millVersionChanged, millJvmVersionChanged) =
-          MillBuildBootstrap.computeVersionChanges(output)
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
           evalWatched = evalWatches,
@@ -279,9 +275,7 @@ class MillBuildBootstrap(
           compileOutput = None,
           evaluator = Option(evaluator),
           buildOverrideFiles = Map(),
-          spanningInvalidationTree = None,
-          millVersionChanged = millVersionChanged,
-          millJvmVersionChanged = millJvmVersionChanged
+          spanningInvalidationTree = None
         )
 
         nestedState.add(
@@ -337,8 +331,6 @@ class MillBuildBootstrap(
           prevFrameOpt.get.classLoaderOpt.get
         }
 
-        val (millVersionChanged, millJvmVersionChanged) =
-          MillBuildBootstrap.computeVersionChanges(output)
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
           evalWatched = evalWatches,
@@ -350,9 +342,7 @@ class MillBuildBootstrap(
           evaluator = Option(evaluator),
           buildOverrideFiles = buildOverrideFiles,
           // Only pass the spanning tree when classloader changed (meta-build was recompiled)
-          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree),
-          millVersionChanged = millVersionChanged,
-          millJvmVersionChanged = millJvmVersionChanged
+          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree)
         )
 
         nestedState.add(frame = evalState)
@@ -382,9 +372,6 @@ class MillBuildBootstrap(
       reporter = reporter(evaluator)
     )
 
-    // Compare versions against disk-persisted state (survives daemon restarts)
-    val (millVersionChanged, millJvmVersionChanged) =
-      MillBuildBootstrap.computeVersionChanges(output)
     val evalState = RunnerState.Frame(
       workerCache = evaluator.workerCache.toMap,
       evalWatched = evalWatched,
@@ -395,9 +382,7 @@ class MillBuildBootstrap(
       compileOutput = None,
       evaluator = Option(evaluator),
       buildOverrideFiles = Map(),
-      spanningInvalidationTree = None,
-      millVersionChanged = millVersionChanged,
-      millJvmVersionChanged = millJvmVersionChanged
+      spanningInvalidationTree = None
     )
 
     nestedState.add(
@@ -491,8 +476,6 @@ object MillBuildBootstrap {
       codeSignatures: Map[String, Int],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String],
-      millVersionChanged: Option[(String, String)],
-      millJvmVersionChanged: Option[(String, String)],
       rootModule: RootModuleApi,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
@@ -514,6 +497,9 @@ object MillBuildBootstrap {
     val cl = rootModule.getClass.getClassLoader
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
+
+    // Read version changes from disk (survives daemon restarts)
+    val (millVersionChanged, millJvmVersionChanged) = computeVersionChanges(output)
 
     lazy val evaluator: EvaluatorApi =
       evalImplCls.getConstructors.minBy(_.getParameterCount).newInstance(
