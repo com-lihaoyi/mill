@@ -51,7 +51,12 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       assert(
         cached.out.linesIterator.toList.sorted ==
-          Seq("bar.barCommandRenamed", "bar.barCommandRenamed2", "foo.fooCommand", "foo.fooTaskRenamed")
+          Seq(
+            "bar.barCommandRenamed",
+            "bar.barCommandRenamed2",
+            "foo.fooCommand",
+            "foo.fooTaskRenamed"
+          )
       )
     }
     test("overrideSuper") - integrationTest { tester =>
@@ -102,7 +107,10 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       // Normalize the mill version in the output for comparison
       val normalizedTree = resolveTree.out.linesIterator.toSeq.map { line =>
-        line.replaceAll("mill-version-changed:0\\.0\\.0-old-version->[^\"]+", "mill-version-changed:OLD->NEW")
+        line.replaceAll(
+          "mill-version-changed:0\\.0\\.0-old-version->[^\"]+",
+          "mill-version-changed:OLD->NEW"
+        )
       }
 
       // Version changes produce flat structure - all tasks are direct children of the
@@ -153,7 +161,10 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
 
       // Normalize the JVM version in the output for comparison
       val normalizedTree = resolveTree.out.linesIterator.toSeq.map { line =>
-        line.replaceAll("mill-jvm-version-changed:1\\.0\\.0-old-jvm->[^\"]+", "mill-jvm-version-changed:OLD->NEW")
+        line.replaceAll(
+          "mill-jvm-version-changed:1\\.0\\.0-old-jvm->[^\"]+",
+          "mill-jvm-version-changed:OLD->NEW"
+        )
       }
 
       // JVM version changes produce flat structure - all tasks are direct children of the

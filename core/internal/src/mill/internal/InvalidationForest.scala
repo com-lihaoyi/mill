@@ -9,7 +9,6 @@ import mill.api.daemon.VersionState
  */
 object InvalidationForest {
 
-
   /**
    * Computes a version change node from previous versions.
    * Returns a formatted string like "mill-version-changed:0.12.0->0.12.1" for display,
@@ -23,7 +22,7 @@ object InvalidationForest {
 
       val parts =
         changeTag("mill-version-changed", mill.constants.BuildInfo.millVersion, vs.millVersion) ++
-        changeTag("mill-jvm-version-changed", sys.props("java.version"), vs.millJvmVersion)
+          changeTag("mill-jvm-version-changed", sys.props("java.version"), vs.millJvmVersion)
 
       Option.when(parts.nonEmpty)(parts.mkString(","))
     }
@@ -59,8 +58,8 @@ object InvalidationForest {
 
         // Code edges: method->method and method->task from code signature tree
         val (downstreamCodeEdges, codeTaskDestNodes) = extractCodeEdges(
-          codeSignatureTree, 
-          upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq, 
+          codeSignatureTree,
+          upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq,
           rootInvalidatedTasks
         )
 
@@ -68,8 +67,9 @@ object InvalidationForest {
           .flatMap { case (k, vs) =>
             // We ignore task->task edges that go to a task with an incoming method->task
             // edge, so that the method->task edge takes priority in the final tree
-            vs.map(_.toString).filter(!codeTaskDestNodes.contains(_)) match{
-              case Nil => None // Skip any nodes turn out to have no outgoing edges after the above filter
+            vs.map(_.toString).filter(!codeTaskDestNodes.contains(_)) match {
+              case Nil =>
+                None // Skip any nodes turn out to have no outgoing edges after the above filter
               case xs => Some(k.toString -> xs)
             }
           }
@@ -80,16 +80,26 @@ object InvalidationForest {
           // For rendering the invalidation tree, we include task nodes downstream of the
           // `rootInvalidatedTaskStrings``, and method nodes upstream of `rootInvalidatedTaskStrings`,
           // but ignore the others since other nodes would not be related to this invalidation
-          val allTaskNodes = SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
+          val allTaskNodes =
+            SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(
+              _,
+              Nil
+            ))
           val upstreamCodeEdges = SpanningForest.reverseEdges(downstreamCodeEdges)
-          val relevantCodeNodes = SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(upstreamCodeEdges.getOrElse(_, Nil))
+          val relevantCodeNodes =
+            SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(upstreamCodeEdges.getOrElse(
+              _,
+              Nil
+            ))
           (relevantCodeNodes ++ allTaskNodes).toArray.distinct.sorted
         }
 
         val nodeToIndex = allNodes.zipWithIndex.toMap
 
         val forest = SpanningForest(
-          indexGraphEdges = allNodes.map(n => downstreamAllEdges.getOrElse(n, Nil).flatMap(nodeToIndex.get).toArray),
+          indexGraphEdges = allNodes.map(n =>
+            downstreamAllEdges.getOrElse(n, Nil).flatMap(nodeToIndex.get).toArray
+          ),
           importantVertices = allNodes.indices.toSet,
           limitToImportantVertices = true
         )
@@ -125,7 +135,6 @@ object InvalidationForest {
           } catch { case _: mill.api.MillException => Nil }
         }
         .toSeq
-
 
       val sigToTasks = sigToTasks0.groupMap(_._1)(_._2)
       // Connect any method node that matches a task signature to that task

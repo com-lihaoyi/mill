@@ -60,6 +60,12 @@ object SelectiveExecution {
       changedRootTasks: Set[Task.Named[?]],
       downstreamTasks: Seq[Task.Named[?]],
       /** Previous Mill and JVM versions if version change caused invalidation */
-      previousVersions: Option[VersionState] = None
+      @com.lihaoyi.unroll previousVersions: Option[VersionState] = None
   )
+
+  object ChangedTasks {
+
+    /** Indicates that all of the passed in tasks were changed. */
+    def all(tasks: Seq[Task.Named[?]]): ChangedTasks = ChangedTasks(tasks, tasks.toSet, tasks)
+  }
 }

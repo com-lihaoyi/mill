@@ -173,6 +173,7 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millRunnerState = OutFiles.millRunnerState;
+
   public static final String millVersionState = OutFiles.millVersionState;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated

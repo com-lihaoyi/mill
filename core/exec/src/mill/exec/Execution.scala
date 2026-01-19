@@ -40,7 +40,7 @@ case class Execution(
     // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
     // Previous Mill and JVM versions from disk (survives daemon restarts)
-    previousVersions: Option[VersionState],
+    previousVersions: Option[VersionState]
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -72,7 +72,7 @@ case class Execution(
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String],
       // Previous Mill and JVM versions from disk
-      previousVersions: Option[VersionState],
+      previousVersions: Option[VersionState]
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -97,7 +97,7 @@ case class Execution(
     depth = depth,
     isFinalDepth = isFinalDepth,
     spanningInvalidationTree = spanningInvalidationTree,
-    previousVersions = previousVersions,
+    previousVersions = previousVersions
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)

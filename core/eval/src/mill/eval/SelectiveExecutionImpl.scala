@@ -60,8 +60,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
-    val millVersionChanged = oldHashes.millVersion.nonEmpty && oldHashes.millVersion != newHashes.millVersion
-    val jvmVersionChanged = oldHashes.millJvmVersion.nonEmpty && oldHashes.millJvmVersion != newHashes.millJvmVersion
+    val millVersionChanged =
+      oldHashes.millVersion.nonEmpty && oldHashes.millVersion != newHashes.millVersion
+    val jvmVersionChanged =
+      oldHashes.millJvmVersion.nonEmpty && oldHashes.millJvmVersion != newHashes.millJvmVersion
 
     // If either version changed, treat all tasks as changed
     if (millVersionChanged || jvmVersionChanged) {

@@ -494,7 +494,7 @@ object MillBuildBootstrap {
           false, // isFinalDepth: set later via withIsFinalDepth when needed
           spanningInvalidationTree,
           // Previous versions from disk (survives daemon restarts)
-          readVersionState(output),
+          readVersionState(output)
         )
       ).asInstanceOf[EvaluatorApi]
 
