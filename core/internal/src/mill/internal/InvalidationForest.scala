@@ -39,23 +39,24 @@ object InvalidationForest {
    * Then runs SpanningForest on the combined graph to produce the tree.
    */
   def buildInvalidationTree(
-      interGroupDeps: Map[Task[?], Seq[Task[?]]],
+      upstreamTaskEdges0: Map[Task[?], Seq[Task[?]]],
       rootInvalidatedTasks: Set[Task[?]],
       codeSignatureTree: Option[String],
       previousVersions: Option[VersionState]
   ): ujson.Obj = {
-    val transitiveNamed = interGroupDeps.keys.collect { case t: Task.Named[?] => t }.toSeq
+    val transitiveNamed = upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq
 
     val rootInvalidatedTaskStrings = rootInvalidatedTasks
       .collect { case t: Task.Named[?] => t.toString }
       .toSeq
       .sorted
+
     computeVersionChangeNode(previousVersions) match {
       case Some(versionNode) => // if mill/mill-jvm version change, that invalidates everything
         ujson.Obj(versionNode -> ujson.Obj.from(rootInvalidatedTaskStrings.map(_ -> ujson.Obj())))
 
       case None =>
-        val downstreamInterGroupEdges = SpanningForest.reverseEdges(interGroupDeps)
+        val downstreamInterGroupEdges = SpanningForest.reverseEdges(upstreamTaskEdges0)
 
         // Code edges: method->method and method->task from code signature tree
         val downstreamCodeEdges = extractCodeEdges(codeSignatureTree, transitiveNamed, rootInvalidatedTasks)
@@ -63,11 +64,15 @@ object InvalidationForest {
         val codeEdgeDests = downstreamCodeEdges.flatMap(_._2).toSet
 
         val downstreamTaskEdges: Map[String, Seq[String]] = downstreamInterGroupEdges
-          .collect { case (k, vs) if rootInvalidatedTasks.contains(k) =>
+          .collect { case (k, vs) =>
             // We ignore task->task edges that go to a task with an incoming method->task
             // edge, so that the method->task edge takes priority in the final tree
             k.toString -> vs.map(_.toString).filter(!codeEdgeDests.contains(_))
           }
+          // If any nodes turn out to have no outgoing edges after the above filter, remove them
+          .filter(_._2.nonEmpty)
+
+        mill.api.Debug(downstreamTaskEdges)
 
         val downstreamAllEdges = combineEdges(downstreamTaskEdges, downstreamCodeEdges)
 
@@ -79,6 +84,7 @@ object InvalidationForest {
           val relevantCodeNodes = SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(upstreamCodeEdges.getOrElse(_, Nil))
           (relevantCodeNodes ++ allTaskNodes).toArray.distinct.sorted
         }
+
         val nodeToIndex = allNodes.zipWithIndex.toMap
         val indexEdges = allNodes.map(n => downstreamAllEdges.getOrElse(n, Nil).flatMap(nodeToIndex.get).toArray)
         val importantIndices = allNodes.indices.toSet

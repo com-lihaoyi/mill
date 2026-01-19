@@ -45,7 +45,7 @@ private object ExecutionLogs {
       .toSet
 
     val finalTree = InvalidationForest.buildInvalidationTree(
-      interGroupDeps = interGroupDeps,
+      upstreamTaskEdges0 = interGroupDeps,
       rootInvalidatedTasks = rootInvalidatedTasks,
       codeSignatureTree = spanningInvalidationTree,
       previousVersions = previousVersions

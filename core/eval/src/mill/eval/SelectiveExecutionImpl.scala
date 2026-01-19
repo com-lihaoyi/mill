@@ -193,7 +193,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
 
       InvalidationForest.buildInvalidationTree(
-        interGroupDeps = interGroupDeps,
+        upstreamTaskEdges0 = interGroupDeps,
         rootInvalidatedTasks = changedTasks.changedRootTasks.map(x => x: Task[?]),
         codeSignatureTree = evaluator.spanningInvalidationTree,
         previousVersions = changedTasks.previousVersions.orElse(evaluator.previousVersions)
