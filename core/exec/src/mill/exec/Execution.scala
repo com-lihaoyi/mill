@@ -96,7 +96,11 @@ case class Execution(
     enableTicker = enableTicker,
     depth = depth,
     isFinalDepth = isFinalDepth,
-    spanningInvalidationTree = spanningInvalidationTree,
+    spanningInvalidationTree = {
+      mill.api.Debug(s"Execution constructor: spanningInvalidationTree.isDefined=${spanningInvalidationTree.isDefined}")
+      mill.api.Debug(s"Execution constructor: spanningInvalidationTree.map(_.take(200))=${spanningInvalidationTree.map(_.take(200))}")
+      spanningInvalidationTree
+    },
     previousVersions = previousVersions
   )
 

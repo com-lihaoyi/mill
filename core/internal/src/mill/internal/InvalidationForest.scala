@@ -69,7 +69,7 @@ object InvalidationForest {
             // edge, so that the method->task edge takes priority in the final tree
             vs.map(_.toString).filter(!codeTaskDestNodes.contains(_)) match {
               case Nil =>
-                None // Skip any nodes turn out to have no outgoing edges after the above filter
+                None // Skip any nodes that have no outgoing edges after the above filter
               case xs => Some(k.toString -> xs)
             }
           }

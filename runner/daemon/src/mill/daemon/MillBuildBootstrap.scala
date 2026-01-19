@@ -312,6 +312,9 @@ class MillBuildBootstrap(
 
         val classLoaderChanged = runClasspathChanged || moduleWatchChanged
 
+        mill.api.Debug(s"MillBuildBootstrap: runClasspathChanged=$runClasspathChanged moduleWatchChanged=$moduleWatchChanged classLoaderChanged=$classLoaderChanged")
+        mill.api.Debug(s"MillBuildBootstrap: spanningInvalidationTree.take(500)=${spanningInvalidationTree.take(500)}")
+
         val classLoader = if (classLoaderChanged) {
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks, as well as all the workers in each subsequent
