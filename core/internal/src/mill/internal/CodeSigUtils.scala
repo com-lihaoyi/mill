@@ -126,7 +126,7 @@ object CodeSigUtils {
       s"$methodClass#$encodedTaskName()mill.api.Task$$Simple",
       s"$methodClass#$encodedTaskName()mill.api.Task$$Command"
     )
-    
+
     val moduleAccessorSignatures = enclosingModules(namedTask).sliding(2).flatMap {
       case Vector(child, parent) =>
         val parentClass = parent.getClass.getName
