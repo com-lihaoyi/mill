@@ -115,7 +115,8 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           "    \"foo.fooCommand\": {},",
           "    \"foo.fooTask\": {},",
           "    \"bar.barCommand\": {},",
-          "    \"bar.barCommand2\": {}",
+          "    \"bar.barCommand2\": {},",
+          "    \"bar.barTask\": {}",
           "  }",
           "}"
         )
@@ -165,7 +166,8 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
           "    \"foo.fooCommand\": {},",
           "    \"foo.fooTask\": {},",
           "    \"bar.barCommand\": {},",
-          "    \"bar.barCommand2\": {}",
+          "    \"bar.barCommand2\": {},",
+          "    \"bar.barTask\": {}",
           "  }",
           "}"
         )

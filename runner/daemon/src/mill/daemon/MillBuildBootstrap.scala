@@ -27,6 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 import scala.collection.mutable.Buffer
+import upickle.macroRW
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -400,7 +401,7 @@ object MillBuildBootstrap {
   import mill.api.daemon.VersionState
 
   // Provide upickle ReadWriter for VersionState since mill.api.daemon doesn't have upickle
-  given upickle.ReadWriter[VersionState] = upickle.macros.summonReadWriter
+  implicit val versionStateRw: upickle.ReadWriter[VersionState] = macroRW
 
   def readVersionState(output: os.Path): Option[VersionState] = {
     val path = output / millVersionState

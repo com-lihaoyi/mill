@@ -191,14 +191,11 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
 
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
-      val interestingTasks = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
-      val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
 
       InvalidationForest.buildInvalidationTree(
         interGroupDeps = interGroupDeps,
-        transitiveNamed = PlanImpl.transitiveNamed(changedTasks.downstreamTasks),
-        interestingTasks = Some(interestingTasks),
-        resolvedTasks = Some(resolvedTaskLabels),
+        edgeFilter = _ => true,
+        interestingTasks = changedTasks.downstreamTasks.toSet,
         codeSignatureTree = evaluator.spanningInvalidationTree,
         previousVersions = changedTasks.previousVersions.orElse(evaluator.previousVersions)
       )

@@ -16,15 +16,13 @@ object InvalidationForest {
   private def computeVersionChangeNodes(
       previousVersions: Option[VersionState]
   ): Seq[String] = {
-    val currentMillVersion = mill.constants.BuildInfo.millVersion
-    val currentJvmVersion = sys.props("java.version")
     previousVersions match {
       case Some(vs) =>
         Seq(
-          vs.millVersionChanged(currentMillVersion).map { case (prev, curr) =>
+          vs.millVersionChanged(mill.constants.BuildInfo.millVersion).map { case (prev, curr) =>
             s"mill-version-changed:$prev->$curr"
           },
-          vs.jvmVersionChanged(currentJvmVersion).map { case (prev, curr) =>
+          vs.jvmVersionChanged(sys.props("java.version")).map { case (prev, curr) =>
             s"mill-jvm-version-changed:$prev->$curr"
           }
         ).flatten
@@ -39,23 +37,23 @@ object InvalidationForest {
    * - Version change nodes (mill-version-changed, mill-jvm-version-changed)
    */
   def buildInvalidationTree(
+      // The edges of the task graph, simplified to only consider task groups headed
+      // by named tasks so as to ignore the misc anonymous tasks used internally
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
-      transitiveNamed: Seq[Task.Named[?]],
-      uncachedTasks: Option[Set[Task[?]]] = None,
-      edgeFilter: Option[Set[Task[?]]] = None,
-      interestingTasks: Option[Set[String]] = None,
-      resolvedTasks: Option[Set[String]] = None,
-      codeSignatureTree: Option[String] = None,
-      previousVersions: Option[VersionState] = None
+      edgeFilter: Task[?] => Boolean,
+      interestingTasks: Set[Task[?]],
+      // Other ways that tasks can be invalidated - due to code changes or due to mill/jvm
+      // version changes - so we can include them as causal nodes in the invalidation forest
+      codeSignatureTree: Option[String],
+      previousVersions: Option[VersionState]
   ): ujson.Obj = {
+    // All named tasks are group heads
+    val transitiveNamed = interGroupDeps.keys.collect { case t: Task.Named[?] => t }.toSeq
     // Compute reverse edges (task -> downstream dependents)
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
 
-    // Apply optional edge filter
-    val filteredReverseInterGroupDeps = edgeFilter match {
-      case Some(filter) => reverseInterGroupDeps.view.filterKeys(filter).toMap
-      case None => reverseInterGroupDeps
-    }
+    // Apply edge filter
+    val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(edgeFilter).toMap
 
     // Convert task edges to string representation
     val taskEdges: Map[String, Seq[String]] = filteredReverseInterGroupDeps
@@ -63,18 +61,8 @@ object InvalidationForest {
       .map { case (k, vs) => k.toString -> vs.map(_.toString) }
       .toMap
 
-    // Compute interesting tasks either from uncachedTasks or use provided set
-    val computedInterestingTasks: Set[String] = uncachedTasks match {
-      case Some(uncached) =>
-        // Find interesting tasks: uncached tasks that either cause downstream invalidations
-        // or are non-input tasks (e.g. invalidated due to codesig change)
-        val downstreamSources = filteredReverseInterGroupDeps.filter(_._2.nonEmpty).keySet
-        uncached
-          .filter(task => !task.isInstanceOf[Task.Input[?]] || downstreamSources.contains(task))
-          .map(_.toString)
-      case None =>
-        interestingTasks.getOrElse(Set.empty)
-    }
+    // Convert interesting tasks to strings
+    val interestingTaskStrings = interestingTasks.map(_.toString)
 
     // Build version change node names by comparing previous versions to current
     val versionChangeNodes = computeVersionChangeNodes(previousVersions)
@@ -83,27 +71,21 @@ object InvalidationForest {
     // Version change nodes have edges to all interesting tasks (they invalidate everything)
     val versionChangeEdges: Map[String, Seq[String]] =
       if (versionChangeNodes.nonEmpty)
-        versionChangeNodes.map(node => node -> computedInterestingTasks.toSeq).toMap
+        versionChangeNodes.map(node => node -> interestingTaskStrings.toSeq).toMap
       else Map.empty
 
     val allEdges = taskEdges ++ versionChangeEdges
     val allTasks =
-      (allEdges.keys ++ allEdges.values.flatten ++ computedInterestingTasks).toArray.distinct.sorted
+      (allEdges.keys ++ allEdges.values.flatten ++ interestingTaskStrings).toArray.distinct.sorted
     val taskToIndex = allTasks.zipWithIndex.toMap
     val indexEdges = allTasks.map(t => allEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
 
     // Include version change nodes as interesting vertices so they appear in the tree
-    val allInteresting = computedInterestingTasks ++ versionChangeNodes
+    val allInteresting = interestingTaskStrings ++ versionChangeNodes
     val interestingIndices = allInteresting.flatMap(taskToIndex.get)
 
     val baseForest = SpanningForest(indexEdges, interestingIndices, limitToImportantVertices = true)
     val baseTree = SpanningForest.spanningTreeToJsonTree(baseForest, allTasks(_))
-
-    // Simplify to only show paths to resolved tasks if specified
-    val simplifiedTree = resolvedTasks match {
-      case Some(resolved) => simplifyToResolved(baseTree, resolved)
-      case None => baseTree
-    }
 
     // Parse code signature tree if provided
     val parsedCodeSigTree: Option[ujson.Obj] = codeSignatureTree.flatMap { jsonStr =>
@@ -120,7 +102,7 @@ object InvalidationForest {
     // If version changes are present, the tree is already structured correctly
     // (version change nodes are roots with tasks as children)
     if (versionChangeNodes.nonEmpty) {
-      return simplifiedTree
+      return baseTree
     }
 
     // Merge with code signature tree if available
@@ -133,8 +115,8 @@ object InvalidationForest {
           classToTransitiveClasses,
           allTransitiveClassMethods
         )
-        mergeCodeSignatureTree(simplifiedTree, codeSigTree, taskMethodSignatures)
-      case None => simplifiedTree
+        mergeCodeSignatureTree(baseTree, codeSigTree, taskMethodSignatures)
+      case None => baseTree
     }
   }
 
@@ -158,23 +140,6 @@ object InvalidationForest {
         case _: mill.api.MillException => None
       }
     }.toMap
-  }
-
-  /**
-   * Simplifies a tree to only show paths that lead to resolved tasks.
-   */
-  private def simplifyToResolved(tree: ujson.Obj, resolvedTasks: Set[String]): ujson.Obj = {
-    def simplify(j: ujson.Obj): Option[ujson.Obj] = {
-      val filtered = j.value.flatMap {
-        case (k, v: ujson.Obj) =>
-          simplify(v)
-            .map((k, _))
-            .orElse(Option.when(resolvedTasks.contains(k))(k -> v))
-        case other => Some(other)
-      }
-      Option.when(filtered.nonEmpty)(ujson.Obj.from(filtered))
-    }
-    simplify(tree).getOrElse(ujson.Obj())
   }
 
   /**

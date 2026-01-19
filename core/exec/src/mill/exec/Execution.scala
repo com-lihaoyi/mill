@@ -362,7 +362,6 @@ case class Execution(
         outPath = outPath,
         uncached = uncached,
         changedValueHash = changedValueHash,
-        transitiveNamed = PlanImpl.transitiveNamed(Seq.from(indexToTerminal)),
         spanningInvalidationTree = spanningInvalidationTree,
         previousVersions = previousVersions
       )

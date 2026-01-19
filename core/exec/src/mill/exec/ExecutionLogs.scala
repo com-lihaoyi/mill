@@ -29,16 +29,25 @@ private object ExecutionLogs {
       outPath: os.Path,
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
-      transitiveNamed: Seq[Task.Named[?]],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String] = None,
       previousVersions: Option[VersionState] = None
   ): Unit = {
+    val edgeFilterSet = changedValueHash.keys().asScala.toSet
+    val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
+    val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(edgeFilterSet).toMap
+    val downstreamSources = filteredReverseInterGroupDeps.filter(_._2.nonEmpty).keySet
+
+    // Interesting tasks: uncached tasks that either cause downstream invalidations
+    // or are non-input tasks (e.g. invalidated due to codesig change)
+    val interestingTasks = uncached.keys().asScala
+      .filter(task => !task.isInstanceOf[Task.Input[?]] || downstreamSources.contains(task))
+      .toSet
+
     val finalTree = InvalidationForest.buildInvalidationTree(
       interGroupDeps = interGroupDeps,
-      transitiveNamed = transitiveNamed,
-      uncachedTasks = Some(uncached.keys().asScala.toSet),
-      edgeFilter = Some(changedValueHash.keys().asScala.toSet),
+      edgeFilter = edgeFilterSet,
+      interestingTasks = interestingTasks,
       codeSignatureTree = spanningInvalidationTree,
       previousVersions = previousVersions
     )
