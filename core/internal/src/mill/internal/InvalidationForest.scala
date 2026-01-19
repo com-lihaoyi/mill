@@ -77,9 +77,10 @@ object InvalidationForest {
         val downstreamAllEdges = combineEdges(downstreamTaskEdges, downstreamCodeEdges)
 
         val allNodes = {
-          // For rendering the invalidation tree, we include all nodes seen in our task graph,
-          // but only the subset of nodes in our method call graph upstream of a changed task
-          val allTaskNodes = downstreamTaskEdges.flatMap { case (k, vs) => k +: vs }.toSet
+          // For rendering the invalidation tree, we include task nodes downstream of the
+          // `rootInvalidatedTaskStrings``, and method nodes upstream of `rootInvalidatedTaskStrings`,
+          // but ignore the others since other nodes would not be related to this invalidation
+          val allTaskNodes = SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
           val upstreamCodeEdges = SpanningForest.reverseEdges(downstreamCodeEdges)
           val relevantCodeNodes = SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(upstreamCodeEdges.getOrElse(_, Nil))
           (relevantCodeNodes ++ allTaskNodes).toArray.distinct.sorted
@@ -95,7 +96,6 @@ object InvalidationForest {
 
         SpanningForest.spanningTreeToJsonTree(forest, allNodes(_))
     }
-
   }
 
   /**
