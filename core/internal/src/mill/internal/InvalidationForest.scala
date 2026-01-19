@@ -203,11 +203,7 @@ object InvalidationForest {
   private def deepMerge(target: ujson.Obj, source: ujson.Obj): Unit = {
     for ((k, v) <- source.value) {
       target.value.get(k) match {
-        case Some(existing: ujson.Obj) =>
-          v match {
-            case vObj: ujson.Obj => deepMerge(existing, vObj)
-            case _ => target(k) = v
-          }
+        case Some(existing: ujson.Obj) => deepMerge(existing, v.obj)
         case _ => target(k) = v
       }
     }
