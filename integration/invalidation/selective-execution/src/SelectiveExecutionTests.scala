@@ -112,11 +112,11 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         Seq(
           "{",
           "  \"mill-version-changed:OLD->NEW\": {",
-          "    \"foo.fooCommand\": {},",
-          "    \"foo.fooTask\": {},",
           "    \"bar.barCommand\": {},",
           "    \"bar.barCommand2\": {},",
-          "    \"bar.barTask\": {}",
+          "    \"bar.barTask\": {},",
+          "    \"foo.fooCommand\": {},",
+          "    \"foo.fooTask\": {}",
           "  }",
           "}"
         )
@@ -163,11 +163,11 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         Seq(
           "{",
           "  \"mill-jvm-version-changed:OLD->NEW\": {",
-          "    \"foo.fooCommand\": {},",
-          "    \"foo.fooTask\": {},",
           "    \"bar.barCommand\": {},",
           "    \"bar.barCommand2\": {},",
-          "    \"bar.barTask\": {}",
+          "    \"bar.barTask\": {},",
+          "    \"foo.fooCommand\": {},",
+          "    \"foo.fooTask\": {}",
           "  }",
           "}"
         )

@@ -52,9 +52,12 @@ object InvalidationForest {
       // with version change as root and all tasks as direct children
       // (no need for spanning forest computation)
       case Some(versionNode) =>
+        val allTaskStrings = rootInvalidatedTasks
+          .collect { case t: Task.Named[?] => t.toString }
+          .toSeq
+          .sorted
         ujson.Obj(
-          versionNode ->
-            ujson.Obj.from(transitiveNamed.map(_.toString).sorted.map(_ -> ujson.Obj()))
+          versionNode -> ujson.Obj.from(allTaskStrings.map(_ -> ujson.Obj()))
         )
 
       case None =>
@@ -109,14 +112,16 @@ object InvalidationForest {
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
   ): Map[String, Set[String]] = {
-    transitiveNamed
-      .map { namedTask =>
-        val taskName = namedTask.ctx.segments.render
+    transitiveNamed.flatMap { namedTask =>
+      val taskName = namedTask.ctx.segments.render
+      try {
         val (methodClass, encodedTaskName) = CodeSigUtils
           .methodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-        taskName -> Set(methodClass + "#" + encodedTaskName + "()")
+        Some(taskName -> Set(methodClass + "#" + encodedTaskName + "()"))
+      } catch {
+        case _: mill.api.MillException => None
       }
-      .toMap
+    }.toMap
   }
 
   /**
@@ -146,9 +151,7 @@ object InvalidationForest {
 
     // For each unique code path, create a single entry with all tasks underneath
     for ((path, tasks) <- tasksByPath) {
-      val combinedTasks = ujson.Obj.from(tasks)
-
-      for ((k, v) <- wrapWithPath(path, combinedTasks).obj.value) {
+      for ((k, v) <- wrapWithPath(path, ujson.Obj.from(tasks)).obj.value) {
         result.value.get(k) match {
           case Some(existing: ujson.Obj) => deepMerge(existing, v.obj)
           case _ => result(k) = v
