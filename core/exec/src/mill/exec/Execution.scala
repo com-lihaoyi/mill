@@ -3,7 +3,7 @@ package mill.exec
 import mill.api.daemon.internal.*
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
-import mill.internal.{JsonArrayLogger, PrefixLogger}
+import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger}
 
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
