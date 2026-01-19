@@ -44,7 +44,7 @@ object InvalidationForest {
       codeSignatureTree: Option[String],
       previousVersions: Option[VersionState]
   ): ujson.Obj = {
-    val transitiveNamed = upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq
+
 
     val rootInvalidatedTaskStrings = rootInvalidatedTasks
       .collect { case t: Task.Named[?] => t.toString }
@@ -58,6 +58,8 @@ object InvalidationForest {
       case None =>
         val downstreamInterGroupEdges = SpanningForest.reverseEdges(upstreamTaskEdges0)
 
+        val transitiveNamed = upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq
+        
         // Code edges: method->method and method->task from code signature tree
         val downstreamCodeEdges = extractCodeEdges(codeSignatureTree, transitiveNamed, rootInvalidatedTasks)
 
