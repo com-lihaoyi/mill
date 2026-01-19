@@ -146,10 +146,7 @@ object InvalidationForest {
 
     // For each unique code path, create a single entry with all tasks underneath
     for ((path, tasks) <- tasksByPath) {
-      val combinedTasks = ujson.Obj()
-      for ((taskName, subtree) <- tasks) {
-        combinedTasks(taskName) = subtree
-      }
+      val combinedTasks = ujson.Obj.from(tasks)
 
       val wrappedTree = wrapWithPath(path, combinedTasks)
 
@@ -169,9 +166,7 @@ object InvalidationForest {
       }
     }
 
-    for ((taskName, subtree) <- tasksWithoutPath) {
-      result(taskName) = subtree
-    }
+    for ((taskName, subtree) <- tasksWithoutPath) result(taskName) = subtree
 
     result
   }
@@ -188,14 +183,14 @@ object InvalidationForest {
     val signatures = taskMethodSignatures.getOrElse(taskName, Set.empty)
     val classNames = signatures.flatMap(_.split('#').headOption)
 
-    def matchesTask(key: String): Boolean = {
-      if (!key.startsWith("def ")) return false
-      val signature = key.stripPrefix("def ")
-      val directMatch = signatures.exists(sig => signature.startsWith(sig))
-      val classMatch = classNames.exists { cls =>
-        signature.endsWith(cls) || signature.startsWith(cls + "#")
-      }
-      directMatch || classMatch
+    def matchesTask(key: String): Boolean = key match{
+      case s"def $signature" => 
+        val directMatch = signatures.exists(sig => signature.startsWith(sig))
+        val classMatch = classNames.exists { cls =>
+          signature.endsWith(cls) || signature.startsWith(cls + "#")
+        }
+        directMatch || classMatch
+      case _ => false
     }
 
     def findDeepest(node: ujson.Value, currentPath: Seq[String]): Option[Seq[String]] = node match {
