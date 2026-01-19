@@ -31,8 +31,7 @@ private object ExecutionLogs {
       transitiveNamed: Seq[Task.Named[?]],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String] = None,
-      millVersionChanged: Option[(String, String)] = None,
-      millJvmVersionChanged: Option[(String, String)] = None
+      previousVersions: Option[(String, String)] = None
   ): Unit = {
     val finalTree = InvalidationForest.buildInvalidationTree(
       interGroupDeps = interGroupDeps,
@@ -40,8 +39,7 @@ private object ExecutionLogs {
       uncachedTasks = Some(uncached.keys().asScala.toSet),
       edgeFilter = Some(changedValueHash.keys().asScala.toSet),
       codeSignatureTree = spanningInvalidationTree,
-      millVersionChanged = millVersionChanged,
-      millJvmVersionChanged = millJvmVersionChanged
+      previousVersions = previousVersions
     )
 
     os.write.over(outPath / OutFiles.millInvalidationTree, finalTree.render(indent = 2))

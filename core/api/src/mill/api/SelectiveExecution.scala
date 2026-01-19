@@ -58,26 +58,7 @@ object SelectiveExecution {
       resolved: Seq[Task.Named[?]],
       changedRootTasks: Set[Task.Named[?]],
       downstreamTasks: Seq[Task.Named[?]],
-      /** Set if all tasks were invalidated due to mill-version change */
-      millVersionChanged: Option[(String, String)] = None,
-      /** Set if all tasks were invalidated due to mill-jvm-version change */
-      millJvmVersionChanged: Option[(String, String)] = None
+      /** Previous Mill and JVM versions if version change caused invalidation */
+      previousVersions: Option[(String, String)] = None
   )
-  object ChangedTasks {
-
-    /** Indicates that all of the passed in tasks were changed. */
-    def all(
-        tasks: Seq[Task.Named[?]],
-        millVersionChanged: Option[(String, String)] = None,
-        millJvmVersionChanged: Option[(String, String)] = None
-    ): ChangedTasks = {
-      ChangedTasks(
-        tasks,
-        tasks.toSet,
-        tasks,
-        millVersionChanged = millVersionChanged,
-        millJvmVersionChanged = millJvmVersionChanged
-      )
-    }
-  }
 }

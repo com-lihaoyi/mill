@@ -9,6 +9,29 @@ import mill.api.Task
 object InvalidationForest {
 
   /**
+   * Computes version change nodes from previous versions.
+   * Returns formatted strings like "mill-version-changed:0.12.0->0.12.1" for display.
+   */
+  private def computeVersionChangeNodes(
+      previousVersions: Option[(String, String)]
+  ): Seq[String] = {
+    val currentMillVersion = mill.constants.BuildInfo.millVersion
+    val currentJvmVersion = sys.props("java.version")
+    previousVersions match {
+      case Some((prevMill, prevJvm)) =>
+        Seq(
+          Option.when(prevMill.nonEmpty && prevMill != currentMillVersion)(
+            s"mill-version-changed:$prevMill->$currentMillVersion"
+          ),
+          Option.when(prevJvm.nonEmpty && prevJvm != currentJvmVersion)(
+            s"mill-jvm-version-changed:$prevJvm->$currentJvmVersion"
+          )
+        ).flatten
+      case None => Nil
+    }
+  }
+
+  /**
    * Builds an invalidation tree that combines:
    * - Task dependency spanning forest
    * - Code signature spanning tree (showing method call chains)
@@ -22,8 +45,7 @@ object InvalidationForest {
       interestingTasks: Option[Set[String]] = None,
       resolvedTasks: Option[Set[String]] = None,
       codeSignatureTree: Option[String] = None,
-      millVersionChanged: Option[(String, String)] = None,
-      millJvmVersionChanged: Option[(String, String)] = None
+      previousVersions: Option[(String, String)] = None
   ): ujson.Obj = {
     // Compute reverse edges (task -> downstream dependents)
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
@@ -53,11 +75,8 @@ object InvalidationForest {
         interestingTasks.getOrElse(Set.empty)
     }
 
-    // Build version change node names
-    val versionChangeNodes = Seq(
-      millVersionChanged.map { case (oldV, newV) => s"mill-version-changed:$oldV->$newV" },
-      millJvmVersionChanged.map { case (oldV, newV) => s"mill-jvm-version-changed:$oldV->$newV" }
-    ).flatten
+    // Build version change node names by comparing previous versions to current
+    val versionChangeNodes = computeVersionChangeNodes(previousVersions)
 
     // Build the graph including version change nodes
     // Version change nodes have edges to all interesting tasks (they invalidate everything)

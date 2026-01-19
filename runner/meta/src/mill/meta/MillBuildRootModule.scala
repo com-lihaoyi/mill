@@ -270,10 +270,6 @@ trait MillBuildRootModule()(using
     (codesig.transitiveCallGraphHashes, codesig.spanningInvalidationTree)
   }
 
-  def codeSignatures: T[Map[String, Int]] = Task {
-    codeSignaturesAndSpanningTree()._1
-  }
-
   /**
    * All mill build source files.
    * These files are the inputs but not necessarily the same files we feed to the compiler,

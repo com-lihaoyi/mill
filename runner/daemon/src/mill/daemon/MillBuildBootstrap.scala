@@ -397,9 +397,6 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
-  // Current version info for version change detection
-  val currentMillVersion: String = mill.constants.BuildInfo.millVersion
-  val currentMillJvmVersion: String = sys.props("java.version")
 
   /**
    * Version state that is persisted to disk to survive daemon restarts
@@ -426,36 +423,20 @@ object MillBuildBootstrap {
   def writeVersionState(output: os.Path): Unit = {
     os.write.over(
       output / millVersionState,
-      upickle.write(VersionState(currentMillVersion, currentMillJvmVersion), indent = 2),
+      upickle.write(
+        VersionState(mill.constants.BuildInfo.millVersion, sys.props("java.version")),
+        indent = 2
+      ),
       createFolders = true
     )
   }
 
   /**
-   * Computes version change info by comparing current versions against disk-persisted versions.
-   * Returns (millVersionChanged, millJvmVersionChanged) where each is Some((oldVersion, newVersion))
-   * if the version changed, or None if unchanged.
+   * Reads the previous version state from disk.
+   * Returns Some((prevMillVersion, prevJvmVersion)) if a previous state exists.
    */
-  def computeVersionChanges(
-      output: os.Path
-  ): (Option[(String, String)], Option[(String, String)]) = {
-    def versionChanged(prevOpt: Option[String], current: String): Option[(String, String)] = {
-      prevOpt.flatMap { prev =>
-        Option.when(prev.nonEmpty && prev != current)((prev, current))
-      }
-    }
-
-    val prevState = readVersionState(output)
-    val millVersionChanged = versionChanged(
-      prevState.map(_.millVersion),
-      currentMillVersion
-    )
-    val millJvmVersionChanged = versionChanged(
-      prevState.map(_.millJvmVersion),
-      currentMillJvmVersion
-    )
-    (millVersionChanged, millJvmVersionChanged)
-  }
+  def previousVersions(output: os.Path): Option[(String, String)] =
+    readVersionState(output).map(s => (s.millVersion, s.millJvmVersion))
 
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
@@ -498,9 +479,6 @@ object MillBuildBootstrap {
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
 
-    // Read version changes from disk (survives daemon restarts)
-    val (millVersionChanged, millJvmVersionChanged) = computeVersionChanges(output)
-
     lazy val evaluator: EvaluatorApi =
       evalImplCls.getConstructors.minBy(_.getParameterCount).newInstance(
         allowPositionalCommandArgs,
@@ -530,8 +508,8 @@ object MillBuildBootstrap {
           depth,
           false, // isFinalDepth: set later via withIsFinalDepth when needed
           spanningInvalidationTree,
-          millVersionChanged,
-          millJvmVersionChanged,
+          // Previous versions from disk (survives daemon restarts)
+          previousVersions(output),
         )
       ).asInstanceOf[EvaluatorApi]
 

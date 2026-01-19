@@ -27,7 +27,6 @@ case class Execution(
     failFast: Boolean,
     ec: Option[ThreadPoolExecutor],
     codeSignatures: Map[String, Int],
-    // JSON string to avoid classloader issues when crossing classloader boundaries
     systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
@@ -37,9 +36,10 @@ case class Execution(
     enableTicker: Boolean,
     depth: Int,
     isFinalDepth: Boolean,
+    // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
-    millVersionChanged: Option[(String, String)],
-    millJvmVersionChanged: Option[(String, String)],
+    // Previous Mill and JVM versions from disk (survives daemon restarts)
+    previousVersions: Option[(String, String)],
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -59,10 +59,6 @@ case class Execution(
       failFast: Boolean,
       ec: Option[ThreadPoolExecutor],
       codeSignatures: Map[String, Int],
-      // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String],
-      millVersionChanged: Option[(String, String)],
-      millJvmVersionChanged: Option[(String, String)],
       systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
@@ -71,7 +67,11 @@ case class Execution(
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean,
       depth: Int,
-      isFinalDepth: Boolean
+      isFinalDepth: Boolean,
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: Option[String],
+      // Previous Mill and JVM versions from disk
+      previousVersions: Option[(String, String)],
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -86,9 +86,6 @@ case class Execution(
     failFast = failFast,
     ec = ec,
     codeSignatures = codeSignatures,
-    spanningInvalidationTree = spanningInvalidationTree,
-    millVersionChanged = millVersionChanged,
-    millJvmVersionChanged = millJvmVersionChanged,
     systemExit = systemExit,
     exclusiveSystemStreams = exclusiveSystemStreams,
     getEvaluator = getEvaluator,
@@ -97,7 +94,9 @@ case class Execution(
     staticBuildOverrideFiles = staticBuildOverrideFiles,
     enableTicker = enableTicker,
     depth = depth,
-    isFinalDepth = isFinalDepth
+    isFinalDepth = isFinalDepth,
+    spanningInvalidationTree = spanningInvalidationTree,
+    previousVersions = previousVersions,
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -364,8 +363,7 @@ case class Execution(
         changedValueHash = changedValueHash,
         transitiveNamed = PlanImpl.transitiveNamed(Seq.from(indexToTerminal)),
         spanningInvalidationTree = spanningInvalidationTree,
-        millVersionChanged = millVersionChanged,
-        millJvmVersionChanged = millJvmVersionChanged
+        previousVersions = previousVersions
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal

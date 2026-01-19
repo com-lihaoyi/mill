@@ -21,8 +21,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def useFileLocks: Boolean = delegate.useFileLocks
   override def staticBuildOverrides = delegate.staticBuildOverrides
   override def spanningInvalidationTree: Option[String] = delegate.spanningInvalidationTree
-  override def millVersionChanged: Option[(String, String)] = delegate.millVersionChanged
-  override def millJvmVersionChanged: Option[(String, String)] = delegate.millJvmVersionChanged
+  override def previousVersions: Option[(String, String)] = delegate.previousVersions
   def withBaseLogger(newBaseLogger: Logger): Evaluator = delegate.withBaseLogger(newBaseLogger)
 
   def resolveSegments(

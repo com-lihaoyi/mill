@@ -37,8 +37,8 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
     Map()
   // JSON string to avoid classloader issues when crossing classloader boundaries
   private[mill] def spanningInvalidationTree: Option[String] = None
-  private[mill] def millVersionChanged: Option[(String, String)] = None
-  private[mill] def millJvmVersionChanged: Option[(String, String)] = None
+  // Previous Mill and JVM versions from disk (survives daemon restarts)
+  private[mill] def previousVersions: Option[(String, String)] = None
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(

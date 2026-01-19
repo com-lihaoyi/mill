@@ -142,8 +142,7 @@ class UnitTester(
     depth = 0,
     isFinalDepth = true,
     spanningInvalidationTree = None,
-    millVersionChanged = None,
-    millJvmVersionChanged = None,
+    previousVersions = None,
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

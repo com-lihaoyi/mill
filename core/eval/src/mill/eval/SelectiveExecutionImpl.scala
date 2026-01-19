@@ -41,8 +41,8 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   case class DownstreamResult(
       changedRootTasks: Set[Task[?]],
       downstreamTasks: Seq[Task[Any]],
-      millVersionChanged: Option[(String, String)],
-      millJvmVersionChanged: Option[(String, String)]
+      // Previous versions if version change caused all tasks to be invalidated
+      previousVersions: Option[(String, String)]
   )
 
   def computeDownstream(
@@ -59,20 +59,16 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
-    def versionChanged(oldV: String, newV: String): Option[(String, String)] =
-      Option.when(oldV.nonEmpty && oldV != newV)((oldV, newV))
-
-    val millVersionChanged = versionChanged(oldHashes.millVersion, newHashes.millVersion)
-    val millJvmVersionChanged = versionChanged(oldHashes.millJvmVersion, newHashes.millJvmVersion)
+    val millVersionChanged = oldHashes.millVersion.nonEmpty && oldHashes.millVersion != newHashes.millVersion
+    val jvmVersionChanged = oldHashes.millJvmVersion.nonEmpty && oldHashes.millJvmVersion != newHashes.millJvmVersion
 
     // If either version changed, treat all tasks as changed
-    if (millVersionChanged.isDefined || millJvmVersionChanged.isDefined) {
+    if (millVersionChanged || jvmVersionChanged) {
       val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
       return DownstreamResult(
         allTasks,
         transitiveNamed.map(t => t: Task[Any]),
-        millVersionChanged = millVersionChanged,
-        millJvmVersionChanged = millJvmVersionChanged
+        previousVersions = Some((oldHashes.millVersion, oldHashes.millJvmVersion))
       )
     }
 
@@ -108,8 +104,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       breadthFirst(changedRootTasks) { t =>
         downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
       },
-      millVersionChanged = None,
-      millJvmVersionChanged = None
+      previousVersions = None
     )
   }
 
@@ -130,10 +125,8 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     ).map { tasks =>
       computeChangedTasks0(tasks, computeMetadata(tasks))
         // If we did not have the metadata, presume everything was changed.
-        .getOrElse(ChangedTasks.all(
-          tasks,
-          millVersionChanged = Some(("", mill.constants.BuildInfo.millVersion))
-        ))
+        // Use empty previous versions to indicate no prior state
+        .getOrElse(ChangedTasks(tasks, tasks.toSet, tasks, Some(("", ""))))
     }
   }
 
@@ -165,8 +158,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         tasks,
         result.changedRootTasks.collect { case n: Task.Named[_] => n },
         result.downstreamTasks.collect { case n: Task.Named[_] => n },
-        millVersionChanged = result.millVersionChanged,
-        millJvmVersionChanged = result.millJvmVersionChanged
+        previousVersions = result.previousVersions
       )
     }
   }
@@ -207,8 +199,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         interestingTasks = Some(interestingTasks),
         resolvedTasks = Some(resolvedTaskLabels),
         codeSignatureTree = evaluator.spanningInvalidationTree,
-        millVersionChanged = changedTasks.millVersionChanged.orElse(evaluator.millVersionChanged),
-        millJvmVersionChanged = changedTasks.millJvmVersionChanged.orElse(evaluator.millJvmVersionChanged)
+        previousVersions = changedTasks.previousVersions.orElse(evaluator.previousVersions)
       )
     }
   }
