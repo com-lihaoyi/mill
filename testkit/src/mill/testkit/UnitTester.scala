@@ -132,7 +132,7 @@ class UnitTester(
     ec = ec,
     codeSignatures = Map(),
     systemExit = (reason, exitCode) =>
-    throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
+      throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
