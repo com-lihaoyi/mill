@@ -129,7 +129,8 @@ object CodeSigUtils {
 
     val moduleAccessorSignatures = enclosingModules(namedTask).sliding(2).flatMap {
       case Vector(child, parent) =>
-        val parentClass = parent.getClass.getName
+        // Strip trailing $ from Scala object class names to match codesig tree format
+        val parentClass = parent.getClass.getName.stripSuffix("$")
         val childClass = child.getClass.getName
         child.moduleCtx.segments.value.lastOption match {
           case Some(Segment.Label(name)) => Some(s"$parentClass#${encode(name)}()$childClass")
