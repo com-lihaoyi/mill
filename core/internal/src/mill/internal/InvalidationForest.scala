@@ -148,21 +148,15 @@ object InvalidationForest {
     for ((path, tasks) <- tasksByPath) {
       val combinedTasks = ujson.Obj.from(tasks)
 
-      val wrappedTree = wrapWithPath(path, combinedTasks)
-
-      wrappedTree match {
-        case obj: ujson.Obj =>
-          for ((k, v) <- obj.value) {
-            result.value.get(k) match {
-              case Some(existing: ujson.Obj) =>
-                v match {
-                  case vObj: ujson.Obj => deepMerge(existing, vObj)
-                  case _ => result(k) = v
-                }
+      for ((k, v) <- wrapWithPath(path, combinedTasks).obj.value) {
+        result.value.get(k) match {
+          case Some(existing: ujson.Obj) =>
+            v match {
+              case vObj: ujson.Obj => deepMerge(existing, vObj)
               case _ => result(k) = v
             }
-          }
-        case _ =>
+          case _ => result(k) = v
+        }
       }
     }
 
@@ -184,7 +178,7 @@ object InvalidationForest {
     val classNames = signatures.flatMap(_.split('#').headOption)
 
     def matchesTask(key: String): Boolean = key match{
-      case s"def $signature" => 
+      case s"def $signature" =>
         val directMatch = signatures.exists(sig => signature.startsWith(sig))
         val classMatch = classNames.exists { cls =>
           signature.endsWith(cls) || signature.startsWith(cls + "#")
