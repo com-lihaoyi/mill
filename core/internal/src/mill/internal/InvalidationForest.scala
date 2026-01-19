@@ -10,23 +10,21 @@ import mill.api.daemon.VersionState
 object InvalidationForest {
 
   /**
-   * Computes version change nodes from previous versions.
-   * Returns formatted strings like "mill-version-changed:0.12.0->0.12.1" for display.
+   * Computes a version change node from previous versions.
+   * Returns a formatted string like "mill-version-changed:0.12.0->0.12.1" for display,
+   * or combines both if mill and JVM versions changed.
    */
-  private def computeVersionChangeNodes(
-      previousVersions: Option[VersionState]
-  ): Seq[String] = {
-    previousVersions match {
-      case Some(vs) =>
-        Seq(
-          vs.millVersionChanged(mill.constants.BuildInfo.millVersion).map { case (prev, curr) =>
-            s"mill-version-changed:$prev->$curr"
-          },
-          vs.jvmVersionChanged(sys.props("java.version")).map { case (prev, curr) =>
-            s"mill-jvm-version-changed:$prev->$curr"
-          }
-        ).flatten
-      case None => Nil
+  private def computeVersionChangeNode(previousVersions: Option[VersionState]): Option[String] = {
+    previousVersions.flatMap { vs =>
+      def changeTag(tag: String, curr: String, prev: String) = Option.when(curr != prev)(
+        s"$tag:$prev->$curr"
+      )
+
+      val parts =
+        changeTag("mill-version-changed", mill.constants.BuildInfo.millVersion, vs.millVersion) ++
+        changeTag("mill-jvm-version-changed", sys.props("java.version"), vs.millJvmVersion)
+
+      Option.when(parts.nonEmpty)(parts.mkString(","))
     }
   }
 
@@ -61,16 +59,16 @@ object InvalidationForest {
 
     val rootInvalidatedTaskStrings = rootInvalidatedTasks.map(_.toString)
 
-    val versionChangeNodes = computeVersionChangeNodes(previousVersions)
+    val versionChangeNode = computeVersionChangeNode(previousVersions)
 
-    // Build the graph including version change nodes
-    // Version change nodes have edges to ALL named tasks (they invalidate everything)
-    val versionChangeEdges: Map[String, Seq[String]] =
-      if (versionChangeNodes.isEmpty) Map.empty
-      else {
+    // Build the graph including version change node
+    // Version change node has edges to ALL named tasks (it invalidates everything)
+    val versionChangeEdges: Map[String, Seq[String]] = versionChangeNode match {
+      case Some(node) =>
         val allNamedTaskStrings = transitiveNamed.map(_.toString)
-        versionChangeNodes.map(node => node -> allNamedTaskStrings).toMap
-      }
+        Map(node -> allNamedTaskStrings)
+      case None => Map.empty
+    }
 
     val allEdges = taskEdges ++ versionChangeEdges
     val allNodes = (allEdges.keys ++ allEdges.values.flatten ++ rootInvalidatedTaskStrings)
@@ -81,8 +79,8 @@ object InvalidationForest {
     val taskToIndex = allNodes.zipWithIndex.toMap
     val indexEdges = allNodes.map(t => allEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
 
-    // Include version change nodes as root vertices so they appear in the tree
-    val allRoots = rootInvalidatedTaskStrings ++ versionChangeNodes
+    // Include version change node as root vertex so it appears in the tree
+    val allRoots = rootInvalidatedTaskStrings ++ versionChangeNode
     val rootIndices = allRoots.flatMap(taskToIndex.get)
 
     val baseForest = SpanningForest(indexEdges, rootIndices, limitToImportantVertices = true)
@@ -90,9 +88,9 @@ object InvalidationForest {
 
     val parsedCodeSigTree: Option[ujson.Obj] = codeSignatureTree.map(ujson.read(_).obj)
 
-    // If version changes are present, the tree is already structured correctly
-    // (version change nodes are roots with tasks as children)
-    if (versionChangeNodes.nonEmpty) baseTree
+    // If version change is present, the tree is already structured correctly
+    // (version change node is root with tasks as children)
+    if (versionChangeNode.nonEmpty) baseTree
     else parsedCodeSigTree match {
       case Some(codeSigTree) =>
         val (classToTransitiveClasses, allTransitiveClassMethods) =
