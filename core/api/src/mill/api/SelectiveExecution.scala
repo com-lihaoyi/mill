@@ -46,15 +46,13 @@ object SelectiveExecution {
       @com.lihaoyi.unroll forceRunTasks: Set[String] = Set(),
       @com.lihaoyi.unroll millVersion: String = "",
       @com.lihaoyi.unroll millJvmVersion: String = ""
-  )
+  ) derives upickle.ReadWriter
   object Metadata {
     case class Computed(
         metadata: Metadata,
         results: Map[Task[?], ExecResult[Val]]
     )
   }
-
-  implicit val rw: upickle.ReadWriter[Metadata] = upickle.macroRW
 
   case class ChangedTasks(
       resolved: Seq[Task.Named[?]],

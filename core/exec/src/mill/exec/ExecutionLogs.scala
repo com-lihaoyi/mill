@@ -34,29 +34,11 @@ private object ExecutionLogs {
       millVersionChanged: Option[(String, String)] = None,
       millJvmVersionChanged: Option[(String, String)] = None
   ): Unit = {
-    val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
-    val changedTerminals = changedValueHash.keys().asScala.toSet
-
-    // Filter edges to only include those from tasks whose values changed
-    val filteredReverseInterGroupDeps = reverseInterGroupDeps
-      .view
-      .filterKeys(changedTerminals)
-      .toMap
-
-    // Find interesting tasks: uncached tasks that either cause downstream invalidations
-    // or are non-input tasks (e.g. invalidated due to codesig change)
-    val downstreamSources = filteredReverseInterGroupDeps.filter(_._2.nonEmpty).keySet
-    val interestingTasks = uncached.keys().asScala
-      .filter { task =>
-        !task.isInstanceOf[Task.Input[?]] || downstreamSources.contains(task)
-      }
-      .map(_.toString)
-      .toSet
-
     val finalTree = SpanningForest.buildInvalidationTree(
-      reverseInterGroupDeps = filteredReverseInterGroupDeps,
-      interestingTasks = interestingTasks,
+      interGroupDeps = interGroupDeps,
       transitiveNamed = transitiveNamed,
+      uncachedTasks = Some(uncached.keys().asScala.toSet),
+      edgeFilter = Some(changedValueHash.keys().asScala.toSet),
       codeSignatureTree = spanningInvalidationTree,
       millVersionChanged = millVersionChanged,
       millJvmVersionChanged = millJvmVersionChanged

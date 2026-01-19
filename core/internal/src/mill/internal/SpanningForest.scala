@@ -259,29 +259,55 @@ object SpanningForest {
    * - Code signature spanning tree (showing method call chains)
    * - Version change nodes (mill-version-changed, mill-jvm-version-changed)
    *
-   * @param reverseInterGroupDeps Map from task to its downstream dependents (reverse dependency graph)
-   * @param interestingTasks All tasks that should appear in the tree
+   * @param interGroupDeps Map from task to its upstream dependencies (forward dependency graph)
    * @param transitiveNamed Tasks for computing method signatures (used when merging with code signature tree)
+   * @param uncachedTasks If provided, computes interestingTasks from uncached tasks (filters Input tasks without downstream)
+   * @param edgeFilter If provided, only include edges from tasks in this set
+   * @param interestingTasks If uncachedTasks not provided, use these tasks directly
    * @param resolvedTasks Optional set of task names that were directly resolved (for filtering)
    * @param codeSignatureTree Optional code signature spanning tree (JSON string to avoid classloader issues)
    * @param millVersionChanged Optional (oldVersion, newVersion) if mill version changed
    * @param millJvmVersionChanged Optional (oldVersion, newVersion) if mill JVM version changed
    */
   def buildInvalidationTree(
-      reverseInterGroupDeps: Map[Task[?], Seq[Task[?]]],
-      interestingTasks: Set[String],
+      interGroupDeps: Map[Task[?], Seq[Task[?]]],
       transitiveNamed: Seq[Task.Named[?]],
+      uncachedTasks: Option[Set[Task[?]]] = None,
+      edgeFilter: Option[Set[Task[?]]] = None,
+      interestingTasks: Option[Set[String]] = None,
       resolvedTasks: Option[Set[String]] = None,
       // JSON string to avoid classloader issues when crossing classloader boundaries
       codeSignatureTree: Option[String] = None,
       millVersionChanged: Option[(String, String)] = None,
       millJvmVersionChanged: Option[(String, String)] = None
   ): ujson.Obj = {
+    // Compute reverse edges (task -> downstream dependents)
+    val reverseInterGroupDeps = reverseEdges(interGroupDeps)
+
+    // Apply optional edge filter
+    val filteredReverseInterGroupDeps = edgeFilter match {
+      case Some(filter) => reverseInterGroupDeps.view.filterKeys(filter).toMap
+      case None => reverseInterGroupDeps
+    }
+
     // Convert task edges to string representation
-    val taskEdges: Map[String, Seq[String]] = reverseInterGroupDeps
+    val taskEdges: Map[String, Seq[String]] = filteredReverseInterGroupDeps
       .view
       .map { case (k, vs) => k.toString -> vs.map(_.toString) }
       .toMap
+
+    // Compute interesting tasks either from uncachedTasks or use provided set
+    val computedInterestingTasks: Set[String] = uncachedTasks match {
+      case Some(uncached) =>
+        // Find interesting tasks: uncached tasks that either cause downstream invalidations
+        // or are non-input tasks (e.g. invalidated due to codesig change)
+        val downstreamSources = filteredReverseInterGroupDeps.filter(_._2.nonEmpty).keySet
+        uncached
+          .filter(task => !task.isInstanceOf[Task.Input[?]] || downstreamSources.contains(task))
+          .map(_.toString)
+      case None =>
+        interestingTasks.getOrElse(Set.empty)
+    }
     // Build version change node names
     val versionChangeNodes = Seq(
       millVersionChanged.map { case (oldV, newV) => s"mill-version-changed:$oldV->$newV" },
@@ -292,16 +318,17 @@ object SpanningForest {
     // Version change nodes have edges to all interesting tasks (they invalidate everything)
     val versionChangeEdges: Map[String, Seq[String]] =
       if (versionChangeNodes.nonEmpty)
-        versionChangeNodes.map(node => node -> interestingTasks.toSeq).toMap
+        versionChangeNodes.map(node => node -> computedInterestingTasks.toSeq).toMap
       else Map.empty
 
     val allEdges = taskEdges ++ versionChangeEdges
-    val allTasks = (allEdges.keys ++ allEdges.values.flatten ++ interestingTasks).toArray.distinct.sorted
+    val allTasks =
+      (allEdges.keys ++ allEdges.values.flatten ++ computedInterestingTasks).toArray.distinct.sorted
     val taskToIndex = allTasks.zipWithIndex.toMap
     val indexEdges = allTasks.map(t => allEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
 
     // Include version change nodes as interesting vertices so they appear in the tree
-    val allInteresting = interestingTasks ++ versionChangeNodes
+    val allInteresting = computedInterestingTasks ++ versionChangeNodes
     val interestingIndices = allInteresting.flatMap(taskToIndex.get)
 
     val baseForest = SpanningForest(indexEdges, interestingIndices, limitToImportantVertices = true)

@@ -198,17 +198,13 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
 
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
-      val reverseInterGroupDeps = SpanningForest.reverseEdges(
-        interGroupDeps.toSeq.sortBy(_._1.toString)
-      )
-
       val interestingTasks = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
       val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
 
       SpanningForest.buildInvalidationTree(
-        reverseInterGroupDeps = reverseInterGroupDeps,
-        interestingTasks = interestingTasks,
+        interGroupDeps = interGroupDeps,
         transitiveNamed = PlanImpl.transitiveNamed(changedTasks.downstreamTasks),
+        interestingTasks = Some(interestingTasks),
         resolvedTasks = Some(resolvedTaskLabels),
         codeSignatureTree = evaluator.spanningInvalidationTree,
         millVersionChanged = changedTasks.millVersionChanged.orElse(evaluator.millVersionChanged),
