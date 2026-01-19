@@ -79,10 +79,6 @@ object InvalidationForest {
       val (classToTransitiveClasses, allTransitiveClassMethods) =
         CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
 
-      val rootTaskNames = rootInvalidatedTasks.iterator
-        .collect { case t: Task.Named[?] => t.ctx.segments.render }
-        .toSeq
-
       // Match methods to tasks by task method signature
       val matchedEdges = rootInvalidatedTasks.iterator
         .collect { case t: Task.Named[?] => t }
@@ -101,39 +97,89 @@ object InvalidationForest {
         }
         .toSeq
 
-      // Leaf methods (methods with no outgoing edges) should connect to all root tasks
+      // Leaf methods (methods with no outgoing edges) should connect to tasks in their module
+      // Use the enclosing module class to match tasks to methods
       val leafMethods = allMethodNodes.filter(m => !methodEdges.contains(m))
-      val leafEdges = leafMethods.toSeq.map(m => m -> rootTaskNames)
 
-      (matchedEdges ++ leafEdges.flatMap { case (m, ts) => ts.map(t => m -> t) })
+      // Build a map from module class name to tasks in that module
+      val moduleClassToTasks: Map[String, Seq[String]] = rootInvalidatedTasks.iterator
+        .collect { case t: Task.Named[?] => t }
+        .map { namedTask =>
+          val moduleClassName = namedTask.ctx.enclosingCls.getName
+          (moduleClassName, namedTask.ctx.segments.render)
+        }
+        .toSeq
         .groupMap(_._1)(_._2)
+
+      // Connect leaf methods to tasks based on return type (module class)
+      // Method pattern: "def ...()ModuleClassName" where return type is the module class
+      val leafEdges = leafMethods.toSeq.flatMap { method =>
+        // Extract return type from method signature: "def class#method()ReturnType"
+        val returnTypePattern = """\)([^\s]+)$""".r
+        val returnType = returnTypePattern.findFirstMatchIn(method).map(_.group(1))
+        val matchingTasks = returnType.flatMap(rt => moduleClassToTasks.get(rt)).getOrElse(Nil)
+        matchingTasks.map(t => method -> t)
+      }
+
+      (matchedEdges ++ leafEdges).groupMap(_._1)(_._2)
     } else Map.empty
 
     // Combine all edges
+    // When we have code signature information, method->task edges show the root cause.
+    // Task->task edges are only used for downstream propagation FROM tasks connected
+    // to the method chain. We exclude task edges TO tasks that are already connected
+    // via method edges to avoid competing paths.
+    val tasksConnectedFromMethods = methodToTaskEdges.values.flatten.toSet
     val allEdges: Map[String, Seq[String]] = {
       val combined = collection.mutable.Map[String, Seq[String]]()
-      for ((k, vs) <- taskEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
+      // Include task edges, but filter out values that are already connected from methods
+      for ((k, vs) <- taskEdges) {
+        val filtered = vs.filterNot(tasksConnectedFromMethods)
+        if (filtered.nonEmpty) combined(k) = combined.getOrElse(k, Nil) ++ filtered
+      }
       for ((k, vs) <- methodEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
       for ((k, vs) <- methodToTaskEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
       combined.toMap
     }
 
-    // Find all relevant nodes:
-    // 1. All method nodes from the code signature tree (these form the invalidation chain)
-    // 2. All task nodes (root invalidated tasks and their downstreams)
+    // Find all relevant nodes by working backwards from root invalidated tasks
+    // 1. Start with root invalidated tasks
+    // 2. Find methods that connect to these tasks (reverse direction)
+    // 3. Find downstream tasks via forward traversal
     val rootTaskStrings = rootInvalidatedTasks.map(_.toString)
+
+    // Build reverse edge map for backward traversal
+    val reverseAllEdges: Map[String, Seq[String]] = {
+      val reversed = collection.mutable.Map[String, collection.mutable.Buffer[String]]()
+      for ((from, tos) <- allEdges; to <- tos) {
+        reversed.getOrElseUpdate(to, collection.mutable.Buffer()) += from
+      }
+      reversed.view.mapValues(_.toSeq).toMap
+    }
+
     val relevantNodes = {
       val reachable = collection.mutable.Set.from(rootTaskStrings)
-      // Include all method nodes from the code signature tree
-      reachable ++= allMethodNodes
+      // Include all task names from method->task edges
+      reachable ++= methodToTaskEdges.values.flatten
       val queue = collection.mutable.Queue.from(rootTaskStrings)
 
-      // Downstream: find task nodes reachable from root tasks (via forward edges)
+      // Forward: find task nodes reachable from root tasks (downstream propagation)
       while (queue.nonEmpty) {
         val current = queue.dequeue()
         for (next <- allEdges.getOrElse(current, Nil) if !reachable.contains(next)) {
           reachable += next
           queue.enqueue(next)
+        }
+      }
+
+      // Backward: find method nodes that lead to relevant tasks
+      val taskNodeStrings = reachable.filter(!allMethodNodes.contains(_)).toSeq
+      val backwardQueue = collection.mutable.Queue.from(taskNodeStrings)
+      while (backwardQueue.nonEmpty) {
+        val current = backwardQueue.dequeue()
+        for (prev <- reverseAllEdges.getOrElse(current, Nil) if !reachable.contains(prev)) {
+          reachable += prev
+          backwardQueue.enqueue(prev)
         }
       }
 
