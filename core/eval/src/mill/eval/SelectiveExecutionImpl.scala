@@ -1,6 +1,7 @@
 package mill.eval
 
 import mill.api.daemon.internal.TestReporter
+import mill.api.daemon.VersionState
 import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
@@ -42,7 +43,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       changedRootTasks: Set[Task[?]],
       downstreamTasks: Seq[Task[Any]],
       // Previous versions if version change caused all tasks to be invalidated
-      previousVersions: Option[(String, String)]
+      previousVersions: Option[VersionState]
   )
 
   def computeDownstream(
@@ -68,7 +69,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       return DownstreamResult(
         allTasks,
         transitiveNamed.map(t => t: Task[Any]),
-        previousVersions = Some((oldHashes.millVersion, oldHashes.millJvmVersion))
+        previousVersions = Some(VersionState(oldHashes.millVersion, oldHashes.millJvmVersion))
       )
     }
 
@@ -126,7 +127,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       computeChangedTasks0(tasks, computeMetadata(tasks))
         // If we did not have the metadata, presume everything was changed.
         // Use empty previous versions to indicate no prior state
-        .getOrElse(ChangedTasks(tasks, tasks.toSet, tasks, Some(("", ""))))
+        .getOrElse(ChangedTasks(tasks, tasks.toSet, tasks, Some(VersionState("", ""))))
     }
   }
 

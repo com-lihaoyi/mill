@@ -1,6 +1,7 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
+import mill.api.daemon.VersionState
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger}
@@ -39,7 +40,7 @@ case class Execution(
     // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
     // Previous Mill and JVM versions from disk (survives daemon restarts)
-    previousVersions: Option[(String, String)],
+    previousVersions: Option[VersionState],
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -71,7 +72,7 @@ case class Execution(
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String],
       // Previous Mill and JVM versions from disk
-      previousVersions: Option[(String, String)],
+      previousVersions: Option[VersionState],
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),

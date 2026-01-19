@@ -2,6 +2,7 @@ package mill.exec
 
 import mill.constants.OutFiles.OutFiles
 import mill.api.Task
+import mill.api.daemon.VersionState
 import mill.internal.{InvalidationForest, SpanningForest}
 
 import java.util.concurrent.ConcurrentHashMap
@@ -31,7 +32,7 @@ private object ExecutionLogs {
       transitiveNamed: Seq[Task.Named[?]],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String] = None,
-      previousVersions: Option[(String, String)] = None
+      previousVersions: Option[VersionState] = None
   ): Unit = {
     val finalTree = InvalidationForest.buildInvalidationTree(
       interGroupDeps = interGroupDeps,

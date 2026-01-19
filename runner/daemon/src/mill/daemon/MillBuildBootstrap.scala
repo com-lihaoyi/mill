@@ -397,18 +397,11 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
+  import mill.api.daemon.VersionState
 
-  /**
-   * Version state that is persisted to disk to survive daemon restarts
-   */
-  case class VersionState(millVersion: String, millJvmVersion: String)
-  object VersionState {
-    implicit val rw: upickle.ReadWriter[VersionState] = upickle.macroRW
-  }
+  // Provide upickle ReadWriter for VersionState since mill.api.daemon doesn't have upickle
+  given upickle.ReadWriter[VersionState] = upickle.macros.summonReadWriter
 
-  /**
-   * Reads the previously stored version state from disk.
-   */
   def readVersionState(output: os.Path): Option[VersionState] = {
     val path = output / millVersionState
     if (os.exists(path)) {
@@ -417,26 +410,17 @@ object MillBuildBootstrap {
     } else None
   }
 
-  /**
-   * Writes the current version state to disk.
-   */
   def writeVersionState(output: os.Path): Unit = {
+    val current = VersionState(
+      mill.constants.BuildInfo.millVersion,
+      sys.props("java.version")
+    )
     os.write.over(
       output / millVersionState,
-      upickle.write(
-        VersionState(mill.constants.BuildInfo.millVersion, sys.props("java.version")),
-        indent = 2
-      ),
+      upickle.write(current, indent = 2),
       createFolders = true
     )
   }
-
-  /**
-   * Reads the previous version state from disk.
-   * Returns Some((prevMillVersion, prevJvmVersion)) if a previous state exists.
-   */
-  def previousVersions(output: os.Path): Option[(String, String)] =
-    readVersionState(output).map(s => (s.millVersion, s.millJvmVersion))
 
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
@@ -509,7 +493,7 @@ object MillBuildBootstrap {
           false, // isFinalDepth: set later via withIsFinalDepth when needed
           spanningInvalidationTree,
           // Previous versions from disk (survives daemon restarts)
-          previousVersions(output),
+          readVersionState(output),
         )
       ).asInstanceOf[EvaluatorApi]
 

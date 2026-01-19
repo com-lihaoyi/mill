@@ -1,6 +1,7 @@
 package mill.api
 
 import mill.api.{ExecResult, Result, Val}
+import mill.api.daemon.VersionState
 private[mill] trait SelectiveExecution {
   import SelectiveExecution.*
   def computeHashCodeSignatures(
@@ -59,6 +60,6 @@ object SelectiveExecution {
       changedRootTasks: Set[Task.Named[?]],
       downstreamTasks: Seq[Task.Named[?]],
       /** Previous Mill and JVM versions if version change caused invalidation */
-      previousVersions: Option[(String, String)] = None
+      previousVersions: Option[VersionState] = None
   )
 }

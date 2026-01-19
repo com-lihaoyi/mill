@@ -1,6 +1,7 @@
 package mill.internal
 
 import mill.api.Task
+import mill.api.daemon.VersionState
 
 /**
  * Builds invalidation trees for displaying task invalidation reasons.
@@ -13,19 +14,19 @@ object InvalidationForest {
    * Returns formatted strings like "mill-version-changed:0.12.0->0.12.1" for display.
    */
   private def computeVersionChangeNodes(
-      previousVersions: Option[(String, String)]
+      previousVersions: Option[VersionState]
   ): Seq[String] = {
     val currentMillVersion = mill.constants.BuildInfo.millVersion
     val currentJvmVersion = sys.props("java.version")
     previousVersions match {
-      case Some((prevMill, prevJvm)) =>
+      case Some(vs) =>
         Seq(
-          Option.when(prevMill.nonEmpty && prevMill != currentMillVersion)(
-            s"mill-version-changed:$prevMill->$currentMillVersion"
-          ),
-          Option.when(prevJvm.nonEmpty && prevJvm != currentJvmVersion)(
-            s"mill-jvm-version-changed:$prevJvm->$currentJvmVersion"
-          )
+          vs.millVersionChanged(currentMillVersion).map { case (prev, curr) =>
+            s"mill-version-changed:$prev->$curr"
+          },
+          vs.jvmVersionChanged(currentJvmVersion).map { case (prev, curr) =>
+            s"mill-jvm-version-changed:$prev->$curr"
+          }
         ).flatten
       case None => Nil
     }
@@ -45,7 +46,7 @@ object InvalidationForest {
       interestingTasks: Option[Set[String]] = None,
       resolvedTasks: Option[Set[String]] = None,
       codeSignatureTree: Option[String] = None,
-      previousVersions: Option[(String, String)] = None
+      previousVersions: Option[VersionState] = None
   ): ujson.Obj = {
     // Compute reverse edges (task -> downstream dependents)
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
