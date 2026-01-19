@@ -41,7 +41,7 @@ object InvalidationForest {
       // by named tasks so as to ignore the misc anonymous tasks used internally
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
       edgeFilter: Task[?] => Boolean,
-      interestingTasks: Set[Task[?]],
+      rootInvalidatedTasks: Set[Task[?]],
       // Other ways that tasks can be invalidated - due to code changes or due to mill/jvm
       // version changes - so we can include them as causal nodes in the invalidation forest
       codeSignatureTree: Option[String],
@@ -61,30 +61,29 @@ object InvalidationForest {
       .map { case (k, vs) => k.toString -> vs.map(_.toString) }
       .toMap
 
-    // Convert interesting tasks to strings
-    val interestingTaskStrings = interestingTasks.map(_.toString)
+    // Convert root invalidated tasks to strings
+    val rootInvalidatedTaskStrings = rootInvalidatedTasks.map(_.toString)
 
     // Build version change node names by comparing previous versions to current
     val versionChangeNodes = computeVersionChangeNodes(previousVersions)
 
     // Build the graph including version change nodes
-    // Version change nodes have edges to all interesting tasks (they invalidate everything)
+    // Version change nodes have edges to all root invalidated tasks (they invalidate everything)
     val versionChangeEdges: Map[String, Seq[String]] =
-      if (versionChangeNodes.nonEmpty)
-        versionChangeNodes.map(node => node -> interestingTaskStrings.toSeq).toMap
-      else Map.empty
+      if (versionChangeNodes.isEmpty) Map.empty
+      else versionChangeNodes.map(node => node -> rootInvalidatedTaskStrings.toSeq).toMap
 
     val allEdges = taskEdges ++ versionChangeEdges
     val allTasks =
-      (allEdges.keys ++ allEdges.values.flatten ++ interestingTaskStrings).toArray.distinct.sorted
+      (allEdges.keys ++ allEdges.values.flatten ++ rootInvalidatedTaskStrings).toArray.distinct.sorted
     val taskToIndex = allTasks.zipWithIndex.toMap
     val indexEdges = allTasks.map(t => allEdges.getOrElse(t, Nil).flatMap(taskToIndex.get).toArray)
 
-    // Include version change nodes as interesting vertices so they appear in the tree
-    val allInteresting = interestingTaskStrings ++ versionChangeNodes
-    val interestingIndices = allInteresting.flatMap(taskToIndex.get)
+    // Include version change nodes as root vertices so they appear in the tree
+    val allRoots = rootInvalidatedTaskStrings ++ versionChangeNodes
+    val rootIndices = allRoots.flatMap(taskToIndex.get)
 
-    val baseForest = SpanningForest(indexEdges, interestingIndices, limitToImportantVertices = true)
+    val baseForest = SpanningForest(indexEdges, rootIndices, limitToImportantVertices = true)
     val baseTree = SpanningForest.spanningTreeToJsonTree(baseForest, allTasks(_))
 
     // Parse code signature tree if provided
