@@ -6,8 +6,7 @@ import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
 import mill.api.*
 import mill.exec.{Execution, PlanImpl}
-import mill.internal.CodeSigUtils
-import mill.internal.SpanningForest
+import mill.internal.{CodeSigUtils, InvalidationForest, SpanningForest}
 import mill.internal.SpanningForest.breadthFirst
 
 class SelectiveExecutionImpl(evaluator: Evaluator)
@@ -202,7 +201,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       val interestingTasks = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
       val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
 
-      SpanningForest.buildInvalidationTree(
+      InvalidationForest.buildInvalidationTree(
         interGroupDeps = interGroupDeps,
         transitiveNamed = PlanImpl.transitiveNamed(changedTasks.downstreamTasks),
         interestingTasks = Some(interestingTasks),

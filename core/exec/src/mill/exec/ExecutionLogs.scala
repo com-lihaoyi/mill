@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.constants.OutFiles.OutFiles
 import mill.api.Task
-import mill.internal.SpanningForest
+import mill.internal.{InvalidationForest, SpanningForest}
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
@@ -34,7 +34,7 @@ private object ExecutionLogs {
       millVersionChanged: Option[(String, String)] = None,
       millJvmVersionChanged: Option[(String, String)] = None
   ): Unit = {
-    val finalTree = SpanningForest.buildInvalidationTree(
+    val finalTree = InvalidationForest.buildInvalidationTree(
       interGroupDeps = interGroupDeps,
       transitiveNamed = transitiveNamed,
       uncachedTasks = Some(uncached.keys().asScala.toSet),
