@@ -56,9 +56,10 @@ object InvalidationForest {
 
       case None =>
         val downstreamInterGroupEdges = SpanningForest.reverseEdges(interGroupDeps)
+
         // Code edges: method->method and method->task from code signature tree
         val downstreamCodeEdges = extractCodeEdges(codeSignatureTree, transitiveNamed, rootInvalidatedTasks)
-        val upstreamCodeEdges = SpanningForest.reverseEdges(downstreamCodeEdges)
+
         val codeEdgeDests = downstreamCodeEdges.flatMap(_._2).toSet
 
         val downstreamTaskEdges: Map[String, Seq[String]] = downstreamInterGroupEdges
@@ -69,13 +70,15 @@ object InvalidationForest {
           }
 
         val downstreamAllEdges = combineEdges(downstreamTaskEdges, downstreamCodeEdges)
-        val relevantCodeNodes = SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(upstreamCodeEdges.getOrElse(_, Nil))
 
-        // Find relevant nodes: forward BFS for downstream tasks, backward BFS for method chains
-        val allTaskNodes = downstreamAllEdges.flatMap{case (k, vs) => k +: vs}.toSet
-
-        // Build SpanningForest input from connected nodes only
-        val allNodes = (relevantCodeNodes ++ allTaskNodes).toArray.distinct.sorted
+        val allNodes = {
+          // For rendering the invalidation tree, we include all nodes seen in our task graph,
+          // but only the subset of nodes in our method call graph upstream of a changed task
+          val allTaskNodes = downstreamAllEdges.flatMap { case (k, vs) => k +: vs }.toSet
+          val upstreamCodeEdges = SpanningForest.reverseEdges(downstreamCodeEdges)
+          val relevantCodeNodes = SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(upstreamCodeEdges.getOrElse(_, Nil))
+          (relevantCodeNodes ++ allTaskNodes).toArray.distinct.sorted
+        }
         val nodeToIndex = allNodes.zipWithIndex.toMap
         val indexEdges = allNodes.map(n => downstreamAllEdges.getOrElse(n, Nil).flatMap(nodeToIndex.get).toArray)
         val importantIndices = allNodes.indices.toSet
