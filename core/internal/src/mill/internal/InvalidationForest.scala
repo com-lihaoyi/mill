@@ -56,36 +56,30 @@ object InvalidationForest {
         ujson.Obj(versionNode -> ujson.Obj.from(allTaskStrings.map(_ -> ujson.Obj())))
 
       case None =>
+        // Task edges: root invalidated task -> downstream tasks that depend on it
         val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
-        val filteredTaskDeps = reverseInterGroupDeps.view.filterKeys(rootInvalidatedTasks).toMap
-        val taskEdges: Map[String, Seq[String]] = filteredTaskDeps
-          .map { case (k, vs) => k.toString -> vs.map(_.toString) }
+        val taskEdges: Map[String, Seq[String]] = reverseInterGroupDeps
+          .collect { case (k, vs) if rootInvalidatedTasks.contains(k) => k.toString -> vs.map(_.toString) }
 
+        // Code edges: method -> method and method -> task from code signature tree
         val codeEdges = extractCodeEdges(codeSignatureTree, transitiveNamed, rootInvalidatedTasks)
 
         val allEdges = combineEdges(taskEdges, codeEdges)
-
-        val rootTaskStrings = rootInvalidatedTasks.map(_.toString)
         val reverseAllEdges = SpanningForest.reverseEdges(allEdges)
+        val rootTaskStrings = rootInvalidatedTasks.map(_.toString)
 
-        // Find relevant nodes via BFS:
-        // 1. Forward from root tasks to find downstream tasks
-        // 2. Backward from all tasks to find method nodes that lead to them
+        // Find relevant nodes: forward BFS for downstream tasks, backward BFS for method chains
         val taskNodes = SpanningForest.breadthFirst(rootTaskStrings)(allEdges.getOrElse(_, Nil))
-        val relevantNodes = SpanningForest
-          .breadthFirst(taskNodes)(reverseAllEdges.getOrElse(_, Nil))
-          .toSet
+        val relevantNodes = SpanningForest.breadthFirst(taskNodes)(reverseAllEdges.getOrElse(_, Nil)).toSet
 
-        // Filter to only include relevant nodes and edges
+        // Filter edges to only include connections between relevant nodes
         val filteredEdges = allEdges.view
           .filterKeys(relevantNodes)
           .mapValues(_.filter(relevantNodes))
           .toMap
 
-        // Collect all nodes
-        val allNodes = (filteredEdges.keys ++ filteredEdges.values.flatten ++ rootTaskStrings)
-          .toArray.distinct.sorted
-
+        // Build SpanningForest input from connected nodes only
+        val allNodes = (filteredEdges.keys ++ filteredEdges.values.flatten ++ rootTaskStrings).toArray.distinct.sorted
         val nodeToIndex = allNodes.zipWithIndex.toMap
         val indexEdges = allNodes.map(n => filteredEdges.getOrElse(n, Nil).flatMap(nodeToIndex.get).toArray)
         val importantIndices = relevantNodes.flatMap(nodeToIndex.get)
