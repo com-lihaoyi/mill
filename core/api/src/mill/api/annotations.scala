@@ -20,3 +20,4 @@ import scala.annotation.StaticAnnotation
  * }}}
  */
 final class nonBootstrapped extends StaticAnnotation
+
