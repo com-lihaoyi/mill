@@ -44,12 +44,6 @@ private object ExecutionLogs {
       .filter(task => !task.isInstanceOf[Task.Input[?]] || downstreamSources.contains(task))
       .toSet
 
-    mill.api.Debug(s"logInvalidationTree: spanningInvalidationTree.isDefined=${spanningInvalidationTree.isDefined}")
-    mill.api.Debug(s"logInvalidationTree: spanningInvalidationTree.map(_.take(200))=${spanningInvalidationTree.map(_.take(200))}")
-    mill.api.Debug(s"logInvalidationTree: rootInvalidatedTasks=${rootInvalidatedTasks.map(_.toString).toSeq.sorted}")
-    mill.api.Debug(s"logInvalidationTree: uncached.size=${uncached.size()}")
-    mill.api.Debug(s"logInvalidationTree: changedValueHash.size=${changedValueHash.size()}")
-
     val finalTree = InvalidationForest.buildInvalidationTree(
       upstreamTaskEdges0 = interGroupDeps,
       rootInvalidatedTasks = rootInvalidatedTasks,
