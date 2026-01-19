@@ -175,7 +175,7 @@ object app extends AndroidAppModule {
 
 */
 
-// The command accepts additional parameters to filter tests using `adb` `-e` options.
+// The instrumented tests command accepts additional parameters to filter tests using `adb` `-e` options.
 // (https://developer.android.com/studio/test/command-line#am-instrument-options[Documentation found here])
 //
 // For example, to run a specific package:
