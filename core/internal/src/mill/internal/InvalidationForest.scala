@@ -38,7 +38,6 @@ object InvalidationForest {
       // The edges of the task graph, simplified to only consider task groups headed
       // by named tasks so as to ignore the misc anonymous tasks used internally
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
-      edgeFilter: Task[?] => Boolean,
       rootInvalidatedTasks: Set[Task[?]],
       // Other ways that tasks can be invalidated - due to code changes or due to mill/jvm
       // version changes - so we can include them as causal nodes in the invalidation forest
@@ -60,7 +59,9 @@ object InvalidationForest {
 
       case None =>
         val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
-        val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(edgeFilter).toMap
+        // Only include edges from root invalidated tasks
+        val filteredReverseInterGroupDeps =
+          reverseInterGroupDeps.view.filterKeys(rootInvalidatedTasks).toMap
 
         val taskEdges: Map[String, Seq[String]] = filteredReverseInterGroupDeps
           .view

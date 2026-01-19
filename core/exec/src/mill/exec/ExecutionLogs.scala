@@ -33,21 +33,20 @@ private object ExecutionLogs {
       spanningInvalidationTree: Option[String] = None,
       previousVersions: Option[VersionState] = None
   ): Unit = {
-    val edgeFilterSet = changedValueHash.keys().asScala.toSet
+    val changedTasks = changedValueHash.keys().asScala.toSet
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
-    val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(edgeFilterSet).toMap
+    val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(changedTasks).toMap
     val downstreamSources = filteredReverseInterGroupDeps.filter(_._2.nonEmpty).keySet
 
-    // Interesting tasks: uncached tasks that either cause downstream invalidations
+    // Root invalidated tasks: uncached tasks that either cause downstream invalidations
     // or are non-input tasks (e.g. invalidated due to codesig change)
-    val interestingTasks = uncached.keys().asScala
+    val rootInvalidatedTasks = uncached.keys().asScala
       .filter(task => !task.isInstanceOf[Task.Input[?]] || downstreamSources.contains(task))
       .toSet
 
     val finalTree = InvalidationForest.buildInvalidationTree(
       interGroupDeps = interGroupDeps,
-      edgeFilter = edgeFilterSet,
-      rootInvalidatedTasks = interestingTasks,
+      rootInvalidatedTasks = rootInvalidatedTasks,
       codeSignatureTree = spanningInvalidationTree,
       previousVersions = previousVersions
     )

@@ -194,8 +194,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
       InvalidationForest.buildInvalidationTree(
         interGroupDeps = interGroupDeps,
-        edgeFilter = _ => true,
-        rootInvalidatedTasks = changedTasks.downstreamTasks.toSet,
+        rootInvalidatedTasks = changedTasks.changedRootTasks.map(x => x: Task[?]),
         codeSignatureTree = evaluator.spanningInvalidationTree,
         previousVersions = changedTasks.previousVersions.orElse(evaluator.previousVersions)
       )
