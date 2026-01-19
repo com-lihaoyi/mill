@@ -74,7 +74,7 @@ object InvalidationForest {
         val allNodes = {
           // For rendering the invalidation tree, we include all nodes seen in our task graph,
           // but only the subset of nodes in our method call graph upstream of a changed task
-          val allTaskNodes = downstreamAllEdges.flatMap { case (k, vs) => k +: vs }.toSet
+          val allTaskNodes = downstreamTaskEdges.flatMap { case (k, vs) => k +: vs }.toSet
           val upstreamCodeEdges = SpanningForest.reverseEdges(downstreamCodeEdges)
           val relevantCodeNodes = SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(upstreamCodeEdges.getOrElse(_, Nil))
           (relevantCodeNodes ++ allTaskNodes).toArray.distinct.sorted
