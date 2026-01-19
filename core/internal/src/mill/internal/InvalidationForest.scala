@@ -56,24 +56,29 @@ object InvalidationForest {
         ujson.Obj(versionNode -> ujson.Obj.from(allTaskStrings.map(_ -> ujson.Obj())))
 
       case None =>
-        // Task edges: root invalidated task -> downstream tasks that depend on it
-        val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
-        val taskEdges: Map[String, Seq[String]] = reverseInterGroupDeps
-          .collect { case (k, vs) if rootInvalidatedTasks.contains(k) => k.toString -> vs.map(_.toString) }
 
-        // Code edges: method -> method and method -> task from code signature tree
-        val codeEdges = extractCodeEdges(codeSignatureTree, transitiveNamed, rootInvalidatedTasks)
+        val downstreamInterGroupEdges = SpanningForest.reverseEdges(interGroupDeps)
+        // Code edges: method->method and method->task from code signature tree
+        val downstreamCodeEdges = extractCodeEdges(codeSignatureTree, transitiveNamed, rootInvalidatedTasks)
+        val codeEdgeDests = downstreamCodeEdges.flatMap(_._2).toSet
 
-        val allEdges = combineEdges(taskEdges, codeEdges)
-        val reverseAllEdges = SpanningForest.reverseEdges(allEdges)
+        val downstreamTaskEdges: Map[String, Seq[String]] = downstreamInterGroupEdges
+          .collect { case (k, vs) if rootInvalidatedTasks.contains(k) =>
+            // We ignore task->task edges that go to a task with an incoming method->task
+            // edge, so that the method->task edge takes priority in the final tree
+            k.toString -> vs.map(_.toString).filter(!codeEdgeDests.contains(_))
+          }
+
+        val downstreamAllEdges = combineEdges(downstreamTaskEdges, downstreamCodeEdges)
+        val upstreamAllEdges = SpanningForest.reverseEdges(downstreamAllEdges)
         val rootTaskStrings = rootInvalidatedTasks.map(_.toString)
 
         // Find relevant nodes: forward BFS for downstream tasks, backward BFS for method chains
-        val taskNodes = SpanningForest.breadthFirst(rootTaskStrings)(allEdges.getOrElse(_, Nil))
-        val relevantNodes = SpanningForest.breadthFirst(taskNodes)(reverseAllEdges.getOrElse(_, Nil)).toSet
+        val taskNodes = SpanningForest.breadthFirst(rootTaskStrings)(downstreamAllEdges.getOrElse(_, Nil))
+        val relevantNodes = SpanningForest.breadthFirst(taskNodes)(upstreamAllEdges.getOrElse(_, Nil)).toSet
 
         // Filter edges to only include connections between relevant nodes
-        val filteredEdges = allEdges.view
+        val filteredEdges = downstreamAllEdges.view
           .filterKeys(relevantNodes)
           .mapValues(_.filter(relevantNodes))
           .toMap
