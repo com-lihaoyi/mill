@@ -65,14 +65,15 @@ object CodeSigUtils {
       .collect { case (method @ s"$prefix#<init>($_)void", hash) => (prefix, method, hash) }
       .groupMap(_._1)(t => (t._2, t._3))
 
-  def codeSigForTask(
-      namedTask: => Task.Named[?],
-      classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
-      codeSignatures: => Map[String, Int],
-      constructorHashSignatures: => Map[String, Seq[(String, Int)]]
-  ): Iterable[Int] = {
-
+  /**
+   * Computes the declaring class name and encoded method name for a task.
+   * Used by both code signature computation and invalidation tree building.
+   */
+  def methodClassAndName(
+      namedTask: Task.Named[?],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
+  ): (String, String) = {
     val superTaskName = namedTask.ctx.segments.value.collectFirst {
       case Segment.Label(s"$v.super") => v
     }
@@ -84,18 +85,15 @@ object CodeSigUtils {
 
     // For .super tasks (e.g., qux.quxCommand.super.QuxModule), we need to look up
     // the signature for the super class (QuxModule), not the subclass (qux$).
-    // The super class name is in the last segment.
     val superClassName = superTaskName.map(_ => namedTask.ctx.segments.last.pathSegments.head)
 
     def classNameMatches(cls: Class[?], simpleName: String): Boolean = {
       val clsName = cls.getName
-      // Match either "package$ClassName" (for nested classes) or "package.ClassName" (for top-level)
       clsName.endsWith("$" + simpleName) || clsName.endsWith("." + simpleName)
     }
 
     val methodOpt = for {
       parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
-      // For .super tasks, only consider the class that matches the super class name
       if superClassName.forall(scn => classNameMatches(parentCls, scn))
       m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
     } yield m
@@ -107,6 +105,19 @@ object CodeSigUtils {
           s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
       ))
       .getDeclaringClass.getName
+
+    (methodClass, encodedTaskName)
+  }
+
+  def codeSigForTask(
+      namedTask: => Task.Named[?],
+      classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
+      codeSignatures: => Map[String, Int],
+      constructorHashSignatures: => Map[String, Seq[(String, Int)]]
+  ): Iterable[Int] = {
+    val (methodClass, encodedTaskName) =
+      methodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
 
     val expectedName = methodClass + "#" + encodedTaskName + "()mill.api.Task$Simple"
     val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.api.Task$Command"

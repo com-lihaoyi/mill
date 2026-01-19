@@ -128,58 +128,16 @@ object InvalidationForest {
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
   ): Map[String, Set[String]] = {
-    transitiveNamed.collect { case namedTask: Task.Named[?] =>
+    transitiveNamed.flatMap { namedTask =>
       val taskName = namedTask.ctx.segments.render
       try {
         val (methodClass, encodedTaskName) =
-          computeMethodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-        val taskMethodPrefix = methodClass + "#" + encodedTaskName + "()"
-        taskName -> Set(taskMethodPrefix)
+          CodeSigUtils.methodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
+        Some(taskName -> Set(methodClass + "#" + encodedTaskName + "()"))
       } catch {
-        case _: mill.api.MillException => taskName -> Set.empty[String]
+        case _: mill.api.MillException => None
       }
     }.toMap
-  }
-
-  /**
-   * Helper to compute the method class and encoded task name for a named task.
-   */
-  private def computeMethodClassAndName(
-      namedTask: Task.Named[?],
-      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
-  ): (String, String) = {
-    val superTaskName = namedTask.ctx.segments.value.collectFirst {
-      case mill.api.Segment.Label(s"$v.super") => v
-    }
-
-    val encodedTaskName = superTaskName match {
-      case Some(v) => v
-      case None => scala.reflect.NameTransformer.encode(namedTask.ctx.segments.last.pathSegments.head)
-    }
-
-    val superClassName = superTaskName.map(_ => namedTask.ctx.segments.last.pathSegments.head)
-
-    def classNameMatches(cls: Class[?], simpleName: String): Boolean = {
-      val clsName = cls.getName
-      clsName.endsWith("$" + simpleName) || clsName.endsWith("." + simpleName)
-    }
-
-    val methodOpt = for {
-      parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
-      if superClassName.forall(scn => classNameMatches(parentCls, scn))
-      m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
-    } yield m
-
-    val methodClass = methodOpt
-      .nextOption()
-      .getOrElse(throw new mill.api.MillException(
-        s"Could not detect the parent class of task ${namedTask}. " +
-          s"Please report this at ${mill.api.BuildInfo.millReportNewIssueUrl} . "
-      ))
-      .getDeclaringClass.getName
-
-    (methodClass, encodedTaskName)
   }
 
   /**
@@ -280,34 +238,20 @@ object InvalidationForest {
 
     def findDeepest(node: ujson.Value, currentPath: Seq[String]): Option[Seq[String]] = node match {
       case obj: ujson.Obj =>
-        var deepestMatch: Option[Seq[String]] = None
-        for ((key, value) <- obj.value) {
+        obj.value.foldLeft(Option.empty[Seq[String]]) { case (acc, (key, value)) =>
           val newPath = currentPath :+ key
-          if (matchesTask(key)) {
-            deepestMatch = Some(newPath)
-          }
-          findDeepest(value, newPath) match {
-            case Some(deeper) => deepestMatch = Some(deeper)
-            case None =>
-          }
+          val childMatch = findDeepest(value, newPath)
+          // Prefer deeper matches, then current match, then previous accumulator
+          childMatch.orElse(Option.when(matchesTask(key))(newPath)).orElse(acc)
         }
-        deepestMatch
       case _ => None
     }
 
     findDeepest(tree, Seq.empty)
   }
 
-  private def wrapWithPath(path: Seq[String], content: ujson.Value): ujson.Value = {
-    if (path.isEmpty) content
-    else {
-      var current: ujson.Value = content
-      for (key <- path.reverse) {
-        current = ujson.Obj(key -> current)
-      }
-      current
-    }
-  }
+  private def wrapWithPath(path: Seq[String], content: ujson.Value): ujson.Value =
+    path.foldRight(content)((key, inner) => ujson.Obj(key -> inner))
 
   private def deepMerge(target: ujson.Obj, source: ujson.Obj): Unit = {
     for ((k, v) <- source.value) {
