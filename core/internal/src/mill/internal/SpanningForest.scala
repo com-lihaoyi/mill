@@ -226,12 +226,6 @@ object SpanningForest {
       millVersionChanged: Option[(String, String)] = None,
       millJvmVersionChanged: Option[(String, String)] = None
   ): ujson.Obj = {
-    // Compute method signature prefixes for tasks
-    val taskMethodSignatures = methodSignaturePrefixesForTasks(
-      transitiveNamed,
-      classToTransitiveClasses,
-      allTransitiveClassMethods
-    )
     // Build version change node names
     val versionChangeNodes = Seq(
       millVersionChanged.map { case (oldV, newV) => s"mill-version-changed:$oldV->$newV" },
@@ -283,7 +277,13 @@ object SpanningForest {
 
     // Merge with code signature tree if available
     parsedCodeSigTree match {
-      case Some(codeSigTree) => mergeCodeSignatureTree(simplifiedTree, codeSigTree, taskMethodSignatures)
+      case Some(codeSigTree) =>
+        val taskMethodSignatures = methodSignaturePrefixesForTasks(
+          transitiveNamed,
+          classToTransitiveClasses,
+          allTransitiveClassMethods
+        )
+        mergeCodeSignatureTree(simplifiedTree, codeSigTree, taskMethodSignatures)
       case None => simplifiedTree
     }
   }
