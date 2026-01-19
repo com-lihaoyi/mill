@@ -34,7 +34,6 @@ object bar extends mill.api.DefaultTaskModule {
 }
 
 trait QuxModule extends Module {
-
   def quxCommand() = Task.Command {
     println("Computing quxCommand")
   }
