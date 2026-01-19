@@ -72,40 +72,27 @@ object InvalidationForest {
     }
 
     // Build method -> task edges for leaf methods only (methods with no children in the tree).
-    // Uses CodeSigUtils for consistent signature matching with codeSigForTask.
-    // - Task methods affect their specific task
-    // - Module accessors affect all tasks in that module
+    // Uses CodeSigUtils.allMethodSignatures for consistent matching with codeSigForTask.
     val methodToTaskEdges: Map[String, Seq[String]] = if (codeSignatureTree.isDefined) {
       val (classToTransitiveClasses, allTransitiveClassMethods) =
         CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
 
-      val rootNamedTasks = rootInvalidatedTasks.iterator.collect { case t: Task.Named[?] => t }.toSeq
-
-      // Map from method signature (with "def " prefix) to task name for invalidated tasks
-      val taskSigToName: Map[String, String] = rootNamedTasks.flatMap { namedTask =>
-        try {
-          CodeSigUtils
-            .taskMethodSignatures(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-            .map(sig => s"def $sig" -> namedTask.ctx.segments.render)
-        } catch { case _: mill.api.MillException => Nil }
-      }.toMap
-
-      // Map from module accessor signature to tasks in that module
-      val moduleAccessorToTasks: Map[String, Seq[String]] = rootNamedTasks
+      // Map from method signature (with "def " prefix) to tasks affected by that method
+      val sigToTasks: Map[String, Seq[String]] = rootInvalidatedTasks.iterator
+        .collect { case t: Task.Named[?] => t }
         .flatMap { namedTask =>
-          CodeSigUtils.moduleAccessorSignatures(namedTask).map(sig => s"def $sig" -> namedTask.ctx.segments.render)
+          try {
+            CodeSigUtils
+              .allMethodSignatures(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
+              .map(sig => s"def $sig" -> namedTask.ctx.segments.render)
+          } catch { case _: mill.api.MillException => Nil }
         }
+        .toSeq
         .groupMap(_._1)(_._2)
 
       // Only connect leaf methods (no outgoing edges) to tasks
       val leafMethods = allMethodNodes.filter(m => !methodEdges.contains(m))
-
-      leafMethods.toSeq.flatMap { method =>
-        taskSigToName.get(method) match {
-          case Some(taskName) => Seq(method -> taskName)
-          case None => moduleAccessorToTasks.getOrElse(method, Nil).map(method -> _)
-        }
-      }.groupMap(_._1)(_._2)
+      leafMethods.toSeq.flatMap(m => sigToTasks.getOrElse(m, Nil).map(m -> _)).groupMap(_._1)(_._2)
     } else Map.empty
 
     // Combine all edges

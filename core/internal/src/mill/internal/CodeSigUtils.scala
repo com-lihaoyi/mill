@@ -66,14 +66,47 @@ object CodeSigUtils {
       .groupMap(_._1)(t => (t._2, t._3))
 
   /**
-   * Computes the declaring class name and encoded method name for a task.
-   * Used by both code signature computation and invalidation tree building.
+   * Returns all enclosing modules for a task, from innermost to outermost.
+   * Used by both codeSigForTask and moduleAccessorSignatures.
    */
-  def methodClassAndName(
+  def enclosingModules(namedTask: Task.Named[?]): Vector[mill.api.Module] = {
+    Vector.unfold(namedTask.ctx) {
+      case null => None
+      case ctx =>
+        ctx.enclosingModule match {
+          case null => None
+          case m: mill.api.Module => Some((m, m.moduleCtx))
+          case _ => None
+        }
+    }
+  }
+
+  /**
+   * Returns the module accessor signatures for a task's enclosing modules.
+   * These are the signatures of methods that return the module containing this task.
+   */
+  def moduleAccessorSignatures(namedTask: Task.Named[?]): Seq[String] = {
+    enclosingModules(namedTask).sliding(2).flatMap {
+      case Vector(child, parent) =>
+        val parentClass = parent.getClass.getName
+        val childClass = child.getClass.getName
+        child.moduleCtx.segments.value.lastOption match {
+          case Some(Segment.Label(name)) => Some(s"$parentClass#${encode(name)}()$childClass")
+          case _ => None
+        }
+      case _ => None
+    }.toSeq
+  }
+
+  /**
+   * Returns all method signatures relevant to a task: task method + module accessors.
+   * Used for both code signature computation and invalidation tree building.
+   */
+  def allMethodSignatures(
       namedTask: Task.Named[?],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
-  ): (String, String) = {
+  ): Seq[String] = {
     val superTaskName = namedTask.ctx.segments.value.collectFirst {
       case Segment.Label(s"$v.super") => v
     }
@@ -106,57 +139,10 @@ object CodeSigUtils {
       ))
       .getDeclaringClass.getName
 
-    (methodClass, encodedTaskName)
-  }
-
-  /**
-   * Returns the expected method signature patterns for a task.
-   * Used for matching tasks to their method signatures in code signature data.
-   */
-  def taskMethodSignatures(
-      namedTask: Task.Named[?],
-      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
-  ): Seq[String] = {
-    val (methodClass, encodedTaskName) =
-      methodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
-
     Seq(
       s"$methodClass#$encodedTaskName()mill.api.Task$$Simple",
       s"$methodClass#$encodedTaskName()mill.api.Task$$Command"
-    )
-  }
-
-  /**
-   * Returns all enclosing modules for a task, from innermost to outermost.
-   * Used by both codeSigForTask and moduleAccessorSignatures.
-   */
-  def enclosingModules(namedTask: Task.Named[?]): Vector[mill.api.Module] = {
-    Vector.unfold(namedTask.ctx) {
-      case null => None
-      case ctx =>
-        ctx.enclosingModule match {
-          case null => None
-          case m: mill.api.Module => Some((m, m.moduleCtx))
-          case _ => None
-        }
-    }
-  }
-
-  /**
-   * Returns the module accessor signatures for a task's enclosing modules.
-   * These are the signatures of methods that return the module containing this task.
-   */
-  def moduleAccessorSignatures(namedTask: Task.Named[?]): Seq[String] = {
-    enclosingModules(namedTask).sliding(2).collect {
-      case Vector(child, parent) =>
-        val parentClass = parent.getClass.getName
-        val childClass = child.getClass.getName
-        child.moduleCtx.segments.value.lastOption match {
-          case Some(Segment.Label(name)) => s"$parentClass#${encode(name)}()$childClass"
-          case _ => return Nil
-        }
-    }.toSeq
+    ) ++ moduleAccessorSignatures(namedTask)
   }
 
   def codeSigForTask(
@@ -166,7 +152,7 @@ object CodeSigUtils {
       codeSignatures: => Map[String, Int],
       constructorHashSignatures: => Map[String, Seq[(String, Int)]]
   ): Iterable[Int] = {
-    val sigs = taskMethodSignatures(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
+    val sigs = allMethodSignatures(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
 
     // We not only need to look up the code hash of the task method being called,
     // but also the code hash of the constructors required to instantiate the Module
