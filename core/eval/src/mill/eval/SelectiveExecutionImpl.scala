@@ -41,7 +41,6 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   case class DownstreamResult(
       changedRootTasks: Set[Task[?]],
       downstreamTasks: Seq[Task[Any]],
-      invalidationReasons: Map[String, SelectiveExecution.InvalidationReason],
       millVersionChanged: Option[(String, String)],
       millJvmVersionChanged: Option[(String, String)]
   )
@@ -60,8 +59,6 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
-    import SelectiveExecution.InvalidationReason
-
     def versionChanged(oldV: String, newV: String): Option[(String, String)] =
       Option.when(oldV.nonEmpty && oldV != newV)((oldV, newV))
 
@@ -71,16 +68,9 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     // If either version changed, treat all tasks as changed
     if (millVersionChanged.isDefined || millJvmVersionChanged.isDefined) {
       val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
-      val reason = millVersionChanged match {
-        case Some((old, newV)) => InvalidationReason.MillVersionChanged(old, newV)
-        case None =>
-          val (old, newV) = millJvmVersionChanged.get
-          InvalidationReason.MillJvmVersionChanged(old, newV)
-      }
       return DownstreamResult(
         allTasks,
         transitiveNamed.map(t => t: Task[Any]),
-        transitiveNamed.map(t => t.ctx.segments.render -> reason).toMap,
         millVersionChanged = millVersionChanged,
         millJvmVersionChanged = millJvmVersionChanged
       )
@@ -106,13 +96,6 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       newHashes.buildOverrideSignatures
     )
 
-    // Build the invalidation reasons map
-    val invalidationReasons: Map[String, InvalidationReason] =
-      changedInputNames.map(_ -> InvalidationReason.InputChanged).toMap ++
-        changedCodeNames.map(_ -> InvalidationReason.CodeChanged).toMap ++
-        changedBuildOverrides.map(_ -> InvalidationReason.BuildOverrideChanged).toMap ++
-        oldHashes.forceRunTasks.map(_ -> InvalidationReason.ForcedRun).toMap
-
     val changedRootTasks =
       (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
         .flatMap(namesToTasks.get(_): Option[Task[?]])
@@ -125,7 +108,6 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       breadthFirst(changedRootTasks) { t =>
         downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
       },
-      invalidationReasons,
       millVersionChanged = None,
       millJvmVersionChanged = None
     )
@@ -150,7 +132,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         // If we did not have the metadata, presume everything was changed.
         .getOrElse(ChangedTasks.all(
           tasks,
-          SelectiveExecution.InvalidationReason.MillVersionChanged("", mill.constants.BuildInfo.millVersion)
+          millVersionChanged = Some(("", mill.constants.BuildInfo.millVersion))
         ))
     }
   }
@@ -183,7 +165,6 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         tasks,
         result.changedRootTasks.collect { case n: Task.Named[_] => n },
         result.downstreamTasks.collect { case n: Task.Named[_] => n },
-        result.invalidationReasons,
         millVersionChanged = result.millVersionChanged,
         millJvmVersionChanged = result.millJvmVersionChanged
       )

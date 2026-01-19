@@ -56,21 +56,10 @@ object SelectiveExecution {
 
   implicit val rw: upickle.ReadWriter[Metadata] = upickle.macroRW
 
-  enum InvalidationReason {
-    case MillVersionChanged(oldVersion: String, newVersion: String)
-    case MillJvmVersionChanged(oldVersion: String, newVersion: String)
-    case InputChanged
-    case CodeChanged
-    case BuildOverrideChanged
-    case ForcedRun
-  }
-
   case class ChangedTasks(
       resolved: Seq[Task.Named[?]],
       changedRootTasks: Set[Task.Named[?]],
       downstreamTasks: Seq[Task.Named[?]],
-      /** Maps task name to the reason it was invalidated (only for root tasks) */
-      invalidationReasons: Map[String, InvalidationReason] = Map.empty,
       /** Set if all tasks were invalidated due to mill-version change */
       millVersionChanged: Option[(String, String)] = None,
       /** Set if all tasks were invalidated due to mill-jvm-version change */
@@ -79,17 +68,15 @@ object SelectiveExecution {
   object ChangedTasks {
 
     /** Indicates that all of the passed in tasks were changed. */
-    def all(tasks: Seq[Task.Named[?]], reason: InvalidationReason): ChangedTasks = {
-      val (millVersionChanged, millJvmVersionChanged) = reason match {
-        case InvalidationReason.MillVersionChanged(old, newV) => (Some((old, newV)), None)
-        case InvalidationReason.MillJvmVersionChanged(old, newV) => (None, Some((old, newV)))
-        case _ => (None, None)
-      }
+    def all(
+        tasks: Seq[Task.Named[?]],
+        millVersionChanged: Option[(String, String)] = None,
+        millJvmVersionChanged: Option[(String, String)] = None
+    ): ChangedTasks = {
       ChangedTasks(
         tasks,
         tasks.toSet,
         tasks,
-        tasks.map(t => t.ctx.segments.render -> reason).toMap,
         millVersionChanged = millVersionChanged,
         millJvmVersionChanged = millJvmVersionChanged
       )
