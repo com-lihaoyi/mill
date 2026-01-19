@@ -15,7 +15,7 @@ object InvalidationForest {
    * Returns a formatted string like "mill-version-changed:0.12.0->0.12.1" for display,
    * or combines both if mill and JVM versions changed.
    */
-  private def computeVersionChangeNode(previousVersions: Option[VersionState]): Option[String] = {
+  def computeVersionChangeNode(previousVersions: Option[VersionState]): Option[String] = {
     previousVersions.flatMap { vs =>
       def changeTag(tag: String, curr: String, prev: String) = Option.when(curr != prev)(
         s"$tag:$prev->$curr"
@@ -57,21 +57,24 @@ object InvalidationForest {
       case None =>
         val downstreamTaskEdges0 = SpanningForest.reverseEdges(upstreamTaskEdges0)
 
-        val transitiveNamed = upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq
-
         // Code edges: method->method and method->task from code signature tree
-        val downstreamCodeEdges = extractCodeEdges(codeSignatureTree, transitiveNamed, rootInvalidatedTasks)
+        val downstreamCodeEdges = extractCodeEdges(
+          codeSignatureTree, 
+          upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq, 
+          rootInvalidatedTasks
+        )
 
         val codeEdgeDests = downstreamCodeEdges.flatMap(_._2).toSet
 
         val downstreamTaskEdges: Map[String, Seq[String]] = downstreamTaskEdges0
-          .collect { case (k, vs) =>
+          .flatMap { case (k, vs) =>
             // We ignore task->task edges that go to a task with an incoming method->task
             // edge, so that the method->task edge takes priority in the final tree
-            k.toString -> vs.map(_.toString).filter(!codeEdgeDests.contains(_))
+            vs.map(_.toString).filter(!codeEdgeDests.contains(_)) match{
+              case Nil => None // Skip any nodes turn out to have no outgoing edges after the above filter
+              case xs => Some(k.toString -> xs)
+            }
           }
-          // If any nodes turn out to have no outgoing edges after the above filter, remove them
-          .filter(_._2.nonEmpty)
 
         mill.api.Debug(downstreamTaskEdges)
 
@@ -100,7 +103,7 @@ object InvalidationForest {
    * Extracts method->method and method->task edges from a code signature tree.
    * Uses CodeSigUtils.allMethodSignatures for consistent matching with codeSigForTask.
    */
-  private def extractCodeEdges(
+  def extractCodeEdges(
       codeSignatureTree: Option[String],
       transitiveNamed: Seq[Task.Named[?]],
       rootInvalidatedTasks: Set[Task[?]]
@@ -133,7 +136,7 @@ object InvalidationForest {
       combineEdges(methodEdges, methodToTaskEdges)
   }
 
-  private def combineEdges(maps: Map[String, Seq[String]]*): Map[String, Seq[String]] = {
+  def combineEdges(maps: Map[String, Seq[String]]*): Map[String, Seq[String]] = {
     val combined = collection.mutable.Map[String, Seq[String]]()
     for (m <- maps; (k, vs) <- m) combined(k) = combined.getOrElse(k, Nil) ++ vs
     combined.toMap
@@ -143,7 +146,7 @@ object InvalidationForest {
    * Extracts method -> method edges from a code signature tree.
    * Returns (edges map, all nodes set).
    */
-  private def extractMethodEdges(tree: ujson.Obj): (Map[String, Seq[String]], Set[String]) = {
+  def extractMethodEdges(tree: ujson.Obj): (Map[String, Seq[String]], Set[String]) = {
     val edges = collection.mutable.Map[String, collection.mutable.Buffer[String]]()
     val allNodes = collection.mutable.Set[String]()
 
@@ -161,6 +164,7 @@ object InvalidationForest {
     }
 
     traverse(tree, None)
+
     (edges.view.mapValues(_.toSeq).toMap, allNodes.toSet)
   }
 }
