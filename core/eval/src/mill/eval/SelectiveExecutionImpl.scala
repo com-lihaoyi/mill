@@ -202,17 +202,11 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         interGroupDeps.toSeq.sortBy(_._1.toString)
       )
 
-      // Build task edges map (task name -> downstream task names)
-      val taskEdges: Map[String, Seq[String]] = reverseInterGroupDeps
-        .view
-        .map { case (k, vs) => k.toString -> vs.map(_.toString) }
-        .toMap
-
       val interestingTasks = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
       val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
 
       SpanningForest.buildInvalidationTree(
-        taskEdges = taskEdges,
+        reverseInterGroupDeps = reverseInterGroupDeps,
         interestingTasks = interestingTasks,
         transitiveNamed = PlanImpl.transitiveNamed(changedTasks.downstreamTasks),
         resolvedTasks = Some(resolvedTaskLabels),

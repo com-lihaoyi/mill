@@ -37,25 +37,24 @@ private object ExecutionLogs {
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
     val changedTerminals = changedValueHash.keys().asScala.toSet
 
-    // Build task edges map (task name -> downstream task names)
-    val taskEdges: Map[String, Seq[String]] = reverseInterGroupDeps
+    // Filter edges to only include those from tasks whose values changed
+    val filteredReverseInterGroupDeps = reverseInterGroupDeps
       .view
       .filterKeys(changedTerminals)
-      .map { case (k, vs) => k.toString -> vs.map(_.toString) }
       .toMap
 
     // Find interesting tasks: uncached tasks that either cause downstream invalidations
     // or are non-input tasks (e.g. invalidated due to codesig change)
-    val downstreamSources = taskEdges.filter(_._2.nonEmpty).keySet
+    val downstreamSources = filteredReverseInterGroupDeps.filter(_._2.nonEmpty).keySet
     val interestingTasks = uncached.keys().asScala
       .filter { task =>
-        !task.isInstanceOf[Task.Input[?]] || downstreamSources.contains(task.toString)
+        !task.isInstanceOf[Task.Input[?]] || downstreamSources.contains(task)
       }
       .map(_.toString)
       .toSet
 
     val finalTree = SpanningForest.buildInvalidationTree(
-      taskEdges = taskEdges,
+      reverseInterGroupDeps = filteredReverseInterGroupDeps,
       interestingTasks = interestingTasks,
       transitiveNamed = transitiveNamed,
       codeSignatureTree = spanningInvalidationTree,

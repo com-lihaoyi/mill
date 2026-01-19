@@ -259,7 +259,7 @@ object SpanningForest {
    * - Code signature spanning tree (showing method call chains)
    * - Version change nodes (mill-version-changed, mill-jvm-version-changed)
    *
-   * @param taskEdges Map from task name to downstream task names
+   * @param reverseInterGroupDeps Map from task to its downstream dependents (reverse dependency graph)
    * @param interestingTasks All tasks that should appear in the tree
    * @param transitiveNamed Tasks for computing method signatures (used when merging with code signature tree)
    * @param resolvedTasks Optional set of task names that were directly resolved (for filtering)
@@ -268,7 +268,7 @@ object SpanningForest {
    * @param millJvmVersionChanged Optional (oldVersion, newVersion) if mill JVM version changed
    */
   def buildInvalidationTree(
-      taskEdges: Map[String, Seq[String]],
+      reverseInterGroupDeps: Map[Task[?], Seq[Task[?]]],
       interestingTasks: Set[String],
       transitiveNamed: Seq[Task.Named[?]],
       resolvedTasks: Option[Set[String]] = None,
@@ -277,6 +277,11 @@ object SpanningForest {
       millVersionChanged: Option[(String, String)] = None,
       millJvmVersionChanged: Option[(String, String)] = None
   ): ujson.Obj = {
+    // Convert task edges to string representation
+    val taskEdges: Map[String, Seq[String]] = reverseInterGroupDeps
+      .view
+      .map { case (k, vs) => k.toString -> vs.map(_.toString) }
+      .toMap
     // Build version change node names
     val versionChangeNodes = Seq(
       millVersionChanged.map { case (oldV, newV) => s"mill-version-changed:$oldV->$newV" },
