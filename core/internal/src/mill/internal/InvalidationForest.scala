@@ -150,11 +150,7 @@ object InvalidationForest {
 
       for ((k, v) <- wrapWithPath(path, combinedTasks).obj.value) {
         result.value.get(k) match {
-          case Some(existing: ujson.Obj) =>
-            v match {
-              case vObj: ujson.Obj => deepMerge(existing, vObj)
-              case _ => result(k) = v
-            }
+          case Some(existing: ujson.Obj) => deepMerge(existing, v.obj)
           case _ => result(k) = v
         }
       }
