@@ -1,6 +1,10 @@
 package mill.internal
 
+import mill.api.{BuildInfo, MillException, Segment, Task}
+
 import scala.collection.mutable
+import scala.reflect.NameTransformer.encode
+import java.lang.reflect.Method
 
 /**
  * Algorithm to compute the minimal spanning forest of a directed acyclic graph
@@ -115,33 +119,118 @@ object SpanningForest {
   }
 
   /**
+   * Helper to compute the method class and encoded task name for a named task.
+   * Returns (methodClass, encodedTaskName) or throws MillException if not found.
+   */
+  def computeMethodClassAndName(
+      namedTask: Task.Named[?],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, Method]]
+  ): (String, String) = {
+    val superTaskName = namedTask.ctx.segments.value.collectFirst {
+      case Segment.Label(s"$v.super") => v
+    }
+
+    val encodedTaskName = superTaskName match {
+      case Some(v) => v
+      case None => encode(namedTask.ctx.segments.last.pathSegments.head)
+    }
+
+    // For .super tasks (e.g., qux.quxCommand.super.QuxModule), we need to look up
+    // the signature for the super class (QuxModule), not the subclass (qux$).
+    // The super class name is in the last segment.
+    val superClassName = superTaskName.map(_ => namedTask.ctx.segments.last.pathSegments.head)
+
+    def classNameMatches(cls: Class[?], simpleName: String): Boolean = {
+      val clsName = cls.getName
+      // Match either "package$ClassName" (for nested classes) or "package.ClassName" (for top-level)
+      clsName.endsWith("$" + simpleName) || clsName.endsWith("." + simpleName)
+    }
+
+    val methodOpt = for {
+      parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
+      // For .super tasks, only consider the class that matches the super class name
+      if superClassName.forall(scn => classNameMatches(parentCls, scn))
+      m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
+    } yield m
+
+    val methodClass = methodOpt
+      .nextOption()
+      .getOrElse(throw new MillException(
+        s"Could not detect the parent class of task ${namedTask}. " +
+          s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
+      ))
+      .getDeclaringClass.getName
+
+    (methodClass, encodedTaskName)
+  }
+
+  /**
+   * Computes the method signature prefixes for tasks.
+   * Returns a map from task name (e.g., "foo.compile") to a set of method signature prefixes
+   * that should match entries in the code signature spanning tree.
+   *
+   * These prefixes are used by findPathForTask to match task names to their
+   * corresponding method signatures in the invalidation tree.
+   *
+   * Note: We only return task method prefixes, not constructor prefixes. The spanning tree
+   * already contains the full path from constructors to task methods, so when we match
+   * the task method, we get the complete path including any constructor changes.
+   */
+  def methodSignaturePrefixesForTasks(
+      transitiveNamed: Seq[Task.Named[?]],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, Method]]
+  ): Map[String, Set[String]] = {
+    transitiveNamed.collect { case namedTask: Task.Named[?] =>
+      val taskName = namedTask.ctx.segments.render
+      try {
+        val (methodClass, encodedTaskName) =
+          computeMethodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
+
+        // The task method signature prefix (matches Task$Simple or Task$Command return types)
+        val taskMethodPrefix = methodClass + "#" + encodedTaskName + "()"
+
+        taskName -> Set(taskMethodPrefix)
+      } catch {
+        case _: MillException => taskName -> Set.empty[String]
+      }
+    }.toMap
+  }
+
+  /**
    * Builds an invalidation tree that combines:
    * - Task dependency spanning forest
    * - Code signature spanning tree (showing method call chains)
    * - Version change nodes (mill-version-changed, mill-jvm-version-changed)
-   * - Invalidation reason grouping (input changed, code changed, etc.)
    *
    * @param taskEdges Map from task name to downstream task names
    * @param interestingTasks All tasks that should appear in the tree
+   * @param transitiveNamed Tasks for computing method signatures
+   * @param classToTransitiveClasses Map from class to its transitive parent classes
+   * @param allTransitiveClassMethods Map from class to its declared methods
    * @param codeSignatureTree Optional code signature spanning tree (JSON string to avoid classloader issues)
-   * @param taskMethodSignatures Optional map from task name to its method signature prefixes
-   *                             (computed via CodeSigUtils.codeSigForTask). Used to match tasks
-   *                             to their code paths in the spanning tree.
    * @param millVersionChanged Optional (oldVersion, newVersion) if mill version changed
    * @param millJvmVersionChanged Optional (oldVersion, newVersion) if mill JVM version changed
-   * @param invalidationReasons Optional map from task name to reason string (e.g. "<input changed>")
    * @param resolvedTasks Optional set of task names that were directly resolved (for filtering)
    */
   def buildInvalidationTree(
       taskEdges: Map[String, Seq[String]],
       interestingTasks: Set[String],
+      transitiveNamed: Seq[Task.Named[?]],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       codeSignatureTree: Option[String] = None,
-      taskMethodSignatures: Map[String, Set[String]] = Map.empty,
       millVersionChanged: Option[(String, String)] = None,
       millJvmVersionChanged: Option[(String, String)] = None,
-      invalidationReasons: Map[String, String] = Map.empty,
       resolvedTasks: Option[Set[String]] = None
   ): ujson.Obj = {
+    // Compute method signature prefixes for tasks
+    val taskMethodSignatures = methodSignaturePrefixesForTasks(
+      transitiveNamed,
+      classToTransitiveClasses,
+      allTransitiveClassMethods
+    )
     // Build version change node names
     val versionChangeNodes = Seq(
       millVersionChanged.map { case (oldV, newV) => s"mill-version-changed:$oldV->$newV" },
@@ -191,35 +280,10 @@ object SpanningForest {
       return simplifiedTree
     }
 
-    // Group tasks by invalidation reason
-    if (invalidationReasons.nonEmpty) {
-      val tasksByReason = invalidationReasons.groupMap(_._2)(_._1)
-      val result = ujson.Obj()
-
-      for ((reason, tasks) <- tasksByReason.toSeq.sortBy(_._1)) {
-        val taskSet = tasks.toSet
-        // For code changes, use the full simplified tree (preserves downstream deps)
-        // For other reasons, filter to just root causes
-        val treeForReason =
-          if (reason == "<code changed>") simplifiedTree
-          else filterTreeToTasks(simplifiedTree, taskSet)
-
-        if (reason == "<code changed>" && parsedCodeSigTree.isDefined) {
-          // Merge code signature tree for code changes
-          val merged = mergeCodeSignatureTree(treeForReason, parsedCodeSigTree.get, taskMethodSignatures)
-          // Add merged entries directly to result (not under a reason key)
-          merged.value.foreach { case (k, v) => result(k) = v }
-        } else {
-          result(reason) = treeForReason
-        }
-      }
-      result
-    } else {
-      // No reason grouping - just merge with code signature tree
-      parsedCodeSigTree match {
-        case Some(codeSigTree) => mergeCodeSignatureTree(simplifiedTree, codeSigTree, taskMethodSignatures)
-        case None => simplifiedTree
-      }
+    // Merge with code signature tree if available
+    parsedCodeSigTree match {
+      case Some(codeSigTree) => mergeCodeSignatureTree(simplifiedTree, codeSigTree, taskMethodSignatures)
+      case None => simplifiedTree
     }
   }
 
@@ -238,22 +302,6 @@ object SpanningForest {
       Option.when(filtered.nonEmpty)(ujson.Obj.from(filtered))
     }
     simplify(tree).getOrElse(ujson.Obj())
-  }
-
-  /**
-   * Filters a tree to only include paths that start from or lead to specified tasks.
-   */
-  private def filterTreeToTasks(tree: ujson.Obj, tasks: Set[String]): ujson.Obj = {
-    def filter(j: ujson.Obj): ujson.Obj = {
-      ujson.Obj.from(j.value.flatMap {
-        case (k, v: ujson.Obj) =>
-          val filtered = filter(v)
-          if (tasks.contains(k) || filtered.value.nonEmpty) Some(k -> filtered)
-          else None
-        case other => Some(other)
-      })
-    }
-    filter(tree)
   }
 
   /**

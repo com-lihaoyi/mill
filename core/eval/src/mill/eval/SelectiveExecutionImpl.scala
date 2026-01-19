@@ -213,10 +213,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value] = {
-    import SelectiveExecution.InvalidationReason
-
     for (changedTasks <- this.computeChangedTasks(tasks)) yield {
-      val taskSet = changedTasks.downstreamTasks.toSet[Task[?]]
       val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
 
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
@@ -233,37 +230,20 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       val interestingTasks = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
       val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
 
-      // Compute method signature prefixes for tasks using the same logic as cache invalidation
+      // Compute class metadata for method signature resolution
       val transitiveNamed = PlanImpl.transitiveNamed(changedTasks.downstreamTasks)
       val (classToTransitiveClasses, allTransitiveClassMethods) =
         CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
-      val taskMethodSignatures = CodeSigUtils.methodSignaturePrefixesForTasks(
-        transitiveNamed,
-        classToTransitiveClasses,
-        allTransitiveClassMethods
-      )
-
-      // Convert invalidation reasons to string labels
-      // Note: MillVersionChanged/MillJvmVersionChanged are handled separately via
-      // the millVersionChanged/millJvmVersionChanged parameters, but we include them
-      // here for completeness
-      val invalidationReasons: Map[String, String] = changedTasks.invalidationReasons.map {
-        case (taskName, InvalidationReason.InputChanged) => taskName -> "<input changed>"
-        case (taskName, InvalidationReason.CodeChanged) => taskName -> "<code changed>"
-        case (taskName, InvalidationReason.BuildOverrideChanged) => taskName -> "<build override changed>"
-        case (taskName, InvalidationReason.ForcedRun) => taskName -> "<forced run>"
-        case (taskName, InvalidationReason.MillVersionChanged(_, _)) => taskName -> "<mill version changed>"
-        case (taskName, InvalidationReason.MillJvmVersionChanged(_, _)) => taskName -> "<mill jvm version changed>"
-      }
 
       SpanningForest.buildInvalidationTree(
         taskEdges = taskEdges,
         interestingTasks = interestingTasks,
+        transitiveNamed = transitiveNamed,
+        classToTransitiveClasses = classToTransitiveClasses,
+        allTransitiveClassMethods = allTransitiveClassMethods,
         codeSignatureTree = evaluator.spanningInvalidationTree,
-        taskMethodSignatures = taskMethodSignatures,
         millVersionChanged = changedTasks.millVersionChanged.orElse(evaluator.millVersionChanged),
         millJvmVersionChanged = changedTasks.millJvmVersionChanged.orElse(evaluator.millJvmVersionChanged),
-        invalidationReasons = invalidationReasons,
         resolvedTasks = Some(resolvedTaskLabels)
       )
     }

@@ -357,21 +357,15 @@ case class Execution(
 
       val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
-      // Compute method signature prefixes for tasks for matching against code signature tree
-      val transitiveNamed = PlanImpl.transitiveNamed(Seq.from(indexToTerminal))
-      val taskMethodSignatures = CodeSigUtils.methodSignaturePrefixesForTasks(
-        transitiveNamed,
-        classToTransitiveClasses,
-        allTransitiveClassMethods
-      )
-
       ExecutionLogs.logInvalidationTree(
         interGroupDeps = interGroupDeps,
         outPath = outPath,
         uncached = uncached,
         changedValueHash = changedValueHash,
+        transitiveNamed = PlanImpl.transitiveNamed(Seq.from(indexToTerminal)),
+        classToTransitiveClasses = classToTransitiveClasses,
+        allTransitiveClassMethods = allTransitiveClassMethods,
         spanningInvalidationTree = spanningInvalidationTree,
-        taskMethodSignatures = taskMethodSignatures,
         millVersionChanged = millVersionChanged,
         millJvmVersionChanged = millJvmVersionChanged
       )
