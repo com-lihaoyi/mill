@@ -85,7 +85,6 @@ object InvalidationForest {
     val baseForest = SpanningForest(indexEdges, rootIndices, limitToImportantVertices = true)
     val baseTree = SpanningForest.spanningTreeToJsonTree(baseForest, allNodes(_))
 
-    // Parse code signature tree if provided
     val parsedCodeSigTree: Option[ujson.Obj] = codeSignatureTree.map(ujson.read(_).obj)
 
     // If version changes are present, the tree is already structured correctly
