@@ -70,7 +70,6 @@ object InvalidationForest {
           }
 
         val downstreamAllEdges = combineEdges(downstreamTaskEdges, downstreamCodeEdges)
-        val upstreamAllEdges = SpanningForest.reverseEdges(downstreamAllEdges)
         val rootTaskStrings = rootInvalidatedTasks.map(_.toString)
 
         // Find relevant nodes: forward BFS for downstream tasks, backward BFS for method chains
