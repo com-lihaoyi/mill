@@ -46,9 +46,8 @@ object InvalidationForest {
   ): ujson.Obj = {
     val transitiveNamed = interGroupDeps.keys.collect { case t: Task.Named[?] => t }.toSeq
 
-    // Check for version change - simple case with flat structure
     computeVersionChangeNode(previousVersions) match {
-      case Some(versionNode) =>
+      case Some(versionNode) => // if mill/mill-jvm version change, that invalidates everything
         val allTaskStrings = rootInvalidatedTasks
           .collect { case t: Task.Named[?] => t.toString }
           .toSeq
@@ -57,7 +56,6 @@ object InvalidationForest {
         ujson.Obj(versionNode -> ujson.Obj.from(allTaskStrings.map(_ -> ujson.Obj())))
 
       case None =>
-        // Build task -> task edges (reverse direction: source -> dependents)
         val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
         val filteredTaskDeps = reverseInterGroupDeps.view.filterKeys(rootInvalidatedTasks).toMap
         val taskEdges: Map[String, Seq[String]] = filteredTaskDeps
@@ -97,19 +95,11 @@ object InvalidationForest {
             (Map.empty[String, Seq[String]], Set.empty[String], Map.empty[String, Seq[String]])
         }
 
-        // Combine all edges
-        // When we have code signature information, method->task edges show the root cause.
-        // Task->task edges are only used for downstream propagation FROM tasks connected
-        // to the method chain. We exclude task edges TO tasks that are already connected
-        // via method edges to avoid competing paths.
-        val tasksConnectedFromMethods = methodToTaskEdges.values.flatten.toSet
+        // Combine all edges: task->task, method->method, and method->task
+        // SpanningForest will pick the shortest path when multiple paths exist
         val allEdges: Map[String, Seq[String]] = {
           val combined = collection.mutable.Map[String, Seq[String]]()
-          // Include task edges, but filter out values that are already connected from methods
-          for ((k, vs) <- taskEdges) {
-            val filtered = vs.filterNot(tasksConnectedFromMethods)
-            if (filtered.nonEmpty) combined(k) = combined.getOrElse(k, Nil) ++ filtered
-          }
+          for ((k, vs) <- taskEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
           for ((k, vs) <- methodEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
           for ((k, vs) <- methodToTaskEdges) combined(k) = combined.getOrElse(k, Nil) ++ vs
           combined.toMap
