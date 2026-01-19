@@ -55,7 +55,6 @@ object InvalidationForest {
         ujson.Obj(versionNode -> ujson.Obj.from(rootInvalidatedTaskStrings.map(_ -> ujson.Obj())))
 
       case None =>
-
         val downstreamInterGroupEdges = SpanningForest.reverseEdges(interGroupDeps)
         // Code edges: method->method and method->task from code signature tree
         val downstreamCodeEdges = extractCodeEdges(codeSignatureTree, transitiveNamed, rootInvalidatedTasks)
