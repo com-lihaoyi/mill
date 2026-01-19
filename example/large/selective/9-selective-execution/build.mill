@@ -157,13 +157,8 @@ bar.sources
     "bar.allSources": {
       "bar.allSourceFiles": {
         "bar.compile": {
-          "bar.test.compileClasspath": {
-            "bar.test.compile": {
-              "bar.test.localRunClasspath": {
-                "bar.test.testClasspath": {
-                  "bar.test.testForked": {}
-...
- 
+          ...
+          ..."bar.test.testForked": {}
 
 */
 
