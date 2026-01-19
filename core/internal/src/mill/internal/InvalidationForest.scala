@@ -76,8 +76,6 @@ object InvalidationForest {
             }
           }
 
-        mill.api.Debug(downstreamTaskEdges)
-
         val downstreamAllEdges = combineEdges(downstreamTaskEdges, downstreamCodeEdges)
 
         val allNodes = {
