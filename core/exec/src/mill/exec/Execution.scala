@@ -28,9 +28,6 @@ case class Execution(
     ec: Option[ThreadPoolExecutor],
     codeSignatures: Map[String, Int],
     // JSON string to avoid classloader issues when crossing classloader boundaries
-    spanningInvalidationTree: Option[String],
-    millVersionChanged: Option[(String, String)],
-    millJvmVersionChanged: Option[(String, String)],
     systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing,
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
@@ -39,7 +36,10 @@ case class Execution(
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean,
     depth: Int,
-    isFinalDepth: Boolean
+    isFinalDepth: Boolean,
+    spanningInvalidationTree: Option[String],
+    millVersionChanged: Option[(String, String)],
+    millJvmVersionChanged: Option[(String, String)],
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call

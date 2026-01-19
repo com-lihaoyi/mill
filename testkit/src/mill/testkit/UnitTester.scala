@@ -131,11 +131,8 @@ class UnitTester(
     failFast = failFast,
     ec = ec,
     codeSignatures = Map(),
-    spanningInvalidationTree = None,
-    millVersionChanged = None,
-    millJvmVersionChanged = None,
     systemExit = (reason, exitCode) =>
-      throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
+    throw Exception(s"systemExit called: reason=$reason, exitCode=$exitCode"),
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),
     getEvaluator = () => evaluator,
     offline = offline,
@@ -143,7 +140,10 @@ class UnitTester(
     enableTicker = false,
     staticBuildOverrideFiles = Map(),
     depth = 0,
-    isFinalDepth = true
+    isFinalDepth = true,
+    spanningInvalidationTree = None,
+    millVersionChanged = None,
+    millJvmVersionChanged = None,
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(

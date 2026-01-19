@@ -520,9 +520,6 @@ object MillBuildBootstrap {
           !keepGoing,
           ec,
           codeSignatures,
-          spanningInvalidationTree,
-          millVersionChanged,
-          millJvmVersionChanged,
           (reason: String, exitCode: Int) => systemExit(reason, exitCode),
           streams0,
           () => evaluator,
@@ -531,7 +528,10 @@ object MillBuildBootstrap {
           staticBuildOverrideFiles,
           enableTicker,
           depth,
-          false // isFinalDepth: set later via withIsFinalDepth when needed
+          false, // isFinalDepth: set later via withIsFinalDepth when needed
+          spanningInvalidationTree,
+          millVersionChanged,
+          millJvmVersionChanged,
         )
       ).asInstanceOf[EvaluatorApi]
 
