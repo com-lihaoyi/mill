@@ -52,7 +52,6 @@ object SpanningForest {
   }
 
   case class Node(values: mutable.Map[Int, Node] = mutable.Map())
-
   def apply(
       indexGraphEdges: Array[Array[Int]],
       importantVertices: Set[Int],
