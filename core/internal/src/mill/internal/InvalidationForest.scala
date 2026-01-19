@@ -52,7 +52,6 @@ object InvalidationForest {
       .sorted
     computeVersionChangeNode(previousVersions) match {
       case Some(versionNode) => // if mill/mill-jvm version change, that invalidates everything
-
         ujson.Obj(versionNode -> ujson.Obj.from(rootInvalidatedTaskStrings.map(_ -> ujson.Obj())))
 
       case None =>
