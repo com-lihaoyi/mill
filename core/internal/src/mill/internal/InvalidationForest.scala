@@ -109,16 +109,14 @@ object InvalidationForest {
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
   ): Map[String, Set[String]] = {
-    transitiveNamed.flatMap { namedTask =>
-      val taskName = namedTask.ctx.segments.render
-      try {
+    transitiveNamed
+      .map { namedTask =>
+        val taskName = namedTask.ctx.segments.render
         val (methodClass, encodedTaskName) =
           CodeSigUtils.methodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
         Some(taskName -> Set(methodClass + "#" + encodedTaskName + "()"))
-      } catch {
-        case _: mill.api.MillException => None
       }
-    }.toMap
+      .toMap
   }
 
   /**
