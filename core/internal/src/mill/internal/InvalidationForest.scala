@@ -99,12 +99,8 @@ object InvalidationForest {
 
     // If version changes are present, the tree is already structured correctly
     // (version change nodes are roots with tasks as children)
-    if (versionChangeNodes.nonEmpty) {
-      return baseTree
-    }
-
-    // Merge with code signature tree if available
-    parsedCodeSigTree match {
+    if (versionChangeNodes.nonEmpty) baseTree
+    else parsedCodeSigTree match {
       case Some(codeSigTree) =>
         val (classToTransitiveClasses, allTransitiveClassMethods) =
           CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
