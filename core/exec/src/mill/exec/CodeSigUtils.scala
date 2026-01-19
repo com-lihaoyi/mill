@@ -65,14 +65,15 @@ object CodeSigUtils {
       .collect { case (method @ s"$prefix#<init>($_)void", hash) => (prefix, method, hash) }
       .groupMap(_._1)(t => (t._2, t._3))
 
-  def codeSigForTask(
-      namedTask: => Task.Named[?],
-      classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
-      codeSignatures: => Map[String, Int],
-      constructorHashSignatures: => Map[String, Seq[(String, Int)]]
-  ): Iterable[Int] = {
-
+  /**
+   * Helper to compute the method class and encoded task name for a named task.
+   * Returns (methodClass, encodedTaskName) or throws MillException if not found.
+   */
+  private def computeMethodClassAndName(
+      namedTask: Task.Named[?],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
+  ): (String, String) = {
     val superTaskName = namedTask.ctx.segments.value.collectFirst {
       case Segment.Label(s"$v.super") => v
     }
@@ -107,6 +108,52 @@ object CodeSigUtils {
           s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
       ))
       .getDeclaringClass.getName
+
+    (methodClass, encodedTaskName)
+  }
+
+  /**
+   * Computes the method signature prefixes for tasks.
+   * Returns a map from task name (e.g., "foo.compile") to a set of method signature prefixes
+   * that should match entries in the code signature spanning tree.
+   *
+   * These prefixes are used by SpanningForest.findPathForTask to match task names to their
+   * corresponding method signatures in the invalidation tree.
+   *
+   * Note: We only return task method prefixes, not constructor prefixes. The spanning tree
+   * already contains the full path from constructors to task methods, so when we match
+   * the task method, we get the complete path including any constructor changes.
+   */
+  def methodSignaturePrefixesForTasks(
+      transitiveNamed: Seq[Task.Named[?]],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]]
+  ): Map[String, Set[String]] = {
+    transitiveNamed.collect { case namedTask: Task.Named[?] =>
+      val taskName = namedTask.ctx.segments.render
+      try {
+        val (methodClass, encodedTaskName) =
+          computeMethodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
+
+        // The task method signature prefix (matches Task$Simple or Task$Command return types)
+        val taskMethodPrefix = methodClass + "#" + encodedTaskName + "()"
+
+        taskName -> Set(taskMethodPrefix)
+      } catch {
+        case _: MillException => taskName -> Set.empty[String]
+      }
+    }.toMap
+  }
+
+  def codeSigForTask(
+      namedTask: => Task.Named[?],
+      classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
+      codeSignatures: => Map[String, Int],
+      constructorHashSignatures: => Map[String, Seq[(String, Int)]]
+  ): Iterable[Int] = {
+    val (methodClass, encodedTaskName) =
+      computeMethodClassAndName(namedTask, classToTransitiveClasses, allTransitiveClassMethods)
 
     val expectedName = methodClass + "#" + encodedTaskName + "()mill.api.Task$Simple"
     val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.api.Task$Command"

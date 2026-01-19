@@ -218,12 +218,6 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     for (changedTasks <- this.computeChangedTasks(tasks)) yield {
       val taskSet = changedTasks.downstreamTasks.toSet[Task[?]]
       val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
-      val indexToTerminal = plan
-        .sortedGroups
-        .keys()
-        .toArray
-        .filter(t => taskSet.contains(t))
-        .sortBy(_.toString)
 
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
       val reverseInterGroupDeps = SpanningForest.reverseEdges(
@@ -238,6 +232,16 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
       val interestingTasks = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
       val resolvedTaskLabels = changedTasks.resolved.map(_.ctx.segments.render).toSet
+
+      // Compute method signature prefixes for tasks using the same logic as cache invalidation
+      val transitiveNamed = PlanImpl.transitiveNamed(changedTasks.downstreamTasks)
+      val (classToTransitiveClasses, allTransitiveClassMethods) =
+        CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+      val taskMethodSignatures = CodeSigUtils.methodSignaturePrefixesForTasks(
+        transitiveNamed,
+        classToTransitiveClasses,
+        allTransitiveClassMethods
+      )
 
       // Convert invalidation reasons to string labels
       // Note: MillVersionChanged/MillJvmVersionChanged are handled separately via
@@ -256,6 +260,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
         taskEdges = taskEdges,
         interestingTasks = interestingTasks,
         codeSignatureTree = evaluator.spanningInvalidationTree,
+        taskMethodSignatures = taskMethodSignatures,
         millVersionChanged = changedTasks.millVersionChanged.orElse(evaluator.millVersionChanged),
         millJvmVersionChanged = changedTasks.millJvmVersionChanged.orElse(evaluator.millJvmVersionChanged),
         invalidationReasons = invalidationReasons,

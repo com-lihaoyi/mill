@@ -25,12 +25,12 @@ private object ExecutionLogs {
   }
   def logInvalidationTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
-      indexToTerminal: Array[Task[?]],
       outPath: os.Path,
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String],
+      taskMethodSignatures: Map[String, Set[String]],
       millVersionChanged: Option[(String, String)],
       millJvmVersionChanged: Option[(String, String)]
   ): Unit = {
@@ -58,6 +58,7 @@ private object ExecutionLogs {
       taskEdges = taskEdges,
       interestingTasks = interestingTasks,
       codeSignatureTree = spanningInvalidationTree,
+      taskMethodSignatures = taskMethodSignatures,
       millVersionChanged = millVersionChanged,
       millJvmVersionChanged = millJvmVersionChanged
     )

@@ -124,6 +124,9 @@ object SpanningForest {
    * @param taskEdges Map from task name to downstream task names
    * @param interestingTasks All tasks that should appear in the tree
    * @param codeSignatureTree Optional code signature spanning tree (JSON string to avoid classloader issues)
+   * @param taskMethodSignatures Optional map from task name to its method signature prefixes
+   *                             (computed via CodeSigUtils.codeSigForTask). Used to match tasks
+   *                             to their code paths in the spanning tree.
    * @param millVersionChanged Optional (oldVersion, newVersion) if mill version changed
    * @param millJvmVersionChanged Optional (oldVersion, newVersion) if mill JVM version changed
    * @param invalidationReasons Optional map from task name to reason string (e.g. "<input changed>")
@@ -133,6 +136,7 @@ object SpanningForest {
       taskEdges: Map[String, Seq[String]],
       interestingTasks: Set[String],
       codeSignatureTree: Option[String] = None,
+      taskMethodSignatures: Map[String, Set[String]] = Map.empty,
       millVersionChanged: Option[(String, String)] = None,
       millJvmVersionChanged: Option[(String, String)] = None,
       invalidationReasons: Map[String, String] = Map.empty,
@@ -202,7 +206,7 @@ object SpanningForest {
 
         if (reason == "<code changed>" && parsedCodeSigTree.isDefined) {
           // Merge code signature tree for code changes
-          val merged = mergeCodeSignatureTree(treeForReason, parsedCodeSigTree.get)
+          val merged = mergeCodeSignatureTree(treeForReason, parsedCodeSigTree.get, taskMethodSignatures)
           // Add merged entries directly to result (not under a reason key)
           merged.value.foreach { case (k, v) => result(k) = v }
         } else {
@@ -213,7 +217,7 @@ object SpanningForest {
     } else {
       // No reason grouping - just merge with code signature tree
       parsedCodeSigTree match {
-        case Some(codeSigTree) => mergeCodeSignatureTree(simplifiedTree, codeSigTree)
+        case Some(codeSigTree) => mergeCodeSignatureTree(simplifiedTree, codeSigTree, taskMethodSignatures)
         case None => simplifiedTree
       }
     }
@@ -256,8 +260,15 @@ object SpanningForest {
    * Merges the code signature spanning tree with the task invalidation tree.
    * For each root task with a code path, wraps it (and its children) with the code path.
    * Preserves task dependency structure (nested tasks remain nested).
+   *
+   * @param taskMethodSignatures Map from task name to its method signature prefixes.
+   *                             Used to match tasks to their code paths in the spanning tree.
    */
-  def mergeCodeSignatureTree(baseTree: ujson.Obj, spanningTree: ujson.Value): ujson.Obj = {
+  def mergeCodeSignatureTree(
+      baseTree: ujson.Obj,
+      spanningTree: ujson.Value,
+      taskMethodSignatures: Map[String, Set[String]]
+  ): ujson.Obj = {
     val result = ujson.Obj()
 
     // Group root tasks by their code path
@@ -265,7 +276,7 @@ object SpanningForest {
     val tasksWithoutPath = collection.mutable.Buffer[(String, ujson.Value)]()
 
     for ((taskName, subtree) <- baseTree.value) {
-      findPathForTask(taskName, spanningTree) match {
+      findPathForTask(taskName, spanningTree, taskMethodSignatures) match {
         case Some(path) if path.nonEmpty =>
           // Task has a code path - wrap it with the path, preserving its children
           tasksByPath.getOrElseUpdate(path, collection.mutable.Buffer()) += ((taskName, subtree))
@@ -314,41 +325,46 @@ object SpanningForest {
    * Finds the path of def/call nodes in the spanning tree that leads to a
    * method signature matching the given task name.
    *
-   * Task names like "foo.compile" can match:
-   * 1. Task method signatures like "def build_.package_$foo$#compile()..."
-   * 2. Module method signatures like "def build_.package_#foo()..." when the
-   *    module constructor was changed
+   * @param taskMethodSignatures Map from task name to its method signature prefixes.
+   *                             These signatures are computed via CodeSigUtils and contain
+   *                             the class name where the task is defined (e.g., "build_.package_$foo$#compile()").
    *
-   * We find the deepest matching method in the tree.
+   * We find the deepest matching method in the tree - either a direct match for the task method,
+   * or a method that references the task's enclosing class (for module-level changes).
    */
-  def findPathForTask(taskName: String, tree: ujson.Value): Option[Seq[String]] = {
-    val parts = taskName.split('.')
-    if (parts.isEmpty) return None
+  def findPathForTask(
+      taskName: String,
+      tree: ujson.Value,
+      taskMethodSignatures: Map[String, Set[String]]
+  ): Option[Seq[String]] = {
+    // Get the method signatures for this task (computed via CodeSigUtils)
+    // These have format like "build_.package_$foo$#compile()"
+    val signatures = taskMethodSignatures.getOrElse(taskName, Set.empty)
 
-    val taskMethod = parts.last
-    val moduleParts = parts.init
-
-    // Build patterns to match method signatures
-    // For "foo.compile", we look for:
-    // 1. #compile( in a class containing $foo$
-    // 2. #foo() for the module definition itself
-    val lastModuleName = if (moduleParts.nonEmpty) moduleParts.last else taskMethod
+    // Extract class names from signatures (the part before #)
+    val classNames = signatures.flatMap { sig =>
+      sig.split('#').headOption
+    }
 
     def matchesTask(key: String): Boolean = {
+      // Only match "def" nodes (method definitions), not "call" nodes
       if (!key.startsWith("def ")) return false
 
-      // Match task method: contains the module class and task method name
-      val matchesTaskMethod = key.contains(s"#$taskMethod(") ||
-        key.contains(s"#$taskMethod$$")
+      val signature = key.stripPrefix("def ")
 
-      // Match module method: ends with #moduleName()
-      val matchesModuleMethod = key.contains(s"#$lastModuleName()")
+      // Check for direct task method match (e.g., "build_.package_$foo$#compile()...")
+      val directMatch = signatures.exists(sig => signature.startsWith(sig))
 
-      // Also check for the module class pattern
-      val moduleClassPattern = moduleParts.map(p => s"$$${p}$$").mkString
-      val containsModuleClass = moduleClassPattern.isEmpty || key.contains(moduleClassPattern)
+      // Check for class-level match (e.g., method returns or references the task's class)
+      // This handles cases where the module constructor changed but not the task method
+      val classMatch = classNames.exists { cls =>
+        // Method returns this class (e.g., "build_.package_#foo()build_.package_$foo$")
+        signature.endsWith(cls) ||
+        // Method is defined in this class (e.g., "build_.package_$foo$#<init>...")
+        signature.startsWith(cls + "#")
+      }
 
-      (matchesTaskMethod || matchesModuleMethod) && containsModuleClass
+      directMatch || classMatch
     }
 
     // Find the deepest matching method in the tree
