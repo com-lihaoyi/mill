@@ -157,26 +157,13 @@ bar.sources
     "bar.allSources": {
       "bar.allSourceFiles": {
         "bar.compile": {
-          "bar.localRunClasspath": {
-            "bar.localClasspath": {
-              "bar.test.transitiveLocalClasspath": {
-                "bar.test.runClasspath": {
+          "bar.test.compileClasspath": {
+            "bar.test.compile": {
+              "bar.test.localRunClasspath": {
+                "bar.test.testClasspath": {
                   "bar.test.testForked": {}
-                }
-              },
-              "foo.test.transitiveLocalClasspath": {
-                "foo.test.runClasspath": {
-                  "foo.test.testForked": {}
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
+...
+ 
 
 */
 

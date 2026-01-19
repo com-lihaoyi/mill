@@ -3,16 +3,16 @@ bsp] BSP server started
 1-buildInitialize] Entered buildInitialize
 1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 1-buildInitialize] buildInitialize took * msec
-bsp-init-mill-build/build.mill-65] compiling * Scala sources to * ...
-bsp-init-mill-build/build.mill-65] done compiling
-bsp-init-build.mill-65] compiling * Scala sources to * ...
-bsp-init-build.mill-65] [warn] build.mill:107:18
-bsp-init-build.mill-65]   def theThing = thing
-bsp-init-build.mill-65]                  ^^^^^
-bsp-init-build.mill-65] method thing in object diag is deprecated since 0.0.1: deprecated
-bsp-init-build.mill-65] 
-bsp-init-build.mill-65] [warn] one warning found
-bsp-init-build.mill-65] done compiling
+bsp-init-mill-build/build.mill-59] compiling * Scala sources to * ...
+bsp-init-mill-build/build.mill-59] done compiling
+bsp-init-build.mill-59] compiling * Scala sources to * ...
+bsp-init-build.mill-59] [warn] build.mill:107:18
+bsp-init-build.mill-59]   def theThing = thing
+bsp-init-build.mill-59]                  ^^^^^
+bsp-init-build.mill-59] method thing in object diag is deprecated since 0.0.1: deprecated
+bsp-init-build.mill-59] 
+bsp-init-build.mill-59] [warn] one warning found
+bsp-init-build.mill-59] done compiling
 bsp-init] BSP disabled for target file:///workspace/skipped
 bsp-init] app
 bsp-init] delayed
