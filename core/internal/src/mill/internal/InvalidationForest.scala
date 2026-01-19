@@ -13,16 +13,6 @@ object InvalidationForest {
    * - Task dependency spanning forest
    * - Code signature spanning tree (showing method call chains)
    * - Version change nodes (mill-version-changed, mill-jvm-version-changed)
-   *
-   * @param interGroupDeps Map from task to its upstream dependencies (forward dependency graph)
-   * @param transitiveNamed Tasks for computing method signatures (used when merging with code signature tree)
-   * @param uncachedTasks If provided, computes interestingTasks from uncached tasks (filters Input tasks without downstream)
-   * @param edgeFilter If provided, only include edges from tasks in this set
-   * @param interestingTasks If uncachedTasks not provided, use these tasks directly
-   * @param resolvedTasks Optional set of task names that were directly resolved (for filtering)
-   * @param codeSignatureTree Optional code signature spanning tree (JSON string to avoid classloader issues)
-   * @param millVersionChanged Optional (oldVersion, newVersion) if mill version changed
-   * @param millJvmVersionChanged Optional (oldVersion, newVersion) if mill JVM version changed
    */
   def buildInvalidationTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
