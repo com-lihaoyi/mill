@@ -136,8 +136,10 @@ object CodeSigUtils {
 
     // Look up constructor signatures for all enclosing modules.
     // constructorHashSignatures maps class name -> Seq[(full signature, hash)]
+    // Strip trailing $ since Scala object class names end with $ but constructor signatures don't
     val constructorSignatures = enclosingModules(namedTask).flatMap { m =>
-      constructorHashSignatures.getOrElse(m.getClass.getName, Nil).map(_._1)
+      val className = m.getClass.getName.stripSuffix("$")
+      constructorHashSignatures.getOrElse(className, Nil).map(_._1)
     }
 
     taskMethodSignatures ++ constructorSignatures
