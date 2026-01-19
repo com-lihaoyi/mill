@@ -64,10 +64,13 @@ object InvalidationForest {
     val versionChangeNodes = computeVersionChangeNodes(previousVersions)
 
     // Build the graph including version change nodes
-    // Version change nodes have edges to all root invalidated tasks (they invalidate everything)
+    // Version change nodes have edges to ALL named tasks (they invalidate everything)
     val versionChangeEdges: Map[String, Seq[String]] =
       if (versionChangeNodes.isEmpty) Map.empty
-      else versionChangeNodes.map(node => node -> rootInvalidatedTaskStrings.toSeq).toMap
+      else {
+        val allNamedTaskStrings = transitiveNamed.map(_.toString)
+        versionChangeNodes.map(node => node -> allNamedTaskStrings).toMap
+      }
 
     val allEdges = taskEdges ++ versionChangeEdges
     val allNodes = (allEdges.keys ++ allEdges.values.flatten ++ rootInvalidatedTaskStrings)
@@ -94,6 +97,7 @@ object InvalidationForest {
       case Some(codeSigTree) =>
         val (classToTransitiveClasses, allTransitiveClassMethods) =
           CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
+
         val taskMethodSignatures = methodSignaturePrefixesForTasks(
           transitiveNamed,
           classToTransitiveClasses,
