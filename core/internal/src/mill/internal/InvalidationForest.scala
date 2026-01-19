@@ -139,8 +139,8 @@ object InvalidationForest {
       findPathForTask(taskName, spanningTree, taskMethodSignatures) match {
         case Some(path) if path.nonEmpty =>
           tasksByPath.getOrElseUpdate(path, collection.mutable.Buffer()) += ((taskName, subtree))
-        case _ =>
-          tasksWithoutPath += ((taskName, subtree))
+
+        case _ => tasksWithoutPath += ((taskName, subtree))
       }
     }
 
