@@ -126,89 +126,64 @@ object InvalidationForest {
 
   /**
    * Merges the code signature spanning tree with the task invalidation tree.
-   * For each root task with a code path, wraps it (and its children) with the code path.
-   * Preserves task dependency structure (nested tasks remain nested).
+   * Does a single traversal of the code signature tree, attaching task subtrees
+   * at matching method nodes, and pruning branches with no matching tasks.
    */
   private def mergeCodeSignatureTree(
       baseTree: ujson.Obj,
-      spanningTree: ujson.Value,
+      codeTree: ujson.Value,
       taskMethodSignatures: Map[String, Set[String]]
   ): ujson.Obj = {
-    val result = ujson.Obj()
-
-    // Group root tasks by their code path
-    val tasksByPath = collection.mutable.Map[Seq[String], collection.mutable.Buffer[(String, ujson.Value)]]()
-    val tasksWithoutPath = collection.mutable.Buffer[(String, ujson.Value)]()
-
-    for ((taskName, subtree) <- baseTree.value) {
-      findPathForTask(taskName, spanningTree, taskMethodSignatures) match {
-        case Some(path) if path.nonEmpty =>
-          tasksByPath.getOrElseUpdate(path, collection.mutable.Buffer()) += ((taskName, subtree))
-
-        case _ => tasksWithoutPath += ((taskName, subtree))
+    // Build reverse map: method signature prefix -> list of (taskName, subtree)
+    val signatureToTasks: Map[String, Seq[(String, ujson.Value)]] = baseTree.value.toSeq
+      .flatMap { case (taskName, subtree) =>
+        taskMethodSignatures.getOrElse(taskName, Set.empty).map(sig => sig -> (taskName, subtree))
       }
-    }
+      .groupMap(_._1)(_._2)
 
-    // For each unique code path, create a single entry with all tasks underneath
-    for ((path, tasks) <- tasksByPath) {
-      for ((k, v) <- wrapWithPath(path, ujson.Obj.from(tasks)).obj.value) {
-        result.value.get(k) match {
-          case Some(existing: ujson.Obj) => deepMerge(existing, v.obj)
-          case _ => result(k) = v
-        }
-      }
-    }
+    val matchedTasks = collection.mutable.Set[String]()
 
-    for ((taskName, subtree) <- tasksWithoutPath) result(taskName) = subtree
-
-    result
-  }
-
-  /**
-   * Finds the path of def/call nodes in the spanning tree that leads to a
-   * method signature matching the given task name.
-   */
-  private def findPathForTask(
-      taskName: String,
-      tree: ujson.Value,
-      taskMethodSignatures: Map[String, Set[String]]
-  ): Option[Seq[String]] = {
-    val signatures = taskMethodSignatures.getOrElse(taskName, Set.empty)
-    val classNames = signatures.flatMap(_.split('#').headOption)
-
-    def matchesTask(key: String): Boolean = key match{
+    def findMatchingTasks(key: String): Seq[(String, ujson.Value)] = key match {
       case s"def $signature" =>
-        val directMatch = signatures.exists(sig => signature.startsWith(sig))
-        val classMatch = classNames.exists { cls =>
-          signature.endsWith(cls) || signature.startsWith(cls + "#")
-        }
-        directMatch || classMatch
-      case _ => false
+        signatureToTasks.iterator
+          .filter { case (sig, _) => signature.startsWith(sig) }
+          .flatMap(_._2)
+          .filterNot { case (taskName, _) => matchedTasks.contains(taskName) }
+          .toSeq
+      case _ => Nil
     }
 
-    def findDeepest(node: ujson.Value, currentPath: Seq[String]): Option[Seq[String]] = node match {
-      case obj: ujson.Obj =>
-        obj.value.foldLeft(Option.empty[Seq[String]]) { case (acc, (key, value)) =>
-          val newPath = currentPath :+ key
-          val childMatch = findDeepest(value, newPath)
-          // Prefer deeper matches, then current match, then previous accumulator
-          childMatch.orElse(Option.when(matchesTask(key))(newPath)).orElse(acc)
+    // Single-pass traversal: recurse into children, attach matching tasks, prune empty branches
+    def traverse(node: ujson.Value): Option[ujson.Obj] = {
+      val result = ujson.Obj()
+      for ((key, value) <- node.obj.value) {
+        // First, recurse into children
+        traverse(value).foreach(child => result(key) = child)
+
+        // Then check if this node matches any tasks
+        val tasks = findMatchingTasks(key)
+        if (tasks.nonEmpty) {
+          val tasksObj = result.value.get(key) match {
+            case Some(obj: ujson.Obj) => obj
+            case _ => ujson.Obj()
+          }
+          for ((taskName, subtree) <- tasks) {
+            tasksObj(taskName) = subtree
+            matchedTasks += taskName
+          }
+          result(key) = tasksObj
         }
-      case _ => None
-    }
-
-    findDeepest(tree, Seq.empty)
-  }
-
-  private def wrapWithPath(path: Seq[String], content: ujson.Value): ujson.Value =
-    path.foldRight(content)((key, inner) => ujson.Obj(key -> inner))
-
-  private def deepMerge(target: ujson.Obj, source: ujson.Obj): Unit = {
-    for ((k, v) <- source.value) {
-      target.value.get(k) match {
-        case Some(existing: ujson.Obj) => deepMerge(existing, v.obj)
-        case _ => target(k) = v
       }
+      if (result.value.nonEmpty) Some(result) else None
     }
+
+    val merged = traverse(codeTree).getOrElse(ujson.Obj())
+
+    // Add any tasks that weren't matched to a code path
+    for ((taskName, subtree) <- baseTree.value if !matchedTasks.contains(taskName)) {
+      merged(taskName) = subtree
+    }
+
+    merged
   }
 }
