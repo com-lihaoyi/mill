@@ -42,7 +42,7 @@ object MillLauncherMain {
     val runNoDaemon = parsedConfig.exists(_.noDaemonEnabled > 0) || bspMode
 
     val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
-    if (env.get("MILL_TEST_EXIT_AFTER_BSP_CHECK") != null) return 0
+    if (env.contains("MILL_TEST_EXIT_AFTER_BSP_CHECK")) return 0
     val outDir = OutFiles.OutFiles.outFor(outMode)
     val logFile = os.Path(outDir, workDir) / "mill-launcher/log"
     val formatter =
@@ -72,7 +72,7 @@ object MillLauncherMain {
         val launcher = new MillServerLauncher(
           stdout = stdout,
           stderr = stderr,
-          env = env.asScala.toMap,
+          env = env,
           args = optsArgs,
           forceFailureForTestingMillisDelay = -1,
           useFileLocks = useFileLocks,

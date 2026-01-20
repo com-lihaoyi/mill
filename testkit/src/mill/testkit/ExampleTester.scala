@@ -235,48 +235,31 @@ ${expectedSnippets.mkString("\n")}
   }
 
   private def runMillInMemory(millArgs: Seq[String]): IntegrationTester.EvalResult = {
-    val stdoutBaos = new ByteArrayOutputStream()
-    val stderrBaos = new ByteArrayOutputStream()
-    // Create print streams that also echo to console
-    val stdoutPs = new PrintStream(stdoutBaos) {
-      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-        super.write(b, off, len)
-        System.out.write(b, off, len)
-      }
-    }
-    val stderrPs = new PrintStream(stderrBaos) {
-      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-        super.write(b, off, len)
-        System.err.write(b, off, len)
-      }
-    }
+    // Collect chunks in order, similar to how OS-Lib does it.
+    // All output goes to Left (stdout) to match bash's mergeErrIntoOut = true behavior.
+    val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
 
-    // Merge env with current system env and test suite env
-    val mergedEnv = new java.util.HashMap[String, String]()
-    System.getenv().forEach((k, v) => mergedEnv.put(k, v))
-    millTestSuiteEnv.foreach { case (k, v) => mergedEnv.put(k, v) }
+    def makeChunkingStream(dest: java.io.PrintStream): PrintStream =
+      new PrintStream(new ByteArrayOutputStream()) {
+        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+          val bytes = java.util.Arrays.copyOfRange(b, off, off + len)
+          chunks.synchronized { chunks += Left(new geny.Bytes(bytes)) }
+          dest.write(b, off, len)
+        }
+      }
 
     val exitCode = MillLauncherMain.main0(
       args = millArgs.toArray,
-      stdout = stdoutPs,
-      stderr = stderrPs,
-      env = mergedEnv,
+      stdout = makeChunkingStream(System.out),
+      stderr = makeChunkingStream(System.err),
+      env = sys.env ++ millTestSuiteEnv,
       workDir = workspacePath
     )
 
-    stdoutPs.flush()
-    stderrPs.flush()
-
-    val stdoutBytes = stdoutBaos.toByteArray
-    val stderrBytes = stderrBaos.toByteArray
-
-    // Create a mock os.CommandResult - merge stdout and stderr into stdout
-    // since the bash version uses mergeErrIntoOut = true
-    val combinedBytes = stdoutBytes ++ stderrBytes
     val result = new os.CommandResult(
       command = Seq("mill") ++ millArgs,
       exitCode = exitCode,
-      chunks = Seq(Left(new geny.Bytes(combinedBytes)))
+      chunks = chunks.toSeq
     )
 
     IntegrationTester.EvalResult(result)
