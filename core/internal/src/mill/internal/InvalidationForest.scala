@@ -68,21 +68,10 @@ object InvalidationForest {
         val downstreamAllEdges = combineEdges(downstreamTaskEdges, downstreamCodeEdges)
 
         val allNodes = {
-          // For rendering the invalidation tree, we include task nodes downstream of the
-          // `rootInvalidatedTaskStrings``, and method nodes upstream of `rootInvalidatedTaskStrings`,
-          // but ignore the others since other nodes would not be related to this invalidation
-          val allTaskNodes =
-            SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(
-              _,
-              Nil
-            ))
-          val upstreamCodeEdges = SpanningForest.reverseEdges(downstreamCodeEdges)
-          val relevantCodeNodes =
-            SpanningForest.breadthFirst(rootInvalidatedTaskStrings)(upstreamCodeEdges.getOrElse(
-              _,
-              Nil
-            ))
-          (relevantCodeNodes ++ allTaskNodes).toArray.distinct.sorted
+          val allTaskNodes = SpanningForest
+            .breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
+          
+          (downstreamCodeEdges.map(_._1) ++ allTaskNodes).toArray.sorted
         }
 
         val nodeToIndex = allNodes.zipWithIndex.toMap
@@ -93,7 +82,18 @@ object InvalidationForest {
           ),
           importantVertices = allNodes.indices.toSet
         )
+        
+        def trimRecursive(node: SpanningForest.Node): Unit = {
+          node.values.valuesIterator.foreach(trimRecursive)
+          node.values.filterInPlace{ case (index, child) =>
+            allNodes(index) match{
+              case s"def $_" | s"call $_" => child.values.nonEmpty
+              case _ => true  
+            }
+          }
+        }
 
+        trimRecursive(forest)
         SpanningForest.spanningTreeToJsonTree(forest, allNodes(_))
     }
   }
