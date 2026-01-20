@@ -102,7 +102,7 @@ jobs:
             millargs: "'example.thirdparty[{acyclic,fansi,gatling}].native.daemon'"
             java-version: 21
 
-          - os: macos-14
+          - os: macos-15-intel
             millargs: "'example.thirdparty[{jimfs,commons-io}].native.daemon'"
             java-version: 24
     steps:
