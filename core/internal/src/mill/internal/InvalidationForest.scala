@@ -70,6 +70,8 @@ object InvalidationForest {
 
         val taskForest = buildTaskForest(rootInvalidatedTaskStrings, downstreamTaskEdges0)
 
+        // Using the `crossEdges` to identify connection points where we splice
+        // a top-level tree from `taskForest` into `methodForest`.
         def combineRecursive(node: ujson.Value): Unit = {
           node.obj.valuesIterator.foreach(combineRecursive)
           for (key <- node.obj.keysIterator.toArray) {
@@ -83,8 +85,11 @@ object InvalidationForest {
           }
         }
 
+
         combineRecursive(methodForest)
+        // Any un-spliced top-level trees from taskForest become top-level trees in methodForest
         for ((k, v) <- taskForest.obj) methodForest(k) = v
+
         methodForest.asInstanceOf[ujson.Obj]
     }
   }
