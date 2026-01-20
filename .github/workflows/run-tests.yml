@@ -26,10 +26,11 @@
 
 
 
-# We run full CI on push builds to main and on all pull requests
+# We run full CI on push builds to main and a subset via selective execution on all pull requests
 #
-# To maximize bug-catching changes while keeping CI times reasonable, we run
-# tests scattered between Java 11/17/24, across linux/mac/windows, intel/arm
+# We run most tests on the same version to maximize cache compatibility with the
+# build-linux/build-windows jobs, but a few are run on other JVM versions to
+# verify cross-version compatibility
 
 
 name: Run Tests
@@ -100,11 +101,11 @@ jobs:
 
           - os: macos-latest
             millargs: "'example.thirdparty[{acyclic,fansi,gatling}].native.daemon'"
-            java-version: 21
+            java-version: 19
 
           - os: macos-15-intel
             millargs: "'example.thirdparty[{jimfs,commons-io}].native.daemon'"
-            java-version: 24
+            java-version: 23
     steps:
       - uses: actions/checkout@v5
         with: { fetch-depth: 1 }
@@ -136,58 +137,43 @@ jobs:
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
           # We also try to group tests together to manually balance out the runtimes of each jobs
-          - java-version: 17
-            millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
+          - millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
 
-          - java-version: 17
-            millargs: "'libs.{scalalib,init,tabcomplete}.__.test'"
+          - millargs: "'libs.{scalalib,init,tabcomplete}.__.test'"
             install-sbt: true
 
-          - java-version: 21
-            millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
+          - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
 
-          - java-version: 17
-            millargs: "example.kotlinlib.__.shared.daemon"
+          - millargs: "example.kotlinlib.__.shared.daemon"
 
-          - java-version: 17
-            millargs: "example.scalalib.__.shared.daemon"
+          - millargs: "example.scalalib.__.shared.daemon"
 
-          - java-version: 21
-            millargs: "example.javalib.__.shared.daemon"
+          - millargs: "example.javalib.__.shared.daemon"
 
-          - java-version: 17
-            millargs: "example.androidlib.__.shared.daemon"
+          - millargs: "example.androidlib.__.shared.daemon"
             setup-android: true
 
-          - java-version: 17
-            millargs: "example.thirdparty.android-compose-samples.packaged.daemon"
+          - millargs: "example.thirdparty.android-compose-samples.packaged.daemon"
             setup-android: true
 
-          - java-version: 24
-            millargs: "example.migrating.scalalib.__.shared.daemon"
+          - millargs: "example.migrating.scalalib.__.shared.daemon"
             install-sbt: true
 
-          - java-version: 24
-            millargs: "'example.{groovylib,pythonlib,javascriptlib}.__.shared.daemon'"
+          - millargs: "'example.{groovylib,pythonlib,javascriptlib}.__.shared.daemon'"
 
-          - java-version: 21
-            millargs: "'example.{cli,fundamentals,depth,extending,large}.__.shared.daemon'"
+          - millargs: "'example.{cli,fundamentals,depth,extending,large}.__.shared.daemon'"
 
-          - java-version: 21
-            millargs: "'integration.{feature,ide}.__.proguard.daemon'"
+          - millargs: "'integration.{feature,ide}.__.proguard.daemon'"
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
-          - java-version: 17
-            millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
+          - millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
-          - java-version: 24
-            millargs: "integration.invalidation.__.packaged.nodaemon"
+          - millargs: "integration.invalidation.__.packaged.nodaemon"
 
-          - java-version: 17
-            millargs: "integration.migrating.__.packaged.daemon"
+          - millargs: "integration.migrating.__.packaged.daemon"
             install-sbt: true
 
     uses: ./.github/workflows/post-build-selective.yml
@@ -195,7 +181,7 @@ jobs:
       setup-android: ${{ matrix.setup-android || false }}
       install-sbt: ${{ matrix.install-sbt || false }}
       install-xvfb: ${{ matrix.install-xvfb || false }}
-      java-version: ${{ matrix.java-version }}
+      java-version: 21
       millargs: ${{ matrix.millargs }}
       shell: bash
 
@@ -205,32 +191,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - java-version: 24
-            millargs: "integration.invalidation.__.packaged.daemon"
+          - millargs: "integration.invalidation.__.packaged.daemon"
 
-          - java-version: 17
-            # turn of parallelism since it sometimes causes issues with concurrent migrations
+          - # turn of parallelism since it sometimes causes issues with concurrent migrations
             millargs: "example.migrating.javalib.__.packaged.daemon"
             extra: "--jobs=1"
-          - java-version: 21
-            millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
 
-          - java-version: 17
-            millargs: '"example.scalalib.{basic,publishing}.__.proguard.daemon"'
+          - millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
 
-          - java-version: 17
-            millargs: "dist.scripts.test" # run this on both windows and mac to exercise bootstrap scripts
+          - millargs: '"example.scalalib.{basic,publishing}.__.proguard.daemon"'
 
-          - java-version: 17
-            millargs: "'integration.failure.__.packaged.nodaemon'"
+          - millargs: "dist.scripts.test" # run this on both windows and mac to exercise bootstrap scripts
 
-          - java-version: 17
-            millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
+          - millargs: "'integration.failure.__.packaged.nodaemon'"
+
+          - millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
       os: windows-latest
-      java-version: ${{ matrix.java-version }}
+      java-version: 21
       millargs: ${{ matrix.millargs }}
       extra: ${{ matrix.extra || '' }}
       shell: powershell
@@ -242,7 +222,7 @@ jobs:
       matrix:
         include:
           # bootstrap tests
-          - java-version: 17
+          - java-version: 24
             buildcmd: ci/test-dist-run.sh && ci/test-mill-bootstrap.sh
 
     uses: ./.github/workflows/post-build-raw.yml

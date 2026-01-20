@@ -12,7 +12,7 @@ import millbuild.*
 
 object `package` extends Module {
 
-  object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
+  object js extends Cross[JsModule]("2.12.21", "2.13.18", "3.7.1")
   trait JsModule extends ProjectBaseModule, ScalaJSModule {
 
     def scalaJSVersion = "1.16.0"
@@ -32,7 +32,7 @@ object `package` extends Module {
 
   }
 
-  object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
+  object jvm extends Cross[JvmModule]("2.12.21", "2.13.18", "3.7.1")
   trait JvmModule extends ProjectBaseModule {
 
     def artifactName = "dummy"
@@ -48,7 +48,7 @@ object `package` extends Module {
 
   }
 
-  object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
+  object native extends Cross[NativeModule]("2.12.21", "2.13.18", "3.7.1")
   trait NativeModule extends ProjectBaseModule, ScalaNativeModule {
 
     def scalaNativeVersion = "0.5.7"

@@ -53,11 +53,13 @@ object `package` extends mill.Module {
   }
 
   object twirllib extends ContribModule {
+    def jvmVersion = "17"
     def compileModuleDeps = Seq(build.libs.javalib)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 
   object playlib extends ContribModule {
+    def jvmVersion = "17"
     def moduleDeps = Seq(twirllib, playlib.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
@@ -104,6 +106,7 @@ object `package` extends mill.Module {
   }
 
   object scoverage extends ContribModule {
+    override def jvmVersion = "17"
     object api extends MillPublishJavaModule
 
     def moduleDeps = Seq(scoverage.api)
