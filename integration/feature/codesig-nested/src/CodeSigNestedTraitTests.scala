@@ -73,7 +73,7 @@ object CodeSigNestedTraitTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        ArraySeq(
+        Seq(
           "{",
           "  \"def build_.package_$TraitOuter.$init$(build_.package_$TraitOuter)void\": {",
           "    \"call build_.package_$TraitOuter.$init$(build_.package_$TraitOuter)void\": {",

@@ -62,12 +62,6 @@ object InvalidationForest {
           rootInvalidatedTasks
         )
 
-        val crossEdges = downstreamMethodEdges
-          .map { case (k, vs) =>
-            (k, vs.filter { case s"def $_" | s"call $_" => false; case _ => true })
-          }
-          .filter(_._2.nonEmpty)
-
         val taskForest = buildTaskForest(rootInvalidatedTaskStrings, downstreamTaskEdges0)
 
         // Using the `crossEdges` to identify connection points where we splice
@@ -76,7 +70,7 @@ object InvalidationForest {
           node.obj.valuesIterator.foreach(combineRecursive)
           for (key <- node.obj.keysIterator.toArray) {
             for {
-              crossKeys <- crossEdges.get(key)
+              crossKeys <- downstreamMethodEdges.get(key)
               crossKey <- crossKeys
               subTaskTree <- taskForest.obj.remove(crossKey)
             } node.obj(key)(crossKey) = subTaskTree
@@ -98,11 +92,11 @@ object InvalidationForest {
       rootInvalidatedTaskStrings: collection.Seq[String],
       downstreamTaskEdges0: Map[Task[?], Vector[Task[?]]]
   ) = {
-    val allTaskNodes = SpanningForest
-      .breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
-
     val downstreamTaskEdges: Map[String, Seq[String]] = downstreamTaskEdges0
       .map { case (k, vs) => k.toString -> vs.map(_.toString) }
+
+    val allTaskNodes = SpanningForest
+      .breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
 
     val taskNodeToIndex = allTaskNodes.zipWithIndex.toMap
 
