@@ -587,7 +587,7 @@ object MillMain0 {
       successColor = colors.success,
       systemStreams0 = streams,
       debugEnabled = config.debugLog.value,
-      titleText = config.leftoverArgs.value.mkString(" "),
+      titleText = "./mill " + config.leftoverArgs.value.mkString(" "),
       terminfoPath = daemonDir / DaemonFiles.terminfo,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)

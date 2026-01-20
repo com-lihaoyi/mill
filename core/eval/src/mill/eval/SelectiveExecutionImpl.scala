@@ -60,10 +60,9 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
-    val millVersionChanged =
-      oldHashes.millVersion.nonEmpty && oldHashes.millVersion != newHashes.millVersion
-    val jvmVersionChanged =
-      oldHashes.millJvmVersion.nonEmpty && oldHashes.millJvmVersion != newHashes.millJvmVersion
+    // Treat any version difference as a change, including when old metadata is missing version info
+    val millVersionChanged = oldHashes.millVersion != newHashes.millVersion
+    val jvmVersionChanged = oldHashes.millJvmVersion != newHashes.millJvmVersion
 
     // If either version changed, treat all tasks as changed
     if (millVersionChanged || jvmVersionChanged) {
@@ -241,7 +240,6 @@ object SelectiveExecutionImpl {
         }
         .toMap
 
-      val transitiveNamedMap = transitiveNamed.map(t => (t.ctx.segments.render, t)).toMap
       val inputHashes = results.map {
         case (task, execResultVal) => (task.ctx.segments.render, execResultVal.get.value.##)
       }
@@ -249,13 +247,8 @@ object SelectiveExecutionImpl {
         new SelectiveExecution.Metadata(
           inputHashes,
           evaluator.codeSignatures,
-          for {
-            (k, _) <- allBuildOverrides
-            // Make sure we deserialize the actual value to hash, rather than hashing the JSON,
-            // since a JSON string may deserialize into a `PathRef` that changes depending on
-            // the files and folders on disk
-            value <- transitiveNamedMap.get(k)
-          } yield (k, value.##),
+          // Hash the actual build override values from YAML files
+          allBuildOverrides.map { case (k, located) => (k, located.value.value.hashCode) },
           forceRunTasks = Set(),
           millVersion = mill.constants.BuildInfo.millVersion,
           millJvmVersion = sys.props("java.version")
