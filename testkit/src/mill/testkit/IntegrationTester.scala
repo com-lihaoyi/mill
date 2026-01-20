@@ -193,7 +193,7 @@ object IntegrationTester {
         if (useInMemory) {
           val argsSeq = shellable.value.toSeq.map(_.toString)
           val millArgs = argsSeq.drop(1).filter(_.nonEmpty)
-          IntegrationTester.evalInMemory(millArgs, cwd, callEnv)
+          IntegrationTester.evalInMemory(millArgs, cwd, callEnv, mergeErrIntoOut)
         } else {
           val res0 = os.call(
             cmd = shellable,
@@ -382,12 +382,25 @@ object IntegrationTester {
   def evalInMemory(
       args: Seq[String],
       workDir: os.Path,
-      env: Map[String, String] = Map.empty
+      env: Map[String, String] = Map.empty,
+      mergeErrIntoOut: Boolean = false
   ): EvalResult = {
-    val stdoutBaos = new ByteArrayOutputStream()
-    val stderrBaos = new ByteArrayOutputStream()
-    val stdoutPs = new PrintStream(stdoutBaos)
-    val stderrPs = new PrintStream(stderrBaos)
+    // Collect chunks in order with synchronization to preserve ordering across streams
+    val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
+
+    def makeChunkingStream(isStdout: Boolean): PrintStream =
+      new PrintStream(new ByteArrayOutputStream()) {
+        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+          val bytes = java.util.Arrays.copyOfRange(b, off, off + len)
+          val chunk = new geny.Bytes(bytes)
+          // When mergeErrIntoOut, all output goes to Left (stdout)
+          val wrapped = if (isStdout || mergeErrIntoOut) Left(chunk) else Right(chunk)
+          chunks.synchronized { chunks += wrapped }
+        }
+      }
+
+    val stdoutPs = makeChunkingStream(isStdout = true)
+    val stderrPs = makeChunkingStream(isStdout = false)
 
     val exitCode = MillLauncherMain.main0(
       args = args.toArray,
@@ -397,17 +410,11 @@ object IntegrationTester {
       workDir = workDir
     )
 
-    val stdoutBytes = stdoutBaos.toByteArray
-    val stderrBytes = stderrBaos.toByteArray
-
     // Create a mock os.CommandResult to wrap in EvalResult
     val result = new os.CommandResult(
       command = args,
       exitCode = exitCode,
-      chunks = Seq(
-        Left(new geny.Bytes(stdoutBytes)),
-        Right(new geny.Bytes(stderrBytes))
-      )
+      chunks = chunks.toSeq
     )
 
     EvalResult(result)
