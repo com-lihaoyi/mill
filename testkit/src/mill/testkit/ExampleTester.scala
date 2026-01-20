@@ -121,10 +121,6 @@ class ExampleTester(
   private val millExt = if (isWindows) ".bat" else ""
   private val daemonFlag = if (daemonMode) "" else "--no-daemon"
 
-  /**
-   * Extracts Mill command arguments from a command string.
-   * Returns Some(args) if this is a Mill command, None otherwise.
-   */
   private def extractMillArgs(commandStr0: String): Option[Seq[String]] = {
     commandStr0 match {
       case s"mill $rest" => Some(parseMillArgs(rest))

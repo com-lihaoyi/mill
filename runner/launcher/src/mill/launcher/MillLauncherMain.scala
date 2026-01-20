@@ -15,25 +15,18 @@ import scala.jdk.CollectionConverters.*
  */
 object MillLauncherMain {
   def main(args: Array[String]): Unit = {
-    System.exit(main0(args))
+    System.exit(main0(args, System.out, System.err, sys.env, os.pwd))
   }
 
   /**
-   * Main entry point that returns exit code instead of calling System.exit.
-   * Used for in-memory testing in the .shared integration test flavor.
-   *
-   * @param args Command line arguments
-   * @param stdout PrintStream for stdout (defaults to System.out)
-   * @param stderr PrintStream for stderr (defaults to System.err)
-   * @param env Environment variables (defaults to System.getenv())
-   * @param workDir Working directory (defaults to os.pwd)
+   * Version of `main` we can call in-memory for use in testes
    */
   def main0(
       args: Array[String],
-      stdout: java.io.PrintStream = System.out,
-      stderr: java.io.PrintStream = System.err,
-      env: java.util.Map[String, String] = System.getenv(),
-      workDir: os.Path = os.pwd
+      stdout: java.io.PrintStream,
+      stderr: java.io.PrintStream,
+      env: Map[String, String],
+      workDir: os.Path
   ): Int = {
     val parsedConfig = MillCliConfig.parse(args).toOption
 

@@ -191,9 +191,7 @@ object IntegrationTester {
 
       def run() = {
         if (useInMemory) {
-          // Extract args from the shellable for in-memory execution
           val argsSeq = shellable.value.toSeq.map(_.toString)
-          // Skip the mill executable path, take everything else as args
           val millArgs = argsSeq.drop(1).filter(_.nonEmpty)
           IntegrationTester.evalInMemory(millArgs, cwd, callEnv)
         } else {
@@ -380,11 +378,6 @@ object IntegrationTester {
   /**
    * Runs Mill in-memory using MillLauncherMain.main0 instead of spawning a subprocess.
    * This is used in the `.shared` integration test flavor for faster execution.
-   *
-   * @param args Mill command line arguments
-   * @param workDir Working directory (test workspace path)
-   * @param env Environment variables to pass to Mill
-   * @return An EvalResult containing the exit code and captured stdout/stderr
    */
   def evalInMemory(
       args: Seq[String],
@@ -396,21 +389,13 @@ object IntegrationTester {
     val stdoutPs = new PrintStream(stdoutBaos)
     val stderrPs = new PrintStream(stderrBaos)
 
-    // Merge env with current system env
-    val mergedEnv = new java.util.HashMap[String, String]()
-    System.getenv().forEach((k, v) => mergedEnv.put(k, v))
-    env.foreach { case (k, v) => mergedEnv.put(k, v) }
-
     val exitCode = MillLauncherMain.main0(
       args = args.toArray,
       stdout = stdoutPs,
       stderr = stderrPs,
-      env = mergedEnv,
+      env = sys.env ++ env,
       workDir = workDir
     )
-
-    stdoutPs.flush()
-    stderrPs.flush()
 
     val stdoutBytes = stdoutBaos.toByteArray
     val stderrBytes = stderrBaos.toByteArray
