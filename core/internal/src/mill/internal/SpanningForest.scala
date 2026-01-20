@@ -91,9 +91,7 @@ object SpanningForest {
    * Build spanning forest, inferring roots as importantVertices with no incoming
    * edges from other importantVertices.
    */
-  def applyInferRoots(
-      indexGraphEdges: Array[Array[Int]],
-      importantVertices: Set[Int]): Node = {
+  def applyInferRoots(indexGraphEdges: Array[Array[Int]], importantVertices: Set[Int]): Node = {
     val destinations = importantVertices.flatMap(indexGraphEdges(_))
     val roots = importantVertices.filter(!destinations.contains(_))
     applyWithRoots(indexGraphEdges, roots, importantVertices)
