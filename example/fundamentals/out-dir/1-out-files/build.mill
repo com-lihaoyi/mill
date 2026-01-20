@@ -245,7 +245,8 @@ out/mill-daemon
 > cat out/mill-invalidation-tree.json
 {
   "def build_.package_$foo$#<init>(build_.package_)void": {
-    "foo.compile": {},
+    "foo.compileGeneratedSources": {
+      "foo.compile": {}
 ...
 
 */
