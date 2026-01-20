@@ -18,7 +18,7 @@
         "file:///workspace/app/test/compile-resources",
         "file:///workspace/app/test/resources",
         "file:///workspace/.bsp/out/app/test/compile.dest/classes",
-        "file:///mill-workspace/out/dist/raw/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/1.1.0-RC4-107-b1ae16-DIRTY45f79b2b/mill-libs-javalib-testrunner-entrypoint-1.1.0-RC4-107-b1ae16-DIRTY45f79b2b.jar",
+        "file:///mill-workspace/out/dist/raw/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
@@ -53,7 +53,7 @@
         "file:///workspace/hello-java/test/compile-resources",
         "file:///workspace/hello-java/test/resources",
         "file:///workspace/.bsp/out/hello-java/test/compile.dest/classes",
-        "file:///mill-workspace/out/dist/raw/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/1.1.0-RC4-107-b1ae16-DIRTY45f79b2b/mill-libs-javalib-testrunner-entrypoint-1.1.0-RC4-107-b1ae16-DIRTY45f79b2b.jar",
+        "file:///mill-workspace/out/dist/raw/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
@@ -89,7 +89,7 @@
         "file:///workspace/hello-scala/test/compile-resources",
         "file:///workspace/hello-scala/test/resources",
         "file:///workspace/.bsp/out/hello-scala/test/compile.dest/classes",
-        "file:///mill-workspace/out/dist/raw/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/1.1.0-RC4-107-b1ae16-DIRTY45f79b2b/mill-libs-javalib-testrunner-entrypoint-1.1.0-RC4-107-b1ae16-DIRTY45f79b2b.jar",
+        "file:///mill-workspace/out/dist/raw/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
@@ -135,7 +135,7 @@
         "file:///workspace/.bsp/out/scripts/folder2/Foo.java/compile.dest/classes",
         "file:///workspace/scripts/folder2/FooTest.java/resources",
         "file:///workspace/.bsp/out/scripts/folder2/FooTest.java/compile.dest/classes",
-        "file:///mill-workspace/out/dist/raw/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/1.1.0-RC4-107-b1ae16-DIRTY45f79b2b/mill-libs-javalib-testrunner-entrypoint-1.1.0-RC4-107-b1ae16-DIRTY45f79b2b.jar",
+        "file:///mill-workspace/out/dist/raw/localRepo.dest/com/lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/mill-libs-javalib-testrunner-entrypoint-SNAPSHOT.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
