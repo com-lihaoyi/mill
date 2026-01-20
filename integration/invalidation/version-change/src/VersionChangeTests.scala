@@ -13,7 +13,6 @@ object VersionChangeTests extends UtestIntegrationTestSuite {
 
       os.write.over(workspacePath / ".mill-jvm-version", "temurin:19.0.2")
 
-
       val javaVersion2 = eval(("javaVersion"))
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),

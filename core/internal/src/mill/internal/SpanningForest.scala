@@ -100,18 +100,16 @@ object SpanningForest {
   def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
     val seen = collection.mutable.Set.empty[T]
     val seenList = collection.mutable.Buffer.empty[T]
-    val queued = collection.mutable.Queue.from(start)
+    val queued = collection.mutable.Queue.empty[T]
+
+    // Add starting nodes, deduplicating and tracking in seen
+    for (s <- start.iterator if seen.add(s)) queued.enqueue(s)
 
     while (queued.nonEmpty) {
       val current = queued.dequeue()
       seenList.append(current)
 
-      for (next <- edges(current).iterator) {
-        if (!seen.contains(next)) {
-          seen.add(next)
-          queued.enqueue(next)
-        }
-      }
+      for (next <- edges(current).iterator if seen.add(next)) queued.enqueue(next)
     }
     seenList.toSeq
   }

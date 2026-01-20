@@ -50,7 +50,8 @@ object CodeSigHelloTests extends UtestIntegrationTestSuite {
           "    }",
           "  }",
           "}"
-      ))
+        )
+      )
 
       val cached2 = eval("foo")
       assert(cached2.out == "")

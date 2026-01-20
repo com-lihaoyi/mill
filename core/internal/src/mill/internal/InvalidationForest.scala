@@ -63,32 +63,21 @@ object InvalidationForest {
         )
 
         val crossCodeEdges = downstreamCodeEdges
-          .map{case (k, vs) => (k, vs.filter{case s"def $_" | s"call $_" => false; case _ => true})}
+          .map { case (k, vs) =>
+            (k, vs.filter { case s"def $_" | s"call $_" => false; case _ => true })
+          }
           .filter(_._2.nonEmpty)
 
-        val downstreamTaskEdges: Map[String, Seq[String]] = downstreamTaskEdges0
-          .map { case (k, vs) => k.toString -> vs.map(_.toString) }
+        val taskForest: ujson.Obj =
+          buildTaskForest(rootInvalidatedTaskStrings, downstreamTaskEdges0)
 
-        val allTaskNodes = SpanningForest
-          .breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
-
-        val taskNodeToIndex = allTaskNodes.zipWithIndex.toMap
-
-        val taskForest = SpanningForest.applyInferRoots(
-          indexGraphEdges = allTaskNodes
-            .map(n => downstreamTaskEdges.getOrElse(n, Nil).flatMap(taskNodeToIndex.get).toArray)
-            .toArray,
-          importantVertices = allTaskNodes.indices.toSet
-        )
-
-        val taskTree = SpanningForest.spanningTreeToJsonTree(taskForest, allTaskNodes(_))
         def combineRecursive(node: ujson.Value): Unit = {
           node.obj.valuesIterator.foreach(combineRecursive)
-          for(key <- node.obj.keysIterator.toArray){
-            for{
+          for (key <- node.obj.keysIterator.toArray) {
+            for {
               crossKeys <- crossCodeEdges.get(key)
               crossKey <- crossKeys
-              subTaskTree <- taskTree.obj.remove(crossKey)
+              subTaskTree <- taskForest.obj.remove(crossKey)
             } node.obj(key)(crossKey) = subTaskTree
 
             if (node.obj(key).obj.isEmpty) node.obj.remove(key)
@@ -96,9 +85,31 @@ object InvalidationForest {
         }
 
         combineRecursive(methodForest)
-        for((k, v) <- taskTree.obj) methodForest(k) = v
+        for ((k, v) <- taskForest.obj) methodForest(k) = v
         methodForest.asInstanceOf[ujson.Obj]
     }
+  }
+
+  def buildTaskForest(
+      rootInvalidatedTaskStrings: collection.Seq[String],
+      downstreamTaskEdges0: Map[Task[?], Vector[Task[?]]]
+  ) = {
+    val allTaskNodes = SpanningForest
+      .breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
+
+    val downstreamTaskEdges: Map[String, Seq[String]] = downstreamTaskEdges0
+      .map { case (k, vs) => k.toString -> vs.map(_.toString) }
+
+    val taskNodeToIndex = allTaskNodes.zipWithIndex.toMap
+
+    val taskForest = SpanningForest.applyInferRoots(
+      indexGraphEdges = allTaskNodes
+        .map(n => downstreamTaskEdges.getOrElse(n, Nil).flatMap(taskNodeToIndex.get).toArray)
+        .toArray,
+      importantVertices = allTaskNodes.indices.toSet
+    )
+
+    SpanningForest.spanningTreeToJsonTree(taskForest, allTaskNodes(_))
   }
 
   /**
@@ -121,7 +132,9 @@ object InvalidationForest {
       // Build constructorHashSignatures from tree nodes (signatures have "def " prefix)
       // We use 0 for hash since we only need the signatures for matching, not the hashes
       val constructorHashSignatures: Map[String, Seq[(String, Int)]] = nodes.toSeq
-        .collect { case sig @ s"def $prefix#<init>($_)void" => (prefix, sig.stripPrefix("def "), 0) }
+        .collect { case sig @ s"def $prefix#<init>($_)void" =>
+          (prefix, sig.stripPrefix("def "), 0)
+        }
         .groupMap(_._1)(t => (t._2, t._3))
 
       // Map from method signature (with "def " prefix) to tasks affected by that method
