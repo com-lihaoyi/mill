@@ -56,26 +56,25 @@ object InvalidationForest {
         val downstreamTaskEdges0 = SpanningForest.reverseEdges(upstreamTaskEdges0)
 
         // Code edges: method->method and method->task from code signature tree
-        val (methodForest, downstreamCodeEdges) = extractCodeEdges(
+        val (methodForest, downstreamMethodEdges) = extractMethodEdges(
           codeSignatureTree,
           upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq,
           rootInvalidatedTasks
         )
 
-        val crossCodeEdges = downstreamCodeEdges
+        val crossEdges = downstreamMethodEdges
           .map { case (k, vs) =>
             (k, vs.filter { case s"def $_" | s"call $_" => false; case _ => true })
           }
           .filter(_._2.nonEmpty)
 
-        val taskForest: ujson.Obj =
-          buildTaskForest(rootInvalidatedTaskStrings, downstreamTaskEdges0)
+        val taskForest = buildTaskForest(rootInvalidatedTaskStrings, downstreamTaskEdges0)
 
         def combineRecursive(node: ujson.Value): Unit = {
           node.obj.valuesIterator.foreach(combineRecursive)
           for (key <- node.obj.keysIterator.toArray) {
             for {
-              crossKeys <- crossCodeEdges.get(key)
+              crossKeys <- crossEdges.get(key)
               crossKey <- crossKeys
               subTaskTree <- taskForest.obj.remove(crossKey)
             } node.obj(key)(crossKey) = subTaskTree
@@ -116,7 +115,7 @@ object InvalidationForest {
    * Extracts method->method and method->task edges from a code signature tree.
    * Uses CodeSigUtils.allMethodSignatures for consistent matching with codeSigForTask.
    */
-  def extractCodeEdges(
+  def extractMethodEdges(
       codeSignatureTree: Option[String],
       transitiveNamed: Seq[Task.Named[?]],
       rootInvalidatedTasks: Set[Task[?]]
