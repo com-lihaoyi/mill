@@ -149,11 +149,13 @@ class ExampleTester(
 
     def singleQuoted[$: P]: P[String] = P("'" ~/ CharsWhile(_ != '\'', 0).! ~ "'")
     def doubleQuoted[$: P]: P[String] = P("\"" ~/ CharsWhile(_ != '"', 0).! ~ "\"")
-    def unquoted[$: P]: P[String] = P(CharsWhile(c => c != ' ' && c != '\t' && c != '\'' && c != '"', 1).!)
+    def unquoted[$: P]: P[String] =
+      P(CharsWhile(c => c != ' ' && c != '\t' && c != '\'' && c != '"', 1).!)
     def argPart[$: P]: P[String] = P(singleQuoted | doubleQuoted | unquoted)
     def arg[$: P]: P[String] = P(argPart.rep(1).map(_.mkString))
     def whitespace[$: P]: P[Unit] = P(CharsWhileIn(" \t", 1))
-    def parser[$: P]: P[Seq[String]] = P(whitespace.? ~ arg.rep(sep = whitespace) ~ whitespace.? ~ End)
+    def parser[$: P]: P[Seq[String]] =
+      P(whitespace.? ~ arg.rep(sep = whitespace) ~ whitespace.? ~ End)
 
     fastparse.parse(input, parser(using _)) match {
       case Parsed.Success(result, _) => result
@@ -172,21 +174,32 @@ class ExampleTester(
     millArgsOpt match {
       case Some(millArgs) =>
         // Use in-memory execution for Mill commands
-        processMillCommandInMemory(expectedSnippets, millArgs, commandStr0, check)
+        val debugCommandStr = s"$workspacePath> mill ${millArgs.mkString(" ")} (in-memory)"
+        runAndValidate(expectedSnippets, debugCommandStr, check, inMemory = true) {
+          runMillInMemory(millArgs)
+        }
       case None =>
         // Fall back to subprocess execution via bash
-        processCommandViaBash(expectedSnippets, commandStr0, check)
+        val commandStr = commandStr0 match {
+          case s"mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
+          case s"./mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
+          case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
+          case s => s
+        }
+        val debugCommandStr = s"$workspacePath> $commandStr"
+        runAndValidate(expectedSnippets, debugCommandStr, check, inMemory = false) {
+          runViaBash(commandStr)
+        }
     }
   }
 
-  private def processMillCommandInMemory(
+  private def runAndValidate(
       expectedSnippets: Vector[String],
-      millArgs: Seq[String],
-      originalCmd: String,
-      check: Boolean
-  ): Unit = {
-    val debugCommandStr = s"$workspacePath> mill ${millArgs.mkString(" ")} (in-memory)"
-    Console.err.println("\nRunning (in-memory):")
+      debugCommandStr: String,
+      check: Boolean,
+      inMemory: Boolean
+  )(execute: => IntegrationTester.EvalResult): Unit = {
+    Console.err.println(if (inMemory) "\nRunning (in-memory):" else "\nRunning:")
     Console.err.println(debugCommandStr)
     Console.err.println(
       s"""--- Expected output ----------
@@ -195,59 +208,8 @@ ${expectedSnippets.mkString("\n")}
     )
 
     try {
-      val stdoutBaos = new ByteArrayOutputStream()
-      val stderrBaos = new ByteArrayOutputStream()
-      // Create print streams that also echo to console
-      val stdoutPs = new PrintStream(stdoutBaos) {
-        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-          super.write(b, off, len)
-          System.out.write(b, off, len)
-        }
-      }
-      val stderrPs = new PrintStream(stderrBaos) {
-        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-          super.write(b, off, len)
-          System.err.write(b, off, len)
-        }
-      }
-
-      // Merge env with current system env and test suite env
-      val mergedEnv = new java.util.HashMap[String, String]()
-      System.getenv().forEach((k, v) => mergedEnv.put(k, v))
-      millTestSuiteEnv.foreach { case (k, v) => mergedEnv.put(k, v) }
-
-      val exitCode = MillLauncherMain.main0(
-        args = millArgs.toArray,
-        stdout = stdoutPs,
-        stderr = stderrPs,
-        env = mergedEnv,
-        workDir = workspacePath
-      )
-
-      stdoutPs.flush()
-      stderrPs.flush()
-
-      val stdoutBytes = stdoutBaos.toByteArray
-      val stderrBytes = stderrBaos.toByteArray
-
-      // Create a mock os.CommandResult - merge stdout and stderr into stdout
-      // since the bash version uses mergeErrIntoOut = true
-      val combinedBytes = stdoutBytes ++ stderrBytes
-      val result = new os.CommandResult(
-        command = Seq("mill") ++ millArgs,
-        exitCode = exitCode,
-        chunks = Seq(
-          Left(new geny.Bytes(combinedBytes))
-        )
-      )
-
-      validateEval(
-        expectedSnippets,
-        IntegrationTester.EvalResult(result),
-        check,
-        debugCommandStr
-      )
-
+      val result = execute
+      validateEval(expectedSnippets, result, check, debugCommandStr)
     } catch {
       case NonFatal(e) =>
         Console.err.println("Failure:")
@@ -259,61 +221,72 @@ ${expectedSnippets.mkString("\n")}
     Console.err.println(debugCommandStr + "\n")
   }
 
-  private def processCommandViaBash(
-      expectedSnippets: Vector[String],
-      commandStr0: String,
-      check: Boolean
-  ): Unit = {
-    val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
-      case s"./mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
-      case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
-      case s => s
+  private def runMillInMemory(millArgs: Seq[String]): IntegrationTester.EvalResult = {
+    val stdoutBaos = new ByteArrayOutputStream()
+    val stderrBaos = new ByteArrayOutputStream()
+    // Create print streams that also echo to console
+    val stdoutPs = new PrintStream(stdoutBaos) {
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+        super.write(b, off, len)
+        System.out.write(b, off, len)
+      }
+    }
+    val stderrPs = new PrintStream(stderrBaos) {
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+        super.write(b, off, len)
+        System.err.write(b, off, len)
+      }
     }
 
-    /** The command we're about to execute */
-    val debugCommandStr = s"$workspacePath> $commandStr"
-    Console.err.println("\nRunning:")
-    Console.err.println(debugCommandStr)
-    Console.err.println(
-      s"""--- Expected output ----------
-${expectedSnippets.mkString("\n")}
-------------------------------"""
+    // Merge env with current system env and test suite env
+    val mergedEnv = new java.util.HashMap[String, String]()
+    System.getenv().forEach((k, v) => mergedEnv.put(k, v))
+    millTestSuiteEnv.foreach { case (k, v) => mergedEnv.put(k, v) }
+
+    val exitCode = MillLauncherMain.main0(
+      args = millArgs.toArray,
+      stdout = stdoutPs,
+      stderr = stderrPs,
+      env = mergedEnv,
+      workDir = workspacePath
     )
 
+    stdoutPs.flush()
+    stderrPs.flush()
+
+    val stdoutBytes = stdoutBaos.toByteArray
+    val stderrBytes = stderrBaos.toByteArray
+
+    // Create a mock os.CommandResult - merge stdout and stderr into stdout
+    // since the bash version uses mergeErrIntoOut = true
+    val combinedBytes = stdoutBytes ++ stderrBytes
+    val result = new os.CommandResult(
+      command = Seq("mill") ++ millArgs,
+      exitCode = exitCode,
+      chunks = Seq(Left(new geny.Bytes(combinedBytes)))
+    )
+
+    IntegrationTester.EvalResult(result)
+  }
+
+  private def runViaBash(commandStr: String): IntegrationTester.EvalResult = {
     val windowsPathEnv =
       if (!isWindows) Map()
       else Map(
         "BASH_ENV" -> os.temp("export PATH=\"/c/Program Files/Git/usr/bin:$PATH\"").toString()
       )
 
-    try {
-      val res = os.call(
-        (bashExecutable, "-c", commandStr),
-        stdout = os.Pipe,
-        stderr = os.Inherit,
-        cwd = workspacePath,
-        mergeErrIntoOut = true,
-        env = millTestSuiteEnv ++ windowsPathEnv,
-        check = false
-      )
+    val res = os.call(
+      (bashExecutable, "-c", commandStr),
+      stdout = os.Pipe,
+      stderr = os.Inherit,
+      cwd = workspacePath,
+      mergeErrIntoOut = true,
+      env = millTestSuiteEnv ++ windowsPathEnv,
+      check = false
+    )
 
-      validateEval(
-        expectedSnippets,
-        IntegrationTester.EvalResult(res),
-        check,
-        debugCommandStr
-      )
-
-    } catch {
-      case NonFatal(e) =>
-        Console.err.println("Failure:")
-        Console.err.println(debugCommandStr + "\n")
-        throw e
-    }
-
-    Console.err.println("Success:")
-    Console.err.println(debugCommandStr + "\n")
+    IntegrationTester.EvalResult(res)
   }
 
   def validateEval(
