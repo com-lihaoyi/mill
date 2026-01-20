@@ -1919,7 +1919,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/exec/Execution.html#withIsFinalDepth-a8d","e":false,"i":"","n":"withIsFinalDepth","t":"withIsFinalDepth(newIsFinalDepth: Boolean): Execution","d":"mill.exec.Execution","k":"def","x":""},
 {"l":"mill/exec/Execution$.html#","e":false,"i":"","n":"Execution","t":"Execution","d":"mill.exec","k":"object","x":""},
 {"l":"mill/exec/Execution$.html#findInterGroupDeps-e0a","e":false,"i":"","n":"findInterGroupDeps","t":"findInterGroupDeps(sortedGroups: MultiBiMap[Task[_], Task[_]]): Map[Task[_], Seq[Task[_]]]","d":"mill.exec.Execution","k":"def","x":""},
-{"l":"mill/exec/Execution$.html#formatFailedCount-e1e","e":false,"i":"","n":"formatFailedCount","t":"formatFailedCount(failures: Int, completed: Boolean, errorColor: String => String, successColor: String => String): String","d":"mill.exec.Execution","k":"def","x":""},
+{"l":"mill/exec/Execution$.html#formatFailedCount-9b3","e":false,"i":"","n":"formatFailedCount","t":"formatFailedCount(failures: Int, completed: Boolean, errorColor: String => String, successColor: String => String): Str","d":"mill.exec.Execution","k":"def","x":""},
 {"l":"mill/exec/ExecutionContexts$.html#","e":false,"i":"","n":"ExecutionContexts","t":"ExecutionContexts","d":"mill.exec","k":"object","x":""},
 {"l":"mill/exec/ExecutionContexts$.html#createExecutor-349","e":false,"i":"","n":"createExecutor","t":"createExecutor(threadCount: Int): ThreadPoolExecutor","d":"mill.exec.ExecutionContexts","k":"def","x":""},
 {"l":"mill/exec/ExecutionContexts$$RunNow$.html#","e":false,"i":"","n":"RunNow","t":"RunNow extends Impl","d":"mill.exec.ExecutionContexts","k":"object","x":""},
