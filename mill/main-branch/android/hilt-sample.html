@@ -725,7 +725,7 @@ that utilizes Hilt for dependency injection, based on the official
 <h2 id="_android_mill_setup_for_building_the_todo_app"><a class="anchor" href="#_android_mill_setup_for_building_the_todo_app"></a>Android Mill Setup for building the TODO App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-35-39e1d9/mill-dist-1.1.0-RC4-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/thirdparty/androidtodo">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-36-42ebdb/mill-dist-1.1.0-RC4-example-thirdparty-androidtodo.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/thirdparty/androidtodo">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -848,6 +848,8 @@ object Versions {
   object test extends KspTests, AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
+
+    def androidIncludeAndroidResources = true
 
     def androidEnableCompose = true
 
@@ -998,7 +1000,7 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 ...
 
 &gt; ./mill show app.createAndroidVirtualDevice
-...Name: test, DeviceId: medium_phone...
+...DeviceId: medium_phone...
 
 &gt; ./mill show app.startAndroidEmulator
 
