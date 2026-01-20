@@ -100,7 +100,7 @@ jobs:
 
           - os: macos-latest
             millargs: "'example.thirdparty[{acyclic,fansi,gatling}].native.daemon'"
-            java-version: 21
+            java-version: 24
 
           - os: macos-14
             millargs: "'example.thirdparty[{jimfs,commons-io}].native.daemon'"
@@ -136,38 +136,38 @@ jobs:
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
           # We also try to group tests together to manually balance out the runtimes of each jobs
-          - java-version: 17
+          - java-version: 21
             millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
 
-          - java-version: 17
+          - java-version: 21
             millargs: "'libs.{scalalib,init,tabcomplete}.__.test'"
             install-sbt: true
 
           - java-version: 21
             millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
 
-          - java-version: 17
+          - java-version: 21
             millargs: "example.kotlinlib.__.shared.daemon"
 
-          - java-version: 17
+          - java-version: 21
             millargs: "example.scalalib.__.shared.daemon"
 
           - java-version: 21
             millargs: "example.javalib.__.shared.daemon"
 
-          - java-version: 17
+          - java-version: 21
             millargs: "example.androidlib.__.shared.daemon"
             setup-android: true
 
-          - java-version: 17
+          - java-version: 21
             millargs: "example.thirdparty.android-compose-samples.packaged.daemon"
             setup-android: true
 
-          - java-version: 24
+          - java-version: 21
             millargs: "example.migrating.scalalib.__.shared.daemon"
             install-sbt: true
 
-          - java-version: 24
+          - java-version: 21
             millargs: "'example.{groovylib,pythonlib,javascriptlib}.__.shared.daemon'"
 
           - java-version: 21
@@ -178,15 +178,15 @@ jobs:
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
-          - java-version: 17
+          - java-version: 21
             millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
-          - java-version: 24
+          - java-version: 21
             millargs: "integration.invalidation.__.packaged.nodaemon"
 
-          - java-version: 17
+          - java-version: 21
             millargs: "integration.migrating.__.packaged.daemon"
             install-sbt: true
 
@@ -205,26 +205,26 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - java-version: 24
+          - java-version: 21
             millargs: "integration.invalidation.__.packaged.daemon"
 
-          - java-version: 17
+          - java-version: 21
             # turn of parallelism since it sometimes causes issues with concurrent migrations
             millargs: "example.migrating.javalib.__.packaged.daemon"
             extra: "--jobs=1"
           - java-version: 21
             millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
 
-          - java-version: 17
+          - java-version: 21
             millargs: '"example.scalalib.{basic,publishing}.__.proguard.daemon"'
 
-          - java-version: 17
+          - java-version: 21
             millargs: "dist.scripts.test" # run this on both windows and mac to exercise bootstrap scripts
 
-          - java-version: 17
+          - java-version: 21
             millargs: "'integration.failure.__.packaged.nodaemon'"
 
-          - java-version: 17
+          - java-version: 21
             millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
     uses: ./.github/workflows/post-build-selective.yml
