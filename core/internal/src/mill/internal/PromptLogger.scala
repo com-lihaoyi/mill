@@ -543,7 +543,7 @@ object PromptLogger {
       )
 
       val oldPromptBytes = currentPromptBytes
-      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive).getBytes
+      currentPromptBytes = renderPromptWrapped(currentPromptLines.map(_.toString), interactive).getBytes
       !java.util.Arrays.equals(oldPromptBytes, currentPromptBytes)
     }
 

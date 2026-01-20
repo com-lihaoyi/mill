@@ -78,7 +78,7 @@ object PromptLoggerUtilTests extends TestSuite {
       def check(prefix: String, title: String, suffix: String, maxWidth: Int, expected: String) = {
         val rendered = renderHeader(prefix, title, suffix, maxWidth)
         // leave two spaces open on the left so there's somewhere to park the cursor
-        assert(expected == rendered)
+        assert(expected == rendered.toString)
         assert(rendered.length <= maxWidth)
         rendered
       }
