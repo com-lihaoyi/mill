@@ -74,7 +74,6 @@ object InvalidationForest {
           }
         }
 
-
         combineRecursive(methodForest)
         // Any un-spliced top-level trees from taskForest become top-level trees in methodForest
         for ((k, v) <- taskForest.obj) methodForest(k) = v
