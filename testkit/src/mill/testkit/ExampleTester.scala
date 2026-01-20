@@ -134,9 +134,46 @@ class ExampleTester(
   }
 
   private def parseMillArgs(rest: String): Seq[String] = {
-    // Add daemon flag and ticker flag, then split the rest
+    // Add daemon flag and ticker flag, then parse the rest with shell-style quoting
     val baseArgs = Seq(daemonFlag, "--ticker", "false").filter(_.nonEmpty)
-    baseArgs ++ rest.split("\\s+").filter(_.nonEmpty).toSeq
+    baseArgs ++ parseShellArgs(rest)
+  }
+
+  /**
+   * Parses a shell command string into arguments, handling single and double quotes.
+   * Similar to how bash parses arguments.
+   */
+  private def parseShellArgs(input: String): Seq[String] = {
+    val args = scala.collection.mutable.ArrayBuffer[String]()
+    val current = new StringBuilder()
+    var i = 0
+    var inSingleQuote = false
+    var inDoubleQuote = false
+
+    while (i < input.length) {
+      val c = input.charAt(i)
+      if (inSingleQuote) {
+        if (c == '\'') inSingleQuote = false
+        else current.append(c)
+      } else if (inDoubleQuote) {
+        if (c == '"') inDoubleQuote = false
+        else current.append(c)
+      } else {
+        c match {
+          case '\'' => inSingleQuote = true
+          case '"' => inDoubleQuote = true
+          case ' ' | '\t' =>
+            if (current.nonEmpty) {
+              args += current.toString()
+              current.clear()
+            }
+          case _ => current.append(c)
+        }
+      }
+      i += 1
+    }
+    if (current.nonEmpty) args += current.toString()
+    args.toSeq
   }
 
   def processCommand(
