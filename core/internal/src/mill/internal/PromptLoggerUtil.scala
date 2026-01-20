@@ -173,6 +173,7 @@ private object PromptLoggerUtil {
 
   def splitShorten(s: fansi.Str, maxLength: Int): fansi.Str = {
     if (s.length <= maxLength) s
+    else if (maxLength <= 3) fansi.Str("...".take(maxLength))
     else {
       val ellipses = "..."
       val nonEllipsesLength = maxLength - ellipses.length
@@ -180,7 +181,7 @@ private object PromptLoggerUtil {
       val halfWidth2 = nonEllipsesLength - halfWidth
 
       s.substring(0, halfWidth2) ++
-        ellipses.take(maxLength) ++
+        fansi.Str(ellipses) ++
         s.substring(s.length - halfWidth, s.length)
     }
   }
