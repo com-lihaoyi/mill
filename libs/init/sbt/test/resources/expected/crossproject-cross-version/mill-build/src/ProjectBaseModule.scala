@@ -15,12 +15,12 @@ trait ProjectBaseModule extends PublishModule, CrossSbtPlatformModule {
 
   def scalacOptions = Seq("-deprecation") ++
     (crossScalaVersion match {
-      case "2.12.20" => Seq(
+      case "2.12.21" => Seq(
           "-Xlint:_,-unused",
           "-Ywarn-numeric-widen",
           "-Ywarn-unused:_,-nowarn,-privates"
         )
-      case "2.13.14" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+      case "2.13.18" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
       case "3.7.1"   => Seq("-Wunused")
       case _         => Seq()
     })
