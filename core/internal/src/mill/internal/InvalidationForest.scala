@@ -29,13 +29,8 @@ object InvalidationForest {
   }
 
   /**
-   * Builds an invalidation tree by combining all edge types into a single graph:
-   * - task -> task edges (from interGroupDeps)
-   * - method -> method edges (from codeSignatureTree)
-   * - method -> task edges (linking methods to their tasks)
-   * - versionchange -> task edges (when version changes)
-   *
-   * Then runs SpanningForest on the combined graph to produce the tree.
+   * Builds an invalidation tree by splicing together the task-invalidation-graph,
+   * method-codesig-invalidation-graph, and any mill-version-change graph
    */
   def buildInvalidationTree(
       upstreamTaskEdges0: Map[Task[?], Seq[Task[?]]],
