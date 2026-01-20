@@ -163,7 +163,7 @@ jobs:
 
           - millargs: "'example.{cli,fundamentals,depth,extending,large}.__.shared.daemon'"
 
-          - millargs: "'integration.{feature,ide}.__.proguard.daemon'"
+          - millargs: "'integration.{dedicated,ide}.__.proguard.daemon' + 'integration.feature.__.shared.daemon'"
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
@@ -199,11 +199,11 @@ jobs:
 
           - millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
 
-          - millargs: '"example.scalalib.{basic,publishing}.__.proguard.daemon"'
+          - millargs: '"example.scalalib.{basic,publishing}.__.shared.daemon"'
 
           - millargs: "dist.scripts.test" # run this on both windows and mac to exercise bootstrap scripts
 
-          - millargs: "'integration.failure.__.packaged.nodaemon'"
+          - millargs: "'integration.failure.__.proguard.nodaemon'"
 
           - millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
