@@ -1,8 +1,7 @@
 package mill.tabcomplete
 
 import mill.*
-import mill.api.{Result, SelectMode}
-import mill.api.{Discover, Evaluator, ExternalModule}
+import mill.api.{Discover, Evaluator, ExternalModule, Result, SelectMode, nonBootstrapped}
 import mill.internal.MillCliConfig
 import mainargs.{ArgSig, TokensReader, arg}
 import mill.api.internal.Resolved
@@ -282,6 +281,7 @@ private object TabCompleteModule extends ExternalModule {
    * `~/.zshrc` and `~/.bash_profile`. Can be passed an optional `--dest <path>`
    * to instead write it to a manually-specified destination path
    */
+  @nonBootstrapped
   def install(dest: os.Path = null) = Task.Command(exclusive = true) {
     val script = os.read(os.resource / "mill/tabcomplete/complete.sh")
 

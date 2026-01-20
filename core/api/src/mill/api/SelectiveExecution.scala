@@ -1,6 +1,7 @@
 package mill.api
 
 import mill.api.{ExecResult, Result, Val}
+import mill.api.daemon.VersionState
 private[mill] trait SelectiveExecution {
   import SelectiveExecution.*
   def computeHashCodeSignatures(
@@ -44,8 +45,9 @@ object SelectiveExecution {
       codeSignatures: Map[String, Int],
       @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map(),
       @com.lihaoyi.unroll forceRunTasks: Set[String] = Set(),
-      @com.lihaoyi.unroll invalidateAllHash: Int = 0
-  )
+      @com.lihaoyi.unroll millVersion: String = "",
+      @com.lihaoyi.unroll millJvmVersion: String = ""
+  ) derives upickle.ReadWriter
   object Metadata {
     case class Computed(
         metadata: Metadata,
@@ -53,13 +55,14 @@ object SelectiveExecution {
     )
   }
 
-  implicit val rw: upickle.ReadWriter[Metadata] = upickle.macroRW
-
   case class ChangedTasks(
       resolved: Seq[Task.Named[?]],
       changedRootTasks: Set[Task.Named[?]],
-      downstreamTasks: Seq[Task.Named[?]]
+      downstreamTasks: Seq[Task.Named[?]],
+      /** Previous Mill and JVM versions if version change caused invalidation */
+      @com.lihaoyi.unroll previousVersions: Option[VersionState] = None
   )
+
   object ChangedTasks {
 
     /** Indicates that all of the passed in tasks were changed. */

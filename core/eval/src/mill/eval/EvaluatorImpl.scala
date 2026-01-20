@@ -51,7 +51,8 @@ final class EvaluatorImpl(
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
   override def useFileLocks: Boolean = execution.useFileLocks
-  override def invalidateAllHashes: Int = execution.invalidateAllHashes
+  override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
+  override def previousVersions = execution.previousVersions
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
@@ -220,7 +221,14 @@ final class EvaluatorImpl(
 
       invalidBuildOverrides.map { case (k, v) =>
         java.nio.file.Files.readString(v.path.toNIO)
-        val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task"
+        val extendsInfo = mill.internal.Util.parseHeaderData(v.path) match {
+          case mill.api.Result.Success(headerData) =>
+            val extendsValues = headerData.`extends`.value.value.map(_.value)
+            if (extendsValues.nonEmpty) s" on ${extendsValues.mkString(", ")}"
+            else ""
+          case _ => ""
+        }
+        val doesNotOverridePrefix = s"key ${literalize(k)} does not override any task$extendsInfo"
         val message = mill.resolve.ResolveNotFoundHandler.findMostSimilar(k, validKeys) match {
           case None =>
             if (millKeys.contains(k))

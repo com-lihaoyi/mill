@@ -12,7 +12,7 @@ millBuildRootModuleResult(MillBuildRootModule.scala:...)
 Inputs:
     runClasspath
     compile
-    codeSignatures
+    codeSignaturesAndSpanningTree
     parseBuildFiles
 
 > ./mill --meta-level 1 visualizePlan millBuildRootModuleResult

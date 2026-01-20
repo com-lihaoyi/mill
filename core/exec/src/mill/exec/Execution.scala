@@ -1,9 +1,10 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
+import mill.api.daemon.VersionState
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
-import mill.internal.{JsonArrayLogger, PrefixLogger}
+import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger}
 
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -35,7 +36,11 @@ case class Execution(
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean,
     depth: Int,
-    isFinalDepth: Boolean
+    isFinalDepth: Boolean,
+    // JSON string to avoid classloader issues when crossing classloader boundaries
+    spanningInvalidationTree: Option[String],
+    // Previous Mill and JVM versions from disk (survives daemon restarts)
+    previousVersions: Option[VersionState]
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -63,7 +68,11 @@ case class Execution(
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean,
       depth: Int,
-      isFinalDepth: Boolean
+      isFinalDepth: Boolean,
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: Option[String],
+      // Previous Mill and JVM versions from disk
+      previousVersions: Option[VersionState]
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -86,7 +95,9 @@ case class Execution(
     staticBuildOverrideFiles = staticBuildOverrideFiles,
     enableTicker = enableTicker,
     depth = depth,
-    isFinalDepth = isFinalDepth
+    isFinalDepth = isFinalDepth,
+    spanningInvalidationTree = spanningInvalidationTree,
+    previousVersions = previousVersions
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -348,10 +359,11 @@ case class Execution(
 
       ExecutionLogs.logInvalidationTree(
         interGroupDeps = interGroupDeps,
-        indexToTerminal = indexToTerminal,
         outPath = outPath,
         uncached = uncached,
-        changedValueHash = changedValueHash
+        changedValueHash = changedValueHash,
+        spanningInvalidationTree = spanningInvalidationTree,
+        previousVersions = previousVersions
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
