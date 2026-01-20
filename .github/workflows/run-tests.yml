@@ -199,7 +199,7 @@ jobs:
 
           - millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
 
-          - millargs: '"example.scalalib.{basic,publishing}.__.shared.daemon"'
+          - millargs: '"example.scalalib.{basic,publishing}.__.packaged.daemon"'
 
           - millargs: "dist.scripts.test" # run this on both windows and mac to exercise bootstrap scripts
 
