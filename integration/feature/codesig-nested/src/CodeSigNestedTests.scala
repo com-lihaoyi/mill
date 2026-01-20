@@ -26,13 +26,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
-          "{",
-          "  \"foo\": {},",
-          "  \"outer.bar\": {},",
-          "  \"outer.inner.qux\": {}",
-          "}"
-        )
+        Seq("{", "  \"foo\": {", "    \"outer.inner.qux\": {}", "  },", "  \"outer.bar\": {}", "}")
       )
 
       val cached = eval("outer.inner.qux")
@@ -90,13 +84,14 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
           "      \"def build_.package_#foo$$anonfun$1()mill.api.Task$Simple\": {",
           "        \"call build_.package_!foo$$anonfun$1()mill.api.Task$Simple\": {",
           "          \"def build_.package_#foo()mill.api.Task$Simple\": {",
-          "            \"foo\": {}",
+          "            \"foo\": {",
+          "              \"outer.inner.qux\": {}",
+          "            }",
           "          }",
           "        }",
           "      }",
           "    }",
-          "  },",
-          "  \"outer.inner.qux\": {}",
+          "  }",
           "}"
         )
       )
@@ -160,15 +155,16 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
           "          \"def build_.package_#foo$$anonfun$1()mill.api.Task$Simple\": {",
           "            \"call build_.package_!foo$$anonfun$1()mill.api.Task$Simple\": {",
           "              \"def build_.package_#foo()mill.api.Task$Simple\": {",
-          "                \"foo\": {}",
+          "                \"foo\": {",
+          "                  \"outer.inner.qux\": {}",
+          "                }",
           "              }",
           "            }",
           "          }",
           "        }",
           "      }",
           "    }",
-          "  },",
-          "  \"outer.inner.qux\": {}",
+          "  }",
           "}"
         )
       )
@@ -229,15 +225,16 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
           "          \"def build_.package_$outer$#bar$$anonfun$1()mill.api.Task$Simple\": {",
           "            \"call build_.package_$outer$!bar$$anonfun$1()mill.api.Task$Simple\": {",
           "              \"def build_.package_$outer$#bar()mill.api.Task$Simple\": {",
-          "                \"outer.bar\": {}",
+          "                \"outer.bar\": {",
+          "                  \"outer.inner.qux\": {}",
+          "                }",
           "              }",
           "            }",
           "          }",
           "        }",
           "      }",
           "    }",
-          "  },",
-          "  \"outer.inner.qux\": {}",
+          "  }",
           "}"
         )
       )
@@ -466,9 +463,10 @@ object CodeSigNestedTraitTests extends UtestIntegrationTestSuite {
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
         Seq(
           "{",
-          "  \"traitOuter.outer\": {},",
-          "  \"foo\": {},",
-          "  \"traitOuter.traitInner.inner\": {}",
+          "  \"foo\": {",
+          "    \"traitOuter.outer\": {},",
+          "    \"traitOuter.traitInner.inner\": {}",
+          "  }",
           "}"
         )
       )

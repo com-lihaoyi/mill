@@ -56,22 +56,14 @@ object InvalidationForest {
         val downstreamTaskEdges0 = SpanningForest.reverseEdges(upstreamTaskEdges0)
 
         // Code edges: method->method and method->task from code signature tree
-        val (downstreamCodeEdges, codeTaskDestNodes) = extractCodeEdges(
+        val downstreamCodeEdges = extractCodeEdges(
           codeSignatureTree,
           upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq,
           rootInvalidatedTasks
         )
 
         val downstreamTaskEdges: Map[String, Seq[String]] = downstreamTaskEdges0
-          .flatMap { case (k, vs) =>
-            // We ignore task->task edges that go to a task with an incoming method->task
-            // edge, so that the method->task edge takes priority in the final tree
-            vs.map(_.toString).filter(!codeTaskDestNodes.contains(_)) match {
-              case Nil =>
-                None // Skip any nodes that have no outgoing edges after the above filter
-              case xs => Some(k.toString -> xs)
-            }
-          }
+          .map { case (k, vs) => k.toString -> vs.map(_.toString) }
 
         val downstreamAllEdges = combineEdges(downstreamTaskEdges, downstreamCodeEdges)
 
@@ -114,8 +106,8 @@ object InvalidationForest {
       codeSignatureTree: Option[String],
       transitiveNamed: Seq[Task.Named[?]],
       rootInvalidatedTasks: Set[Task[?]]
-  ): (Map[String, Seq[String]], Set[String]) = codeSignatureTree match {
-    case None => (Map.empty, Set.empty)
+  ): Map[String, Seq[String]] = codeSignatureTree match {
+    case None => Map.empty
     case Some(json) =>
       val (methodEdges, nodes) = extractMethodEdges(ujson.read(json).obj)
 
@@ -152,7 +144,7 @@ object InvalidationForest {
         .flatMap(m => sigToTasks.getOrElse(m, Nil).map(m -> _))
         .groupMap(_._1)(_._2)
 
-      (combineEdges(methodEdges, methodToTaskEdges), sigToTasks0.map(_._2).toSet)
+      combineEdges(methodEdges, methodToTaskEdges)
   }
 
   def combineEdges(maps: Map[String, Seq[String]]*): Map[String, Seq[String]] = {
