@@ -95,12 +95,11 @@ object InvalidationForest {
 
         val nodeToIndex = allNodes.zipWithIndex.toMap
 
-        val forest = SpanningForest(
+        val forest = SpanningForest.applyInferRoots(
           indexGraphEdges = allNodes.map(n =>
             downstreamAllEdges.getOrElse(n, Nil).flatMap(nodeToIndex.get).toArray
           ),
-          importantVertices = allNodes.indices.toSet,
-          limitToImportantVertices = true
+          importantVertices = allNodes.indices.toSet
         )
 
         SpanningForest.spanningTreeToJsonTree(forest, allNodes(_))

@@ -41,7 +41,7 @@ object SpanningForest {
       interestingIndices: Set[Int],
       render: Int => String
   ): ujson.Obj = {
-    val forest = SpanningForest(indexEdges, interestingIndices, true)
+    val forest = SpanningForest.applyInferRoots(indexEdges, interestingIndices)
     SpanningForest.spanningTreeToJsonTree(forest, render)
   }
 
@@ -55,58 +55,23 @@ object SpanningForest {
 
   /**
    * Build spanning forest with explicitly provided roots.
-   * Use this when you know the root causes (e.g., methods whose code actually changed)
-   * rather than inferring them from the graph structure.
    */
   def applyWithRoots(
       indexGraphEdges: Array[Array[Int]],
       roots: Set[Int],
       importantVertices: Set[Int]
   ): Node = {
-    // Use provided roots directly, filtered to only include important vertices
+    // Prepare a mutable tree structure, pre-populated with the root nodes,
+    // as well as a `nodeMapping` to let us easily take any node index and
+    // directly look up the node in the tree
     val rootNodeIndices = roots.intersect(importantVertices)
-
-    // Prepare a mutable tree structure
     val nodeMapping = rootNodeIndices.map((_, Node())).to(mutable.Map)
     val spanningForest = Node(nodeMapping.clone())
 
-    // Do a breadth first search from the roots across the graph edges
+    // Do a breadth first search from the root nodes across the graph edges
+    // to build up the spanning forest
     breadthFirst(rootNodeIndices) { index =>
       val nextIndices = indexGraphEdges(index).filter(importantVertices)
-
-      for (nextIndex <- nextIndices if !nodeMapping.contains(nextIndex)) {
-        val node = Node()
-        nodeMapping(nextIndex) = node
-        nodeMapping(index).values(nextIndex) = node
-      }
-      nextIndices
-    }
-    spanningForest
-  }
-
-  def apply(
-      indexGraphEdges: Array[Array[Int]],
-      importantVertices: Set[Int],
-      limitToImportantVertices: Boolean
-  ): Node = {
-    // Find all importantVertices which are "roots" with no incoming edges
-    // from other importantVertices
-    val destinations = importantVertices.flatMap(indexGraphEdges(_))
-    val rootChangedNodeIndices = importantVertices.filter(!destinations.contains(_))
-
-    // Prepare a mutable tree structure that we will return, pre-populated with
-    // just the first level of nodes from the `rootChangedNodeIndices`, as well
-    // as a `nodeMapping` to let us easily take any node index and directly look
-    // up the node in the tree
-    val nodeMapping = rootChangedNodeIndices.map((_, Node())).to(mutable.Map)
-    val spanningForest = Node(nodeMapping.clone())
-
-    // Do a breadth first search from the `rootChangedNodeIndices` across the
-    // reverse edges of the graph to build up the spanning forest
-    breadthFirst(rootChangedNodeIndices) { index =>
-      // needed to add explicit type for Scala 3.5.0-RC6
-      val nextIndices = indexGraphEdges(index)
-        .filter(e => !limitToImportantVertices || importantVertices(e))
 
       // We build up the spanningForest during a normal breadth first search,
       // using the `nodeMapping` to quickly find a vertice's tree node so we
@@ -120,6 +85,19 @@ object SpanningForest {
       nextIndices
     }
     spanningForest
+  }
+
+  /**
+   * Build spanning forest, inferring roots as importantVertices with no incoming
+   * edges from other importantVertices.
+   */
+  def applyInferRoots(
+      indexGraphEdges: Array[Array[Int]],
+      importantVertices: Set[Int]
+  ): Node = {
+    val destinations = importantVertices.flatMap(indexGraphEdges(_))
+    val roots = importantVertices.filter(!destinations.contains(_))
+    applyWithRoots(indexGraphEdges, roots, importantVertices)
   }
 
   def breadthFirst[T](start: IterableOnce[T])(edges: T => IterableOnce[T]): Seq[T] = {
