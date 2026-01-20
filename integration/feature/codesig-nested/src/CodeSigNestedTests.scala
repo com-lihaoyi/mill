@@ -293,15 +293,15 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
       )
       assertGoldenLiteral(
         os.read.lines(tester.workspacePath / "out/mill-invalidation-tree.json"),
-        Seq(
+        ArraySeq(
           "{",
           "  \"def build_.package_#<init>()void\": {",
           "    \"call build_.package_!<init>()void\": {",
           "      \"def build_.package_$#<init>()void\": {",
-          "        \"outer.bar\": {},",
           "        \"foo\": {",
           "          \"outer.inner.qux\": {}",
-          "        }",
+          "        },",
+          "        \"outer.bar\": {}",
           "      }",
           "    }",
           "  }",

@@ -67,6 +67,7 @@ bsp-init] BSP disabled for target file:///workspace/skipped
 3-loggingTest] loggingTest took * msec
 4-compile] Entered buildTargetCompile
 4-compile] Evaluating 1 task
+4-compile-24] Compiling compiler interface...
 4-compile] Done
 4-compile] buildTargetCompile took * msec
 5-compile] Entered buildTargetCompile
