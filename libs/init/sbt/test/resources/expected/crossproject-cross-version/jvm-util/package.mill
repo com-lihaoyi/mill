@@ -6,19 +6,19 @@ import mill.javalib.publish.*
 import mill.scalalib.*
 import millbuild.*
 
-object `package` extends Cross[JvmUtilModule]("2.12.20", "2.13.14", "3.7.1")
+object `package` extends Cross[JvmUtilModule]("2.12.21", "2.13.18", "3.7.1")
 trait JvmUtilModule extends PublishModule, CrossSbtModule {
 
   def mvnDeps = Seq(Deps.upickle)
 
   def scalacOptions = Seq("-deprecation") ++
     (crossScalaVersion match {
-      case "2.12.20" => Seq(
+      case "2.12.21" => Seq(
           "-Xlint:_,-unused",
           "-Ywarn-numeric-widen",
           "-Ywarn-unused:_,-nowarn,-privates"
         )
-      case "2.13.14" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+      case "2.13.18" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
       case "3.7.1"   => Seq("-Wunused")
       case _         => Seq()
     })

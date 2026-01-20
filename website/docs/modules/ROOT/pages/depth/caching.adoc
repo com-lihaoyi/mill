@@ -71,14 +71,10 @@ for each task indicating whether or not that task was cached.
 * xref:fundamentals/out-dir.adoc#_mill_invalidation_tree_json[mill-invalidation-tree.json]:
 this file groups together the un-cached files in a tree structure according to their
 task dependencies. It is useful to find the "root" uncached tasks, which are the cause
-of downstream tasks having their caches invalidated.
-
-* xref:fundamentals/out-dir.adoc#_codesignatures_spanninginvalidationtree[codeSignatures spanningInvalidationTree]:
-this file contains information about tasks whose caches were invalidated due to
-__code changes in the `build.mill` or `package.mill` files__, and again shows a tree
-of invalidated method signatures organized into a tree using their call graph dependencies.
-This is most useful to figure out why a code change in your `.mill` files ended up
-changing some task's code signature, causing it to miss the cache and be re-computed
+of downstream tasks having their caches invalidated. For tasks invalidated due to
+__code changes in the `build.mill` or `package.mill` files__, the tree also shows
+the method-level code changes with `def` and `call` nodes indicating how code changes
+propagate through the build definition to reach the invalidated tasks.
 
 ## Consequences of Caching in Mill
 

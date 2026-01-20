@@ -14,15 +14,15 @@ object Deps {
   val workerScalaVersion212 = "2.12.20"
   val sbtScalaVersion212 = workerScalaVersion212
 
-  val testScala213Version = "2.13.16"
+  val testScala213Version = "2.13.18"
   // Scala Native 4.2 will not get releases for new Scala version
-  val testScala213VersionForScalaNative42 = "2.13.16"
-  val testScala212Version = "2.12.6"
+  val testScala213VersionForScalaNative42 = "2.13.18"
+  val testScala212Version = "2.12.21"
   val testScala32Version = "3.2.0"
-  val testScala33Version = "3.3.1"
+  val testScala33Version = "3.3.7"
 
   object Scalajs_1 {
-    val scalaJsVersion = "1.20.1"
+    val scalaJsVersion = "1.20.2"
     val scalajsEnvJsdomNodejs =
       mvn"org.scala-js::scalajs-env-jsdom-nodejs:1.1.1".withDottyCompat(scalaVersion)
     val scalajsEnvExoegoJsdomNodejs =
@@ -182,7 +182,7 @@ object Deps {
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
   val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
-  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.4"
+  val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.14.5"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.11.1"
   val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.4"
