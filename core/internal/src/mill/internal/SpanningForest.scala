@@ -52,6 +52,38 @@ object SpanningForest {
   }
 
   case class Node(values: mutable.Map[Int, Node] = mutable.Map())
+
+  /**
+   * Build spanning forest with explicitly provided roots.
+   * Use this when you know the root causes (e.g., methods whose code actually changed)
+   * rather than inferring them from the graph structure.
+   */
+  def applyWithRoots(
+      indexGraphEdges: Array[Array[Int]],
+      roots: Set[Int],
+      importantVertices: Set[Int]
+  ): Node = {
+    // Use provided roots directly, filtered to only include important vertices
+    val rootNodeIndices = roots.intersect(importantVertices)
+
+    // Prepare a mutable tree structure
+    val nodeMapping = rootNodeIndices.map((_, Node())).to(mutable.Map)
+    val spanningForest = Node(nodeMapping.clone())
+
+    // Do a breadth first search from the roots across the graph edges
+    breadthFirst(rootNodeIndices) { index =>
+      val nextIndices = indexGraphEdges(index).filter(importantVertices)
+
+      for (nextIndex <- nextIndices if !nodeMapping.contains(nextIndex)) {
+        val node = Node()
+        nodeMapping(nextIndex) = node
+        nodeMapping(index).values(nextIndex) = node
+      }
+      nextIndices
+    }
+    spanningForest
+  }
+
   def apply(
       indexGraphEdges: Array[Array[Int]],
       importantVertices: Set[Int],

@@ -136,8 +136,10 @@ object CodeSigUtils {
 
     // Look up constructor signatures for all enclosing modules.
     // constructorHashSignatures maps class name -> Seq[(full signature, hash)]
-    val constructorSignatures = enclosingModules(namedTask).flatMap { m =>
-      constructorHashSignatures.getOrElse(m.getClass.getName, Nil).map(_._1)
+    val modules = enclosingModules(namedTask)
+    val constructorSignatures = modules.flatMap { m =>
+      val className = m.getClass.getName
+      constructorHashSignatures.getOrElse(className, Nil).map(_._1)
     }
 
     taskMethodSignatures ++ constructorSignatures

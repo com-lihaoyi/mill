@@ -43,8 +43,6 @@ object InvalidationForest {
       codeSignatureTree: Option[String],
       previousVersions: Option[VersionState]
   ): ujson.Obj = {
-    mill.constants.DebugLog.println(codeSignatureTree.map(ujson.read(_).render(indent = 2)).toString)
-
     val rootInvalidatedTaskStrings = rootInvalidatedTasks
       .collect { case t: Task.Named[?] => t.toString }
       .toSeq
@@ -144,8 +142,6 @@ object InvalidationForest {
                 constructorHashSignatures
               )
 
-            mill.api.Debug(namedTask)
-            mill.api.Debug(methods)
             methods.map(sig => s"def $sig" -> namedTask.ctx.segments.render)
           } catch { case _: mill.api.MillException => Nil }
         }

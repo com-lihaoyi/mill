@@ -264,6 +264,12 @@ trait MillBuildRootModule()(using
             upickle.read[Map[String, Int]](
               os.read.stream(Task.dest / "previous/transitiveCallGraphHashes0.json")
             )
+          ),
+        prevMethodCodeHashesOpt = () =>
+          Option.when(os.exists(Task.dest / "previous/methodCodeHashes.json"))(
+            upickle.read[Map[String, Int]](
+              os.read.stream(Task.dest / "previous/methodCodeHashes.json")
+            )
           )
       )
 

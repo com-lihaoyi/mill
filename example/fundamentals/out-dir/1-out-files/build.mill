@@ -244,10 +244,8 @@ out/mill-daemon
 
 > cat out/mill-invalidation-tree.json
 {
-  "call scala.Predef$#println(java.lang.Object)void": {
-    "def build_.package_$foo$#<init>(build_.package_)void": {
-      "foo.compileClasspath": {},
-      "foo.compile": {},
+  "def build_.package_$foo$#<init>(build_.package_)void": {
+    "foo.compile": {},
 ...
 
 */

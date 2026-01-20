@@ -12,7 +12,6 @@ import millbuild.*
  */
 object `package` extends MillStableScalaModule with BuildInfo {
   object java11 extends MillPublishScalaModule with MillJava11ScalaModule {
-    val x = 1234
     def moduleDeps = Seq(build.core.api.daemon)
 
     def mvnDeps = Seq(
