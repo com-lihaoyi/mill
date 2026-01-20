@@ -37,7 +37,7 @@ object JarPublishRunTests extends TestSuite {
       test("artifactId_10") {
         testArtifactId(
           HelloJSWorld.matrix.head._1,
-          "1.19.0",
+          "1.20.2",
           "hello-js-world_sjs1_2.13"
         )
       }
