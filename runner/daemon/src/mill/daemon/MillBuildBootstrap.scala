@@ -9,7 +9,7 @@ import mill.api.daemon.internal.{
 }
 import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
-import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
+import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState, millVersionState}
 import mill.internal.Util
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
@@ -27,6 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 import scala.collection.mutable.Buffer
+import upickle.macroRW
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
@@ -78,6 +79,9 @@ class MillBuildBootstrap(
         createFolders = true
       )
     }
+
+    // Write version state to disk so it persists across daemon restarts
+    MillBuildBootstrap.writeVersionState(output)
 
     runnerState
   }
@@ -200,6 +204,8 @@ class MillBuildBootstrap(
       useFileLocks = useFileLocks,
       workerCache = workerCache,
       codeSignatures = nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
+      // Pass spanning tree from the frame - only populated when classloader changed
+      spanningInvalidationTree = nestedState.frames.headOption.flatMap(_.spanningInvalidationTree),
       rootModule = rootModule,
       // We want to use the grandparent buildHash, rather than the parent
       // buildHash, because the parent build changes are instead detected
@@ -269,7 +275,8 @@ class MillBuildBootstrap(
           runClasspath = Nil,
           compileOutput = None,
           evaluator = Option(evaluator),
-          buildOverrideFiles = Map()
+          buildOverrideFiles = Map(),
+          spanningInvalidationTree = None
         )
 
         nestedState.add(
@@ -278,11 +285,12 @@ class MillBuildBootstrap(
         )
 
       case (
-            Result.Success(Seq(Tuple4(
+            Result.Success(Seq(Tuple5(
               runClasspath: Seq[PathRefApi],
               compileClasses: PathRefApi,
               codeSignatures: Map[String, Int],
-              buildOverrideFiles: Map[java.nio.file.Path, String]
+              buildOverrideFiles: Map[java.nio.file.Path, String],
+              spanningInvalidationTree: String
             ))),
             evalWatches,
             moduleWatches
@@ -302,7 +310,9 @@ class MillBuildBootstrap(
         val moduleWatchChanged = prevOuterFrameOpt
           .exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
 
-        val classLoader = if (runClasspathChanged || moduleWatchChanged) {
+        val classLoaderChanged = runClasspathChanged || moduleWatchChanged
+
+        val classLoader = if (classLoaderChanged) {
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks, as well as all the workers in each subsequent
           // frame's `workerCache`s that may depend on classes loaded by that classloader
@@ -331,7 +341,9 @@ class MillBuildBootstrap(
           runClasspath = runClasspath,
           compileOutput = Some(compileClasses),
           evaluator = Option(evaluator),
-          buildOverrideFiles = buildOverrideFiles
+          buildOverrideFiles = buildOverrideFiles,
+          // Only pass the spanning tree when classloader changed (meta-build was recompiled)
+          spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree)
         )
 
         nestedState.add(frame = evalState)
@@ -370,7 +382,8 @@ class MillBuildBootstrap(
       runClasspath = Nil,
       compileOutput = None,
       evaluator = Option(evaluator),
-      buildOverrideFiles = Map()
+      buildOverrideFiles = Map(),
+      spanningInvalidationTree = None
     )
 
     nestedState.add(
@@ -385,6 +398,31 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
+  import mill.api.daemon.VersionState
+
+  // Provide upickle ReadWriter for VersionState since mill.api.daemon doesn't have upickle
+  implicit val versionStateRw: upickle.ReadWriter[VersionState] = macroRW
+
+  def readVersionState(output: os.Path): Option[VersionState] = {
+    val path = output / millVersionState
+    if (os.exists(path)) {
+      try Some(upickle.read[VersionState](os.read(path)))
+      catch { case _: Exception => None }
+    } else None
+  }
+
+  def writeVersionState(output: os.Path): Unit = {
+    val current = VersionState(
+      mill.constants.BuildInfo.millVersion,
+      sys.props("java.version")
+    )
+    os.write.over(
+      output / millVersionState,
+      upickle.write(current, indent = 2),
+      createFolders = true
+    )
+  }
+
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
   def makeEvaluator0(
@@ -402,6 +440,8 @@ object MillBuildBootstrap {
       useFileLocks: Boolean,
       workerCache: Map[String, (Int, Val)],
       codeSignatures: Map[String, Int],
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: Option[String],
       rootModule: RootModuleApi,
       millClassloaderSigHash: Int,
       millClassloaderIdentityHash: Int,
@@ -451,7 +491,10 @@ object MillBuildBootstrap {
           staticBuildOverrideFiles,
           enableTicker,
           depth,
-          false // isFinalDepth: set later via withIsFinalDepth when needed
+          false, // isFinalDepth: set later via withIsFinalDepth when needed
+          spanningInvalidationTree,
+          // Previous versions from disk (survives daemon restarts)
+          readVersionState(output)
         )
       ).asInstanceOf[EvaluatorApi]
 
