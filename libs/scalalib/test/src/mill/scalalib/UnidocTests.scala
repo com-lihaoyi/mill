@@ -31,7 +31,7 @@ object UnidocTests extends TestSuite {
     }
   }
 
-  object Scala2 extends UnidocTestRootModule("2.13.16") {
+  object Scala2 extends UnidocTestRootModule("2.13.18") {
     lazy val millDiscover = Discover[this.type]
   }
 

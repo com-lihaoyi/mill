@@ -18,7 +18,7 @@ object JavaHomeTests extends TestSuite {
     }
     object scalamodule extends ScalaModule {
       def jvmVersion = "temurin:11.0.25"
-      def scalaVersion = "2.13.14"
+      def scalaVersion = "2.13.18"
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -30,7 +30,7 @@ object JavaHomeTests extends TestSuite {
     object scalamodule extends ScalaModule {
       def jvmVersion = "temurin:17.0.13"
 
-      def scalaVersion = "2.13.14"
+      def scalaVersion = "2.13.18"
     }
     lazy val millDiscover = Discover[this.type]
   }

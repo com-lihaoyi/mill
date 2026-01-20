@@ -15,7 +15,7 @@ object EsModuleRemapTests extends TestSuite {
   object EsModuleRemap extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-    override def scalaJSVersion = "1.16.0"
+    override def scalaJSVersion = "1.20.2"
 
     override def scalaJSSourceMap = false
 
@@ -33,7 +33,7 @@ object EsModuleRemapTests extends TestSuite {
 
   object OldJsModule extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-    override def scalaJSVersion = "1.15.0"
+    override def scalaJSVersion = "1.20.2"
     override def scalaJSSourceMap = false
     override def moduleKind = ModuleKind.ESModule
 

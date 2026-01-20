@@ -21,7 +21,7 @@ object CompileLinkTests extends TestSuite {
   }
 
   object HelloJSWorld extends TestRootModule {
-    val matrix = Seq("2.13.15" -> "1.19.0", "3.7.1" -> "1.19.0")
+    val matrix = Seq("2.13.18" -> "1.19.0", "3.7.1" -> "1.19.0")
 
     object build extends Cross[RootModule](matrix)
     trait RootModule extends HelloJSWorldModule {
