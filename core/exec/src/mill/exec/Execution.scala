@@ -411,7 +411,7 @@ object Execution {
       completed: Boolean,
       errorColor: String => String,
       successColor: String => String
-  ): String = {
+  ): fansi.Str = {
     (completed, failures) match {
       case (false, 0) => ""
       case (false, _) => ", " + errorColor(s"$failures failing")
