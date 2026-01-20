@@ -82,7 +82,9 @@ object PromptLoggerUtilTests extends TestSuite {
           maxWidth: Int,
           golden: utest.framework.GoldenFix.Span[String]
       ) = {
-        val rendered = renderHeader(fansi.Str(prefix), fansi.Str(title), fansi.Str(suffix), maxWidth)
+        val rendered =
+          renderHeader(fansi.Str(prefix), fansi.Str(title), fansi.Str(suffix), maxWidth)
+
         // leave two spaces open on the left so there's somewhere to park the cursor
         assertGoldenLiteral(rendered.toString, golden)
         assert(rendered.length <= maxWidth)
