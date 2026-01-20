@@ -925,7 +925,7 @@ trait AndroidModule extends JavaModule { outer =>
         Task { super.runClasspath() }
     }
 
-    def runClasspathWithAndroidResources: T[Seq[PathRef]] = Task {
+    private def runClasspathWithAndroidResources: T[Seq[PathRef]] = Task {
       super.runClasspath() ++ Seq(outer.androidProcessedResources())
     }
 
