@@ -78,5 +78,41 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
       assert(!cached.out.contains("Computing fooCommand"))
       assert(cached.out.contains("Computing barCommand"))
     }
+
+    test("resolveTree-shows-input-changed") - integrationTest { tester =>
+      import tester.*
+
+      // Prepare selective execution with barCommand2 which depends on barCommand -> barTask
+      eval(
+        ("selective.prepare", "bar.barCommand2"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      // Modify the input file that barTask reads
+      modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+
+      // Check that resolveTree shows the input change propagating through the task graph
+      val resolveTree = eval(
+        ("selective.resolveTree", "bar.barCommand2"),
+        check = true,
+        stderr = os.Inherit
+      )
+
+      // The tree should show barTask (the changed input) as the root,
+      // with barCommand and barCommand2 as downstream tasks
+      assertGoldenLiteral(
+        resolveTree.out.linesIterator.toSeq,
+        List(
+          "{",
+          "  \"bar.barTask\": {",
+          "    \"bar.barCommand\": {",
+          "      \"bar.barCommand2\": {}",
+          "    }",
+          "  }",
+          "}"
+        )
+      )
+    }
   }
 }

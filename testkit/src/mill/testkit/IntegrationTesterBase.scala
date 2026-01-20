@@ -17,8 +17,14 @@ trait IntegrationTesterBase {
       case None => javaHomeBin
       case Some(p) => s"$javaHomeBin${System.getProperty("path.separator")}${p}"
     }
-    if (!propagateJavaHome) Map.empty
-    else Map("JAVA_HOME" -> sys.props("java.home"), "PATH" -> newPath)
+    val javaHomeEnv =
+      if (!propagateJavaHome) Map.empty
+      else Map("JAVA_HOME" -> sys.props("java.home"), "PATH" -> newPath)
+
+    // Propagate MILL_UNSTABLE_VERSION to ensure subprocesses use SNAPSHOT versioning in CI
+    val unstableVersionEnv = sys.env.get("MILL_UNSTABLE_VERSION").map("MILL_UNSTABLE_VERSION" -> _)
+
+    javaHomeEnv ++ unstableVersionEnv
   }
 
   /**

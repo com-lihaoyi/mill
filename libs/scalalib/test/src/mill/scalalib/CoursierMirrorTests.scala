@@ -12,7 +12,7 @@ object CoursierMirrorTests extends TestSuite {
 
   object CoursierTest extends TestRootModule {
     object core extends ScalaModule {
-      def scalaVersion = "2.13.12"
+      def scalaVersion = "2.13.18"
     }
 
     lazy val millDiscover = Discover[this.type]

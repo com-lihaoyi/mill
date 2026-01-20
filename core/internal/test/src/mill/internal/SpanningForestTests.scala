@@ -9,7 +9,7 @@ object SpanningForestTests extends TestSuite {
   val tests = Tests {
 
     test("test") {
-      val forest = SpanningForest.apply(
+      val forest = SpanningForest.applyInferRoots(
         Array(
           Array(1),
           Array(2),
@@ -17,8 +17,7 @@ object SpanningForestTests extends TestSuite {
           Array[Int](),
           Array[Int]()
         ),
-        Set(0),
-        limitToImportantVertices = false
+        importantVertices = Set(0, 1, 2, 3)
       )
 
       val expected = Node(

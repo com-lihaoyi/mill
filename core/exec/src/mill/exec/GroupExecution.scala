@@ -3,8 +3,7 @@ package mill.exec
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
 import mill.api.internal.{Appendable, Cached, Located}
-import mill.internal.MultiLogger
-import mill.internal.FileLogger
+import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
 
 import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
