@@ -144,36 +144,21 @@ class ExampleTester(
    * Similar to how bash parses arguments.
    */
   private def parseShellArgs(input: String): Seq[String] = {
-    val args = scala.collection.mutable.ArrayBuffer[String]()
-    val current = new StringBuilder()
-    var i = 0
-    var inSingleQuote = false
-    var inDoubleQuote = false
+    import fastparse.*
+    import NoWhitespace.*
 
-    while (i < input.length) {
-      val c = input.charAt(i)
-      if (inSingleQuote) {
-        if (c == '\'') inSingleQuote = false
-        else current.append(c)
-      } else if (inDoubleQuote) {
-        if (c == '"') inDoubleQuote = false
-        else current.append(c)
-      } else {
-        c match {
-          case '\'' => inSingleQuote = true
-          case '"' => inDoubleQuote = true
-          case ' ' | '\t' =>
-            if (current.nonEmpty) {
-              args += current.toString()
-              current.clear()
-            }
-          case _ => current.append(c)
-        }
-      }
-      i += 1
+    def singleQuoted[$: P]: P[String] = P("'" ~/ CharsWhile(_ != '\'', 0).! ~ "'")
+    def doubleQuoted[$: P]: P[String] = P("\"" ~/ CharsWhile(_ != '"', 0).! ~ "\"")
+    def unquoted[$: P]: P[String] = P(CharsWhile(c => c != ' ' && c != '\t' && c != '\'' && c != '"', 1).!)
+    def argPart[$: P]: P[String] = P(singleQuoted | doubleQuoted | unquoted)
+    def arg[$: P]: P[String] = P(argPart.rep(1).map(_.mkString))
+    def whitespace[$: P]: P[Unit] = P(CharsWhileIn(" \t", 1))
+    def parser[$: P]: P[Seq[String]] = P(whitespace.? ~ arg.rep(sep = whitespace) ~ whitespace.? ~ End)
+
+    fastparse.parse(input, parser(using _)) match {
+      case Parsed.Success(result, _) => result
+      case _: Parsed.Failure => input.split("\\s+").filter(_.nonEmpty).toSeq
     }
-    if (current.nonEmpty) args += current.toString()
-    args.toSeq
   }
 
   def processCommand(
