@@ -82,6 +82,47 @@ object ExampleTester {
     if (!mill.constants.Util.isWindows) "bash"
     else "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
   }
+
+  /**
+   * Parses a shell command string into arguments, handling single and double quotes
+   * and backslash escapes. Similar to how bash parses arguments.
+   */
+  private[testkit] def parseShellArgs(input: String): Seq[String] = {
+    import fastparse.*
+    import NoWhitespace.*
+
+    // Single-quoted: no escape sequences (like bash)
+    def singleQuoted[$: P]: P[String] = P("'" ~/ CharsWhile(_ != '\'', 0).! ~ "'")
+
+    // Double-quoted: handle \" and \\ escapes
+    def doubleQuotedChar[$: P]: P[String] = P(
+      ("\\" ~ AnyChar.!).map {
+        case "\"" => "\""
+        case "\\" => "\\"
+        case c => "\\" + c // preserve unknown escapes
+      } | CharsWhile(c => c != '"' && c != '\\', 1).!
+    )
+    def doubleQuoted[$: P]: P[String] = P("\"" ~/ doubleQuotedChar.rep.map(_.mkString) ~ "\"")
+
+    // Unquoted: handle backslash escapes for spaces and special chars
+    def unquotedChar[$: P]: P[String] = P(
+      ("\\" ~ AnyChar.!).map(identity) | // escaped char becomes literal
+        CharsWhile(c => c != ' ' && c != '\t' && c != '\'' && c != '"' && c != '\\', 1).!
+    )
+    def unquoted[$: P]: P[String] = P(unquotedChar.rep(1).map(_.mkString))
+
+    def argPart[$: P]: P[String] = P(singleQuoted | doubleQuoted | unquoted)
+    def arg[$: P]: P[String] = P(argPart.rep(1).map(_.mkString))
+    def whitespace[$: P]: P[Unit] = P(CharsWhileIn(" \t", 1))
+    def parser[$: P]: P[Seq[String]] =
+      P(whitespace.? ~ arg.rep(sep = whitespace) ~ whitespace.? ~ End)
+
+    fastparse.parse(input, parser(using _)) match {
+      case Parsed.Success(result, _) => result
+      case f: Parsed.Failure =>
+        throw new IllegalArgumentException(s"Failed to parse shell args: ${f.msg}")
+    }
+  }
 }
 
 class ExampleTester(
@@ -132,31 +173,7 @@ class ExampleTester(
   private def parseMillArgs(rest: String): Seq[String] = {
     // Add daemon flag and ticker flag, then parse the rest with shell-style quoting
     val baseArgs = Seq(daemonFlag, "--ticker", "false").filter(_.nonEmpty)
-    baseArgs ++ parseShellArgs(rest)
-  }
-
-  /**
-   * Parses a shell command string into arguments, handling single and double quotes.
-   * Similar to how bash parses arguments.
-   */
-  private def parseShellArgs(input: String): Seq[String] = {
-    import fastparse.*
-    import NoWhitespace.*
-
-    def singleQuoted[$: P]: P[String] = P("'" ~/ CharsWhile(_ != '\'', 0).! ~ "'")
-    def doubleQuoted[$: P]: P[String] = P("\"" ~/ CharsWhile(_ != '"', 0).! ~ "\"")
-    def unquoted[$: P]: P[String] =
-      P(CharsWhile(c => c != ' ' && c != '\t' && c != '\'' && c != '"', 1).!)
-    def argPart[$: P]: P[String] = P(singleQuoted | doubleQuoted | unquoted)
-    def arg[$: P]: P[String] = P(argPart.rep(1).map(_.mkString))
-    def whitespace[$: P]: P[Unit] = P(CharsWhileIn(" \t", 1))
-    def parser[$: P]: P[Seq[String]] =
-      P(whitespace.? ~ arg.rep(sep = whitespace) ~ whitespace.? ~ End)
-
-    fastparse.parse(input, parser(using _)) match {
-      case Parsed.Success(result, _) => result
-      case _: Parsed.Failure => input.split("\\s+").filter(_.nonEmpty).toSeq
-    }
+    baseArgs ++ ExampleTester.parseShellArgs(rest)
   }
 
   def processCommand(

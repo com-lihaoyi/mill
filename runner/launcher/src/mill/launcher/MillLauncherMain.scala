@@ -19,7 +19,7 @@ object MillLauncherMain {
   }
 
   /**
-   * Version of `main` we can call in-memory for use in testes
+   * Version of `main` we can call in-memory for use in tests
    */
   def main0(
       args: Array[String],
