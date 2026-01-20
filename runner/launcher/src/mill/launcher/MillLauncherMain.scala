@@ -15,7 +15,26 @@ import scala.jdk.CollectionConverters.*
  */
 object MillLauncherMain {
   def main(args: Array[String]): Unit = {
+    System.exit(main0(args))
+  }
 
+  /**
+   * Main entry point that returns exit code instead of calling System.exit.
+   * Used for in-memory testing in the .shared integration test flavor.
+   *
+   * @param args Command line arguments
+   * @param stdout PrintStream for stdout (defaults to System.out)
+   * @param stderr PrintStream for stderr (defaults to System.err)
+   * @param env Environment variables (defaults to System.getenv())
+   * @param workDir Working directory (defaults to os.pwd)
+   */
+  def main0(
+      args: Array[String],
+      stdout: java.io.PrintStream = System.out,
+      stderr: java.io.PrintStream = System.err,
+      env: java.util.Map[String, String] = System.getenv(),
+      workDir: os.Path = os.pwd
+  ): Int = {
     val parsedConfig = MillCliConfig.parse(args).toOption
 
     val bspMode = parsedConfig.exists(c => c.bsp.value || c.bspInstall.value)
@@ -30,9 +49,9 @@ object MillLauncherMain {
     val runNoDaemon = parsedConfig.exists(_.noDaemonEnabled > 0) || bspMode
 
     val outMode = if (bspMode) OutFolderMode.BSP else OutFolderMode.REGULAR
-    if (System.getenv("MILL_TEST_EXIT_AFTER_BSP_CHECK") != null) System.exit(0)
+    if (env.get("MILL_TEST_EXIT_AFTER_BSP_CHECK") != null) return 0
     val outDir = OutFiles.OutFiles.outFor(outMode)
-    val logFile = os.Path(outDir, os.pwd) / "mill-launcher/log"
+    val logFile = os.Path(outDir, workDir) / "mill-launcher/log"
     val formatter =
       DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(ZoneId.of("UTC"))
 
@@ -45,22 +64,22 @@ object MillLauncherMain {
 
     val runnerClasspath = CoursierClient.resolveMillDaemon(outMode)
     try {
-      val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts) ++ args
+      val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++ args
       if (runNoDaemon) {
         val mainClass = if (bspMode) "mill.daemon.MillBspMain" else "mill.daemon.MillNoDaemonMain"
-        val exitCode = MillProcessLauncher.launchMillNoDaemon(
+        MillProcessLauncher.launchMillNoDaemon(
           optsArgs,
           outMode,
           runnerClasspath,
           mainClass,
-          useFileLocks
+          useFileLocks,
+          workDir
         )
-        System.exit(exitCode)
       } else { // start in client-server mode
         val launcher = new MillServerLauncher(
-          stdout = System.out,
-          stderr = System.err,
-          env = System.getenv().asScala.toMap,
+          stdout = stdout,
+          stderr = stderr,
+          env = env.asScala.toMap,
           args = optsArgs,
           forceFailureForTestingMillisDelay = -1,
           useFileLocks = useFileLocks,
@@ -70,13 +89,14 @@ object MillLauncherMain {
                 daemonDir,
                 outMode,
                 runnerClasspath,
-                useFileLocks
+                useFileLocks,
+                workDir
               ).toHandle
             )
         )
 
-        val daemonDir = os.Path(outDir, os.pwd) / OutFiles.OutFiles.millDaemon
-        val javaHome = MillProcessLauncher.javaHome(outMode)
+        val daemonDir = os.Path(outDir, workDir) / OutFiles.OutFiles.millDaemon
+        val javaHome = MillProcessLauncher.javaHome(outMode, workDir)
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir)
         var exitCode = launcher.run(daemonDir, javaHome, log)
@@ -92,22 +112,22 @@ object MillLauncherMain {
         }
 
         if (exitCode == ClientUtil.ServerExitPleaseRetry) {
-          System.err.println(s"Max launcher retries exceeded ($maxRetries), exiting")
+          stderr.println(s"Max launcher retries exceeded ($maxRetries), exiting")
         }
-        System.exit(exitCode)
+        exitCode
       }
     } catch {
       case e: MillException =>
-        System.err.println(e.getMessage)
-        System.exit(1)
+        stderr.println(e.getMessage)
+        1
       case e =>
         val sw = new StringWriter()
         e.printStackTrace(new PrintWriter(sw))
 
         log(sw.toString)
 
-        System.err.println(s"Mill launcher failed. See ${logFile.relativeTo(os.pwd)} for details.")
-        System.exit(1)
+        stderr.println(s"Mill launcher failed. See ${logFile.relativeTo(workDir)} for details.")
+        1
     }
   }
 

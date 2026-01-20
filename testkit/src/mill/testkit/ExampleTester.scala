@@ -1,9 +1,11 @@
 package mill.testkit
 
 import mill.constants.Util.isWindows
+import mill.launcher.MillLauncherMain
 import mill.testkit.Chunk
 import utest.*
 
+import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.util.control.NonFatal
 
 /**
@@ -61,14 +63,16 @@ object ExampleTester {
       workspaceSourcePath: os.Path,
       millExecutable: os.Path,
       bashExecutable: String = defaultBashExecutable(),
-      workspacePath: os.Path = os.pwd
+      workspacePath: os.Path = os.pwd,
+      useInMemory: Boolean = false
   ): os.Path = {
     val tester = new ExampleTester(
       daemonMode,
       workspaceSourcePath,
       millExecutable,
       bashExecutable,
-      workspacePath
+      workspacePath,
+      useInMemory = useInMemory
     )
     tester.run()
     tester.workspacePath
@@ -87,7 +91,8 @@ class ExampleTester(
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
     val baseWorkspacePath: os.Path,
     val propagateJavaHome: Boolean = true,
-    val cleanupProcessIdFile: Boolean = true
+    val cleanupProcessIdFile: Boolean = true,
+    val useInMemory: Boolean = false
 ) extends IntegrationTesterBase {
 
   def commandFilter(commandComment: String): Boolean = commandComment match {
@@ -116,10 +121,126 @@ class ExampleTester(
   private val millExt = if (isWindows) ".bat" else ""
   private val daemonFlag = if (daemonMode) "" else "--no-daemon"
 
+  /**
+   * Extracts Mill command arguments from a command string.
+   * Returns Some(args) if this is a Mill command, None otherwise.
+   */
+  private def extractMillArgs(commandStr0: String): Option[Seq[String]] = {
+    commandStr0 match {
+      case s"mill $rest" => Some(parseMillArgs(rest))
+      case s"./mill $rest" => Some(parseMillArgs(rest))
+      case _ => None
+    }
+  }
+
+  private def parseMillArgs(rest: String): Seq[String] = {
+    // Add daemon flag and ticker flag, then split the rest
+    val baseArgs = Seq(daemonFlag, "--ticker", "false").filter(_.nonEmpty)
+    baseArgs ++ rest.split("\\s+").filter(_.nonEmpty).toSeq
+  }
+
   def processCommand(
       expectedSnippets: Vector[String],
       commandStr0: String,
       check: Boolean = true
+  ): Unit = {
+    // Check if we can use in-memory execution for Mill commands
+    val millArgsOpt = if (useInMemory) extractMillArgs(commandStr0) else None
+
+    millArgsOpt match {
+      case Some(millArgs) =>
+        // Use in-memory execution for Mill commands
+        processMillCommandInMemory(expectedSnippets, millArgs, commandStr0, check)
+      case None =>
+        // Fall back to subprocess execution via bash
+        processCommandViaBash(expectedSnippets, commandStr0, check)
+    }
+  }
+
+  private def processMillCommandInMemory(
+      expectedSnippets: Vector[String],
+      millArgs: Seq[String],
+      originalCmd: String,
+      check: Boolean
+  ): Unit = {
+    val debugCommandStr = s"$workspacePath> mill ${millArgs.mkString(" ")} (in-memory)"
+    Console.err.println("\nRunning (in-memory):")
+    Console.err.println(debugCommandStr)
+    Console.err.println(
+      s"""--- Expected output ----------
+${expectedSnippets.mkString("\n")}
+------------------------------"""
+    )
+
+    try {
+      val stdoutBaos = new ByteArrayOutputStream()
+      val stderrBaos = new ByteArrayOutputStream()
+      // Create print streams that also echo to console
+      val stdoutPs = new PrintStream(stdoutBaos) {
+        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+          super.write(b, off, len)
+          System.out.write(b, off, len)
+        }
+      }
+      val stderrPs = new PrintStream(stderrBaos) {
+        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+          super.write(b, off, len)
+          System.err.write(b, off, len)
+        }
+      }
+
+      // Merge env with current system env and test suite env
+      val mergedEnv = new java.util.HashMap[String, String]()
+      System.getenv().forEach((k, v) => mergedEnv.put(k, v))
+      millTestSuiteEnv.foreach { case (k, v) => mergedEnv.put(k, v) }
+
+      val exitCode = MillLauncherMain.main0(
+        args = millArgs.toArray,
+        stdout = stdoutPs,
+        stderr = stderrPs,
+        env = mergedEnv,
+        workDir = workspacePath
+      )
+
+      stdoutPs.flush()
+      stderrPs.flush()
+
+      val stdoutBytes = stdoutBaos.toByteArray
+      val stderrBytes = stderrBaos.toByteArray
+
+      // Create a mock os.CommandResult - merge stdout and stderr into stdout
+      // since the bash version uses mergeErrIntoOut = true
+      val combinedBytes = stdoutBytes ++ stderrBytes
+      val result = new os.CommandResult(
+        command = Seq("mill") ++ millArgs,
+        exitCode = exitCode,
+        chunks = Seq(
+          Left(new geny.Bytes(combinedBytes))
+        )
+      )
+
+      validateEval(
+        expectedSnippets,
+        IntegrationTester.EvalResult(result),
+        check,
+        debugCommandStr
+      )
+
+    } catch {
+      case NonFatal(e) =>
+        Console.err.println("Failure:")
+        Console.err.println(debugCommandStr + "\n")
+        throw e
+    }
+
+    Console.err.println("Success:")
+    Console.err.println(debugCommandStr + "\n")
+  }
+
+  private def processCommandViaBash(
+      expectedSnippets: Vector[String],
+      commandStr0: String,
+      check: Boolean
   ): Unit = {
     val commandStr = commandStr0 match {
       case s"mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
