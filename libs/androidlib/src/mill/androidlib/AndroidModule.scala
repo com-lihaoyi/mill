@@ -910,6 +910,25 @@ trait AndroidModule extends JavaModule { outer =>
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
 
+    /**
+     * Whether to include the android resources from the main app for unit tests.
+     * This is the equivalent of
+     * `testOptions.unitTests { isIncludeAndroidResources = false }`
+     * seen in Gradle (AGP)
+     */
+    def androidIncludeAndroidResources: Boolean = false
+
+    override def runClasspath: T[Seq[PathRef]] = {
+      if (androidIncludeAndroidResources)
+        Task { runClasspathWithAndroidResources() }
+      else
+        Task { super.runClasspath() }
+    }
+
+    def runClasspathWithAndroidResources: T[Seq[PathRef]] = Task {
+      super.runClasspath() ++ Seq(outer.androidProcessedResources())
+    }
+
     def androidResources: T[Seq[PathRef]] = Task.Sources()
 
     override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(

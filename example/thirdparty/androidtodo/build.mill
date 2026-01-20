@@ -110,6 +110,8 @@ object app
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
+    def androidIncludeAndroidResources = true
+
     def androidEnableCompose = true
 
     override def kspVersion = Versions.kspVersion
