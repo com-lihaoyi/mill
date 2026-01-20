@@ -56,45 +56,48 @@ object InvalidationForest {
         val downstreamTaskEdges0 = SpanningForest.reverseEdges(upstreamTaskEdges0)
 
         // Code edges: method->method and method->task from code signature tree
-        val downstreamCodeEdges = extractCodeEdges(
+        val (methodForest, downstreamCodeEdges) = extractCodeEdges(
           codeSignatureTree,
           upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq,
           rootInvalidatedTasks
         )
 
+        val crossCodeEdges = downstreamCodeEdges
+          .map{case (k, vs) => (k, vs.filter{case s"def $_" | s"call $_" => false; case _ => true})}
+          .filter(_._2.nonEmpty)
+
         val downstreamTaskEdges: Map[String, Seq[String]] = downstreamTaskEdges0
           .map { case (k, vs) => k.toString -> vs.map(_.toString) }
 
-        val downstreamAllEdges = combineEdges(downstreamTaskEdges, downstreamCodeEdges)
+        val allTaskNodes = SpanningForest
+          .breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
 
-        val allNodes = {
-          val allTaskNodes = SpanningForest
-            .breadthFirst(rootInvalidatedTaskStrings)(downstreamTaskEdges.getOrElse(_, Nil))
-          
-          (downstreamCodeEdges.map(_._1) ++ allTaskNodes).toArray.sorted
-        }
+        val taskNodeToIndex = allTaskNodes.zipWithIndex.toMap
 
-        val nodeToIndex = allNodes.zipWithIndex.toMap
-
-        val forest = SpanningForest.applyInferRoots(
-          indexGraphEdges = allNodes.map(n =>
-            downstreamAllEdges.getOrElse(n, Nil).flatMap(nodeToIndex.get).toArray
-          ),
-          importantVertices = allNodes.indices.toSet
+        val taskForest = SpanningForest.applyInferRoots(
+          indexGraphEdges = allTaskNodes
+            .map(n => downstreamTaskEdges.getOrElse(n, Nil).flatMap(taskNodeToIndex.get).toArray)
+            .toArray,
+          importantVertices = allTaskNodes.indices.toSet
         )
-        
-        def trimRecursive(node: SpanningForest.Node): Unit = {
-          node.values.valuesIterator.foreach(trimRecursive)
-          node.values.filterInPlace{ case (index, child) =>
-            allNodes(index) match{
-              case s"def $_" | s"call $_" => child.values.nonEmpty
-              case _ => true  
-            }
+
+        val taskTree = SpanningForest.spanningTreeToJsonTree(taskForest, allTaskNodes(_))
+        def combineRecursive(node: ujson.Value): Unit = {
+          node.obj.valuesIterator.foreach(combineRecursive)
+          for(key <- node.obj.keysIterator.toArray){
+            for{
+              crossKeys <- crossCodeEdges.get(key)
+              crossKey <- crossKeys
+              subTaskTree <- taskTree.obj.remove(crossKey)
+            } node.obj(key)(crossKey) = subTaskTree
+
+            if (node.obj(key).obj.isEmpty) node.obj.remove(key)
           }
         }
 
-        trimRecursive(forest)
-        SpanningForest.spanningTreeToJsonTree(forest, allNodes(_))
+        combineRecursive(methodForest)
+        for((k, v) <- taskTree.obj) methodForest(k) = v
+        methodForest.asInstanceOf[ujson.Obj]
     }
   }
 
@@ -106,10 +109,11 @@ object InvalidationForest {
       codeSignatureTree: Option[String],
       transitiveNamed: Seq[Task.Named[?]],
       rootInvalidatedTasks: Set[Task[?]]
-  ): Map[String, Seq[String]] = codeSignatureTree match {
-    case None => Map.empty
+  ): (ujson.Value, Map[String, Seq[String]]) = codeSignatureTree match {
+    case None => (ujson.Obj(), Map.empty)
     case Some(json) =>
-      val (methodEdges, nodes) = extractMethodEdges(ujson.read(json).obj)
+      val jsonTree = ujson.read(json)
+      val (methodEdges, nodes) = extractMethodEdges(jsonTree.obj)
 
       val (classToTransitiveClasses, allTransitiveClassMethods) =
         CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)
@@ -144,7 +148,7 @@ object InvalidationForest {
         .flatMap(m => sigToTasks.getOrElse(m, Nil).map(m -> _))
         .groupMap(_._1)(_._2)
 
-      combineEdges(methodEdges, methodToTaskEdges)
+      (jsonTree, methodToTaskEdges)
   }
 
   def combineEdges(maps: Map[String, Seq[String]]*): Map[String, Seq[String]] = {
