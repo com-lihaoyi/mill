@@ -16,8 +16,8 @@ object DaemonRpc {
   case class Initialize(
       interactive: Boolean,
       clientMillVersion: String,
-      clientJavaVersion: Option[os.Path],
-      clientJvmOptsFingerprint: String,
+      clientJavaVersion: String,
+      clientJvmOpts: Seq[String],
       args: Seq[String],
       env: Map[String, String],
       userSpecifiedProperties: Map[String, String]

@@ -34,7 +34,7 @@ abstract class MillDaemonServer[State](
 
   def initialStateCache: State
 
-  private var lastConfig = ServerLauncher.DaemonConfig()
+  private var lastConfig = ServerLauncher.DaemonConfig("", "", Seq.empty)
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
@@ -116,9 +116,9 @@ abstract class MillDaemonServer[State](
 
         // Check for config changes using shared logic
         val clientConfig = ServerLauncher.DaemonConfig(
-          millVersion = Some(init.clientMillVersion),
+          millVersion = init.clientMillVersion,
           javaVersion = init.clientJavaVersion,
-          jvmOptsFingerprint = Some(init.clientJvmOptsFingerprint)
+          jvmOpts = init.clientJvmOpts
         )
         val mismatchReasons = lastConfig.checkMismatchAgainst(clientConfig)
 

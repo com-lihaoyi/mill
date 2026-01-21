@@ -19,7 +19,7 @@ class MillServerLauncher(
     useFileLocks: Boolean,
     initServerFactory: (os.Path, Locks) => LaunchedServer,
     millVersion: String = BuildInfo.millVersion,
-    jvmOptsFingerprint: String = ""
+    jvmOpts: Seq[String] = Seq.empty
 ) {
   private val serverInitWaitMillis = 10000
 
@@ -29,9 +29,9 @@ class MillServerLauncher(
     log(s"launchOrConnectToServer: $locks")
 
     val config = ServerLauncher.DaemonConfig(
-      millVersion = Some(millVersion),
-      javaVersion = javaHome,
-      jvmOptsFingerprint = Some(jvmOptsFingerprint)
+      millVersion = millVersion,
+      javaVersion = javaHome.map(_.toString).getOrElse(""),
+      jvmOpts = jvmOpts
     )
 
     val launched = ServerLauncher.launchOrConnectToServer(
@@ -74,8 +74,8 @@ class MillServerLauncher(
       val init = DaemonRpc.Initialize(
         interactive = Util.hasConsole(),
         clientMillVersion = BuildInfo.millVersion,
-        clientJavaVersion = javaHome,
-        clientJvmOptsFingerprint = jvmOptsFingerprint,
+        clientJavaVersion = javaHome.map(_.toString).getOrElse(""),
+        clientJvmOpts = jvmOpts,
         args = args,
         env = env,
         userSpecifiedProperties = ClientUtil.getUserSetProperties()

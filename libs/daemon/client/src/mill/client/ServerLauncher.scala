@@ -17,35 +17,25 @@ object ServerLauncher {
    * If any of these values change between client invocations, the daemon should restart.
    */
   case class DaemonConfig(
-      millVersion: Option[String] = None,
-      javaVersion: Option[os.Path] = None,
-      jvmOptsFingerprint: Option[String] = None
+      millVersion: String,
+      javaVersion: String,
+      jvmOpts: Seq[String]
   ) {
     /**
      * Checks if this config differs from another config.
      * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
-     * Only reports changes when both configs have values for a field.
      */
     def checkMismatchAgainst(other: DaemonConfig): Seq[String] = {
       val reasons = Seq.newBuilder[String]
 
-      for {
-        oldVersion <- millVersion
-        newVersion <- other.millVersion
-        if oldVersion != newVersion
-      } reasons += s"Mill version changed ($oldVersion -> $newVersion)"
+      if (millVersion.nonEmpty && other.millVersion.nonEmpty && millVersion != other.millVersion)
+        reasons += s"Mill version changed ($millVersion -> ${other.millVersion})"
 
-      for {
-        oldVersion <- javaVersion
-        newVersion <- other.javaVersion
-        if oldVersion != newVersion
-      } reasons += s"Java version changed ($oldVersion -> $newVersion)"
+      if (javaVersion.nonEmpty && other.javaVersion.nonEmpty && javaVersion != other.javaVersion)
+        reasons += s"Java version changed ($javaVersion -> ${other.javaVersion})"
 
-      for {
-        oldFingerprint <- jvmOptsFingerprint
-        newFingerprint <- other.jvmOptsFingerprint
-        if oldFingerprint != newFingerprint
-      } reasons += s"JVM options changed ($oldFingerprint -> $newFingerprint)"
+      if (jvmOpts.nonEmpty && other.jvmOpts.nonEmpty && jvmOpts != other.jvmOpts)
+        reasons += s"JVM options changed ($jvmOpts -> ${other.jvmOpts})"
 
       reasons.result()
     }
@@ -60,33 +50,36 @@ object ServerLauncher {
     }
 
     /**
-     * Writes this config to the daemon directory files.
+     * Writes this config to the daemon directory as a single JSON file.
      */
     def writeTo(daemonDir: os.Path): Unit = {
-      millVersion.foreach(v => os.write.over(daemonDir / DaemonFiles.millVersion, v))
-      javaVersion.foreach(v => os.write.over(daemonDir / DaemonFiles.javaVersion, v.toString))
-      jvmOptsFingerprint.foreach(f => os.write.over(daemonDir / DaemonFiles.jvmOptsFingerprint, f))
+      val json = ujson.Obj(
+        "millVersion" -> millVersion,
+        "javaVersion" -> javaVersion,
+        "jvmOpts" -> jvmOpts
+      )
+      os.write.over(daemonDir / DaemonFiles.daemonLaunchFingerprint, ujson.write(json, indent = 2))
     }
   }
 
   object DaemonConfig {
     /**
-     * Reads daemon config from the stored files in the daemon directory.
+     * Reads daemon config from the JSON file in the daemon directory.
      */
     def readFrom(daemonDir: os.Path): DaemonConfig = {
-      def readFile(name: String): Option[String] = {
-        val file = daemonDir / name
-        if (os.exists(file)) {
-          val content = os.read(file).trim
-          if (content.nonEmpty) Some(content) else None
-        } else None
-      }
-
-      DaemonConfig(
-        millVersion = readFile(DaemonFiles.millVersion),
-        javaVersion = readFile(DaemonFiles.javaVersion).map(os.Path(_)),
-        jvmOptsFingerprint = readFile(DaemonFiles.jvmOptsFingerprint)
-      )
+      val file = daemonDir / DaemonFiles.daemonLaunchFingerprint
+      if (os.exists(file)) {
+        try {
+          val json = ujson.read(os.read(file))
+          DaemonConfig(
+            millVersion = json.obj.get("millVersion").map(_.str).getOrElse(""),
+            javaVersion = json.obj.get("javaVersion").map(_.str).getOrElse(""),
+            jvmOpts = json.obj.get("jvmOpts").map(_.arr.map(_.str).toSeq).getOrElse(Seq.empty)
+          )
+        } catch {
+          case _: Exception => DaemonConfig("", "", Seq.empty)
+        }
+      } else DaemonConfig("", "", Seq.empty)
     }
   }
 
@@ -132,7 +125,7 @@ object ServerLauncher {
       onFailure: ServerLaunchResult.ServerDied => Unit,
       log: String => Unit,
       openSocket: Boolean,
-      config: DaemonConfig = DaemonConfig()
+      config: DaemonConfig = DaemonConfig("", "", Seq.empty)
   ): Launched = {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
     val locked = locks.launcherLock.lock()
@@ -237,7 +230,7 @@ object ServerLauncher {
       initServer: () => LaunchedServer,
       timeoutMillis: Long,
       log: String => Unit,
-      config: DaemonConfig = DaemonConfig()
+      config: DaemonConfig = DaemonConfig("", "", Seq.empty)
   ): ServerLaunchResult = {
     os.makeDir.all(daemonDir)
 

@@ -70,7 +70,7 @@ object MillLauncherMain {
           env
         )
       } else { // start in client-server mode
-        val jvmOptsFingerprint = MillProcessLauncher.computeJvmOptsFingerprint(workDir, env)
+        val jvmOpts = MillProcessLauncher.computeJvmOpts(workDir, env)
         val launcher = new MillServerLauncher(
           stdout = stdout,
           stderr = stderr,
@@ -89,7 +89,7 @@ object MillLauncherMain {
                 env
               ).wrapped.toHandle
             ),
-          jvmOptsFingerprint = jvmOptsFingerprint
+          jvmOpts = jvmOpts
         )
 
         val daemonDir = os.Path(outDir, workDir) / OutFiles.OutFiles.millDaemon

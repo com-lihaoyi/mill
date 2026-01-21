@@ -170,11 +170,11 @@ object MillProcessLauncher {
    * This includes options from .mill-jvm-opts file and JAVA_OPTS/JDK_JAVA_OPTIONS env vars.
    * When this fingerprint changes, the daemon should be restarted.
    */
-  def computeJvmOptsFingerprint(workDir: os.Path, env: Map[String, String]): String = {
+  def computeJvmOpts(workDir: os.Path, env: Map[String, String]): Seq[String] = {
     val configOpts = loadMillConfig(ConfigConstants.millJvmOpts, workDir)
     val javaOpts = env.getOrElse("JAVA_OPTS", "").split("\\s+").filter(_.nonEmpty).toSeq
     val jdkJavaOptions = env.getOrElse("JDK_JAVA_OPTIONS", "").split("\\s+").filter(_.nonEmpty).toSeq
-    ujson.write(configOpts ++ javaOpts ++ jdkJavaOptions)
+    configOpts ++ javaOpts ++ jdkJavaOptions
   }
 
   def isWin: Boolean = System.getProperty("os.name", "").startsWith("Windows")

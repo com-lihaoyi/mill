@@ -8,14 +8,11 @@ public class DaemonFiles {
   /** Daemon process id is stored in this file, if you delete it the daemon will die. */
   public static final String processId = "processId";
 
-  /** Mill version of the running daemon, used to detect version mismatches. */
-  public static final String millVersion = "millVersion";
-
-  /** Java version/home of the running daemon, used to detect JVM changes. */
-  public static final String javaVersion = "javaVersion";
-
-  /** Fingerprint of JVM options, used to detect when daemon needs restart due to JVM option changes. */
-  public static final String jvmOptsFingerprint = "jvmOptsFingerprint";
+  /**
+   * JSON file containing daemon launch configuration (mill version, java version, JVM opts).
+   * Used to detect when the daemon needs to restart due to configuration changes.
+   */
+  public static final String daemonLaunchFingerprint = "daemonLaunchFingerprint.json";
 
   public static final String sandbox = "sandbox";
 
