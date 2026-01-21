@@ -34,9 +34,7 @@ abstract class MillDaemonServer[State](
 
   def initialStateCache: State
 
-  private var lastMillVersion = Option.empty[String]
-  private var lastJavaVersion = Option.empty[os.Path]
-  private var lastJvmOptsFingerprint = Option.empty[String]
+  private var lastConfig = ServerLauncher.DaemonConfig()
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
@@ -116,14 +114,15 @@ abstract class MillDaemonServer[State](
         val teeStdout = new mill.internal.MultiStream(stdout, consoleLogStream)
         val teeStderr = new mill.internal.MultiStream(stderr, consoleLogStream)
 
-        // Check for version changes (only if we already have a stored version)
-        val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
-        val javaVersionChanged =
-          lastJavaVersion.isDefined && lastJavaVersion != init.clientJavaVersion
-        val jvmOptsChanged =
-          lastJvmOptsFingerprint.exists(_ != init.clientJvmOptsFingerprint)
+        // Check for config changes using shared logic
+        val clientConfig = ServerLauncher.DaemonConfig(
+          millVersion = Some(init.clientMillVersion),
+          javaVersion = init.clientJavaVersion,
+          jvmOptsFingerprint = Some(init.clientJvmOptsFingerprint)
+        )
+        val mismatchReasons = lastConfig.checkMismatchAgainst(clientConfig)
 
-        if (millVersionChanged || javaVersionChanged || jvmOptsChanged) {
+        if (mismatchReasons.nonEmpty) {
           Server.withOutLock(
             noBuildLock = false,
             noWaitForBuildLock = false,
@@ -137,32 +136,16 @@ abstract class MillDaemonServer[State](
             outLock = outLock,
             setIdle = _ => ()
           ) {
-            if (millVersionChanged) {
-              teeStderr.println(
-                s"Mill version changed (${lastMillVersion.getOrElse("<unknown>")} -> ${init.clientMillVersion}), re-starting server"
-              )
-            }
-            if (javaVersionChanged) {
-              teeStderr.println(
-                s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${init.clientJavaVersion.getOrElse("<system>")}), re-starting server"
-              )
-            }
-            if (jvmOptsChanged) {
-              teeStderr.println(
-                s"JVM options changed (${lastJvmOptsFingerprint.getOrElse("[]")} -> ${init.clientJvmOptsFingerprint}), re-starting server"
-              )
-            }
+            mismatchReasons.foreach(reason => teeStderr.println(s"$reason, re-starting server"))
 
             // This sends RPC response and throws InterruptedException to stop the RPC loop
             deferredStopServer(
-              s"config mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged, jvmOptsChanged=$jvmOptsChanged)",
+              s"config mismatch: ${mismatchReasons.mkString(", ")}",
               ClientUtil.ServerExitPleaseRetry
             )
           }
         }
-        lastMillVersion = Some(init.clientMillVersion)
-        lastJavaVersion = init.clientJavaVersion
-        lastJvmOptsFingerprint = Some(init.clientJvmOptsFingerprint)
+        lastConfig = clientConfig
 
         // Run the actual command
         val (result, newStateCache) = main0(

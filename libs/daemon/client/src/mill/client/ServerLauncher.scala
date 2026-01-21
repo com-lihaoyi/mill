@@ -22,37 +22,41 @@ object ServerLauncher {
       jvmOptsFingerprint: Option[String] = None
   ) {
     /**
+     * Checks if this config differs from another config.
+     * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
+     * Only reports changes when both configs have values for a field.
+     */
+    def checkMismatchAgainst(other: DaemonConfig): Seq[String] = {
+      val reasons = Seq.newBuilder[String]
+
+      for {
+        oldVersion <- millVersion
+        newVersion <- other.millVersion
+        if oldVersion != newVersion
+      } reasons += s"Mill version changed ($oldVersion -> $newVersion)"
+
+      for {
+        oldVersion <- javaVersion
+        newVersion <- other.javaVersion
+        if oldVersion != newVersion
+      } reasons += s"Java version changed ($oldVersion -> $newVersion)"
+
+      for {
+        oldFingerprint <- jvmOptsFingerprint
+        newFingerprint <- other.jvmOptsFingerprint
+        if oldFingerprint != newFingerprint
+      } reasons += s"JVM options changed ($oldFingerprint -> $newFingerprint)"
+
+      reasons.result()
+    }
+
+    /**
      * Checks if this config differs from the stored daemon config files.
      * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
      */
     def checkMismatch(daemonDir: os.Path): Seq[String] = {
-      val reasons = Seq.newBuilder[String]
-
-      millVersion.foreach { version =>
-        val versionFile = daemonDir / DaemonFiles.millVersion
-        val existingVersion = if (os.exists(versionFile)) os.read(versionFile).trim else ""
-        if (existingVersion.nonEmpty && existingVersion != version) {
-          reasons += s"Mill version changed ($existingVersion -> $version)"
-        }
-      }
-
-      javaVersion.foreach { version =>
-        val versionFile = daemonDir / DaemonFiles.javaVersion
-        val existingVersion = if (os.exists(versionFile)) os.read(versionFile).trim else ""
-        if (existingVersion.nonEmpty && existingVersion != version.toString) {
-          reasons += s"Java version changed ($existingVersion -> $version)"
-        }
-      }
-
-      jvmOptsFingerprint.foreach { fingerprint =>
-        val fingerprintFile = daemonDir / DaemonFiles.jvmOptsFingerprint
-        val existingFingerprint = if (os.exists(fingerprintFile)) os.read(fingerprintFile).trim else ""
-        if (existingFingerprint.nonEmpty && existingFingerprint != fingerprint) {
-          reasons += s"JVM options changed ($existingFingerprint -> $fingerprint)"
-        }
-      }
-
-      reasons.result()
+      val stored = DaemonConfig.readFrom(daemonDir)
+      stored.checkMismatchAgainst(this)
     }
 
     /**
@@ -62,6 +66,27 @@ object ServerLauncher {
       millVersion.foreach(v => os.write.over(daemonDir / DaemonFiles.millVersion, v))
       javaVersion.foreach(v => os.write.over(daemonDir / DaemonFiles.javaVersion, v.toString))
       jvmOptsFingerprint.foreach(f => os.write.over(daemonDir / DaemonFiles.jvmOptsFingerprint, f))
+    }
+  }
+
+  object DaemonConfig {
+    /**
+     * Reads daemon config from the stored files in the daemon directory.
+     */
+    def readFrom(daemonDir: os.Path): DaemonConfig = {
+      def readFile(name: String): Option[String] = {
+        val file = daemonDir / name
+        if (os.exists(file)) {
+          val content = os.read(file).trim
+          if (content.nonEmpty) Some(content) else None
+        } else None
+      }
+
+      DaemonConfig(
+        millVersion = readFile(DaemonFiles.millVersion),
+        javaVersion = readFile(DaemonFiles.javaVersion).map(os.Path(_)),
+        jvmOptsFingerprint = readFile(DaemonFiles.jvmOptsFingerprint)
+      )
     }
   }
 
