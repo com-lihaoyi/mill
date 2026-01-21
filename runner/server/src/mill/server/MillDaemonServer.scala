@@ -6,6 +6,7 @@ import mill.client.lock.Locks
 import mill.constants.DaemonFiles
 import mill.launcher.DaemonRpc
 import mill.api.daemon.StopWithResponse
+import mill.client.ServerLauncher.DaemonConfig
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server.ConnectionData
 
@@ -34,7 +35,7 @@ abstract class MillDaemonServer[State](
 
   def initialStateCache: State
 
-  private var lastConfig = ServerLauncher.DaemonConfig("", "", Seq.empty)
+  private var lastConfig = DaemonConfig.empty
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"

@@ -20,7 +20,7 @@ object ServerLauncher {
       millVersion: String,
       javaVersion: String,
       jvmOpts: Seq[String]
-  ) derives upickle.default.ReadWriter {
+  ) derives upickle.ReadWriter {
     /**
      * Checks if this config differs from another config.
      * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
@@ -39,6 +39,9 @@ object ServerLauncher {
 
       reasons.result()
     }
+  }
+  object DaemonConfig {
+    def empty = DaemonConfig("", "", Seq.empty)
   }
 
   case class Launched(port: Int, socket: Option[Socket], launchedServer: LaunchedServer)
@@ -83,7 +86,7 @@ object ServerLauncher {
       onFailure: ServerLaunchResult.ServerDied => Unit,
       log: String => Unit,
       openSocket: Boolean,
-      config: DaemonConfig = DaemonConfig("", "", Seq.empty)
+      config: DaemonConfig
   ): Launched = {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
     val locked = locks.launcherLock.lock()
@@ -93,10 +96,11 @@ object ServerLauncher {
       val configFile = daemonDir / DaemonFiles.daemonLaunchFingerprint
       if (os.exists(processIdFile)) {
         val stored =
-          if (os.exists(configFile))
+          if (!os.exists(configFile)) DaemonConfig.empty
+          else
             try upickle.default.read[DaemonConfig](os.read(configFile))
-            catch { case _: Exception => DaemonConfig("", "", Seq.empty) }
-          else DaemonConfig("", "", Seq.empty)
+            catch { case _: Exception => DaemonConfig.empty }
+
         val mismatchReasons = stored.checkMismatchAgainst(config)
         if (mismatchReasons.nonEmpty) {
           mismatchReasons.foreach(reason => log(reason))
@@ -194,7 +198,7 @@ object ServerLauncher {
       initServer: () => LaunchedServer,
       timeoutMillis: Long,
       log: String => Unit,
-      config: DaemonConfig = DaemonConfig("", "", Seq.empty)
+      config: DaemonConfig
   ): ServerLaunchResult = {
     os.makeDir.all(daemonDir)
 
