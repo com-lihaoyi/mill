@@ -1,8 +1,9 @@
 package mill.launcher
 
 import io.github.alexarchambault.nativeterm.NativeTerminal
+import mill.api.daemon.MillException
 import mill.client.ClientUtil
-import mill.constants._
+import mill.constants.*
 
 import java.io.File
 import java.util.UUID
@@ -156,9 +157,7 @@ object MillProcessLauncher {
             Seq(Util.interpolateEnvVars(other.str, env.asJava))
         }
       case f: mill.api.Result.Failure =>
-        System.err.println(s"Failed parsing build header: ${f.error}")
-        System.exit(1)
-        Seq.empty
+        throw new MillException(s"Failed parsing build header: ${f.error}")
     }
   }
 

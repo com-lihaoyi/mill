@@ -201,12 +201,16 @@ object `package` extends mill.Module {
       def millIntegrationLauncher: T[PathRef]
       def millIntegrationIsPackagedLauncher: Task[Boolean]
       object nodaemon extends ModeModule {
+        // Test parallelism doesn't work when sharing the out folder
+        // since the parallel test executions will collide over files
+        override def testParallelism = !useSharedOut
         override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
       object daemon extends ModeModule {
+        override def testParallelism = !useSharedOut
         override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
@@ -219,8 +223,7 @@ object `package` extends mill.Module {
   object feature extends Cross[IntegrationCrossModule](build.listCross)
   object dedicated extends Cross[IntegrationCrossModule](build.listCross)
   object invalidation extends Cross[IntegrationCrossModule](build.listCross)
-  object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
-  object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
+  object bootstrap extends Cross[IntegrationCrossModule](build.listCross)
   object migrating extends Cross[MigrationIntegrationCrossModule](build.listCross)
   trait MigrationIntegrationCrossModule extends IntegrationCrossModule {
     def forkEnv = super.forkEnv() ++ initRepos.all().map { case (name, path) =>
@@ -234,8 +237,14 @@ object `package` extends mill.Module {
       // compile and the `ModeModule`s contain the entrypoints to run that code
       def enableBsp = false
     }
-    override def moduleDeps = super[IntegrationTestModule].moduleDeps
-    def forkArgs: T[Seq[String]] = Task(List.empty[String])
+    override def moduleDeps = super[IntegrationTestModule].moduleDeps ++ Seq(`bsp-util`)
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.bsp4j
+    )
+
+    def forkArgs: T[Seq[String]] = Seq(
+      s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
+    )
     def forkEnv = Task {
       super.forkEnv() ++ Seq(
         // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
@@ -244,15 +253,6 @@ object `package` extends mill.Module {
         "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
       )
     }
-  }
-  trait IdeIntegrationCrossModule extends IntegrationCrossModule {
-    def moduleDeps = super.moduleDeps ++ Seq(`bsp-util`)
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      Deps.bsp4j
-    )
-    def forkArgs = super.forkArgs() ++ Seq(
-      s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
-    )
   }
 
   /** Deploy freshly build mill for use in tests */
