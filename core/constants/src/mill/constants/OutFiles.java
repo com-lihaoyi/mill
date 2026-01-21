@@ -84,8 +84,6 @@ public class OutFiles {
      */
     public final String bspErrLog = "mill-bsp/err.log";
 
-
-
     /**
      * Path of the Mill "meta-build", used to compile the `build.sc` file so we can
      * run the primary Mill build. Can be nested for multiple stages of bootstrapping
