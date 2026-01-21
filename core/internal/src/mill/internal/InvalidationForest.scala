@@ -66,7 +66,7 @@ object InvalidationForest {
           for (key <- node.obj.keysIterator.toArray) {
             for {
               crossKeys <- downstreamMethodEdges.get(key)
-              crossKey <- crossKeys
+              crossKey <- crossKeys.sorted
               subTaskTree <- taskForest.obj.remove(crossKey)
             } node.obj(key)(crossKey) = subTaskTree
 

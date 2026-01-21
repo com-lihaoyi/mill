@@ -8,6 +8,7 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("nested") - integrationTest { tester =>
       import tester.*
+      eval(("clean", "_"))
       // Make sure the code-change invalidation works in more complex cases: multi-step
       // task graphs, tasks inside module objects, tasks inside module traits
 
@@ -298,10 +299,10 @@ object CodeSigNestedTests extends UtestIntegrationTestSuite {
           "  \"def build_.package_#<init>()void\": {",
           "    \"call build_.package_!<init>()void\": {",
           "      \"def build_.package_$#<init>()void\": {",
-          "        \"outer.bar\": {},",
           "        \"foo\": {",
           "          \"outer.inner.qux\": {}",
-          "        }",
+          "        },",
+          "        \"outer.bar\": {}",
           "      }",
           "    }",
           "  }",
