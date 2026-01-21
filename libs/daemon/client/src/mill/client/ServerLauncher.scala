@@ -25,16 +25,17 @@ object ServerLauncher {
     /**
      * Checks if this config differs from another config.
      * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
+     * Only triggers a mismatch if the previous (this) value is non-empty.
      */
     def checkMismatchAgainst(other: DaemonConfig): Seq[String] = {
       val results =
-        Option.when(millVersion != other.millVersion) {
+        Option.when(millVersion.nonEmpty && millVersion != other.millVersion) {
           s"Mill version changed ($millVersion -> ${other.millVersion})"
         } ++
-          Option.when(javaVersion != other.javaVersion) {
+          Option.when(javaVersion.nonEmpty && javaVersion != other.javaVersion) {
             s"Java version changed ($javaVersion -> ${other.javaVersion})"
           } ++
-          Option.when(jvmOpts != other.jvmOpts) {
+          Option.when(jvmOpts.nonEmpty && jvmOpts != other.jvmOpts) {
             s"JVM options changed ($jvmOpts -> ${other.jvmOpts})"
           }
 
