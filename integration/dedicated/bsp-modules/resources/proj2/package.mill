@@ -1,0 +1,7 @@
+package build.proj2
+import mill.*
+import mill.scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+}

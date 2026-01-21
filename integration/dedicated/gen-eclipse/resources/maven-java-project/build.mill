@@ -1,0 +1,8 @@
+package build
+
+import mill.*, javalib.*
+
+object project extends MavenModule {
+  object test extends MavenTests, TestModule.Junit4
+  object integration extends MavenTests, TestModule.Junit5
+}

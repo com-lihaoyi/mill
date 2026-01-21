@@ -1,0 +1,41 @@
+{
+  "displayName": "mill-bsp",
+  "version": "<MILL_VERSION>",
+  "bspVersion": "<BSP_VERSION>",
+  "capabilities": {
+    "compileProvider": {
+      "languageIds": [
+        "java",
+        "scala",
+        "kotlin"
+      ]
+    },
+    "testProvider": {
+      "languageIds": [
+        "java",
+        "scala",
+        "kotlin"
+      ]
+    },
+    "runProvider": {
+      "languageIds": [
+        "java",
+        "scala",
+        "kotlin"
+      ]
+    },
+    "debugProvider": {
+      "languageIds": []
+    },
+    "inverseSourcesProvider": true,
+    "dependencySourcesProvider": true,
+    "dependencyModulesProvider": true,
+    "resourcesProvider": true,
+    "outputPathsProvider": true,
+    "buildTargetChangedProvider": true,
+    "jvmRunEnvironmentProvider": true,
+    "jvmTestEnvironmentProvider": true,
+    "canReload": true,
+    "jvmCompileClasspathProvider": false
+  }
+}

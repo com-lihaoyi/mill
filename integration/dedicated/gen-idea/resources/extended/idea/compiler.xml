@@ -1,0 +1,8 @@
+<project version="4">
+    <component name="CompilerConfiguration">
+        <option name="DEFAULT_COMPILER" value="ajc"/>
+    </component>
+    <component name="AjcSettings">
+        <option name="ajcPath" value="/tmp/aspectjtools.jar"/>
+    </component>
+</project>

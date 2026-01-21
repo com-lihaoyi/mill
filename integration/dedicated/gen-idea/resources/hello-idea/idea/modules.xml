@@ -1,0 +1,23 @@
+<project version="4">
+    <component name="ProjectModuleManager">
+        <modules>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloidea.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloidea.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloidea.scala2_13.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloidea.scala2_13.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloidea.scala2_13.test.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloidea.scala2_13.test.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloidea.scala3.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloidea.scala3.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloidea.scala3.test.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloidea.scala3.test.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloidea.test.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloidea.test.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloideajs.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloideajs.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloideajs.test.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloideajs.test.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/mill-build.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/modulea.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/modulea.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/moduleb.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/moduleb.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/modulec.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/modulec.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/moduled.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/moduled.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/modulee.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/modulee.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/modulef.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/modulef.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/moduleg-2.12.5.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/moduleg-2.12.5.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/moduleg-2.13.6.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/moduleg-2.13.6.iml"/>
+        </modules>
+    </component>
+</project>

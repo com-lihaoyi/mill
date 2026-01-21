@@ -1,0 +1,13 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../../out/moduleB/internalGenIdea/ideaCompileOutput.dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../../moduleB">
+            <sourceFolder url="file://$MODULE_DIR$/../../moduleB/src" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../moduleB/resources" type="java-resource"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="module" module-name="modulea" exported=""/>
+    </component>
+</module>

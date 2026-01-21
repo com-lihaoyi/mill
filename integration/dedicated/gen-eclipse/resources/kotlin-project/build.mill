@@ -1,0 +1,7 @@
+package build
+
+import mill.*, kotlinlib.*
+
+object `package` extends KotlinModule {
+  def kotlinVersion = "1.9.24"
+}
