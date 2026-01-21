@@ -86,7 +86,7 @@ object ServerLauncher {
       daemonDir: os.Path,
       serverInitWaitMillis: Int,
       initServer: () => LaunchedServer,
-      onFailure: ServerLaunchResult.ServerDied => Unit,
+      onFailure: ServerLaunchResult.ServerDied => Nothing,
       log: String => Unit,
       openSocket: Boolean,
       config: DaemonConfig
@@ -122,29 +122,23 @@ object ServerLauncher {
       }
 
       retryWithTimeout(serverInitWaitMillis, "server launch failed") { () =>
-        try {
-          log("launchOrConnectToServer attempt")
+        log("launchOrConnectToServer attempt")
 
-          ensureServerIsRunning(
-            locks,
-            daemonDir,
-            initServer,
-            serverInitWaitMillis / 3,
-            log,
-            config
-          ) match {
-            case ServerLaunchResult.Success(server) =>
-              Some(connectToServer(daemonDir, server, openSocket, log))
+        ensureServerIsRunning(
+          locks,
+          daemonDir,
+          initServer,
+          serverInitWaitMillis / 3,
+          log,
+          config
+        ) match {
+          case ServerLaunchResult.Success(server) =>
+            Some(connectToServer(daemonDir, server, openSocket, log))
 
-            case ServerLaunchResult.AlreadyRunning(server) =>
-              Some(connectToServer(daemonDir, server, openSocket, log))
+          case ServerLaunchResult.AlreadyRunning(server) =>
+            Some(connectToServer(daemonDir, server, openSocket, log))
 
-            case processDied: ServerLaunchResult.ServerDied =>
-              onFailure(processDied)
-              throw new IllegalStateException(processDied.toString)
-          }
-        } catch {
-          case e: Exception => throw new RuntimeException(e)
+          case processDied: ServerLaunchResult.ServerDied => onFailure(processDied)
         }
       }
     } finally {
@@ -182,6 +176,7 @@ object ServerLauncher {
     while (current.isEmpty && System.nanoTime() - startTimeMonotonicNanos < timeoutNanos) {
       try current = supplier()
       catch {
+        case e: mill.api.daemon.MillException => throw e
         case e: Throwable =>
           throwable = e
           Thread.sleep(1)
