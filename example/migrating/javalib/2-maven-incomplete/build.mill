@@ -8,10 +8,11 @@
 
 > ./mill init
 converting Maven build
-writing fastexcel-writer/package.mill
-writing fastexcel-reader/package.mill
-writing e2e/package.mill
-writing build.mill
+writing build.mill.yaml
+writing e2e/package.mill.yaml
+writing fastexcel-reader/package.mill.yaml
+writing fastexcel-writer/package.mill.yaml
+...
 init completed, run "mill resolve _" to list available tasks
 
 > ./mill -k __.compile # Compilation needs manual tweaking to pass

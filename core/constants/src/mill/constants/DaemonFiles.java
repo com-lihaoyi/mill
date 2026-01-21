@@ -8,6 +8,9 @@ public class DaemonFiles {
   /** Daemon process id is stored in this file, if you delete it the daemon will die. */
   public static final String processId = "processId";
 
+  /** Mill version of the running daemon, used to detect version mismatches. */
+  public static final String millVersion = "millVersion";
+
   public static final String sandbox = "sandbox";
 
   /**
@@ -64,4 +67,9 @@ public class DaemonFiles {
    * Terminal information that we need to propagate from client to server
    */
   public static final String terminfo = "terminfo";
+
+  /**
+   * Console log file containing output from the running Mill command
+   */
+  public static final String consoleLog = "console.log";
 }

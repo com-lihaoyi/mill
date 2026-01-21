@@ -34,20 +34,26 @@ object GenIdeaUtils {
         .replace("jansi-2.4.1.jar", "jansi.jar")
         // Normalize coursier cache references which contain the user-specific home folder
         .replaceAll(
-          "path=\"[a-zA-Z0-9._/]+/maven2/",
+          "path=\"[a-zA-Z0-9._/-]+/maven2/",
           "path=\".../"
         )
         .replaceAll(
-          "path=\"[a-zA-Z0-9._/]+/out/",
+          "path=\"[a-zA-Z0-9._/-]+/out/",
           "path=\".../out/"
         )
         .replaceAll(
-          "-Xplugin:/[a-zA-Z0-9._/]+/maven2/",
+          "-Xplugin:/[a-zA-Z0-9._/-]+/maven2/",
           "-Xplugin:.../"
         )
         .replaceAll(
-          "-Xplugin:/[a-zA-Z0-9._/]+/out/",
+          "-Xplugin:/[a-zA-Z0-9._/-]+/out/",
           "-Xplugin:.../"
+        )
+        // Normalize third-party dependency versions in jar paths like "artifact/1.2.3/artifact-1.2.3.jar"
+        // Also handles artifacts with Scala version suffixes like "artifact_2.12/1.0.6/artifact_2.12-1.0.6.jar"
+        .replaceAll(
+          "/([a-zA-Z0-9_.-]+)/[0-9][0-9a-zA-Z._-]*/\\1-[0-9][0-9a-zA-Z._-]*\\.jar",
+          "/$1/<version>/$1-<version>.jar"
         )
 
       utest.assertGoldenFile(

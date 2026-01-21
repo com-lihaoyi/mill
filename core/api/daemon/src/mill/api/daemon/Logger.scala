@@ -162,6 +162,16 @@ object Logger {
     def ticker(s: String): Unit
   }
 
+  object Actions {
+    val noOp: Actions = new Actions {
+      def info(s: String): Unit = ()
+      def debug(s: String): Unit = ()
+      def warn(s: String): Unit = ()
+      def error(s: String): Unit = ()
+      def ticker(s: String): Unit = ()
+    }
+  }
+
   /**
    * APIs that allow a logger to interact with the global prompt: setting and unsetting
    * lines, enabling or disabling the prompt, etc. Normally passed through from logger
@@ -195,6 +205,7 @@ object Logger {
     def infoColor(s: String): String
     def warnColor(s: String): String
     def errorColor(s: String): String
+    def successColor(s: String): String
     def colored: Boolean
   }
   private[mill] object Prompt {
@@ -224,6 +235,7 @@ object Logger {
       def infoColor(s: String): String = s
       def warnColor(s: String): String = s
       def errorColor(s: String): String = s
+      def successColor(s: String): String = s
       def colored: Boolean = false
     }
   }

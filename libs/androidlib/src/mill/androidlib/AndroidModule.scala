@@ -43,6 +43,14 @@ trait AndroidModule extends JavaModule { outer =>
   override def sources: T[Seq[PathRef]] = Task.Sources("src/main/java")
 
   /**
+   * Provides access to the sdkmanager. Use this module instead of
+   * using the sdkmanager directly to avoid race conditions within mill
+   * (e.g. installing the same package in parallel).
+   */
+  def androidSdkManagerModule: ModuleRef[AndroidSdkManagerModule] =
+    ModuleRef(AndroidSdkManagerModule)
+
+  /**
    * Provides access to the Android SDK configuration.
    */
   def androidSdkModule: ModuleRef[AndroidSdkModule]
@@ -242,12 +250,41 @@ trait AndroidModule extends JavaModule { outer =>
   }
 
   /**
+   * Gets all the transitive android assets (typically in assets/ directory)
+   * from the [[transitiveModuleDeps]]
+   */
+  def androidTransitiveAssets: T[Seq[PathRef]] = Task {
+    Task.traverse(transitiveModuleDeps) {
+      case m: AndroidModule =>
+        m.androidAssetsWithLibraries
+      case _ =>
+        Task.Anon(Seq.empty)
+    }().flatten.distinct
+  }
+
+  /**
    * Gets all the android resources (typically in res/ directory)
-   * from the library dependencies using [[androidUnpackArchives]]
+   * from the library dependencies using [[androidUnpackRunArchives]]
    * @return
    */
   def androidLibraryResources: T[Seq[PathRef]] = Task {
     androidUnpackRunArchives().flatMap(_.androidResources.toSeq)
+  }
+
+  /**
+   * Gets all the android assets (typically in assets/ directory)
+   * from the library dependencies using [[androidUnpackRunArchives]]
+   * @return
+   */
+  def androidLibraryAssets: T[Seq[PathRef]] = Task {
+    androidUnpackRunArchives().flatMap(_.assets.toSeq)
+  }
+
+  /**
+   * Combines the module android assets with the library assets
+   */
+  def androidAssetsWithLibraries: T[Seq[PathRef]] = Task {
+    androidAssets().filter(p => os.exists(p.path)) ++ androidLibraryAssets()
   }
 
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
@@ -319,6 +356,11 @@ trait AndroidModule extends JavaModule { outer =>
    * Android res folder
    */
   def androidResources: T[Seq[PathRef]] = Task.Sources("src/main/res")
+
+  /**
+   * Android assets folder
+   */
+  def androidAssets: T[Seq[PathRef]] = Task.Sources("src/main/assets")
 
   /**
    * Constructs the run classpath by extracting JARs from AAR files where
@@ -435,6 +477,7 @@ trait AndroidModule extends JavaModule { outer =>
       val classesJar = pathOption(extractDir / "classes.jar")
       val proguardRules = pathOption(extractDir / "proguard.txt")
       val androidResources = pathOption(extractDir / "res")
+      val assets = pathOption(extractDir / "assets")
       val manifest = pathOption(extractDir / "AndroidManifest.xml")
       val lintJar = pathOption(extractDir / "lint.jar")
       val metaInf = pathOption(extractDir / "META-INF")
@@ -450,6 +493,7 @@ trait AndroidModule extends JavaModule { outer =>
         repackaged,
         proguardRules,
         androidResources,
+        assets,
         manifest,
         lintJar,
         metaInf,
@@ -732,6 +776,8 @@ trait AndroidModule extends JavaModule { outer =>
     val argFile = Task.dest / "to-link.txt"
     os.write.over(argFile, filesToLink.map(_.toString()).mkString("\n"))
 
+    val allAssetsDirs = androidTransitiveAssets()
+
     val javaRClassDir = Task.dest / "generatedSources/java"
     val apkDir = Task.dest / "apk"
     val proguard = Task.dest / "proguard"
@@ -771,7 +817,7 @@ trait AndroidModule extends JavaModule { outer =>
       resApkFile.toString,
       "-R",
       "@" + argFile.toString
-    )
+    ) ++ allAssetsDirs.flatMap(a => Seq("-A", a.path.toString()))
 
     Task.log.info((aapt2Link ++ linkArgs).mkString(" "))
 

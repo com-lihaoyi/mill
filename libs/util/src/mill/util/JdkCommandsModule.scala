@@ -1,7 +1,8 @@
 package mill.util
 
 import mill.*
-import mill.api.PathRef
+import mill.api.{PathRef, nonBootstrapped}
+import mill.util.Jvm.jdkTool
 
 /**
  * A trait providing convenient access to common JDK command-line tools.
@@ -17,38 +18,51 @@ trait JdkCommandsModule extends mill.api.Module {
    */
   def jdkCommandsJavaHome: Task[Option[PathRef]] = Task.Anon { None }
 
-  /**
-   * Runs the `java` command from this module's [[jdkCommandsJavaHome]].
-   * Renamed to `java` on the command line.
-   */
+  private def callJdk(toolName: String, javaHome: Option[PathRef], args: Seq[String]): Int = {
+    os.call(
+      cmd = Seq(jdkTool(toolName, javaHome.map(_.path))) ++ args,
+      stdin = os.Inherit,
+      stdout = os.Inherit,
+      check = false
+    )
+      .exitCode
+  }
+
+  /** Runs the `java` command from Mill's JVM */
   @Task.rename("java")
   @mainargs.main(name = "java")
+  @nonBootstrapped
   def javaRun(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    Jvm.callJdkTool("java", args, jdkCommandsJavaHome().map(_.path))
+    Task.ctx().systemExit(callJdk("java", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `javac` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `javac` command from Mill's JVM */
+  @nonBootstrapped
   def javac(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    Jvm.callJdkTool("javac", args, jdkCommandsJavaHome().map(_.path))
+    Task.ctx().systemExit(callJdk("javac", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `javap` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `javap` command from Mill's JVM */
+  @nonBootstrapped
   def javap(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    Jvm.callJdkTool("javap", args, jdkCommandsJavaHome().map(_.path))
+    Task.ctx().systemExit(callJdk("javap", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `jstack` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `jstack` command from Mill's JVM */
+  @nonBootstrapped
   def jstack(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    Jvm.callJdkTool("jstack", args, jdkCommandsJavaHome().map(_.path))
+    Task.ctx().systemExit(callJdk("jstack", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `jps` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `jps` command from Mill's JVM */
+  @nonBootstrapped
   def jps(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    Jvm.callJdkTool("jps", args, jdkCommandsJavaHome().map(_.path))
+    Task.ctx().systemExit(callJdk("jps", jdkCommandsJavaHome(), args))
   }
 
-  /** Runs the `jfr` command from this module's [[jdkCommandsJavaHome]] */
+  /** Runs the `jfr` command from Mill's JVM */
+  @nonBootstrapped
   def jfr(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    Jvm.callJdkTool("jfr", args, jdkCommandsJavaHome().map(_.path))
+    Task.ctx().systemExit(callJdk("jfr", jdkCommandsJavaHome(), args))
   }
 }

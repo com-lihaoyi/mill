@@ -142,6 +142,18 @@ object `package` extends Module {
 
   trait ExampleCrossModuleAndroid extends ExampleCrossModule {
     def testExclusive = true
+
+    /**
+     * Unique and even Android emulator port for this example test module.
+     * Each module claims the port by incrementing the shared counter by two,
+     * reserving one port for the console and one for adb.
+     */
+    val emulatorPort: Int = androidPortCounter.getAndAdd(2)
+
+    override def forkEnv = super.forkEnv() ++ Map(
+      "EMULATOR_PORT" -> emulatorPort.toString
+    )
+
   }
 
   trait ExampleCrossModuleJava extends ExampleCrossModule {
@@ -228,6 +240,13 @@ object `package` extends Module {
    */
   private val portCounter = new AtomicInteger(10000)
 
+  /**
+   * Counter for assigning unique Android emulator ports to example test modules.
+   * Each module claims a port by incrementing this counter by two (for console and adb).
+   * Ports start at 5554 which is the default starting port for Android emulators.
+   */
+  private val androidPortCounter = new AtomicInteger(5554)
+
   trait ExampleCrossModule extends build.integration.IntegrationTestModule {
 
     // disable scalafix because these example modules don't have sources causing it to misbehave
@@ -280,7 +299,7 @@ object `package` extends Module {
       val hasScalaChunks = withoutFrontMatter.exists(_.isInstanceOf[Chunk.Scala])
       val exampleDashed = examplePath.segments.mkString("-")
       val download =
-        s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
+        s"{mill-download-url}/mill-dist-{mill-version}-$exampleDashed.zip[download]"
       val renderedChunks = withoutFrontMatter
         .map {
           case Chunk.See(path, lines) =>

@@ -47,10 +47,10 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
 
       // Ensure we see the waiting message
       assertEventually {
-        spawnedWaitingRes.err.text()
-          .contains(
-            s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
-          )
+        val stderrText = spawnedWaitingRes.err.text()
+        stderrText.contains(
+          s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
+        ) && stderrText.contains("tail -f")
       }
 
       // Even after task starts waiting on blocking task, it is not complete

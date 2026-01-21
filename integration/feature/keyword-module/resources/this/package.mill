@@ -1,6 +1,0 @@
-package build.`this`
-import mill._, scalalib.*
-
-object `package` extends mill.Module {
-  def task = Task { true }
-}

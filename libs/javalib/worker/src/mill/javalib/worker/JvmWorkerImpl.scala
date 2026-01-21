@@ -96,7 +96,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
         os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
         os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.mkString("\n"))
 
-        val mainClass = "mill.javalib.worker.JvmWorkerMain"
+        val mainClass = "mill.javalib.worker.MillJvmWorkerMain"
         val baseLocks = Locks.forDirectory(daemonDir.toString, useFileLocks)
         val locks = {
           Locks(
@@ -109,18 +109,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
           )
         }
 
-        val javaMajorVersion = Jvm.getJavaMajorVersion(key.javaHome)
-        val suppressArgs =
-          // Suppress Unsafe warnings on Java >=23, since we use Scala modules built in Scala-3.7 for
-          // compatibility with Java >=11, and Scala-3.7 generates such warnings spuriously
-          Option.when(javaMajorVersion >= 23) { "--sun-misc-unsafe-memory-access=allow" } ++
-            // Silence another benign warning, this one raised by a `com.swoval:file-tree-views`
-            // which is transitively used by Zinc for faster filesystem operations
-            Option.when(javaMajorVersion >= 16) { "--enable-native-access=ALL-UNNAMED" }
+        val suppressArgs = Jvm.getJvmSuppressionArgs(key.javaHome)
 
         val launched = ServerLauncher.launchOrConnectToServer(
           locks,
-          daemonDir.toNIO,
+          daemonDir,
           10 * 1000,
           () => {
             val process = Jvm.spawnProcess(

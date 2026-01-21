@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import mill.util.JarManifest
-import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task}
+import mill.api.{BuildCtx, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
@@ -426,32 +426,26 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /** Use `repl` instead */
   def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
     Task.Command(exclusive = true) {
-      if (!mill.constants.Util.hasConsole()) {
-        Task.fail("console needs to be run with the -i/--interactive flag")
-      } else {
-        val useJavaCp = "-usejavacp"
+      val useJavaCp = "-usejavacp"
 
-        // Workaround for https://github.com/scala/scala3/issues/20421
-        // Remove module-info.class from classpath entries to fix REPL autocomplete
-        val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
-          ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
-        }
-
-        Jvm.callProcess(
-          mainClass =
-            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
-            else "scala.tools.nsc.MainGenericRunner",
-          classPath = classPath,
-          jvmArgs = forkArgs(),
-          env = allForkEnv(),
-          mainArgs =
-            Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
-          cwd = forkWorkingDir(),
-          stdin = os.Inherit,
-          stdout = os.Inherit
-        )
-        ()
+      // Workaround for https://github.com/scala/scala3/issues/20421
+      // Remove module-info.class from classpath entries to fix REPL autocomplete
+      val classPath = (runClasspath() ++ scalaConsoleClasspath()).map { pathRef =>
+        ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
       }
+
+      Jvm.callInteractiveProcess(
+        mainClass =
+          if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
+          else "scala.tools.nsc.MainGenericRunner",
+        classPath = classPath,
+        jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
+        env = allForkEnv(),
+        mainArgs =
+          Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
+        cwd = forkWorkingDir()
+      )
+      ()
     }
 
   /**
@@ -519,23 +513,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   def repl(replOptions: String*): Command[Unit] = {
     if (ammoniteRepl) {
       Task.Command(exclusive = true) {
-        if (Task.log.streams.in == DummyInputStream) {
-          Task.fail("repl needs to be run with the -i/--interactive flag")
-        } else {
-          val mainClass = ammoniteMainClass()
-          Task.log.debug(s"Using ammonite main class: ${mainClass}")
-          Jvm.callProcess(
-            mainClass = mainClass,
-            classPath = ammoniteReplClasspath().map(_.path).toVector,
-            jvmArgs = forkArgs(),
-            env = allForkEnv(),
-            mainArgs = replOptions,
-            cwd = forkWorkingDir(),
-            stdin = os.Inherit,
-            stdout = os.Inherit
-          )
-          ()
-        }
+        val mainClass = ammoniteMainClass()
+        Task.log.debug(s"Using ammonite main class: ${mainClass}")
+        Jvm.callInteractiveProcess(
+          mainClass = mainClass,
+          classPath = ammoniteReplClasspath().map(_.path).toVector,
+          jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
+          env = allForkEnv(),
+          mainArgs = replOptions,
+          cwd = forkWorkingDir()
+        )
+        ()
       }
     } else console(mill.api.Args(replOptions))
   }

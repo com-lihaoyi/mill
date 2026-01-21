@@ -13,11 +13,11 @@ trait ProjectBaseModule extends PublishModule, SbtPlatformModule {
 
   def mvnDeps = Seq(Deps.upickle)
 
-  def scalaVersion = "2.13.14"
+  def scalaVersion = "2.13.18"
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  trait Tests extends SbtPlatformTests {
+  trait ProjectBaseTests extends SbtPlatformTests {
 
     def mvnDeps = Seq(Deps.utest)
 

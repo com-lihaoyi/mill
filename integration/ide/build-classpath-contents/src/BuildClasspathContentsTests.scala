@@ -12,6 +12,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
       val millPublishedJars = deserialized
         .map(_.path.last)
         .filter(_.startsWith("mill-"))
+        .filter(!_.startsWith("mill-moduledefs")) // external versioned dependency
         .sorted
       val millLocalClasspath = deserialized
         .flatMap { p =>
@@ -36,7 +37,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-core-constants-SNAPSHOT.jar",
             "mill-libs-androidlib-databinding_3-SNAPSHOT.jar",
             "mill-libs-androidlib_3-SNAPSHOT.jar",
-            "mill-libs-daemon-client-SNAPSHOT.jar",
+            "mill-libs-daemon-client_3-SNAPSHOT.jar",
             "mill-libs-daemon-server_3-SNAPSHOT.jar",
             "mill-libs-groovylib-api_3-SNAPSHOT.jar",
             "mill-libs-groovylib_3-SNAPSHOT.jar",
@@ -59,7 +60,6 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
             "mill-libs-util-java11_3-SNAPSHOT.jar",
             "mill-libs-util_3-SNAPSHOT.jar",
             "mill-libs_3-SNAPSHOT.jar",
-            "mill-moduledefs_3-0.12.8.jar",
             "mill-runner-autooverride-api_3-SNAPSHOT.jar"
           )
         )

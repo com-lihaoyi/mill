@@ -43,7 +43,7 @@ public class OutFiles {
      * Default hard-coded value for the Mill `out/` folder path in BSP server mode.
      * To get the effective out dir, use {@link #outFor}.
      */
-    public final String defaultBspOut = ".bsp/mill-bsp-out";
+    public final String defaultBspOut = ".bsp/out";
 
     /**
      * Effective path of the Mill `out/` folder.
@@ -100,6 +100,12 @@ public class OutFiles {
      * workers, watched files, classpaths, etc.
      */
     public final String millRunnerState = "mill-runner-state.json";
+
+    /**
+     * Stores the Mill version and JVM version from the previous run, used to detect
+     * version changes that should invalidate all tasks.
+     */
+    public final String millVersionState = "mill-version-state.json";
 
     /**
      * Subfolder of `out/` that contains the machinery necessary for a single Mill background
@@ -167,6 +173,8 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millRunnerState = OutFiles.millRunnerState;
+
+  public static final String millVersionState = OutFiles.millVersionState;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millDaemon = OutFiles.millDaemon;

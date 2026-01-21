@@ -22,6 +22,51 @@ object `package` extends mill.Module {
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
 
+  // Pre-clone git repos for init tests at build time (parallelizable)
+  // rather than during test execution
+  object initRepos extends Module {
+    case class RepoInfo(name: String, url: String, branch: String)
+
+    val repos = Seq(
+      // Maven tests
+      RepoInfo("jansi", "https://github.com/fusesource/jansi.git", "jansi-2.4.2"),
+      RepoInfo("netty", "https://github.com/netty/netty.git", "netty-4.2.6.Final"),
+      // Gradle tests
+      RepoInfo("FastCSV", "https://github.com/osiegmar/FastCSV.git", "v4.1.0"),
+      RepoInfo("ehcache3", "https://github.com/ehcache/ehcache3.git", "v3.10.8"),
+      // Sbt tests
+      RepoInfo("Airstream", "https://github.com/raquo/Airstream.git", "v17.2.1"),
+      RepoInfo("fs2", "https://github.com/typelevel/fs2.git", "v3.12.0")
+    )
+
+    val reposMap = repos.map(v => v.name -> v).toMap
+
+    private def cloneRepoImpl(repo: RepoInfo, destDir: os.Path): PathRef = {
+      val repoDir = destDir / repo.name
+      os.proc("git", "clone", repo.url, "--depth", "1", "--branch", repo.branch, repo.name)
+        .call(cwd = destDir)
+      PathRef(repoDir)
+    }
+
+    def jansi = Task { cloneRepoImpl(reposMap("jansi"), Task.dest) }
+    def netty = Task { cloneRepoImpl(reposMap("netty"), Task.dest) }
+    def FastCSV = Task { cloneRepoImpl(reposMap("FastCSV"), Task.dest) }
+    def ehcache3 = Task { cloneRepoImpl(reposMap("ehcache3"), Task.dest) }
+    def Airstream = Task { cloneRepoImpl(reposMap("Airstream"), Task.dest) }
+    def fs2 = Task { cloneRepoImpl(reposMap("fs2"), Task.dest) }
+
+    def all = Task {
+      Map(
+        "jansi" -> jansi().path.toString,
+        "netty" -> netty().path.toString,
+        "FastCSV" -> FastCSV().path.toString,
+        "ehcache3" -> ehcache3().path.toString,
+        "Airstream" -> Airstream().path.toString,
+        "fs2" -> fs2().path.toString
+      )
+    }
+  }
+
   case class SharedWorkerInfo(outPath: os.Path, port: Int)
 
   def sharedOutFolder = Task.Worker {
@@ -108,7 +153,8 @@ object `package` extends mill.Module {
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           ) ++
-          (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.localTestOverridesEnv())
+          (if (millIntegrationIsPackagedLauncher()) Map()
+           else build.dist.raw.localTestOverridesEnv())
       }
 
       def millIntegrationLauncher: T[PathRef]
@@ -117,7 +163,7 @@ object `package` extends mill.Module {
       def millIntegrationIsPackagedLauncher: Task[Boolean]
 
       def forkArgs = Task {
-        super.forkArgs() ++ IntegrationTestModule.this.forkArgs() ++ build.dist.forkArgs()
+        super.forkArgs() ++ IntegrationTestModule.this.forkArgs() ++ build.dist.raw.forkArgs()
       }
 
       def resources = IntegrationTestModule.this.resources()
@@ -135,15 +181,19 @@ object `package` extends mill.Module {
 
     object shared extends IntegrationLauncherModule {
       override def useSharedOut = true
-      def millIntegrationLauncher = build.dist.launcher()
+      def millIntegrationLauncher = build.dist.raw.launcher()
       def millIntegrationIsPackagedLauncher = Task(false)
     }
     object packaged extends IntegrationLauncherModule {
-      def millIntegrationLauncher = build.dist.executable()
+      def millIntegrationLauncher = build.dist.raw.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
     }
     object native extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.native.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
+    }
+    object proguard extends IntegrationLauncherModule {
+      def millIntegrationLauncher = build.dist.executable()
       def millIntegrationIsPackagedLauncher = Task(true)
     }
     trait IntegrationLauncherModule extends Module {
@@ -170,7 +220,12 @@ object `package` extends mill.Module {
   object invalidation extends Cross[IntegrationCrossModule](build.listCross)
   object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
   object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
-  object migrating extends Cross[IntegrationCrossModule](build.listCross)
+  object migrating extends Cross[MigrationIntegrationCrossModule](build.listCross)
+  trait MigrationIntegrationCrossModule extends IntegrationCrossModule {
+    def forkEnv = super.forkEnv() ++ initRepos.all().map { case (name, path) =>
+      s"MILL_INIT_REPO_$name" -> path
+    }
+  }
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def testClasspath = Seq(compile().classes)
     override lazy val test: MillScalaTests = new MillScalaTests {
@@ -180,12 +235,14 @@ object `package` extends mill.Module {
     }
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkArgs: T[Seq[String]] = Task(List.empty[String])
-    def forkEnv = super.forkEnv() ++ Seq(
-      // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
-      "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
-      "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
-      "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
-    )
+    def forkEnv = Task {
+      super.forkEnv() ++ Seq(
+        // "UTEST_UPDATE_GOLDEN_TESTS" -> "1",
+        "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
+        "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
+        "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
+      )
+    }
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
     def moduleDeps = super.moduleDeps ++ Seq(`bsp-util`)
@@ -201,7 +258,7 @@ object `package` extends mill.Module {
   def testMill: T[PathRef] = {
     val name = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     Task {
-      val executable = build.dist.executable().path
+      val executable = build.dist.raw.executable().path
       val dest = Task.dest / name
       os.copy.over(executable, dest)
       PathRef(dest)

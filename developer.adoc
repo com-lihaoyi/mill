@@ -1,40 +1,50 @@
+= Developer Documentation
 
-== Developer Documentation
+Mill is built using Mill. The `./mill` script will be sufficient to bootstrap the project.
+When starting out, please run:
 
-This page is developer-documentation targeted at people who wish to work
-on Mill's own codebase. The developer docs assume you have read through the user-facing
-documentation linked above. It's also worth spending a few minutes reading the following
-blog posts to get a sense of Mill's design & motivation:
+1. Run `./mill --help` for a quick primer on how to use `./mill` as a build tool.
+2. Run `./mill visualizeMillModules` to see the dependency structure of the codebase
 
+== Common Developer Workflow
 
+1. Import code into IntelliJ IDEA
 
-Mill is built using Mill. To begin, you just need a JVM installed, and the
-`./mill` script will be sufficient to bootstrap the project.
+2. Make code changes
 
-== IntelliJ Setup
+3. Run `./mill __.compile` to make sure you didn't screw up anything simple
+   (you can use `-w`/`--watch` for convenience)
 
-If you are using IntelliJ IDEA to edit Mill's Scala code, IntelliJ's built in BSP support should
-be sufficient to load the Mill project, but you need to set up the file association from
-`*.mill` as Scala source files manually in the following settings:
+4. Run specific unit tests (if any) e.g. `./mill core.api.test` or
+   `./mill core.api.test mill.api.PathRefTests`
 
-* `Settings` / `Editor` / `File Types` / `Scala`, add the pattern `*.mill`
+5. Test manually via `./mill dist.run scratch foo.scala`
+
+6. Run specific integration/example tests e.g. `./mill integration.feature.full-run-logs` or
+   `./mill example.javalib.basic.1-script`
+
+7. Run broader integration/unit tests e.g. `./mill core.__.test` or
+   `./mill example.javalib.basic._`
+
+8. Push to a PR and run all tests in CI
+
+9. If anything fails, go back to (2.)
 
 == Manual & Automated Testing
 
-The following table contains the main ways you can test the code in
-`com-lihaoyi/mill`, via manual testing or automated tests:
+Ways you can run manual testing or automated tests using `./mill`:
 
 |===
 | Config | Automated Testing | Manual Testing | Manual Testing CI
 | In-Process Tests | `core.__.test`, `scalalib.test`, `contrib.buildinfo.test`, etc. |  |
-| Sub-Process Tests| `example.\\__.packaged.daemon`, `integration.__.packaged.daemon` | `dist.run` | `test-mill-dev.sh`
+| Sub-Process Tests| `integration.ide.bsp-server`, `example.javalib.basic._` | `dist.run` | `test-mill-dev.sh`
 | Bootstrapping: Building Mill with your current checkout of Mill |  | `dist.installLocal` | `test-mill-bootstrap.sh`
 |===
 
 In general, `println` or `pprint.log` should work in most places and be sufficient for
 instrumenting and debugging the Mill codebase. In the occasional spot where `println`
-doesn't work you can use `mill.constants.DebugLog.println`/`mill.api.Debug` which writes
-to a file `~/mill-debug-log.txt` in your home folder. `DebugLog` is useful for scenarios
+doesn't work you can use `mill.constants.DebugLog.println(...)`/`mill.api.Debug(...)` which writes
+to a file `~/mill-debug-log.txt` in your home folder. `DebugLog`/`Debug` is useful for scenarios
 like debugging Mill's terminal UI (where `println` would mess things up) or subprocesses
 (where stdout/stderr may get captured or used and cannot be used to display your own
 debug statements).
@@ -119,17 +129,19 @@ remaining modules to `~/.ivy2/local`.
 This results in a more realistic test environment, but at the cost of taking tens-of-seconds
 more to run a test after making a code change.
 
-You can reproduce these tests manually using `dist.installLocal`:
+You can reproduce these tests manually using `dist.raw.installLocal`:
 
 [source,console]
 ----
-> ./mill dist.installLocal && (cd example/javalib/basic/3-simple && ../../../../mill-assembly.jar run --text hello)
+> ./mill dist.raw.installLocal && (cd example/javalib/basic/3-simple && ../../../../mill-assembly.jar run --text hello)
 ----
 
-You can also use `dist.native.installLocal` for a Graal Native Image executable,
-which is slower to create but faster to start than the default executable assembly.
+You can also use `dist.native.installLocal` for a Graal Native Image executable
+(which is slower to create but faster to start than the default executable assembly)
+or `dist.installLocal` which is the proguarded launcher assembly we publish (which
+is also slower to create and faster to start than the raw jar).
 
-There are two six of these tests, `.{local,assembly,native}.{daemon,fork}`.
+There are six of these tests, `.{packaged,shared,native}.{daemon,nodaemon}`.
 
 The first label specifies how the Mill code is packaged before testing
 
@@ -137,6 +149,10 @@ The first label specifies how the Mill code is packaged before testing
 
 1. `.packaged` runs using the compiled Mill code either packaged into an assembly or into jars.
 This is the default for commands like `example.basic.3-simple`
+
+2. `.proguard` is similar to `.packaged`, but uses a proguard-optimized assembly jar. This is
+typically not used manually since it adds ~15s overhead optimizing the jar, but some CI jobs
+use this to make sure the proguarded launcher assemblies work since that's what we publish
 
 3. `.native` runs using the compiled Mill code packaged into an assembly with a Graal native binary launcher.
 This is the slowest mode is only really necessary for debugging Mill's Graal native binary configuration.
@@ -222,7 +238,7 @@ To run all autofixes and autoformatters:
 
 [source,console]
 ----
-> ./mill __.fix + mill.javalib.palantirformat.PalantirFormatModule/ + mill.scalalib.scalafmt.ScalafmtModule/scalafmt + mill.kotlinlib.ktlint.KtlintModule/
+> ./mill __.fix + mill.javalib.palantirformat/ + mill.scalalib.scalafmt/ + mill.kotlinlib.ktlint/
 ----
 
 These are run automatically on pull requests, so feel free to `pull` down the changes if you want
