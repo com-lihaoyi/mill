@@ -4,4 +4,4 @@ mvnDeps:
 - org.apache.commons:commons-text
 
 object test:
-  extends: [ProjectBaseTests, TestModule.Junit5]
+  extends: ProjectBaseTests

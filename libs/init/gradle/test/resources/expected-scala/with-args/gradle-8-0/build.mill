@@ -49,7 +49,7 @@ object `package` extends Module {
     def errorProneJavacEnableOptions =
       Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
-    object test extends MavenTests, ErrorProneModule, TestModule.Junit5 {
+    object test extends MavenTests, TestModule.Junit5, ErrorProneModule {
 
       def mvnDeps = Seq(mvn"org.junit.jupiter:junit-jupiter:5.9.1")
 

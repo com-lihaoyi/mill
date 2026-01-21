@@ -223,6 +223,7 @@ object `package` extends mill.Module {
   object multimode extends Cross[IntegrationCrossModule](build.listCross)
   object bootstrap extends Cross[IntegrationCrossModule](build.listCross)
   object migrating extends Cross[MigrationIntegrationCrossModule](build.listCross)
+  object manual extends Cross[IntegrationCrossModule](build.listCross)
   trait MigrationIntegrationCrossModule extends IntegrationCrossModule {
     def forkEnv = super.forkEnv() ++ initRepos.all().map { case (name, path) =>
       s"MILL_INIT_REPO_$name" -> path
