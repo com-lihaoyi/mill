@@ -583,7 +583,7 @@ object MillMain0 {
         val path = sys.env.get("PATH").map(_.split("[:]").toIndexedSeq).getOrElse(Seq())
         // shorten the cmd path, when it is on the PATH
         path.collectFirst {
-          case prefix if prog.startsWith(s"$prefix/") => path.drop(prefix.length + 1)
+          case prefix if prog.startsWith(s"$prefix/") => prog.drop(prefix.length + 1)
         }
           // or use as-is
           .getOrElse(prog)
