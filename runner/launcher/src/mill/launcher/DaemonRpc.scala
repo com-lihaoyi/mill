@@ -17,6 +17,7 @@ object DaemonRpc {
       interactive: Boolean,
       clientMillVersion: String,
       clientJavaVersion: Option[os.Path],
+      clientJvmOptsFingerprint: String,
       args: Seq[String],
       env: Map[String, String],
       userSpecifiedProperties: Map[String, String]

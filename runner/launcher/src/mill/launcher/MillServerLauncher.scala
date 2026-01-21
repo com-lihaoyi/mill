@@ -18,7 +18,8 @@ class MillServerLauncher(
     forceFailureForTestingMillisDelay: Int,
     useFileLocks: Boolean,
     initServerFactory: (os.Path, Locks) => LaunchedServer,
-    millVersion: String = BuildInfo.millVersion
+    millVersion: String = BuildInfo.millVersion,
+    jvmOptsFingerprint: String = ""
 ) {
   private val serverInitWaitMillis = 10000
 
@@ -26,6 +27,12 @@ class MillServerLauncher(
     os.makeDir.all(daemonDir)
     val locks = Locks.forDirectory(daemonDir.toString, useFileLocks)
     log(s"launchOrConnectToServer: $locks")
+
+    val config = ServerLauncher.DaemonConfig(
+      millVersion = Some(millVersion),
+      javaVersion = javaHome,
+      jvmOptsFingerprint = Some(jvmOptsFingerprint)
+    )
 
     val launched = ServerLauncher.launchOrConnectToServer(
       locks,
@@ -39,7 +46,7 @@ class MillServerLauncher(
       },
       s => log(s),
       true,
-      millVersion = Some(millVersion)
+      config = config
     )
 
     try {
@@ -68,6 +75,7 @@ class MillServerLauncher(
         interactive = Util.hasConsole(),
         clientMillVersion = BuildInfo.millVersion,
         clientJavaVersion = javaHome,
+        clientJvmOptsFingerprint = jvmOptsFingerprint,
         args = args,
         env = env,
         userSpecifiedProperties = ClientUtil.getUserSetProperties()

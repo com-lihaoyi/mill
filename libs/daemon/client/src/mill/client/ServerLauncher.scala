@@ -12,6 +12,59 @@ import java.net.{InetAddress, Socket}
  */
 object ServerLauncher {
 
+  /**
+   * Configuration that affects whether a daemon needs to be restarted.
+   * If any of these values change between client invocations, the daemon should restart.
+   */
+  case class DaemonConfig(
+      millVersion: Option[String] = None,
+      javaVersion: Option[os.Path] = None,
+      jvmOptsFingerprint: Option[String] = None
+  ) {
+    /**
+     * Checks if this config differs from the stored daemon config files.
+     * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
+     */
+    def checkMismatch(daemonDir: os.Path): Seq[String] = {
+      val reasons = Seq.newBuilder[String]
+
+      millVersion.foreach { version =>
+        val versionFile = daemonDir / DaemonFiles.millVersion
+        val existingVersion = if (os.exists(versionFile)) os.read(versionFile).trim else ""
+        if (existingVersion.nonEmpty && existingVersion != version) {
+          reasons += s"Mill version changed ($existingVersion -> $version)"
+        }
+      }
+
+      javaVersion.foreach { version =>
+        val versionFile = daemonDir / DaemonFiles.javaVersion
+        val existingVersion = if (os.exists(versionFile)) os.read(versionFile).trim else ""
+        if (existingVersion.nonEmpty && existingVersion != version.toString) {
+          reasons += s"Java version changed ($existingVersion -> $version)"
+        }
+      }
+
+      jvmOptsFingerprint.foreach { fingerprint =>
+        val fingerprintFile = daemonDir / DaemonFiles.jvmOptsFingerprint
+        val existingFingerprint = if (os.exists(fingerprintFile)) os.read(fingerprintFile).trim else ""
+        if (existingFingerprint.nonEmpty && existingFingerprint != fingerprint) {
+          reasons += s"JVM options changed ($existingFingerprint -> $fingerprint)"
+        }
+      }
+
+      reasons.result()
+    }
+
+    /**
+     * Writes this config to the daemon directory files.
+     */
+    def writeTo(daemonDir: os.Path): Unit = {
+      millVersion.foreach(v => os.write.over(daemonDir / DaemonFiles.millVersion, v))
+      javaVersion.foreach(v => os.write.over(daemonDir / DaemonFiles.javaVersion, v.toString))
+      jvmOptsFingerprint.foreach(f => os.write.over(daemonDir / DaemonFiles.jvmOptsFingerprint, f))
+    }
+  }
+
   case class Launched(port: Int, socket: Option[Socket], launchedServer: LaunchedServer)
       extends AutoCloseable {
     override def close(): Unit = {
@@ -43,8 +96,8 @@ object ServerLauncher {
    * Establishes a connection to the Mill server by acquiring necessary locks and potentially
    * starting a new server process if one is not already running.
    *
-   * @param millVersion If provided, checks that any existing daemon has a matching version.
-   *                    If mismatched, terminates the old daemon before starting a new one.
+   * @param config Configuration to check against the running daemon. If any values mismatch,
+   *               the old daemon is terminated before starting a new one.
    */
   def launchOrConnectToServer(
       locks: Locks,
@@ -54,29 +107,26 @@ object ServerLauncher {
       onFailure: ServerLaunchResult.ServerDied => Unit,
       log: String => Unit,
       openSocket: Boolean,
-      millVersion: Option[String] = None
+      config: DaemonConfig = DaemonConfig()
   ): Launched = {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
     val locked = locks.launcherLock.lock()
     try {
-      // Check if existing daemon has matching version, terminate if mismatched
-      millVersion.foreach { version =>
-        val versionFile = daemonDir / DaemonFiles.millVersion
-        val processIdFile = daemonDir / DaemonFiles.processId
-        if (os.exists(processIdFile)) {
-          val existingVersion = if (os.exists(versionFile)) os.read(versionFile).trim else ""
-          if (existingVersion != version) {
-            log(s"Version mismatch: daemon=$existingVersion, launcher=$version")
-            // Terminate the old daemon by removing the processId file
-            os.remove(processIdFile, checkExists = false)
-            os.remove(versionFile, checkExists = false)
-            // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
-            val deadline = System.currentTimeMillis() + 5000
-            while (!locks.daemonLock.probe() && System.currentTimeMillis() < deadline) {
-              Thread.sleep(100)
-            }
-            log("Old daemon terminated")
+      // Check if existing daemon has matching config, terminate if mismatched
+      val processIdFile = daemonDir / DaemonFiles.processId
+      if (os.exists(processIdFile)) {
+        val mismatchReasons = config.checkMismatch(daemonDir)
+        if (mismatchReasons.nonEmpty) {
+          mismatchReasons.foreach(reason => log(reason))
+          log("Terminating old daemon due to config mismatch")
+          // Terminate the old daemon by removing the processId file
+          os.remove(processIdFile, checkExists = false)
+          // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
+          val deadline = System.currentTimeMillis() + 5000
+          while (!locks.daemonLock.probe() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(100)
           }
+          log("Old daemon terminated")
         }
       }
 
@@ -90,7 +140,7 @@ object ServerLauncher {
             initServer,
             serverInitWaitMillis / 3,
             log,
-            millVersion
+            config
           ) match {
             case ServerLaunchResult.Success(server) =>
               Some(connectToServer(daemonDir, server, openSocket, log))
@@ -162,7 +212,7 @@ object ServerLauncher {
       initServer: () => LaunchedServer,
       timeoutMillis: Long,
       log: String => Unit,
-      millVersion: Option[String] = None
+      config: DaemonConfig = DaemonConfig()
   ): ServerLaunchResult = {
     os.makeDir.all(daemonDir)
 
@@ -172,8 +222,8 @@ object ServerLauncher {
         if (locks.daemonLock.probe()) {
           log("The daemon lock is available, starting the server.")
           try {
-            // Write version file when spawning a new daemon
-            millVersion.foreach(v => os.write.over(daemonDir / DaemonFiles.millVersion, v))
+            // Write config files when spawning a new daemon
+            config.writeTo(daemonDir)
             val launchedServer = initServer()
 
             log(s"The server has started: $launchedServer")

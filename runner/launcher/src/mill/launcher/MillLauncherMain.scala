@@ -66,9 +66,11 @@ object MillLauncherMain {
           runnerClasspath,
           mainClass,
           useFileLocks,
-          workDir
+          workDir,
+          env
         )
       } else { // start in client-server mode
+        val jvmOptsFingerprint = MillProcessLauncher.computeJvmOptsFingerprint(workDir, env)
         val launcher = new MillServerLauncher(
           stdout = stdout,
           stderr = stderr,
@@ -77,15 +79,17 @@ object MillLauncherMain {
           forceFailureForTestingMillisDelay = -1,
           useFileLocks = useFileLocks,
           initServerFactory = (daemonDir, _) =>
-            new LaunchedServer.OsProcess(
+            LaunchedServer.OsProcess(
               MillProcessLauncher.launchMillDaemon(
                 daemonDir,
                 outMode,
                 runnerClasspath,
                 useFileLocks,
-                workDir
-              ).toHandle
-            )
+                workDir,
+                env
+              ).wrapped.toHandle
+            ),
+          jvmOptsFingerprint = jvmOptsFingerprint
         )
 
         val daemonDir = os.Path(outDir, workDir) / OutFiles.OutFiles.millDaemon

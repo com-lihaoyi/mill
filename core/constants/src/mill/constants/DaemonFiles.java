@@ -11,6 +11,12 @@ public class DaemonFiles {
   /** Mill version of the running daemon, used to detect version mismatches. */
   public static final String millVersion = "millVersion";
 
+  /** Java version/home of the running daemon, used to detect JVM changes. */
+  public static final String javaVersion = "javaVersion";
+
+  /** Fingerprint of JVM options, used to detect when daemon needs restart due to JVM option changes. */
+  public static final String jvmOptsFingerprint = "jvmOptsFingerprint";
+
   public static final String sandbox = "sandbox";
 
   /**
