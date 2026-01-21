@@ -11,6 +11,7 @@ import scala.annotation.unused
 import scala.collection.immutable.HashSet
 
 object TabCompleteTests extends TestSuite {
+  val x = 1
   object mainModule extends TestRootModule {
     lazy val millDiscover = Discover[this.type]
     def task1(@unused argA: String = "", @unused argB2: Int = 0) = Task.Command { 123 }
