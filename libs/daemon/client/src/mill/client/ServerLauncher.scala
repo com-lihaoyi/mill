@@ -39,38 +39,6 @@ object ServerLauncher {
 
       reasons.result()
     }
-
-    /**
-     * Checks if this config differs from the stored daemon config files.
-     * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
-     */
-    def checkMismatch(daemonDir: os.Path): Seq[String] = {
-      val stored = DaemonConfig.readFrom(daemonDir)
-      stored.checkMismatchAgainst(this)
-    }
-
-    /**
-     * Writes this config to the daemon directory as a single JSON file.
-     */
-    def writeTo(daemonDir: os.Path): Unit = {
-      os.write.over(
-        daemonDir / DaemonFiles.daemonLaunchFingerprint,
-        upickle.default.write(this, indent = 2)
-      )
-    }
-  }
-
-  object DaemonConfig {
-    /**
-     * Reads daemon config from the JSON file in the daemon directory.
-     */
-    def readFrom(daemonDir: os.Path): DaemonConfig = {
-      val file = daemonDir / DaemonFiles.daemonLaunchFingerprint
-      if (os.exists(file)) {
-        try upickle.default.read[DaemonConfig](os.read(file))
-        catch { case _: Exception => DaemonConfig("", "", Seq.empty) }
-      } else DaemonConfig("", "", Seq.empty)
-    }
   }
 
   case class Launched(port: Int, socket: Option[Socket], launchedServer: LaunchedServer)
@@ -122,8 +90,13 @@ object ServerLauncher {
     try {
       // Check if existing daemon has matching config, terminate if mismatched
       val processIdFile = daemonDir / DaemonFiles.processId
+      val configFile = daemonDir / DaemonFiles.daemonLaunchFingerprint
       if (os.exists(processIdFile)) {
-        val stored = DaemonConfig.readFrom(daemonDir)
+        val stored =
+          if (os.exists(configFile))
+            try upickle.default.read[DaemonConfig](os.read(configFile))
+            catch { case _: Exception => DaemonConfig("", "", Seq.empty) }
+          else DaemonConfig("", "", Seq.empty)
         val mismatchReasons = stored.checkMismatchAgainst(config)
         if (mismatchReasons.nonEmpty) {
           mismatchReasons.foreach(reason => log(reason))
@@ -231,8 +204,11 @@ object ServerLauncher {
         if (locks.daemonLock.probe()) {
           log("The daemon lock is available, starting the server.")
           try {
-            // Write config files when spawning a new daemon
-            config.writeTo(daemonDir)
+            // Write config file when spawning a new daemon
+            os.write.over(
+              daemonDir / DaemonFiles.daemonLaunchFingerprint,
+              upickle.default.write(config, indent = 2)
+            )
             val launchedServer = initServer()
 
             log(s"The server has started: $launchedServer")
