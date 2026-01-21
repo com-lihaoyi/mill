@@ -72,11 +72,11 @@ object MillMain0 {
 
       val outDir = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
       val outFileStream = os.write.outputStream(
-        outDir / "mill-bsp/out.log",
+        outDir / os.RelPath(OutFiles.bspOutLog),
         createFolders = true
       )
       val errFileStream = os.write.outputStream(
-        outDir / "mill-bsp/err.log",
+        outDir / os.RelPath(OutFiles.bspErrLog),
         createFolders = true
       )
 
