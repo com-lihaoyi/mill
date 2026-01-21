@@ -318,7 +318,10 @@ class MillBuildBootstrap(
           // frame's `workerCache`s that may depend on classes loaded by that classloader
           prevRunnerState.frames.lift(depth - 1).foreach(
             _.workerCache.collect { case (_, (_, Val(v: AutoCloseable))) =>
-              try v.close() catch{case e: Throwable => /*ignore failures on close*/}
+              try v.close()
+              catch {
+                case e: Throwable => /*ignore failures on close*/
+              }
             }
           )
 

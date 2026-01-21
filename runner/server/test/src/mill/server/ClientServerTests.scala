@@ -326,7 +326,10 @@ trait ClientServerTestsBase extends TestSuite {
 
         // Mangle the version file to simulate a version mismatch
         val fingerprintFile = res1.daemonDir / DaemonFiles.daemonLaunchFingerprint
-        os.write.over(fingerprintFile, """{"millVersion": "wrong-version", "javaVersion": "", "jvmOpts": []}""")
+        os.write.over(
+          fingerprintFile,
+          """{"millVersion": "wrong-version", "javaVersion": "", "jvmOpts": []}"""
+        )
 
         // Second client should detect mismatch, terminate old server, and spawn new one (pid:-2)
         val res2 = tester(args = Array(" WORLD"))

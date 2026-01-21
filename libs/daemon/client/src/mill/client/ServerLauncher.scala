@@ -21,6 +21,7 @@ object ServerLauncher {
       javaVersion: String,
       jvmOpts: Seq[String]
   ) derives upickle.ReadWriter {
+
     /**
      * Checks if this config differs from another config.
      * Returns a list of reasons why the daemon should restart, or empty if no restart needed.

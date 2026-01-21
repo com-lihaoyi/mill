@@ -172,8 +172,9 @@ object MillProcessLauncher {
    */
   def computeJvmOpts(workDir: os.Path, env: Map[String, String]): Seq[String] = {
     val configOpts = loadMillConfig(ConfigConstants.millJvmOpts, workDir)
-    val javaOpts = env.getOrElse("JAVA_OPTS", "").split("\\s+").filter(_.nonEmpty).toSeq
-    val jdkJavaOptions = env.getOrElse("JDK_JAVA_OPTIONS", "").split("\\s+").filter(_.nonEmpty).toSeq
+    val javaOpts = mill.api.internal.ParseArgs.parseShellArgs(env.getOrElse("JAVA_OPTS", ""))
+    val jdkJavaOptions =
+      mill.api.internal.ParseArgs.parseShellArgs(env.getOrElse("JDK_JAVA_OPTIONS", ""))
     configOpts ++ javaOpts ++ jdkJavaOptions
   }
 
