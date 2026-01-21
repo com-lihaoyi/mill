@@ -31,17 +31,6 @@ runs:
     - run: cat .mill-jvm-version
       shell: ${{ inputs.shell }}
 
-    - run: ./mill -i -k selective.resolve ${{ inputs.millargs }}
-      shell: ${{ inputs.shell }}
-
-    # This generates a lot of logs and slows down the github actions UI like crazy, 
-    # so only uncomment it when really necessary
-    #- run: cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
-    #  shell: bash
-
-    - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
-      shell: ${{ inputs.shell }}
-
     # Comment this out because it can be very verbose when broad codesig
     # invalidation results in all tasks being counted as changed inputs
     #- run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}

@@ -320,7 +320,7 @@ class MillBuildBootstrap(
             _.workerCache.collect { case (_, (_, Val(v: AutoCloseable))) =>
               try v.close()
               catch {
-                case e: Throwable => /*ignore failures on close*/
+                case _: Throwable => /*ignore failures on close*/
               }
             }
           )
