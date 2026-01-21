@@ -27,16 +27,16 @@ object ServerLauncher {
      * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
      */
     def checkMismatchAgainst(other: DaemonConfig): Seq[String] = {
-      val results = 
+      val results =
         Option.when(millVersion != other.millVersion) {
           s"Mill version changed ($millVersion -> ${other.millVersion})"
         } ++
-        Option.when(javaVersion != other.javaVersion) {
-          s"Java version changed ($javaVersion -> ${other.javaVersion})"
-        } ++
-        Option.when(jvmOpts != other.jvmOpts) {
-          s"JVM options changed ($jvmOpts -> ${other.jvmOpts})"
-        }
+          Option.when(javaVersion != other.javaVersion) {
+            s"Java version changed ($javaVersion -> ${other.javaVersion})"
+          } ++
+          Option.when(jvmOpts != other.jvmOpts) {
+            s"JVM options changed ($jvmOpts -> ${other.jvmOpts})"
+          }
 
       results.toSeq
     }
