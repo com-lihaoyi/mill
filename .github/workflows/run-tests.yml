@@ -143,7 +143,7 @@ jobs:
           # We also try to group tests together to manually balance out the runtimes of each jobs
           - millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
 
-          - millargs: "'libs.{init,tabcomplete}.__.test'"
+          - millargs: "'libs.{scalalib,init,tabcomplete}.__.test'"
             install-sbt: true
 
           - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
@@ -203,7 +203,7 @@ jobs:
             millargs: "example.migrating.javalib.__.packaged.daemon"
             extra: "--jobs=1"
 
-          - millargs: '"libs.{scalalib,util,javalib,androidlib,graphviz}.__.test"'
+          - millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
 
           - millargs: '"example.scalalib.{basic,publishing}.__.proguard.daemon"'
 
