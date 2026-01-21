@@ -219,7 +219,7 @@ object `package` extends mill.Module {
   object feature extends Cross[IntegrationCrossModule](build.listCross)
   object dedicated extends Cross[IntegrationCrossModule](build.listCross)
   object invalidation extends Cross[IntegrationCrossModule](build.listCross)
-  object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
+  object bootstrap extends Cross[IntegrationCrossModule](build.listCross)
   object migrating extends Cross[MigrationIntegrationCrossModule](build.listCross)
   trait MigrationIntegrationCrossModule extends IntegrationCrossModule {
     def forkEnv = super.forkEnv() ++ initRepos.all().map { case (name, path) =>
