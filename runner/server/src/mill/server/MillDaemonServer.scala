@@ -35,7 +35,7 @@ abstract class MillDaemonServer[State](
 
   def initialStateCache: State
 
-  private var lastConfig = DaemonConfig.empty
+  private var lastConfig: Option[DaemonConfig] = None
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
@@ -121,32 +121,34 @@ abstract class MillDaemonServer[State](
           javaVersion = init.clientJavaVersion,
           jvmOpts = init.clientJvmOpts
         )
-        val mismatchReasons = lastConfig.checkMismatchAgainst(clientConfig)
 
-        if (mismatchReasons.nonEmpty) {
-          Server.withOutLock(
-            noBuildLock = false,
-            noWaitForBuildLock = false,
-            out = outFolder,
-            millActiveCommandMessage = "checking server configuration",
-            streams = new SystemStreams(
-              new PrintStream(mill.api.daemon.DummyOutputStream),
-              new PrintStream(mill.api.daemon.DummyOutputStream),
-              mill.api.daemon.DummyInputStream
-            ),
-            outLock = outLock,
-            setIdle = _ => ()
-          ) {
-            mismatchReasons.foreach(reason => teeStderr.println(s"$reason, re-starting server"))
+        lastConfig.foreach { stored =>
+          val mismatchReasons = stored.checkMismatchAgainst(clientConfig)
+          if (mismatchReasons.nonEmpty) {
+            Server.withOutLock(
+              noBuildLock = false,
+              noWaitForBuildLock = false,
+              out = outFolder,
+              millActiveCommandMessage = "checking server configuration",
+              streams = new SystemStreams(
+                new PrintStream(mill.api.daemon.DummyOutputStream),
+                new PrintStream(mill.api.daemon.DummyOutputStream),
+                mill.api.daemon.DummyInputStream
+              ),
+              outLock = outLock,
+              setIdle = _ => ()
+            ) {
+              mismatchReasons.foreach(reason => teeStderr.println(s"$reason, re-starting server"))
 
-            // This sends RPC response and throws InterruptedException to stop the RPC loop
-            deferredStopServer(
-              s"config mismatch: ${mismatchReasons.mkString(", ")}",
-              ClientUtil.ServerExitPleaseRetry
-            )
+              // This sends RPC response and throws InterruptedException to stop the RPC loop
+              deferredStopServer(
+                s"config mismatch: ${mismatchReasons.mkString(", ")}",
+                ClientUtil.ServerExitPleaseRetry
+              )
+            }
           }
         }
-        lastConfig = clientConfig
+        lastConfig = Some(clientConfig)
 
         // Run the actual command
         val (result, newStateCache) = main0(

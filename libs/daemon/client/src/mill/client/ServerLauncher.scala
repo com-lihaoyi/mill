@@ -25,17 +25,16 @@ object ServerLauncher {
     /**
      * Checks if this config differs from another config.
      * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
-     * Only triggers a mismatch if the previous (this) value is non-empty.
      */
     def checkMismatchAgainst(other: DaemonConfig): Seq[String] = {
       val results =
-        Option.when(millVersion.nonEmpty && millVersion != other.millVersion) {
+        Option.when(millVersion != other.millVersion) {
           s"Mill version changed ($millVersion -> ${other.millVersion})"
         } ++
-          Option.when(javaVersion.nonEmpty && javaVersion != other.javaVersion) {
+          Option.when(javaVersion != other.javaVersion) {
             s"Java version changed ($javaVersion -> ${other.javaVersion})"
           } ++
-          Option.when(jvmOpts.nonEmpty && jvmOpts != other.jvmOpts) {
+          Option.when(jvmOpts != other.jvmOpts) {
             s"JVM options changed ($jvmOpts -> ${other.jvmOpts})"
           }
 
@@ -43,7 +42,9 @@ object ServerLauncher {
     }
   }
   object DaemonConfig {
-    def empty = DaemonConfig("", "", Seq.empty)
+
+    /** Empty config for cases where config tracking is not needed (e.g., zinc workers) */
+    def empty: DaemonConfig = DaemonConfig("", "", Seq.empty)
   }
 
   case class Launched(port: Int, socket: Option[Socket], launchedServer: LaunchedServer)
@@ -97,24 +98,26 @@ object ServerLauncher {
       val processIdFile = daemonDir / DaemonFiles.processId
       val configFile = daemonDir / DaemonFiles.daemonLaunchFingerprint
       if (os.exists(processIdFile)) {
-        val stored =
-          if (!os.exists(configFile)) DaemonConfig.empty
+        val storedOpt: Option[DaemonConfig] =
+          if (!os.exists(configFile)) None
           else
-            try upickle.default.read[DaemonConfig](os.read(configFile))
-            catch { case _: Exception => DaemonConfig.empty }
+            try Some(upickle.default.read[DaemonConfig](os.read(configFile)))
+            catch { case _: Exception => None }
 
-        val mismatchReasons = stored.checkMismatchAgainst(config)
-        if (mismatchReasons.nonEmpty) {
-          mismatchReasons.foreach(reason => log(reason))
-          log(s"Terminating old daemon due to config mismatch: $stored -> $config")
-          // Terminate the old daemon by removing the processId file
-          os.remove(processIdFile, checkExists = false)
-          // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
-          val deadline = System.currentTimeMillis() + 5000
-          while (!locks.daemonLock.probe() && System.currentTimeMillis() < deadline) {
-            Thread.sleep(100)
+        storedOpt.foreach { stored =>
+          val mismatchReasons = stored.checkMismatchAgainst(config)
+          if (mismatchReasons.nonEmpty) {
+            mismatchReasons.foreach(reason => log(reason))
+            log(s"Terminating old daemon due to config mismatch: $stored -> $config")
+            // Terminate the old daemon by removing the processId file
+            os.remove(processIdFile, checkExists = false)
+            // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
+            val deadline = System.currentTimeMillis() + 5000
+            while (!locks.daemonLock.probe() && System.currentTimeMillis() < deadline) {
+              Thread.sleep(100)
+            }
+            log("Old daemon terminated")
           }
-          log("Old daemon terminated")
         }
       }
 
