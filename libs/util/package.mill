@@ -73,7 +73,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
       Deps.scala2Version,
       "Scala 2.13 version used by some workers."
     ),
-    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
     BuildInfo.Value(
       "scalaVersion",
       Deps.scalaVersion,

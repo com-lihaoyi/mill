@@ -74,7 +74,7 @@ object `package` extends MillPublishScalaModule {
     def mvnDeps = Seq(Deps.pprint)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
     def buildInfoPackageName = "mill.main.buildgen"
-    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion()))
+    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", "SNAPSHOT"))
 
     object api extends Cross[ApiModule](
           Deps.sbtScalaVersion212,

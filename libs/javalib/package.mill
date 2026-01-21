@@ -91,7 +91,7 @@ object `package` extends MillStableScalaModule {
       ),
       BuildInfo.Value("millCompilerBridgeScalaVersions", build.bridgeScalaVersions.mkString(",")),
       BuildInfo.Value("millCompilerBridgeVersion", build.bridgeVersion),
-      BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+      BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
       BuildInfo.Value(
         "sbtTestInterface",
         Dep.unparse(Deps.RuntimeDeps.sbtTestInterface).get,
