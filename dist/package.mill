@@ -29,7 +29,7 @@ trait DistModule extends RunModule {
    * Used for installLocal but NOT for integration tests.
    */
   def executableVersioned: T[PathRef] = Task {
-    MillPublishJavaModule.processJarVersion(executableRaw().path, Task.dest, build.millVersion())
+    MillPublishJavaModule.processExecutableVersion(executableRaw().path, Task.dest, build.millVersion())
   }
 
   def localRepo: T[PathRef] = Task {
@@ -166,7 +166,7 @@ trait DistModule extends RunModule {
     PublishModule.PublishData(
       meta = artifact(),
       payload = Seq(
-        executableRaw() -> s"${artifactFileNamePrefix()}.exe",
+        executableVersioned() -> s"${artifactFileNamePrefix()}.exe",
         pom() -> s"${artifactFileNamePrefix()}.pom"
       )
     )
@@ -297,8 +297,11 @@ object `package` extends MillJavaModule with Proguard with DistModule {
         val wd = os.Path(wd0, BuildCtx.workspaceRoot)
         assert(os.exists(wd), s"Folder $wd does not exist")
         try {
+          // Use executableVersioned with publishLocal to show actual millVersion
+          // This is slower but ensures version displays correctly for manual testing
+          Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
           Jvm.runInteractiveCommand(
-            cmd = Seq(launcher().path.toString) ++ rest,
+            cmd = Seq(build.dist.raw.executableVersioned().path.toString) ++ rest,
             env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
             cwd = wd,
             propagateEnv = true
