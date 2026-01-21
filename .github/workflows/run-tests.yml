@@ -121,6 +121,10 @@ jobs:
           java-version: ${{ matrix.java-version }}
           os: ${{ matrix.os }}
 
+
+      - run: ./mill -i -k selective.resolveTree ${{ matrix.millargs }}
+        shell: bash
+
       - uses: ./.github/actions/post-build-selective
         with:
           millargs: ${{ matrix.millargs }}
