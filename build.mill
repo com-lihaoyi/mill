@@ -26,8 +26,6 @@ import scala.util.Properties
 import mill.api.{BuildCtx, Evaluator}
 import mill.androidlib.AndroidSdkModule
 
-def millVersionIsStable: T[Boolean] = Task.Input { millVersionIsStable0 }
-
 def millVersion: T[String] = Task.Input {
   val vcsState = VcsVersion.calcVcsState(Task.log)
   // Fall back to SNAPSHOT if no git tag found (e.g., shallow clone in CI)
