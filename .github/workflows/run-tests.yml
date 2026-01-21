@@ -122,7 +122,7 @@ jobs:
           os: ${{ matrix.os }}
 
 
-      - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
+      - run: ./mill -i -k selective.resolveTree ${{ matrix.millargs }}
         shell: bash
 
       - uses: ./.github/actions/post-build-selective
