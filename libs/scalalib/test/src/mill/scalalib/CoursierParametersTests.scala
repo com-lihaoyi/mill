@@ -11,7 +11,7 @@ object CoursierParametersTests extends TestSuite {
 
   object CoursierTest extends TestRootModule {
     object core extends ScalaModule {
-      def scalaVersion = "2.13.12"
+      def scalaVersion = "2.13.18"
       def mvnDeps = Task {
         Seq(mvn"com.lihaoyi::pprint:0.9.0")
       }

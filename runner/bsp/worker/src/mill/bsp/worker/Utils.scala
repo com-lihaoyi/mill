@@ -21,6 +21,7 @@ import mill.api.daemon.internal.{
   TaskApi
 }
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, JvmBuildTarget}
+import mill.internal.SpanningForest
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -179,22 +180,9 @@ object Utils {
    * by traversing upstream from the given tasks.
    */
   def findInputTasks(tasks: Seq[TaskApi[?]]): Seq[TaskApi[?]] = {
-    val visited = collection.mutable.Set.empty[TaskApi[?]]
-    val inputTasks = collection.mutable.ListBuffer.empty[TaskApi[?]]
-    val queue = collection.mutable.Queue.empty[TaskApi[?]]
-
-    tasks.foreach(queue.enqueue(_))
-
-    while (queue.nonEmpty) {
-      val current = queue.dequeue()
-      if (!visited.contains(current)) {
-        visited.add(current)
-        if (current.isInputTask) inputTasks += current
-        else current.inputsApi.foreach(queue.enqueue(_))
-      }
-    }
-
-    inputTasks.toSeq
+    SpanningForest
+      .breadthFirst(tasks)(t => if (t.isInputTask) Nil else t.inputsApi)
+      .filter(_.isInputTask)
   }
 
   /**

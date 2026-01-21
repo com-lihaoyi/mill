@@ -299,7 +299,7 @@ object `package` extends Module {
       val hasScalaChunks = withoutFrontMatter.exists(_.isInstanceOf[Chunk.Scala])
       val exampleDashed = examplePath.segments.mkString("-")
       val download =
-        s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
+        s"{mill-download-url}/mill-dist-{mill-version}-$exampleDashed.zip[download]"
       val renderedChunks = withoutFrontMatter
         .map {
           case Chunk.See(path, lines) =>

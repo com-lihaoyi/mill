@@ -31,7 +31,7 @@ object TabCompleteTests extends TestSuite {
     trait QuxModule extends Cross.Module[Int] {
       def task3 = Task { 789 }
     }
-    object versioned extends Cross[VersionedModule]("2.12.20", "2.13.15", "3.5.0")
+    object versioned extends Cross[VersionedModule]("2.12.21", "2.13.18", "3.5.0")
     trait VersionedModule extends Cross.Module[String] {
       def compile = Task { crossValue }
     }
@@ -287,14 +287,14 @@ object TabCompleteTests extends TestSuite {
         // Version numbers with dots are converted to underscores in dot syntax
         assertGoldenLiteral(
           evalComplete("1", "./mill", "versioned"),
-          Set("versioned", "versioned.2_12_20", "versioned.2_13_15", "versioned.3_5_0")
+          Set("versioned", "versioned.2_12_21", "versioned.2_13_18", "versioned.3_5_0")
         )
       }
 
       test("crossVersionedNested") {
         assertGoldenLiteral(
-          evalComplete("1", "./mill", "versioned.2_12_20"),
-          Set("versioned.2_12_20", "versioned.2_12_20.compile")
+          evalComplete("1", "./mill", "versioned.2_12_21"),
+          Set("versioned.2_12_21", "versioned.2_12_21.compile")
         )
       }
 
@@ -302,7 +302,7 @@ object TabCompleteTests extends TestSuite {
         // With bracket, keep original syntax with dots
         assertGoldenLiteral(
           evalComplete("1", "./mill", "versioned[2"),
-          Set("versioned[2.12.20]", "versioned[2.13.15]")
+          Set("versioned[2.12.21]", "versioned[2.13.18]")
         )
       }
     }

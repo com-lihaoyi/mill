@@ -3,8 +3,10 @@ package mill.testkit
 import mill.api.SelectMode
 import mill.api.internal.Cached
 import mill.constants.OutFiles.OutFiles
+import mill.launcher.MillLauncherMain
 import ujson.Value
 
+import java.io.{ByteArrayOutputStream, PrintStream}
 import scala.concurrent.duration.*
 
 /**
@@ -20,6 +22,8 @@ import scala.concurrent.duration.*
  *                            tested comes from. These are copied into a temporary folder
  *                            and are not modified during tests
  * @param millExecutable What Mill executable to use.
+ * @param useInMemory If true, run Mill commands in-memory using MillLauncherMain.main0
+ *                    instead of spawning a subprocess. Used in `.shared` test mode.
  */
 class IntegrationTester(
     val daemonMode: Boolean,
@@ -28,7 +32,8 @@ class IntegrationTester(
     override val debugLog: Boolean = false,
     val baseWorkspacePath: os.Path = os.pwd,
     val propagateJavaHome: Boolean = true,
-    val cleanupProcessIdFile: Boolean = true
+    val cleanupProcessIdFile: Boolean = true,
+    override val useInMemory: Boolean = false
 ) extends IntegrationTester.Impl {
   initWorkspace()
 }
@@ -153,6 +158,7 @@ object IntegrationTester {
     def workspaceSourcePath: os.Path
 
     val daemonMode: Boolean
+    def useInMemory: Boolean = false
 
     def debugLog = false
 
@@ -184,21 +190,27 @@ object IntegrationTester {
       val callEnv = millTestSuiteEnv ++ env
 
       def run() = {
-        val res0 = os.call(
-          cmd = shellable,
-          env = callEnv,
-          cwd = cwd,
-          stdin = stdin,
-          stdout = stdout,
-          stderr = stderr,
-          mergeErrIntoOut = mergeErrIntoOut,
-          timeout = timeout,
-          check = check,
-          propagateEnv = propagateEnv,
-          shutdownGracePeriod = timeoutGracePeriod
-        )
+        if (useInMemory) {
+          val argsSeq = shellable.value.toSeq.map(_.toString)
+          val millArgs = argsSeq.drop(1).filter(_.nonEmpty)
+          IntegrationTester.evalInMemory(millArgs, cwd, callEnv, mergeErrIntoOut)
+        } else {
+          val res0 = os.call(
+            cmd = shellable,
+            env = callEnv,
+            cwd = cwd,
+            stdin = stdin,
+            stdout = stdout,
+            stderr = stderr,
+            mergeErrIntoOut = mergeErrIntoOut,
+            timeout = timeout,
+            check = check,
+            propagateEnv = propagateEnv,
+            shutdownGracePeriod = timeoutGracePeriod
+          )
 
-        IntegrationTester.EvalResult(res0)
+          IntegrationTester.EvalResult(res0)
+        }
       }
       def spawn() = os.spawn(
         cmd = shellable,
@@ -361,6 +373,51 @@ object IntegrationTester {
      * in-process Mill background servers
      */
     override def close(): Unit = removeProcessIdFile()
+  }
+
+  /**
+   * Runs Mill in-memory using MillLauncherMain.main0 instead of spawning a subprocess.
+   * This is used in the `.shared` integration test flavor for faster execution.
+   */
+  def evalInMemory(
+      args: Seq[String],
+      workDir: os.Path,
+      env: Map[String, String] = Map.empty,
+      mergeErrIntoOut: Boolean = false
+  ): EvalResult = {
+    // Collect chunks in order with synchronization to preserve ordering across streams
+    val chunks = collection.mutable.ArrayBuffer.empty[Either[geny.Bytes, geny.Bytes]]
+
+    def makeChunkingStream(isStdout: Boolean): PrintStream =
+      new PrintStream(new ByteArrayOutputStream()) {
+        override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+          val bytes = java.util.Arrays.copyOfRange(b, off, off + len)
+          val chunk = new geny.Bytes(bytes)
+          // When mergeErrIntoOut, all output goes to Left (stdout)
+          val wrapped = if (isStdout || mergeErrIntoOut) Left(chunk) else Right(chunk)
+          chunks.synchronized { chunks += wrapped }
+        }
+      }
+
+    val stdoutPs = makeChunkingStream(isStdout = true)
+    val stderrPs = makeChunkingStream(isStdout = false)
+
+    val exitCode = MillLauncherMain.main0(
+      args = args.toArray,
+      stdout = stdoutPs,
+      stderr = stderrPs,
+      env = sys.env ++ env,
+      workDir = workDir
+    )
+
+    // Create a mock os.CommandResult to wrap in EvalResult
+    val result = new os.CommandResult(
+      command = args,
+      exitCode = exitCode,
+      chunks = chunks.toSeq
+    )
+
+    EvalResult(result)
   }
 
 }

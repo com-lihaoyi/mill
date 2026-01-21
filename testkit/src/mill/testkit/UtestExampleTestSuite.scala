@@ -24,7 +24,8 @@ object UtestExampleTestSuite extends TestSuite {
           ExampleTester.run(
             daemonMode,
             workspaceSourcePath,
-            millExecutable
+            millExecutable,
+            useInMemory = sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")
           )
         }
 

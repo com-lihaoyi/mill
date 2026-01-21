@@ -1,4 +1,4 @@
-package mill.exec
+package mill.internal
 
 import mill.api.{BuildInfo, MillException}
 import mill.api.{Task, Segment}
@@ -65,14 +65,38 @@ object CodeSigUtils {
       .collect { case (method @ s"$prefix#<init>($_)void", hash) => (prefix, method, hash) }
       .groupMap(_._1)(t => (t._2, t._3))
 
-  def codeSigForTask(
-      namedTask: => Task.Named[?],
-      classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
-      allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
-      codeSignatures: => Map[String, Int],
-      constructorHashSignatures: => Map[String, Seq[(String, Int)]]
-  ): Iterable[Int] = {
+  /**
+   * Returns all enclosing modules for a task, from innermost to outermost.
+   * Used by both codeSigForTask and moduleAccessorSignatures.
+   */
+  def enclosingModules(namedTask: Task.Named[?]): Vector[mill.api.Module] = {
+    Vector.unfold(namedTask.ctx) {
+      case null => None
+      case ctx =>
+        ctx.enclosingModule match {
+          case null => None
+          case m: mill.api.Module => Some((m, m.moduleCtx))
+          case _ => None
+        }
+    }
+  }
 
+  /**
+   * Returns all method signatures relevant to a task: task method + constructor signatures.
+   * Used for both code signature computation and invalidation tree building.
+   *
+   * Constructor signatures are included because when a module's constructor changes,
+   * all tasks in that module need to be invalidated. The signature format matches
+   * the codesig tree format: "className#<init>(params)void"
+   *
+   * @param constructorHashSignatures Pre-computed map from class name to constructor signatures.
+   */
+  def allMethodSignatures(
+      namedTask: Task.Named[?],
+      classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: Map[Class[?], Map[String, java.lang.reflect.Method]],
+      constructorHashSignatures: Map[String, Seq[(String, Int)]]
+  ): Seq[String] = {
     val superTaskName = namedTask.ctx.segments.value.collectFirst {
       case Segment.Label(s"$v.super") => v
     }
@@ -84,18 +108,15 @@ object CodeSigUtils {
 
     // For .super tasks (e.g., qux.quxCommand.super.QuxModule), we need to look up
     // the signature for the super class (QuxModule), not the subclass (qux$).
-    // The super class name is in the last segment.
     val superClassName = superTaskName.map(_ => namedTask.ctx.segments.last.pathSegments.head)
 
     def classNameMatches(cls: Class[?], simpleName: String): Boolean = {
       val clsName = cls.getName
-      // Match either "package$ClassName" (for nested classes) or "package.ClassName" (for top-level)
       clsName.endsWith("$" + simpleName) || clsName.endsWith("." + simpleName)
     }
 
     val methodOpt = for {
       parentCls <- classToTransitiveClasses(namedTask.ctx.enclosingCls).iterator
-      // For .super tasks, only consider the class that matches the super class name
       if superClassName.forall(scn => classNameMatches(parentCls, scn))
       m <- allTransitiveClassMethods(parentCls).get(encodedTaskName)
     } yield m
@@ -108,38 +129,38 @@ object CodeSigUtils {
       ))
       .getDeclaringClass.getName
 
-    val expectedName = methodClass + "#" + encodedTaskName + "()mill.api.Task$Simple"
-    val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.api.Task$Command"
+    val taskMethodSignatures = Seq(
+      s"$methodClass#$encodedTaskName()mill.api.Task$$Simple",
+      s"$methodClass#$encodedTaskName()mill.api.Task$$Command"
+    )
 
-    // We not only need to look up the code hash of the task method being called,
-    // but also the code hash of the constructors required to instantiate the Module
-    // that the task is being called on. This can be done by walking up the nested
-    // modules and looking at their constructors (they're `object`s and should each
-    // have only one)
-    val allEnclosingModules = Vector.unfold(namedTask.ctx) {
-      case null => None
-      case ctx =>
-        ctx.enclosingModule match {
-          case null => None
-          case m: mill.api.Module => Some((m, m.moduleCtx))
-          case unknown =>
-            throw new MillException(s"Unknown ctx of task ${namedTask}: $unknown")
-        }
+    // Look up constructor signatures for all enclosing modules.
+    // constructorHashSignatures maps class name -> Seq[(full signature, hash)]
+    val modules = enclosingModules(namedTask)
+    val constructorSignatures = modules.flatMap { m =>
+      val className = m.getClass.getName
+      constructorHashSignatures.getOrElse(className, Nil).map(_._1)
     }
 
-    val constructorHashes = allEnclosingModules
-      .map(m =>
-        constructorHashSignatures.get(m.getClass.getName) match {
-          case Some(Seq((_, hash))) => hash
-          case Some(multiple) => throw new MillException(
-              s"Multiple constructors found for module $m: ${multiple.mkString(",")}"
-            )
-          case None => 0
-        }
-      )
+    taskMethodSignatures ++ constructorSignatures
+  }
 
-    codeSignatures.get(expectedName) ++
-      codeSignatures.get(expectedName2) ++
-      constructorHashes
+  def codeSigForTask(
+      namedTask: => Task.Named[?],
+      classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
+      allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
+      codeSignatures: => Map[String, Int],
+      constructorHashSignatures: => Map[String, Seq[(String, Int)]]
+  ): Iterable[Int] = {
+    // allMethodSignatures returns task method signatures + constructor signatures
+    // for all enclosing modules, so we just need to look up the hashes
+    val sigs = allMethodSignatures(
+      namedTask,
+      classToTransitiveClasses,
+      allTransitiveClassMethods,
+      constructorHashSignatures
+    )
+
+    sigs.flatMap(codeSignatures.get)
   }
 }
