@@ -43,6 +43,9 @@ jobs:
     runs-on: ${{ inputs.os }}
     continue-on-error: false
     timeout-minutes: ${{ inputs.timeout-minutes }}
+    defaults:
+      run:
+        shell: ${{ inputs.shell }}
     steps:
       - uses: coursier/cache-action@v7
 
@@ -69,10 +72,8 @@ jobs:
         if: ${{ inputs.install-xvfb }}
 
       - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
-        shell: ${{ inputs.shell }}
 
       - uses: ./.github/actions/post-build-selective
-
         with:
           millargs: ${{ inputs.millargs }}
           shell: ${{ inputs.shell }}
