@@ -578,6 +578,19 @@ object MillMain0 {
       colors: Colors,
       out: os.Path
   ): Logger & AutoCloseable = {
+    val cmdTitle = sys.props.get("mill.main.cli")
+      .map { prog =>
+        val path = sys.env.get("PATH").map(_.split("[:]").toIndexedSeq).getOrElse(Seq())
+        // shorten the cmd path, when it is on the PATH
+        path.collectFirst {
+          case prefix if prog.startsWith(s"$prefix/") => path.drop(prefix.length + 1)
+        }
+          // or use as-is
+          .getOrElse(prog)
+      }
+      // Fallback
+      .getOrElse("mill")
+
     val promptLogger = new PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
@@ -587,7 +600,7 @@ object MillMain0 {
       successColor = colors.success,
       systemStreams0 = streams,
       debugEnabled = config.debugLog.value,
-      titleText = "./mill " + config.leftoverArgs.value.mkString(" "),
+      titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),
       terminfoPath = daemonDir / DaemonFiles.terminfo,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
