@@ -137,7 +137,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends InternalJvmWorkerApi with AutoC
                  |""".stripMargin
             ),
           _ => (),
-          false // openSocket
+          false, // openSocket
+          config = ServerLauncher.DaemonConfig.empty
         )
 
         SubprocessZincApi.Value(launched.port, daemonDir, launched.launchedServer, locks)

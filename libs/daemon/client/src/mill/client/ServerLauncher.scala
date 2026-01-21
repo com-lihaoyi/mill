@@ -12,6 +12,41 @@ import java.net.{InetAddress, Socket}
  */
 object ServerLauncher {
 
+  /**
+   * Configuration that affects whether a daemon needs to be restarted.
+   * If any of these values change between client invocations, the daemon should restart.
+   */
+  case class DaemonConfig(
+      millVersion: String,
+      javaVersion: String,
+      jvmOpts: Seq[String]
+  ) derives upickle.ReadWriter {
+
+    /**
+     * Checks if this config differs from another config.
+     * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
+     */
+    def checkMismatchAgainst(other: DaemonConfig): Seq[String] = {
+      val results =
+        Option.when(millVersion != other.millVersion) {
+          s"Mill version changed ($millVersion -> ${other.millVersion})"
+        } ++
+          Option.when(javaVersion != other.javaVersion) {
+            s"Java version changed ($javaVersion -> ${other.javaVersion})"
+          } ++
+          Option.when(jvmOpts != other.jvmOpts) {
+            s"JVM options changed ($jvmOpts -> ${other.jvmOpts})"
+          }
+
+      results.toSeq
+    }
+  }
+  object DaemonConfig {
+
+    /** Empty config for cases where config tracking is not needed (e.g., zinc workers) */
+    def empty: DaemonConfig = DaemonConfig("", "", Seq.empty)
+  }
+
   case class Launched(port: Int, socket: Option[Socket], launchedServer: LaunchedServer)
       extends AutoCloseable {
     override def close(): Unit = {
@@ -43,8 +78,8 @@ object ServerLauncher {
    * Establishes a connection to the Mill server by acquiring necessary locks and potentially
    * starting a new server process if one is not already running.
    *
-   * @param millVersion If provided, checks that any existing daemon has a matching version.
-   *                    If mismatched, terminates the old daemon before starting a new one.
+   * @param config Configuration to check against the running daemon. If any values mismatch,
+   *               the old daemon is terminated before starting a new one.
    */
   def launchOrConnectToServer(
       locks: Locks,
@@ -54,22 +89,28 @@ object ServerLauncher {
       onFailure: ServerLaunchResult.ServerDied => Unit,
       log: String => Unit,
       openSocket: Boolean,
-      millVersion: Option[String] = None
+      config: DaemonConfig
   ): Launched = {
     log(s"Acquiring the launcher lock: ${locks.launcherLock}")
     val locked = locks.launcherLock.lock()
     try {
-      // Check if existing daemon has matching version, terminate if mismatched
-      millVersion.foreach { version =>
-        val versionFile = daemonDir / DaemonFiles.millVersion
-        val processIdFile = daemonDir / DaemonFiles.processId
-        if (os.exists(processIdFile)) {
-          val existingVersion = if (os.exists(versionFile)) os.read(versionFile).trim else ""
-          if (existingVersion != version) {
-            log(s"Version mismatch: daemon=$existingVersion, launcher=$version")
+      // Check if existing daemon has matching config, terminate if mismatched
+      val processIdFile = daemonDir / DaemonFiles.processId
+      val configFile = daemonDir / DaemonFiles.daemonLaunchFingerprint
+      if (os.exists(processIdFile)) {
+        val storedOpt: Option[DaemonConfig] =
+          if (!os.exists(configFile)) None
+          else
+            try Some(upickle.default.read[DaemonConfig](os.read(configFile)))
+            catch { case _: Exception => None }
+
+        storedOpt.foreach { stored =>
+          val mismatchReasons = stored.checkMismatchAgainst(config)
+          if (mismatchReasons.nonEmpty) {
+            mismatchReasons.foreach(reason => log(reason))
+            log(s"Terminating old daemon due to config mismatch: $stored -> $config")
             // Terminate the old daemon by removing the processId file
             os.remove(processIdFile, checkExists = false)
-            os.remove(versionFile, checkExists = false)
             // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
             val deadline = System.currentTimeMillis() + 5000
             while (!locks.daemonLock.probe() && System.currentTimeMillis() < deadline) {
@@ -90,7 +131,7 @@ object ServerLauncher {
             initServer,
             serverInitWaitMillis / 3,
             log,
-            millVersion
+            config
           ) match {
             case ServerLaunchResult.Success(server) =>
               Some(connectToServer(daemonDir, server, openSocket, log))
@@ -162,7 +203,7 @@ object ServerLauncher {
       initServer: () => LaunchedServer,
       timeoutMillis: Long,
       log: String => Unit,
-      millVersion: Option[String] = None
+      config: DaemonConfig
   ): ServerLaunchResult = {
     os.makeDir.all(daemonDir)
 
@@ -172,8 +213,11 @@ object ServerLauncher {
         if (locks.daemonLock.probe()) {
           log("The daemon lock is available, starting the server.")
           try {
-            // Write version file when spawning a new daemon
-            millVersion.foreach(v => os.write.over(daemonDir / DaemonFiles.millVersion, v))
+            // Write config file when spawning a new daemon
+            os.write.over(
+              daemonDir / DaemonFiles.daemonLaunchFingerprint,
+              upickle.default.write(config, indent = 2)
+            )
             val launchedServer = initServer()
 
             log(s"The server has started: $launchedServer")
