@@ -49,6 +49,15 @@ object GenIdeaUtils {
           "-Xplugin:/[a-zA-Z0-9._/-]+/out/",
           "-Xplugin:.../"
         )
+        // Normalize varying local repo paths (e.g., dist/raw/localRepo.dest vs runner/.../publishLocalTestRepo.dest)
+        .replaceAll(
+          "\\.\\.\\./[a-zA-Z0-9._/-]+/com/lihaoyi/",
+          ".../com/lihaoyi/"
+        )
+        .replaceAll(
+          "/out/[a-zA-Z0-9._/-]+/com/lihaoyi/",
+          "/out/localRepo/com/lihaoyi/"
+        )
         // Normalize third-party dependency versions in jar paths like "artifact/1.2.3/artifact-1.2.3.jar"
         // Also handles artifacts with Scala version suffixes like "artifact_2.12/1.0.6/artifact_2.12-1.0.6.jar"
         .replaceAll(

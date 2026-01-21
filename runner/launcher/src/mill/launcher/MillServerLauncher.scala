@@ -39,11 +39,7 @@ class MillServerLauncher(
       daemonDir,
       serverInitWaitMillis,
       () => initServerFactory(daemonDir, locks),
-      serverDied => {
-        System.err.println("Server died during startup:")
-        System.err.println(serverDied.toString)
-        System.exit(1)
-      },
+      serverDied => throw new mill.api.MillException("Server died during startup: " + serverDied),
       s => log(s),
       true,
       config = config
