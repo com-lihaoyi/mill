@@ -182,6 +182,8 @@ jobs:
           - millargs: "integration.migrating.__.packaged.daemon"
             install-sbt: true
 
+          - millargs: "'integration.failure.__.shared.daemon'"
+
     uses: ./.github/workflows/post-build-selective.yml
     with:
       setup-android: ${{ matrix.setup-android || false }}
@@ -208,8 +210,6 @@ jobs:
           - millargs: '"example.scalalib.{basic,publishing}.__.proguard.daemon"'
 
           - millargs: "dist.scripts.test" # run this on both windows and mac to exercise bootstrap scripts
-
-          - millargs: "'integration.failure.__.packaged.nodaemon'"
 
           - millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
