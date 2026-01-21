@@ -20,7 +20,7 @@ object ServerLauncher {
       millVersion: String,
       javaVersion: String,
       jvmOpts: Seq[String]
-  ) {
+  ) derives upickle.default.ReadWriter {
     /**
      * Checks if this config differs from another config.
      * Returns a list of reasons why the daemon should restart, or empty if no restart needed.
@@ -53,12 +53,10 @@ object ServerLauncher {
      * Writes this config to the daemon directory as a single JSON file.
      */
     def writeTo(daemonDir: os.Path): Unit = {
-      val json = ujson.Obj(
-        "millVersion" -> millVersion,
-        "javaVersion" -> javaVersion,
-        "jvmOpts" -> jvmOpts
+      os.write.over(
+        daemonDir / DaemonFiles.daemonLaunchFingerprint,
+        upickle.default.write(this, indent = 2)
       )
-      os.write.over(daemonDir / DaemonFiles.daemonLaunchFingerprint, ujson.write(json, indent = 2))
     }
   }
 
@@ -69,16 +67,8 @@ object ServerLauncher {
     def readFrom(daemonDir: os.Path): DaemonConfig = {
       val file = daemonDir / DaemonFiles.daemonLaunchFingerprint
       if (os.exists(file)) {
-        try {
-          val json = ujson.read(os.read(file))
-          DaemonConfig(
-            millVersion = json.obj.get("millVersion").map(_.str).getOrElse(""),
-            javaVersion = json.obj.get("javaVersion").map(_.str).getOrElse(""),
-            jvmOpts = json.obj.get("jvmOpts").map(_.arr.map(_.str).toSeq).getOrElse(Seq.empty)
-          )
-        } catch {
-          case _: Exception => DaemonConfig("", "", Seq.empty)
-        }
+        try upickle.default.read[DaemonConfig](os.read(file))
+        catch { case _: Exception => DaemonConfig("", "", Seq.empty) }
       } else DaemonConfig("", "", Seq.empty)
     }
   }
@@ -133,10 +123,11 @@ object ServerLauncher {
       // Check if existing daemon has matching config, terminate if mismatched
       val processIdFile = daemonDir / DaemonFiles.processId
       if (os.exists(processIdFile)) {
-        val mismatchReasons = config.checkMismatch(daemonDir)
+        val stored = DaemonConfig.readFrom(daemonDir)
+        val mismatchReasons = stored.checkMismatchAgainst(config)
         if (mismatchReasons.nonEmpty) {
           mismatchReasons.foreach(reason => log(reason))
-          log("Terminating old daemon due to config mismatch")
+          log(s"Terminating old daemon due to config mismatch: $stored -> $config")
           // Terminate the old daemon by removing the processId file
           os.remove(processIdFile, checkExists = false)
           // Wait for daemon to die by polling the daemon lock (up to 5 seconds)
