@@ -8,7 +8,6 @@ import mill.internal.MillCliConfig
 import java.io.{PrintWriter, StringWriter}
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneId}
-import scala.jdk.CollectionConverters.*
 
 /**
  * Mill launcher main entry point.
