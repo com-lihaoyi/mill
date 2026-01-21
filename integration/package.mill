@@ -201,12 +201,16 @@ object `package` extends mill.Module {
       def millIntegrationLauncher: T[PathRef]
       def millIntegrationIsPackagedLauncher: Task[Boolean]
       object nodaemon extends ModeModule {
+        // Test parallelism doesn't work when sharing the out folder
+        // since the parallel test executions will collide over files
+        override def testParallelism = !useSharedOut
         override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
       object daemon extends ModeModule {
+        override def testParallelism = !useSharedOut
         override def useSharedOut = IntegrationLauncherModule.this.useSharedOut
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
