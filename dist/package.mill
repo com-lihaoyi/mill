@@ -24,6 +24,14 @@ trait DistModule extends RunModule {
 
   def executableRaw: T[PathRef]
 
+  /**
+   * Versioned executable with millVersion=SNAPSHOT replaced with actual version.
+   * Used for installLocal but NOT for integration tests.
+   */
+  def executableVersioned: T[PathRef] = Task {
+    MillPublishJavaModule.processJarVersion(executableRaw().path, Task.dest, build.millVersion())
+  }
+
   def localRepo: T[PathRef] = Task {
     val dest = Task.dest
     val repos = Task.traverse(allPublishModules)(m => m.publishLocalTestRepo)().map(_.path)
@@ -124,7 +132,7 @@ trait DistModule extends RunModule {
       for (targetFile <- targetFiles0) {
         if (os.exists(targetFile))
           Task.log.info(s"Overwriting existing local Mill binary at $targetFile")
-        os.copy.over(executableRaw().path, targetFile, createFolders = true)
+        os.copy.over(executableVersioned().path, targetFile, createFolders = true)
       }
       Task.log.info(
         s"Published ${build.dist.allPublishModules.size} modules under ~/.ivy2/local and installed ${targetFiles0.mkString(", ")}"
@@ -368,6 +376,10 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
   def artifactName = "mill-" + super.artifactName()
 
+  /**
+   * Native image module for integration tests. Uses raw/unprocessed classpath
+   * so that SNAPSHOT versions are preserved for test compatibility.
+   */
   object native extends mill.scalalib.NativeImageModule with DistModule {
     def finalMainClass = build.dist.raw.finalMainClass()
     def runClasspath = build.dist.raw.runClasspath()
@@ -403,6 +415,10 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def executableRaw = nativeImage()
 
+    // For native binaries, executableVersioned needs to use a native image built
+    // from processed jars, not process the binary itself (which isn't a jar)
+    override def executableVersioned: T[PathRef] = install.nativeImage()
+
     def nativeImageOptions = Seq(
       "--no-fallback",
       "--enable-url-protocols=https",
@@ -422,5 +438,30 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     )
 
     def jvmId = Settings.graalvmJvmId
+
+    /**
+     * Native image module for installLocal. Uses processed classpath with
+     * millVersion=SNAPSHOT replaced with actual version.
+     */
+    object install extends mill.scalalib.NativeImageModule {
+      def finalMainClass = native.finalMainClass()
+      def runClasspath = native.runClasspath()
+
+      // Process all classpath jars to replace millVersion=SNAPSHOT
+      def nativeImageClasspath: T[Seq[PathRef]] = Task {
+        native.nativeImageClasspath().zipWithIndex.map { case (pathRef, idx) =>
+          if (os.exists(pathRef.path) && pathRef.path.ext == "jar") {
+            val destDir = Task.dest / s"$idx-${pathRef.path.baseName}"
+            os.makeDir.all(destDir)
+            MillPublishJavaModule.processJarVersion(pathRef.path, destDir, build.millVersion())
+          } else {
+            pathRef
+          }
+        }
+      }
+
+      def nativeImageOptions = native.nativeImageOptions
+      def jvmId = native.jvmId
+    }
   }
 }
