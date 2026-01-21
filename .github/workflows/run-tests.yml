@@ -165,7 +165,7 @@ jobs:
 
           - millargs: "'integration.feature.__.shared.daemon'"
 
-          - millargs: "'integration.{dedicated,ide}.__.proguard.daemon'"
+          - millargs: "'integration.dedicated.__.proguard.daemon'"
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
