@@ -204,17 +204,20 @@ class MillBuildBootstrap(
       // Pass spanning tree from the frame - only populated when classloader changed
       spanningInvalidationTree = nestedState.frames.headOption.flatMap(_.spanningInvalidationTree),
       rootModule = rootModule,
-      // We want to use the grandparent buildHash, rather than the parent
-      // buildHash, because the parent build changes are instead detected
-      // by analyzing the scriptImportGraph in a more fine-grained manner.
-      millClassloaderSigHash = nestedState
-        .frames
-        .dropRight(1)
-        .headOption
-        .map(_.runClasspath)
-        .getOrElse(millBootClasspathPathRefs)
-        .map(p => (os.Path(p.javaPath), p.sig))
-        .hashCode(),
+      // Use the current frame's runClasspath (includes mvnDeps and Mill jars) but filter out
+      // compile.dest since build code changes are handled by codesig analysis
+      millClassloaderSigHash = nestedState.frames.headOption match {
+        case Some(frame) =>
+          val compileDestPath = frame.compileOutput.map(p => os.Path(p.javaPath))
+          frame.runClasspath
+            .filter(p => !compileDestPath.contains(os.Path(p.javaPath)))
+            .map(p => (os.Path(p.javaPath), p.sig))
+            .hashCode()
+        case None =>
+          millBootClasspathPathRefs
+            .map(p => (os.Path(p.javaPath), p.sig))
+            .hashCode()
+      },
       millClassloaderIdentityHash = nestedState
         .frames
         .headOption

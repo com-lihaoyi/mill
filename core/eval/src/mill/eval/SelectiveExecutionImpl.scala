@@ -41,8 +41,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   case class DownstreamResult(
       changedRootTasks: Set[Task[?]],
       downstreamTasks: Seq[Task[Any]],
-      // Version change info for selective execution display
-      versionChanged: Option[(String, String, String, String)]
+      // Version change info for selective execution display: (oldMill, newMill, oldJvm, newJvm)
+      versionChanged: Option[(String, String, String, String)],
+      // Classloader change info: (oldHash, newHash)
+      classLoaderChanged: Option[(Int, Int)] = None
   )
 
   def computeDownstream(
@@ -63,8 +65,12 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     // This is different from per-task cache invalidation in loadCachedJson
     val millVersionChanged = oldHashes.millVersion != newHashes.millVersion
     val jvmVersionChanged = oldHashes.millJvmVersion != newHashes.millJvmVersion
+    // Check classloader changes (0 means old metadata without this field - treat as match)
+    val classLoaderChanged = oldHashes.classLoaderSigHash != 0 &&
+      newHashes.classLoaderSigHash != 0 &&
+      oldHashes.classLoaderSigHash != newHashes.classLoaderSigHash
 
-    // If either version changed, treat all tasks as changed for selective execution
+    // If version or classloader changed, treat all tasks as changed for selective execution
     if (millVersionChanged || jvmVersionChanged) {
       val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
       return DownstreamResult(
@@ -76,6 +82,16 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
           oldHashes.millJvmVersion,
           newHashes.millJvmVersion
         ))
+      )
+    }
+
+    if (classLoaderChanged) {
+      val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
+      return DownstreamResult(
+        allTasks,
+        transitiveNamed.map(t => t: Task[Any]),
+        versionChanged = None,
+        classLoaderChanged = Some((oldHashes.classLoaderSigHash, newHashes.classLoaderSigHash))
       )
     }
 
@@ -140,10 +156,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
    * @return [[None]] when the metadata file is empty.
    * @note throws if the metadata file does not exist.
    */
-  def computeChangedTasks0(
+  private def computeDownstreamResult0(
       tasks: Seq[Task.Named[?]],
       computedMetadata: SelectiveExecution.Metadata.Computed
-  ): Option[ChangedTasks] = {
+  ): Option[DownstreamResult] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
 
     // We allow to clear the selective execution metadata to rerun all tasks.
@@ -154,12 +170,15 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     else Some {
       val transitiveNamed = PlanImpl.transitiveNamed(tasks)
       val oldMetadata = upickle.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      val result = computeDownstreamDetailed(
-        transitiveNamed,
-        oldMetadata,
-        computedMetadata.metadata
-      )
+      computeDownstreamDetailed(transitiveNamed, oldMetadata, computedMetadata.metadata)
+    }
+  }
 
+  def computeChangedTasks0(
+      tasks: Seq[Task.Named[?]],
+      computedMetadata: SelectiveExecution.Metadata.Computed
+  ): Option[ChangedTasks] = {
+    computeDownstreamResult0(tasks, computedMetadata).map { result =>
       ChangedTasks(
         tasks,
         result.changedRootTasks.collect { case n: Task.Named[_] => n },
@@ -196,30 +215,19 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
     ).map { resolved =>
-      val computedMetadata = computeMetadata(resolved)
-      val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
+      computeDownstreamResult0(resolved, computeMetadata(resolved)) match {
+        case None => ujson.Obj()
+        case Some(result) =>
+          val plan = PlanImpl.plan(Seq.from(result.downstreamTasks.collect { case n: Task.Named[_] => n }))
+          val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
 
-      if (oldMetadataTxt == "") {
-        // No metadata, return empty tree
-        ujson.Obj()
-      } else {
-        val transitiveNamed = PlanImpl.transitiveNamed(resolved)
-        val oldMetadata = upickle.read[SelectiveExecution.Metadata](oldMetadataTxt)
-        val result = computeDownstreamDetailed(
-          transitiveNamed,
-          oldMetadata,
-          computedMetadata.metadata
-        )
-
-        val plan = PlanImpl.plan(Seq.from(result.downstreamTasks.collect { case n: Task.Named[_] => n }))
-        val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
-
-        InvalidationForest.buildInvalidationTree(
-          upstreamTaskEdges0 = interGroupDeps,
-          rootInvalidatedTasks = result.changedRootTasks.collect { case n: Task.Named[_] => n: Task[?] },
-          codeSignatureTree = evaluator.spanningInvalidationTree,
-          versionChanged = result.versionChanged
-        )
+          InvalidationForest.buildInvalidationTree(
+            upstreamTaskEdges0 = interGroupDeps,
+            rootInvalidatedTasks = result.changedRootTasks.collect { case n: Task.Named[_] => n: Task[?] },
+            codeSignatureTree = evaluator.spanningInvalidationTree,
+            versionChanged = result.versionChanged,
+            classLoaderChanged = result.classLoaderChanged
+          )
       }
     }
   }
@@ -273,7 +281,8 @@ object SelectiveExecutionImpl {
           allBuildOverrides.map { case (k, located) => (k, located.value.value.hashCode) },
           forceRunTasks = Set(),
           millVersion = mill.constants.BuildInfo.millVersion,
-          millJvmVersion = sys.props("java.version")
+          millJvmVersion = sys.props("java.version"),
+          classLoaderSigHash = evaluator.classLoaderSigHash
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )

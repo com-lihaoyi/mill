@@ -45,7 +45,9 @@ object SelectiveExecution {
       @com.lihaoyi.unroll buildOverrideSignatures: Map[String, Int] = Map(),
       @com.lihaoyi.unroll forceRunTasks: Set[String] = Set(),
       @com.lihaoyi.unroll millVersion: String = "",
-      @com.lihaoyi.unroll millJvmVersion: String = ""
+      @com.lihaoyi.unroll millJvmVersion: String = "",
+      // Hash of the classloader (Mill jars + build dependencies), 0 means not tracked (old metadata)
+      @com.lihaoyi.unroll classLoaderSigHash: Int = 0
   ) derives upickle.ReadWriter
   object Metadata {
     case class Computed(
