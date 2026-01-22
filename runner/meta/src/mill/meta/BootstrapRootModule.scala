@@ -80,18 +80,6 @@ trait BootstrapRootModule()(using
   // using non-platform dependencies is usually ok
   protected def resolvedDepsWarnNonPlatform: T[Boolean] = false
 
-  override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
-    mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
-      .exclude("com.lihaoyi" -> "sourcecode_3"),
-    mvn"com.lihaoyi:::mill-runner-autooverride-plugin:${Versions.millVersion}"
-      .exclude("com.lihaoyi" -> "sourcecode_3")
-  )
-
-  override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++
-      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
-  }
-
   def millVersion: T[String] = Task.Input { BuildInfo.millVersion }
 
   def millDiscover: Discover
