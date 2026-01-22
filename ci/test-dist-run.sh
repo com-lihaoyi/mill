@@ -18,3 +18,5 @@ test -d $EXAMPLE/out/foo/3.3.6/compile.dest
 test -f $EXAMPLE/out/bar/2.13.16/assembly.dest/out.jar
 
 ./mill -i dist.run $EXAMPLE shutdown
+
+echo "println(Seq.tabulate(100)(identity).sum)" | ./mill -i dist.run scratch repl | grep 4950

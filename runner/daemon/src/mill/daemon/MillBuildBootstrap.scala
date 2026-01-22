@@ -14,7 +14,7 @@ import mill.internal.Util
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.internal.PrefixLogger
-import mill.meta.MillBuildRootModule
+import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.CliImports
 import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
 import mill.server.Server
@@ -239,7 +239,7 @@ class MillBuildBootstrap(
     mill.api.ExecResult.catchWrapException {
       given rootModuleInfo: RootModule.Info =
         new RootModule.Info(currentRoot, output, topLevelProjectRoot)
-      if (useDummy) new MillBuildRootModule.ScriptOnlyBootstrapModule()
+      if (useDummy) new BootstrapRootModule.Instance()
       else new MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)
     }
   }

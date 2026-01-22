@@ -20,92 +20,6 @@ import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
- * Lightweight root module for script-only projects (no build.mill).
- * Contains non-build-specific configuration like BSP ignores, CLI imports, and runtime deps.
- */
-@internal
-trait BootstrapRootModule()(using rootModuleInfo: RootModule.Info)
-  extends ScalaModule with MillBuildRootModuleApi with mill.util.MainModule {
-
-  def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
-
-  /**
-   * Default set of BSP ignores, meant to catch the common case of `.java`, `.scala`, or `.kt`
-   * files that definitely aren't scripts, but for some reason aren't recognized as being in
-   * a module's `def sources` task (e.g. maybe module import failed or something)
-   */
-  def bspScriptIgnoreDefault: T[Seq[String]] = Seq(
-    "**/src/",
-    "**/src-*/",
-    "**/resources/",
-    "**/out/",
-    "**/.bsp/mill-bsp-out/",
-    "**/target/"
-  )
-
-  def bspScriptIgnore: T[Seq[String]] = Nil
-
-  override def bspDisplayName0: String = rootModuleInfo
-    .projectRoot
-    .relativeTo(rootModuleInfo.topLevelProjectRoot)
-    .segments
-    .++(super.bspDisplayName0.split("/"))
-    .mkString("/")
-
-  override def scalaVersion: T[String] = BuildInfo.scalaVersion
-
-  def cliImports: T[Seq[String]] = Task.Input {
-    val imports = CliImports.value
-    if (imports.nonEmpty) {
-      Task.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
-    }
-    imports
-  }
-
-  override def mandatoryMvnDeps = Task {
-    Seq(
-      mvn"com.lihaoyi::mill-libs:${Versions.millVersion}",
-      mvn"com.lihaoyi::mill-runner-autooverride-api:${Versions.millVersion}"
-    )
-  }
-
-  override def runMvnDeps = Task {
-    val imports = cliImports()
-    val ivyImports = imports.map {
-      // compat with older Mill-versions
-      case s"ivy:$rest" => rest
-      case s"mvn:$rest" => rest
-      case rest => rest
-    }
-    MillIvy.processMillMvnDepsignature(ivyImports).map(mill.scalalib.Dep.parse) ++
-      // Needed at runtime to instantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
-      // classloader but should not be available for users to compile against
-      Seq(mvn"com.lihaoyi::mill-core-eval:${Versions.millVersion}")
-  }
-
-  override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
-
-  // using non-platform dependencies is usually ok
-  protected def resolvedDepsWarnNonPlatform: T[Boolean] = false
-
-  override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
-    mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
-      .exclude("com.lihaoyi" -> "sourcecode_3"),
-    mvn"com.lihaoyi:::mill-runner-autooverride-plugin:${Versions.millVersion}"
-      .exclude("com.lihaoyi" -> "sourcecode_3")
-  )
-
-  override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++
-      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
-  }
-
-  def millVersion: T[String] = Task.Input { BuildInfo.millVersion }
-
-  def millDiscover: Discover
-}
-
-/**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
  * compiling them as a normal [[ScalaModule]]. Parses `build.mill`, walks any
  * `import $file`s, wraps the script files to turn them into valid Scala code
@@ -113,7 +27,7 @@ trait BootstrapRootModule()(using rootModuleInfo: RootModule.Info)
  * calls within the scripts.
  */
 @internal
-trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends BootstrapRootModule() {
+trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends BootstrapRootModule {
 
   override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
   override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
@@ -196,7 +110,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
   }
 
   def millBuildRootModuleResult = Task {
-    val (signatures, spanningTree) = codeSignaturesAndSpanningTree()
+    val (signatures, spanningTree) = codeSignatures()
     Tuple5(
       runClasspath(),
       compile().classes,
@@ -213,7 +127,7 @@ trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends Boots
    * Returns (transitiveCallGraphHashes, spanningInvalidationTree).
    * The spanning tree shows the method-level code changes that caused invalidation.
    */
-  def codeSignaturesAndSpanningTree: T[(Map[String, Int], ujson.Obj)] = Task(persistent = true) {
+  def codeSignatures: T[(Map[String, Int], ujson.Obj)] = Task(persistent = true) {
     os.remove.all(Task.dest / "previous")
     if (os.exists(Task.dest / "current"))
       os.move.over(Task.dest / "current", Task.dest / "previous")
@@ -467,28 +381,5 @@ object MillBuildRootModule {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  /**
-   * Lightweight bootstrap module for script-only projects (no build.mill).
-   * Script modules are discovered and instantiated separately at runtime.
-   */
-  class ScriptOnlyBootstrapModule()(using rootModuleInfo: RootModule.Info)
-      extends MainRootModule() with BootstrapRootModule() {
-    override lazy val millDiscover = Discover[this.type]
-
-    // For script-only projects, we don't compile anything in the root module
-    override def sources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
-
-    // Return an empty compilation result since there are no sources
-    override def compile: T[CompilationResult] = Task {
-      val emptyClasses = Task.dest / "classes"
-      os.makeDir.all(emptyClasses)
-      Result.Success(CompilationResult(Task.dest / "zinc", PathRef(emptyClasses)))
-    }
-  }
-
-  case class Info(
-      projectRoot: os.Path,
-      output: os.Path,
-      topLevelProjectRoot: os.Path
-  )
+  case class Info(projectRoot: os.Path, output: os.Path, topLevelProjectRoot: os.Path)
 }
