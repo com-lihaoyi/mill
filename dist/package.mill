@@ -29,7 +29,9 @@ trait DistModule extends RunModule {
    * Used for installLocal but NOT for integration tests.
    */
   def executableVersioned: T[PathRef] = Task {
-    MillPublishJavaModule.processExecutableVersion(executableRaw().path, Task.dest, build.millVersion())
+    val result = MillPublishJavaModule.processJarVersion(executableRaw().path, Task.dest, build.millVersion())
+    if (!scala.util.Properties.isWin) os.perms.set(result.path, os.perms(executableRaw().path))
+    result
   }
 
   def localRepo: T[PathRef] = Task {

@@ -151,17 +151,15 @@ object MillPublishJavaModule {
   private def processJarInPlace(jarPath: os.Path, millVersion: String): Unit = {
     scala.util.Using.resource(os.zip.open(jarPath)) { zipRoot =>
       os.walk(zipRoot).foreach { path =>
-        if (os.isFile(path)) {
-          if (path.last.endsWith(".buildinfo.properties")) {
-            val content = os.read(path)
-            if (content.contains("millVersion=SNAPSHOT")) {
-              os.write.over(path, content.replace("millVersion=SNAPSHOT", s"millVersion=$millVersion"))
-            }
-          } else if (path.last == "exampleList.txt") {
-            val content = os.read(path)
-            if (content.contains("/SNAPSHOT/")) {
-              os.write.over(path, content.replace("/SNAPSHOT/", s"/$millVersion/"))
-            }
+        if (path.last.endsWith(".buildinfo.properties")) {
+          val content = os.read(path)
+          if (content.contains("millVersion=SNAPSHOT")) {
+            os.write.over(path, content.replace("millVersion=SNAPSHOT", s"millVersion=$millVersion"))
+          }
+        } else if (path.last == "exampleList.txt") {
+          val content = os.read(path)
+          if (content.contains("/SNAPSHOT/")) {
+            os.write.over(path, content.replace("/SNAPSHOT/", s"/$millVersion/"))
           }
         }
       }
@@ -169,34 +167,41 @@ object MillPublishJavaModule {
   }
 
   /**
-   * Process a jar file, replacing `millVersion=SNAPSHOT` with the actual version
-   * in any `.buildinfo.properties` files found within the jar.
+   * Process a jar or self-executing jar, replacing `millVersion=SNAPSHOT` with the actual version.
+   *
+   * For self-executing jars (with shell script prefix), the jar portion is extracted,
+   * processed, and recombined since Java's ZipFileSystem doesn't handle the prefix.
    */
   def processJarVersion(jarPath: os.Path, destDir: os.Path, millVersion: String): PathRef = {
+    val bytes = os.read.bytes(jarPath)
+
+    // Find the start of the jar (PK signature: 0x50 0x4B 0x03 0x04)
+    val jarStart = bytes.indices.find { i =>
+      i + 3 < bytes.length &&
+      bytes(i) == 0x50.toByte &&
+      bytes(i + 1) == 0x4B.toByte &&
+      bytes(i + 2) == 0x03.toByte &&
+      bytes(i + 3) == 0x04.toByte
+    }.getOrElse(
+      throw new RuntimeException(s"Could not find jar signature: $jarPath")
+    )
+
     val destJar = destDir / jarPath.last
-    os.copy(jarPath, destJar, replaceExisting = true)
-    processJarInPlace(destJar, millVersion)
-    PathRef(destJar)
-  }
-
-  /**
-   * Process a self-executing jar (executable with shell script prefix), replacing
-   * `millVersion=SNAPSHOT` with the actual version in any `.buildinfo.properties` files.
-   *
-   * Java's ZipFileSystem reads from the end of the file (central directory), so it
-   * handles the shell script prefix transparently - we can edit in place.
-   */
-  def processExecutableVersion(executablePath: os.Path, destDir: os.Path, millVersion: String): PathRef = {
-    val destExecutable = destDir / executablePath.last
-    os.copy(executablePath, destExecutable, replaceExisting = true)
-    processJarInPlace(destExecutable, millVersion)
-
-    // Preserve executable permissions
-    if (!scala.util.Properties.isWin) {
-      os.perms.set(destExecutable, os.perms(executablePath))
+    if (jarStart == 0) {
+      // Regular jar - copy and process in place
+      os.copy(jarPath, destJar, replaceExisting = true)
+      processJarInPlace(destJar, millVersion)
+    } else {
+      // Self-executing jar - extract jar portion, process, recombine
+      val prefix = bytes.slice(0, jarStart)
+      val tempJar = destDir / "temp.jar"
+      os.write(tempJar, bytes.slice(jarStart, bytes.length))
+      processJarInPlace(tempJar, millVersion)
+      os.write(destJar, prefix ++ os.read.bytes(tempJar))
+      os.remove(tempJar)
     }
 
-    PathRef(destExecutable)
+    PathRef(destJar)
   }
 
   def commonPomSettings(artifactName: String) = {
