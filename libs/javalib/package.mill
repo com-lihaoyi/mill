@@ -91,7 +91,7 @@ object `package` extends MillStableScalaModule {
       ),
       BuildInfo.Value("millCompilerBridgeScalaVersions", build.bridgeScalaVersions.mkString(",")),
       BuildInfo.Value("millCompilerBridgeVersion", build.bridgeVersion),
-      BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+      BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
       BuildInfo.Value(
         "sbtTestInterface",
         Dep.unparse(Deps.RuntimeDeps.sbtTestInterface).get,
@@ -112,11 +112,9 @@ object `package` extends MillStableScalaModule {
       ),
       BuildInfo.Value("springBuildToolsVersion", Deps.springBootTools.version),
       BuildInfo.Value(
-        "millSpringBootWorkerDep", {
-          val dep = `spring-boot-worker`.artifactMetadata()
-          s"${dep.group}:${dep.id}:${dep.version}"
-        },
-        "The dependency containing the worker implementation to be loaded at runtime."
+        "millSpringBootWorkerDep",
+        s"${`spring-boot-worker`.pomSettings().organization}:${`spring-boot-worker`.artifactId()}",
+        "The dependency prefix (group:id) for the worker implementation to be loaded at runtime."
       ),
       BuildInfo.Value("pmdVersion", Deps.RuntimeDeps.pmdDist.version),
       BuildInfo.Value("comLihaoyiSourcecodeVersion", Deps.sourcecode.version)

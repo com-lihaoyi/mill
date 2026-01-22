@@ -22,7 +22,56 @@ trait DistModule extends RunModule {
     case m: MillPublishJavaModule => m
   }
 
-  def executableRaw: T[PathRef]
+  /** The plain assembly jar without any shell script prefix */
+  def assemblyJar: T[PathRef]
+
+  /** The shell script to prepend to create a self-executing jar */
+  def launcherScript: T[String] = Task {
+    Jvm.launcherUniversalScript(mainClass().get, Seq("$0"), Seq("%~dpnx0"), Nil)
+  }
+
+  /** Combines launcherScript + assemblyJar into a self-executing jar */
+  def executableRaw: T[PathRef] = Task {
+    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    val dest = Task.dest / filename
+    val script = launcherScript()
+    val lineSep = if (!script.endsWith("\n")) "\n\r\n" else ""
+    os.write(dest, script + lineSep)
+    scala.util.Using.resource(os.read.inputStream(assemblyJar().path)) { is =>
+      os.write.append(dest, is)
+    }
+    if (!scala.util.Properties.isWin) os.perms.set(dest, "rwxrwxrwx")
+    PathRef(dest)
+  }
+
+  /**
+   * Processed assembly jar with millVersion=SNAPSHOT replaced with actual version.
+   * This is the plain jar without any shell script prefix.
+   */
+  def assemblyJarVersioned: T[PathRef] = Task {
+    val destJar = Task.dest / assemblyJar().path.last
+    os.copy(assemblyJar().path, destJar, replaceExisting = true)
+    MillPublishJavaModule.processJarInPlace(destJar, build.millVersion())
+    PathRef(destJar)
+  }
+
+  /**
+   * Versioned executable with millVersion=SNAPSHOT replaced with actual version.
+   * Used for installLocal but NOT for integration tests.
+   */
+  def executableVersioned: T[PathRef] = Task {
+    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    val dest = Task.dest / filename
+    // Prepend the shell script to the processed jar
+    val script = launcherScript()
+    val lineSep = if (!script.endsWith("\n")) "\n\r\n" else ""
+    os.write(dest, script + lineSep)
+    scala.util.Using.resource(os.read.inputStream(assemblyJarVersioned().path)) { is =>
+      os.write.append(dest, is)
+    }
+    if (!scala.util.Properties.isWin) os.perms.set(dest, "rwxrwxrwx")
+    PathRef(dest)
+  }
 
   def localRepo: T[PathRef] = Task {
     val dest = Task.dest
@@ -124,7 +173,7 @@ trait DistModule extends RunModule {
       for (targetFile <- targetFiles0) {
         if (os.exists(targetFile))
           Task.log.info(s"Overwriting existing local Mill binary at $targetFile")
-        os.copy.over(executableRaw().path, targetFile, createFolders = true)
+        os.copy.over(executableVersioned().path, targetFile, createFolders = true)
       }
       Task.log.info(
         s"Published ${build.dist.allPublishModules.size} modules under ~/.ivy2/local and installed ${targetFiles0.mkString(", ")}"
@@ -158,7 +207,7 @@ trait DistModule extends RunModule {
     PublishModule.PublishData(
       meta = artifact(),
       payload = Seq(
-        executableRaw() -> s"${artifactFileNamePrefix()}.exe",
+        executableVersioned() -> s"${artifactFileNamePrefix()}.exe",
         pom() -> s"${artifactFileNamePrefix()}.pom"
       )
     )
@@ -232,15 +281,7 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     if (!scala.util.Properties.isWin) os.perms.set(dest, "rwxrwxrwx")
   }
 
-  def executableRaw: T[PathRef] = Task {
-    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-    val dest = Task.dest / filename
-    writeExecutableScript(dest, mainClass().get, Seq("$0"), Seq("%~dpnx0"))
-    scala.util.Using.resource(os.read.inputStream(proguard().path)) { is =>
-      os.write.append(dest, is)
-    }
-    PathRef(dest)
-  }
+  def assemblyJar = proguard()
 
   def launcher = Task {
     val filename = if (scala.util.Properties.isWin) "run.bat" else "run"
@@ -273,11 +314,10 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def mainClass = Some("mill.launcher.MillLauncherMain")
 
-    def executableRaw = Task {
-      val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-      os.copy(assembly().path, Task.dest / filename)
-      PathRef(Task.dest / filename)
-    }
+    // Disable shell script in assembly so we get a plain jar
+    override def prependShellScript = ""
+
+    def assemblyJar = assembly()
 
     def artifactName = "mill-" + super.artifactName() + "-raw"
   }
@@ -289,8 +329,11 @@ object `package` extends MillJavaModule with Proguard with DistModule {
         val wd = os.Path(wd0, BuildCtx.workspaceRoot)
         assert(os.exists(wd), s"Folder $wd does not exist")
         try {
+          // publishLocal is needed because executableVersioned has the actual version,
+          // so Mill needs to resolve modules at that version from ~/.ivy2/local
+          Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
           Jvm.runInteractiveCommand(
-            cmd = Seq(launcher().path.toString) ++ rest,
+            cmd = Seq(build.dist.raw.executableVersioned().path.toString) ++ rest,
             env = forkEnv() ++ build.dist.raw.localTestOverridesEnv(),
             cwd = wd,
             propagateEnv = true
@@ -368,6 +411,10 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
   def artifactName = "mill-" + super.artifactName()
 
+  /**
+   * Native image module for integration tests. Uses raw/unprocessed classpath
+   * so that SNAPSHOT versions are preserved for test compatibility.
+   */
   object native extends mill.scalalib.NativeImageModule with DistModule {
     def finalMainClass = build.dist.raw.finalMainClass()
     def runClasspath = build.dist.raw.runClasspath()
@@ -401,7 +448,14 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def cacheBinarySuffix = Task.Anon { s"-native-${artifactOsSuffix()}-${artifactCpuSuffix()}" }
 
-    def executableRaw = nativeImage()
+    // Native module doesn't use assemblyJar since it overrides executableRaw/executableVersioned
+    def assemblyJar = nativeImage()
+
+    override def executableRaw = nativeImage()
+
+    // For native binaries, executableVersioned needs to use a native image built
+    // from processed jars, not process the binary itself (which isn't a jar)
+    override def executableVersioned: T[PathRef] = install.nativeImage()
 
     def nativeImageOptions = Seq(
       "--no-fallback",
@@ -422,5 +476,22 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     )
 
     def jvmId = Settings.graalvmJvmId
+
+    /**
+     * Native image module for installLocal. Uses the processed assembly jar
+     * (with millVersion=SNAPSHOT replaced with actual version) as classpath.
+     */
+    object install extends mill.scalalib.NativeImageModule {
+      def finalMainClass = native.finalMainClass()
+      def runClasspath = native.runClasspath()
+
+      // Use the processed assembly jar (plain jar without script) as the classpath
+      def nativeImageClasspath: T[Seq[PathRef]] = Task {
+        Seq(build.dist.raw.assemblyJarVersioned())
+      }
+
+      def nativeImageOptions = native.nativeImageOptions
+      def jvmId = native.jvmId
+    }
   }
 }
