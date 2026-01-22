@@ -130,37 +130,32 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 }
 
 object MillPublishJavaModule {
+
+  /**
+   * Process a jar file in-place, replacing `millVersion=SNAPSHOT` with the actual version
+   * in any `.buildinfo.properties` files found within.
+   */
+  private def processJarInPlace(jarPath: os.Path, millVersion: String): Unit = {
+    scala.util.Using.resource(os.zip.open(jarPath)) { zipRoot =>
+      os.walk(zipRoot).foreach { path =>
+        if (path.last.endsWith(".buildinfo.properties") && os.isFile(path)) {
+          val content = os.read(path)
+          if (content.contains("millVersion=SNAPSHOT")) {
+            os.write.over(path, content.replace("millVersion=SNAPSHOT", s"millVersion=$millVersion"))
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Process a jar file, replacing `millVersion=SNAPSHOT` with the actual version
    * in any `.buildinfo.properties` files found within the jar.
-   *
-   * @param jarPath The source jar file
-   * @param destDir The destination directory for the processed jar
-   * @param millVersion The version to replace SNAPSHOT with
-   * @return PathRef to the processed jar
    */
   def processJarVersion(jarPath: os.Path, destDir: os.Path, millVersion: String): PathRef = {
     val destJar = destDir / jarPath.last
     os.copy(jarPath, destJar, replaceExisting = true)
-
-    val jarUri = new java.net.URI("jar", destJar.toNIO.toUri.toString, null)
-    val env = new java.util.HashMap[String, String]()
-    val fs = java.nio.file.FileSystems.newFileSystem(jarUri, env)
-    try {
-      val rootPath = fs.getPath("/")
-      java.nio.file.Files.walk(rootPath).forEach { path =>
-        if (path.toString.endsWith(".buildinfo.properties")) {
-          val content = new String(java.nio.file.Files.readAllBytes(path), java.nio.charset.StandardCharsets.UTF_8)
-          if (content.contains("millVersion=SNAPSHOT")) {
-            val updated = content.replace("millVersion=SNAPSHOT", s"millVersion=$millVersion")
-            java.nio.file.Files.write(path, updated.getBytes(java.nio.charset.StandardCharsets.UTF_8))
-          }
-        }
-      }
-    } finally {
-      fs.close()
-    }
-
+    processJarInPlace(destJar, millVersion)
     PathRef(destJar)
   }
 
@@ -173,11 +168,6 @@ object MillPublishJavaModule {
    * 2. Extract the prefix (shell script) and jar content
    * 3. Process the jar content
    * 4. Combine prefix + processed jar
-   *
-   * @param executablePath The source executable file
-   * @param destDir The destination directory for the processed executable
-   * @param millVersion The version to replace SNAPSHOT with
-   * @return PathRef to the processed executable
    */
   def processExecutableVersion(executablePath: os.Path, destDir: os.Path, millVersion: String): PathRef = {
     val bytes = os.read.bytes(executablePath)
@@ -196,35 +186,13 @@ object MillPublishJavaModule {
     val prefix = bytes.slice(0, jarStart)
     val jarBytes = bytes.slice(jarStart, bytes.length)
 
-    // Write jar to temp file for processing
+    // Write jar to temp file, process it, then recombine
     val tempJar = destDir / "temp.jar"
     os.write(tempJar, jarBytes)
+    processJarInPlace(tempJar, millVersion)
 
-    // Process the jar
-    val jarUri = new java.net.URI("jar", tempJar.toNIO.toUri.toString, null)
-    val env = new java.util.HashMap[String, String]()
-    val fs = java.nio.file.FileSystems.newFileSystem(jarUri, env)
-    try {
-      val rootPath = fs.getPath("/")
-      java.nio.file.Files.walk(rootPath).forEach { path =>
-        if (path.toString.endsWith(".buildinfo.properties")) {
-          val content = new String(java.nio.file.Files.readAllBytes(path), java.nio.charset.StandardCharsets.UTF_8)
-          if (content.contains("millVersion=SNAPSHOT")) {
-            val updated = content.replace("millVersion=SNAPSHOT", s"millVersion=$millVersion")
-            java.nio.file.Files.write(path, updated.getBytes(java.nio.charset.StandardCharsets.UTF_8))
-          }
-        }
-      }
-    } finally {
-      fs.close()
-    }
-
-    // Combine prefix + processed jar
     val destExecutable = destDir / executablePath.last
-    val processedJarBytes = os.read.bytes(tempJar)
-    os.write(destExecutable, prefix ++ processedJarBytes)
-
-    // Clean up temp jar
+    os.write(destExecutable, prefix ++ os.read.bytes(tempJar))
     os.remove(tempJar)
 
     // Preserve executable permissions

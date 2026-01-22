@@ -297,8 +297,8 @@ object `package` extends MillJavaModule with Proguard with DistModule {
         val wd = os.Path(wd0, BuildCtx.workspaceRoot)
         assert(os.exists(wd), s"Folder $wd does not exist")
         try {
-          // Use executableVersioned with publishLocal to show actual millVersion
-          // This is slower but ensures version displays correctly for manual testing
+          // publishLocal is needed because executableVersioned has the actual version,
+          // so Mill needs to resolve modules at that version from ~/.ivy2/local
           Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
           Jvm.runInteractiveCommand(
             cmd = Seq(build.dist.raw.executableVersioned().path.toString) ++ rest,
@@ -443,24 +443,16 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     def jvmId = Settings.graalvmJvmId
 
     /**
-     * Native image module for installLocal. Uses processed classpath with
-     * millVersion=SNAPSHOT replaced with actual version.
+     * Native image module for installLocal. Uses the processed assembly jar
+     * (with millVersion=SNAPSHOT replaced with actual version) as classpath.
      */
     object install extends mill.scalalib.NativeImageModule {
       def finalMainClass = native.finalMainClass()
       def runClasspath = native.runClasspath()
 
-      // Process all classpath jars to replace millVersion=SNAPSHOT
+      // Use the processed assembly jar as the classpath
       def nativeImageClasspath: T[Seq[PathRef]] = Task {
-        native.nativeImageClasspath().zipWithIndex.map { case (pathRef, idx) =>
-          if (os.exists(pathRef.path) && pathRef.path.ext == "jar") {
-            val destDir = Task.dest / s"$idx-${pathRef.path.baseName}"
-            os.makeDir.all(destDir)
-            MillPublishJavaModule.processJarVersion(pathRef.path, destDir, build.millVersion())
-          } else {
-            pathRef
-          }
-        }
+        Seq(build.dist.raw.executableVersioned())
       }
 
       def nativeImageOptions = native.nativeImageOptions
