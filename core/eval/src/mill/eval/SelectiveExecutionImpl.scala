@@ -73,41 +73,41 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     globalInvalidate("mill-version-changed", _.millVersion)
       .orElse(globalInvalidate("mill-jvm-version-changed", _.millJvmVersion))
       .orElse(globalInvalidate("classpath-changed", _.classLoaderSigHash))
-      .getOrElse{
-      val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
+      .getOrElse {
+        val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
 
-      def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
-        (lhs.keys ++ rhs.keys)
-          .iterator
-          .distinct
-          .filter { k => lhs.get(k) != rhs.get(k) }
-          .toSet
-      }
-
-      val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
-      val changedCodeNames = diffMap(
-        computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
-        computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
-      )
-      val changedBuildOverrides = diffMap(
-        oldHashes.buildOverrideSignatures,
-        newHashes.buildOverrideSignatures
-      )
-
-      val changedRootTasks =
-        (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
-          .flatMap(namesToTasks.get(_): Option[Task[?]])
-
-      val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
-      val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
-
-      DownstreamResult(
-        changedRootTasks,
-        breadthFirst(changedRootTasks) { t =>
-          downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
+        def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
+          (lhs.keys ++ rhs.keys)
+            .iterator
+            .distinct
+            .filter { k => lhs.get(k) != rhs.get(k) }
+            .toSet
         }
-      )
-    }
+
+        val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
+        val changedCodeNames = diffMap(
+          computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
+          computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
+        )
+        val changedBuildOverrides = diffMap(
+          oldHashes.buildOverrideSignatures,
+          newHashes.buildOverrideSignatures
+        )
+
+        val changedRootTasks =
+          (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
+            .flatMap(namesToTasks.get(_): Option[Task[?]])
+
+        val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
+        val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
+
+        DownstreamResult(
+          changedRootTasks,
+          breadthFirst(changedRootTasks) { t =>
+            downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
+          }
+        )
+      }
   }
 
   def saveMetadata(metadata: SelectiveExecution.Metadata): Unit = {
@@ -197,7 +197,8 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       computeDownstreamResult0(resolved, computeMetadata(resolved)) match {
         case None => ujson.Obj()
         case Some(result) =>
-          val plan = PlanImpl.plan(Seq.from(result.downstreamTasks.collect { case n: Task.Named[_] => n }))
+          val plan =
+            PlanImpl.plan(Seq.from(result.downstreamTasks.collect { case n: Task.Named[_] => n }))
           val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
 
           // For selective execution, use global invalidation reason for all root tasks
@@ -211,7 +212,9 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
           InvalidationForest.buildInvalidationTree(
             upstreamTaskEdges0 = interGroupDeps,
-            rootInvalidatedTasks = result.changedRootTasks.collect { case n: Task.Named[_] => n: Task[?] },
+            rootInvalidatedTasks = result.changedRootTasks.collect { case n: Task.Named[_] =>
+              n: Task[?]
+            },
             codeSignatureTree = evaluator.spanningInvalidationTree,
             taskInvalidationReasons = taskInvalidationReasons
           )

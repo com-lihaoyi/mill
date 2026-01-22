@@ -22,7 +22,9 @@ object InvalidationForest {
       taskInvalidationReasons: Map[String, String] = Map()
   ): ujson.Obj = {
     // Separate tasks by their invalidation reason
-    val rootTaskNames = rootInvalidatedTasks.collect { case t: Task.Named[?] => t.ctx.segments.render }
+    val rootTaskNames = rootInvalidatedTasks.collect { case t: Task.Named[?] =>
+      t.ctx.segments.render
+    }
     val tasksWithReasons = rootTaskNames.filter(taskInvalidationReasons.contains)
     val tasksWithoutReasons = rootTaskNames -- tasksWithReasons
 
@@ -37,7 +39,9 @@ object InvalidationForest {
     val mainTree = if (tasksWithoutReasons.isEmpty) ujson.Obj()
     else {
       val rootInvalidatedTaskStrings = rootInvalidatedTasks
-        .collect { case t: Task.Named[?] if tasksWithoutReasons.contains(t.ctx.segments.render) => t.toString }
+        .collect {
+          case t: Task.Named[?] if tasksWithoutReasons.contains(t.ctx.segments.render) => t.toString
+        }
         .toSeq
         .sorted
 

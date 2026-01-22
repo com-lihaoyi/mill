@@ -655,9 +655,12 @@ trait GroupExecution {
 
       val currentMillVersion = mill.constants.BuildInfo.millVersion
       val currentJvmVersion = sys.props("java.version")
-      val millVersionMatches = checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
-      val jvmVersionMatches = checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
-      val classLoaderMatches = checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
+      val millVersionMatches =
+        checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
+      val jvmVersionMatches =
+        checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
+      val classLoaderMatches =
+        checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
 
       (
         cached.inputsHash,
