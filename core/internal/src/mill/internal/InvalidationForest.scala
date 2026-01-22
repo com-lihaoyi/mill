@@ -24,11 +24,9 @@ object InvalidationForest {
     // When version changed, create a flat tree with all tasks as direct children of the version change node
     versionChanged match {
       case Some((oldMillVersion, newMillVersion, oldJvmVersion, newJvmVersion)) =>
-        val millVersionChanged = oldMillVersion != newMillVersion
-        val jvmVersionChanged = oldJvmVersion != newJvmVersion
-
+        // If mill version changed, show that; otherwise show jvm version change
         val versionNodeKey =
-          if (millVersionChanged) s"mill-version-changed:$oldMillVersion->$newMillVersion"
+          if (oldMillVersion != newMillVersion) s"mill-version-changed:$oldMillVersion->$newMillVersion"
           else s"mill-jvm-version-changed:$oldJvmVersion->$newJvmVersion"
 
         val allTaskNames = rootInvalidatedTasks
