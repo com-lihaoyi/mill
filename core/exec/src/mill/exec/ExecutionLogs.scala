@@ -29,7 +29,9 @@ private object ExecutionLogs {
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String] = None
+      spanningInvalidationTree: Option[String] = None,
+      // Per-task invalidation reasons (e.g., version mismatch reasons)
+      taskInvalidationReasons: Map[String, String] = Map.empty
   ): Unit = {
     val changedTasks = changedValueHash.keys().asScala.toSet
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
@@ -45,7 +47,8 @@ private object ExecutionLogs {
     val finalTree = InvalidationForest.buildInvalidationTree(
       upstreamTaskEdges0 = interGroupDeps,
       rootInvalidatedTasks = rootInvalidatedTasks,
-      codeSignatureTree = spanningInvalidationTree
+      codeSignatureTree = spanningInvalidationTree,
+      taskInvalidationReasons = taskInvalidationReasons
     )
 
     os.write.over(outPath / OutFiles.millInvalidationTree, finalTree.render(indent = 2))

@@ -41,10 +41,8 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   case class DownstreamResult(
       changedRootTasks: Set[Task[?]],
       downstreamTasks: Seq[Task[Any]],
-      // Version change info for selective execution display: (oldMill, newMill, oldJvm, newJvm)
-      versionChanged: Option[(String, String, String, String)],
-      // Classloader change info: (oldHash, newHash)
-      classLoaderChanged: Option[(Int, Int)] = None
+      // Global invalidation reason for selective execution (e.g., "mill-version-changed:OLD->NEW")
+      globalInvalidationReason: Option[String] = None
   )
 
   def computeDownstream(
@@ -61,8 +59,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
-    // For selective execution, we still need to check version changes at the metadata level
-    // This is different from per-task cache invalidation in loadCachedJson
+    // For selective execution, use global version/classloader checking from mill-selective-execution.json
     val millVersionChanged = oldHashes.millVersion != newHashes.millVersion
     val jvmVersionChanged = oldHashes.millJvmVersion != newHashes.millJvmVersion
     // Check classloader changes (0 means old metadata without this field - treat as match)
@@ -70,28 +67,36 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       newHashes.classLoaderSigHash != 0 &&
       oldHashes.classLoaderSigHash != newHashes.classLoaderSigHash
 
-    // If version or classloader changed, treat all tasks as changed for selective execution
-    if (millVersionChanged || jvmVersionChanged) {
+    // If Mill version changed, invalidate all tasks
+    if (millVersionChanged) {
       val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
       return DownstreamResult(
         allTasks,
         transitiveNamed.map(t => t: Task[Any]),
-        versionChanged = Some((
-          oldHashes.millVersion,
-          newHashes.millVersion,
-          oldHashes.millJvmVersion,
-          newHashes.millJvmVersion
-        ))
+        globalInvalidationReason =
+          Some(s"mill-version-changed:${oldHashes.millVersion}->${newHashes.millVersion}")
       )
     }
 
+    // If JVM version changed, invalidate all tasks
+    if (jvmVersionChanged) {
+      val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
+      return DownstreamResult(
+        allTasks,
+        transitiveNamed.map(t => t: Task[Any]),
+        globalInvalidationReason =
+          Some(s"mill-jvm-version-changed:${oldHashes.millJvmVersion}->${newHashes.millJvmVersion}")
+      )
+    }
+
+    // If classloader changed, invalidate all tasks
     if (classLoaderChanged) {
       val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
       return DownstreamResult(
         allTasks,
         transitiveNamed.map(t => t: Task[Any]),
-        versionChanged = None,
-        classLoaderChanged = Some((oldHashes.classLoaderSigHash, newHashes.classLoaderSigHash))
+        globalInvalidationReason =
+          Some(s"classpath-changed:${oldHashes.classLoaderSigHash}->${newHashes.classLoaderSigHash}")
       )
     }
 
@@ -126,8 +131,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       changedRootTasks,
       breadthFirst(changedRootTasks) { t =>
         downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
-      },
-      versionChanged = None
+      }
     )
   }
 
@@ -221,12 +225,20 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
           val plan = PlanImpl.plan(Seq.from(result.downstreamTasks.collect { case n: Task.Named[_] => n }))
           val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
 
+          // For selective execution, use global invalidation reason for all root tasks
+          val taskInvalidationReasons = result.globalInvalidationReason match {
+            case Some(reason) =>
+              result.changedRootTasks.collect { case n: Task.Named[_] =>
+                n.ctx.segments.render -> reason
+              }.toMap
+            case None => Map.empty[String, String]
+          }
+
           InvalidationForest.buildInvalidationTree(
             upstreamTaskEdges0 = interGroupDeps,
             rootInvalidatedTasks = result.changedRootTasks.collect { case n: Task.Named[_] => n: Task[?] },
             codeSignatureTree = evaluator.spanningInvalidationTree,
-            versionChanged = result.versionChanged,
-            classLoaderChanged = result.classLoaderChanged
+            taskInvalidationReasons = taskInvalidationReasons
           )
       }
     }

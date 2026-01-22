@@ -12,83 +12,82 @@ object InvalidationForest {
    * Builds an invalidation tree by splicing together the task-invalidation-graph
    * and method-codesig-invalidation-graph.
    *
-   * @param versionChanged Optional tuple of (oldMillVersion, newMillVersion, oldJvmVersion, newJvmVersion)
-   *                       to display version change as root cause
-   * @param classLoaderChanged Optional tuple of (oldHash, newHash) for classloader changes
+   * @param taskInvalidationReasons Per-task invalidation reasons (e.g., "mill-version-changed:OLD->NEW").
+   *                                Tasks with the same reason are grouped under that reason node.
    */
   def buildInvalidationTree(
       upstreamTaskEdges0: Map[Task[?], Seq[Task[?]]],
       rootInvalidatedTasks: Set[Task[?]],
       codeSignatureTree: Option[String],
-      versionChanged: Option[(String, String, String, String)] = None,
-      classLoaderChanged: Option[(Int, Int)] = None
+      taskInvalidationReasons: Map[String, String] = Map()
   ): ujson.Obj = {
-    // Helper to create a flat tree with all tasks under a single root node
-    def flatTreeWithRoot(rootKey: String): ujson.Obj = {
-      val allTaskNames = rootInvalidatedTasks
-        .collect { case t: Task.Named[?] => t.ctx.segments.render }
+    // Separate tasks by their invalidation reason
+    val rootTaskNames = rootInvalidatedTasks.collect { case t: Task.Named[?] => t.ctx.segments.render }
+    val tasksWithReasons = rootTaskNames.filter(taskInvalidationReasons.contains)
+    val tasksWithoutReasons = rootTaskNames -- tasksWithReasons
+
+    // Group tasks by reason for display
+    val tasksByReason = tasksWithReasons.toSeq
+      .groupBy(taskInvalidationReasons)
+      .view
+      .mapValues(_.sorted)
+      .toMap
+
+    // Build the main tree for tasks without special reasons
+    val mainTree = if (tasksWithoutReasons.isEmpty && tasksByReason.isEmpty) {
+      ujson.Obj()
+    } else if (tasksWithoutReasons.isEmpty) {
+      ujson.Obj()
+    } else {
+      val rootInvalidatedTaskStrings = rootInvalidatedTasks
+        .collect { case t: Task.Named[?] if tasksWithoutReasons.contains(t.ctx.segments.render) => t.toString }
         .toSeq
         .sorted
 
-      val childObj = ujson.Obj()
-      for (name <- allTaskNames) childObj(name) = ujson.Obj()
+      val downstreamTaskEdges0 = SpanningForest.reverseEdges(upstreamTaskEdges0)
 
-      ujson.Obj(rootKey -> childObj)
-    }
+      // Code edges: method->method and method->task from code signature tree
+      val (methodForest, downstreamMethodEdges) = extractMethodEdges(
+        codeSignatureTree,
+        upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq,
+        rootInvalidatedTasks.filter {
+          case t: Task.Named[?] => tasksWithoutReasons.contains(t.ctx.segments.render)
+          case _ => false
+        }
+      )
 
-    // When version changed, create a flat tree with all tasks as direct children of the version change node
-    versionChanged match {
-      case Some((oldMillVersion, newMillVersion, oldJvmVersion, newJvmVersion)) =>
-        // If mill version changed, show that; otherwise show jvm version change
-        val versionNodeKey =
-          if (oldMillVersion != newMillVersion) s"mill-version-changed:$oldMillVersion->$newMillVersion"
-          else s"mill-jvm-version-changed:$oldJvmVersion->$newJvmVersion"
+      val taskForest = buildTaskForest(rootInvalidatedTaskStrings, downstreamTaskEdges0)
 
-        flatTreeWithRoot(versionNodeKey)
+      // Using the `crossEdges` to identify connection points where we splice
+      // a top-level tree from `taskForest` into `methodForest`.
+      def combineRecursive(node: ujson.Value): Unit = {
+        node.obj.valuesIterator.foreach(combineRecursive)
+        for (key <- node.obj.keysIterator.toArray) {
+          for {
+            crossKeys <- downstreamMethodEdges.get(key)
+            crossKey <- crossKeys.sorted
+            subTaskTree <- taskForest.obj.remove(crossKey)
+          } node.obj(key)(crossKey) = subTaskTree
 
-      case None => classLoaderChanged match {
-        case Some((oldHash, newHash)) =>
-          flatTreeWithRoot(s"classpath-changed:$oldHash->$newHash")
-
-        case None =>
-          val rootInvalidatedTaskStrings = rootInvalidatedTasks
-            .collect { case t: Task.Named[?] => t.toString }
-            .toSeq
-            .sorted
-
-          val downstreamTaskEdges0 = SpanningForest.reverseEdges(upstreamTaskEdges0)
-
-          // Code edges: method->method and method->task from code signature tree
-          val (methodForest, downstreamMethodEdges) = extractMethodEdges(
-            codeSignatureTree,
-            upstreamTaskEdges0.keys.collect { case t: Task.Named[?] => t }.toSeq,
-            rootInvalidatedTasks
-          )
-
-          val taskForest = buildTaskForest(rootInvalidatedTaskStrings, downstreamTaskEdges0)
-
-          // Using the `crossEdges` to identify connection points where we splice
-          // a top-level tree from `taskForest` into `methodForest`.
-          def combineRecursive(node: ujson.Value): Unit = {
-            node.obj.valuesIterator.foreach(combineRecursive)
-            for (key <- node.obj.keysIterator.toArray) {
-              for {
-                crossKeys <- downstreamMethodEdges.get(key)
-                crossKey <- crossKeys.sorted
-                subTaskTree <- taskForest.obj.remove(crossKey)
-              } node.obj(key)(crossKey) = subTaskTree
-
-              if (node.obj(key).obj.isEmpty) node.obj.remove(key)
-            }
-          }
-
-          combineRecursive(methodForest)
-          // Any un-spliced top-level trees from taskForest become top-level trees in methodForest
-          for ((k, v) <- taskForest.obj) methodForest(k) = v
-
-          methodForest.asInstanceOf[ujson.Obj]
+          if (node.obj(key).obj.isEmpty) node.obj.remove(key)
+        }
       }
+
+      combineRecursive(methodForest)
+      // Any un-spliced top-level trees from taskForest become top-level trees in methodForest
+      for ((k, v) <- taskForest.obj) methodForest(k) = v
+
+      methodForest.asInstanceOf[ujson.Obj]
     }
+
+    // Add reason-grouped tasks as top-level nodes
+    for ((reason, tasks) <- tasksByReason.toSeq.sortBy(_._1)) {
+      val childObj = ujson.Obj()
+      for (name <- tasks) childObj(name) = ujson.Obj()
+      mainTree(reason) = childObj
+    }
+
+    mainTree
   }
 
   def buildTaskForest(
