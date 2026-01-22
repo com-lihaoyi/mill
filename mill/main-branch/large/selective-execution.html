@@ -761,7 +761,7 @@ request branch, you can do that as follows:</p>
 where <code>bar</code> depends on <code>foo</code> but <code>qux</code> is standalone:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-49-e7beef/mill-dist-1.1.0-RC4-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/large/selective/9-selective-execution">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-50-da8e39/mill-dist-1.1.0-RC4-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/large/selective/9-selective-execution">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1153,19 +1153,10 @@ to ensure they have the exact same filesystem permissions.</p>
 <div class="sect1">
 <h2 id="_debugging_selective_execution"><a class="anchor" href="#_debugging_selective_execution"></a>Debugging Selective Execution</h2>
 <div class="sectionbody">
-<div class="ulist">
-<ul>
-<li>
-<p>Use <code>selective.resolve</code> before <code>selective.run</code>: this will print out what it was going to run,
+<div class="paragraph">
+<p>Use <code>selective.resolveTree</code> before <code>selective.run</code>: this will print out what it was going to run,
+why they are being run (e.g. due to an input task change, build code change, or Mill version change)
 and can give you a chance to eyeball if the list of tasks to run makes sense or not</p>
-</li>
-<li>
-<p>Look at <a href="../fundamentals/out-dir.html#_mill_invalidation_tree_json" class="xref page">out/mill-invalidation-tree.json</a>,
-whether on disk locally or printing it out (e.g via <code>cat</code>) on your CI machines to diagnose issues
-there. This would give you a richer view of what source tasks or inputs are the ones actually
-triggered the invalidation, and what tasks were just invalidated due to being downstream of them.</p>
-</li>
-</ul>
 </div>
 </div>
 </div>
