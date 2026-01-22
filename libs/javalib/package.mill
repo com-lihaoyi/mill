@@ -112,9 +112,9 @@ object `package` extends MillStableScalaModule {
       ),
       BuildInfo.Value("springBuildToolsVersion", Deps.springBootTools.version),
       BuildInfo.Value(
-        "millSpringBootWorkerDep",
-        s"${`spring-boot-worker`.pomSettings().organization}:${`spring-boot-worker`.artifactId()}:SNAPSHOT",
-        "The dependency containing the worker implementation to be loaded at runtime."
+        "millSpringBootWorkerDepPrefix",
+        s"${`spring-boot-worker`.pomSettings().organization}:${`spring-boot-worker`.artifactId()}",
+        "The dependency prefix (group:id) for the worker implementation to be loaded at runtime."
       ),
       BuildInfo.Value("pmdVersion", Deps.RuntimeDeps.pmdDist.version),
       BuildInfo.Value("comLihaoyiSourcecodeVersion", Deps.sourcecode.version)

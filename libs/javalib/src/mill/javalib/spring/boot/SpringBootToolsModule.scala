@@ -25,7 +25,7 @@ trait SpringBootToolsModule extends CoursierModule, OfflineSupportModule {
 
   private def fullWorkerDeps: T[Seq[Dep]] = Task {
     springBootToolsDeps() ++ Seq(
-      mvn"${Versions.millSpringBootWorkerDep}"
+      mvn"${Versions.millSpringBootWorkerDepPrefix}:${Versions.millVersion}"
     )
   }
 
@@ -55,7 +55,7 @@ trait SpringBootToolsModule extends CoursierModule, OfflineSupportModule {
     if (worker.getClass().getClassLoader() != cl) {
       Task.log.error(
         s"""|Worker was not loaded from worker classloader.
-            |You should not add the ${Versions.millSpringBootWorkerDep} JAR to the mill build classpath"""
+            |You should not add the ${Versions.millSpringBootWorkerDepPrefix} JAR to the mill build classpath"""
           .stripMargin
       )
     }
