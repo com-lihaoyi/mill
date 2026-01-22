@@ -37,7 +37,9 @@ case class Execution(
     depth: Int,
     isFinalDepth: Boolean,
     // JSON string to avoid classloader issues when crossing classloader boundaries
-    spanningInvalidationTree: Option[String]
+    spanningInvalidationTree: Option[String],
+    // Tracks tasks invalidated due to version/classloader mismatch
+    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = new ConcurrentHashMap()
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -351,12 +353,21 @@ case class Execution(
 
       val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
+      // Convert versionMismatchReasons to Map[String, String] for InvalidationForest
+      val taskInvalidationReasons = {
+        import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
+        versionMismatchReasons.asScala.collect {
+          case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason
+        }.toMap
+      }
+
       ExecutionLogs.logInvalidationTree(
         interGroupDeps = interGroupDeps,
         outPath = outPath,
         uncached = uncached,
         changedValueHash = changedValueHash,
-        spanningInvalidationTree = spanningInvalidationTree
+        spanningInvalidationTree = spanningInvalidationTree,
+        taskInvalidationReasons = taskInvalidationReasons
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal

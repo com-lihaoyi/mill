@@ -28,6 +28,12 @@ trait GroupExecution {
   def classLoaderIdentityHash: Int
 
   /**
+   * Tracks tasks invalidated due to version/classloader mismatch, with the reason string.
+   * Populated by loadCachedJson, used by ExecutionLogs.logInvalidationTree.
+   */
+  def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
+
+  /**
    * `String` is the worker name, `Int` is the worker hash, `Val` is the result of the worker invocation.
    */
   def workerCache: mutable.Map[String, (Int, Val)]
@@ -639,19 +645,26 @@ trait GroupExecution {
         }
     } yield {
       // Check for version/classloader mismatch - treat as cache miss if they differ
-      // Empty/zero values (from old cache files) are treated as matching
+      def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
+        val matches = cachedValue == currentValue
+        if (!matches) {
+          versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
+        }
+        matches
+      }
+
       val currentMillVersion = mill.constants.BuildInfo.millVersion
       val currentJvmVersion = sys.props("java.version")
-      val versionMatches =
-        (cached.millVersion.isEmpty || cached.millVersion == currentMillVersion) &&
-          (cached.millJvmVersion.isEmpty || cached.millJvmVersion == currentJvmVersion)
-      val classLoaderMatches =
-        cached.classLoaderSigHash == 0 || cached.classLoaderSigHash == classLoaderSigHash
+      val millVersionMatches = checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
+      val jvmVersionMatches = checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
+      val classLoaderMatches = checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
 
       (
         cached.inputsHash,
         for {
-          _ <- Option.when(cached.inputsHash == inputsHash && versionMatches && classLoaderMatches)(())
+          _ <- Option.when(
+            cached.inputsHash == inputsHash && millVersionMatches && jvmVersionMatches && classLoaderMatches
+          )(())
           reader <- labelled.readWriterOpt
           (parsed, serializedPaths) <-
             try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using

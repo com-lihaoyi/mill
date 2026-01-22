@@ -205,12 +205,17 @@ class MillBuildBootstrap(
       spanningInvalidationTree = nestedState.frames.headOption.flatMap(_.spanningInvalidationTree),
       rootModule = rootModule,
       // Use the current frame's runClasspath (includes mvnDeps and Mill jars) but filter out
-      // compile.dest since build code changes are handled by codesig analysis
+      // compile.dest and generatedScriptSources.dest since build code changes are handled
+      // by codesig analysis, not by classLoaderSigHash.
       millClassloaderSigHash = nestedState.frames.headOption match {
         case Some(frame) =>
           val compileDestPath = frame.compileOutput.map(p => os.Path(p.javaPath))
           frame.runClasspath
-            .filter(p => !compileDestPath.contains(os.Path(p.javaPath)))
+            .filter { p =>
+              val path = os.Path(p.javaPath)
+              !compileDestPath.contains(path) &&
+              !path.toString.contains("generatedScriptSources.dest")
+            }
             .map(p => (os.Path(p.javaPath), p.sig))
             .hashCode()
         case None =>
