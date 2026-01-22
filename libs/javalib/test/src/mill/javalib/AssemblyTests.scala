@@ -49,7 +49,8 @@ object AssemblyTests extends TestSuite with AssemblyTestUtils {
           result.evalCount > 0
         )
 
-        val runResult = os.proc("java", "-jar", result.value.path, "testArg").call(cwd = eval.outPath)
+        val runResult =
+          os.proc("java", "-jar", result.value.path, "testArg").call(cwd = eval.outPath)
 
         assert(runResult.exitCode == 0)
       }

@@ -11,7 +11,6 @@ import mill.javalib.publish.{
   VersionControl,
   VersionScheme
 }
-import mill.javalib.internal
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*

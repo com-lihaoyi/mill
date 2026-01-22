@@ -83,7 +83,8 @@ trait AssemblyTestUtils {
     object core extends JavaModule {
       override def mainClass: T[Option[String]] = Some("hello.Main")
       override def mvnDeps = slf4jDeps
-      override def assemblyRules = Seq(Assembly.Rule.Relocate("ch.qos.logback.**", "shaded.logback.@1"))
+      override def assemblyRules =
+        Seq(Assembly.Rule.Relocate("ch.qos.logback.**", "shaded.logback.@1"))
     }
 
     lazy val millDiscover = Discover[this.type]
