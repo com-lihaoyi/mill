@@ -3,7 +3,16 @@ package millbuild
 import build_.package_ as build
 import mill.{Task, PathRef, T}
 import mill.scalalib.PublishModule
-import mill.scalalib.publish.{Artifact, Developer, License, LocalM2Publisher, Pom, PomSettings, VersionControl, PublishInfo}
+import mill.scalalib.publish.{
+  Artifact,
+  Developer,
+  License,
+  LocalM2Publisher,
+  Pom,
+  PomSettings,
+  VersionControl,
+  PublishInfo
+}
 import mill.api.TaskCtx
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
@@ -66,7 +75,8 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
     // Get module dependencies - construct artifacts with SNAPSHOT version directly
     // This avoids calling artifactMetadata which depends on publishVersion/millVersion
     val modulePomDeps = MillPublishJavaModule.snapshotArtifactsFor(moduleDepsChecked)()
-    val compileModulePomDeps = MillPublishJavaModule.snapshotArtifactsFor(compileModuleDepsChecked)()
+    val compileModulePomDeps =
+      MillPublishJavaModule.snapshotArtifactsFor(compileModuleDepsChecked)()
     val runModulePomDeps = MillPublishJavaModule.snapshotArtifactsFor(runModuleDepsChecked)()
 
     ivyPomDeps ++
@@ -101,8 +111,8 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
       publishProperties(),
       packagingType = pomPackagingType,
       parentProject = pomParentProject(),
-      bomDependencies = Seq.empty,  // Skip BOM dependencies to avoid millVersion dependency
-      dependencyManagement = Seq.empty  // Skip dep management to avoid millVersion dependency
+      bomDependencies = Seq.empty, // Skip BOM dependencies to avoid millVersion dependency
+      dependencyManagement = Seq.empty // Skip dep management to avoid millVersion dependency
     )
     val pomPath = Task.dest / s"${artifactId()}-$snapshotVersion.pom"
     os.write.over(pomPath, snapshotPom)
@@ -133,8 +143,8 @@ object MillPublishJavaModule {
   /** Helper to create SNAPSHOT artifacts for module dependencies */
   def snapshotArtifactsFor(checked: Seq[mill.javalib.JavaModule]) = Task.traverse(checked.collect {
     case m: mill.scalalib.PublishModule => Task.Anon {
-      Artifact(m.pomSettings().organization, m.artifactId(), "SNAPSHOT")
-    }
+        Artifact(m.pomSettings().organization, m.artifactId(), "SNAPSHOT")
+      }
   })(identity)
 
   /**
@@ -146,14 +156,16 @@ object MillPublishJavaModule {
     scala.util.Using.resource(os.zip.open(jarPath)) { zipRoot =>
       os.walk(zipRoot).foreach { path =>
         if (path.last.endsWith(".buildinfo.properties")) {
-          os.write.over(path, os.read(path).replace("millVersion=SNAPSHOT", s"millVersion=$millVersion"))
+          os.write.over(
+            path,
+            os.read(path).replace("millVersion=SNAPSHOT", s"millVersion=$millVersion")
+          )
         } else if (path.last == "exampleList.txt") {
           os.write.over(path, os.read(path).replace("/SNAPSHOT/", s"/$millVersion/"))
         }
       }
     }
   }
-
 
   def commonPomSettings(artifactName: String) = {
     PomSettings(
