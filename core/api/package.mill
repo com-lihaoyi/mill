@@ -49,7 +49,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def buildInfoPackageName = "mill.api"
 
   def buildInfoMembers = Seq(
-    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version."),
     BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url."),
     BuildInfo.Value(
       "millReportNewIssueUrl",
