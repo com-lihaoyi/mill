@@ -14,7 +14,7 @@ import mill.internal.Util
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.internal.PrefixLogger
-import mill.meta.MillBuildRootModule
+import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.CliImports
 import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
 import mill.server.Server
@@ -152,7 +152,7 @@ class MillBuildBootstrap(
   private def makeBootstrapState(currentRoot: os.Path): RunnerState = {
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
 
-    val (mod, error) = makeBootstrapModule(currentRoot, foundRootBuildFileName) match {
+    val (mod, error) = makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
       case Result.Success(bootstrapModule) => (Some(bootstrapModule), None)
       case f: Result.Failure => (None, Some(Util.formatError(f, logger.prompt.errorColor)))
     }
@@ -231,11 +231,16 @@ class MillBuildBootstrap(
     )
   }
 
-  private def makeBootstrapModule(currentRoot: Path, foundRootBuildFileName: String) = {
+  private def makeBootstrapModule(
+      currentRoot: Path,
+      foundRootBuildFileName: String,
+      useDummy: Boolean
+  ) = {
     mill.api.ExecResult.catchWrapException {
-      new MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)(
-        using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
-      )
+      given rootModuleInfo: RootModule.Info =
+        new RootModule.Info(currentRoot, output, topLevelProjectRoot)
+      if (useDummy) new BootstrapRootModule.Instance()
+      else new MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)
     }
   }
 
