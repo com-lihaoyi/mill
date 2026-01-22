@@ -144,9 +144,9 @@ jobs:
           - millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
 
           - millargs: "'libs.scalalib.__.test'"
-            install-sbt: true
 
           - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib,init,tabcomplete}.__.test'"
+            install-sbt: true
 
           - millargs: "example.kotlinlib.__.shared.daemon"
 
