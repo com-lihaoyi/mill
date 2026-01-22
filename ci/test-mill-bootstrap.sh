@@ -27,4 +27,4 @@ rm -rf out
 
 # Make sure the REPL in the scratch folder works
 cd scratch
-echo "Seq.tabulate(1000)(identity).sum" | ../mill-assembly.jar -i repl | grep 499500
+echo "Seq.tabulate(1000)(identity).sum" | ../mill-assembly.jar repl | grep 499500
