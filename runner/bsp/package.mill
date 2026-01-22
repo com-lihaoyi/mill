@@ -10,17 +10,14 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
 
-  def buildInfoMembers = Task {
-    val workerDep = worker.artifactMetadata()
-    Seq(
-      BuildInfo.Value(
-        "bsp4jVersion",
-        Deps.bsp4j.version,
-        "BSP4j version (BSP Protocol version)."
-      ),
-      BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version.")
-    )
-  }
+  def buildInfoMembers = Seq(
+    BuildInfo.Value(
+      "bsp4jVersion",
+      Deps.bsp4j.version,
+      "BSP4j version (BSP Protocol version)."
+    ),
+    BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version.")
+  )
 
   override lazy val test: MillScalaTests = new Test {}
   trait Test extends MillScalaTests {

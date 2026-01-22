@@ -18,10 +18,22 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
     super.javacOptions() ++ Seq("--release", "11", "-encoding", "UTF-8", "-deprecation")
 
   /**
+   * Manifest without version info, used for jarRaw to avoid depending on publishVersion/millVersion.
+   */
+  def manifestRaw: T[mill.util.JarManifest] = Task {
+    mill.util.Jvm.createManifest(finalMainClassOpt().toOption)
+  }
+
+  /**
    * The raw unprocessed jar, used for publishLocalTestRepo where we don't want
    * version processing (since tests use SNAPSHOT versions).
+   * Uses manifestRaw to avoid depending on publishVersion/millVersion.
    */
-  def jarRaw: T[PathRef] = Task { super.jar() }
+  def jarRaw: T[PathRef] = Task {
+    val jar = Task.dest / "out.jar"
+    mill.util.Jvm.createJar(jar, localClasspath().map(_.path).filter(os.exists), manifestRaw())
+    PathRef(jar)
+  }
 
   /**
    * Processed jar with millVersion=SNAPSHOT replaced with the actual version.
@@ -132,16 +144,24 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 object MillPublishJavaModule {
 
   /**
-   * Process a jar file in-place, replacing `millVersion=SNAPSHOT` with the actual version
-   * in any `.buildinfo.properties` files found within.
+   * Process a jar file in-place, replacing SNAPSHOT with the actual version in:
+   * - `.buildinfo.properties` files (millVersion=SNAPSHOT -> millVersion=<version>)
+   * - `exampleList.txt` files (SNAPSHOT in URLs -> <version>)
    */
   private def processJarInPlace(jarPath: os.Path, millVersion: String): Unit = {
     scala.util.Using.resource(os.zip.open(jarPath)) { zipRoot =>
       os.walk(zipRoot).foreach { path =>
-        if (path.last.endsWith(".buildinfo.properties") && os.isFile(path)) {
-          val content = os.read(path)
-          if (content.contains("millVersion=SNAPSHOT")) {
-            os.write.over(path, content.replace("millVersion=SNAPSHOT", s"millVersion=$millVersion"))
+        if (os.isFile(path)) {
+          if (path.last.endsWith(".buildinfo.properties")) {
+            val content = os.read(path)
+            if (content.contains("millVersion=SNAPSHOT")) {
+              os.write.over(path, content.replace("millVersion=SNAPSHOT", s"millVersion=$millVersion"))
+            }
+          } else if (path.last == "exampleList.txt") {
+            val content = os.read(path)
+            if (content.contains("/SNAPSHOT/")) {
+              os.write.over(path, content.replace("/SNAPSHOT/", s"/$millVersion/"))
+            }
           }
         }
       }
