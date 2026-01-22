@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
@@ -9,9 +9,8 @@ object CycleTests extends TestSuite {
 
   object CycleBase extends TestRootModule {
     // See issue: https://github.com/com-lihaoyi/mill/issues/2341
-    object a extends ScalaModule {
+    object a extends JavaModule {
       override def moduleDeps = Seq(a)
-      override def scalaVersion = sys.props.getOrElse("TEST_SCALA_VERSION", ???)
     }
     object b extends JavaModule {
       override def moduleDeps = Seq(c)

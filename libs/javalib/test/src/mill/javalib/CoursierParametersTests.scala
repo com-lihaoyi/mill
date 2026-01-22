@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.api.{Discover, Task}
 import mill.testkit.{TestRootModule, UnitTester}
@@ -10,19 +10,18 @@ object CoursierParametersTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "coursier"
 
   object CoursierTest extends TestRootModule {
-    object core extends ScalaModule {
-      def scalaVersion = "2.13.18"
+    object core extends JavaModule {
       def mvnDeps = Task {
-        Seq(mvn"com.lihaoyi::pprint:0.9.0")
+        Seq(mvn"com.google.guava:guava:33.0.0-jre")
       }
       def resolutionParams = Task.Anon {
         super.resolutionParams()
           .addForceVersion((
             coursier.Module(
-              coursier.Organization("com.lihaoyi"),
-              coursier.ModuleName("pprint_2.13")
+              coursier.Organization("com.google.guava"),
+              coursier.ModuleName("guava")
             ),
-            "0.8.1"
+            "32.1.3-jre"
           ))
       }
     }
@@ -33,17 +32,17 @@ object CoursierParametersTests extends TestSuite {
     test("coursierParams") - UnitTester(CoursierTest, null).scoped { eval =>
       val Right(result) = eval.apply(CoursierTest.core.compileClasspath): @unchecked
       val classPath = result.value.toSeq.map(_.path)
-      val pprintVersion = classPath
+      val guavaVersion = classPath
         .map(_.last)
         .filter(_.endsWith(".jar"))
-        .filter(_.startsWith("pprint_2.13-"))
-        .map(_.stripPrefix("pprint_2.13-").stripSuffix(".jar"))
+        .filter(_.startsWith("guava-"))
+        .map(_.stripPrefix("guava-").stripSuffix(".jar").stripSuffix("-jre"))
         .headOption
         .getOrElse {
-          sys.error(s"pprint not found in class path $classPath")
+          sys.error(s"guava not found in class path $classPath")
         }
-      val expectedPprintVersion = "0.8.1"
-      assert(pprintVersion == expectedPprintVersion)
+      val expectedGuavaVersion = "32.1.3"
+      assert(guavaVersion == expectedGuavaVersion)
     }
   }
 }

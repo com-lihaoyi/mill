@@ -4,7 +4,7 @@ import mill.*
 import mill.api.daemon.internal.internal
 import mill.api.{Discover, PathRef, Result, Task}
 import mill.api.internal.RootModule
-import mill.scalalib.{Dep, DepSyntax, ScalaModule}
+import mill.scalalib.{DepSyntax, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.CliImports

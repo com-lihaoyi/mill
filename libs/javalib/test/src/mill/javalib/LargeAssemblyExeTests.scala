@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.api.Task.Simple as T
 import mill.api.{Discover, ExecResult, Task}
@@ -17,17 +17,13 @@ object LargeAssemblyExeTests extends TestSuite {
 
   object TestCase extends TestRootModule {
 
-    trait ExtraDeps extends ScalaModule {
-      def scalaVersion = "2.13.18"
+    trait ExtraDeps extends JavaModule {
 
       def sources = Task.Sources(mill.api.BuildCtx.workspaceRoot / "src")
 
       def mvnDeps = super.mvnDeps() ++ Seq(
-        mvn"com.lihaoyi::scalatags:0.8.2",
-        mvn"com.lihaoyi::mainargs:0.4.0",
         mvn"org.apache.avro:avro:1.11.1",
-        mvn"org.typelevel::cats-core:2.9.0",
-        mvn"org.apache.spark::spark-core:3.4.0"
+        mvn"org.apache.spark:spark-core_2.13:3.4.0"
       )
     }
 
