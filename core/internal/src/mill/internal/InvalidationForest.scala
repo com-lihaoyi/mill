@@ -34,11 +34,8 @@ object InvalidationForest {
       .toMap
 
     // Build the main tree for tasks without special reasons
-    val mainTree = if (tasksWithoutReasons.isEmpty && tasksByReason.isEmpty) {
-      ujson.Obj()
-    } else if (tasksWithoutReasons.isEmpty) {
-      ujson.Obj()
-    } else {
+    val mainTree = if (tasksWithoutReasons.isEmpty) ujson.Obj()
+    else {
       val rootInvalidatedTaskStrings = rootInvalidatedTasks
         .collect { case t: Task.Named[?] if tasksWithoutReasons.contains(t.ctx.segments.render) => t.toString }
         .toSeq
@@ -162,12 +159,6 @@ object InvalidationForest {
         .groupMap(_._1)(_._2)
 
       (jsonTree, methodToTaskEdges)
-  }
-
-  def combineEdges(maps: Map[String, Seq[String]]*): Map[String, Seq[String]] = {
-    val combined = collection.mutable.Map[String, Seq[String]]()
-    for (m <- maps; (k, vs) <- m) combined(k) = combined.getOrElse(k, Nil) ++ vs
-    combined.toMap
   }
 
   /**
