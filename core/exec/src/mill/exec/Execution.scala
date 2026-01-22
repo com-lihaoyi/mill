@@ -1,7 +1,6 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
-import mill.api.daemon.VersionState
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger}
@@ -38,9 +37,7 @@ case class Execution(
     depth: Int,
     isFinalDepth: Boolean,
     // JSON string to avoid classloader issues when crossing classloader boundaries
-    spanningInvalidationTree: Option[String],
-    // Previous Mill and JVM versions from disk (survives daemon restarts)
-    previousVersions: Option[VersionState]
+    spanningInvalidationTree: Option[String]
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -70,9 +67,7 @@ case class Execution(
       depth: Int,
       isFinalDepth: Boolean,
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String],
-      // Previous Mill and JVM versions from disk
-      previousVersions: Option[VersionState]
+      spanningInvalidationTree: Option[String]
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -96,8 +91,7 @@ case class Execution(
     enableTicker = enableTicker,
     depth = depth,
     isFinalDepth = isFinalDepth,
-    spanningInvalidationTree = spanningInvalidationTree,
-    previousVersions = previousVersions
+    spanningInvalidationTree = spanningInvalidationTree
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -362,8 +356,7 @@ case class Execution(
         outPath = outPath,
         uncached = uncached,
         changedValueHash = changedValueHash,
-        spanningInvalidationTree = spanningInvalidationTree,
-        previousVersions = previousVersions
+        spanningInvalidationTree = spanningInvalidationTree
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal

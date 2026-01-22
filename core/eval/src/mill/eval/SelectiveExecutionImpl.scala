@@ -1,7 +1,6 @@
 package mill.eval
 
 import mill.api.daemon.internal.TestReporter
-import mill.api.daemon.VersionState
 import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
@@ -42,8 +41,8 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   case class DownstreamResult(
       changedRootTasks: Set[Task[?]],
       downstreamTasks: Seq[Task[Any]],
-      // Previous versions if version change caused all tasks to be invalidated
-      previousVersions: Option[VersionState]
+      // Version change info for selective execution display
+      versionChanged: Option[(String, String, String, String)]
   )
 
   def computeDownstream(
@@ -60,17 +59,23 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
-    // Treat any version difference as a change, including when old metadata is missing version info
+    // For selective execution, we still need to check version changes at the metadata level
+    // This is different from per-task cache invalidation in loadCachedJson
     val millVersionChanged = oldHashes.millVersion != newHashes.millVersion
     val jvmVersionChanged = oldHashes.millJvmVersion != newHashes.millJvmVersion
 
-    // If either version changed, treat all tasks as changed
+    // If either version changed, treat all tasks as changed for selective execution
     if (millVersionChanged || jvmVersionChanged) {
       val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
       return DownstreamResult(
         allTasks,
         transitiveNamed.map(t => t: Task[Any]),
-        previousVersions = Some(VersionState(oldHashes.millVersion, oldHashes.millJvmVersion))
+        versionChanged = Some((
+          oldHashes.millVersion,
+          newHashes.millVersion,
+          oldHashes.millJvmVersion,
+          newHashes.millJvmVersion
+        ))
       )
     }
 
@@ -106,7 +111,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       breadthFirst(changedRootTasks) { t =>
         downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
       },
-      previousVersions = None
+      versionChanged = None
     )
   }
 
@@ -127,8 +132,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     ).map { tasks =>
       computeChangedTasks0(tasks, computeMetadata(tasks))
         // If we did not have the metadata, presume everything was changed.
-        // Use empty previous versions to indicate no prior state
-        .getOrElse(ChangedTasks(tasks, tasks.toSet, tasks, Some(VersionState("", ""))))
+        .getOrElse(ChangedTasks.all(tasks))
     }
   }
 
@@ -159,8 +163,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       ChangedTasks(
         tasks,
         result.changedRootTasks.collect { case n: Task.Named[_] => n },
-        result.downstreamTasks.collect { case n: Task.Named[_] => n },
-        previousVersions = result.previousVersions
+        result.downstreamTasks.collect { case n: Task.Named[_] => n }
       )
     }
   }
@@ -188,17 +191,36 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value] = {
-    for (changedTasks <- this.computeChangedTasks(tasks)) yield {
-      val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
+    evaluator.resolveTasks(
+      tasks,
+      SelectMode.Separated,
+      evaluator.allowPositionalCommandArgs
+    ).map { resolved =>
+      val computedMetadata = computeMetadata(resolved)
+      val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
 
-      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+      if (oldMetadataTxt == "") {
+        // No metadata, return empty tree
+        ujson.Obj()
+      } else {
+        val transitiveNamed = PlanImpl.transitiveNamed(resolved)
+        val oldMetadata = upickle.read[SelectiveExecution.Metadata](oldMetadataTxt)
+        val result = computeDownstreamDetailed(
+          transitiveNamed,
+          oldMetadata,
+          computedMetadata.metadata
+        )
 
-      InvalidationForest.buildInvalidationTree(
-        upstreamTaskEdges0 = interGroupDeps,
-        rootInvalidatedTasks = changedTasks.changedRootTasks.map(x => x: Task[?]),
-        codeSignatureTree = evaluator.spanningInvalidationTree,
-        previousVersions = changedTasks.previousVersions.orElse(evaluator.previousVersions)
-      )
+        val plan = PlanImpl.plan(Seq.from(result.downstreamTasks.collect { case n: Task.Named[_] => n }))
+        val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+
+        InvalidationForest.buildInvalidationTree(
+          upstreamTaskEdges0 = interGroupDeps,
+          rootInvalidatedTasks = result.changedRootTasks.collect { case n: Task.Named[_] => n: Task[?] },
+          codeSignatureTree = evaluator.spanningInvalidationTree,
+          versionChanged = result.versionChanged
+        )
+      }
     }
   }
 

@@ -2,7 +2,6 @@ package mill.exec
 
 import mill.constants.OutFiles.OutFiles
 import mill.api.Task
-import mill.api.daemon.VersionState
 import mill.internal.{InvalidationForest, SpanningForest}
 
 import java.util.concurrent.ConcurrentHashMap
@@ -30,8 +29,7 @@ private object ExecutionLogs {
       uncached: ConcurrentHashMap[Task[?], Unit],
       changedValueHash: ConcurrentHashMap[Task[?], Unit],
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String] = None,
-      previousVersions: Option[VersionState] = None
+      spanningInvalidationTree: Option[String] = None
   ): Unit = {
     val changedTasks = changedValueHash.keys().asScala.toSet
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
@@ -47,8 +45,7 @@ private object ExecutionLogs {
     val finalTree = InvalidationForest.buildInvalidationTree(
       upstreamTaskEdges0 = interGroupDeps,
       rootInvalidatedTasks = rootInvalidatedTasks,
-      codeSignatureTree = spanningInvalidationTree,
-      previousVersions = previousVersions
+      codeSignatureTree = spanningInvalidationTree
     )
 
     os.write.over(outPath / OutFiles.millInvalidationTree, finalTree.render(indent = 2))

@@ -594,7 +594,16 @@ trait GroupExecution {
   def writeCacheJson(metaPath: os.Path, json: ujson.Value, hashCode: Int, inputsHash: Int) = {
     os.write.over(
       metaPath,
-      upickle.stream(Cached(json, hashCode, inputsHash), indent = 4),
+      upickle.stream(
+        Cached(
+          json,
+          hashCode,
+          inputsHash,
+          millVersion = mill.constants.BuildInfo.millVersion,
+          millJvmVersion = sys.props("java.version")
+        ),
+        indent = 4
+      ),
       createFolders = true
     )
   }
@@ -627,26 +636,44 @@ trait GroupExecution {
         catch {
           case NonFatal(_) => None
         }
-    } yield (
-      cached.inputsHash,
-      for {
-        _ <- Option.when(cached.inputsHash == inputsHash)(())
-        reader <- labelled.readWriterOpt
-        (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
-              reader
-            )))
-          catch {
-            case e: PathRef.PathRefValidationException =>
-              logger.debug(
-                s"$labelled: re-evaluating; ${e.getMessage}"
-              )
-              None
-            case NonFatal(_) => None
-          }
-      } yield (Val(parsed), serializedPaths),
-      cached.valueHash
-    )
+    } yield {
+      // Check for version mismatch - treat as cache miss if versions differ
+      // Empty version strings (from old cache files) are treated as matching
+      val currentMillVersion = mill.constants.BuildInfo.millVersion
+      val currentJvmVersion = sys.props("java.version")
+      val versionMatches =
+        (cached.millVersion.isEmpty || cached.millVersion == currentMillVersion) &&
+          (cached.millJvmVersion.isEmpty || cached.millJvmVersion == currentJvmVersion)
+
+      if (!versionMatches) {
+        logger.debug(
+          s"$labelled: re-evaluating; version mismatch " +
+            s"(cached: ${cached.millVersion}/${cached.millJvmVersion}, " +
+            s"current: $currentMillVersion/$currentJvmVersion)"
+        )
+      }
+
+      (
+        cached.inputsHash,
+        for {
+          _ <- Option.when(cached.inputsHash == inputsHash && versionMatches)(())
+          reader <- labelled.readWriterOpt
+          (parsed, serializedPaths) <-
+            try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
+                reader
+              )))
+            catch {
+              case e: PathRef.PathRefValidationException =>
+                logger.debug(
+                  s"$labelled: re-evaluating; ${e.getMessage}"
+                )
+                None
+              case NonFatal(_) => None
+            }
+        } yield (Val(parsed), serializedPaths),
+        cached.valueHash
+      )
+    }
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {

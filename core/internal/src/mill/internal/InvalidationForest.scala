@@ -1,7 +1,6 @@
 package mill.internal
 
 import mill.api.Task
-import mill.api.daemon.VersionState
 
 /**
  * Builds invalidation trees for displaying task invalidation reasons.
@@ -10,44 +9,44 @@ import mill.api.daemon.VersionState
 object InvalidationForest {
 
   /**
-   * Computes a version change node from previous versions.
-   * Returns a formatted string like "mill-version-changed:0.12.0->0.12.1" for display,
-   * or combines both if mill and JVM versions changed.
-   */
-  def computeVersionChangeNode(previousVersions: Option[VersionState]): Option[String] = {
-    previousVersions.flatMap { vs =>
-      def changeTag(tag: String, curr: String, prev: String) = Option.when(curr != prev)(
-        s"$tag:$prev->$curr"
-      )
-
-      val parts =
-        changeTag("mill-version-changed", mill.constants.BuildInfo.millVersion, vs.millVersion) ++
-          changeTag("mill-jvm-version-changed", sys.props("java.version"), vs.millJvmVersion)
-
-      Option.when(parts.nonEmpty)(parts.mkString(","))
-    }
-  }
-
-  /**
-   * Builds an invalidation tree by splicing together the task-invalidation-graph,
-   * method-codesig-invalidation-graph, and any mill-version-change graph
+   * Builds an invalidation tree by splicing together the task-invalidation-graph
+   * and method-codesig-invalidation-graph.
+   *
+   * @param versionChanged Optional tuple of (oldMillVersion, newMillVersion, oldJvmVersion, newJvmVersion)
+   *                       to display version change as root cause
    */
   def buildInvalidationTree(
       upstreamTaskEdges0: Map[Task[?], Seq[Task[?]]],
       rootInvalidatedTasks: Set[Task[?]],
       codeSignatureTree: Option[String],
-      previousVersions: Option[VersionState]
+      versionChanged: Option[(String, String, String, String)] = None
   ): ujson.Obj = {
-    val rootInvalidatedTaskStrings = rootInvalidatedTasks
-      .collect { case t: Task.Named[?] => t.toString }
-      .toSeq
-      .sorted
+    // When version changed, create a flat tree with all tasks as direct children of the version change node
+    versionChanged match {
+      case Some((oldMillVersion, newMillVersion, oldJvmVersion, newJvmVersion)) =>
+        val millVersionChanged = oldMillVersion != newMillVersion
+        val jvmVersionChanged = oldJvmVersion != newJvmVersion
 
-    computeVersionChangeNode(previousVersions) match {
-      case Some(versionNode) => // if mill/mill-jvm version change, that invalidates everything
-        ujson.Obj(versionNode -> ujson.Obj.from(rootInvalidatedTaskStrings.map(_ -> ujson.Obj())))
+        val versionNodeKey =
+          if (millVersionChanged) s"mill-version-changed:$oldMillVersion->$newMillVersion"
+          else s"mill-jvm-version-changed:$oldJvmVersion->$newJvmVersion"
+
+        val allTaskNames = rootInvalidatedTasks
+          .collect { case t: Task.Named[?] => t.ctx.segments.render }
+          .toSeq
+          .sorted
+
+        val childObj = ujson.Obj()
+        for (name <- allTaskNames) childObj(name) = ujson.Obj()
+
+        ujson.Obj(versionNodeKey -> childObj)
 
       case None =>
+        val rootInvalidatedTaskStrings = rootInvalidatedTasks
+          .collect { case t: Task.Named[?] => t.toString }
+          .toSeq
+          .sorted
+
         val downstreamTaskEdges0 = SpanningForest.reverseEdges(upstreamTaskEdges0)
 
         // Code edges: method->method and method->task from code signature tree

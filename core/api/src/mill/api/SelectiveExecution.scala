@@ -1,7 +1,6 @@
 package mill.api
 
 import mill.api.{ExecResult, Result, Val}
-import mill.api.daemon.VersionState
 private[mill] trait SelectiveExecution {
   import SelectiveExecution.*
   def computeHashCodeSignatures(
@@ -58,9 +57,7 @@ object SelectiveExecution {
   case class ChangedTasks(
       resolved: Seq[Task.Named[?]],
       changedRootTasks: Set[Task.Named[?]],
-      downstreamTasks: Seq[Task.Named[?]],
-      /** Previous Mill and JVM versions if version change caused invalidation */
-      @com.lihaoyi.unroll previousVersions: Option[VersionState] = None
+      downstreamTasks: Seq[Task.Named[?]]
   )
 
   object ChangedTasks {

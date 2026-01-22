@@ -52,7 +52,6 @@ final class EvaluatorImpl(
   override def offline: Boolean = execution.offline
   override def useFileLocks: Boolean = execution.useFileLocks
   override def spanningInvalidationTree: Option[String] = execution.spanningInvalidationTree
-  override def previousVersions = execution.previousVersions
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
