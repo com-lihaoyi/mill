@@ -40,8 +40,10 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
    * Used for publishLocal and publishArtifacts.
    */
   override def jar: T[PathRef] = Task {
-    val rawJar = jarRaw()
-    MillPublishJavaModule.processJarVersion(rawJar.path, Task.dest, build.millVersion())
+    val destJar = Task.dest / jarRaw().path.last
+    os.copy(jarRaw().path, destJar, replaceExisting = true)
+    MillPublishJavaModule.processJarInPlace(destJar, build.millVersion())
+    PathRef(destJar)
   }
 
   /**
@@ -63,24 +65,9 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 
     // Get module dependencies - construct artifacts with SNAPSHOT version directly
     // This avoids calling artifactMetadata which depends on publishVersion/millVersion
-    // All module dependencies are Mill modules (external deps come from ivyDeps),
-    // so we use SNAPSHOT for all of them
-    // We resolve pomSettings and artifactId for each module using Task.traverse
-    val modulePomDeps = Task.traverse(moduleDepsChecked.collect {
-      case m: mill.scalalib.PublishModule => Task.Anon {
-        Artifact(m.pomSettings().organization, m.artifactId(), "SNAPSHOT")
-      }
-    })(identity)()
-    val compileModulePomDeps = Task.traverse(compileModuleDepsChecked.collect {
-      case m: mill.scalalib.PublishModule => Task.Anon {
-        Artifact(m.pomSettings().organization, m.artifactId(), "SNAPSHOT")
-      }
-    })(identity)()
-    val runModulePomDeps = Task.traverse(runModuleDepsChecked.collect {
-      case m: mill.scalalib.PublishModule => Task.Anon {
-        Artifact(m.pomSettings().organization, m.artifactId(), "SNAPSHOT")
-      }
-    })(identity)()
+    val modulePomDeps = MillPublishJavaModule.snapshotArtifactsFor(moduleDepsChecked)()
+    val compileModulePomDeps = MillPublishJavaModule.snapshotArtifactsFor(compileModuleDepsChecked)()
+    val runModulePomDeps = MillPublishJavaModule.snapshotArtifactsFor(runModuleDepsChecked)()
 
     ivyPomDeps ++
       compileIvyPomDeps.map(_.copy(scope = Scope.Provided)) ++
@@ -143,66 +130,30 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 
 object MillPublishJavaModule {
 
+  /** Helper to create SNAPSHOT artifacts for module dependencies */
+  def snapshotArtifactsFor(checked: Seq[mill.javalib.JavaModule]) = Task.traverse(checked.collect {
+    case m: mill.scalalib.PublishModule => Task.Anon {
+      Artifact(m.pomSettings().organization, m.artifactId(), "SNAPSHOT")
+    }
+  })(identity)
+
   /**
    * Process a jar file in-place, replacing SNAPSHOT with the actual version in:
    * - `.buildinfo.properties` files (millVersion=SNAPSHOT -> millVersion=<version>)
    * - `exampleList.txt` files (SNAPSHOT in URLs -> <version>)
    */
-  private def processJarInPlace(jarPath: os.Path, millVersion: String): Unit = {
+  def processJarInPlace(jarPath: os.Path, millVersion: String): Unit = {
     scala.util.Using.resource(os.zip.open(jarPath)) { zipRoot =>
       os.walk(zipRoot).foreach { path =>
         if (path.last.endsWith(".buildinfo.properties")) {
-          val content = os.read(path)
-          if (content.contains("millVersion=SNAPSHOT")) {
-            os.write.over(path, content.replace("millVersion=SNAPSHOT", s"millVersion=$millVersion"))
-          }
+          os.write.over(path, os.read(path).replace("millVersion=SNAPSHOT", s"millVersion=$millVersion"))
         } else if (path.last == "exampleList.txt") {
-          val content = os.read(path)
-          if (content.contains("/SNAPSHOT/")) {
-            os.write.over(path, content.replace("/SNAPSHOT/", s"/$millVersion/"))
-          }
+          os.write.over(path, os.read(path).replace("/SNAPSHOT/", s"/$millVersion/"))
         }
       }
     }
   }
 
-  /**
-   * Process a jar or self-executing jar, replacing `millVersion=SNAPSHOT` with the actual version.
-   *
-   * For self-executing jars (with shell script prefix), the jar portion is extracted,
-   * processed, and recombined since Java's ZipFileSystem doesn't handle the prefix.
-   */
-  def processJarVersion(jarPath: os.Path, destDir: os.Path, millVersion: String): PathRef = {
-    val bytes = os.read.bytes(jarPath)
-
-    // Find the start of the jar (PK signature: 0x50 0x4B 0x03 0x04)
-    val jarStart = bytes.indices.find { i =>
-      i + 3 < bytes.length &&
-      bytes(i) == 0x50.toByte &&
-      bytes(i + 1) == 0x4B.toByte &&
-      bytes(i + 2) == 0x03.toByte &&
-      bytes(i + 3) == 0x04.toByte
-    }.getOrElse(
-      throw new RuntimeException(s"Could not find jar signature: $jarPath")
-    )
-
-    val destJar = destDir / jarPath.last
-    if (jarStart == 0) {
-      // Regular jar - copy and process in place
-      os.copy(jarPath, destJar, replaceExisting = true)
-      processJarInPlace(destJar, millVersion)
-    } else {
-      // Self-executing jar - extract jar portion, process, recombine
-      val prefix = bytes.slice(0, jarStart)
-      val tempJar = destDir / "temp.jar"
-      os.write(tempJar, bytes.slice(jarStart, bytes.length))
-      processJarInPlace(tempJar, millVersion)
-      os.write(destJar, prefix ++ os.read.bytes(tempJar))
-      os.remove(tempJar)
-    }
-
-    PathRef(destJar)
-  }
 
   def commonPomSettings(artifactName: String) = {
     PomSettings(
