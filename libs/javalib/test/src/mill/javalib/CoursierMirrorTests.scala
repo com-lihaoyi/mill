@@ -1,7 +1,6 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.api.Discover
-import mill.javalib.CoursierConfigModule
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
@@ -11,8 +10,8 @@ object CoursierMirrorTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "coursier"
 
   object CoursierTest extends TestRootModule {
-    object core extends ScalaModule {
-      def scalaVersion = "2.13.18"
+    object core extends JavaModule {
+      def mvnDeps = Seq(mvn"com.google.guava:guava:33.0.0-jre")
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -46,7 +45,7 @@ object CoursierMirrorTests extends TestSuite {
             .map(_.path)
             .filter(_.startsWith(cacheRoot))
             .map(_.relativeTo(cacheRoot).asSubPath)
-          assert(cp.exists(f => f.last.startsWith("scala-library-") && f.last.endsWith(".jar")))
+          assert(cp.exists(f => f.last.startsWith("guava-") && f.last.endsWith(".jar")))
           val centralReplaced = cp.forall { f =>
             f.startsWith(os.sub / "https/repo.maven.apache.org/maven2")
           }

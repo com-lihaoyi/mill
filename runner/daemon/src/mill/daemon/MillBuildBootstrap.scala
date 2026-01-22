@@ -27,7 +27,6 @@ import java.util.concurrent.ThreadPoolExecutor
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 import scala.collection.mutable.Buffer
-import upickle.macroRW
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]

@@ -220,7 +220,7 @@ object `package` extends mill.Module {
   object failure extends Cross[IntegrationCrossModule](build.listCross)
   object feature extends Cross[IntegrationCrossModule](build.listCross)
   object dedicated extends Cross[IntegrationCrossModule](build.listCross)
-  object invalidation extends Cross[IntegrationCrossModule](build.listCross)
+  object multimode extends Cross[IntegrationCrossModule](build.listCross)
   object bootstrap extends Cross[IntegrationCrossModule](build.listCross)
   object migrating extends Cross[MigrationIntegrationCrossModule](build.listCross)
   trait MigrationIntegrationCrossModule extends IntegrationCrossModule {

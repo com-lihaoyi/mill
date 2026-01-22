@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.*
 import mill.api.{Discover, Task}
@@ -6,8 +6,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
 
-// TODO: Move into Java module or even further up
-object ScalaValidatedPathRefTests extends TestSuite {
+object ValidatedPathRefTests extends TestSuite {
 
   object ValidatedTarget extends TestRootModule {
     private def mkDirWithFile = Task.Anon {

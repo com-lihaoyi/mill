@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.api.Discover
 import mill.testkit.UnitTester
@@ -8,12 +8,9 @@ import utest.*
 
 object TestClassLoaderTests extends TestSuite {
 
-  object testclassloader extends TestRootModule with ScalaModule {
-    def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
+  object testclassloader extends TestRootModule with JavaModule {
 
-    object test extends ScalaTests with TestModule.Utest {
-      override def utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
-    }
+    object test extends JavaTests with TestModule.Junit4
 
     lazy val millDiscover = Discover[this.type]
   }

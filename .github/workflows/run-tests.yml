@@ -66,6 +66,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
+      java-version: 21
       os: ubuntu-latest
       shell: bash
 
@@ -73,6 +74,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
+      java-version: 21
       os: windows-latest
       shell: powershell
 
@@ -141,10 +143,10 @@ jobs:
           # We also try to group tests together to manually balance out the runtimes of each jobs
           - millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
 
-          - millargs: "'libs.{scalalib,init,tabcomplete}.__.test'"
-            install-sbt: true
+          - millargs: "'libs.scalalib.__.test'"
 
-          - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
+          - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib,init,tabcomplete}.__.test'"
+            install-sbt: true
 
           - millargs: "example.kotlinlib.__.shared.daemon"
 
@@ -173,9 +175,9 @@ jobs:
             # launcher is able to bootstrap everything necessary without a JVM installed
           - millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
-            # These invalidation tests need to be exercised in both execution modes
-            # to make sure they work with and without -i/--no-server being passed
-          - millargs: "integration.invalidation.__.packaged.nodaemon"
+            # tests that need to be exercised in both execution modes to make
+            # sure they work with and without -i/--no-server being passed
+          - millargs: "integration.multimode.__.packaged.nodaemon"
 
           - millargs: "integration.migrating.__.packaged.daemon"
             install-sbt: true
@@ -197,7 +199,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - millargs: "integration.invalidation.__.packaged.daemon"
+          - millargs: "integration.multimode.__.packaged.daemon"
 
           - # turn of parallelism since it sometimes causes issues with concurrent migrations
             millargs: "example.migrating.javalib.__.packaged.daemon"
