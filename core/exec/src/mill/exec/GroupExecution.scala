@@ -600,7 +600,8 @@ trait GroupExecution {
           hashCode,
           inputsHash,
           millVersion = mill.constants.BuildInfo.millVersion,
-          millJvmVersion = sys.props("java.version")
+          millJvmVersion = sys.props("java.version"),
+          classLoaderSigHash = classLoaderSigHash
         ),
         indent = 4
       ),
@@ -637,26 +638,20 @@ trait GroupExecution {
           case NonFatal(_) => None
         }
     } yield {
-      // Check for version mismatch - treat as cache miss if versions differ
-      // Empty version strings (from old cache files) are treated as matching
+      // Check for version/classloader mismatch - treat as cache miss if they differ
+      // Empty/zero values (from old cache files) are treated as matching
       val currentMillVersion = mill.constants.BuildInfo.millVersion
       val currentJvmVersion = sys.props("java.version")
       val versionMatches =
         (cached.millVersion.isEmpty || cached.millVersion == currentMillVersion) &&
           (cached.millJvmVersion.isEmpty || cached.millJvmVersion == currentJvmVersion)
-
-      if (!versionMatches) {
-        logger.debug(
-          s"$labelled: re-evaluating; version mismatch " +
-            s"(cached: ${cached.millVersion}/${cached.millJvmVersion}, " +
-            s"current: $currentMillVersion/$currentJvmVersion)"
-        )
-      }
+      val classLoaderMatches =
+        cached.classLoaderSigHash == 0 || cached.classLoaderSigHash == classLoaderSigHash
 
       (
         cached.inputsHash,
         for {
-          _ <- Option.when(cached.inputsHash == inputsHash && versionMatches)(())
+          _ <- Option.when(cached.inputsHash == inputsHash && versionMatches && classLoaderMatches)(())
           reader <- labelled.readWriterOpt
           (parsed, serializedPaths) <-
             try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
