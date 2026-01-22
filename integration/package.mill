@@ -149,8 +149,6 @@ object `package` extends mill.Module {
           Map(
             "MILL_INTEGRATION_DAEMON_MODE" -> (mode == "daemon").toString,
             "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
-            "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
-            "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           ) ++
           (if (millIntegrationIsPackagedLauncher()) Map()

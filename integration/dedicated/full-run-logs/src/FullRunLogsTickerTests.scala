@@ -46,13 +46,13 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
         normalize(res.result.err.text()),
         // Should have no colors because we called it programmatically
         List(
-          "./mill run --text hello",
+          "mill run --text hello",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] compile compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "<digits>] done compiling",
           "<digits>] run",
-          ".../..., SUCCESS] ./mill run --text hello"
+          ".../..., SUCCESS] mill run --text hello"
         )
       )
     }
@@ -72,7 +72,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
-          "./mill exclusives.printingC",
+          "mill exclusives.printingC",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "build.mill-<digits>] done compiling",
           "<digits>] exclusives.printingA",
@@ -85,7 +85,7 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "Hello C",
           "World C",
           "Exclusive C",
-          ".../..., SUCCESS] ./mill exclusives.printingC"
+          ".../..., SUCCESS] mill exclusives.printingC"
         )
       )
     }
@@ -103,14 +103,14 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
-          "./mill logging",
+          "mill logging",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] logging(X) MY PRINTLN",
           "(B)<digits>](X) MY INFO LOGS",
           "(B)<digits>](X) [(Y)warn(X)] MY WARN LOGS",
           "(B)<digits>](X) [(R)error(X)] MY ERROR LOGS",
-          ".../..., (G)SUCCESS(X)] ./mill logging"
+          ".../..., (G)SUCCESS(X)] mill logging"
         )
       )
       // Make sure the `.log` files on disk contain what we expect

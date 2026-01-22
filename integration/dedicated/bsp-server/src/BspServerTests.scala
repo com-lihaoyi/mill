@@ -369,7 +369,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         }
       }
 
-      // Verify that no `out/` folder was created - all BSP operations should use .bsp/mill-bsp-out/
+      // Verify that no `out/` folder was created - all BSP operations should use .bsp/out/
       assert(!os.exists(workspacePath / "out"))
     }
 

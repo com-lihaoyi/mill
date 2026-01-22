@@ -9,12 +9,12 @@ import mill.api.daemon.internal.{
 }
 import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
-import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState, millVersionState}
+import mill.constants.OutFiles.OutFiles.{millBuild, millRunnerState}
 import mill.internal.Util
 import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.internal.PrefixLogger
-import mill.meta.MillBuildRootModule
+import mill.meta.{BootstrapRootModule, MillBuildRootModule}
 import mill.api.daemon.internal.CliImports
 import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
 import mill.server.Server
@@ -79,9 +79,6 @@ class MillBuildBootstrap(
         createFolders = true
       )
     }
-
-    // Write version state to disk so it persists across daemon restarts
-    MillBuildBootstrap.writeVersionState(output)
 
     runnerState
   }
@@ -152,7 +149,7 @@ class MillBuildBootstrap(
   private def makeBootstrapState(currentRoot: os.Path): RunnerState = {
     val (useDummy, foundRootBuildFileName) = findRootBuildFiles(topLevelProjectRoot)
 
-    val (mod, error) = makeBootstrapModule(currentRoot, foundRootBuildFileName) match {
+    val (mod, error) = makeBootstrapModule(currentRoot, foundRootBuildFileName, useDummy) match {
       case Result.Success(bootstrapModule) => (Some(bootstrapModule), None)
       case f: Result.Failure => (None, Some(Util.formatError(f, logger.prompt.errorColor)))
     }
@@ -207,17 +204,25 @@ class MillBuildBootstrap(
       // Pass spanning tree from the frame - only populated when classloader changed
       spanningInvalidationTree = nestedState.frames.headOption.flatMap(_.spanningInvalidationTree),
       rootModule = rootModule,
-      // We want to use the grandparent buildHash, rather than the parent
-      // buildHash, because the parent build changes are instead detected
-      // by analyzing the scriptImportGraph in a more fine-grained manner.
-      millClassloaderSigHash = nestedState
-        .frames
-        .dropRight(1)
-        .headOption
-        .map(_.runClasspath)
-        .getOrElse(millBootClasspathPathRefs)
-        .map(p => (os.Path(p.javaPath), p.sig))
-        .hashCode(),
+      // Use the current frame's runClasspath (includes mvnDeps and Mill jars) but filter out
+      // compile.dest and generatedScriptSources.dest since build code changes are handled
+      // by codesig analysis, not by classLoaderSigHash.
+      millClassloaderSigHash = nestedState.frames.headOption match {
+        case Some(frame) =>
+          val compileDestPath = frame.compileOutput.map(p => os.Path(p.javaPath))
+          frame.runClasspath
+            .filter { p =>
+              val path = os.Path(p.javaPath)
+              !compileDestPath.contains(path) &&
+              !path.toString.contains("generatedScriptSources.dest")
+            }
+            .map(p => (os.Path(p.javaPath), p.sig))
+            .hashCode()
+        case None =>
+          millBootClasspathPathRefs
+            .map(p => (os.Path(p.javaPath), p.sig))
+            .hashCode()
+      },
       millClassloaderIdentityHash = nestedState
         .frames
         .headOption
@@ -231,11 +236,16 @@ class MillBuildBootstrap(
     )
   }
 
-  private def makeBootstrapModule(currentRoot: Path, foundRootBuildFileName: String) = {
+  private def makeBootstrapModule(
+      currentRoot: Path,
+      foundRootBuildFileName: String,
+      useDummy: Boolean
+  ) = {
     mill.api.ExecResult.catchWrapException {
-      new MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)(
-        using new RootModule.Info(currentRoot, output, topLevelProjectRoot)
-      )
+      given rootModuleInfo: RootModule.Info =
+        new RootModule.Info(currentRoot, output, topLevelProjectRoot)
+      if (useDummy) new BootstrapRootModule.Instance()
+      else new MillBuildRootModule.BootstrapModule(currentRoot / foundRootBuildFileName)
     }
   }
 
@@ -403,31 +413,6 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
-  import mill.api.daemon.VersionState
-
-  // Provide upickle ReadWriter for VersionState since mill.api.daemon doesn't have upickle
-  implicit val versionStateRw: upickle.ReadWriter[VersionState] = macroRW
-
-  def readVersionState(output: os.Path): Option[VersionState] = {
-    val path = output / millVersionState
-    if (os.exists(path)) {
-      try Some(upickle.read[VersionState](os.read(path)))
-      catch { case _: Exception => None }
-    } else None
-  }
-
-  def writeVersionState(output: os.Path): Unit = {
-    val current = VersionState(
-      mill.constants.BuildInfo.millVersion,
-      sys.props("java.version")
-    )
-    os.write.over(
-      output / millVersionState,
-      upickle.write(current, indent = 2),
-      createFolders = true
-    )
-  }
-
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
   def makeEvaluator0(
@@ -497,9 +482,7 @@ object MillBuildBootstrap {
           enableTicker,
           depth,
           false, // isFinalDepth: set later via withIsFinalDepth when needed
-          spanningInvalidationTree,
-          // Previous versions from disk (survives daemon restarts)
-          readVersionState(output)
+          spanningInvalidationTree
         )
       ).asInstanceOf[EvaluatorApi]
 

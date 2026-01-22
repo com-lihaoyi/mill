@@ -12,8 +12,7 @@ import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
-import mill.api.daemon.internal.CliImports
-import mill.api.daemon.internal.{MillBuildRootModuleApi, MillScalaParser}
+import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 
@@ -27,39 +26,10 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  * calls within the scripts.
  */
 @internal
-trait MillBuildRootModule()(using
-    rootModuleInfo: RootModule.Info
-) extends ScalaModule with MillBuildRootModuleApi with mill.util.MainModule {
-
-  def bspScriptIgnoreAll: T[Seq[String]] = bspScriptIgnoreDefault() ++ bspScriptIgnore()
-
-  /**
-   * Default set of BSP ignores, meant to catch the common case of `.java`, `.scala`, or `.kt`
-   * files that definitely aren't scripts, but for some reason aren't recognized as being in
-   * a module's `def sources` task (e.g. maybe module import failed or something)
-   */
-  def bspScriptIgnoreDefault: T[Seq[String]] = Seq(
-    "**/src/",
-    "**/src-*/",
-    "**/resources/",
-    "**/out/",
-    "**/.bsp/mill-bsp-out/",
-    "**/target/"
-  )
-
-  def bspScriptIgnore: T[Seq[String]] = Nil
-
-  override def bspDisplayName0: String = rootModuleInfo
-    .projectRoot
-    .relativeTo(rootModuleInfo.topLevelProjectRoot)
-    .segments
-    .++(super.bspDisplayName0.split("/"))
-    .mkString("/")
+trait MillBuildRootModule()(using rootModuleInfo: RootModule.Info) extends BootstrapRootModule {
 
   override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
   override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
-
-  override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
   val scriptSourcesPaths = BuildCtx.watchValue {
     BuildCtx.withFilesystemCheckerDisabled {
@@ -91,44 +61,13 @@ trait MillBuildRootModule()(using
     }
   }
 
-  def cliImports: T[Seq[String]] = Task.Input {
-    val imports = CliImports.value
-    if (imports.nonEmpty) {
-      Task.log.debug(s"Using cli-provided runtime imports: ${imports.mkString(", ")}")
-    }
-    imports
-  }
-
   override def mandatoryMvnDeps = Task {
-    Seq(
-      mvn"com.lihaoyi::mill-libs:${Versions.millVersion}",
-      mvn"com.lihaoyi::mill-runner-autooverride-api:${Versions.millVersion}"
-    ) ++
+    super.mandatoryMvnDeps() ++
       // only include mill-runner for meta-builds
       Option.when(rootModuleInfo.projectRoot / os.up != rootModuleInfo.topLevelProjectRoot) {
         mvn"com.lihaoyi::mill-runner-meta:${Versions.millVersion}"
       }
   }
-
-  override def runMvnDeps = Task {
-    val imports = cliImports()
-    val ivyImports = imports.map {
-      // compat with older Mill-versions
-      case s"ivy:$rest" => rest
-      case s"mvn:$rest" => rest
-      case rest => rest
-    }
-    MillIvy.processMillMvnDepsignature(ivyImports).map(mill.scalalib.Dep.parse) ++
-      // Needed at runtime to instantiate a `mill.eval.EvaluatorImpl` in the `build.mill`,
-      // classloader but should not be available for users to compile against
-      Seq(mvn"com.lihaoyi::mill-core-eval:${Versions.millVersion}")
-
-  }
-
-  override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
-
-  // using non-platform dependencies is usually ok
-  protected def resolvedDepsWarnNonPlatform: T[Boolean] = false
 
   override def generatedSources: T[Seq[PathRef]] = Task {
     generatedScriptSources().support
@@ -170,7 +109,7 @@ trait MillBuildRootModule()(using
   }
 
   def millBuildRootModuleResult = Task {
-    val (signatures, spanningTree) = codeSignaturesAndSpanningTree()
+    val (signatures, spanningTree) = codeSignatures()
     Tuple5(
       runClasspath(),
       compile().classes,
@@ -187,7 +126,7 @@ trait MillBuildRootModule()(using
    * Returns (transitiveCallGraphHashes, spanningInvalidationTree).
    * The spanning tree shows the method-level code changes that caused invalidation.
    */
-  def codeSignaturesAndSpanningTree: T[(Map[String, Int], ujson.Obj)] = Task(persistent = true) {
+  def codeSignatures: T[(Map[String, Int], ujson.Obj)] = Task(persistent = true) {
     os.remove.all(Task.dest / "previous")
     if (os.exists(Task.dest / "current"))
       os.move.over(Task.dest / "current", Task.dest / "previous")
@@ -305,9 +244,9 @@ trait MillBuildRootModule()(using
     mvn"com.lihaoyi::sourcecode:${Versions.comLihaoyiSourcecodeVersion}"
   )
 
+  // Somehow these sourcecode exclusions are necessary otherwise the
+  // SOURCECODE_ORIGINAL_FILE_PATH comments aren't handled properly
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
-    // Somehow these sourcecode exclusions are necessary otherwise the
-    // SOURCECODE_ORIGINAL_FILE_PATH comments aren't handled properly
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3"),
     mvn"com.lihaoyi:::mill-runner-autooverride-plugin:${Versions.millVersion}"
@@ -441,9 +380,5 @@ object MillBuildRootModule {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  case class Info(
-      projectRoot: os.Path,
-      output: os.Path,
-      topLevelProjectRoot: os.Path
-  )
+  case class Info(projectRoot: os.Path, output: os.Path, topLevelProjectRoot: os.Path)
 }

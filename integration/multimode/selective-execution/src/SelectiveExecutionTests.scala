@@ -184,5 +184,62 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         )
       )
     }
+
+    test("classpath-change-triggers-full-rerun") - integrationTest { tester =>
+      import tester.*
+
+      // Prepare selective execution with multiple tasks
+      eval(("selective.prepare", "{foo,bar}._"), check = true)
+
+      // Without any changes, selective.resolve should return nothing
+      val resolve1 = eval(("selective.resolve", "{foo,bar}._"), check = true)
+      assert(resolve1.out == "")
+
+      // Add a dependency to build.mill to change the classpath
+      // This simulates adding a third-party library which should invalidate all tasks
+      // since codeSignatures doesn't track third-party library changes
+      modifyFile(
+        workspacePath / "build.mill",
+        content => """//| mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]
+""" + content
+      )
+
+      // Now selective.resolve should return all tasks since the classpath changed
+      val resolve2 = eval(("selective.resolve", "{foo,bar}._"), check = true)
+      val resolvedTasks = resolve2.out.linesIterator.toList.sorted
+
+      // All tasks should be invalidated due to classpath change
+      assert(resolvedTasks.nonEmpty)
+      assert(resolvedTasks.contains("foo.fooCommand"))
+      assert(resolvedTasks.contains("bar.barCommand"))
+
+      // Check that resolveTree shows the classpath changed reason
+      val resolveTree = eval(("selective.resolveTree", "{foo,bar}._"), check = true)
+
+      // Normalize the hash values in the output for comparison
+      val normalizedTree = resolveTree.out.linesIterator.toSeq.map { line =>
+        line.replaceAll(
+          "classpath-changed:-?\\d+->-?\\d+",
+          "classpath-changed:OLD->NEW"
+        )
+      }
+
+      // Classpath changes produce flat structure - all tasks are direct children of the
+      // classpath change node since they all share the same root cause
+      assertGoldenLiteral(
+        normalizedTree,
+        Seq(
+          "{",
+          "  \"classpath-changed:OLD->NEW\": {",
+          "    \"bar.barCommand\": {},",
+          "    \"bar.barCommand2\": {},",
+          "    \"bar.barTask\": {},",
+          "    \"foo.fooCommand\": {},",
+          "    \"foo.fooTask\": {}",
+          "  }",
+          "}"
+        )
+      )
+    }
   }
 }
