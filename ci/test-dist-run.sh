@@ -19,4 +19,4 @@ test -f $EXAMPLE/out/bar/2.13.16/assembly.dest/out.jar
 
 ./mill -i dist.run $EXAMPLE shutdown
 
-echo "println(Seq.tabulate(100)(identity).sum)" | ./mill -i dist.run scratch repl | grep 4950
+echo "println(Seq.tabulate(1000)(identity).sum)" | ./mill -i dist.run scratch repl | grep 499500
