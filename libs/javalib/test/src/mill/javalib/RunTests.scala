@@ -9,7 +9,9 @@ import mill.api.Discover
 object RunTests extends TestSuite {
 
   object HelloJavaWithMain extends TestRootModule {
+    object core extends JavaModule
     object app extends JavaModule {
+      override def moduleDeps = Seq(core)
       override def mainClass: T[Option[String]] = Some("hello.Main")
     }
 
@@ -17,13 +19,18 @@ object RunTests extends TestSuite {
   }
 
   object HelloJavaDefaultMain extends TestRootModule {
-    object app extends JavaModule
+    object core extends JavaModule
+    object app extends JavaModule {
+      override def moduleDeps = Seq(core)
+    }
 
     lazy val millDiscover = Discover[this.type]
   }
 
   object HelloJavaWithoutMain extends TestRootModule {
+    object core extends JavaModule
     object app extends JavaModule {
+      override def moduleDeps = Seq(core)
       override def mainClass = None
     }
 
@@ -31,6 +38,7 @@ object RunTests extends TestSuite {
   }
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
+  val noMainResourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java-no-main"
 
   def tests: Tests = Tests {
 
@@ -59,7 +67,7 @@ object RunTests extends TestSuite {
           "invalid java syntax"
         )
 
-        val Left(ExecResult.Failure(msg = "Compilation failed")) =
+        val Left(_: ExecResult.Failure[_]) =
           eval.apply(HelloJavaWithMain.app.runMain("hello.Main")): @unchecked
 
       }
@@ -75,7 +83,7 @@ object RunTests extends TestSuite {
       }
       test("notRunWithoutMainClass") - UnitTester(
         HelloJavaWithoutMain,
-        sourceRoot = resourcePath
+        sourceRoot = noMainResourcePath
       ).scoped { eval =>
         val Left(_: ExecResult.Failure[_]) =
           eval.apply(HelloJavaWithoutMain.app.run()): @unchecked
@@ -120,7 +128,7 @@ object RunTests extends TestSuite {
       }
       test("notRunWithoutMainClass") - UnitTester(
         HelloJavaWithoutMain,
-        sourceRoot = resourcePath
+        sourceRoot = noMainResourcePath
       ).scoped { eval =>
         val Left(_: ExecResult.Failure[_]) =
           eval.apply(HelloJavaWithoutMain.app.runLocal()): @unchecked

@@ -9,7 +9,9 @@ import java.util.jar.JarFile
 object AssemblyTests extends TestSuite with AssemblyTestUtils {
 
   object HelloJavaWithMain extends mill.testkit.TestRootModule {
+    object core extends JavaModule
     object app extends JavaModule {
+      override def moduleDeps = Seq(core)
       override def mainClass: T[Option[String]] = Some("hello.Main")
     }
 

@@ -141,12 +141,12 @@ jobs:
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
           # We also try to group tests together to manually balance out the runtimes of each jobs
-          - millargs: "'{contrib,core,testkit,runner,dist,init,tabcomplete}.__.test'"
+          - millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
 
           - millargs: "'libs.scalalib.__.test'"
             install-sbt: true
 
-          - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
+          - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib,init,tabcomplete}.__.test'"
 
           - millargs: "example.kotlinlib.__.shared.daemon"
 
