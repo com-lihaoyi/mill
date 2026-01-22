@@ -183,37 +183,13 @@ object MillPublishJavaModule {
    * Process a self-executing jar (executable with shell script prefix), replacing
    * `millVersion=SNAPSHOT` with the actual version in any `.buildinfo.properties` files.
    *
-   * Self-executing jars have a shell/batch script prepended to the jar. We need to:
-   * 1. Find where the jar starts (PK magic bytes)
-   * 2. Extract the prefix (shell script) and jar content
-   * 3. Process the jar content
-   * 4. Combine prefix + processed jar
+   * Java's ZipFileSystem reads from the end of the file (central directory), so it
+   * handles the shell script prefix transparently - we can edit in place.
    */
   def processExecutableVersion(executablePath: os.Path, destDir: os.Path, millVersion: String): PathRef = {
-    val bytes = os.read.bytes(executablePath)
-
-    // Find the start of the jar (PK signature: 0x50 0x4B 0x03 0x04)
-    val jarStart = bytes.indices.find { i =>
-      i + 3 < bytes.length &&
-      bytes(i) == 0x50.toByte &&
-      bytes(i + 1) == 0x4B.toByte &&
-      bytes(i + 2) == 0x03.toByte &&
-      bytes(i + 3) == 0x04.toByte
-    }.getOrElse(
-      throw new RuntimeException(s"Could not find jar signature in executable: $executablePath")
-    )
-
-    val prefix = bytes.slice(0, jarStart)
-    val jarBytes = bytes.slice(jarStart, bytes.length)
-
-    // Write jar to temp file, process it, then recombine
-    val tempJar = destDir / "temp.jar"
-    os.write(tempJar, jarBytes)
-    processJarInPlace(tempJar, millVersion)
-
     val destExecutable = destDir / executablePath.last
-    os.write(destExecutable, prefix ++ os.read.bytes(tempJar))
-    os.remove(tempJar)
+    os.copy(executablePath, destExecutable, replaceExisting = true)
+    processJarInPlace(destExecutable, millVersion)
 
     // Preserve executable permissions
     if (!scala.util.Properties.isWin) {
