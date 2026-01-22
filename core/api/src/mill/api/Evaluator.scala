@@ -2,7 +2,7 @@ package mill.api
 
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
-import mill.api.daemon.{VersionState, Watchable}
+import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
 import mill.api.internal.{Located, Resolved, RootModule0}
@@ -37,8 +37,8 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
     Map()
   // JSON string to avoid classloader issues when crossing classloader boundaries
   private[mill] def spanningInvalidationTree: Option[String] = None
-  // Previous Mill and JVM versions from disk (survives daemon restarts)
-  private[mill] def previousVersions: Option[VersionState] = None
+  // Hash of the classloader signature (Mill jars + dependencies), used for selective execution
+  private[mill] def classLoaderSigHash: Int = 0
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(

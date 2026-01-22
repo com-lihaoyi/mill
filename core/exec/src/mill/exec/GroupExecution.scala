@@ -28,6 +28,12 @@ trait GroupExecution {
   def classLoaderIdentityHash: Int
 
   /**
+   * Tracks tasks invalidated due to version/classloader mismatch, with the reason string.
+   * Populated by loadCachedJson, used by ExecutionLogs.logInvalidationTree.
+   */
+  def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
+
+  /**
    * `String` is the worker name, `Int` is the worker hash, `Val` is the result of the worker invocation.
    */
   def workerCache: mutable.Map[String, (Int, Val)]
@@ -594,7 +600,17 @@ trait GroupExecution {
   def writeCacheJson(metaPath: os.Path, json: ujson.Value, hashCode: Int, inputsHash: Int) = {
     os.write.over(
       metaPath,
-      upickle.stream(Cached(json, hashCode, inputsHash), indent = 4),
+      upickle.stream(
+        Cached(
+          json,
+          hashCode,
+          inputsHash,
+          millVersion = mill.constants.BuildInfo.millVersion,
+          millJvmVersion = sys.props("java.version"),
+          classLoaderSigHash = classLoaderSigHash
+        ),
+        indent = 4
+      ),
       createFolders = true
     )
   }
@@ -627,26 +643,48 @@ trait GroupExecution {
         catch {
           case NonFatal(_) => None
         }
-    } yield (
-      cached.inputsHash,
-      for {
-        _ <- Option.when(cached.inputsHash == inputsHash)(())
-        reader <- labelled.readWriterOpt
-        (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
-              reader
-            )))
-          catch {
-            case e: PathRef.PathRefValidationException =>
-              logger.debug(
-                s"$labelled: re-evaluating; ${e.getMessage}"
-              )
-              None
-            case NonFatal(_) => None
-          }
-      } yield (Val(parsed), serializedPaths),
-      cached.valueHash
-    )
+    } yield {
+      // Check for version/classloader mismatch - treat as cache miss if they differ
+      def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
+        val matches = cachedValue == currentValue
+        if (!matches) {
+          versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
+        }
+        matches
+      }
+
+      val currentMillVersion = mill.constants.BuildInfo.millVersion
+      val currentJvmVersion = sys.props("java.version")
+      val millVersionMatches =
+        checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
+      val jvmVersionMatches =
+        checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
+      val classLoaderMatches =
+        checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
+
+      (
+        cached.inputsHash,
+        for {
+          _ <- Option.when(
+            cached.inputsHash == inputsHash && millVersionMatches && jvmVersionMatches && classLoaderMatches
+          )(())
+          reader <- labelled.readWriterOpt
+          (parsed, serializedPaths) <-
+            try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
+                reader
+              )))
+            catch {
+              case e: PathRef.PathRefValidationException =>
+                logger.debug(
+                  s"$labelled: re-evaluating; ${e.getMessage}"
+                )
+                None
+              case NonFatal(_) => None
+            }
+        } yield (Val(parsed), serializedPaths),
+        cached.valueHash
+      )
+    }
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {

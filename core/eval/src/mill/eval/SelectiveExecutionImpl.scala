@@ -1,7 +1,6 @@
 package mill.eval
 
 import mill.api.daemon.internal.TestReporter
-import mill.api.daemon.VersionState
 import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
@@ -42,8 +41,8 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   case class DownstreamResult(
       changedRootTasks: Set[Task[?]],
       downstreamTasks: Seq[Task[Any]],
-      // Previous versions if version change caused all tasks to be invalidated
-      previousVersions: Option[VersionState]
+      // Global invalidation reason for selective execution (e.g., "mill-version-changed:OLD->NEW")
+      globalInvalidationReason: Option[String] = None
   )
 
   def computeDownstream(
@@ -60,54 +59,55 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
-    // Treat any version difference as a change, including when old metadata is missing version info
-    val millVersionChanged = oldHashes.millVersion != newHashes.millVersion
-    val jvmVersionChanged = oldHashes.millJvmVersion != newHashes.millJvmVersion
-
-    // If either version changed, treat all tasks as changed
-    if (millVersionChanged || jvmVersionChanged) {
-      val allTasks = transitiveNamed.map(t => t: Task[?]).toSet
-      return DownstreamResult(
-        allTasks,
-        transitiveNamed.map(t => t: Task[Any]),
-        previousVersions = Some(VersionState(oldHashes.millVersion, oldHashes.millJvmVersion))
-      )
+    val allTasks = transitiveNamed.map(t => t: Task[?])
+    def globalInvalidate(name: String, key: SelectiveExecution.Metadata => Any) = {
+      Option.when(key(oldHashes) != key(newHashes)) {
+        DownstreamResult(
+          allTasks.toSet,
+          allTasks,
+          globalInvalidationReason = Some(s"$name:${key(oldHashes)}->${key(newHashes)}")
+        )
+      }
     }
 
-    val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
+    globalInvalidate("mill-version-changed", _.millVersion)
+      .orElse(globalInvalidate("mill-jvm-version-changed", _.millJvmVersion))
+      .orElse(globalInvalidate("classpath-changed", _.classLoaderSigHash))
+      .getOrElse {
+        val namesToTasks = transitiveNamed.map(t => (t.ctx.segments.render -> t)).toMap
 
-    def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
-      (lhs.keys ++ rhs.keys)
-        .iterator
-        .distinct
-        .filter { k => lhs.get(k) != rhs.get(k) }
-        .toSet
-    }
+        def diffMap[K, V](lhs: Map[K, V], rhs: Map[K, V]) = {
+          (lhs.keys ++ rhs.keys)
+            .iterator
+            .distinct
+            .filter { k => lhs.get(k) != rhs.get(k) }
+            .toSet
+        }
 
-    val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
-    val changedCodeNames = diffMap(
-      computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
-      computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
-    )
-    val changedBuildOverrides = diffMap(
-      oldHashes.buildOverrideSignatures,
-      newHashes.buildOverrideSignatures
-    )
+        val changedInputNames = diffMap(oldHashes.inputHashes, newHashes.inputHashes)
+        val changedCodeNames = diffMap(
+          computeHashCodeSignatures(transitiveNamed, oldHashes.codeSignatures),
+          computeHashCodeSignatures(transitiveNamed, newHashes.codeSignatures)
+        )
+        val changedBuildOverrides = diffMap(
+          oldHashes.buildOverrideSignatures,
+          newHashes.buildOverrideSignatures
+        )
 
-    val changedRootTasks =
-      (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
-        .flatMap(namesToTasks.get(_): Option[Task[?]])
+        val changedRootTasks =
+          (changedInputNames ++ changedCodeNames ++ changedBuildOverrides ++ oldHashes.forceRunTasks)
+            .flatMap(namesToTasks.get(_): Option[Task[?]])
 
-    val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
-    val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
+        val allNodes = breadthFirst(transitiveNamed.map(t => t: Task[?]))(_.inputs)
+        val downstreamEdgeMap = SpanningForest.reverseEdges(allNodes.map(t => (t, t.inputs)))
 
-    DownstreamResult(
-      changedRootTasks,
-      breadthFirst(changedRootTasks) { t =>
-        downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
-      },
-      previousVersions = None
-    )
+        DownstreamResult(
+          changedRootTasks,
+          breadthFirst(changedRootTasks) { t =>
+            downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
+          }
+        )
+      }
   }
 
   def saveMetadata(metadata: SelectiveExecution.Metadata): Unit = {
@@ -127,8 +127,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     ).map { tasks =>
       computeChangedTasks0(tasks, computeMetadata(tasks))
         // If we did not have the metadata, presume everything was changed.
-        // Use empty previous versions to indicate no prior state
-        .getOrElse(ChangedTasks(tasks, tasks.toSet, tasks, Some(VersionState("", ""))))
+        .getOrElse(ChangedTasks.all(tasks))
     }
   }
 
@@ -136,10 +135,10 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
    * @return [[None]] when the metadata file is empty.
    * @note throws if the metadata file does not exist.
    */
-  def computeChangedTasks0(
+  private def computeDownstreamResult0(
       tasks: Seq[Task.Named[?]],
       computedMetadata: SelectiveExecution.Metadata.Computed
-  ): Option[ChangedTasks] = {
+  ): Option[DownstreamResult] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
 
     // We allow to clear the selective execution metadata to rerun all tasks.
@@ -150,17 +149,19 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
     else Some {
       val transitiveNamed = PlanImpl.transitiveNamed(tasks)
       val oldMetadata = upickle.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      val result = computeDownstreamDetailed(
-        transitiveNamed,
-        oldMetadata,
-        computedMetadata.metadata
-      )
+      computeDownstreamDetailed(transitiveNamed, oldMetadata, computedMetadata.metadata)
+    }
+  }
 
+  def computeChangedTasks0(
+      tasks: Seq[Task.Named[?]],
+      computedMetadata: SelectiveExecution.Metadata.Computed
+  ): Option[ChangedTasks] = {
+    computeDownstreamResult0(tasks, computedMetadata).map { result =>
       ChangedTasks(
         tasks,
         result.changedRootTasks.collect { case n: Task.Named[_] => n },
-        result.downstreamTasks.collect { case n: Task.Named[_] => n },
-        previousVersions = result.previousVersions
+        result.downstreamTasks.collect { case n: Task.Named[_] => n }
       )
     }
   }
@@ -188,17 +189,36 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def resolveTree(tasks: Seq[String]): Result[ujson.Value] = {
-    for (changedTasks <- this.computeChangedTasks(tasks)) yield {
-      val plan = PlanImpl.plan(Seq.from(changedTasks.downstreamTasks))
+    evaluator.resolveTasks(
+      tasks,
+      SelectMode.Separated,
+      evaluator.allowPositionalCommandArgs
+    ).map { resolved =>
+      computeDownstreamResult0(resolved, computeMetadata(resolved)) match {
+        case None => ujson.Obj()
+        case Some(result) =>
+          val plan =
+            PlanImpl.plan(Seq.from(result.downstreamTasks.collect { case n: Task.Named[_] => n }))
+          val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
 
-      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+          // For selective execution, use global invalidation reason for all root tasks
+          val taskInvalidationReasons = result.globalInvalidationReason match {
+            case Some(reason) =>
+              result.changedRootTasks.collect { case n: Task.Named[_] =>
+                n.ctx.segments.render -> reason
+              }.toMap
+            case None => Map.empty[String, String]
+          }
 
-      InvalidationForest.buildInvalidationTree(
-        upstreamTaskEdges0 = interGroupDeps,
-        rootInvalidatedTasks = changedTasks.changedRootTasks.map(x => x: Task[?]),
-        codeSignatureTree = evaluator.spanningInvalidationTree,
-        previousVersions = changedTasks.previousVersions.orElse(evaluator.previousVersions)
-      )
+          InvalidationForest.buildInvalidationTree(
+            upstreamTaskEdges0 = interGroupDeps,
+            rootInvalidatedTasks = result.changedRootTasks.collect { case n: Task.Named[_] =>
+              n: Task[?]
+            },
+            codeSignatureTree = evaluator.spanningInvalidationTree,
+            taskInvalidationReasons = taskInvalidationReasons
+          )
+      }
     }
   }
 
@@ -251,7 +271,8 @@ object SelectiveExecutionImpl {
           allBuildOverrides.map { case (k, located) => (k, located.value.value.hashCode) },
           forceRunTasks = Set(),
           millVersion = mill.constants.BuildInfo.millVersion,
-          millJvmVersion = sys.props("java.version")
+          millJvmVersion = sys.props("java.version"),
+          classLoaderSigHash = evaluator.classLoaderSigHash
         ),
         results.map { case (k, v) => (k, ExecResult.Success(v.get)) }
       )
