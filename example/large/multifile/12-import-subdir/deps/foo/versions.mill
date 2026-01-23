@@ -1,0 +1,4 @@
+// deps/foo/versions.mill
+package build
+
+def myScalaVersion = "2.13.16"

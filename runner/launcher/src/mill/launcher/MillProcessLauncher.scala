@@ -1,13 +1,14 @@
 package mill.launcher
 
 import io.github.alexarchambault.nativeterm.NativeTerminal
-import mill.api.daemon.MillException
+import mill.api.internal.OneOrMore
 import mill.client.ClientUtil
 import mill.constants.*
 
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
+import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
 
@@ -124,7 +125,6 @@ object MillProcessLauncher {
     if (os.exists(configFile)) {
       ClientUtil.readOptsFileLines(configFile, env)
     } else {
-      import scala.jdk.CollectionConverters._
       CodeGenConstants.rootBuildFileNames.asScala.toSeq
         .map(name => workDir / name)
         .find(os.exists(_))
@@ -142,23 +142,10 @@ object MillProcessLauncher {
       key: String,
       env: Map[String, String]
   ): Seq[String] = {
-    import scala.jdk.CollectionConverters._
-    mill.internal.Util.parseYaml0(
-      "build header",
-      headerData,
-      upickle.default.reader[Map[String, ujson.Value]]
-    ) match {
-      case mill.api.Result.Success(conf) =>
-        conf.get(key) match {
-          case None => Seq.empty
-          case Some(ujson.Arr(items)) =>
-            items.map(item => Util.interpolateEnvVars(item.str, env.asJava)).toSeq
-          case Some(other) =>
-            Seq(Util.interpolateEnvVars(other.str, env.asJava))
-        }
-      case f: mill.api.Result.Failure =>
-        throw new MillException(s"Failed parsing build header: ${f.error}")
-    }
+    mill.internal.Util
+      .parseBuildHeaderValue[OneOrMore[String]](headerData, key, default = OneOrMore(Nil))
+      .value
+      .map(item => Util.interpolateEnvVars(item, env.asJava))
   }
 
   def millServerTimeout: Option[String] =
