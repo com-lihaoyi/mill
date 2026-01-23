@@ -608,6 +608,7 @@ object MillMain0 {
       warnColor = colors.warn,
       errorColor = colors.error,
       successColor = colors.success,
+      highlightColor = colors.highlight,
       systemStreams0 = teeStreams,
       debugEnabled = config.debugLog.value,
       titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),

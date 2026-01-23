@@ -23,6 +23,7 @@ class PromptLogger(
     warnColor: fansi.Attrs,
     errorColor: fansi.Attrs,
     successColor: fansi.Attrs,
+    highlightColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     debugEnabled: Boolean,
     titleText: String,
@@ -46,7 +47,7 @@ class PromptLogger(
   def isInteractive() = termDimensions._1.nonEmpty
 
   private object promptLineState extends PromptLineState(
-        titleText,
+        highlightColor(titleText),
         currentTimeMillis(),
         () => termDimensions,
         currentTimeMillis,
@@ -269,7 +270,8 @@ class PromptLogger(
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
         if (message != "") beginChromeProfileEntry(message)
-        promptLineState.setCurrent(key, Some(Logger.formatPrefix0(key) + spaceNonEmpty(message)))
+        promptLineState.setCurrent(
+          key, Some(fansi.Str(Logger.formatPrefix0(key) ++ spaceNonEmpty(message))))
         seenIdentifiers(key) = (keySuffix, message)
       }
 
@@ -497,7 +499,7 @@ object PromptLogger {
    * "smoothly" even as the underlying statuses may be rapidly changed during evaluation.
    */
   private class PromptLineState(
-      titleText: String,
+      titleText: fansi.Str,
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
       currentTimeMillis: () => Long,
@@ -556,7 +558,7 @@ object PromptLogger {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def setCurrent(key: Seq[String], sOpt: Option[String]): Option[Status] = {
+    def setCurrent(key: Seq[String], sOpt: Option[fansi.Str]): Option[Status] = {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {
