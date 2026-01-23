@@ -13,6 +13,7 @@ import mill.internal.{
   Colors,
   JsonArrayLogger,
   MillCliConfig,
+  MultiLogger,
   MultiStream,
   PrefixLogger,
   PromptLogger,
@@ -591,7 +592,10 @@ object MillMain0 {
       // Fallback
       .getOrElse("mill")
 
-    val promptLogger = new PromptLogger(
+    val titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" ")
+
+    // Create the interactive logger for stdout/stderr (with TUI prompt)
+    val interactiveLogger = new PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
       infoColor = colors.info,
@@ -600,13 +604,53 @@ object MillMain0 {
       successColor = colors.success,
       systemStreams0 = streams,
       debugEnabled = config.debugLog.value,
-      titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),
+      titleText = titleText,
       terminfoPath = daemonDir / DaemonFiles.terminfo,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
     )
-    new PrefixLogger(promptLogger, Nil) with AutoCloseable {
-      override def close(): Unit = promptLogger.close()
+
+    // Create file-based non-interactive logger for console.log
+    // This logger uses CI-style output: no live-updating prompt, prompt reprinted every 60 seconds,
+    // and no ANSI terminal codes, making it easy to read in file editors/browsers
+    val consoleLogFile = daemonDir / DaemonFiles.consoleLog
+    val consoleLogStream = os.write.outputStream(consoleLogFile, createFolders = true)
+    val consoleLogPrintStream = new PrintStream(consoleLogStream)
+    val fileStreams = new SystemStreams(consoleLogPrintStream, consoleLogPrintStream, streams.in)
+
+    // Use a temp file path that doesn't exist so terminfoPath reading fails
+    // and isInteractive() returns false, triggering CI-style logging behavior
+    val nonInteractiveTerminfoPath = os.temp()
+    os.remove(nonInteractiveTerminfoPath)
+
+    val filePromptLogger = new PromptLogger(
+      colored = false, // No color codes in file output
+      enableTicker = enableTicker,
+      infoColor = fansi.Attrs.Empty,
+      warnColor = fansi.Attrs.Empty,
+      errorColor = fansi.Attrs.Empty,
+      successColor = fansi.Attrs.Empty,
+      systemStreams0 = fileStreams,
+      debugEnabled = config.debugLog.value,
+      titleText = titleText,
+      terminfoPath = nonInteractiveTerminfoPath,
+      currentTimeMillis = () => System.currentTimeMillis(),
+      // Use NoOp to avoid double-logging chrome profile entries
+      chromeProfileLogger = JsonArrayLogger.ChromeProfile.NoOp
+    )
+
+    // Wrap PromptLoggers in PrefixLoggers to get Logger types for MultiLogger
+    val interactivePrefixLogger = new PrefixLogger(interactiveLogger, Nil)
+    val filePrefixLogger = new PrefixLogger(filePromptLogger, Nil)
+
+    val multiLogger = new MultiLogger(interactivePrefixLogger, filePrefixLogger, streams.in)
+
+    new PrefixLogger(multiLogger, Nil) with AutoCloseable {
+      override def close(): Unit = {
+        interactiveLogger.close()
+        filePromptLogger.close()
+        consoleLogStream.close()
+      }
     }
   }
 

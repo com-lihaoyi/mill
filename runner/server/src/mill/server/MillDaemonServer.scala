@@ -97,10 +97,6 @@ abstract class MillDaemonServer[State](
       throw new StopWithResponse(DaemonRpc.RunCommandResult(exitCode))
     }
 
-    // Console log file for monitoring progress when another process is waiting
-    val consoleLogFile = daemonDir / DaemonFiles.consoleLog
-    val consoleLogStream = os.write.outputStream(consoleLogFile, createFolders = true)
-
     // Track the exit code from normal command completion.
     // Initialize to exitCodeServerTerminated so interrupted clients get the right code.
     var commandExitCode = exitCodeServerTerminated
@@ -111,10 +107,6 @@ abstract class MillDaemonServer[State](
       setIdle = setIdle,
       writeToLocalLog = serverLog,
       runCommand = (init, _, stdout, stderr, setIdleInner, serverToClient) => {
-        // Wrap stdout/stderr to also write to console log file
-        val teeStdout = new mill.internal.MultiStream(stdout, consoleLogStream)
-        val teeStderr = new mill.internal.MultiStream(stderr, consoleLogStream)
-
         // Check for config changes using shared logic
         val clientConfig = ServerLauncher.DaemonConfig(
           millVersion = init.clientMillVersion,
@@ -138,7 +130,7 @@ abstract class MillDaemonServer[State](
               outLock = outLock,
               setIdle = _ => ()
             ) {
-              mismatchReasons.foreach(reason => teeStderr.println(s"$reason, re-starting server"))
+              mismatchReasons.foreach(reason => stderr.println(s"$reason, re-starting server"))
 
               // This sends RPC response and throws InterruptedException to stop the RPC loop
               deferredStopServer(
@@ -151,11 +143,13 @@ abstract class MillDaemonServer[State](
         lastConfig = Some(clientConfig)
 
         // Run the actual command
+        // Note: console.log file is now created by MillMain0.getLogger() using a MultiLogger
+        // that splits output to both the terminal (interactive) and the file (non-interactive)
         val (result, newStateCache) = main0(
           args = init.args.toArray,
           stateCache = stateCache,
           mainInteractive = init.interactive,
-          streams = new SystemStreams(teeStdout, teeStderr, mill.api.daemon.DummyInputStream),
+          streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
           env = init.env,
           setIdle = setIdleInner(_),
           userSpecifiedProperties = init.userSpecifiedProperties,
@@ -171,8 +165,7 @@ abstract class MillDaemonServer[State](
     )
 
     serverLog("handleConnection: running RPC server")
-    try rpcServer.run()
-    finally consoleLogStream.close()
+    rpcServer.run()
 
     // Check for pending shutdown request and execute it
     val exitCode = data.shutdownRequest.get() match {
