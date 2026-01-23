@@ -13,7 +13,6 @@ import mill.internal.{
   Colors,
   JsonArrayLogger,
   MillCliConfig,
-  MultiLogger,
   MultiStream,
   PrefixLogger,
   PromptLogger,
@@ -308,7 +307,7 @@ object MillMain0 {
                         loggerOpt match {
                           case Some(logger) => proceed(logger)
                           case None =>
-                            val logger = getLogger(
+                            Using.resource(getLogger(
                               streams = streams,
                               config = config,
                               enableTicker = enableTicker,
@@ -316,17 +315,8 @@ object MillMain0 {
                               colored = colored,
                               colors = colors,
                               out = out
-                            )
-                            try {
-                              val result = proceed(logger)
-                              // Close with error details so errors appear in console.log
-                              // after the final status line
-                              logger.closeWithErrorDetails(result.errorOpt)
-                              result
-                            } catch {
-                              case t: Throwable =>
-                                logger.close()
-                                throw t
+                            )) { logger =>
+                              proceed(logger)
                             }
                         }
                       }
@@ -587,7 +577,7 @@ object MillMain0 {
       colored: Boolean,
       colors: Colors,
       out: os.Path
-  ): LoggerWithErrorDetails = {
+  ): Logger & AutoCloseable = {
     val cmdTitle = sys.props.get("mill.main.cli")
       .map { prog =>
         val path = sys.env.get("PATH").map(_.split("[:]").toIndexedSeq).getOrElse(Seq())
@@ -601,10 +591,7 @@ object MillMain0 {
       // Fallback
       .getOrElse("mill")
 
-    val titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" ")
-
-    // Create the interactive logger for stdout/stderr (with TUI prompt)
-    val interactiveLogger = new PromptLogger(
+    val promptLogger = new PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
       infoColor = colors.info,
@@ -613,82 +600,14 @@ object MillMain0 {
       successColor = colors.success,
       systemStreams0 = streams,
       debugEnabled = config.debugLog.value,
-      titleText = titleText,
+      titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),
       terminfoPath = daemonDir / DaemonFiles.terminfo,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
     )
-
-    // Create file-based non-interactive logger for console.log
-    // This logger uses CI-style output: no live-updating prompt, prompt reprinted every 60 seconds,
-    // and no ANSI terminal codes, making it easy to read in file editors/browsers
-    val consoleLogFile = daemonDir / DaemonFiles.consoleLog
-    val consoleLogStream = os.write.outputStream(consoleLogFile, createFolders = true)
-    val consoleLogPrintStream = new PrintStream(consoleLogStream)
-    val fileStreams = new SystemStreams(consoleLogPrintStream, consoleLogPrintStream, streams.in)
-
-    // Use a temp file path that doesn't exist so terminfoPath reading fails
-    // and isInteractive() returns false, triggering CI-style logging behavior
-    val nonInteractiveTerminfoPath = os.temp()
-    os.remove(nonInteractiveTerminfoPath)
-
-    val filePromptLogger = new PromptLogger(
-      colored = false, // No color codes in file output
-      enableTicker = enableTicker,
-      infoColor = fansi.Attrs.Empty,
-      warnColor = fansi.Attrs.Empty,
-      errorColor = fansi.Attrs.Empty,
-      successColor = fansi.Attrs.Empty,
-      systemStreams0 = fileStreams,
-      debugEnabled = config.debugLog.value,
-      titleText = titleText,
-      terminfoPath = nonInteractiveTerminfoPath,
-      currentTimeMillis = () => System.currentTimeMillis(),
-      // Use NoOp to avoid double-logging chrome profile entries
-      chromeProfileLogger = JsonArrayLogger.ChromeProfile.NoOp,
-      streamPumperThreadName = "file-prompt-logger-stream-pumper-thread"
-    )
-
-    // Wrap PromptLoggers in PrefixLoggers to get Logger types for MultiLogger
-    val interactivePrefixLogger = new PrefixLogger(interactiveLogger, Nil)
-    val filePrefixLogger = new PrefixLogger(filePromptLogger, Nil)
-
-    val multiLogger = new MultiLogger(interactivePrefixLogger, filePrefixLogger, streams.in)
-
-    new PrefixLogger(multiLogger, Nil) with LoggerWithErrorDetails {
-      override def closeWithErrorDetails(errorOpt: Option[String]): Unit = {
-        // First, print the final status line on both loggers
-        interactiveLogger.printFinalStatus()
-        filePromptLogger.printFinalStatus()
-
-        // Then print error details to the console.log file directly
-        // (terminal output is handled by handleError in Watching.watchLoop)
-        errorOpt.foreach { error =>
-          consoleLogPrintStream.println(error)
-        }
-
-        // Finally close all resources
-        interactiveLogger.close()
-        filePromptLogger.close()
-        consoleLogStream.close()
-      }
-
-      override def close(): Unit = {
-        interactiveLogger.close()
-        filePromptLogger.close()
-        consoleLogStream.close()
-      }
+    new PrefixLogger(promptLogger, Nil) with AutoCloseable {
+      override def close(): Unit = promptLogger.close()
     }
-  }
-
-  /** Logger that supports printing error details after the closing prompt */
-  trait LoggerWithErrorDetails extends Logger with AutoCloseable {
-    /**
-     * Closes the logger, printing error details after the final status line.
-     * This ensures error details appear in console.log after the status line
-     * (e.g., ".../..., FAILED]") but before the logger fully closes.
-     */
-    def closeWithErrorDetails(errorOpt: Option[String]): Unit
   }
 
   def getBspLogger(

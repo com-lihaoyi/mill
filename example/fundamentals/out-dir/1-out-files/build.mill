@@ -274,20 +274,3 @@ out/mill-daemon
 // Each Mill process needs to keep some temporary files in one of these directories.
 // Deleting it will also terminate the associated server instance, if it is still running.
 //
-// ==== `mill-daemon/console.log`
-//
-// The `console.log` file contains a human-readable log of all Mill command output. This
-// makes it easy to inspect the build output after the fact, or to monitor long-running builds
-// via `tail -f out/mill-daemon/console.log`.
-
-/** Usage
-
-> ./mill foo.compile
-
-> cat out/mill-daemon/console.log
-...compiling...
-...done compiling...
-
-*/
-
-//
