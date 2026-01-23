@@ -86,12 +86,12 @@ object DockerModuleTest extends TestSuite {
 
     test("docker build") {
       test("default options") - workspaceTest(Docker) { eval =>
-        val Right(result) = eval(Docker.dockerDefault.build): @unchecked
+        val Right(result) = eval(Docker.dockerDefault.build).runtimeChecked
         assert(result.value == List(testArtifactName))
       }
 
       test("all options") - workspaceTest(Docker) { eval =>
-        val Right(result) = eval(Docker.dockerAll.build): @unchecked
+        val Right(result) = eval(Docker.dockerAll.build).runtimeChecked
         assert(result.value == List(testArtifactName))
       }
 
@@ -99,7 +99,7 @@ object DockerModuleTest extends TestSuite {
         // since stdout and stderr are inherited we can only test
         // that docker fails with wrong DOCKER_HOST
         val Left(ExecResult.Exception(error: os.SubprocessException, _)) =
-          eval(Docker.dockerEnv.build): @unchecked
+          eval(Docker.dockerEnv.build).runtimeChecked
         val message = error.getMessage
         assert(message == "Result of docker…: 1\n")
       }
@@ -107,7 +107,7 @@ object DockerModuleTest extends TestSuite {
 
     test("dockerfile contents") {
       test("default options") - UnitTester(Docker, null).scoped { eval =>
-        val Right(result) = eval(Docker.dockerDefault.dockerfile): @unchecked
+        val Right(result) = eval(Docker.dockerDefault.dockerfile).runtimeChecked
         val expected = multilineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
@@ -123,7 +123,7 @@ object DockerModuleTest extends TestSuite {
       }
 
       test("all options") - UnitTester(Docker, null).scoped { eval =>
-        val Right(result) = eval(Docker.dockerAll.dockerfile): @unchecked
+        val Right(result) = eval(Docker.dockerAll.dockerfile).runtimeChecked
         val expected = multilineRegex.replaceAllIn(
           """
             |FROM docker.io/eclipse-temurin:17
@@ -148,7 +148,7 @@ object DockerModuleTest extends TestSuite {
       }
 
       test("extra jvm options") - UnitTester(Docker, null).scoped { eval =>
-        val Right(result) = eval(Docker.dockerJvmOptions.dockerfile): @unchecked
+        val Right(result) = eval(Docker.dockerJvmOptions.dockerfile).runtimeChecked
         val expected = multilineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest

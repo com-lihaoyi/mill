@@ -66,7 +66,7 @@ object MvnDepsTests extends TestSuite {
   def tests: Tests = Tests {
 
     test("transitiveRun") - UnitTester(TransitiveRunMvnDeps, null).scoped { eval =>
-      val Right(result2) = eval.apply(TransitiveRunMvnDeps.downstream.runClasspath): @unchecked
+      val Right(result2) = eval.apply(TransitiveRunMvnDeps.downstream.runClasspath).runtimeChecked
 
       assert(
         result2.value.exists(_.path.last == "logback-classic-1.5.10.jar")
@@ -75,7 +75,7 @@ object MvnDepsTests extends TestSuite {
 
     test("transitiveLocalRuntimeDepsRun") - UnitTester(TransitiveRunMvnDeps2, null).scoped {
       eval =>
-        val Right(result2) = eval.apply(TransitiveRunMvnDeps2.downstream.runClasspath): @unchecked
+        val Right(result2) = eval.apply(TransitiveRunMvnDeps2.downstream.runClasspath).runtimeChecked
 
         assert(
           result2.value.exists(_.path.last == "logback-classic-1.5.10.jar"),

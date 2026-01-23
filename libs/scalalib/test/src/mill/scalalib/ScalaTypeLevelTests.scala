@@ -32,7 +32,7 @@ object ScalaTypeLevelTests extends TestSuite {
 
     test("scalacPluginClasspath") {
       test("withMacroParadise") - UnitTester(HelloWorldTypeLevel, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath): @unchecked
+        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath).runtimeChecked
         assert(
           result.value.nonEmpty,
           result.value.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
@@ -43,7 +43,7 @@ object ScalaTypeLevelTests extends TestSuite {
 
     test("scalaDocPluginClasspath") {
       test("extend") - UnitTester(HelloWorldTypeLevel, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath): @unchecked
+        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath).runtimeChecked
         assert(
           result.value.iterator.nonEmpty,
           result.value.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
@@ -60,7 +60,7 @@ object ScalaTypeLevelTests extends TestSuite {
         HelloWorldTypeLevel.foo.compileClasspath
       )
       for (cp <- classPathsToCheck) {
-        val Right(result) = eval.apply(cp): @unchecked
+        val Right(result) = eval.apply(cp).runtimeChecked
         assert(
           // Make sure every relevant piece org.scala-lang has been substituted for org.typelevel
           !result.value.map(_.toString).exists(x =>

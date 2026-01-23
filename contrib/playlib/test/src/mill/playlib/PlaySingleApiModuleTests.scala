@@ -21,7 +21,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
   def tests: Tests = Tests {
     test("playVersion") {
       test("fromBuild") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(playsingleapi.playVersion): @unchecked
+        val Right(result) = eval.apply(playsingleapi.playVersion).runtimeChecked
         assert(
           result.value == testPlay28,
           result.evalCount > 0
@@ -30,12 +30,12 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     }
     test("layout") {
       test("fromBuild") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
-        val Right(conf) = eval.apply(playsingleapi.conf): @unchecked
-        val Right(app) = eval.apply(playsingleapi.app): @unchecked
-        val Right(sources) = eval.apply(playsingleapi.sources): @unchecked
-        val Right(resources) = eval.apply(playsingleapi.resources): @unchecked
-        val Right(testSources) = eval.apply(playsingleapi.test.sources): @unchecked
-        val Right(testResources) = eval.apply(playsingleapi.test.resources): @unchecked
+        val Right(conf) = eval.apply(playsingleapi.conf).runtimeChecked
+        val Right(app) = eval.apply(playsingleapi.app).runtimeChecked
+        val Right(sources) = eval.apply(playsingleapi.sources).runtimeChecked
+        val Right(resources) = eval.apply(playsingleapi.resources).runtimeChecked
+        val Right(testSources) = eval.apply(playsingleapi.test.sources).runtimeChecked
+        val Right(testResources) = eval.apply(playsingleapi.test.resources).runtimeChecked
         assert(
           conf.value.map(_.path.relativeTo(playsingleapi.moduleDir).toString()) == Seq(
             "conf"
@@ -58,7 +58,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     }
     test("compile") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
       val eitherResult = eval.apply(playsingleapi.compile)
-      val Right(result) = eitherResult: @unchecked
+      val Right(result) = eitherResult.runtimeChecked
       val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)
       val expectedClassfiles = Seq[os.RelPath](
         os.RelPath("controllers/HomeController.class"),
@@ -83,7 +83,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
         result.evalCount > 0
       )
 
-      val Right(result2) = eval.apply(playsingleapi.compile): @unchecked
+      val Right(result2) = eval.apply(playsingleapi.compile).runtimeChecked
 
       assert(result2.evalCount == 0)
     }

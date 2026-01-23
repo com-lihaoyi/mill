@@ -199,7 +199,7 @@ object MainModuleTests extends TestSuite {
       test("single") - UnitTester(mainModule, null).scoped { eval =>
         val res =
           eval.evaluator.execute(Seq(mainModule.inspect(eval.evaluator, "hello"))).executionResults
-        val ExecResult.Success(Val(value: String)) = res.results.head: @unchecked
+        val ExecResult.Success(Val(value: String)) = res.results.head.runtimeChecked
         assert(
           res.transitiveFailing.size == 0,
           value.startsWith("hello("),
@@ -213,7 +213,7 @@ object MainModuleTests extends TestSuite {
             "hello",
             "hello2"
           ))).executionResults
-        val ExecResult.Success(Val(value: String)) = res.results.head: @unchecked
+        val ExecResult.Success(Val(value: String)) = res.results.head.runtimeChecked
         assert(
           res.transitiveFailing.size == 0,
           value.startsWith("hello("),
@@ -222,9 +222,9 @@ object MainModuleTests extends TestSuite {
         )
       }
       test("command") - UnitTester(mainModule, null).scoped { eval =>
-        val Right(result) = eval.apply("inspect", "helloCommand"): @unchecked
+        val Right(result) = eval.apply("inspect", "helloCommand").runtimeChecked
 
-        val Seq(res: String) = result.value: @unchecked
+        val Seq(res: String) = result.value.runtimeChecked
         assert(
           res.startsWith("helloCommand("),
           res.contains("MainModuleTests.scala:"),
@@ -232,9 +232,9 @@ object MainModuleTests extends TestSuite {
         )
       }
       test("worker") - UnitTester(mainModule, null).scoped { eval =>
-        val Right(result) = eval.apply("inspect", "helloWorker"): @unchecked
+        val Right(result) = eval.apply("inspect", "helloWorker").runtimeChecked
 
-        val Seq(res: String) = result.value: @unchecked
+        val Seq(res: String) = result.value.runtimeChecked
         assert(
           res.startsWith("helloWorker("),
           res.contains("MainModuleTests.scala:"),
@@ -243,9 +243,9 @@ object MainModuleTests extends TestSuite {
         )
       }
       test("module") - UnitTester(mainModule, null).scoped { eval =>
-        val Right(result) = eval.apply("inspect", "sub"): @unchecked
+        val Right(result) = eval.apply("inspect", "sub").runtimeChecked
 
-        val Seq(res: String) = result.value: @unchecked
+        val Seq(res: String) = result.value.runtimeChecked
         assert(
           res.startsWith("sub("),
           res.contains("MainModuleTests.scala:"),
@@ -305,7 +305,7 @@ object MainModuleTests extends TestSuite {
 
           assert(results.transitiveFailing.size == 0)
 
-          val ExecResult.Success(Val(value)) = results.results.head: @unchecked
+          val ExecResult.Success(Val(value)) = results.results.head.runtimeChecked
 
           val shown = ujson.read(outStream.toByteArray)
           val expected = ujson.Arr.from(Seq("hello", "world"))
@@ -340,7 +340,7 @@ object MainModuleTests extends TestSuite {
 
           assert(results.transitiveFailing.size == 0)
 
-          val ExecResult.Success(Val(value)) = results.results.head: @unchecked
+          val ExecResult.Success(Val(value)) = results.results.head.runtimeChecked
 
           val shown = ujson.read(outStream.toByteArray)
 
@@ -373,14 +373,14 @@ object MainModuleTests extends TestSuite {
         ).scoped { evaluator =>
 
           val Left(ExecResult.Failure(msg = failureMsg)) =
-            evaluator.apply("show", "helloCommand"): @unchecked
+            evaluator.apply("show", "helloCommand").runtimeChecked
           assert(
             failureMsg.contains("Expected Signature: helloCommand"),
             failureMsg.contains("-x <int>"),
             failureMsg.contains("-y <str>")
           )
           val Right(result) =
-            evaluator.apply("show", "helloCommand", "-x", "1337", "-y", "lol"): @unchecked
+            evaluator.apply("show", "helloCommand", "-x", "1337", "-y", "lol").runtimeChecked
 
           val Seq(res) = result.value
           assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
@@ -395,8 +395,8 @@ object MainModuleTests extends TestSuite {
           errStream = new PrintStream(OutputStream.nullOutputStream(), true)
         ).scoped { evaluator =>
 
-          val Right(result) = evaluator.apply("show", "helloWorker"): @unchecked
-          val Seq(res: ujson.Obj) = result.value: @unchecked
+          val Right(result) = evaluator.apply("show", "helloWorker").runtimeChecked
+          val Seq(res: ujson.Obj) = result.value.runtimeChecked
           assert(res("toString").str == "theHelloWorker")
           assert(res("worker").str == "helloWorker")
           assert(res("inputsHash").numOpt.isDefined)
@@ -416,7 +416,7 @@ object MainModuleTests extends TestSuite {
 
           assert(results.transitiveFailing.size == 0)
 
-          val ExecResult.Success(Val(value)) = results.results.head: @unchecked
+          val ExecResult.Success(Val(value)) = results.results.head.runtimeChecked
 
           assert(value == ujson.Obj.from(Map(
             "hello" -> ujson.Arr.from(Seq("hello", "world"))
@@ -435,7 +435,7 @@ object MainModuleTests extends TestSuite {
 
           assert(results.transitiveFailing.size == 0)
 
-          val ExecResult.Success(Val(value)) = results.results.head: @unchecked
+          val ExecResult.Success(Val(value)) = results.results.head.runtimeChecked
 
           assert(value == ujson.Obj.from(Map(
             "hello" -> ujson.Arr.from(Seq("hello", "world")),
@@ -447,9 +447,9 @@ object MainModuleTests extends TestSuite {
 
     test("resolve") {
       UnitTester(mainModule, null).scoped { eval =>
-        val Right(result) = eval.apply("resolve", "_"): @unchecked
+        val Right(result) = eval.apply("resolve", "_").runtimeChecked
 
-        val Seq(res: Seq[String]) = result.value: @unchecked
+        val Seq(res: Seq[String]) = result.value.runtimeChecked
         assert(res.contains("hello"))
         assert(res.contains("hello2"))
         assert(res.contains("helloCommand"))
@@ -466,16 +466,16 @@ object MainModuleTests extends TestSuite {
 
       test("simple") - UnitTester(pathModule, null).scoped { eval =>
         // Single src to single dest
-        val Right(result) = eval.apply("path", "outer1", "leaf1"): @unchecked
-        val Seq(labels: List[String]) = result.value: @unchecked
+        val Right(result) = eval.apply("path", "outer1", "leaf1").runtimeChecked
+        val Seq(labels: List[String]) = result.value.runtimeChecked
         assert(labels == List("outer1", "inner1", "leaf1"))
       }
 
       test("multiSrc") - UnitTester(pathModule, null).scoped { eval =>
         // Multiple sources (outer1 and outer3 both depend on leaf1 via inner1)
         // Using glob pattern to match multiple sources
-        val Right(result) = eval.apply("path", "{outer1,outer3}", "leaf1"): @unchecked
-        val Seq(labels: List[String]) = result.value: @unchecked
+        val Right(result) = eval.apply("path", "{outer1,outer3}", "leaf1").runtimeChecked
+        val Seq(labels: List[String]) = result.value.runtimeChecked
         // Should find path from either outer1 or outer3 to leaf1
         assert(labels.last == "leaf1")
         assert(labels.head == "outer1" || labels.head == "outer3")
@@ -485,8 +485,8 @@ object MainModuleTests extends TestSuite {
       test("multiDest") - UnitTester(pathModule, null).scoped { eval =>
         // Single source, multiple possible destinations
         // outer1 depends on leaf1 but not leaf2
-        val Right(result) = eval.apply("path", "outer1", "{leaf1,leaf2}"): @unchecked
-        val Seq(labels: List[String]) = result.value: @unchecked
+        val Right(result) = eval.apply("path", "outer1", "{leaf1,leaf2}").runtimeChecked
+        val Seq(labels: List[String]) = result.value.runtimeChecked
         // Should find path to leaf1 (not leaf2)
         assert(labels == List("outer1", "inner1", "leaf1"))
       }
@@ -495,8 +495,8 @@ object MainModuleTests extends TestSuite {
         // Multiple sources and multiple destinations
         // outer1,outer3 -> inner1 -> leaf1
         // outer2 -> inner2 -> leaf2
-        val Right(result) = eval.apply("path", "{outer1,outer2}", "{leaf1,leaf2}"): @unchecked
-        val Seq(labels: List[String]) = result.value: @unchecked
+        val Right(result) = eval.apply("path", "{outer1,outer2}", "{leaf1,leaf2}").runtimeChecked
+        val Seq(labels: List[String]) = result.value.runtimeChecked
         // Should find a path from one of the sources to one of the destinations
         assert(labels.nonEmpty)
         assert(
@@ -507,13 +507,13 @@ object MainModuleTests extends TestSuite {
 
       test("noPath") - UnitTester(pathModule, null).scoped { eval =>
         // isolated has no dependencies, so no path to leaf1
-        val Left(result) = eval.apply("path", "isolated", "leaf1"): @unchecked
+        val Left(result) = eval.apply("path", "isolated", "leaf1").runtimeChecked
         assert(result.toString.contains("No path found"))
       }
 
       test("noPathMulti") - UnitTester(pathModule, null).scoped { eval =>
         // isolated has no path to any leaf
-        val Left(result) = eval.apply("path", "isolated", "{leaf1,leaf2}"): @unchecked
+        val Left(result) = eval.apply("path", "isolated", "{leaf1,leaf2}").runtimeChecked
         assert(result.toString.contains("No path found"))
       }
     }

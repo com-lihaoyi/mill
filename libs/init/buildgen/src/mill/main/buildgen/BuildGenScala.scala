@@ -96,7 +96,7 @@ object BuildGenScala extends BuildGen {
       )
       file
     }
-    val rootPackage +: nestedPackages = packages0: @unchecked
+    val rootPackage +: nestedPackages = packages0.runtimeChecked
     val millJvmVersion0 = resolveMillJvmVersion(millJvmVersion)
     val millJvmOptsLine = if (millJvmOpts.isEmpty) ""
     else millJvmOpts.mkString("//| mill-jvm-opts: [\"", "\", \"", s"\"]")

@@ -173,14 +173,14 @@ object JavaCompileJarTests extends TestSuite {
       for (_ <- 0 until 3) {
         // Build.run is not cached, so every time we eval it, it has to
         // re-evaluate
-        val Right(result) = eval(Build.run("test.Foo")): @unchecked
+        val Right(result) = eval(Build.run("test.Foo")).runtimeChecked
         assert(
           result.value.out.text() == s"${31337 + 271828}${System.lineSeparator}",
           result.evalCount == 1
         )
       }
 
-      val Left(mill.api.ExecResult.Exception(ex, _)) = eval(Build.run("test.BarFour")): @unchecked
+      val Left(mill.api.ExecResult.Exception(ex, _)) = eval(Build.run("test.BarFour")).runtimeChecked
 
       assert(ex.getMessage.contains("Could not find or load main class"))
 
@@ -194,12 +194,12 @@ object JavaCompileJarTests extends TestSuite {
         }
         """
       )
-      val Right(result2) = eval(Build.run("test.BarFour")): @unchecked
+      val Right(result2) = eval(Build.run("test.BarFour")).runtimeChecked
       assert(
         result2.value.out.text() == "New Cls!" + System.lineSeparator,
         result2.evalCount == 3
       )
-      val Right(result3) = eval(Build.run("test.BarFour")): @unchecked
+      val Right(result3) = eval(Build.run("test.BarFour")).runtimeChecked
       assert(
         result3.value.out.text() == "New Cls!" + System.lineSeparator,
         result3.evalCount == 1

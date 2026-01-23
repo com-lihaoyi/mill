@@ -47,7 +47,7 @@ trait HelloWorldInvalidValidateCoverageTest extends utest.TestSuite {
           resourcePath
         ).scoped { eval =>
           val Left(Failure(msg = msg)) =
-            eval.apply(InvalidCoverageCheck.core.scoverage.validateCoverageMinimums()): @unchecked
+            eval.apply(InvalidCoverageCheck.core.scoverage.validateCoverageMinimums()).runtimeChecked
 
           assert(
             msg.equals(

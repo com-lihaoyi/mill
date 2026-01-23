@@ -286,7 +286,7 @@ trait ClientServerTestsBase extends TestSuite {
         tester.apply(args = Array(" World"), forceFailureForTestingMillisDelay = 100)
       }
 
-      val s"Force failure for testing: $pathStr" = res1.getMessage: @unchecked
+      val s"Force failure for testing: $pathStr" = res1.getMessage.runtimeChecked
       Thread.sleep(100) // give a moment for logs to all turn up on disk
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
