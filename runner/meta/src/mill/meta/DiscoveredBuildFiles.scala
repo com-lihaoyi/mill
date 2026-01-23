@@ -65,18 +65,18 @@ object DiscoveredBuildFiles {
 
             val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
             val isRootBuildFile = s / os.up == projectRoot
-            // When allowNestedBuildMillFiles is enabled, allow files in directories with
-            // nested build.mill to use `package build` instead of the full path
+
             val isInNestedBuildMillDir =
               allowNestedBuildMillFiles &&
                 !isRootBuildFile &&
                 rootBuildFileNames.asScala.exists(n => os.exists((s / os.up) / n)) &&
                 importSegments == rootModuleAlias
+
             if (
               expectedImportSegments != importSegments &&
               // Root build.mill file has its `package build` be optional
               !(importSegments == "" && rootBuildFileNames.contains(s.last)) &&
-              // Files in directories with nested build.mill can use `package build`
+              // Nested projects with build.mill are allowed to have mis-matched `package` clauses
               !isInNestedBuildMillDir
             ) {
               val expectedImport =
@@ -151,7 +151,6 @@ object DiscoveredBuildFiles {
       rootBuildFileNames.asScala.toSeq
     )
       val nestedBuildFileNames0 = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
-      // When allowNestedBuildMillFiles is enabled, also look for build.mill files in subdirectories
       val nestedBuildFileNames =
         if (allowNestedBuildMillFiles) nestedBuildFileNames0 ++ rootBuildFileNames.asScala.toList
         else nestedBuildFileNames0
