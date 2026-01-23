@@ -1,7 +1,6 @@
 package mill.exec
 
 import mill.api.daemon.internal.*
-import mill.api.daemon.VersionState
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
 import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger}
@@ -39,8 +38,8 @@ case class Execution(
     isFinalDepth: Boolean,
     // JSON string to avoid classloader issues when crossing classloader boundaries
     spanningInvalidationTree: Option[String],
-    // Previous Mill and JVM versions from disk (survives daemon restarts)
-    previousVersions: Option[VersionState]
+    // Tracks tasks invalidated due to version/classloader mismatch
+    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = new ConcurrentHashMap()
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -70,9 +69,7 @@ case class Execution(
       depth: Int,
       isFinalDepth: Boolean,
       // JSON string to avoid classloader issues when crossing classloader boundaries
-      spanningInvalidationTree: Option[String],
-      // Previous Mill and JVM versions from disk
-      previousVersions: Option[VersionState]
+      spanningInvalidationTree: Option[String]
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -96,8 +93,7 @@ case class Execution(
     enableTicker = enableTicker,
     depth = depth,
     isFinalDepth = isFinalDepth,
-    spanningInvalidationTree = spanningInvalidationTree,
-    previousVersions = previousVersions
+    spanningInvalidationTree = spanningInvalidationTree
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
@@ -357,13 +353,21 @@ case class Execution(
 
       val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
+      // Convert versionMismatchReasons to Map[String, String] for InvalidationForest
+      val taskInvalidationReasons = {
+        import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
+        versionMismatchReasons.asScala.collect {
+          case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason
+        }.toMap
+      }
+
       ExecutionLogs.logInvalidationTree(
         interGroupDeps = interGroupDeps,
         outPath = outPath,
         uncached = uncached,
         changedValueHash = changedValueHash,
         spanningInvalidationTree = spanningInvalidationTree,
-        previousVersions = previousVersions
+        taskInvalidationReasons = taskInvalidationReasons
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
@@ -411,7 +415,7 @@ object Execution {
       completed: Boolean,
       errorColor: String => String,
       successColor: String => String
-  ): String = {
+  ): fansi.Str = {
     (completed, failures) match {
       case (false, 0) => ""
       case (false, _) => ", " + errorColor(s"$failures failing")

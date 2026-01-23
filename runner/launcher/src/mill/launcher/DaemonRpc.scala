@@ -5,7 +5,6 @@ import mill.rpc.*
 import upickle.ReadWriter
 
 import java.io.{BufferedReader, PrintStream}
-import mill.api.JsonFormatters.*
 
 /**
  * RPC message types for launcher-daemon communication.
@@ -16,7 +15,8 @@ object DaemonRpc {
   case class Initialize(
       interactive: Boolean,
       clientMillVersion: String,
-      clientJavaVersion: Option[os.Path],
+      clientJavaVersion: String,
+      clientJvmOpts: Seq[String],
       args: Seq[String],
       env: Map[String, String],
       userSpecifiedProperties: Map[String, String]
@@ -79,9 +79,9 @@ object DaemonRpc {
       val result = os.proc(req.config.cmd).call(
         cwd = os.Path(req.config.cwd),
         env = req.config.env,
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit,
+        stdin = os.InheritRaw,
+        stdout = os.InheritRaw,
+        stderr = os.InheritRaw,
         mergeErrIntoOut = req.config.mergeErrIntoOut,
         timeout = req.config.timeoutMillis,
         propagateEnv = req.config.propagateEnv,

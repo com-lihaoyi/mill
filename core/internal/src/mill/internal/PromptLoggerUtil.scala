@@ -87,12 +87,12 @@ private object PromptLoggerUtil {
       consoleHeight: Int,
       now: Long,
       startTimeMillis: Long,
-      headerPrefix: String,
-      titleText: String,
+      headerPrefix: fansi.Str,
+      titleText: fansi.Str,
       statuses: Iterable[(String, Status)],
       interactive: Boolean,
       infoColor: fansi.Attrs
-  ): List[String] = {
+  ): List[fansi.Str] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
     // -1 to account for header
@@ -113,7 +113,7 @@ private object PromptLoggerUtil {
             status.beginTransitionTime + statusRemovalHideDelayMillis < now &&
             status.beginTransitionTime > now - statusRemovalRemoveDelayMillis
           ) {
-            Some("")
+            Some(fansi.Str(""))
           } else {
             val textOpt = if (status.beginTransitionTime + statusRemovalHideDelayMillis < now)
               status.next
@@ -124,21 +124,21 @@ private object PromptLoggerUtil {
 
               val detail = splitShorten(spaceNonEmpty(t.detail), maxWidth - mainText.length)
 
-              mainText + infoColor(detail)
+              mainText ++ infoColor(detail)
             }
           }
       }
       // For non-interactive jobs, we do not need to preserve the height of the prompt
       // between renderings, since consecutive prompts do not appear at the same place
       // in the log file. Thus, we can aggressively remove all blank spacer lines
-      .filter(_.nonEmpty || interactive)
+      .filter(_.length > 0 || interactive)
       .toList
       // Sort alphabetically because the `#nn` prefix is part of the string, and then
       // put all empty strings last since those are less important and can be ignored
-      .sortBy(x => x.isEmpty)
+      .sortBy(x => x.length == 0)
 
-    val nonEmptyBodyCount = body0.count(_.nonEmpty)
-    val body =
+    val nonEmptyBodyCount = body0.count(_.length > 0)
+    val body: List[fansi.Str] =
       if (nonEmptyBodyCount <= maxHeight) body0.take(maxHeight)
       else body0.take(maxHeight - 1) ++ Seq(
         s"... and ${nonEmptyBodyCount - maxHeight + 1} more threads"
@@ -158,42 +158,31 @@ private object PromptLoggerUtil {
   }
 
   def renderHeader(
-      headerPrefix0: String,
-      titleText0: String,
-      headerSuffix0: String,
+      headerPrefix0: fansi.Str,
+      titleText: fansi.Str,
+      headerSuffixStr: fansi.Str,
       maxWidth: Int
-  ): String = {
-    val headerPrefixStr = if (headerPrefix0.isEmpty) "" else s"$headerPrefix0 "
-    val headerSuffixStr = headerSuffix0
-    val titleText = s" $titleText0 "
-
-    val dividerMaxLength = 30
-    val dividerMinLength = 15
-    val maxTitleLength =
-      maxWidth - headerPrefixStr.length - headerSuffixStr.length - dividerMinLength * 2
+  ): fansi.Str = {
+    val headerPrefixStr = fansi.Str(if (headerPrefix0.length == 0) "" else s"$headerPrefix0 ")
+    val maxTitleLength = maxWidth - headerPrefixStr.length - headerSuffixStr.length
     val shortenedTitle = splitShorten(titleText, maxTitleLength)
 
-    val rightDiv = "=" * math.min(
-      dividerMaxLength,
-      (maxWidth - headerPrefixStr.length - headerSuffixStr.length - shortenedTitle.length) / 2
-    )
-    val leftDiv = "=" * math.min(
-      dividerMaxLength,
-      maxWidth - headerPrefixStr.length - headerSuffixStr.length - shortenedTitle.length - rightDiv.length
-    )
-
-    val headerString = headerPrefixStr + leftDiv + shortenedTitle + rightDiv + headerSuffixStr
+    val headerString = headerPrefixStr ++ shortenedTitle ++ headerSuffixStr
     splitShorten(headerString, maxWidth)
   }
 
-  def splitShorten(s: String, maxLength: Int): String = {
+  def splitShorten(s: fansi.Str, maxLength: Int): fansi.Str = {
     if (s.length <= maxLength) s
+    else if (maxLength <= 3) fansi.Str("...".take(maxLength))
     else {
       val ellipses = "..."
       val nonEllipsesLength = maxLength - ellipses.length
       val halfWidth = nonEllipsesLength / 2
       val halfWidth2 = nonEllipsesLength - halfWidth
-      s.take(halfWidth2) + ellipses.take(maxLength) + s.takeRight(halfWidth)
+
+      s.substring(0, halfWidth2) ++
+        fansi.Str(ellipses) ++
+        s.substring(s.length - halfWidth, s.length)
     }
   }
 

@@ -1,6 +1,5 @@
 package mill.scalajslib
 
-import mill.api.ExecResult
 import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
@@ -14,25 +13,10 @@ object WasmTests extends TestSuite {
   object Wasm extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-    override def scalaJSVersion = "1.17.0"
+    override def scalaJSVersion = "1.20.2"
 
     override def moduleKind = ModuleKind.ESModule
 
-    override def moduleSplitStyle = ModuleSplitStyle.FewestModules
-
-    override def scalaJSExperimentalUseWebAssembly: T[Boolean] = true
-
-    override lazy val millDiscover = {
-      import mill.util.TokenReaders.given
-      Discover[this.type]
-    }
-  }
-
-  object OldWasmModule extends TestRootModule with ScalaJSModule {
-    override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-    override def scalaJSVersion = "1.16.0"
-
-    override def moduleKind = ModuleKind.ESModule
     override def moduleSplitStyle = ModuleSplitStyle.FewestModules
 
     override def scalaJSExperimentalUseWebAssembly: T[Boolean] = true
@@ -76,14 +60,5 @@ object WasmTests extends TestSuite {
         )
       }
     }
-
-    test("should throw for older scalaJS versions") {
-      UnitTester(OldWasmModule, millSourcePath).scoped { evaluator =>
-        val Left(ExecResult.Exception(ex, _)) = evaluator(OldWasmModule.fastLinkJS): @unchecked
-        val error = ex.getMessage
-        assert(error == "Emitting wasm is not supported with Scala.js < 1.17")
-      }
-    }
-
   }
 }

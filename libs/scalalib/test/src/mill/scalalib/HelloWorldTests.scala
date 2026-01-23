@@ -41,6 +41,7 @@ object HelloWorldTests extends TestSuite {
   }
   object HelloWorldNonPrecompiledBridge extends TestRootModule {
     object core extends HelloWorldModule {
+      def jvmVersion = "17"
       override def scalaVersion = "2.12.1"
     }
     lazy val millDiscover = Discover[this.type]
@@ -52,7 +53,9 @@ object HelloWorldTests extends TestSuite {
           scala212Version,
           scala213Version
         )
-    trait HelloWorldCross extends CrossScalaModule
+    trait HelloWorldCross extends CrossScalaModule {
+      def jvmVersion = "17"
+    }
     lazy val millDiscover = Discover[this.type]
   }
 

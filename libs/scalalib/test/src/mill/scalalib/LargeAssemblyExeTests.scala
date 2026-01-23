@@ -18,7 +18,7 @@ object LargeAssemblyExeTests extends TestSuite {
   object TestCase extends TestRootModule {
 
     trait ExtraDeps extends ScalaModule {
-      def scalaVersion = "2.13.11"
+      def scalaVersion = "2.13.18"
 
       def sources = Task.Sources(mill.api.BuildCtx.workspaceRoot / "src")
 

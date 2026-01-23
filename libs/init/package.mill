@@ -18,10 +18,14 @@ object `package` extends MillPublishScalaModule {
   }
 
   def exampleList: T[PathRef] = Task {
+    // Use SNAPSHOT placeholder in URLs - will be replaced with actual version during jar processing
+    val snapshotUrlPrefix = s"${build.millDownloadPrefix()}/SNAPSHOT"
+    val snapshotArtifactPrefix = s"${build.dist.artifactName()}-SNAPSHOT"
     val data: Seq[(os.SubPath, String)] =
-      build.dist.examplePaths().zip(build.dist.exampleArtifactNames()).map { case (path, str) =>
-        val downloadUrl =
-          s"${build.millDownloadUrlCurrent()}/$str.zip"
+      build.dist.examplePaths().map { path =>
+        val example = path.subRelativeTo(BuildCtx.workspaceRoot)
+        val artifactName = s"$snapshotArtifactPrefix-${example.segments.mkString("-")}"
+        val downloadUrl = s"$snapshotUrlPrefix/$artifactName.zip"
         val subPath = path.subRelativeTo(BuildCtx.workspaceRoot / "example")
         (subPath, downloadUrl)
       }
@@ -74,7 +78,7 @@ object `package` extends MillPublishScalaModule {
     def mvnDeps = Seq(Deps.pprint)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
     def buildInfoPackageName = "mill.main.buildgen"
-    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", build.millVersion()))
+    def buildInfoMembers = Seq(BuildInfo.Value("millVersion", "SNAPSHOT"))
 
     object api extends Cross[ApiModule](
           Deps.sbtScalaVersion212,

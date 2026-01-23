@@ -465,6 +465,7 @@ trait AndroidModule extends JavaModule { outer =>
       val extractDir = taskDest / aarFile.baseName
       os.unzip(aarFile, extractDir)
       val name = aarFile.baseName
+      val targetClassesJar = extractDir / s"${name}.jar"
 
       def pathOption(p: os.Path): Option[PathRef] = if (os.exists(p)) {
         Some(PathRef(p))
@@ -475,6 +476,10 @@ trait AndroidModule extends JavaModule { outer =>
       } else Seq.empty[PathRef]
 
       val classesJar = pathOption(extractDir / "classes.jar")
+      val targetClassesJarPathRef = classesJar.map(pr => {
+        os.move(pr.path, targetClassesJar)
+        PathRef(targetClassesJar)
+      })
       val proguardRules = pathOption(extractDir / "proguard.txt")
       val androidResources = pathOption(extractDir / "res")
       val assets = pathOption(extractDir / "assets")
@@ -489,7 +494,7 @@ trait AndroidModule extends JavaModule { outer =>
 
       UnpackedDep(
         name,
-        classesJar,
+        targetClassesJarPathRef,
         repackaged,
         proguardRules,
         androidResources,
@@ -909,6 +914,25 @@ trait AndroidModule extends JavaModule { outer =>
     override def moduleDir: os.Path = outer.moduleDir
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
+
+    /**
+     * Whether to include the android resources from the main app for unit tests.
+     * This is the equivalent of
+     * `testOptions.unitTests { isIncludeAndroidResources = false }`
+     * seen in Gradle (AGP)
+     */
+    def androidIncludeAndroidResources: Boolean = false
+
+    override def runClasspath: T[Seq[PathRef]] = {
+      if (androidIncludeAndroidResources)
+        Task { runClasspathWithAndroidResources() }
+      else
+        Task { super.runClasspath() }
+    }
+
+    private def runClasspathWithAndroidResources: T[Seq[PathRef]] = Task {
+      super.runClasspath() ++ Seq(outer.androidProcessedResources())
+    }
 
     def androidResources: T[Seq[PathRef]] = Task.Sources()
 

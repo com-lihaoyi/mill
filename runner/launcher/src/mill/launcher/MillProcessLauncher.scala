@@ -1,8 +1,9 @@
 package mill.launcher
 
 import io.github.alexarchambault.nativeterm.NativeTerminal
+import mill.api.daemon.MillException
 import mill.client.ClientUtil
-import mill.constants._
+import mill.constants.*
 
 import java.io.File
 import java.util.UUID
@@ -15,25 +16,30 @@ object MillProcessLauncher {
       outMode: OutFolderMode,
       runnerClasspath: Seq[os.Path],
       mainClass: String,
-      useFileLocks: Boolean
+      useFileLocks: Boolean,
+      workDir: os.Path,
+      env: Map[String, String]
   ): Int = {
     val sig = f"${UUID.randomUUID().hashCode}%08x"
     val processDir =
-      os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / OutFiles.OutFiles.millNoDaemon / sig
+      os.Path(OutFiles.OutFiles.outFor(outMode), workDir) / OutFiles.OutFiles.millNoDaemon / sig
 
     prepareMillRunFolder(processDir)
 
     val userPropsSeq = ClientUtil.getUserSetProperties().map { case (k, v) => s"-D$k=$v" }.toSeq
 
-    val cmd = millLaunchJvmCommand(runnerClasspath, outMode) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir) ++
       userPropsSeq ++
       Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
-      loadMillConfig(ConfigConstants.millOpts) ++
+      loadMillConfig(ConfigConstants.millOpts, workDir) ++
       args
 
     var interrupted = false
-    try configureRunMillProcess(cmd, processDir).waitFor()
-    catch {
+    val proc = configureRunMillProcess(cmd, processDir, workDir = workDir, env = env)
+    try {
+      proc.waitFor()
+      proc.exitCode()
+    } catch {
       case e: InterruptedException =>
         interrupted = true
         throw e
@@ -46,16 +52,20 @@ object MillProcessLauncher {
       daemonDir: os.Path,
       outMode: OutFolderMode,
       runnerClasspath: Seq[os.Path],
-      useFileLocks: Boolean
-  ): Process = {
-    val cmd = millLaunchJvmCommand(runnerClasspath, outMode) ++
+      useFileLocks: Boolean,
+      workDir: os.Path,
+      env: Map[String, String]
+  ): os.SubProcess = {
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir) ++
       Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
 
     configureRunMillProcess(
       cmd,
       daemonDir,
       stdout = daemonDir / DaemonFiles.stdout,
-      stderr = daemonDir / DaemonFiles.stderr
+      stderr = daemonDir / DaemonFiles.stderr,
+      workDir = workDir,
+      env = env
     )
   }
 
@@ -64,20 +74,22 @@ object MillProcessLauncher {
       daemonDir: os.Path,
       stdin: os.ProcessInput = os.Inherit,
       stdout: os.ProcessOutput = os.Inherit,
-      stderr: os.ProcessOutput = os.Inherit
-  ): Process = {
+      stderr: os.ProcessOutput = os.Inherit,
+      workDir: os.Path,
+      env: Map[String, String]
+  ): os.SubProcess = {
     val sandbox = daemonDir / DaemonFiles.sandbox
     os.makeDir.all(sandbox)
 
-    val env = Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> os.pwd.toString,
+    val processEnv = Map(
+      EnvVars.MILL_WORKSPACE_ROOT -> workDir.toString,
       EnvVars.MILL_ENABLE_STATIC_CHECKS -> "true"
     ) ++ (
-      if (sys.env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
+      if (env.contains(EnvVars.MILL_EXECUTABLE_PATH)) Map.empty
       else Map(EnvVars.MILL_EXECUTABLE_PATH -> getExecutablePath)
     ) ++ {
-      val jdkJavaOptions = sys.env.getOrElse("JDK_JAVA_OPTIONS", "")
-      val javaOpts = sys.env.getOrElse("JAVA_OPTS", "")
+      val jdkJavaOptions = env.getOrElse("JDK_JAVA_OPTIONS", "")
+      val javaOpts = env.getOrElse("JAVA_OPTS", "")
       val opts = s"$jdkJavaOptions $javaOpts".trim
       if (opts.nonEmpty) Map("JDK_JAVA_OPTIONS" -> opts) else Map.empty
     }
@@ -86,17 +98,17 @@ object MillProcessLauncher {
     // The daemon is a long-lived background process that should survive client disconnections.
     os.proc(cmd).spawn(
       cwd = sandbox,
-      env = env,
+      env = processEnv,
       stdin = stdin,
       stdout = stdout,
       stderr = stderr,
       destroyOnExit = false
-    ).wrapped
+    )
   }
 
-  def loadMillConfig(key: String): Seq[String] = {
-    val configFile = os.pwd / s".$key"
-    val workspaceDir = os.pwd.toString
+  def loadMillConfig(key: String, workDir: os.Path = os.pwd): Seq[String] = {
+    val configFile = workDir / s".$key"
+    val workspaceDir = workDir.toString
 
     // Build environment map for variable interpolation
     val env = sys.env ++ Map(
@@ -114,7 +126,7 @@ object MillProcessLauncher {
     } else {
       import scala.jdk.CollectionConverters._
       CodeGenConstants.rootBuildFileNames.asScala.toSeq
-        .map(name => os.pwd / name)
+        .map(name => workDir / name)
         .find(os.exists(_))
         .map { buildFile =>
           val fileName = buildFile.last
@@ -145,23 +157,34 @@ object MillProcessLauncher {
             Seq(Util.interpolateEnvVars(other.str, env.asJava))
         }
       case f: mill.api.Result.Failure =>
-        System.err.println(s"Failed parsing build header: ${f.error}")
-        System.exit(1)
-        Seq.empty
+        throw new MillException(s"Failed parsing build header: ${f.error}")
     }
   }
 
   def millServerTimeout: Option[String] =
     sys.env.get(EnvVars.MILL_SERVER_TIMEOUT_MILLIS)
 
+  /**
+   * Computes a fingerprint of JVM options that affect daemon behavior.
+   * This includes options from .mill-jvm-opts file and JAVA_OPTS/JDK_JAVA_OPTIONS env vars.
+   * When this fingerprint changes, the daemon should be restarted.
+   */
+  def computeJvmOpts(workDir: os.Path, env: Map[String, String]): Seq[String] = {
+    val configOpts = loadMillConfig(ConfigConstants.millJvmOpts, workDir)
+    val javaOpts = mill.api.internal.ParseArgs.parseShellArgs(env.getOrElse("JAVA_OPTS", ""))
+    val jdkJavaOptions =
+      mill.api.internal.ParseArgs.parseShellArgs(env.getOrElse("JDK_JAVA_OPTIONS", ""))
+    configOpts ++ javaOpts ++ jdkJavaOptions
+  }
+
   def isWin: Boolean = System.getProperty("os.name", "").startsWith("Windows")
 
-  def javaHome(outMode: OutFolderMode): Option[os.Path] = {
-    val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion)
+  def javaHome(outMode: OutFolderMode, workDir: os.Path = os.pwd): Option[os.Path] = {
+    val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion, workDir)
       .headOption
       .getOrElse(BuildInfo.defaultJvmVersion)
 
-    val jvmIndexVersion = loadMillConfig(ConfigConstants.millJvmIndexVersion).headOption
+    val jvmIndexVersion = loadMillConfig(ConfigConstants.millJvmIndexVersion, workDir).headOption
 
     // Handle "system" specially - return None to use PATH-based Java lookup
     // (javaExe returns "java" when javaHome is None, using PATH lookup)
@@ -171,8 +194,8 @@ object MillProcessLauncher {
     else None
   }
 
-  def javaExe(outMode: OutFolderMode): String = {
-    javaHome(outMode) match {
+  def javaExe(outMode: OutFolderMode, workDir: os.Path = os.pwd): String = {
+    javaHome(outMode, workDir) match {
       case None => "java"
       case Some(home) =>
         val exeName = if (isWin) "java.exe" else "java"
@@ -180,7 +203,11 @@ object MillProcessLauncher {
     }
   }
 
-  def millLaunchJvmCommand(runnerClasspath: Seq[os.Path], outMode: OutFolderMode): Seq[String] = {
+  def millLaunchJvmCommand(
+      runnerClasspath: Seq[os.Path],
+      outMode: OutFolderMode,
+      workDir: os.Path = os.pwd
+  ): Seq[String] = {
     val millProps = sys.props.toSeq
       .filter(_._1.startsWith("MILL_"))
       .map { case (k, v) => s"-D$k=$v" }
@@ -194,11 +221,11 @@ object MillProcessLauncher {
       "-Dsun.stderr.encoding=UTF-8"
     )
 
-    Seq(javaExe(outMode)) ++
+    Seq(javaExe(outMode, workDir)) ++
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++
-      loadMillConfig(ConfigConstants.millJvmOpts) ++
+      loadMillConfig(ConfigConstants.millJvmOpts, workDir) ++
       Seq("-cp", runnerClasspath.mkString(File.pathSeparator))
   }
 

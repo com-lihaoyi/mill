@@ -24,3 +24,7 @@ rm -rf out
 
 # Run tests
 ./mill-assembly.jar -i "example.scalalib.basic[3-simple].packaged.daemon.testForked"
+
+# Make sure the REPL in the scratch folder works
+cd scratch
+echo "Seq.tabulate(1000)(identity).sum" | ../mill-assembly.jar repl | grep 499500

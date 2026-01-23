@@ -65,6 +65,25 @@ object BspServerTestUtil {
         .replaceAll("\"PATH(\\\\u003d|=)[^\"]+\"", "\"PATH=...\"")
         // Normalize third-party dependency versions to "..." but preserve already-normalized versions like <scala-version>
         .replaceAll("\"version\": \"(?!<)[^\"]+\"", "\"version\": \"...\"")
+        // Normalize Mill's own version in paths (e.g., 1.1.0-RC4-107-b1ae16-DIRTY45f79b2b -> SNAPSHOT)
+        // This handles paths like: /com/lihaoyi/mill-xxx/VERSION/mill-xxx-VERSION.jar
+        .replaceAll(
+          "(com/lihaoyi/mill-[^/]+/)([0-9]+\\.[0-9]+\\.[0-9]+[^/]*)((?:/[^/]+)?\\.[^\"]+)",
+          "$1SNAPSHOT$3"
+        )
+        // Normalize the jar filename part for Mill jars
+        .replaceAll(
+          "(mill-[a-z0-9-]+-)([0-9]+\\.[0-9]+\\.[0-9]+[^/\\.\"]*)(\\.[a-z]+)",
+          "$1SNAPSHOT$3"
+        )
+        // Normalize third-party library versions in jar paths
+        // Pattern: /artifactId/VERSION/artifactId-VERSION.jar -> /artifactId/<version>/artifactId-<version>.jar
+        .replaceAll(
+          "(/[a-zA-Z0-9_-]+)/([0-9]+\\.[0-9]+[^/]*)/([a-zA-Z0-9_-]+)-\\2(\\.jar)",
+          "$1/<version>/$3-<version>$4"
+        )
+        // Normalize dist/raw/localRepo.dest vs dist/localRepo.dest path differences
+        .replaceAll("dist/raw/localRepo\\.dest", "dist/localRepo.dest")
 
     val jsonStr = normalizeLocalValues(
       gson.toJson(
@@ -92,6 +111,8 @@ object BspServerTestUtil {
           .replaceAll("\\d+ Scala (sources?) to .*\\.\\.\\.", "* Scala $1 to * ...")
           .replaceAll("\\[error\\] [a-zA-Z0-9-_/.]+:2:3:", "[error] *:2:3:")
           .replaceAll("Evaluating [0-9]+ tasks", "Evaluating * tasks")
+          // Normalize task ID numeric suffixes (e.g., "bsp-init-build.mill-59]" -> "bsp-init-build.mill-*]")
+          .replaceAll("-\\d+\\]", "-*]")
       )
 
     utest.assertGoldenFile(

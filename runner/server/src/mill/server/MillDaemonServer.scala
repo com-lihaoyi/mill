@@ -6,6 +6,7 @@ import mill.client.lock.Locks
 import mill.constants.DaemonFiles
 import mill.launcher.DaemonRpc
 import mill.api.daemon.StopWithResponse
+import mill.client.ServerLauncher.DaemonConfig
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server.ConnectionData
 
@@ -34,8 +35,7 @@ abstract class MillDaemonServer[State](
 
   def initialStateCache: State
 
-  private var lastMillVersion = Option.empty[String]
-  private var lastJavaVersion = Option.empty[os.Path]
+  private var lastConfig: Option[DaemonConfig] = None
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
@@ -115,45 +115,40 @@ abstract class MillDaemonServer[State](
         val teeStdout = new mill.internal.MultiStream(stdout, consoleLogStream)
         val teeStderr = new mill.internal.MultiStream(stderr, consoleLogStream)
 
-        // Check for version changes (only if we already have a stored version)
-        val millVersionChanged = lastMillVersion.exists(_ != init.clientMillVersion)
-        val javaVersionChanged =
-          lastJavaVersion.isDefined && lastJavaVersion != init.clientJavaVersion
+        // Check for config changes using shared logic
+        val clientConfig = ServerLauncher.DaemonConfig(
+          millVersion = init.clientMillVersion,
+          javaVersion = init.clientJavaVersion,
+          jvmOpts = init.clientJvmOpts
+        )
 
-        if (millVersionChanged || javaVersionChanged) {
-          Server.withOutLock(
-            noBuildLock = false,
-            noWaitForBuildLock = false,
-            out = outFolder,
-            millActiveCommandMessage = "checking server mill version and java version",
-            streams = new SystemStreams(
-              new PrintStream(mill.api.daemon.DummyOutputStream),
-              new PrintStream(mill.api.daemon.DummyOutputStream),
-              mill.api.daemon.DummyInputStream
-            ),
-            outLock = outLock,
-            setIdle = _ => ()
-          ) {
-            if (millVersionChanged) {
-              teeStderr.println(
-                s"Mill version changed (${lastMillVersion.getOrElse("<unknown>")} -> ${init.clientMillVersion}), re-starting server"
+        lastConfig.foreach { stored =>
+          val mismatchReasons = stored.checkMismatchAgainst(clientConfig)
+          if (mismatchReasons.nonEmpty) {
+            Server.withOutLock(
+              noBuildLock = false,
+              noWaitForBuildLock = false,
+              out = outFolder,
+              millActiveCommandMessage = "checking server configuration",
+              streams = new SystemStreams(
+                new PrintStream(mill.api.daemon.DummyOutputStream),
+                new PrintStream(mill.api.daemon.DummyOutputStream),
+                mill.api.daemon.DummyInputStream
+              ),
+              outLock = outLock,
+              setIdle = _ => ()
+            ) {
+              mismatchReasons.foreach(reason => teeStderr.println(s"$reason, re-starting server"))
+
+              // This sends RPC response and throws InterruptedException to stop the RPC loop
+              deferredStopServer(
+                s"config mismatch: ${mismatchReasons.mkString(", ")}",
+                ClientUtil.ServerExitPleaseRetry
               )
             }
-            if (javaVersionChanged) {
-              teeStderr.println(
-                s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${init.clientJavaVersion.getOrElse("<system>")}), re-starting server"
-              )
-            }
-
-            // This sends RPC response and throws InterruptedException to stop the RPC loop
-            deferredStopServer(
-              s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
-              ClientUtil.ServerExitPleaseRetry
-            )
           }
         }
-        lastMillVersion = Some(init.clientMillVersion)
-        lastJavaVersion = init.clientJavaVersion
+        lastConfig = Some(clientConfig)
 
         // Run the actual command
         val (result, newStateCache) = main0(

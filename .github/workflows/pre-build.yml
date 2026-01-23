@@ -1,7 +1,5 @@
 env:
   FORCE_COLOR: '1'
-  # Use SNAPSHOT version for selective testing to avoid daemon version mismatches
-  MILL_UNSTABLE_VERSION: '1'
 
 on:
   workflow_call:
@@ -13,7 +11,6 @@ on:
         default: 'dist.executable + core.api.test.compile + testkit.compile'
         type: string
       java-version:
-        default: '17'
         type: string
       os:
         type: string
