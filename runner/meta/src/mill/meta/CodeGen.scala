@@ -28,6 +28,7 @@ object CodeGen {
       parser: MillScalaParser
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
+    val allowNestedBuildMillFiles = readAllowNestedBuildMillFiles(projectRoot)
 
     // Collect moduleDeps configuration from all YAML files to write to a classpath resource
     val moduleDepsConfig = collection.mutable.Map.empty[String, ModuleDepsConfig]
@@ -50,11 +51,14 @@ object CodeGen {
       val segments = calcSegments(scriptFolderPath, projectRoot)
       val supportDestDir = supportDest / packageSegments / os.up
 
+      // Look for child directories that contain either package.mill or build.mill
+      // (build.mill in subdirectories is allowed when allowNestedBuildMillFiles is enabled)
+      val allBuildFileNames = (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
       val childNames = scriptSources
         .collect {
           case path
               if path != scriptPath
-                && CGConst.nestedBuildFileNames.contains(path.last)
+                && allBuildFileNames.contains(path.last)
                 && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
@@ -234,9 +238,11 @@ object CodeGen {
             scriptFolderPath == projectRoot
             && CGConst.nestedBuildFileNames.contains(scriptName)
           ) break()
+          // Skip nested build.mill files unless allowNestedBuildMillFiles is enabled
           if (
             scriptFolderPath != projectRoot
             && CGConst.rootBuildFileNames.contains(scriptName)
+            && !allowNestedBuildMillFiles
           ) break()
 
           val scriptCode = allScriptCode(scriptPath)
@@ -483,6 +489,34 @@ object CodeGen {
         |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
         |)
         |""".stripMargin
+  }
+
+  /**
+   * Read the `allowNestedBuildMillFiles` flag from the root build.mill YAML header.
+   */
+  private def readAllowNestedBuildMillFiles(projectRoot: os.Path): Boolean = {
+    val rootBuildFile = CGConst.rootBuildFileNames.asScala
+      .map(name => projectRoot / name)
+      .find(os.exists)
+
+    rootBuildFile match {
+      case None => false
+      case Some(buildFile) =>
+        val headerData = mill.constants.Util.readBuildHeader(buildFile.toNIO, buildFile.last)
+        mill.internal.Util.parseYaml0(
+          "build header",
+          headerData,
+          upickle.default.reader[Map[String, ujson.Value]]
+        ) match {
+          case mill.api.Result.Success(conf) =>
+            conf.get(mill.constants.ConfigConstants.allowNestedBuildMillFiles) match {
+              case Some(ujson.Bool(value)) => value
+              case Some(ujson.Str(value)) => value.toLowerCase == "true"
+              case _ => false
+            }
+          case _ => false
+        }
+    }
   }
 
 }

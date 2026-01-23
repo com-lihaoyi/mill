@@ -4,6 +4,7 @@ import mill.api.daemon.internal.internal
 import mill.api.daemon.Result
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.OutFiles.*
+import mill.constants.ConfigConstants
 import mill.api.daemon.internal.MillScalaParser
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
@@ -40,6 +41,7 @@ object DiscoveredBuildFiles {
   ): DiscoveredBuildFiles = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[Result.Failure]
+    val allowNestedBuildMillFiles = readAllowNestedBuildMillFiles(projectRoot)
 
     def processScript(s: os.Path): Unit =
       try {
@@ -58,10 +60,20 @@ object DiscoveredBuildFiles {
               Seq(rootModuleAlias) ++ (s / os.up).relativeTo(projectRoot).segments
 
             val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
+            val isRootBuildFile = s / os.up == projectRoot
+            // When allowNestedBuildMillFiles is enabled, allow files in directories with
+            // nested build.mill to use `package build` instead of the full path
+            val isInNestedBuildMillDir =
+              allowNestedBuildMillFiles &&
+                !isRootBuildFile &&
+                rootBuildFileNames.asScala.exists(n => os.exists((s / os.up) / n)) &&
+                importSegments == rootModuleAlias
             if (
               expectedImportSegments != importSegments &&
               // Root build.mill file has its `package build` be optional
-              !(importSegments == "" && rootBuildFileNames.contains(s.last))
+              !(importSegments == "" && rootBuildFileNames.contains(s.last)) &&
+              // Files in directories with nested build.mill can use `package build`
+              !isInNestedBuildMillDir
             ) {
               val expectedImport =
                 if (expectedImportSegments.isEmpty) "<none>"
@@ -129,7 +141,13 @@ object DiscoveredBuildFiles {
   def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
     if (!os.exists(projectRoot)) Nil
     else {
+      val allowNestedBuildMillFiles = readAllowNestedBuildMillFiles(projectRoot)
       val nestedBuildFileNames = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
+      // When allowNestedBuildMillFiles is enabled, also look for build.mill files in subdirectories
+      val nestedBuildFileNamesWithBuild =
+        if (allowNestedBuildMillFiles)
+          nestedBuildFileNames ++ rootBuildFileNames.asScala.toList
+        else nestedBuildFileNames
       val buildFiles = os
         .walk(
           projectRoot,
@@ -137,9 +155,10 @@ object DiscoveredBuildFiles {
           skip = p =>
             p == output ||
               p == projectRoot / millBuild ||
-              (os.isDir(p) && !nestedBuildFileNames.exists(n => os.exists(p / n)))
+              (os.isDir(p) && !nestedBuildFileNamesWithBuild.exists(n => os.exists(p / n)))
         )
-        .filter(p => nestedBuildFileNames.contains(p.last))
+        // Include both package.mill and nested build.mill files (when enabled)
+        .filter(p => nestedBuildFileNamesWithBuild.contains(p.last))
 
       val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
         .flatMap(os.list(_))
@@ -150,6 +169,31 @@ object DiscoveredBuildFiles {
         )
 
       buildFiles ++ adjacentScripts
+    }
+  }
+
+  /**
+   * Read the `allowNestedBuildMillFiles` flag from the root build.mill YAML header.
+   */
+  private def readAllowNestedBuildMillFiles(projectRoot: os.Path): Boolean = {
+    val (isDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+    if (isDummy) false
+    else {
+      val rootBuildFile = projectRoot / foundRootBuildFileName
+      val headerData = mill.constants.Util.readBuildHeader(rootBuildFile.toNIO, foundRootBuildFileName)
+      mill.internal.Util.parseYaml0(
+        "build header",
+        headerData,
+        upickle.default.reader[Map[String, ujson.Value]]
+      ) match {
+        case mill.api.Result.Success(conf) =>
+          conf.get(ConfigConstants.allowNestedBuildMillFiles) match {
+            case Some(ujson.Bool(value)) => value
+            case Some(ujson.Str(value)) => value.toLowerCase == "true"
+            case _ => false
+          }
+        case _ => false
+      }
     }
   }
 

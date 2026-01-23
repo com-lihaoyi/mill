@@ -1,0 +1,6 @@
+// deps/foo/project/version.mill
+package build.project
+
+object Version {
+  def scalaVersion = "2.13.16"
+}
