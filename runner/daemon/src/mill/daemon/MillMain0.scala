@@ -258,6 +258,7 @@ object MillMain0 {
                         noBuildLock = config.noBuildLock.value,
                         noWaitForBuildLock = config.noWaitForBuildLock.value,
                         out = out,
+                        daemonDir = daemonDir,
                         millActiveCommandMessage = millActiveCommandMessage,
                         streams = streams,
                         outLock = outLock,
@@ -337,7 +338,7 @@ object MillMain0 {
                         val bspLogger = getBspLogger(streams, config)
                         var prevRunnerStateOpt = Option.empty[RunnerState]
                         val (bspServerHandle, buildClient) =
-                          startBspServer(streams0, outLock, bspLogger)
+                          startBspServer(streams0, outLock, bspLogger, daemonDir)
                         var keepGoing = true
                         var errored = false
                         val initCommandLogger = new PrefixLogger(bspLogger, Seq("init"))
@@ -523,7 +524,8 @@ object MillMain0 {
   def startBspServer(
       bspStreams: SystemStreams,
       outLock: Lock,
-      bspLogger: Logger
+      bspLogger: Logger,
+      daemonDir: os.Path
   ): (BspServerHandle, BuildClient) = {
     bspLogger.info("Trying to load BSP server...")
 
@@ -540,7 +542,8 @@ object MillMain0 {
         true,
         outLock,
         bspLogger,
-        outFolder
+        outFolder,
+        daemonDir
       ).get
 
     bspLogger.info("BSP server started")
