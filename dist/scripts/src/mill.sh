@@ -82,9 +82,8 @@ check_glibc_version() {
 
 set_artifact_suffix(){
   if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
-    # Native binaries require GLIBC >= 2.34; fall back to JVM launcher if older
+    # Native binaries require new enough GLIBC; fall back to JVM launcher if older
     if ! check_glibc_version; then
-      # GLIBC too old for native launcher, use JVM suffix (empty ARTIFACT_SUFFIX)
       return
     fi
     if [ "$(uname -m)" = "aarch64" ]; then ARTIFACT_SUFFIX="-native-linux-aarch64"
