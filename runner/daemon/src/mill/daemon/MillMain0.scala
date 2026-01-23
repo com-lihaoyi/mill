@@ -308,35 +308,16 @@ object MillMain0 {
                         loggerOpt match {
                           case Some(logger) => proceed(logger)
                           case None =>
-                            val consoleLogFile = daemonDir / DaemonFiles.consoleLog
-                            val consoleLogStream = os.write.outputStream(
-                              consoleLogFile,
-                              createFolders = true,
-                              openOptions = Seq(
-                                StandardOpenOption.CREATE,
-                                StandardOpenOption.WRITE,
-                                StandardOpenOption.TRUNCATE_EXISTING
-                              )
-                            )
-                            val teeStreams = new SystemStreams(
-                              new MultiStream(streams.out, consoleLogStream),
-                              new MultiStream(streams.err, consoleLogStream),
-                              streams.in
-                            )
-                            try {
-                              Using.resource(getLogger(
-                                streams = teeStreams,
-                                config = config,
-                                enableTicker = enableTicker,
-                                daemonDir = daemonDir,
-                                colored = colored,
-                                colors = colors,
-                                out = out
-                              )) { logger =>
-                                proceed(logger)
-                              }
-                            } finally {
-                              consoleLogStream.close()
+                            Using.resource(getLogger(
+                              streams = streams,
+                              config = config,
+                              enableTicker = enableTicker,
+                              daemonDir = daemonDir,
+                              colored = colored,
+                              colors = colors,
+                              out = out
+                            )) { logger =>
+                              proceed(logger)
                             }
                         }
                       }
@@ -589,6 +570,67 @@ object MillMain0 {
     }).map { x => if (x < 1) 1 else x }
   }
 
+  /**
+   * An OutputStream that writes to a console log file and automatically
+   * truncates it every `maxNewlines` newlines to prevent unbounded growth.
+   */
+  private class RotatingConsoleLogOutputStream(
+      consoleLogFile: os.Path,
+      maxNewlines: Int = 1000
+  ) extends java.io.OutputStream {
+    private var newlineCount = 0
+    private var underlying: java.io.OutputStream = openStream()
+
+    private def openStream(): java.io.OutputStream = {
+      os.write.outputStream(
+        consoleLogFile,
+        createFolders = true,
+        openOptions = Seq(
+          StandardOpenOption.CREATE,
+          StandardOpenOption.WRITE,
+          StandardOpenOption.TRUNCATE_EXISTING
+        )
+      )
+    }
+
+    private def incrementNewlineAndMaybeRotate(): Unit = {
+      newlineCount += 1
+      if (newlineCount >= maxNewlines) {
+        underlying.close()
+        underlying = openStream()
+        newlineCount = 0
+      }
+    }
+
+    override def write(b: Int): Unit = synchronized {
+      underlying.write(b)
+      if (b == '\n') incrementNewlineAndMaybeRotate()
+    }
+
+    override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
+      var pos = off
+      val end = off + len
+      while (pos < end) {
+        // Find the next newline
+        var nextNewline = pos
+        while (nextNewline < end && b(nextNewline) != '\n') nextNewline += 1
+
+        if (nextNewline < end) {
+          // Found a newline - write up to and including it
+          underlying.write(b, pos, nextNewline - pos + 1)
+          incrementNewlineAndMaybeRotate()
+          pos = nextNewline + 1
+        } else {
+          underlying.write(b, pos, end - pos)
+          pos = end
+        }
+      }
+    }
+
+    override def flush(): Unit = synchronized { underlying.flush() }
+    override def close(): Unit = synchronized { underlying.close() }
+  }
+
   def getLogger(
       streams: SystemStreams,
       config: MillCliConfig,
@@ -611,6 +653,16 @@ object MillMain0 {
       // Fallback
       .getOrElse("mill")
 
+    // Console log file for monitoring progress when another process is waiting
+    val consoleLogStream = new RotatingConsoleLogOutputStream(
+      daemonDir / DaemonFiles.consoleLog
+    )
+    val teeStreams = new SystemStreams(
+      new MultiStream(streams.out, consoleLogStream),
+      new MultiStream(streams.err, consoleLogStream),
+      streams.in
+    )
+
     val promptLogger = new PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
@@ -618,7 +670,7 @@ object MillMain0 {
       warnColor = colors.warn,
       errorColor = colors.error,
       successColor = colors.success,
-      systemStreams0 = streams,
+      systemStreams0 = teeStreams,
       debugEnabled = config.debugLog.value,
       titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),
       terminfoPath = daemonDir / DaemonFiles.terminfo,
@@ -626,7 +678,10 @@ object MillMain0 {
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {
-      override def close(): Unit = promptLogger.close()
+      override def close(): Unit = {
+        promptLogger.close()
+        consoleLogStream.close()
+      }
     }
   }
 
