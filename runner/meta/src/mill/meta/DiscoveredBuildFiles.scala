@@ -66,15 +66,12 @@ object DiscoveredBuildFiles {
             val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
             val isRootBuildFile = s / os.up == projectRoot
 
-            val isInNestedBuildMillDir =
-              allowNestedBuildMillFiles && !isRootBuildFile && importSegments == rootModuleAlias
-
             if (
               expectedImportSegments != importSegments &&
               // Root build.mill file has its `package build` be optional
               !(importSegments == "" && rootBuildFileNames.contains(s.last)) &&
-              // Nested projects with build.mill are allowed to have mis-matched `package` clauses
-              !isInNestedBuildMillDir
+              // Projects with nested build.mill are allowed to have mis-matched `package` clauses
+              !allowNestedBuildMillFiles
             ) {
               val expectedImport =
                 if (expectedImportSegments.isEmpty) "<none>"
