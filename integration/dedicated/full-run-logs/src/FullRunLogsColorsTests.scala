@@ -97,7 +97,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
         assertGoldenLiteral(
           normalize(res2.result.out.text()),
           List(
-            "mill test",
+            "(C)mill test(X)",
             "(B)<digits>] test.testForked(X) Running Test Class foo.FooTest",
             "(B)<digits>](X) (B)Test run (X)foo.(Y)FooTest(B) started(X)",
             "(B)<digits>](X) Test foo.(Y)FooTest(X).(C)testSimple(X) started",
@@ -164,7 +164,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) ",
             "(B)<digits>](X) Test foo.(Y)FooTest(X).(C)testSimple(X) finished, took .../... sec",
             "(B)<digits>](X) (B)Test run (X)foo.(Y)FooTest(B) finished: 0 failed, 0 ignored, 1 total, .../...s(X)",
-            ".../..., (G)SUCCESS(X)] mill test"
+            ".../..., (G)SUCCESS(X)] (C)mill test(X)"
           )
         )
       }
@@ -250,7 +250,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
         assertGoldenLiteral(
           normalize(res4.result.out.text()),
           List(
-            "mill test.printColors",
+            "(C)mill test.printColors(X)",
             "(B)<digits>] test.printColors(X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_1(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_2(X)",
             "(B)<digits>](X) (R)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_3(X)",
@@ -312,7 +312,7 @@ object FullRunLogsColorsTests extends UtestIntegrationTestSuite {
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_59(X)",
             "(B)<digits>](X) (Y)ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ_60(X)",
             "(B)<digits>](X) ",
-            ".../..., (G)SUCCESS(X)] mill test.printColors"
+            ".../..., (G)SUCCESS(X)] (C)mill test.printColors(X)"
           )
         )
       }

@@ -103,14 +103,14 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
-          "mill logging",
+          "(C)mill logging(X)",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] logging(X) MY PRINTLN",
           "(B)<digits>](X) MY INFO LOGS",
           "(B)<digits>](X) [(Y)warn(X)] MY WARN LOGS",
           "(B)<digits>](X) [(R)error(X)] MY ERROR LOGS",
-          ".../..., (G)SUCCESS(X)] mill logging"
+          ".../..., (G)SUCCESS(X)] (C)mill logging(X)"
         )
       )
       // Make sure the `.log` files on disk contain what we expect

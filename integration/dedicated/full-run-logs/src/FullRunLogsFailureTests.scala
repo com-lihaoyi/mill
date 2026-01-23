@@ -32,7 +32,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res.result.err.text()),
         // We passed in `--color=true` so we should expect colored output
         List(
-          "mill jar",
+          "(C)mill jar(X)",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
@@ -53,7 +53,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] three errors found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 FAILED(X)] mill jar",
+          ".../..., (R)1 FAILED(X)] (C)mill jar(X)",
           "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
         )
       )
@@ -75,7 +75,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res2.result.err.text()),
         // We passed in `--color=true` so we should expect colored output
         List(
-          "mill jar",
+          "(C)mill jar(X)",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.java(X):(R)36(X):(R)52(X)",
           "(B)<digits>](X) (Y)class(X) (C)Bar(X) { (B)/*comment*/(X) (Y)void(X) (C)bar(X)(){ (Y)final(X) java.lang.Strin (C)x(X) = (G)\"omg\"(X);}}",
@@ -85,7 +85,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X)   location: package java.lang",
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 FAILED(X)] mill jar",
+          ".../..., (R)1 FAILED(X)] (C)mill jar(X)",
           "(R)<digits>] (X)[(R)error(X)] compile javac returned non-zero exit code"
         )
       )
@@ -101,7 +101,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
         normalize(res3.result.err.text()),
         // We passed in `--color=true` so we should expect colored output
         List(
-          "mill jar",
+          "(C)mill jar(X)",
           "(B)<digits>] compile(X) compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
           "(B)<digits>](X) [(R)error(X)] (R)src/foo/Foo.scala(X):(R)2(X):(R)54(X)",
           "(B)<digits>](X) (Y)class(X) (M)Bar(X) { (B)/*comment*/(X) (Y)def(X) (C)bar(X) = { (Y)val(X) (C)x(X): java.lang.(Y)Strig(X) =  (G)\"omg\"(X)}}",
@@ -110,7 +110,7 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
           "(B)<digits>](X) ",
           "(B)<digits>](X) [(R)error(X)] one error found",
           "(B)<digits>](X) [(R)error(X)] compile task failed",
-          ".../..., (R)1 FAILED(X)] mill jar",
+          ".../..., (R)1 FAILED(X)] (C)mill jar(X)",
           "(R)<digits>] (X)[(R)error(X)] compile Compilation failed"
         )
       )
@@ -176,10 +176,10 @@ object FullRunLogsFailureTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.result.out.text()),
         List(
-          "mill exception",
+          "(C)mill exception(X)",
           "(B)build.mill-<digits>] compile(X) compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
           "(B)build.mill-<digits>](X) done compiling",
-          ".../..., (R)1 FAILED(X)] mill exception",
+          ".../..., (R)1 FAILED(X)] (C)mill exception(X)",
           "(R)<digits>] (X)[(R)error(X)] exception",
           "(R)java.lang.Exception(X): boom",
           "  (R)build_.package_.exceptionHelper(X)((R)build.mill(X):(R)6(X))",
