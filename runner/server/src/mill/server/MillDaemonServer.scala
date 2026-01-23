@@ -3,7 +3,6 @@ package mill.server
 import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.Locks
-import mill.constants.DaemonFiles
 import mill.launcher.DaemonRpc
 import mill.api.daemon.StopWithResponse
 import mill.client.ServerLauncher.DaemonConfig
@@ -143,8 +142,6 @@ abstract class MillDaemonServer[State](
         lastConfig = Some(clientConfig)
 
         // Run the actual command
-        // Note: console.log file is now created by MillMain0.getLogger() using a MultiLogger
-        // that splits output to both the terminal (interactive) and the file (non-interactive)
         val (result, newStateCache) = main0(
           args = init.args.toArray,
           stateCache = stateCache,

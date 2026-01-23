@@ -46,7 +46,8 @@ object CodeGen {
       .toSet
 
     // All build file names (including package.mill) for child module detection
-    val allBuildFileNames = (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
+    val allBuildFileNames =
+      (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up

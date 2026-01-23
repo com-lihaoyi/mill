@@ -81,7 +81,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
-            "file-prompt-logger-stream-pumper-thread",
             "main",
             "prompt-logger-stream-pumper-thread"
           )
@@ -110,7 +109,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
-              "file-prompt-logger-stream-pumper-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -140,7 +138,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
-              "file-prompt-logger-stream-pumper-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -166,7 +163,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
-            "file-prompt-logger-stream-pumper-thread",
             "main",
             "prompt-logger-stream-pumper-thread"
           )
@@ -195,7 +191,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
-              "file-prompt-logger-stream-pumper-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -226,7 +221,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
-              "file-prompt-logger-stream-pumper-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -259,7 +253,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
-              "file-prompt-logger-stream-pumper-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -289,7 +282,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
             "Timer",
-            "file-prompt-logger-stream-pumper-thread",
             "leaked thread",
             "main",
             "prompt-logger-stream-pumper-thread"

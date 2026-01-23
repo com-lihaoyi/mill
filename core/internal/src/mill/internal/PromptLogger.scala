@@ -29,8 +29,7 @@ class PromptLogger(
     terminfoPath: os.Path,
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true,
-    val chromeProfileLogger: JsonArrayLogger.ChromeProfileLike,
-    streamPumperThreadName: String = "prompt-logger-stream-pumper-thread"
+    val chromeProfileLogger: JsonArrayLogger.ChromeProfile
 ) extends Logger.Upstream with AutoCloseable {
   prompt.beginChromeProfileEntry("mill " + titleText)
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
@@ -60,8 +59,7 @@ class PromptLogger(
         () => promptLineState.getCurrentPrompt(),
         interactive = () => isInteractive(),
         paused = () => runningState.paused,
-        synchronizer = this,
-        pumperThreadName = streamPumperThreadName
+        synchronizer = this
       )
 
   private object runningState extends RunningState(
@@ -98,24 +96,9 @@ class PromptLogger(
     }
   }
 
-  private var endingPromptPrinted = false
-
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
-    if (ending && endingPromptPrinted) return
     val updated = promptLineState.updatePrompt(ending)
-    if (updated || ending) {
-      streamManager.refreshPrompt()
-      if (ending) endingPromptPrinted = true
-    }
-  }
-
-  /**
-   * Prints the final status line without closing the logger.
-   * This allows error details to be printed after the status line
-   * but before the logger fully closes.
-   */
-  def printFinalStatus(): Unit = synchronized {
-    if (enableTicker) refreshPrompt(ending = true)
+    if (updated || ending) streamManager.refreshPrompt()
   }
 
   def info(s: String): Unit = streams.err.println(s)
@@ -393,8 +376,7 @@ object PromptLogger {
       getCurrentPrompt: () => Array[Byte],
       interactive: () => Boolean,
       paused: () => Boolean,
-      synchronizer: AnyRef,
-      pumperThreadName: String
+      synchronizer: AnyRef
   ) {
 
     // We force both stdout and stderr streams into a single `Piped*Stream` pair via
@@ -492,7 +474,7 @@ object PromptLogger {
       }
     }
 
-    val pumperThread = new Thread(pumper, pumperThreadName)
+    val pumperThread = new Thread(pumper, "prompt-logger-stream-pumper-thread")
     pumperThread.start()
 
     def close(): Unit = {
