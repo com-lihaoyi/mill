@@ -164,7 +164,6 @@ object DiscoveredBuildFiles {
               p == projectRoot / millBuild ||
               (os.isDir(p) && !nestedBuildFileNames.exists(n => os.exists(p / n)))
         )
-        // Include both package.mill and nested build.mill files (when enabled)
         .filter(p => nestedBuildFileNames.contains(p.last))
 
       val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
