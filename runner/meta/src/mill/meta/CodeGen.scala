@@ -37,12 +37,16 @@ object CodeGen {
     // Collect moduleDeps configuration from all YAML files to write to a classpath resource
     val moduleDepsConfig = collection.mutable.Map.empty[String, ModuleDepsConfig]
 
-    // Find all directories that contain build.mill files
-    val allBuildFileNames = (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
-    val buildFileDirs = scriptSources
-      .filter(p => allBuildFileNames.contains(p.last))
+    // Find all directories that contain build.mill files (root build files only)
+    // This is used to determine the enclosing build context for nested builds
+    val rootBuildFileNamesSet = CGConst.rootBuildFileNames.asScala.toSet
+    val nestedBuildFileDirs = scriptSources
+      .filter(p => rootBuildFileNamesSet.contains(p.last))
       .map(_ / os.up)
       .toSet
+
+    // All build file names (including package.mill) for child module detection
+    val allBuildFileNames = (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
@@ -58,10 +62,12 @@ object CodeGen {
       val supportDestDir = supportDest / packageSegments / os.up
 
       // Find the nearest enclosing build.mill file's segments by walking up from
-      // the current script's folder until we find a directory containing a build file
+      // the current script's folder until we find a directory containing a build.mill file.
+      // Only considers build.mill files, not package.mill files, since package.mill files
+      // don't create a new build context - they use the enclosing build.mill's context.
       val enclosingBuildSegments = {
         var dir = scriptFolderPath
-        while (dir != projectRoot && !buildFileDirs.contains(dir)) dir = dir / os.up
+        while (dir != projectRoot && !nestedBuildFileDirs.contains(dir)) dir = dir / os.up
         calcSegments(dir, projectRoot)
       }
 
