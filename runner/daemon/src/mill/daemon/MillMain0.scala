@@ -24,6 +24,7 @@ import mill.api
 import mill.api.daemon.internal.bsp.BspServerResult
 
 import java.io.{InputStream, PrintStream, PrintWriter, StringWriter}
+import java.nio.file.StandardOpenOption
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
 import scala.jdk.CollectionConverters.*
@@ -307,16 +308,35 @@ object MillMain0 {
                         loggerOpt match {
                           case Some(logger) => proceed(logger)
                           case None =>
-                            Using.resource(getLogger(
-                              streams = streams,
-                              config = config,
-                              enableTicker = enableTicker,
-                              daemonDir = daemonDir,
-                              colored = colored,
-                              colors = colors,
-                              out = out
-                            )) { logger =>
-                              proceed(logger)
+                            val consoleLogFile = daemonDir / DaemonFiles.consoleLog
+                            val consoleLogStream = os.write.outputStream(
+                              consoleLogFile,
+                              createFolders = true,
+                              openOptions = Seq(
+                                StandardOpenOption.CREATE,
+                                StandardOpenOption.WRITE,
+                                StandardOpenOption.TRUNCATE_EXISTING
+                              )
+                            )
+                            val teeStreams = new SystemStreams(
+                              new MultiStream(streams.out, consoleLogStream),
+                              new MultiStream(streams.err, consoleLogStream),
+                              streams.in
+                            )
+                            try {
+                              Using.resource(getLogger(
+                                streams = teeStreams,
+                                config = config,
+                                enableTicker = enableTicker,
+                                daemonDir = daemonDir,
+                                colored = colored,
+                                colors = colors,
+                                out = out
+                              )) { logger =>
+                                proceed(logger)
+                              }
+                            } finally {
+                              consoleLogStream.close()
                             }
                         }
                       }

@@ -474,7 +474,7 @@ object Server {
         else {
           streams.err.println(
             s"$activeTaskPrefix waiting for it to be done... " +
-              s"(tail -f ${consoleLogPath.relativeTo(os.pwd)} to see its progress)"
+              s"(tail -F ${consoleLogPath.relativeTo(mill.api.BuildCtx.workspaceRoot)} to see its progress)"
           )
           outLock.lock()
         }
