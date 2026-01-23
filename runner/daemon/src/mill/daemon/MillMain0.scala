@@ -308,7 +308,7 @@ object MillMain0 {
                         loggerOpt match {
                           case Some(logger) => proceed(logger)
                           case None =>
-                            Using.resource(getLogger(
+                            val logger = getLogger(
                               streams = streams,
                               config = config,
                               enableTicker = enableTicker,
@@ -316,8 +316,17 @@ object MillMain0 {
                               colored = colored,
                               colors = colors,
                               out = out
-                            )) { logger =>
-                              proceed(logger)
+                            )
+                            try {
+                              val result = proceed(logger)
+                              // Close with error details so errors appear in console.log
+                              // after the final status line
+                              logger.closeWithErrorDetails(result.errorOpt)
+                              result
+                            } catch {
+                              case t: Throwable =>
+                                logger.close()
+                                throw t
                             }
                         }
                       }
@@ -578,7 +587,7 @@ object MillMain0 {
       colored: Boolean,
       colors: Colors,
       out: os.Path
-  ): Logger & AutoCloseable = {
+  ): LoggerWithErrorDetails = {
     val cmdTitle = sys.props.get("mill.main.cli")
       .map { prog =>
         val path = sys.env.get("PATH").map(_.split("[:]").toIndexedSeq).getOrElse(Seq())
@@ -636,7 +645,8 @@ object MillMain0 {
       terminfoPath = nonInteractiveTerminfoPath,
       currentTimeMillis = () => System.currentTimeMillis(),
       // Use NoOp to avoid double-logging chrome profile entries
-      chromeProfileLogger = JsonArrayLogger.ChromeProfile.NoOp
+      chromeProfileLogger = JsonArrayLogger.ChromeProfile.NoOp,
+      streamPumperThreadName = "file-prompt-logger-stream-pumper-thread"
     )
 
     // Wrap PromptLoggers in PrefixLoggers to get Logger types for MultiLogger
@@ -645,13 +655,40 @@ object MillMain0 {
 
     val multiLogger = new MultiLogger(interactivePrefixLogger, filePrefixLogger, streams.in)
 
-    new PrefixLogger(multiLogger, Nil) with AutoCloseable {
+    new PrefixLogger(multiLogger, Nil) with LoggerWithErrorDetails {
+      override def closeWithErrorDetails(errorOpt: Option[String]): Unit = {
+        // First, print the final status line on both loggers
+        interactiveLogger.printFinalStatus()
+        filePromptLogger.printFinalStatus()
+
+        // Then print error details to the console.log file directly
+        // (terminal output is handled by handleError in Watching.watchLoop)
+        errorOpt.foreach { error =>
+          consoleLogPrintStream.println(error)
+        }
+
+        // Finally close all resources
+        interactiveLogger.close()
+        filePromptLogger.close()
+        consoleLogStream.close()
+      }
+
       override def close(): Unit = {
         interactiveLogger.close()
         filePromptLogger.close()
         consoleLogStream.close()
       }
     }
+  }
+
+  /** Logger that supports printing error details after the closing prompt */
+  trait LoggerWithErrorDetails extends Logger with AutoCloseable {
+    /**
+     * Closes the logger, printing error details after the final status line.
+     * This ensures error details appear in console.log after the status line
+     * (e.g., ".../..., FAILED]") but before the logger fully closes.
+     */
+    def closeWithErrorDetails(errorOpt: Option[String]): Unit
   }
 
   def getBspLogger(

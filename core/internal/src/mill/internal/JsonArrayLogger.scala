@@ -108,8 +108,27 @@ object JsonArrayLogger {
     }
   }
 
+  /**
+   * Base trait for chrome profile loggers, allowing for no-op implementations
+   * without creating background threads.
+   */
+  trait ChromeProfileLike extends AutoCloseable {
+    def logBegin(
+        terminal: String,
+        cat: String,
+        startTime: Long,
+        threadId: Int
+    ): Unit
+
+    def logEnd(
+        endTime: Long,
+        threadId: Int
+    ): Unit
+  }
+
   class ChromeProfile(outPath: os.Path)
-      extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
+      extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1)
+      with ChromeProfileLike {
 
     def logBegin(
         terminal: String,
@@ -146,9 +165,10 @@ object JsonArrayLogger {
 
     /**
      * A no-op chrome profile logger that does nothing.
-     * Used when we need a ChromeProfile instance but don't want to actually log.
+     * Used when we need a ChromeProfile instance but don't want to actually log
+     * or create any background threads.
      */
-    object NoOp extends ChromeProfile(os.temp()) {
+    object NoOp extends ChromeProfileLike {
       override def logBegin(
           terminal: String,
           cat: String,
