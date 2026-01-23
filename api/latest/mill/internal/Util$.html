@@ -311,6 +311,41 @@ node3 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="parseBuildHeaderValue-fffffaad">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Util$.html#parseBuildHeaderValue-fffffaad" t="n" class="documentableName ">parseBuildHeaderValue</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span> : <span data-unresolved-link="" t="t">Reader</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">headerData</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">configKey</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">default</span>: <span data-unresolved-link="" t="t">T</span>): <span data-unresolved-link="" t="t">T</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Parses a config value from the YAML header data. Returns the parsed value or a default on missing key. Throws on parse failure.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Parses a config value from the YAML header data. Returns the parsed value or a default on missing key. Throws on parse failure.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/internal/src/mill/internal/Util.scala" target="_blank">Util.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="parseHeaderData-990">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -357,6 +392,41 @@ node3 -> node2;
            <div class="memberDocumentation">
             <div class="cover">
              <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/internal/src/mill/internal/Util.scala" target="_blank">Util.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="readBooleanFromBuildHeader-fffff021">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Util$.html#readBooleanFromBuildHeader-fffff021" t="n" class="documentableName ">readBooleanFromBuildHeader</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">projectRoot</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">configKey</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">rootBuildFileNames</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]): <span data-unresolved-link="" t="t">Boolean</span>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Reads a boolean flag from the root build.mill YAML header.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Reads a boolean flag from the root build.mill YAML header.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
