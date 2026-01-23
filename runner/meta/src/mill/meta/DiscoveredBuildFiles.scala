@@ -67,10 +67,7 @@ object DiscoveredBuildFiles {
             val isRootBuildFile = s / os.up == projectRoot
 
             val isInNestedBuildMillDir =
-              allowNestedBuildMillFiles &&
-                !isRootBuildFile &&
-                rootBuildFileNames.asScala.exists(n => os.exists((s / os.up) / n)) &&
-                importSegments == rootModuleAlias
+              allowNestedBuildMillFiles && !isRootBuildFile && importSegments == rootModuleAlias
 
             if (
               expectedImportSegments != importSegments &&
