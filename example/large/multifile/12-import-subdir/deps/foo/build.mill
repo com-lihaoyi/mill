@@ -5,9 +5,4 @@ package build
 
 import mill.*, scalalib.*
 
-// Trait defined directly in build.mill (not in helper file)
-trait FooModule extends ScalaModule {
-  def scalaVersion = myScalaVersion
-}
-
 object `package` extends FooModule
