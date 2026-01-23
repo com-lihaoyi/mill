@@ -142,7 +142,6 @@ object MillProcessLauncher {
       key: String,
       env: Map[String, String]
   ): Seq[String] = {
-    
     mill.internal.Util
       .parseBuildHeaderValue[OneOrMore[String]](headerData, key, default = OneOrMore(Nil))
       .value
