@@ -324,33 +324,43 @@ object Util {
     }
   }
 
+  /**
+   * Parses a config value from the YAML header data.
+   * Returns the parsed value or a default on missing key or parse failure.
+   */
+  def parseBuildHeaderValue[T: upickle.default.Reader](
+      headerData: String,
+      configKey: String,
+      default: T
+  ): T =
+    parseYaml0(
+      "build header",
+      headerData,
+      upickle.default.reader[Map[String, ujson.Value]]
+    ) match {
+      case Result.Success(conf) =>
+        conf.get(configKey) match {
+          case Some(value) => upickle.default.read[T](value)
+          case None => default
+        }
+      case _ => default
+    }
+
+  /**
+   * Reads a boolean flag from the root build.mill YAML header.
+   */
   def readBooleanFromBuildHeader(
       projectRoot: os.Path,
       configKey: String,
       rootBuildFileNames: Seq[String]
   ): Boolean = {
-    val rootBuildFile = rootBuildFileNames
+    rootBuildFileNames
       .map(name => projectRoot / name)
       .find(os.exists)
-
-    rootBuildFile match {
-      case None => false
-      case Some(buildFile) =>
+      .exists { buildFile =>
         val headerData = mill.constants.Util.readBuildHeader(buildFile.toNIO, buildFile.last)
-        parseYaml0(
-          "build header",
-          headerData,
-          upickle.default.reader[Map[String, ujson.Value]]
-        ) match {
-          case Result.Success(conf) =>
-            conf.get(configKey) match {
-              case Some(ujson.Bool(value)) => value
-              case Some(ujson.Str(value)) => value.toLowerCase == "true"
-              case _ => false
-            }
-          case _ => false
-        }
-    }
+        parseBuildHeaderValue[Boolean](headerData, configKey, default = false)
+      }
   }
 
   def splitPreserveEOL(bytes: Array[Byte]): Seq[Array[Byte]] = {
