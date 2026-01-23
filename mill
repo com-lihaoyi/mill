@@ -56,36 +56,8 @@ MILL_NATIVE_SUFFIX="-native"
 MILL_JVM_SUFFIX="-jvm"
 FULL_MILL_VERSION=$MILL_VERSION
 ARTIFACT_SUFFIX=""
-
-# Check if GLIBC version is at least the required version
-# Returns 0 (true) if GLIBC >= required version, 1 (false) otherwise
-check_glibc_version() {
-  required_major=2
-  required_minor=34
-  # Get GLIBC version from ldd --version (first line contains version like "ldd (GNU libc) 2.31")
-  glibc_version=$(ldd --version 2>/dev/null | head -n 1 | grep -oE '[0-9]+\.[0-9]+$' || echo "")
-  if [ -z "$glibc_version" ]; then
-    # If we can't determine GLIBC version, assume it's too old
-    return 1
-  fi
-  glibc_major=$(echo "$glibc_version" | cut -d. -f1)
-  glibc_minor=$(echo "$glibc_version" | cut -d. -f2)
-  if [ "$glibc_major" -gt "$required_major" ]; then
-    return 0
-  elif [ "$glibc_major" -eq "$required_major" ] && [ "$glibc_minor" -ge "$required_minor" ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
 set_artifact_suffix(){
   if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
-    # Native binaries require GLIBC >= 2.34; fall back to JVM launcher if older
-    if ! check_glibc_version; then
-      # GLIBC too old for native launcher, use JVM suffix (empty ARTIFACT_SUFFIX)
-      return
-    fi
     if [ "$(uname -m)" = "aarch64" ]; then ARTIFACT_SUFFIX="-native-linux-aarch64"
     else ARTIFACT_SUFFIX="-native-linux-amd64"; fi
   elif [ "$(uname)" = "Darwin" ]; then
