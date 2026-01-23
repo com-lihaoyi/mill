@@ -153,9 +153,9 @@ object DiscoveredBuildFiles {
       val nestedBuildFileNames0 = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
       // When allowNestedBuildMillFiles is enabled, also look for build.mill files in subdirectories
       val nestedBuildFileNames =
-        if (allowNestedBuildMillFiles)
-          nestedBuildFileNames0 ++ rootBuildFileNames.asScala.toList
+        if (allowNestedBuildMillFiles) nestedBuildFileNames0 ++ rootBuildFileNames.asScala.toList
         else nestedBuildFileNames0
+
       val buildFiles = os
         .walk(
           projectRoot,
