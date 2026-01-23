@@ -37,10 +37,12 @@ object CodeGen {
     // Collect moduleDeps configuration from all YAML files to write to a classpath resource
     val moduleDepsConfig = collection.mutable.Map.empty[String, ModuleDepsConfig]
 
-    // Provide `build` as an alias to the root `build_.package_`, since from the user's
-    // perspective it looks like they're writing things that live in `package build`,
-    // but at compile-time we rename things, we so provide an alias to preserve the fiction
-    val aliasImports = "import build_.{package_ => build}"
+    // Find all directories that contain build.mill files
+    val allBuildFileNames = (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
+    val buildFileDirs = scriptSources
+      .filter(p => allBuildFileNames.contains(p.last))
+      .map(_ / os.up)
+      .toSet
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
@@ -55,7 +57,23 @@ object CodeGen {
       val segments = calcSegments(scriptFolderPath, projectRoot)
       val supportDestDir = supportDest / packageSegments / os.up
 
-      val allBuildFileNames = (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
+      // Find the nearest enclosing build.mill file's segments by walking up from
+      // the current script's folder until we find a directory containing a build file
+      val enclosingBuildSegments = {
+        var dir = scriptFolderPath
+        while (dir != projectRoot && !buildFileDirs.contains(dir)) dir = dir / os.up
+        calcSegments(dir, projectRoot)
+      }
+
+      // Provide `build` as an alias to the enclosing `build_.package_`, since from
+      // the user's perspective it looks like they're writing things that live in
+      // `package build`, but at compile-time we rename things, so we provide an alias
+      // to preserve the fiction. For nested builds, we alias to the nested package
+      // so that project-relative imports continue working.
+      val aliasImports = {
+        val nestedPath = (Seq("build_") ++ enclosingBuildSegments.map(backtickWrap)).mkString(".")
+        s"import $nestedPath.{package_ => build}"
+      }
       val childNames = scriptSources
         .collect {
           case path
@@ -98,7 +116,7 @@ object CodeGen {
       if (scriptPath.last.endsWith(".yaml")) {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
-          else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
+          else "_root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover)"
         val parsedHeaderData = mill.internal.Util.parseHeaderData(scriptPath).get
 
         val prelude =
@@ -393,7 +411,7 @@ object CodeGen {
 
     val newParent =
       if (segments.isEmpty) "_root_.mill.util.MainRootModule"
-      else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
+      else "_root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover)"
 
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>

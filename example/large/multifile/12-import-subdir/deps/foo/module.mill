@@ -1,7 +1,11 @@
 // deps/foo/module.mill
+// This helper file demonstrates importing definitions from sibling helper files
+// using `import build.something`. With nested `build.mill` support, `build` here
+// refers to the nested build package (deps/foo), not the root build.
 package build
 
 import mill.*, scalalib.*
+import build.myScalaVersion // Import from versions.mill via the build alias
 
 trait FooModule extends ScalaModule { // trait definition in Helper Files
   def scalaVersion = myScalaVersion

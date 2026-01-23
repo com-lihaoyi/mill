@@ -49,6 +49,10 @@ trait BarModule extends build.deps.foo.FooModule
 // - Traits and objects defined in `versions.mill` can be imported like `build.deps.foo.versions.myScalaVersion`
 // - Traits and objects defined in `module.mill` can be imported like `build.deps.foo.FooModule`
 //
+// Within a nested build, helper files can import from each other using `import build.something`.
+// The `build` alias refers to the enclosing nested build package, so `import build.myScalaVersion`
+// in `module.mill` correctly imports from `versions.mill` in the same nested build directory.
+//
 // The nested `deps/foo/build.mill` simply composes these helper files and references
 // the root build as needed. Note the use of `build` to reference the generated build
 // package object from parent scopes.
