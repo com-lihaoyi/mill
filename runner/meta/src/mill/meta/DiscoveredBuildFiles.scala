@@ -64,7 +64,6 @@ object DiscoveredBuildFiles {
               Seq(rootModuleAlias) ++ (s / os.up).relativeTo(projectRoot).segments
 
             val expectedImportSegments = expectedImportSegments0.map(backtickWrap).mkString(".")
-            val isRootBuildFile = s / os.up == projectRoot
 
             if (
               expectedImportSegments != importSegments &&
