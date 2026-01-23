@@ -55,8 +55,6 @@ object CodeGen {
       val segments = calcSegments(scriptFolderPath, projectRoot)
       val supportDestDir = supportDest / packageSegments / os.up
 
-      // Look for child directories that contain either package.mill or build.mill
-      // (build.mill in subdirectories is allowed when allowNestedBuildMillFiles is enabled)
       val allBuildFileNames = (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
       val childNames = scriptSources
         .collect {
@@ -242,7 +240,7 @@ object CodeGen {
             scriptFolderPath == projectRoot
             && CGConst.nestedBuildFileNames.contains(scriptName)
           ) break()
-          // Skip nested build.mill files unless allowNestedBuildMillFiles is enabled
+
           if (
             scriptFolderPath != projectRoot
             && CGConst.rootBuildFileNames.contains(scriptName)

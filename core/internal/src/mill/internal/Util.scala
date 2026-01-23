@@ -324,14 +324,6 @@ object Util {
     }
   }
 
-  /**
-   * Reads a boolean flag from the root build.mill YAML header.
-   *
-   * @param projectRoot The project root directory
-   * @param configKey The YAML key to look for (e.g., "mill-allow-nested-build-mill")
-   * @param rootBuildFileNames List of possible root build file names (e.g., ["build.mill", "build.mill.yaml"])
-   * @return true if the flag is present and set to true/True/TRUE/"true", false otherwise
-   */
   def readBooleanFromBuildHeader(
       projectRoot: os.Path,
       configKey: String,
