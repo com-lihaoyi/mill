@@ -21,7 +21,7 @@ object `package` extends mill.Module { scripts =>
       "mill-download-cache-unix" -> "~/.cache/mill/download",
       "mill-download-cache-win" -> "%USERPROFILE%\\\\.mill\\\\download",
       "template-file" -> templateFile().path.relativeTo(BuildCtx.workspaceRoot).toString,
-      "glibc-version" -> glibcVersion(),
+      "glibc-version" -> glibcVersion()
     )
     def substitutionMarkers: T[(String, String)] = ("{{{", "}}}")
     def inRepoDir: Task[os.SubPath] = Task.Anon { os.sub / finalName() }
