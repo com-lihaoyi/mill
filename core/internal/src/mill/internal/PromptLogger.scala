@@ -271,7 +271,9 @@ class PromptLogger(
       PromptLogger.this.synchronized {
         if (message != "") beginChromeProfileEntry(message)
         promptLineState.setCurrent(
-          key, Some(fansi.Str(Logger.formatPrefix0(key) ++ spaceNonEmpty(message))))
+          key,
+          Some(fansi.Str(Logger.formatPrefix0(key) ++ spaceNonEmpty(message)))
+        )
         seenIdentifiers(key) = (keySuffix, message)
       }
 
