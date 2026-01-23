@@ -2,14 +2,14 @@
     <component name="ScalaCompilerConfiguration">
         <profile name="mill 1" modules="">
             <parameters>
-                <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.0/<version>/scalac-mill-moduledefs-plugin_3.8.0-<version>.jar"/>
-                <parameter value="-Xplugin:.../com/lihaoyi/mill-runner-autooverride-plugin_3.8.0/SNAPSHOT/mill-runner-autooverride-plugin_3.8.0-SNAPSHOT.jar"/>
+                <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.1/<version>/scalac-mill-moduledefs-plugin_3.8.1-<version>.jar"/>
+                <parameter value="-Xplugin:.../com/lihaoyi/mill-runner-autooverride-plugin_3.8.1/SNAPSHOT/mill-runner-autooverride-plugin_3.8.1-SNAPSHOT.jar"/>
                 <parameter value="-deprecation"/>
                 <parameter value="-Wconf:msg=will be encoded on the classpath:silent"/>
             </parameters>
             <plugins>
-                <plugin path=".../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.0/<version>/scalac-mill-moduledefs-plugin_3.8.0-<version>.jar"/>
-                <plugin path=".../com/lihaoyi/mill-runner-autooverride-plugin_3.8.0/SNAPSHOT/mill-runner-autooverride-plugin_3.8.0-SNAPSHOT.jar"/>
+                <plugin path=".../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.1/<version>/scalac-mill-moduledefs-plugin_3.8.1-<version>.jar"/>
+                <plugin path=".../com/lihaoyi/mill-runner-autooverride-plugin_3.8.1/SNAPSHOT/mill-runner-autooverride-plugin_3.8.1-SNAPSHOT.jar"/>
                 <plugin path=".../org/scala-lang/scala3-compiler_3/<version>/scala3-compiler_3-<version>.jar"/>
                 <plugin path=".../org/scala-lang/scala3-library_3/<version>/scala3-library_3-<version>.jar"/>
                 <plugin path=".../com/lihaoyi/mill-moduledefs_3/<version>/mill-moduledefs_3-<version>.jar"/>
