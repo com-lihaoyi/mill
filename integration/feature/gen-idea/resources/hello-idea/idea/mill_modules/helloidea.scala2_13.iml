@@ -1,10 +1,10 @@
 <module type="JAVA_MODULE" version="4">
     <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../../out/HelloIdea/internalGenIdea/ideaCompileOutput.dest/classes"/>
+        <output url="file://$MODULE_DIR$/../../out/HelloIdea/scala2_13/internalGenIdea/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../../HelloIdea">
-            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdea/src" isTestSource="false"/>
-            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdea/resources" type="java-resource"/>
+        <content url="file://$MODULE_DIR$/../../HelloIdea/scala2_13">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdea/scala2_13/src" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdea/scala2_13/resources" type="java-resource"/>
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>

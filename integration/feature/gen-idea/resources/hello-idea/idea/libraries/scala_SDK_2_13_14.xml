@@ -3,7 +3,9 @@
         <properties>
             <language-level>Scala_2_X</language-level>
             <compiler-classpath>
-                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/<version>/scala-xml_2.12-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/<version>/java-diff-utils-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/<version>/jna-<version>.jar"/>
+                <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/jline/jline/<version>/jline-<version>.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/<version>/scala-compiler-<version>.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<version>/scala-library-<version>.jar"/>
                 <root url="file://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<version>/scala-reflect-<version>.jar"/>

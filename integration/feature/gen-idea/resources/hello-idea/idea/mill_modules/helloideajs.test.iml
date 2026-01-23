@@ -10,13 +10,13 @@
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-js-SDK-3.3.1" level="project"/>
         <orderEntry type="library" name="portable-scala-reflect_sjs1_2.13-1.1.3.jar" level="project"/>
-        <orderEntry type="library" name="scala-library-2.13.13.jar" level="project"/>
-        <orderEntry type="library" name="scala3-library_sjs1_3-3.3.3.jar" level="project"/>
+        <orderEntry type="library" name="scala-library-<version>.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_sjs1_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="scalajs-javalib-1.16.0.jar" level="project"/>
         <orderEntry type="library" name="scalajs-library_2.13-1.16.0.jar" level="project"/>
         <orderEntry type="library" name="scalajs-scalalib_2.13-2.13.13%2B1.16.0.jar" level="project"/>
         <orderEntry type="library" name="scalajs-test-interface_2.13-1.16.0.jar" level="project"/>
-        <orderEntry type="library" name="utest_sjs1_3-0.8.5.jar" level="project"/>
+        <orderEntry type="library" name="utest_sjs1_3-<version>.jar" level="project"/>
         <orderEntry type="module" module-name="helloideajs" exported=""/>
     </component>
 </module>

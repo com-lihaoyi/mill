@@ -1,6 +1,6 @@
 <project version="4">
     <component name="ScalaCompilerConfiguration">
-        <profile name="mill 1" modules="">
+        <profile name="mill 1" modules=",">
             <parameters>
                 <parameter value="-Xplugin:.../com/lihaoyi/scalac-mill-moduledefs-plugin_3.8.1/<version>/scalac-mill-moduledefs-plugin_3.8.1-<version>.jar"/>
                 <parameter value="-Xplugin:.../com/lihaoyi/mill-runner-autooverride-plugin_3.8.1/SNAPSHOT/mill-runner-autooverride-plugin_3.8.1-SNAPSHOT.jar"/>
@@ -22,20 +22,8 @@
                 <plugin path=".../org/scala-sbt/util-interface/<version>/util-interface-<version>.jar"/>
             </plugins>
         </profile>
-        <profile name="mill 2" modules="helloidea,helloidea.scala2_13,helloidea.scala2_13.test,helloidea.scala3,helloidea.scala3.test,helloidea.test,modulea,moduleb,modulec,moduled,modulee,modulef">
+        <profile name="mill 2" modules="helloworld,helloworld.subscala3,helloworld.test">
             <parameters></parameters>
-            <plugins></plugins>
-        </profile>
-        <profile name="mill 3" modules="helloideajs,helloideajs.test">
-            <parameters>
-                <parameter value="-scalajs"/>
-            </parameters>
-            <plugins></plugins>
-        </profile>
-        <profile name="mill 4" modules="moduleg-2.12.5,moduleg-2.13.6">
-            <parameters>
-                <parameter value="-Xsource:3"/>
-            </parameters>
             <plugins></plugins>
         </profile>
     </component>
