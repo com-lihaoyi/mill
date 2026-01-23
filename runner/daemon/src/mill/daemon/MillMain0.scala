@@ -683,6 +683,7 @@ object MillMain0 {
 
   /** Logger that supports printing error details after the closing prompt */
   trait LoggerWithErrorDetails extends Logger with AutoCloseable {
+
     /**
      * Closes the logger, printing error details after the final status line.
      * This ensures error details appear in console.log after the status line

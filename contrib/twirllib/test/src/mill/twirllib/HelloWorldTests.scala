@@ -125,7 +125,8 @@ trait HelloWorldTests extends TestSuite {
           HelloWorldWithInclusiveDot,
           sourceRoot = resourcePath / "hello-world-inclusive-dot"
         ).scoped { eval =>
-          val Right(result) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl).runtimeChecked
+          val Right(result) =
+            eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl).runtimeChecked
 
           val outputFiles = os.walk(result.value.classes.path).filter(_.last.endsWith(".scala"))
           val expectedClassfiles = compileClassfiles.map(name =>

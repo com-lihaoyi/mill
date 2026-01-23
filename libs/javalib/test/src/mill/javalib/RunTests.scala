@@ -91,7 +91,8 @@ object RunTests extends TestSuite {
 
       test("allLocalMainClasses") - UnitTester(HelloJavaDefaultMain, resourcePath).scoped {
         eval =>
-          val Right(result) = eval.apply(HelloJavaDefaultMain.app.allLocalMainClasses).runtimeChecked
+          val Right(result) =
+            eval.apply(HelloJavaDefaultMain.app.allLocalMainClasses).runtimeChecked
 
           val found = result.value
           val expected = Seq("hello.Main")

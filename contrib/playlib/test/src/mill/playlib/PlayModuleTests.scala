@@ -27,8 +27,10 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       test("fromBuild") {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
-            val Right(conf) = eval.apply(playmulti.core(scalaVersion, playVersion).conf).runtimeChecked
-            val Right(app) = eval.apply(playmulti.core(scalaVersion, playVersion).app).runtimeChecked
+            val Right(conf) =
+              eval.apply(playmulti.core(scalaVersion, playVersion).conf).runtimeChecked
+            val Right(app) =
+              eval.apply(playmulti.core(scalaVersion, playVersion).app).runtimeChecked
             val Right(sources) =
               eval.apply(playmulti.core(scalaVersion, playVersion).sources).runtimeChecked
             val Right(resources) =
@@ -86,7 +88,10 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
             val Right(_) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).resolvedRunMvnDeps).runtimeChecked
+              eval.apply(playmulti.core(
+                scalaVersion,
+                playVersion
+              ).resolvedRunMvnDeps).runtimeChecked
           }
         }
       }

@@ -129,7 +129,8 @@ object ScalaRunTests extends TestSuite {
 
       test("allLocalMainClasses") - UnitTester(HelloWorldWithoutMain, resourcePath).scoped {
         eval =>
-          val Right(result) = eval.apply(HelloWorldWithoutMain.core.allLocalMainClasses).runtimeChecked
+          val Right(result) =
+            eval.apply(HelloWorldWithoutMain.core.allLocalMainClasses).runtimeChecked
 
           val found = result.value
           val expected = Seq("Main")

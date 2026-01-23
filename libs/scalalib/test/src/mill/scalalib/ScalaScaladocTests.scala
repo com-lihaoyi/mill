@@ -40,7 +40,8 @@ object ScalaScaladocTests extends TestSuite {
 
     test("scalaDocOptions") {
       test("emptyByDefault") - UnitTester(HelloWorldTests.HelloWorld, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTests.HelloWorld.core.scalaDocOptions).runtimeChecked
+        val Right(result) =
+          eval.apply(HelloWorldTests.HelloWorld.core.scalaDocOptions).runtimeChecked
         assert(
           result.value.isEmpty,
           result.evalCount > 0

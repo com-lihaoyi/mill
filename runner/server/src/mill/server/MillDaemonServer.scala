@@ -3,7 +3,6 @@ package mill.server
 import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.Locks
-import mill.constants.DaemonFiles
 import mill.launcher.DaemonRpc
 import mill.api.daemon.StopWithResponse
 import mill.client.ServerLauncher.DaemonConfig

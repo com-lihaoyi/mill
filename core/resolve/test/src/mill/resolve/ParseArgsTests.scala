@@ -97,7 +97,10 @@ object ParseArgsTests extends TestSuite {
           multiSelect: Boolean
       ) = {
         val Result.Success((selectors, args)) :: _ =
-          ParseArgs(input, if (multiSelect) SelectMode.Multi else SelectMode.Separated).runtimeChecked
+          ParseArgs(
+            input,
+            if (multiSelect) SelectMode.Multi else SelectMode.Separated
+          ).runtimeChecked
 
         assert(
           selectors.map { case (k, v) => (k, v.value) } == expectedSelectors,

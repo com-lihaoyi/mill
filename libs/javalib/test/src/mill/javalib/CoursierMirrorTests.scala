@@ -39,7 +39,8 @@ object CoursierMirrorTests extends TestSuite {
       withJavaProp("coursier.mirrors", (resourcePath / "mirror.properties").toString) {
         UnitTester(CoursierTest, resourcePath).scoped { eval =>
           val Right(result) = eval.apply(CoursierTest.core.compileClasspath).runtimeChecked
-          val Right(cacheResult) = eval.apply(CoursierConfigModule.defaultCacheLocation).runtimeChecked
+          val Right(cacheResult) =
+            eval.apply(CoursierConfigModule.defaultCacheLocation).runtimeChecked
           val cacheRoot = os.Path(cacheResult.value)
           val cp = result.value
             .map(_.path)

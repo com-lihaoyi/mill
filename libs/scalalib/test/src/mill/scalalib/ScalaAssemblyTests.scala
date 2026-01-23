@@ -34,7 +34,8 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
       }
 
       test("run") - UnitTester(HelloWorldTests.HelloWorldWithMain, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTests.HelloWorldWithMain.core.assembly).runtimeChecked
+        val Right(result) =
+          eval.apply(HelloWorldTests.HelloWorldWithMain.core.assembly).runtimeChecked
 
         assert(
           os.exists(result.value.path),

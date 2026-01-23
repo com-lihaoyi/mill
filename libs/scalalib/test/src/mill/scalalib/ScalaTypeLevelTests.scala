@@ -43,7 +43,8 @@ object ScalaTypeLevelTests extends TestSuite {
 
     test("scalaDocPluginClasspath") {
       test("extend") - UnitTester(HelloWorldTypeLevel, sourceRoot = resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath).runtimeChecked
+        val Right(result) =
+          eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath).runtimeChecked
         assert(
           result.value.iterator.nonEmpty,
           result.value.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },

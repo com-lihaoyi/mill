@@ -130,11 +130,14 @@ object CrossTests extends TestSuite {
     test("doubleCross") {
       UnitTester(doubleCross, null).scoped { check =>
 
-        val Right(Result("210_jvm", 1)) = check(doubleCross.cross("210", "jvm").suffix).runtimeChecked
+        val Right(Result("210_jvm", 1)) =
+          check(doubleCross.cross("210", "jvm").suffix).runtimeChecked
         val Right(Result("210_js", 1)) = check(doubleCross.cross("210", "js").suffix).runtimeChecked
-        val Right(Result("211_jvm", 1)) = check(doubleCross.cross("211", "jvm").suffix).runtimeChecked
+        val Right(Result("211_jvm", 1)) =
+          check(doubleCross.cross("211", "jvm").suffix).runtimeChecked
         val Right(Result("211_js", 1)) = check(doubleCross.cross("211", "js").suffix).runtimeChecked
-        val Right(Result("212_jvm", 1)) = check(doubleCross.cross("212", "jvm").suffix).runtimeChecked
+        val Right(Result("212_jvm", 1)) =
+          check(doubleCross.cross("212", "jvm").suffix).runtimeChecked
         val Right(Result("212_js", 1)) = check(doubleCross.cross("212", "js").suffix).runtimeChecked
         val Right(Result("212_native", 1)) =
           check(doubleCross.cross("212", "native").suffix).runtimeChecked
@@ -147,10 +150,14 @@ object CrossTests extends TestSuite {
         val Right(Result("foo a", 1)) = check(innerCrossModule.myCross("a").foo.bar).runtimeChecked
         val Right(Result("baz b", 1)) = check(innerCrossModule.myCross("b").baz.bar).runtimeChecked
 
-        val Right(Result("foo a", 1)) = check(innerCrossModule.myCross2("a", 1).foo.bar).runtimeChecked
-        val Right(Result("foo 1", 1)) = check(innerCrossModule.myCross2("a", 1).foo.qux).runtimeChecked
-        val Right(Result("baz b", 1)) = check(innerCrossModule.myCross2("b", 2).baz.bar).runtimeChecked
-        val Right(Result("baz 2", 1)) = check(innerCrossModule.myCross2("b", 2).baz.qux).runtimeChecked
+        val Right(Result("foo a", 1)) =
+          check(innerCrossModule.myCross2("a", 1).foo.bar).runtimeChecked
+        val Right(Result("foo 1", 1)) =
+          check(innerCrossModule.myCross2("a", 1).foo.qux).runtimeChecked
+        val Right(Result("baz b", 1)) =
+          check(innerCrossModule.myCross2("b", 2).baz.bar).runtimeChecked
+        val Right(Result("baz 2", 1)) =
+          check(innerCrossModule.myCross2("b", 2).baz.qux).runtimeChecked
 
         val Right(Result("foo a", 1)) =
           check(innerCrossModule.myCross3("a", 1, true).foo.bar).runtimeChecked
