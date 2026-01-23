@@ -1,9 +1,9 @@
-//| allowNestedBuildMillFiles: true
+//| mill-allow-nested-build-mill: true
 // Mill supports nested `build.mill` files in subdirectories.
 // Unlike `package.mill` files which must use package declarations matching their directory
 // path (e.g., `package build.deps.foo`), nested `build.mill` files can use a simple
 // `package build` declaration regardless of where they are located (when marked with
-// `//| allowNestedBuildMillFiles: true`).
+// `//| mill-allow-nested-build-mill: true`).
 //
 // This makes it easy to:
 //
@@ -41,7 +41,7 @@ trait BarModule extends build.deps.foo.FooModule
 //
 // * The root `build.mill` uses `package build` and defines a `BarModule` trait
 // * `deps/package.mill` uses `package build.deps` to create the intermediate namespace
-// * `deps/foo/build.mill` also uses `package build` (with `allowNestedBuildMillFiles` header)
+// * `deps/foo/build.mill` also uses `package build` (with `mill-allow-nested-build-mill` header)
 // * `deps/foo/module.mill` is a helper file that contains the `FooModule` trait definition
 // * `deps/foo/versions.mill` is a helper file that contains shared version configuration
 //
@@ -60,6 +60,6 @@ trait BarModule extends build.deps.foo.FooModule
 
 */
 
-// Each nested `build.mill` with `allowNestedBuildMillFiles` can use the simple
+// Each nested `build.mill` with `mill-allow-nested-build-mill` can use the simple
 // `package build` declaration while still being accessible through its full hierarchical
 // path from parent build files. Shared logic should be extracted into helper files.

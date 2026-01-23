@@ -324,6 +324,43 @@ object Util {
     }
   }
 
+  /**
+   * Reads a boolean flag from the root build.mill YAML header.
+   *
+   * @param projectRoot The project root directory
+   * @param configKey The YAML key to look for (e.g., "mill-allow-nested-build-mill")
+   * @param rootBuildFileNames List of possible root build file names (e.g., ["build.mill", "build.mill.yaml"])
+   * @return true if the flag is present and set to true/True/TRUE/"true", false otherwise
+   */
+  def readBooleanFromBuildHeader(
+      projectRoot: os.Path,
+      configKey: String,
+      rootBuildFileNames: Seq[String]
+  ): Boolean = {
+    val rootBuildFile = rootBuildFileNames
+      .map(name => projectRoot / name)
+      .find(os.exists)
+
+    rootBuildFile match {
+      case None => false
+      case Some(buildFile) =>
+        val headerData = mill.constants.Util.readBuildHeader(buildFile.toNIO, buildFile.last)
+        parseYaml0(
+          "build header",
+          headerData,
+          upickle.default.reader[Map[String, ujson.Value]]
+        ) match {
+          case Result.Success(conf) =>
+            conf.get(configKey) match {
+              case Some(ujson.Bool(value)) => value
+              case Some(ujson.Str(value)) => value.toLowerCase == "true"
+              case _ => false
+            }
+          case _ => false
+        }
+    }
+  }
+
   def splitPreserveEOL(bytes: Array[Byte]): Seq[Array[Byte]] = {
     val out = scala.collection.mutable.ArrayBuffer[Array[Byte]]()
     var i = 0

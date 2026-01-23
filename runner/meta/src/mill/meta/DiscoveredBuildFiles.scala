@@ -173,28 +173,16 @@ object DiscoveredBuildFiles {
   }
 
   /**
-   * Read the `allowNestedBuildMillFiles` flag from the root build.mill YAML header.
+   * Read the `mill-allow-nested-build-mill` flag from the root build.mill YAML header.
    */
   private def readAllowNestedBuildMillFiles(projectRoot: os.Path): Boolean = {
-    val (isDummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+    val (isDummy, _) = findRootBuildFiles(projectRoot)
     if (isDummy) false
-    else {
-      val rootBuildFile = projectRoot / foundRootBuildFileName
-      val headerData = mill.constants.Util.readBuildHeader(rootBuildFile.toNIO, foundRootBuildFileName)
-      mill.internal.Util.parseYaml0(
-        "build header",
-        headerData,
-        upickle.default.reader[Map[String, ujson.Value]]
-      ) match {
-        case mill.api.Result.Success(conf) =>
-          conf.get(ConfigConstants.allowNestedBuildMillFiles) match {
-            case Some(ujson.Bool(value)) => value
-            case Some(ujson.Str(value)) => value.toLowerCase == "true"
-            case _ => false
-          }
-        case _ => false
-      }
-    }
+    else mill.internal.Util.readBooleanFromBuildHeader(
+      projectRoot,
+      ConfigConstants.millAllowNestedBuildMill,
+      rootBuildFileNames.asScala.toSeq
+    )
   }
 
   def fileImportToSegments(base: os.Path, s: os.Path): Seq[String] = {
