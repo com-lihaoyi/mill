@@ -326,7 +326,7 @@ object Util {
 
   /**
    * Parses a config value from the YAML header data.
-   * Returns the parsed value or a default on missing key or parse failure.
+   * Returns the parsed value or a default on missing key. Throws on parse failure.
    */
   def parseBuildHeaderValue[T: upickle.default.Reader](
       headerData: String,
@@ -343,7 +343,8 @@ object Util {
           case Some(value) => upickle.default.read[T](value)
           case None => default
         }
-      case _ => default
+      case f: Result.Failure =>
+        throw new mill.api.daemon.MillException(s"Failed parsing build header: ${f.error}")
     }
 
   /**
