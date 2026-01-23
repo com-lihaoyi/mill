@@ -212,7 +212,7 @@ For testing documentation changes locally, you can generate documentation for th
 
 [source,console]
 ----
-$ ./mill docs.fastPages
+$ ./mill website.fastPages
 ----
 
 To generate documentation for both the current checkout and earlier versions, you can use
@@ -220,7 +220,7 @@ To generate documentation for both the current checkout and earlier versions, yo
 
 [source,console]
 ----
-$ ./mill docs.localPages
+$ ./mill website.localPages
 ----
 
 === Troubleshooting
