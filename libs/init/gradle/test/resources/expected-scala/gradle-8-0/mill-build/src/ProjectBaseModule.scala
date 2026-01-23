@@ -10,7 +10,7 @@ trait ProjectBaseModule extends MavenModule {
 
   def javacOptions = Seq("-source", "11", "-target", "11")
 
-  trait ProjectBaseTests extends MavenTests {
+  trait ProjectBaseTests extends MavenTests, TestModule.Junit5 {
 
     def mvnDeps = Seq(mvn"org.junit.jupiter:junit-jupiter:5.9.1")
 

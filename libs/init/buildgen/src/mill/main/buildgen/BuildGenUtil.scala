@@ -1,6 +1,7 @@
 package mill.main.buildgen
 
 import mill.init.Util
+import mill.main.buildgen.BuildInfo.millVersion
 
 /**
  * Shared utilities for build file generation (both Scala and YAML formats).
@@ -36,12 +37,16 @@ object BuildGenUtil {
 
   def renderImports(module: ModuleSpec): String = {
     val imports = module.tree.flatMap(_.imports)
-    ("import mill.*" +: imports).distinct.sorted.mkString(lineSep)
+    ("mill.*" +: imports).distinct.sorted.map("import " + _).mkString(lineSep)
   }
 
   def renderExtendsClause(supertypes: Seq[String]): String = {
     if (supertypes.isEmpty) "extends Module"
     else supertypes.mkString("extends ", ", ", "")
+  }
+
+  def resolveMillVersion: String = {
+    if (sys.env.contains("MILL_UNSTABLE_VERSION")) "SNAPSHOT" else millVersion
   }
 
   def resolveMillJvmVersion(millJvmVersion: Option[String]): String = {
