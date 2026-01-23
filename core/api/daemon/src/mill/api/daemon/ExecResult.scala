@@ -13,7 +13,7 @@ sealed trait ExecResult[+T] {
   def flatMap[V](f: T => ExecResult[V]): ExecResult[V]
   def asSuccess: Option[ExecResult.Success[T]] = None
   def asFailing: Option[ExecResult.Failing[T]] = None
-  def get: T = (this.runtimeChecked) match {
+  def get: T = (this: @unchecked) match {
     case ExecResult.Success(v) => v
     case v: ExecResult.Failing[?] => v.throwException
 
