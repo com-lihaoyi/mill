@@ -146,10 +146,11 @@ object DiscoveredBuildFiles {
     if (!os.exists(projectRoot)) Nil
     else {
       val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
-      projectRoot,
-      ConfigConstants.millAllowNestedBuildMill,
-      rootBuildFileNames.asScala.toSeq
-    )
+        projectRoot,
+        ConfigConstants.millAllowNestedBuildMill,
+        rootBuildFileNames.asScala.toSeq
+      )
+
       val nestedBuildFileNames0 = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
       val nestedBuildFileNames =
         if (allowNestedBuildMillFiles) nestedBuildFileNames0 ++ rootBuildFileNames.asScala.toList
