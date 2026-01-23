@@ -440,18 +440,28 @@ object CodeGen {
         newScriptCode = objectData.name.applyTo(newScriptCode, CGConst.wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
+        // For nested build.mill files (not package.mill), export package_ members to the package level
+        // so traits defined in build.mill can be imported like traits in helper files
+        val isNestedBuildMill = segments.nonEmpty && CGConst.rootBuildFileNames.contains(scriptPath.last)
+        val exportPackage = if (isNestedBuildMill) s"\nexport ${CGConst.wrapperObjectName}._" else ""
+
         s"""$headerCode
            |$markerComment
            |$newScriptCode
+           |$exportPackage
            |""".stripMargin
 
       case None =>
+        // For nested build.mill files (not package.mill), export package_ members to the package level
+        val isNestedBuildMill = segments.nonEmpty && CGConst.rootBuildFileNames.contains(scriptPath.last)
+        val exportPackage = if (isNestedBuildMill) s"\nexport ${CGConst.wrapperObjectName}._" else ""
+
         s"""$headerCode
            |abstract class ${CGConst.wrapperObjectName}
            |    extends $newParent { this: ${CGConst.wrapperObjectName}.type =>
            |$markerComment
            |$scriptCode
-           |}""".stripMargin
+           |}$exportPackage""".stripMargin
 
     }
   }
