@@ -23,14 +23,14 @@ class PromptLogger(
     warnColor: fansi.Attrs,
     errorColor: fansi.Attrs,
     successColor: fansi.Attrs,
+    highlightColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     debugEnabled: Boolean,
     titleText: String,
     terminfoPath: os.Path,
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true,
-    val chromeProfileLogger: JsonArrayLogger.ChromeProfileLike,
-    streamPumperThreadName: String = "prompt-logger-stream-pumper-thread"
+    val chromeProfileLogger: JsonArrayLogger.ChromeProfile
 ) extends Logger.Upstream with AutoCloseable {
   prompt.beginChromeProfileEntry("mill " + titleText)
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
@@ -47,7 +47,7 @@ class PromptLogger(
   def isInteractive() = termDimensions._1.nonEmpty
 
   private object promptLineState extends PromptLineState(
-        titleText,
+        highlightColor(titleText),
         currentTimeMillis(),
         () => termDimensions,
         currentTimeMillis,
@@ -60,8 +60,7 @@ class PromptLogger(
         () => promptLineState.getCurrentPrompt(),
         interactive = () => isInteractive(),
         paused = () => runningState.paused,
-        synchronizer = this,
-        pumperThreadName = streamPumperThreadName
+        synchronizer = this
       )
 
   private object runningState extends RunningState(
@@ -98,24 +97,9 @@ class PromptLogger(
     }
   }
 
-  private var endingPromptPrinted = false
-
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
-    if (ending && endingPromptPrinted) return
     val updated = promptLineState.updatePrompt(ending)
-    if (updated || ending) {
-      streamManager.refreshPrompt()
-      if (ending) endingPromptPrinted = true
-    }
-  }
-
-  /**
-   * Prints the final status line without closing the logger.
-   * This allows error details to be printed after the status line
-   * but before the logger fully closes.
-   */
-  def printFinalStatus(): Unit = synchronized {
-    if (enableTicker) refreshPrompt(ending = true)
+    if (updated || ending) streamManager.refreshPrompt()
   }
 
   def info(s: String): Unit = streams.err.println(s)
@@ -286,7 +270,10 @@ class PromptLogger(
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
         if (message != "") beginChromeProfileEntry(message)
-        promptLineState.setCurrent(key, Some(Logger.formatPrefix0(key) + spaceNonEmpty(message)))
+        promptLineState.setCurrent(
+          key,
+          Some(fansi.Str(Logger.formatPrefix0(key) ++ spaceNonEmpty(message)))
+        )
         seenIdentifiers(key) = (keySuffix, message)
       }
 
@@ -393,8 +380,7 @@ object PromptLogger {
       getCurrentPrompt: () => Array[Byte],
       interactive: () => Boolean,
       paused: () => Boolean,
-      synchronizer: AnyRef,
-      pumperThreadName: String
+      synchronizer: AnyRef
   ) {
 
     // We force both stdout and stderr streams into a single `Piped*Stream` pair via
@@ -492,7 +478,7 @@ object PromptLogger {
       }
     }
 
-    val pumperThread = new Thread(pumper, pumperThreadName)
+    val pumperThread = new Thread(pumper, "prompt-logger-stream-pumper-thread")
     pumperThread.start()
 
     def close(): Unit = {
@@ -515,7 +501,7 @@ object PromptLogger {
    * "smoothly" even as the underlying statuses may be rapidly changed during evaluation.
    */
   private class PromptLineState(
-      titleText: String,
+      titleText: fansi.Str,
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
       currentTimeMillis: () => Long,
@@ -574,7 +560,7 @@ object PromptLogger {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def setCurrent(key: Seq[String], sOpt: Option[String]): Option[Status] = {
+    def setCurrent(key: Seq[String], sOpt: Option[fansi.Str]): Option[Status] = {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {

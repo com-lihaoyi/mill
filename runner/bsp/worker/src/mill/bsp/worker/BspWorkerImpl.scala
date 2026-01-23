@@ -24,7 +24,8 @@ object BspWorkerImpl {
       canReload: Boolean,
       outLock: Lock,
       baseLogger: Logger,
-      out: os.Path
+      out: os.Path,
+      daemonDir: os.Path
   ): mill.api.Result[(BspServerHandle, BuildClient)] = {
 
     try {
@@ -43,7 +44,8 @@ object BspWorkerImpl {
           },
           outLock = outLock,
           baseLogger = baseLogger,
-          out = out
+          out = out,
+          daemonDir = daemonDir
         ) with EndpointsJvm
           with EndpointsJava
           with EndpointsScala

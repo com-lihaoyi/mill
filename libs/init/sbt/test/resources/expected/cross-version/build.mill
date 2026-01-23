@@ -1,6 +1,8 @@
 //| mill-version: SNAPSHOT
 //| mill-jvm-version: system
-//| mill-jvm-opts: ["-Xms2g", "-Xmx2g"]
+//| mill-jvm-opts:
+//|   - -Xms2g
+//|   - -Xmx2g
 package build
 
 import mill.*
@@ -11,7 +13,7 @@ import millbuild.*
 
 object `package`
     extends Cross[CrossVersionModule]("2.12.18", "2.13.12", "3.3.1")
-trait CrossVersionModule extends PublishModule, CrossSbtModule {
+trait CrossVersionModule extends CrossSbtModule, PublishModule {
 
   def javacOptions = Seq("--release", "8")
 

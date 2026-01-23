@@ -22,7 +22,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
 
       // For now these error messages still show generated/mangled code; not ideal, but it'll do
       res.assertContainsLines(
-        "[error] foo/package.mill:6:96",
+        "[error] foo/package.mill:6:113",
         "abstract class package_  extends _root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover), UnknownFooModule {",
         "                                                                                                                ^^^^^^^^^^^^^^^^",
         "Not found: type UnknownFooModule"

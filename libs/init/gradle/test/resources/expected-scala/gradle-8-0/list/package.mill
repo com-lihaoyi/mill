@@ -12,7 +12,7 @@ object `package` extends ProjectBaseModule, ErrorProneModule {
   def errorProneJavacEnableOptions =
     Seq("-XDshould-stop.ifError=FLOW", "-XDshouldStopPolicyIfError=FLOW")
 
-  object test extends ProjectBaseTests, ErrorProneModule, TestModule.Junit5 {
+  object test extends ProjectBaseTests, ErrorProneModule {
 
     def errorProneDeps = Seq(mvn"com.google.errorprone:error_prone_core:2.28.0")
 

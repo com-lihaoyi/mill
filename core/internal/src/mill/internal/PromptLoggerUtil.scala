@@ -41,7 +41,7 @@ private object PromptLoggerUtil {
    */
   val statusRemovalRemoveDelayMillis = 2000
 
-  case class StatusEntry(text: String, startTimeMillis: Long, detail: String = "")
+  case class StatusEntry(text: fansi.Str, startTimeMillis: Long, detail: String = "")
 
   /**
    * Represents a line in the prompt. Stores up to two separate [[StatusEntry]]s, because
@@ -120,7 +120,7 @@ private object PromptLoggerUtil {
             else status.prev
             textOpt.map { t =>
               val seconds = mill.api.internal.Util.renderSecondsSuffix(now - t.startTimeMillis)
-              val mainText = splitShorten(t.text + seconds, maxWidth)
+              val mainText = splitShorten(t.text ++ seconds, maxWidth)
 
               val detail = splitShorten(spaceNonEmpty(t.detail), maxWidth - mainText.length)
 

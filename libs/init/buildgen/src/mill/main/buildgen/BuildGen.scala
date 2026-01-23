@@ -2,6 +2,8 @@ package mill.main.buildgen
 
 import mill.main.buildgen.ModuleSpec.{MvnDep, Value, Values}
 
+import scala.collection.mutable
+
 /**
  * Shared interface to generate Mill project files.
  */
@@ -14,13 +16,13 @@ trait BuildGen {
       baseModule: Option[ModuleSpec] = None,
       millJvmVersion: Option[String] = None,
       millJvmOpts: Seq[String] = Nil,
-      depNames: Seq[(MvnDep, String)] = Nil
+      depNames: Seq[(MvnDep, String)] = Nil,
+      metaMvnDeps: Seq[String] = Nil
   ): Seq[os.Path]
 
   def withBaseModule(
       packages: Seq[PackageSpec],
-      moduleHierarchy: Seq[String],
-      testHierarchy: Seq[String]
+      baseTestHierarchy: (String, String)*
   ): Option[(ModuleSpec, Seq[PackageSpec])] = {
     def parentValue[A](a: Value[A], b: Value[A]) = Value(
       if (a.base == b.base) a.base else None,
@@ -29,19 +31,23 @@ trait BuildGen {
 
     def parentValues[A](a: Values[A], b: Values[A]) = Values(
       a.base.intersect(b.base),
-      (a.cross ++ b.cross).groupMapReduce(_._1)(_._2)(_.intersect(_)).toSeq.filter(_._2.nonEmpty),
-      a.appendSuper && b.appendSuper
+      a.cross.flatMap { (k, a) =>
+        b.cross.collectFirst {
+          case (`k`, b) => (k, a.intersect(b))
+        }.filter(_._2.nonEmpty)
+      },
+      a.appendSuper || b.appendSuper
     )
 
-    def parentModule(a: ModuleSpec, b: ModuleSpec, name: String, defaultSupertypes: Seq[String]) =
+    def parentModule(a: ModuleSpec, b: ModuleSpec, name: String, hierarchy: Seq[String]) =
       ModuleSpec(
         name = name,
-        imports = (a.imports ++ b.imports).distinct.filter(!_.startsWith("import millbuild.")),
+        imports = (a.imports ++ b.imports).distinct.filter(!_.startsWith("millbuild.")),
         supertypes = a.supertypes.intersect(b.supertypes) match {
-          case Nil => defaultSupertypes
-          case seq => seq
+          case Nil => hierarchy.take(1)
+          case seq if hierarchy.contains(seq.head) => seq
+          case seq => hierarchy.head +: seq
         },
-        mixins = if (a.supertypes == b.supertypes && a.mixins == b.mixins) a.mixins else Nil,
         repositories = parentValues(a.repositories, b.repositories),
         forkArgs = parentValues(a.forkArgs, b.forkArgs),
         forkWorkingDir = parentValue(a.forkWorkingDir, b.forkWorkingDir),
@@ -66,6 +72,7 @@ trait BuildGen {
         errorProneOptions = parentValues(a.errorProneOptions, b.errorProneOptions),
         errorProneJavacEnableOptions =
           parentValues(a.errorProneJavacEnableOptions, b.errorProneJavacEnableOptions),
+        jmhCoreVersion = parentValue(a.jmhCoreVersion, b.jmhCoreVersion),
         scalaVersion = parentValue(a.scalaVersion, b.scalaVersion),
         scalacOptions = parentValues(a.scalacOptions, b.scalacOptions),
         scalacPluginMvnDeps = parentValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
@@ -75,7 +82,23 @@ trait BuildGen {
         sourcesRootFolders = parentValues(a.sourcesRootFolders, b.sourcesRootFolders),
         testParallelism = parentValue(a.testParallelism, b.testParallelism),
         testSandboxWorkingDir = parentValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir),
-        testFramework = parentValue(a.testFramework, b.testFramework)
+        testFramework = parentValue(a.testFramework, b.testFramework),
+        scalafixConfig = parentValue(a.scalafixConfig, b.scalafixConfig),
+        scalafixIvyDeps = parentValues(a.scalafixIvyDeps, b.scalafixIvyDeps),
+        scoverageVersion = parentValue(a.scoverageVersion, b.scoverageVersion),
+        branchCoverageMin = parentValue(a.branchCoverageMin, b.branchCoverageMin),
+        statementCoverageMin = parentValue(a.statementCoverageMin, b.statementCoverageMin),
+        mimaPreviousVersions = parentValues(a.mimaPreviousVersions, b.mimaPreviousVersions),
+        mimaPreviousArtifacts = parentValues(a.mimaPreviousArtifacts, b.mimaPreviousArtifacts),
+        mimaCheckDirection = parentValue(a.mimaCheckDirection, b.mimaCheckDirection),
+        mimaBinaryIssueFilters = parentValues(a.mimaBinaryIssueFilters, b.mimaBinaryIssueFilters),
+        mimaBackwardIssueFilters =
+          parentValues(a.mimaBackwardIssueFilters, b.mimaBackwardIssueFilters),
+        mimaForwardIssueFilters =
+          parentValues(a.mimaForwardIssueFilters, b.mimaForwardIssueFilters),
+        mimaExcludeAnnotations = parentValues(a.mimaExcludeAnnotations, b.mimaExcludeAnnotations),
+        mimaReportSignatureProblems =
+          parentValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems)
       )
 
     def extendValue[A](a: Value[A], parent: Value[A]) = a.copy(
@@ -93,9 +116,8 @@ trait BuildGen {
       a.appendSuper || parent.base.nonEmpty || parent.cross.nonEmpty
     )
 
-    def extendModule0(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = a.copy(
+    def extendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = a.copy(
       supertypes = (parent.name +: a.supertypes).diff(parent.supertypes),
-      mixins = if (a.mixins == parent.mixins) Nil else a.mixins,
       repositories = extendValues(a.repositories, parent.repositories),
       forkArgs = extendValues(a.forkArgs, parent.forkArgs),
       forkWorkingDir = extendValue(a.forkWorkingDir, parent.forkWorkingDir),
@@ -120,6 +142,7 @@ trait BuildGen {
       errorProneOptions = extendValues(a.errorProneOptions, parent.errorProneOptions),
       errorProneJavacEnableOptions =
         extendValues(a.errorProneJavacEnableOptions, parent.errorProneJavacEnableOptions),
+      jmhCoreVersion = extendValue(a.jmhCoreVersion, parent.jmhCoreVersion),
       scalaVersion = extendValue(a.scalaVersion, parent.scalaVersion),
       scalacOptions = extendValues(a.scalacOptions, parent.scalacOptions),
       scalacPluginMvnDeps = extendValues(a.scalacPluginMvnDeps, parent.scalacPluginMvnDeps),
@@ -129,36 +152,69 @@ trait BuildGen {
       sourcesRootFolders = extendValues(a.sourcesRootFolders, parent.sourcesRootFolders),
       testParallelism = extendValue(a.testParallelism, parent.testParallelism),
       testSandboxWorkingDir = extendValue(a.testSandboxWorkingDir, parent.testSandboxWorkingDir),
-      testFramework = extendValue(a.testFramework, parent.testFramework)
+      testFramework = extendValue(a.testFramework, parent.testFramework),
+      scalafixConfig = extendValue(a.scalafixConfig, parent.scalafixConfig),
+      scalafixIvyDeps = extendValues(a.scalafixIvyDeps, parent.scalafixIvyDeps),
+      scoverageVersion = extendValue(a.scoverageVersion, parent.scoverageVersion),
+      branchCoverageMin = extendValue(a.branchCoverageMin, parent.branchCoverageMin),
+      statementCoverageMin = extendValue(a.statementCoverageMin, parent.statementCoverageMin),
+      mimaPreviousVersions = extendValues(a.mimaPreviousVersions, parent.mimaPreviousVersions),
+      mimaPreviousArtifacts = extendValues(a.mimaPreviousArtifacts, parent.mimaPreviousArtifacts),
+      mimaCheckDirection = extendValue(a.mimaCheckDirection, parent.mimaCheckDirection),
+      mimaBinaryIssueFilters =
+        extendValues(a.mimaBinaryIssueFilters, parent.mimaBinaryIssueFilters),
+      mimaBackwardIssueFilters =
+        extendValues(a.mimaBackwardIssueFilters, parent.mimaBackwardIssueFilters),
+      mimaForwardIssueFilters =
+        extendValues(a.mimaForwardIssueFilters, parent.mimaForwardIssueFilters),
+      mimaExcludeAnnotations =
+        extendValues(a.mimaExcludeAnnotations, parent.mimaExcludeAnnotations),
+      mimaReportSignatureProblems =
+        extendValue(a.mimaReportSignatureProblems, parent.mimaReportSignatureProblems)
     )
 
-    def canExtend(module: ModuleSpec) = module.supertypes.exists(moduleHierarchy.contains)
+    val (baseHierarchy, testHierarchy) = baseTestHierarchy.unzip
+
+    def canExtend(module: ModuleSpec) = module.supertypes.exists(baseHierarchy.contains)
 
     def isTestModule(module: ModuleSpec) = module.supertypes.exists(testHierarchy.contains)
 
     def recExtendModule(a: ModuleSpec, parent: ModuleSpec): ModuleSpec = {
-      var a0 = a
-      var (tests0, children0) = a0.children.partition(isTestModule)
-      if (canExtend(a0)) {
-        a0 = extendModule0(a0.copy(imports = "import millbuild.*" +: a0.imports), parent)
-        if (parent.children.nonEmpty) {
-          tests0 = tests0.map(extendModule0(_, parent.children.head))
-        }
+      var module = a
+      if (canExtend(module)) {
+        module = extendModule(module.copy(imports = "millbuild.*" +: module.imports), parent)
       }
-      children0 = children0.map(recExtendModule(_, parent))
-      a0.copy(children = tests0 ++ children0)
+      val children = module.children.map { child =>
+        if (parent.children.nonEmpty && isTestModule(child))
+          extendModule(child, parent.children.head)
+        else recExtendModule(child, parent)
+      }
+      module.copy(children = children)
     }
 
     val extendingModules = packages.flatMap(_.module.tree).filter(canExtend)
     Option.when(extendingModules.length > 1) {
-      val defaultSupertypes = moduleHierarchy.take(1)
-      val defaultTestSupertypes = testHierarchy.take(1)
-      val baseModule = extendingModules
-        .reduce(parentModule(_, _, "ProjectBaseModule", defaultSupertypes))
-        .copy(children =
-          extendingModules.flatMap(_.children.filter(isTestModule))
-            .reduceOption(parentModule(_, _, "ProjectBaseTests", defaultTestSupertypes)).toSeq
-        )
+      var baseModule = extendingModules
+        .reduce(parentModule(_, _, "ProjectBaseModule", baseHierarchy))
+      val testModule = extendingModules.flatMap(_.children.filter(isTestModule))
+        .reduceOption(parentModule(_, _, "ProjectBaseTests", testHierarchy))
+        .map { testModule =>
+          val testSupertypes = mutable.Buffer(testModule.supertypes*)
+          val i = baseHierarchy.indexWhere(baseModule.supertypes.contains)
+          val j = testHierarchy.indexWhere(testSupertypes.contains)
+          if (i < j) {
+            val k = testSupertypes.indexWhere(testHierarchy.contains)
+            testSupertypes(k) = testHierarchy(i)
+          }
+          if (
+            testSupertypes.contains("ScoverageTests") &&
+            !baseModule.supertypes.contains("ScoverageModule")
+          ) {
+            testSupertypes -= "ScoverageTests"
+          }
+          testModule.copy(supertypes = testSupertypes.toSeq)
+        }
+      baseModule = baseModule.copy(children = testModule.toSeq)
       val packages0 =
         packages.map(pkg => pkg.copy(module = recExtendModule(pkg.module, baseModule)))
       (baseModule, packages0)

@@ -120,6 +120,7 @@ abstract class MillDaemonServer[State](
               noBuildLock = false,
               noWaitForBuildLock = false,
               out = outFolder,
+              daemonDir = daemonDir,
               millActiveCommandMessage = "checking server configuration",
               streams = new SystemStreams(
                 new PrintStream(mill.api.daemon.DummyOutputStream),
@@ -142,8 +143,6 @@ abstract class MillDaemonServer[State](
         lastConfig = Some(clientConfig)
 
         // Run the actual command
-        // Note: console.log file is now created by MillMain0.getLogger() using a MultiLogger
-        // that splits output to both the terminal (interactive) and the file (non-interactive)
         val (result, newStateCache) = main0(
           args = init.args.toArray,
           stateCache = stateCache,

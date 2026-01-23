@@ -33,7 +33,7 @@ object list:
   errorProneJavacEnableOptions: [-XDshould-stop.ifError=FLOW, -XDshouldStopPolicyIfError=FLOW]
   
   object test:
-    extends: [MavenTests, mill.javalib.errorprone.ErrorProneModule, TestModule.Junit5]
+    extends: [MavenTests, TestModule.Junit5, mill.javalib.errorprone.ErrorProneModule]
     mvnDeps:
     - org.junit.jupiter:junit-jupiter:5.9.1
     runMvnDeps:
