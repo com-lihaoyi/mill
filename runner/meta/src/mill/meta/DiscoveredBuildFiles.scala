@@ -41,7 +41,11 @@ object DiscoveredBuildFiles {
   ): DiscoveredBuildFiles = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[Result.Failure]
-    val allowNestedBuildMillFiles = readAllowNestedBuildMillFiles(projectRoot)
+    val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
+      projectRoot,
+      ConfigConstants.millAllowNestedBuildMill,
+      rootBuildFileNames.asScala.toSeq
+    )
 
     def processScript(s: os.Path): Unit =
       try {
@@ -141,13 +145,17 @@ object DiscoveredBuildFiles {
   def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
     if (!os.exists(projectRoot)) Nil
     else {
-      val allowNestedBuildMillFiles = readAllowNestedBuildMillFiles(projectRoot)
-      val nestedBuildFileNames = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
+      val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
+      projectRoot,
+      ConfigConstants.millAllowNestedBuildMill,
+      rootBuildFileNames.asScala.toSeq
+    )
+      val nestedBuildFileNames0 = buildFileExtensions.asScala.map(ext => s"package.$ext").toList
       // When allowNestedBuildMillFiles is enabled, also look for build.mill files in subdirectories
-      val nestedBuildFileNamesWithBuild =
+      val nestedBuildFileNames =
         if (allowNestedBuildMillFiles)
-          nestedBuildFileNames ++ rootBuildFileNames.asScala.toList
-        else nestedBuildFileNames
+          nestedBuildFileNames0 ++ rootBuildFileNames.asScala.toList
+        else nestedBuildFileNames0
       val buildFiles = os
         .walk(
           projectRoot,
@@ -155,10 +163,10 @@ object DiscoveredBuildFiles {
           skip = p =>
             p == output ||
               p == projectRoot / millBuild ||
-              (os.isDir(p) && !nestedBuildFileNamesWithBuild.exists(n => os.exists(p / n)))
+              (os.isDir(p) && !nestedBuildFileNames.exists(n => os.exists(p / n)))
         )
         // Include both package.mill and nested build.mill files (when enabled)
-        .filter(p => nestedBuildFileNamesWithBuild.contains(p.last))
+        .filter(p => nestedBuildFileNames.contains(p.last))
 
       val adjacentScripts = (projectRoot +: buildFiles.map(_ / os.up))
         .flatMap(os.list(_))
@@ -170,19 +178,6 @@ object DiscoveredBuildFiles {
 
       buildFiles ++ adjacentScripts
     }
-  }
-
-  /**
-   * Read the `mill-allow-nested-build-mill` flag from the root build.mill YAML header.
-   */
-  private def readAllowNestedBuildMillFiles(projectRoot: os.Path): Boolean = {
-    val (isDummy, _) = findRootBuildFiles(projectRoot)
-    if (isDummy) false
-    else mill.internal.Util.readBooleanFromBuildHeader(
-      projectRoot,
-      ConfigConstants.millAllowNestedBuildMill,
-      rootBuildFileNames.asScala.toSeq
-    )
   }
 
   def fileImportToSegments(base: os.Path, s: os.Path): Seq[String] = {

@@ -28,7 +28,11 @@ object CodeGen {
       parser: MillScalaParser
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
-    val allowNestedBuildMillFiles = readAllowNestedBuildMillFiles(projectRoot)
+    val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
+      projectRoot,
+      mill.constants.ConfigConstants.millAllowNestedBuildMill,
+      CGConst.rootBuildFileNames.asScala.toSeq
+    )
 
     // Collect moduleDeps configuration from all YAML files to write to a classpath resource
     val moduleDepsConfig = collection.mutable.Map.empty[String, ModuleDepsConfig]
@@ -490,15 +494,5 @@ object CodeGen {
         |)
         |""".stripMargin
   }
-
-  /**
-   * Read the `mill-allow-nested-build-mill` flag from the root build.mill YAML header.
-   */
-  private def readAllowNestedBuildMillFiles(projectRoot: os.Path): Boolean =
-    mill.internal.Util.readBooleanFromBuildHeader(
-      projectRoot,
-      mill.constants.ConfigConstants.millAllowNestedBuildMill,
-      CGConst.rootBuildFileNames.asScala.toSeq
-    )
 
 }
