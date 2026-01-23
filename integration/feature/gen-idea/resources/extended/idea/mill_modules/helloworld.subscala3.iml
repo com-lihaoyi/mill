@@ -8,8 +8,8 @@
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="scala-SDK-3.0.2" level="project"/>
-        <orderEntry type="library" name="scala-library-2.13.6.jar" level="project"/>
-        <orderEntry type="library" name="scala3-library_3-3.0.2.jar" level="project"/>
+        <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
+        <orderEntry type="library" name="scala-library-<version>.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_3-<version>.jar" level="project"/>
     </component>
 </module>

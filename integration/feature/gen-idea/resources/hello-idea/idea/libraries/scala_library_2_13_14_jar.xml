@@ -1,5 +1,5 @@
 <component name="libraryTable">
-    <library name="scala-library-2.13.14.jar">
+    <library name="scala-library-<version>.jar">
         <CLASSES>
             <root url="jar://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<version>/scala-library-<version>.jar!/"/>
         </CLASSES>
