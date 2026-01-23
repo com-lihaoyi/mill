@@ -120,6 +120,7 @@ abstract class MillDaemonServer[State](
               noBuildLock = false,
               noWaitForBuildLock = false,
               out = outFolder,
+              daemonDir = daemonDir,
               millActiveCommandMessage = "checking server configuration",
               streams = new SystemStreams(
                 new PrintStream(mill.api.daemon.DummyOutputStream),

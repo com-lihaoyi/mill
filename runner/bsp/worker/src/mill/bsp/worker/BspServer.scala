@@ -36,7 +36,8 @@ private abstract class MillBuildServer(
     protected val onShutdown: () => Unit,
     outLock: Lock,
     protected val baseLogger: Logger,
-    out: os.Path
+    out: os.Path,
+    daemonDir: os.Path
 ) extends EndpointsApi with AutoCloseable {
 
   import MillBuildServer.*
@@ -211,6 +212,7 @@ private abstract class MillBuildServer(
               noBuildLock = false,
               noWaitForBuildLock = false,
               out = out,
+              daemonDir = daemonDir,
               millActiveCommandMessage = s"IDE:$requestName",
               streams = logger.streams,
               outLock = outLock,

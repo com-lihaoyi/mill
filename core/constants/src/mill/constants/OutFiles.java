@@ -128,9 +128,9 @@ public class OutFiles {
     public final String millOutLock = "mill-out-lock";
 
     /**
-     * Any active Mill command that is currently run, for debugging purposes
+     * JSON file containing info about the active Mill process (command and process directory)
      */
-    public final String millActiveCommand = "mill-active-command";
+    public final String millActive = "mill-active.json";
 
     /**
      * File used to store metadata related to selective execution, mostly
@@ -189,7 +189,10 @@ public class OutFiles {
   public static final String millOutLock = OutFiles.millOutLock;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
-  public static final String millActiveCommand = OutFiles.millActiveCommand;
+  public static final String millActive = OutFiles.millActive;
+  /** @deprecated Use millActive instead */
+  @Deprecated
+  public static final String millActiveCommand = OutFiles.millActive;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millSelectiveExecution = OutFiles.millSelectiveExecution;
