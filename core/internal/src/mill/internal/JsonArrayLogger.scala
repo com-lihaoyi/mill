@@ -108,8 +108,27 @@ object JsonArrayLogger {
     }
   }
 
+  /**
+   * Base trait for chrome profile loggers, allowing for no-op implementations
+   * without creating background threads.
+   */
+  trait ChromeProfileLike extends AutoCloseable {
+    def logBegin(
+        terminal: String,
+        cat: String,
+        startTime: Long,
+        threadId: Int
+    ): Unit
+
+    def logEnd(
+        endTime: Long,
+        threadId: Int
+    ): Unit
+  }
+
   class ChromeProfile(outPath: os.Path)
-      extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
+      extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1)
+      with ChromeProfileLike {
 
     def logBegin(
         terminal: String,
@@ -142,14 +161,32 @@ object JsonArrayLogger {
     }
   }
 
-  private object ChromeProfile {
+  object ChromeProfile {
+
+    /**
+     * A no-op chrome profile logger that does nothing.
+     * Used when we need a ChromeProfile instance but don't want to actually log
+     * or create any background threads.
+     */
+    object NoOp extends ChromeProfileLike {
+      override def logBegin(
+          terminal: String,
+          cat: String,
+          startTime: Long,
+          threadId: Int
+      ): Unit = ()
+
+      override def logEnd(endTime: Long, threadId: Int): Unit = ()
+
+      override def close(): Unit = ()
+    }
 
     /**
      * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing
      * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
      */
     @upickle.implicits.key("ph")
-    enum TraceEvent derives upickle.ReadWriter {
+    private[JsonArrayLogger] enum TraceEvent derives upickle.ReadWriter {
       @upickle.implicits.key("B") case Begin(
           name: String,
           cat: String,
@@ -164,6 +201,5 @@ object JsonArrayLogger {
           tid: Int
       )
     }
-
   }
 }

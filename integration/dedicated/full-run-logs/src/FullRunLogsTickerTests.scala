@@ -28,6 +28,19 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           "done compiling"
         )
       )
+
+      // The console.log file should contain human-readable output without ANSI terminal
+      // movement codes, suitable for viewing in text editors or file browsers.
+      // With --ticker false, there's no prompt header or prefixes.
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/mill-daemon/console.log")),
+        List(
+          "compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "done compiling",
+          "compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
+          "done compiling"
+        )
+      )
     }
 
     test("ticker") - integrationTest { tester =>
@@ -45,6 +58,21 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(res.result.err.text()),
         // Should have no colors because we called it programmatically
+        List(
+          "mill run --text hello",
+          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          "<digits>] compile compiling 1 Scala source and 1 Java source to out/compile.dest/classes ...",
+          "<digits>] done compiling",
+          "<digits>] run",
+          ".../..., SUCCESS] mill run --text hello"
+        )
+      )
+
+      // The console.log file should contain the same content as stderr (without colors)
+      // but in a format suitable for file viewing (no ANSI terminal movement codes)
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/mill-daemon/console.log")),
         List(
           "mill run --text hello",
           "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
@@ -88,6 +116,21 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
           ".../..., SUCCESS] mill exclusives.printingC"
         )
       )
+
+      // The console.log file should contain the same content without ANSI terminal movement codes
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/mill-daemon/console.log")),
+        List(
+          "mill exclusives.printingC",
+          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          "<digits>] exclusives.printingA",
+          "<digits>] exclusives.empty",
+          "<digits>] exclusives.printingB",
+          "<digits>] exclusives.printingC",
+          ".../..., SUCCESS] mill exclusives.printingC"
+        )
+      )
     }
     test("logging") - integrationTest { tester =>
       import tester.*
@@ -124,6 +167,22 @@ object FullRunLogsTickerTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalize(os.read(workspacePath / "out/logging.log")),
         List("MY PRINTLN", "MY INFO LOGS", "MY WARN LOGS", "MY ERROR LOGS")
+      )
+
+      // The console.log file should contain output WITHOUT colors (stripped for file viewing)
+      // even though the terminal output has colors
+      assertGoldenLiteral(
+        normalize(os.read(workspacePath / "out/mill-daemon/console.log")),
+        List(
+          "mill logging",
+          "build.mill-<digits>] compile compiling 3 Scala sources to out/mill-build/compile.dest/classes ...",
+          "build.mill-<digits>] done compiling",
+          "<digits>] logging MY PRINTLN",
+          "<digits>] MY INFO LOGS",
+          "<digits>] [(Y)warn(X)] MY WARN LOGS",
+          "<digits>] [(R)error(X)] MY ERROR LOGS",
+          ".../..., (G)SUCCESS(X)] mill logging"
+        )
       )
     }
   }
