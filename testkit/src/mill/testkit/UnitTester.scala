@@ -230,9 +230,8 @@ class UnitTester(
   def scoped[T](tester: UnitTester => T): T = {
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
-        mill.api.daemon.LauncherSubprocess.withValue(
-          config =>
-            DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
+        mill.api.daemon.LauncherSubprocess.withValue(config =>
+          DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
         ) {
           tester(this)
         }
