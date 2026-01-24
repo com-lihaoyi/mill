@@ -420,47 +420,15 @@ object MillBuildBootstrap {
       workerCache: Map[String, (Int, Val)],
       workerTasks: Map[String, TaskApi[?]]
   ): Unit = {
-    // Find all worker names that a given task transitively depends on
-    def findWorkerDependencies(task: TaskApi[?], visited: Set[TaskApi[?]]): Set[String] = {
-      if (visited.contains(task)) Set.empty
-      else {
-        val directWorkerDeps = task.inputsApi.flatMap(_.workerNameApi).toSet
-        val transitiveDeps = task.inputsApi.flatMap(t => findWorkerDependencies(t, visited + task))
-        directWorkerDeps ++ transitiveDeps
+    mill.exec.GroupExecution.closeWorkersInTopologicalOrder(
+      workersToClose = workerCache.keySet,
+      workerCache = workerCache,
+      workerTasks = workerTasks,
+      closeAction = (_, closeable) => {
+        try closeable.close()
+        catch { case _: Throwable => /*ignore failures on close*/ }
       }
-    }
-
-    // Build dependency map: worker name -> set of worker names it depends on
-    val workerDeps: Map[String, Set[String]] = workerTasks.map { case (name, task) =>
-      name -> findWorkerDependencies(task, Set.empty)
-    }
-
-    val remaining = collection.mutable.Set.from(workerCache.keys)
-
-    // Close workers in reverse dependency order
-    while (remaining.nonEmpty) {
-      // Find workers that have no remaining dependents (safe to close)
-      val safeToClose = remaining.filter { w =>
-        // A worker is safe to close if no remaining worker depends on it
-        val dependentsOfW = remaining.filter { other =>
-          workerDeps.getOrElse(other, Set.empty).contains(w)
-        }
-        dependentsOfW.isEmpty
-      }
-
-      // If no safe workers found (cyclic deps), just close one arbitrarily
-      val toClose = if (safeToClose.isEmpty) remaining.take(1) else safeToClose
-
-      for (name <- toClose) {
-        workerCache.get(name).foreach {
-          case (_, Val(v: AutoCloseable)) =>
-            try v.close()
-            catch { case _: Throwable => /*ignore failures on close*/ }
-          case _ => // not closeable
-        }
-        remaining -= name
-      }
-    }
+    )
   }
 
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas

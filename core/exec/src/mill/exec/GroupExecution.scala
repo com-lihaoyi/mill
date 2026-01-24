@@ -570,22 +570,6 @@ trait GroupExecution {
   // classloader/class is the same or different doesn't matter.
   def workerCacheHash(inputHash: Int): Int = inputHash + classLoaderIdentityHash
 
-  /**
-   * Find all worker names that a task transitively depends on by traversing its inputs.
-   * Uses TaskApi methods so this logic can be shared with MillBuildBootstrap.
-   */
-  private def findTransitiveWorkerDependencies(
-      task: mill.api.daemon.internal.TaskApi[?],
-      visited: Set[mill.api.daemon.internal.TaskApi[?]]
-  ): Set[String] = {
-    if (visited.contains(task)) Set.empty
-    else {
-      val directWorkerDeps = task.inputsApi.flatMap(_.workerNameApi).toSet
-      val transitiveDeps = task.inputsApi.flatMap(t => findTransitiveWorkerDependencies(t, visited + task))
-      directWorkerDeps ++ transitiveDeps
-    }
-  }
-
   private def handleTaskResult(
       v: Val,
       hashCode: Int,
@@ -726,12 +710,14 @@ trait GroupExecution {
       logger: Logger,
       closeAction: AutoCloseable => Unit
   ): Seq[String] = {
-    // Build dependency map by traversing worker tasks
-    val tasks: Map[String, mill.api.daemon.internal.TaskApi[?]] = workerCache.synchronized {
-      workerTasks.toMap
+    // Get snapshots of the caches under synchronization
+    val (cacheSnapshot, tasksSnapshot) = workerCache.synchronized {
+      (workerCache.toMap, workerTasks.toMap)
     }
-    val workerDeps: Map[String, Set[String]] = tasks.map { case (name, task) =>
-      name -> findTransitiveWorkerDependencies(task, Set.empty)
+
+    // Build dependency map to find all workers that transitively depend on the given worker
+    val workerDeps: Map[String, Set[String]] = tasksSnapshot.map { case (name, task) =>
+      name -> GroupExecution.findTransitiveWorkerDependencies(task, Set.empty)
     }
 
     // Find all workers that transitively depend on the given worker
@@ -747,52 +733,35 @@ trait GroupExecution {
     }
 
     val dependents = findDependents(workerName, Set.empty)
-
-    // Build a topological order: dependents first, then the worker itself
     val allToClose = dependents + workerName
-    val closedWorkers = mutable.Buffer.empty[String]
-    val remaining = mutable.Set.from(allToClose)
 
-    // Close workers in reverse dependency order
-    while (remaining.nonEmpty) {
-      // Find workers that have no remaining dependents (safe to close)
-      val safeToClose = remaining.filter { w =>
-        // A worker is safe to close if no remaining worker depends on it
-        val dependentsOfW = remaining.filter { other =>
-          workerDeps.getOrElse(other, Set.empty).contains(w)
+    val closedWorkers = GroupExecution.closeWorkersInTopologicalOrder(
+      workersToClose = allToClose,
+      workerCache = cacheSnapshot,
+      workerTasks = tasksSnapshot,
+      closeAction = (name, closeable) => {
+        try {
+          logger.debug(s"Closing worker: $name")
+          closeAction(closeable)
+        } catch {
+          case NonFatal(e) =>
+            logger.error(s"$name: Errors while closing obsolete worker: ${e.getMessage()}")
         }
-        dependentsOfW.isEmpty
-      }
-
-      if (safeToClose.isEmpty && remaining.nonEmpty) {
-        // This shouldn't happen with acyclic dependencies, but handle it gracefully
-        // by closing in arbitrary order
+      },
+      onCyclicDeps = Some(() =>
         logger.debug(s"Warning: Cyclic worker dependencies detected, closing in arbitrary order")
-        safeToClose ++= remaining.take(1)
-      }
+      )
+    )
 
-      for (name <- safeToClose) {
-        workerCache.synchronized {
-          workerCache.get(name).foreach {
-            case (_, Val(closeable: AutoCloseable)) =>
-              try {
-                logger.debug(s"Closing worker: $name")
-                closeAction(closeable)
-              } catch {
-                case NonFatal(e) =>
-                  logger.error(s"$name: Errors while closing obsolete worker: ${e.getMessage()}")
-              }
-            case _ => // not closeable, nothing to do
-          }
-          workerCache.remove(name)
-          workerTasks.remove(name)
-        }
-        closedWorkers += name
-        remaining -= name
+    // Remove closed workers from the mutable caches
+    workerCache.synchronized {
+      closedWorkers.foreach { name =>
+        workerCache.remove(name)
+        workerTasks.remove(name)
       }
     }
 
-    closedWorkers.toSeq
+    closedWorkers
   }
 
   private def loadUpToDateWorker(
@@ -982,4 +951,79 @@ object GroupExecution {
       valueHashChanged: Boolean,
       serializedPaths: Seq[PathRef]
   )
+
+  /**
+   * Find all worker names that a task transitively depends on by traversing its inputs.
+   * Uses TaskApi methods so this logic can be shared between GroupExecution and MillBuildBootstrap.
+   */
+  def findTransitiveWorkerDependencies(
+      task: mill.api.daemon.internal.TaskApi[?],
+      visited: Set[mill.api.daemon.internal.TaskApi[?]]
+  ): Set[String] = {
+    if (visited.contains(task)) Set.empty
+    else {
+      val directWorkerDeps = task.inputsApi.flatMap(_.workerNameApi).toSet
+      val transitiveDeps = task.inputsApi.flatMap(t => findTransitiveWorkerDependencies(t, visited + task))
+      directWorkerDeps ++ transitiveDeps
+    }
+  }
+
+  /**
+   * Closes workers in reverse dependency order (downstream first, then upstream).
+   * This ensures that workers are closed before their dependencies.
+   *
+   * @param workersToClose The set of worker names to close
+   * @param workerCache Map of worker name to (hash, value)
+   * @param workerTasks Map of worker name to its TaskApi (for traversing dependencies)
+   * @param closeAction Action to perform when closing each worker
+   * @param onCyclicDeps Optional callback when cyclic dependencies are detected
+   * @return The list of worker names that were closed, in the order they were closed
+   */
+  def closeWorkersInTopologicalOrder(
+      workersToClose: Set[String],
+      workerCache: Map[String, (Int, Val)],
+      workerTasks: Map[String, mill.api.daemon.internal.TaskApi[?]],
+      closeAction: (String, AutoCloseable) => Unit,
+      onCyclicDeps: Option[() => Unit] = None
+  ): Seq[String] = {
+    // Build dependency map: worker name -> set of worker names it depends on
+    val workerDeps: Map[String, Set[String]] = workerTasks.collect {
+      case (name, task) if workersToClose.contains(name) =>
+        name -> findTransitiveWorkerDependencies(task, Set.empty)
+    }
+
+    val closedWorkers = mutable.Buffer.empty[String]
+    val remaining = mutable.Set.from(workersToClose)
+
+    // Close workers in reverse dependency order
+    while (remaining.nonEmpty) {
+      // Find workers that have no remaining dependents (safe to close)
+      val safeToClose = remaining.filter { w =>
+        // A worker is safe to close if no remaining worker depends on it
+        val dependentsOfW = remaining.filter { other =>
+          workerDeps.getOrElse(other, Set.empty).contains(w)
+        }
+        dependentsOfW.isEmpty
+      }
+
+      val toClose = if (safeToClose.isEmpty && remaining.nonEmpty) {
+        // This shouldn't happen with acyclic dependencies, but handle it gracefully
+        // by closing in arbitrary order
+        onCyclicDeps.foreach(_())
+        remaining.take(1).toSet
+      } else safeToClose
+
+      for (name <- toClose) {
+        workerCache.get(name).foreach {
+          case (_, Val(closeable: AutoCloseable)) =>
+            closeAction(name, closeable)
+          case _ => // not closeable, nothing to do
+        }
+        closedWorkers += name
+        remaining -= name
+      }
+    }
+
+    closedWorkers.toSeq
+  }
 }
