@@ -196,7 +196,13 @@ object Discover {
               ${ Expr.ofList(entryPoints.toList) },
               ${
                 Expr.ofList(names.map { case (name, nonBootstrapped, allEvaluatorsCommand) =>
-                  '{ new TaskInfo(${ Expr(name) }, ${ Expr(nonBootstrapped) }, ${ Expr(allEvaluatorsCommand) }) }
+                  '{
+                    new TaskInfo(
+                      ${ Expr(name) },
+                      ${ Expr(nonBootstrapped) },
+                      ${ Expr(allEvaluatorsCommand) }
+                    )
+                  }
                 })
               }
             )
