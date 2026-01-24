@@ -273,7 +273,9 @@ class PromptLogger(
         if (message != "") beginChromeProfileEntry(message)
         promptLineState.setCurrent(
           key,
-          Some(fansi.Str(Logger.formatPrefix0(key) ++ spaceNonEmpty(this.highlightColor(message).toString)))
+          Some(fansi.Str(
+            Logger.formatPrefix0(key) ++ spaceNonEmpty(this.highlightColor(message).toString)
+          ))
         )
         seenIdentifiers(key) = (keySuffix, message)
       }
