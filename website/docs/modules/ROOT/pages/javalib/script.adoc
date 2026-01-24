@@ -27,7 +27,7 @@ This can be useful to interactively exercise and experiment with the code define
 your script.
 
 ```scala
-./mill -i Foo.java:jshell
+./mill Foo.java:jshell
 ```
 
 
