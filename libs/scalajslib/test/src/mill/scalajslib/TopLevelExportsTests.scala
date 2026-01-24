@@ -26,7 +26,7 @@ object TopLevelExportsTests extends TestSuite {
       UnitTester(TopLevelExportsModule, millSourcePath).scoped { evaluator =>
         println(evaluator(TopLevelExportsModule.sources))
         val Right(result) =
-          evaluator(TopLevelExportsModule.fastLinkJS): @unchecked
+          evaluator(TopLevelExportsModule.fastLinkJS).runtimeChecked
         val publicModules = result.value.publicModules.toSeq
         assert(publicModules.length == 2)
         val b = publicModules(0)

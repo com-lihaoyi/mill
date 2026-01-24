@@ -32,7 +32,7 @@ object Scala38NightlyTests extends TestSuite {
       Scala38Nightly,
       sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "dotty213"
     ).scoped { eval =>
-      val Right(result) = eval.apply(Scala38Nightly.foo.run()): @unchecked
+      val Right(result) = eval.apply(Scala38Nightly.foo.run()).runtimeChecked
       assert(result.evalCount > 0)
     }
 

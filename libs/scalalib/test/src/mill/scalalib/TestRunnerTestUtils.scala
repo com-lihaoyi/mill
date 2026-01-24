@@ -99,7 +99,7 @@ object TestRunnerTestUtils {
         expectedFileListing: Map[TestModule, Set[String]] = Map()
     ) = {
       testOnly0 { (eval, mod) =>
-        val Right(result) = eval.apply(m(mod).testOnly(args*)): @unchecked
+        val Right(result) = eval.apply(m(mod).testOnly(args*)).runtimeChecked
         val testOnly = result.value
         if (expectedFileListing.nonEmpty) {
           val dest = eval.outPath / m(mod).toString / "testOnly.dest"

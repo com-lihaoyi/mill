@@ -19,7 +19,7 @@ object TestRunnerTests extends TestSuite {
           sourceRoot = resourcePath
         ).scoped { eval =>
           val Right(UnitTester.Result(("test failure done message", Nil), _)) =
-            eval.apply(testrunner.doneMessageFailure.testForked()): @unchecked
+            eval.apply(testrunner.doneMessageFailure.testForked()).runtimeChecked
           val stdout = new String(outStream.toByteArray)
           assert(stdout.contains("test failure done message"))
         }
@@ -32,14 +32,14 @@ object TestRunnerTests extends TestSuite {
           outStream = new PrintStream(outStream, true),
           sourceRoot = resourcePath
         ).scoped { eval =>
-          val Right(_) = eval(testrunner.doneMessageSuccess.testForked()): @unchecked
+          val Right(_) = eval(testrunner.doneMessageSuccess.testForked()).runtimeChecked
           val stdout = new String(outStream.toByteArray)
           assert(stdout.contains("test success done message"))
         }
       }
 
       test("null") - UnitTester(testrunner, resourcePath).scoped { eval =>
-        val Right(_) = eval(testrunner.doneMessageNull.testForked()): @unchecked
+        val Right(_) = eval(testrunner.doneMessageNull.testForked()).runtimeChecked
       }
     }
   }

@@ -42,7 +42,7 @@ object MixedHelloWorldTests extends TestSuite {
     test("compile") {
       testEval().scoped { eval =>
         MixedHelloWorldKotlin.main.crossModules.foreach(m => {
-          val Right(result) = eval.apply(m.compile): @unchecked
+          val Right(result) = eval.apply(m.compile).runtimeChecked
 
           assert(
             os.walk(result.value.classes.path).exists(_.last == "KotlinHelloKt.class"),
@@ -54,7 +54,7 @@ object MixedHelloWorldTests extends TestSuite {
     test("testCompile") {
       testEval().scoped { eval =>
         MixedHelloWorldKotlin.main.crossModules.foreach(m => {
-          val Right(result1) = eval.apply(m.test.compile): @unchecked
+          val Right(result1) = eval.apply(m.test.compile).runtimeChecked
 
           assert(
             os.walk(result1.value.classes.path).exists(_.last == "HelloTest.class")
@@ -66,7 +66,7 @@ object MixedHelloWorldTests extends TestSuite {
       testEval().scoped { eval =>
         MixedHelloWorldKotlin.main.crossModules.foreach(m => {
 
-          val Left(_: ExecResult.Failure[_]) = eval.apply(m.test.testForked()): @unchecked
+          val Left(_: ExecResult.Failure[_]) = eval.apply(m.test.testForked()).runtimeChecked
 
           //        assert(
           //          v1._2(0).fullyQualifiedName == "hello.tests.HelloTest.testFailure",
@@ -84,15 +84,15 @@ object MixedHelloWorldTests extends TestSuite {
           val mainJava =
             MixedHelloWorldKotlin.moduleDir / "main/src/hello/KotlinHello.kt"
 
-          val Right(_) = eval.apply(m.compile): @unchecked
+          val Right(_) = eval.apply(m.compile).runtimeChecked
 
           os.write.over(mainJava, os.read(mainJava) + "}")
 
-          val Left(_) = eval.apply(m.compile): @unchecked
+          val Left(_) = eval.apply(m.compile).runtimeChecked
 
           os.write.over(mainJava, os.read(mainJava).dropRight(1))
 
-          val Right(_) = eval.apply(m.compile): @unchecked
+          val Right(_) = eval.apply(m.compile).runtimeChecked
         })
       }
     }

@@ -8,6 +8,7 @@ import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
 import mill.internal.JsonArrayLogger
+import mill.launcher.DaemonRpc
 
 import java.io.InputStream
 import java.io.PrintStream
@@ -229,7 +230,11 @@ class UnitTester(
   def scoped[T](tester: UnitTester => T): T = {
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
-        tester(this)
+        mill.api.daemon.LauncherSubprocess.withValue(config =>
+          DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
+        ) {
+          tester(this)
+        }
       }
     } finally close()
   }

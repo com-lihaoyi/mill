@@ -69,7 +69,7 @@ trait HelloWorldTests extends utest.TestSuite {
     test("HelloWorld") {
       test("core") {
         test("scoverageVersion") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-          val Right(result) = eval.apply(HelloWorld.core.scoverageVersion): @unchecked
+          val Right(result) = eval.apply(HelloWorld.core.scoverageVersion).runtimeChecked
 
           assert(
             result.value == testScoverageVersion,
@@ -79,7 +79,7 @@ trait HelloWorldTests extends utest.TestSuite {
         test("scoverage") {
           test("unmanagedClasspath") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.unmanagedClasspath): @unchecked
+              eval.apply(HelloWorld.core.scoverage.unmanagedClasspath).runtimeChecked
 
             assert(
               result.value.map(_.toString).iterator.exists(_.contains("unmanaged.xml")),
@@ -88,7 +88,7 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           test("mvnDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.mvnDeps): @unchecked
+              eval.apply(HelloWorld.core.scoverage.mvnDeps).runtimeChecked
 
             val expected = if (isScala3) Seq.empty
             else Seq(
@@ -102,7 +102,7 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           test("scalacPluginMvnDeps") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.scalacPluginMvnDeps): @unchecked
+              eval.apply(HelloWorld.core.scoverage.scalacPluginMvnDeps).runtimeChecked
 
             val expected = (isScov3, isScala3) match {
               case (true, true) => Seq.empty
@@ -124,7 +124,7 @@ trait HelloWorldTests extends utest.TestSuite {
             )
           }
           test("data") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-            val Right(result) = eval.apply(HelloWorld.core.scoverage.data): @unchecked
+            val Right(result) = eval.apply(HelloWorld.core.scoverage.data).runtimeChecked
 
             val resultPath = result.value.path.toIO.getPath.replace("""\""", "/")
             val expectedEnd = "/out/core/scoverage/data.dest"
@@ -135,7 +135,7 @@ trait HelloWorldTests extends utest.TestSuite {
             )
           }
           test("htmlReport") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-            val Right(_) = eval.apply(HelloWorld.core.test.compile): @unchecked
+            val Right(_) = eval.apply(HelloWorld.core.test.compile).runtimeChecked
             val res = eval.apply(HelloWorld.core.scoverage.htmlReport())
             if (
               res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
@@ -145,13 +145,13 @@ trait HelloWorldTests extends utest.TestSuite {
               s"""Disabled for Scoverage ${testScoverageVersion} on Scala ${testScalaVersion}, as it fails with "No source root found" message"""
             } else {
               assert(res.isRight)
-              val Right(result) = res: @unchecked
+              val Right(result) = res.runtimeChecked
               assert(result.evalCount > 0)
               ""
             }
           }
           test("xmlReport") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-            val Right(_) = eval.apply(HelloWorld.core.test.compile): @unchecked
+            val Right(_) = eval.apply(HelloWorld.core.test.compile).runtimeChecked
             val res = eval.apply(HelloWorld.core.scoverage.xmlReport())
             if (
               res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
@@ -161,13 +161,13 @@ trait HelloWorldTests extends utest.TestSuite {
               s"""Disabled for Scoverage ${testScoverageVersion} on Scala ${testScalaVersion}, as it fails with "No source root found" message"""
             } else {
               assert(res.isRight)
-              val Right(result) = res: @unchecked
+              val Right(result) = res.runtimeChecked
               assert(result.evalCount > 0)
               ""
             }
           }
           test("xmlCoberturaReport") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-            val Right(_) = eval.apply(HelloWorld.core.test.compile): @unchecked
+            val Right(_) = eval.apply(HelloWorld.core.test.compile).runtimeChecked
             val res = eval.apply(HelloWorld.core.scoverage.xmlCoberturaReport())
             if (
               res.isLeft && testScalaVersion.startsWith("3.2") && testScoverageVersion.startsWith(
@@ -177,21 +177,21 @@ trait HelloWorldTests extends utest.TestSuite {
               s"""Disabled for Scoverage ${testScoverageVersion} on Scala ${testScalaVersion}, as it fails with "No source root found" message"""
             } else {
               assert(res.isRight)
-              val Right(result) = res: @unchecked
+              val Right(result) = res.runtimeChecked
               assert(result.evalCount > 0)
               ""
             }
           }
           test("console") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-            val Right(_) = eval.apply(HelloWorld.core.test.compile): @unchecked
-            val Right(result) = eval.apply(HelloWorld.core.scoverage.consoleReport()): @unchecked
+            val Right(_) = eval.apply(HelloWorld.core.test.compile).runtimeChecked
+            val Right(result) = eval.apply(HelloWorld.core.scoverage.consoleReport()).runtimeChecked
             assert(result.evalCount > 0)
           }
         }
         test("test") - {
           test("upstreamAssemblyClasspath") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath): @unchecked
+              eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath).runtimeChecked
 
             val runtimeExistsOnClasspath =
               result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
@@ -209,7 +209,7 @@ trait HelloWorldTests extends utest.TestSuite {
           }
           test("compileClasspath") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(HelloWorld.core.scoverage.compileClasspath): @unchecked
+              eval.apply(HelloWorld.core.scoverage.compileClasspath).runtimeChecked
 
             val runtimeExistsOnClasspath =
               result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
@@ -226,7 +226,7 @@ trait HelloWorldTests extends utest.TestSuite {
             }
           }
           test("runClasspath") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
-            val Right(result) = eval.apply(HelloWorld.core.scoverage.runClasspath): @unchecked
+            val Right(result) = eval.apply(HelloWorld.core.scoverage.runClasspath).runtimeChecked
 
             val runtimeExistsOnClasspath =
               result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
@@ -249,19 +249,19 @@ trait HelloWorldTests extends utest.TestSuite {
     test("HelloWorldSbt") {
       test("scoverage") {
         test("htmlReport") - UnitTester(HelloWorld, sbtResourcePath).scoped { eval =>
-          val Right(_) = eval.apply(HelloWorldSbt.core.test.compile): @unchecked
-          val Right(result) = eval.apply(HelloWorldSbt.core.scoverage.htmlReport()): @unchecked
+          val Right(_) = eval.apply(HelloWorldSbt.core.test.compile).runtimeChecked
+          val Right(result) = eval.apply(HelloWorldSbt.core.scoverage.htmlReport()).runtimeChecked
           assert(result.evalCount > 0)
         }
         test("xmlReport") - UnitTester(HelloWorld, sbtResourcePath).scoped { eval =>
-          val Right(_) = eval.apply(HelloWorldSbt.core.test.compile): @unchecked
-          val Right(result) = eval.apply(HelloWorldSbt.core.scoverage.xmlReport()): @unchecked
+          val Right(_) = eval.apply(HelloWorldSbt.core.test.compile).runtimeChecked
+          val Right(result) = eval.apply(HelloWorldSbt.core.scoverage.xmlReport()).runtimeChecked
           assert(result.evalCount > 0)
         }
         test("console") - UnitTester(HelloWorld, sbtResourcePath).scoped { eval =>
-          val Right(_) = eval.apply(HelloWorldSbt.core.test.compile): @unchecked
+          val Right(_) = eval.apply(HelloWorldSbt.core.test.compile).runtimeChecked
           val Right(result) =
-            eval.apply(HelloWorldSbt.core.scoverage.consoleReport()): @unchecked
+            eval.apply(HelloWorldSbt.core.scoverage.consoleReport()).runtimeChecked
           assert(result.evalCount > 0)
         }
       }
@@ -279,12 +279,12 @@ trait FailedWorldTests extends HelloWorldTests {
       test("shouldFail") {
         test("scoverageToolsCp") - UnitTester(mod, resourcePath).scoped { eval =>
           val Left(ExecResult.Failure(msg = msg)) =
-            eval.apply(mod.core.scoverageToolsClasspath): @unchecked
+            eval.apply(mod.core.scoverageToolsClasspath).runtimeChecked
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
           val Left(ExecResult.Failure(msg = msg)) =
-            eval.apply(mod.core.scoverage.xmlReport()): @unchecked
+            eval.apply(mod.core.scoverage.xmlReport()).runtimeChecked
           assert(msg == errorMsg)
         }
       }
@@ -296,12 +296,12 @@ trait FailedWorldTests extends HelloWorldTests {
           val res = eval.apply(mod.core.scoverageToolsClasspath)
           assert(res.isLeft)
           println(s"res: ${res}")
-          val Left(ExecResult.Failure(msg = msg)) = res: @unchecked
+          val Left(ExecResult.Failure(msg = msg)) = res.runtimeChecked
           assert(msg == errorMsg)
         }
         test("other") - UnitTester(mod, resourcePath).scoped { eval =>
           val Left(ExecResult.Failure(msg = msg)) =
-            eval.apply(mod.core.scoverage.xmlReport()): @unchecked
+            eval.apply(mod.core.scoverage.xmlReport()).runtimeChecked
           assert(msg == errorMsg)
         }
       }
