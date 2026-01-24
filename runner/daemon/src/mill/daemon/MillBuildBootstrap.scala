@@ -15,7 +15,7 @@ import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.internal.PrefixLogger
 import mill.meta.{BootstrapRootModule, MillBuildRootModule}
-import mill.api.daemon.internal.CliImports
+import mill.api.daemon.internal.{AllEvaluators, CliImports}
 import mill.meta.DiscoveredBuildFiles.findRootBuildFiles
 import mill.server.Server
 import mill.util.BuildInfo
@@ -71,7 +71,47 @@ class MillBuildBootstrap(
   def evaluate(): RunnerState = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
 
-    for ((frame, depth) <- runnerState.frames.zipWithIndex) {
+    // Check if we have @allEvaluatorsCommand tasks that were deferred
+    val finalState = runnerState.frames.headOption.flatMap(_.evaluator) match {
+      case Some(evaluator)
+          if runnerState.errorOpt.isEmpty &&
+            evaluator
+              .areAllEvaluatorsCommand(
+                tasksAndParams,
+                SelectMode.Separated,
+                allowPositionalCommandArgs
+              )
+              .toOption
+              .getOrElse(false) =>
+        // Get the BuildFileApi for the root level to execute the deferred tasks
+        val rootModuleRes = runnerState.frames.lift(1).flatMap(_.classLoaderOpt) match {
+          case None =>
+            Result.Success(BuildFileApi.Bootstrap(runnerState.bootstrapModuleOpt.get))
+          case Some(classLoader) =>
+            getRootModule(classLoader)
+        }
+
+        rootModuleRes match {
+          case Result.Success(buildFileApi) =>
+            executeAllEvaluatorsCommand(
+              runnerState,
+              buildFileApi,
+              evaluator,
+              tasksAndParams,
+              selectiveExecution,
+              reporter,
+              logger
+            )
+          case f: Result.Failure =>
+            runnerState.copy(errorOpt =
+              Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+            )
+        }
+
+      case _ => runnerState
+    }
+
+    for ((frame, depth) <- finalState.frames.zipWithIndex) {
       os.write.over(
         recOut(output, depth) / millRunnerState,
         upickle.write(frame.loggedData, indent = 4),
@@ -79,7 +119,7 @@ class MillBuildBootstrap(
       )
     }
 
-    runnerState
+    finalState
   }
 
   def evaluateRec(depth: Int): RunnerState = logger.withChromeProfile(s"meta-level $depth") {
@@ -134,11 +174,32 @@ class MillBuildBootstrap(
               // If areAllNonBootstrapped failed (e.g., task doesn't exist), the actual
               // evaluation will also fail, but moduleWatched will be properly captured.
               case _ =>
-                if (depth > requestedDepth) {
-                  processRunClasspath(nestedState, buildFileApi, evaluator, depth)
-                } else if (depth == requestedDepth) {
-                  processFinalTasks(nestedState, buildFileApi, evaluator)
-                } else ??? // should be handled by outer conditional
+                // Check if all tasks are @allEvaluatorsCommand - if so, defer execution
+                // to after bootstrapping completes so we have access to all evaluators
+                val isAllEvaluatorsCommand =
+                  if (depth == 0 && requestedDepth == 0 && requestedMetaLevel.isEmpty) {
+                    evaluator.areAllEvaluatorsCommand(
+                      tasksAndParams,
+                      SelectMode.Separated,
+                      allowPositionalCommandArgs
+                    )
+                  } else {
+                    Result.Success(false)
+                  }
+
+                isAllEvaluatorsCommand match {
+                  case Result.Success(true) =>
+                    // Don't run tasks now - create frame with evaluator and defer execution
+                    // to evaluate() where we have access to all evaluators
+                    processDeferredAllEvaluatorsCommand(nestedState, buildFileApi, evaluator)
+
+                  case _ =>
+                    if (depth > requestedDepth) {
+                      processRunClasspath(nestedState, buildFileApi, evaluator, depth)
+                    } else if (depth == requestedDepth) {
+                      processFinalTasks(nestedState, buildFileApi, evaluator)
+                    } else ??? // should be handled by outer conditional
+                }
             }
           }
       }
@@ -402,6 +463,79 @@ class MillBuildBootstrap(
 
     nestedState.add(
       frame = evalState,
+      errorOpt = evaled match {
+        case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
+        case _ => None
+      }
+    )
+  }
+
+  /**
+   * Creates a frame for @allEvaluatorsCommand tasks without executing them.
+   * The actual execution happens in evaluate() after all evaluators are available.
+   */
+  def processDeferredAllEvaluatorsCommand(
+      nestedState: RunnerState,
+      buildFileApi: BuildFileApi,
+      evaluator0: EvaluatorApi
+  ): RunnerState = {
+    assert(nestedState.frames.forall(_.evaluator.isDefined))
+
+    val evaluator = evaluator0.withIsFinalDepth(true)
+    // Create watches for the modules but don't evaluate tasks yet
+    import buildFileApi.*
+    evalWatchedValues.clear()
+
+    val evalState = RunnerState.Frame(
+      workerCache = evaluator.workerCache.toMap,
+      evalWatched = evalWatchedValues.toSeq,
+      moduleWatched = moduleWatchedValues,
+      codeSignatures = Map.empty,
+      classLoaderOpt = None,
+      runClasspath = Nil,
+      compileOutput = None,
+      evaluator = Option(evaluator),
+      buildOverrideFiles = Map(),
+      spanningInvalidationTree = None
+    )
+
+    nestedState.add(frame = evalState, errorOpt = None)
+  }
+
+  /**
+   * Executes @allEvaluatorsCommand tasks with all available evaluators.
+   * Called from evaluate() after the full bootstrap process completes.
+   */
+  def executeAllEvaluatorsCommand(
+      runnerState: RunnerState,
+      buildFileApi: BuildFileApi,
+      evaluator: EvaluatorApi,
+      tasksAndParams: Seq[String],
+      selectiveExecution: Boolean,
+      reporter: EvaluatorApi => Int => Option[CompileProblemReporter],
+      logger: Logger
+  ): RunnerState = {
+    val allEvaluators = runnerState.frames.flatMap(_.evaluator)
+
+    // Execute the tasks with all evaluators accessible via AllEvaluators
+    val (evaled, evalWatched, moduleWatches) = AllEvaluators.withValue(allEvaluators) {
+      evaluateWithWatches(
+        buildFileApi = buildFileApi,
+        evaluator = evaluator,
+        tasksAndParams = tasksAndParams,
+        selectiveExecution = selectiveExecution,
+        reporter = reporter(evaluator)
+      )
+    }
+
+    // Update frame 0 with the evaluation results
+    val updatedFrame = runnerState.frames.head.copy(
+      evalWatched = evalWatched,
+      moduleWatched = moduleWatches
+    )
+
+    runnerState.copy(
+      frames = Seq(updatedFrame) ++ runnerState.frames.tail,
       errorOpt = evaled match {
         case f: Result.Failure => Some(mill.internal.Util.formatError(f, logger.prompt.errorColor))
         case _ => None

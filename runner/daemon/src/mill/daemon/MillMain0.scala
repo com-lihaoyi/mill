@@ -441,38 +441,6 @@ object MillMain0 {
                         streams.err.println("Exiting BSP runner loop")
 
                         (!errored, RunnerState(None, Nil, None))
-                      } else if (
-                        config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
-                        config.leftoverArgs.value == Seq("mill.idea.GenIdea/") ||
-                        config.leftoverArgs.value == Seq("mill.idea/")
-                      ) {
-                        val runnerState =
-                          runMillBootstrap(
-                            false,
-                            None,
-                            Seq("resolve", "_"),
-                            streams,
-                            "BSP:initialize"
-                          )
-                        new mill.idea.GenIdeaImpl(runnerState.frames.flatMap(_.evaluator))
-                          .run()
-                        (true, RunnerState(None, Nil, None))
-                      } else if (
-                        config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
-                        config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/") ||
-                        config.leftoverArgs.value == Seq("mill.eclipse/")
-                      ) {
-                        val runnerState =
-                          runMillBootstrap(
-                            false,
-                            None,
-                            Seq("resolve", "_"),
-                            streams,
-                            "BSP:initialize"
-                          )
-                        new mill.eclipse.GenEclipseImpl(runnerState.frames.flatMap(_.evaluator))
-                          .run()
-                        (true, RunnerState(None, Nil, None))
                       } else {
                         Watching.watchLoop(
                           ringBell = config.ringBell.value,

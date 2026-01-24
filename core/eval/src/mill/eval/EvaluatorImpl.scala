@@ -176,6 +176,49 @@ final class EvaluatorImpl(
     }
   }
 
+  /**
+   * Resolves tasks using resolveRaw and checks if all of them are marked with @allEvaluatorsCommand annotation.
+   * Used by MillBuildBootstrap to determine if we should defer execution until all evaluators are available.
+   * Uses resolveRaw instead of resolveTasks to avoid instantiating the tasks.
+   *
+   * Returns false if any selector contains wildcards (`_` or `__`) since wildcards
+   * could resolve to many tasks and we shouldn't defer for those.
+   */
+  override def areAllEvaluatorsCommand(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean
+  ): mill.api.Result[Boolean] = {
+    // First, parse the selectors to check for wildcards
+    val parsedResults = ParseArgs(scriptArgs, selectMode)
+    val hasWildcards = parsedResults.exists {
+      case Result.Success((selectors, _)) =>
+        selectors.exists { case (_, segments) =>
+          segments.value.exists {
+            case Segment.Label(v) =>
+              v == "_" || v == "__" || v.startsWith("_:") || v.startsWith("__:")
+            case _ => false
+          }
+        }
+      case _ => false
+    }
+
+    if (hasWildcards) Result.Success(false)
+    else resolveRaw(scriptArgs, selectMode, allowPositionalCommandArgs) match {
+      case Result.Success(Nil) => Result.Success(false) // No tasks resolved
+      case Result.Success(resolved) =>
+        Result.Success(
+          resolved.forall { r =>
+            r.taskSegments.parts.lastOption.exists { taskName =>
+              r.rootModule.millDiscover.isAllEvaluatorsCommand(r.cls, taskName)
+            }
+          }
+        )
+
+      case f: Result.Failure => f // Pass through failure
+    }
+  }
+
   def validateModuleOverrides(allModules: Seq[ModuleCtx.Wrapper]): Seq[Result.Failure] = {
     val scriptBuildOverrides = allModules.flatMap(_.moduleDynamicBuildOverrides)
     val allBuildOverrides = staticBuildOverrides ++ scriptBuildOverrides
