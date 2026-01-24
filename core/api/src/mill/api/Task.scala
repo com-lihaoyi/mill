@@ -498,7 +498,7 @@ object Task {
     override def persistent = false
     override def asWorker: Some[Worker[T]] = Some(this)
     override private[mill] def asWorkerApi: Option[daemon.internal.TaskApi[?]] = Some(this)
-    override private[mill] def workerNameApi: Option[String] = Some(ctx.segments.render)
+    override private[mill] def workerNameApi: Option[String] = Some(this.ctx.segments.render)
   }
 
   class Input[T](
