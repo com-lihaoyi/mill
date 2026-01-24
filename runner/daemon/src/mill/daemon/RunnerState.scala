@@ -61,10 +61,7 @@ object RunnerState {
 
   @internal
   case class Frame(
-      workerCache: Map[String, (Int, Val)],
-      // Maps worker name to its Task, used to traverse inputs and determine
-      // worker dependencies for ordered closure (downstream first, then upstream).
-      workerTasks: Map[String, TaskApi[?]],
+      workerCache: Map[String, (Int, Val, TaskApi[?])],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       codeSignatures: Map[String, Int],
@@ -116,7 +113,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map(), None)
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map(), None)
   }
 
 }

@@ -5,8 +5,7 @@ import mill.api.daemon.internal.{
   CompileProblemReporter,
   EvaluatorApi,
   PathRefApi,
-  RootModuleApi,
-  TaskApi
+  RootModuleApi
 }
 import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
@@ -278,7 +277,6 @@ class MillBuildBootstrap(
       case (f: Result.Failure, evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
-          workerTasks = evaluator.workerTasks.toMap,
           evalWatched = evalWatches,
           moduleWatched = moduleWatches,
           codeSignatures = Map.empty,
@@ -329,7 +327,7 @@ class MillBuildBootstrap(
           // frame's `workerCache`s that may depend on classes loaded by that classloader.
           // Workers are closed in reverse dependency order (downstream first, then upstream).
           prevRunnerState.frames.lift(depth - 1).foreach { frame =>
-            MillBuildBootstrap.closeWorkersInOrder(frame.workerCache, frame.workerTasks)
+            mill.exec.GroupExecution.closeWorkersInTopologicalOrder(frame.workerCache.keySet, frame.workerCache)
           }
 
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
@@ -346,7 +344,6 @@ class MillBuildBootstrap(
 
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
-          workerTasks = evaluator.workerTasks.toMap,
           evalWatched = evalWatches,
           moduleWatched = moduleWatches,
           codeSignatures = codeSignatures,
@@ -355,7 +352,6 @@ class MillBuildBootstrap(
           compileOutput = Some(compileClasses),
           evaluator = Option(evaluator),
           buildOverrideFiles = buildOverrideFiles,
-          // Only pass the spanning tree when classloader changed (meta-build was recompiled)
           spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree)
         )
 
@@ -388,7 +384,6 @@ class MillBuildBootstrap(
 
     val evalState = RunnerState.Frame(
       workerCache = evaluator.workerCache.toMap,
-      workerTasks = evaluator.workerTasks.toMap,
       evalWatched = evalWatched,
       moduleWatched = moduleWatches,
       codeSignatures = Map.empty,

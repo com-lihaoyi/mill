@@ -21,8 +21,7 @@ trait EvaluatorApi extends AutoCloseable {
       selectiveExecution: Boolean = false
   ): EvaluatorApi.Result[T]
 
-  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
-  private[mill] def workerTasks: mutable.Map[String, TaskApi[?]]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val, TaskApi[?])]
 
   private[mill] def executeApi[T](tasks: Seq[TaskApi[T]]): EvaluatorApi.Result[T]
   private[mill] def baseLogger: Logger

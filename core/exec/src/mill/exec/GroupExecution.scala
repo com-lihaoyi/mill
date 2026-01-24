@@ -34,15 +34,12 @@ trait GroupExecution {
   def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
 
   /**
-   * `String` is the worker name, `Int` is the worker hash, `Val` is the result of the worker invocation.
+   * Worker cache mapping worker name to a tuple of:
+   * - Int: worker hash (for cache invalidation)
+   * - Val: the worker instance
+   * - TaskApi[?]: the worker's Task (for traversing dependencies during ordered closure)
    */
-  def workerCache: mutable.Map[String, (Int, Val)]
-
-  /**
-   * Maps worker name to its Task, used to traverse inputs and determine
-   * worker dependencies for ordered closure (downstream first, then upstream).
-   */
-  def workerTasks: mutable.Map[String, Task[?]]
+  def workerCache: mutable.Map[String, (Int, Val, mill.api.daemon.internal.TaskApi[?])]
 
   def env: Map[String, String]
   def failFast: Boolean
@@ -580,8 +577,7 @@ trait GroupExecution {
     for (w <- labelled.asWorker) {
       val workerName = w.ctx.segments.render
       workerCache.synchronized {
-        workerCache.update(workerName, (workerCacheHash(inputsHash), v))
-        workerTasks.update(workerName, labelled)
+        workerCache.update(workerName, (workerCacheHash(inputsHash), v, labelled))
       }
     }
 
@@ -706,17 +702,12 @@ trait GroupExecution {
    * Returns the list of worker names that were closed, in the order they were closed.
    */
   private def closeWorkerAndDependents(workerName: String): Seq[String] = {
-    // Get snapshots of the caches under synchronization
-    val (cacheSnapshot, tasksSnapshot) = workerCache.synchronized {
-      (workerCache.toMap, workerTasks.toMap)
-    }
+    val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
 
-    // Build dependency map to find all workers that transitively depend on the given worker
-    val workerDeps: Map[String, Set[String]] = tasksSnapshot.map { case (name, task) =>
+    val workerDeps: Map[String, Set[String]] = cacheSnapshot.map { case (name, (_, _, task)) =>
       name -> GroupExecution.findTransitiveWorkerDependencies(task, Set.empty)
     }
 
-    // Find all workers that transitively depend on the given worker
     def findDependents(name: String, visited: Set[String]): Set[String] = {
       if (visited.contains(name)) Set.empty
       else {
@@ -731,19 +722,9 @@ trait GroupExecution {
     val dependents = findDependents(workerName, Set.empty)
     val allToClose = dependents + workerName
 
-    val closedWorkers = GroupExecution.closeWorkersInTopologicalOrder(
-      workersToClose = allToClose,
-      workerCache = cacheSnapshot,
-      workerTasks = tasksSnapshot
-    )
+    val closedWorkers = GroupExecution.closeWorkersInTopologicalOrder(allToClose, cacheSnapshot)
 
-    // Remove closed workers from the mutable caches
-    workerCache.synchronized {
-      closedWorkers.foreach { name =>
-        workerCache.remove(name)
-        workerTasks.remove(name)
-      }
-    }
+    workerCache.synchronized { closedWorkers.foreach(workerCache.remove) }
 
     closedWorkers
   }
@@ -769,17 +750,15 @@ trait GroupExecution {
         }
       }
       .flatMap {
-        case (cachedHash, upToDate)
+        case (cachedHash, upToDate, _)
             if cachedHash == workerCacheHash(inputsHash) && !forceDiscard =>
-          Some(upToDate) // worker cached and up-to-date
+          Some(upToDate)
 
-        case (_, Val(_: AutoCloseable)) =>
-          // worker cached but obsolete, needs to be closed along with all dependents
-          val workerName = labelled.asWorker.get.ctx.segments.render
-          closeWorkerAndDependents(workerName)
+        case (_, Val(_: AutoCloseable), _) =>
+          closeWorkerAndDependents(labelled.asWorker.get.ctx.segments.render)
           None
 
-        case _ => None // worker not cached or obsolete
+        case _ => None
       }
   }
 }
@@ -913,10 +892,6 @@ object GroupExecution {
       serializedPaths: Seq[PathRef]
   )
 
-  /**
-   * Find all worker names that a task transitively depends on by traversing its inputs.
-   * Uses TaskApi methods so this logic can be shared between GroupExecution and MillBuildBootstrap.
-   */
   def findTransitiveWorkerDependencies(
       task: mill.api.daemon.internal.TaskApi[?],
       visited: Set[mill.api.daemon.internal.TaskApi[?]]
@@ -929,49 +904,31 @@ object GroupExecution {
     }
   }
 
-  /**
-   * Closes workers in reverse dependency order (downstream first, then upstream).
-   * This ensures that workers are closed before their dependencies.
-   *
-   * @param workersToClose The set of worker names to close
-   * @param workerCache Map of worker name to (hash, value)
-   * @param workerTasks Map of worker name to its TaskApi (for traversing dependencies)
-   * @return The list of worker names that were closed, in the order they were closed
-   */
   def closeWorkersInTopologicalOrder(
       workersToClose: Set[String],
-      workerCache: Map[String, (Int, Val)],
-      workerTasks: Map[String, mill.api.daemon.internal.TaskApi[?]]
+      workerCache: Map[String, (Int, Val, mill.api.daemon.internal.TaskApi[?])]
   ): Seq[String] = {
-    // Build dependency map: worker name -> set of worker names it depends on
-    val workerDeps: Map[String, Set[String]] = workerTasks.collect {
-      case (name, task) if workersToClose.contains(name) =>
+    val workerDeps: Map[String, Set[String]] = workerCache.collect {
+      case (name, (_, _, task)) if workersToClose.contains(name) =>
         name -> findTransitiveWorkerDependencies(task, Set.empty)
     }
 
     val closedWorkers = mutable.Buffer.empty[String]
     val remaining = mutable.Set.from(workersToClose)
 
-    // Close workers in reverse dependency order
     while (remaining.nonEmpty) {
-      // Find workers that have no remaining dependents (safe to close)
       val safeToClose = remaining.filter { w =>
-        // A worker is safe to close if no remaining worker depends on it
-        val dependentsOfW = remaining.filter { other =>
-          workerDeps.getOrElse(other, Set.empty).contains(w)
-        }
-        dependentsOfW.isEmpty
+        remaining.forall(other => !workerDeps.getOrElse(other, Set.empty).contains(w))
       }
 
-      // If no safe workers found (cyclic deps), just close one arbitrarily
       val toClose = if (safeToClose.isEmpty) remaining.take(1).toSet else safeToClose
 
       for (name <- toClose) {
         workerCache.get(name).foreach {
-          case (_, Val(closeable: AutoCloseable)) =>
+          case (_, Val(closeable: AutoCloseable), _) =>
             try closeable.close()
-            catch { case _: Throwable => /*ignore failures on close*/ }
-          case _ => // not closeable, nothing to do
+            catch { case _: Throwable => }
+          case _ =>
         }
         closedWorkers += name
         remaining -= name
