@@ -124,7 +124,7 @@ private object PromptLoggerUtil {
 
               val detail = splitShorten(spaceNonEmpty(t.detail), maxWidth - mainText.length)
 
-              mainText ++ infoColor(detail)
+              mainText ++ detail
             }
           }
       }

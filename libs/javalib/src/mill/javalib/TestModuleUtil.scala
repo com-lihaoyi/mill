@@ -322,7 +322,7 @@ final class TestModuleUtil(
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
         val result = Option.when(processIndex == 0 || startingTestClass.nonEmpty) {
-          startingTestClass.foreach(logger.ticker(_))
+          startingTestClass.foreach(s => logger.ticker(logger.prompt.highlightColor(s)))
           // queue.log file will be appended by the runner with the stolen test class's name
           // it can be used to check the order of test classes of the runner
           val claimLog = processFolder / "claim.log"
@@ -349,8 +349,9 @@ final class TestModuleUtil(
               seenLines = lines.length
               for ((currentTestClass, nanoTime) <- currentTestClassNanoTime) {
                 val now = System.nanoTime()
+
                 logger.ticker(
-                  s"$currentTestClass${Util.renderSecondsSuffix((now - nanoTime) / 1000000)}"
+                  s"${logger.prompt.highlightColor(currentTestClass)}${Util.renderSecondsSuffix((now - nanoTime) / 1000000)}"
                 )
               }
             }
