@@ -355,51 +355,61 @@ object TestModule {
   }
 
   /**
-   * Base trait with shared functionality for JUnit 5+ test modules.
-   * Both Junit5 and Junit6 use the same test framework and discovery mechanism.
+   * TestModule that uses JUnit 5 Framework to run tests.
+   * You can override the [[junitPlatformVersion]] and [[jupiterVersion]] task
+   * or provide the JUnit 5-dependencies yourself.
+   *
+   * In case the [[jupiterVersion]] is set (and it is > 5.12), it pulls in JUnit-BOM in [[bomMvnDeps]]. If this is
+   * true, then there is no need to specify the [[junitPlatformVersion]] anymore, because this is managed by the
+   * BOM.
+   *
+   * See: https://junit.org/junit5/
    */
-  private[javalib] trait JupiterBase extends TestModule {
+  trait Junit5 extends TestModule {
+
+    /** The JUnit 5 Platform version to use, or empty, if you want to provide the dependencies yourself. */
+    def junitPlatformVersion: T[String] = Task { "" }
 
     /** The JUnit Jupiter version to use, or empty, if you want to provide the dependencies yourself. */
-    def jupiterVersion: T[String]
+    def jupiterVersion: T[String] = Task { "" }
 
-    /** The jupiter-interface dependency string to use. Override in subtraits. */
-    protected def jupiterInterfaceDep: String
-
-    /** Whether to use the JUnit BOM for dependency management. Override in subtraits for version-specific logic. */
-    protected def useJupiterBom: T[Boolean] = Task { !jupiterVersion().isBlank }
-
-    /** Platform launcher dependencies. Override in subtraits for version-specific logic. */
-    protected def platformLauncherDeps: T[Seq[Dep]] = Task {
-      Option.when(useJupiterBom())(mvn"org.junit.platform:junit-platform-launcher")
-        .toSeq
+    /** Whether to use the JUnit BOM for dependency management. Override in subclasses. */
+    protected def useBom: T[Boolean] = Task {
+      if (jupiterVersion().isBlank) false
+      else Version.isAtLeast(jupiterVersion(), "5.12.0")(using Version.IgnoreQualifierOrdering)
     }
+
+    /** The jupiter interface artifact to use. Override in subclasses for different versions. */
+    protected def jupiterInterfaceArtifact: String = mill.javalib.api.Versions.jupiterInterface
 
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
 
     override def bomMvnDeps: T[Seq[Dep]] = Task {
-      super.bomMvnDeps() ++
-        Option.when(useJupiterBom() && !jupiterVersion().isBlank){
-          mvn"org.junit:junit-bom:${jupiterVersion().trim()}"
-        }
+      super.bomMvnDeps() ++ {
+        Seq(jupiterVersion())
+          .filter(!_.isBlank() && useBom())
+          .map(v => mvn"org.junit:junit-bom:${v.trim()}")
+      }
     }
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
-        Seq(mvn"$jupiterInterfaceDep") ++
-        platformLauncherDeps() ++
+        Seq(mvn"${jupiterInterfaceArtifact}") ++
+        Seq(junitPlatformVersion()).flatMap(v => {
+          if (!v.isBlank) Some(mvn"org.junit.platform:junit-platform-launcher:${v.trim()}")
+          else if (useBom()) Some(mvn"org.junit.platform:junit-platform-launcher")
+          else None
+        }) ++
         Seq(jupiterVersion())
           .filter(!_.isBlank())
           .map(v => mvn"org.junit.jupiter:junit-jupiter-api:${v.trim()}")
     }
 
-    private[TestModule] lazy val classesDir: Task[Option[os.Path]] = this match {
-      case withCompileTask: JavaModule =>
-        Task.Anon {
+    protected lazy val classesDir: Task[Option[os.Path]] = this match {
+      case withCompileTask: JavaModule => Task.Anon {
           Some(withCompileTask.compile().classes.path)
         }
-      case m =>
-        Task.Anon {
+      case m => Task.Anon {
           m.testClasspath().map(_.path).find { path =>
             os.exists(path) && os.walk.stream(path).exists(p => os.isFile(p) && p.ext == "class")
           }
@@ -407,15 +417,15 @@ object TestModule {
     }
 
     /**
-     * Overridden since JUnit 5+ has its own discovery mechanism.
+     * Overridden since Junit5 has its own discovery mechanism.
      *
-     * This is basically a re-implementation of sbt's plugin for JUnit 5/6 test
+     * This is basically a re-implementation of sbt's plugin for Junit5 test
      * discovery mechanism. See
      * https://github.com/sbt/sbt-jupiter-interface/blob/468d4f31f1f6ce8529fff8a8804dd733974c7686/src/plugin/src/main/scala/com/github/sbt/junit/jupiter/sbt/JupiterPlugin.scala#L97C15-L118
      * for details.
      *
      * Note that we access the test discovery via reflection, to avoid mill
-     * itself having a dependency on JUnit 5/6. Hence, if you remove the
+     * itself having a dependency on Junit5. Hence, if you remove the
      * `sbt-jupiter-interface` dependency from `mvnDeps`, make sure to also
      * override this method.
      */
@@ -433,42 +443,6 @@ object TestModule {
   }
 
   /**
-   * TestModule that uses JUnit 5 Framework to run tests.
-   * You can override the [[junitPlatformVersion]] and [[jupiterVersion]] task
-   * or provide the JUnit 5-dependencies yourself.
-   *
-   * In case the [[jupiterVersion]] is set (and it is > 5.12), it pulls in JUnit-BOM in [[bomMvnDeps]]. If this is
-   * true, then there is no need to specify the [[junitPlatformVersion]] anymore, because this is managed by the
-   * BOM.
-   *
-   * See: https://junit.org/junit5/
-   */
-  trait Junit5 extends JupiterBase {
-
-    /** The JUnit 5 Platform version to use, or empty, if you want to provide the dependencies yourself. */
-    def junitPlatformVersion: T[String] = Task { "" }
-
-    /** The JUnit Jupiter version to use, or empty, if you want to provide the dependencies yourself. */
-    def jupiterVersion: T[String] = Task { "" }
-
-    protected def jupiterInterfaceDep: String = mill.javalib.api.Versions.jupiterInterface
-
-    /** JUnit 5 BOM is only available starting with version 5.12.0 */
-    override protected def useJupiterBom: T[Boolean] = Task {
-      !jupiterVersion().isBlank &&
-      Version.isAtLeast(jupiterVersion(), "5.12.0")(using Version.IgnoreQualifierOrdering)
-    }
-
-    /** JUnit 5 allows explicit platform version, or uses BOM if available */
-    override protected def platformLauncherDeps: T[Seq[Dep]] = Task {
-      val v = junitPlatformVersion()
-      if (!v.isBlank) Seq(mvn"org.junit.platform:junit-platform-launcher:${v.trim()}")
-      else if (useJupiterBom()) Seq(mvn"org.junit.platform:junit-platform-launcher")
-      else Seq.empty
-    }
-  }
-
-  /**
    * TestModule that uses JUnit 6 Framework to run tests.
    * You can override the [[jupiterVersion]] task or provide the JUnit 6-dependencies yourself.
    *
@@ -479,12 +453,17 @@ object TestModule {
    *
    * See: https://junit.org/junit6/
    */
-  trait Junit6 extends JupiterBase {
+  trait Junit6 extends Junit5 {
 
     /** The JUnit 6 version to use, or empty, if you want to provide the dependencies yourself. */
-    def jupiterVersion: T[String] = Task { "" }
+    override def jupiterVersion: T[String] = Task { "" }
 
-    protected def jupiterInterfaceDep: String = mill.javalib.api.Versions.jupiterInterface6
+    // JUnit 6 BOM is always available when version is provided (no minimum version requirement like JUnit 5)
+    override protected def useBom: T[Boolean] = Task { !jupiterVersion().isBlank }
+
+    // Use JUnit 6's jupiter-interface dependency
+    override protected def jupiterInterfaceArtifact: String =
+      mill.javalib.api.Versions.jupiterInterface6
   }
 
   /**
