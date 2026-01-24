@@ -206,6 +206,7 @@ object Logger {
     def warnColor(s: String): String
     def errorColor(s: String): String
     def successColor(s: String): String
+    def highlightColor(s: String): String = s
     def colored: Boolean
   }
   private[mill] object Prompt {

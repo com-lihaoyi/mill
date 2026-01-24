@@ -47,11 +47,12 @@ class PromptLogger(
   def isInteractive() = termDimensions._1.nonEmpty
 
   private object promptLineState extends PromptLineState(
-        highlightColor(titleText),
+        titleText,
         currentTimeMillis(),
         () => termDimensions,
         currentTimeMillis,
-        infoColor
+        infoColor,
+        highlightColor
       )
 
   private object streamManager extends StreamManager(
@@ -272,7 +273,9 @@ class PromptLogger(
         if (message != "") beginChromeProfileEntry(message)
         promptLineState.setCurrent(
           key,
-          Some(fansi.Str(Logger.formatPrefix0(key) ++ spaceNonEmpty(message)))
+          Some(fansi.Str(
+            Logger.formatPrefix0(key) ++ spaceNonEmpty(this.highlightColor(message).toString)
+          ))
         )
         seenIdentifiers(key) = (keySuffix, message)
       }
@@ -290,6 +293,7 @@ class PromptLogger(
     def warnColor(s: String): String = PromptLogger.this.warnColor(s).render
     def errorColor(s: String): String = PromptLogger.this.errorColor(s).render
     def successColor(s: String): String = PromptLogger.this.successColor(s).render
+    override def highlightColor(s: String): String = PromptLogger.this.highlightColor(s).render
     def colored: Boolean = PromptLogger.this.colored
   }
   def ticker(s: String): Unit = ()
@@ -505,7 +509,8 @@ object PromptLogger {
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
       currentTimeMillis: () => Long,
-      infoColor: fansi.Attrs
+      infoColor: fansi.Attrs,
+      highlightColor: fansi.Attrs
   ) {
     private val statuses = collection.mutable.SortedMap
       .empty[Seq[String], Status](using PromptLoggerUtil.seqStringOrdering)
@@ -540,7 +545,7 @@ object PromptLogger {
         now,
         startTimeMillis,
         if (headerPrefix.isEmpty) "" else s"$headerPrefix]",
-        titleText,
+        if (ending) titleText else highlightColor(titleText),
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
         infoColor = infoColor

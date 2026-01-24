@@ -14,7 +14,7 @@ object Colors {
         fansi.Color.Yellow,
         fansi.Color.Red,
         fansi.Color.Green,
-        fansi.Color.Cyan
+        fansi.Color.Yellow
       )
   object BlackWhite
       extends Colors(
