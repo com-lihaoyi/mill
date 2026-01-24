@@ -181,7 +181,13 @@ via `//| mill-jvm-version: system`
 
 ==== Notable Features
 
-* Updated `build.mill` files to use to Scala 3.8.0 final {link-pr}/6577[#6577]
+* Updated `build.mill` files to use to Scala 3.8.1 final {link-pr}/6654[#6654]
+
+* Improvements to selective test execution and cache invalidation {link-pr}/6650[#6650],
+  and `selective.resolveTree`/`mill-invalidation-tree.json` reporting {link-pr}/6616[#6616]
+
+* Add `@nonBootstrapped` commands that run without the Mill bootstrap process completing
+  {link-pr}/6593[#6593],
 
 * Add builtin support for `jshell` command on ``JavaModule``s and `./mill --jshell` flag to open
 a Java REPL ({link-pr}/5984[#5984])
@@ -341,7 +347,7 @@ This is currently pretty bare, but will get fleshed out as we move towards `1.1.
 
 * More aggressively skip files when discovering scripts for BSP import {link-pr}/6194[#6194]
 
-* Improvements to `./mill init` {link-pr}/6566[#6566] {link-pr}/6567[#6567] {link-pr}/6434[#6434] {link-pr}/5428[#5428]
+* Improvements to `./mill init` {link-pr}/6658[#6658]{link-pr}/6566[#6566] {link-pr}/6567[#6567] {link-pr}/6434[#6434] {link-pr}/5428[#5428]
 
 * Many improvements to Mill's Android build support {link-pr}/6527[#6527] {link-pr}/6551[#6551] {link-pr}/5887[#5887], {link-pr}/5888[#5888],
 {link-pr}/5926[#5926], {link-pr}/5963[#5963], {link-pr}/5997[#5997], {link-pr}/5980[#5980],
