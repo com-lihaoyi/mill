@@ -56,7 +56,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         // plain modules cannot handle the dependencies, so if there are multiple js files, it will fail
-        val Left(_) = eval.apply(module.foo(true, "plain").run()): @unchecked
+        val Left(_) = eval.apply(module.foo(true, "plain").run()).runtimeChecked
       }
     }
 
@@ -64,7 +64,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         val command = module.foo(true, "es").run()
-        val Right(_) = eval.apply(command): @unchecked
+        val Right(_) = eval.apply(command).runtimeChecked
 
         assertLogContains(eval, command, expectedSuccessOutput)
       }
@@ -74,7 +74,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         // amd modules have "define" method, it is not known by Node.js
-        val Left(_) = eval.apply(module.foo(true, "amd").run()): @unchecked
+        val Left(_) = eval.apply(module.foo(true, "amd").run()).runtimeChecked
       }
     }
 
@@ -82,7 +82,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         val command = module.foo(true, "commonjs").run()
-        val Right(_) = eval.apply(command): @unchecked
+        val Right(_) = eval.apply(command).runtimeChecked
 
         assertLogContains(eval, command, expectedSuccessOutput)
       }
@@ -91,7 +91,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         val command = module.foo(true, "umd").run()
-        val Right(_) = eval.apply(command): @unchecked
+        val Right(_) = eval.apply(command).runtimeChecked
 
         assertLogContains(eval, command, expectedSuccessOutput)
       }
@@ -99,7 +99,7 @@ object KotlinJsNodeRunTests extends TestSuite {
     test("split - no module") {
       testEval().scoped { eval =>
 
-        val Left(_) = eval.apply(module.foo(true, "no").run()): @unchecked
+        val Left(_) = eval.apply(module.foo(true, "no").run()).runtimeChecked
       }
     }
 
@@ -111,7 +111,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         val command = module.foo(false, "plain").run()
-        val Right(_) = eval.apply(command): @unchecked
+        val Right(_) = eval.apply(command).runtimeChecked
 
         assertLogContains(eval, command, expectedSuccessOutput)
       }
@@ -121,7 +121,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         val command = module.foo(false, "es").run()
-        val Right(_) = eval.apply(command): @unchecked
+        val Right(_) = eval.apply(command).runtimeChecked
 
         assertLogContains(eval, command, expectedSuccessOutput)
       }
@@ -131,7 +131,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         // amd modules have "define" method, it is not known by Node.js
-        val Left(_) = eval.apply(module.foo(false, "amd").run()): @unchecked
+        val Left(_) = eval.apply(module.foo(false, "amd").run()).runtimeChecked
       }
     }
 
@@ -139,7 +139,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         val command = module.foo(false, "commonjs").run()
-        val Right(_) = eval.apply(command): @unchecked
+        val Right(_) = eval.apply(command).runtimeChecked
 
         assertLogContains(eval, command, expectedSuccessOutput)
       }
@@ -148,7 +148,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         val command = module.foo(false, "umd").run()
-        val Right(_) = eval.apply(command): @unchecked
+        val Right(_) = eval.apply(command).runtimeChecked
 
         assertLogContains(eval, command, expectedSuccessOutput)
       }
@@ -157,7 +157,7 @@ object KotlinJsNodeRunTests extends TestSuite {
       testEval().scoped { eval =>
 
         val command = module.foo(false, "no").run()
-        val Right(_) = eval.apply(command): @unchecked
+        val Right(_) = eval.apply(command).runtimeChecked
 
         assertLogContains(eval, command, expectedSuccessOutput)
       }

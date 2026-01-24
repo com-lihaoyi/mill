@@ -27,16 +27,18 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       test("fromBuild") {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
-            val Right(conf) = eval.apply(playmulti.core(scalaVersion, playVersion).conf): @unchecked
-            val Right(app) = eval.apply(playmulti.core(scalaVersion, playVersion).app): @unchecked
+            val Right(conf) =
+              eval.apply(playmulti.core(scalaVersion, playVersion).conf).runtimeChecked
+            val Right(app) =
+              eval.apply(playmulti.core(scalaVersion, playVersion).app).runtimeChecked
             val Right(sources) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).sources): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).sources).runtimeChecked
             val Right(resources) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).resources): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).resources).runtimeChecked
             val Right(testSources) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).test.sources): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).test.sources).runtimeChecked
             val Right(testResources) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).test.resources): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).test.resources).runtimeChecked
             assert(
               conf.value.map(_.path.relativeTo(playmulti.moduleDir).toString()) == Seq(
                 "core/conf"
@@ -66,7 +68,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).mvnDeps): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).mvnDeps).runtimeChecked
             val expectedModules = Seq[String](
               "play",
               "play-guice",
@@ -86,7 +88,10 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
             val Right(_) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).resolvedRunMvnDeps): @unchecked
+              eval.apply(playmulti.core(
+                scalaVersion,
+                playVersion
+              ).resolvedRunMvnDeps).runtimeChecked
           }
         }
       }
@@ -96,7 +101,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
         skipUnsupportedVersions(playVersion) {
           UnitTester(playmulti, resourcePath).scoped { eval =>
             val eitherResult = eval.apply(playmulti.core(scalaVersion, playVersion).compile)
-            val Right(result) = eitherResult: @unchecked
+            val Right(result) = eitherResult.runtimeChecked
             val outputClassFiles =
               os.walk(result.value.classes.path).filter(f => os.isFile(f) && f.ext == "class")
 
@@ -130,7 +135,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
 
             // don't recompile if nothing changed
             val Right(result2) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).compile): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).compile).runtimeChecked
             assert(result2.evalCount == 0)
           }
         }

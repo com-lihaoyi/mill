@@ -37,7 +37,7 @@ object CheckstyleXsltModuleTest extends TestSuite {
     UnitTester(module, modulePath).scoped { eval =>
       eval(module.checkstyle(CheckstyleArgs(check = false, sources = Leftover()))).get
 
-      val Right(reports) = eval(module.checkstyleXsltReports): @unchecked
+      val Right(reports) = eval(module.checkstyleXsltReports).runtimeChecked
 
       reports.value.forall(report => os.exists(report.output.path))
     }

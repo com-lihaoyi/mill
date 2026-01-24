@@ -66,7 +66,7 @@ private object PromptLoggerUtil {
 
   def readTerminalDims(terminfoPath: os.Path): Option[(Option[Int], Option[Int])] = {
     try {
-      val s"$termWidth0 $termHeight0" = os.read(terminfoPath): @unchecked
+      val s"$termWidth0 $termHeight0" = os.read(terminfoPath).runtimeChecked
       Some(
         Tuple2(
           termWidth0.toInt match {

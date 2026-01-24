@@ -27,7 +27,7 @@ trait JavaHomeTests(jvmVersion0: String, expectedPrefix: String, expectedBytes: 
     test("javaHome") {
       UnitTester(HelloJavaJavaHome11Override, resourcePath).scoped { eval =>
 
-        val Right(result) = eval.apply(HelloJavaJavaHome11Override.core.compile): @unchecked
+        val Right(result) = eval.apply(HelloJavaJavaHome11Override.core.compile).runtimeChecked
 
         val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
 
@@ -41,14 +41,14 @@ trait JavaHomeTests(jvmVersion0: String, expectedPrefix: String, expectedBytes: 
 
         val path = eval.evaluator.workspace / "java.version"
         val Right(_) =
-          eval.apply(HelloJavaJavaHome11Override.core.run(Task.Anon(Args(path)))): @unchecked
+          eval.apply(HelloJavaJavaHome11Override.core.run(Task.Anon(Args(path)))).runtimeChecked
 
         assert(
           os.read(path).startsWith(expectedPrefix)
         )
 
         val Left(_: ExecResult.Failure[_]) =
-          eval.apply(HelloJavaJavaHome11Override.core.test.testForked()): @unchecked
+          eval.apply(HelloJavaJavaHome11Override.core.test.testForked()).runtimeChecked
 
         //        assert(
         //          v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",

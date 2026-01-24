@@ -107,7 +107,7 @@ object PalantirFormatModuleTest extends TestSuite {
       eval(module.palantirformat(mainargs.Flag(check), mainargs.Leftover(sources*))).fold(
         _.throwException,
         { _ =>
-          val Right(sources) = eval(module.sources): @unchecked
+          val Right(sources) = eval(module.sources).runtimeChecked
 
           sources.value.flatMap(ref => walkFiles(ref.path))
         }
@@ -126,7 +126,7 @@ object PalantirFormatModuleTest extends TestSuite {
       eval(PalantirFormatModule.formatAll(mainargs.Flag(check), Tasks(Seq(module.sources)))).fold(
         _.throwException,
         { _ =>
-          val Right(sources) = eval(module.sources): @unchecked
+          val Right(sources) = eval(module.sources).runtimeChecked
           sources.value.map(_.path).flatMap(walkFiles(_))
         }
       )

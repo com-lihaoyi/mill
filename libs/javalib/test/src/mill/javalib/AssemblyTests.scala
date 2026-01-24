@@ -24,7 +24,7 @@ object AssemblyTests extends TestSuite with AssemblyTestUtils {
       test("assembly") - UnitTester(HelloJavaWithMain, resourcePath).scoped {
         eval =>
           val Right(result) =
-            eval.apply(HelloJavaWithMain.app.assembly): @unchecked
+            eval.apply(HelloJavaWithMain.app.assembly).runtimeChecked
           assert(
             os.exists(result.value.path),
             result.evalCount > 0
@@ -42,7 +42,7 @@ object AssemblyTests extends TestSuite with AssemblyTestUtils {
       }
 
       test("run") - UnitTester(HelloJavaWithMain, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloJavaWithMain.app.assembly): @unchecked
+        val Right(result) = eval.apply(HelloJavaWithMain.app.assembly).runtimeChecked
 
         assert(
           os.exists(result.value.path),

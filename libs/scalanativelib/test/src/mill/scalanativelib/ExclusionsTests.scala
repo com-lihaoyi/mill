@@ -30,7 +30,7 @@ object ExclusionsTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("scala3 scala native libraries are excluded in Scala 2.13") {
-      val Right(result) = exclusionsEvaluator(Exclusions.scala213.resolvedMvnDeps): @unchecked
+      val Right(result) = exclusionsEvaluator(Exclusions.scala213.resolvedMvnDeps).runtimeChecked
       val jars = result.value.iterator.map(_.path.last).toSet
       assert(jars.contains("nativelib_native0.5_2.13-0.5.9.jar"))
       assert(!jars.contains("nativelib_native0.5_3-0.5.9.jar"))
@@ -38,7 +38,7 @@ object ExclusionsTests extends TestSuite {
       assert(!jars.contains("clib_native0.5_3-0.5.9.jar"))
     }
     test("scala2.13 scala native libraries are excluded in Scala 3") {
-      val Right(result) = exclusionsEvaluator(Exclusions.scala3.resolvedMvnDeps): @unchecked
+      val Right(result) = exclusionsEvaluator(Exclusions.scala3.resolvedMvnDeps).runtimeChecked
       val jars = result.value.iterator.map(_.path.last).toSet
       assert(jars.contains("nativelib_native0.5_3-0.5.9.jar"))
       assert(!jars.contains("nativelib_native0.5_2.13-0.5.9.jar"))
