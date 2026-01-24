@@ -140,7 +140,7 @@ object Discover {
       // changing unnecessarily
       val mapping: Seq[(
           TypeRepr,
-          (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[(String, Boolean)])
+          (Seq[scala.quoted.Expr[mainargs.MainData[?, ?]]], Seq[(String, Boolean, Boolean)])
       )] =
         for (curCls <- seen.toSeq.sortBy(_.typeSymbol.fullName)) yield {
           val declMethods = filterDefs(curCls.typeSymbol.declaredMethods)

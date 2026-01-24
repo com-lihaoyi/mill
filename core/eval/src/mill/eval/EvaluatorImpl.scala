@@ -207,13 +207,21 @@ final class EvaluatorImpl(
     else resolveRaw(scriptArgs, selectMode, allowPositionalCommandArgs) match {
       case Result.Success(Nil) => Result.Success(false) // No tasks resolved
       case Result.Success(resolved) =>
-        Result.Success(
-          resolved.forall { r =>
-            r.taskSegments.parts.lastOption.exists { taskName =>
-              r.rootModule.millDiscover.isAllEvaluatorsCommand(r.cls, taskName)
+        val result = resolved.forall { r =>
+          // For modules with empty taskSegments, check if they have a DefaultTaskModule
+          // and if so, check the default task instead
+          val taskName: Option[String] = r.taskSegments.parts.lastOption.orElse {
+            // For modules (with empty taskSegments), check for DefaultTaskModule
+            r.rootModule match {
+              case dtm: mill.api.DefaultTaskModule => Some(dtm.defaultTask())
+              case _ => None
             }
           }
-        )
+          taskName.exists { name =>
+            r.rootModule.millDiscover.isAllEvaluatorsCommand(r.cls, name)
+          }
+        }
+        Result.Success(result)
 
       case f: Result.Failure => f // Pass through failure
     }
