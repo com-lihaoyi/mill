@@ -191,7 +191,7 @@ trait TestModule
           classpath: Seq[Path]
       )] =
     Task.Anon {
-      val mainClass = "mill.javalib.testrunner.entrypoint.TestRunnerMain"
+      val mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain"
       val outputPath = Task.dest / "out.json"
       val resultPath = Task.dest / "results.log"
       val selectors = Seq.empty
