@@ -278,13 +278,13 @@ object ExecutionTests extends TestSuite {
       }
 
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(worker1, _)) = tester.apply(build.worker): @unchecked
-        val Right(UnitTester.Result(worker2, _)) = tester.apply(build.worker): @unchecked
+        val Right(UnitTester.Result(worker1, _)) = tester.apply(build.worker).runtimeChecked
+        val Right(UnitTester.Result(worker2, _)) = tester.apply(build.worker).runtimeChecked
         assert(worker1 == worker2)
         assert(worker1.n == 10)
         assert(!worker1.closed)
         x = 11
-        val Right(UnitTester.Result(worker3, _)) = tester.apply(build.worker): @unchecked
+        val Right(UnitTester.Result(worker3, _)) = tester.apply(build.worker).runtimeChecked
         assert(worker3 != worker2)
         assert(worker3.n == 11)
         assert(!worker3.closed)
@@ -347,10 +347,10 @@ object ExecutionTests extends TestSuite {
 
       UnitTester(build, null).scoped { tester =>
         assert(y == 0)
-        val Right(_) = tester.apply(build.task): @unchecked
+        val Right(_) = tester.apply(build.task).runtimeChecked
         assert(y == 10)
         x = 0
-        val Left(_) = tester.apply(build.task): @unchecked
+        val Left(_) = tester.apply(build.task).runtimeChecked
         assert(y == 10)
       }
     }
@@ -364,13 +364,13 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(build.task4): @unchecked
+        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(build.task4).runtimeChecked
       }
     }
     test("traverse") {
       UnitTester(traverseBuild, null).scoped { tester =>
         val Right(UnitTester.Result(Seq(1, 10, 100), _)) =
-          tester.apply(traverseBuild.task4): @unchecked
+          tester.apply(traverseBuild.task4).runtimeChecked
       }
     }
 
@@ -382,7 +382,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result((1, 10), _)) = tester.apply(build.task4): @unchecked
+        val Right(UnitTester.Result((1, 10), _)) = tester.apply(build.task4).runtimeChecked
       }
     }
 
@@ -394,7 +394,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(11, _)) = tester.apply(build.task2): @unchecked
+        val Right(UnitTester.Result(11, _)) = tester.apply(build.task2).runtimeChecked
       }
     }
 
@@ -472,13 +472,13 @@ object ExecutionTests extends TestSuite {
     test("backticked") {
       UnitTester(bactickIdentifiers, null).scoped { tester =>
         val Right(UnitTester.Result(1, _)) =
-          tester.apply(bactickIdentifiers.`up-task`): @unchecked
+          tester.apply(bactickIdentifiers.`up-task`).runtimeChecked
         val Right(UnitTester.Result(3, _)) =
-          tester.apply(bactickIdentifiers.`a-down-task`): @unchecked
+          tester.apply(bactickIdentifiers.`a-down-task`).runtimeChecked
         val Right(UnitTester.Result(3, _)) =
-          tester.apply(bactickIdentifiers.`invisible&`): @unchecked
+          tester.apply(bactickIdentifiers.`invisible&`).runtimeChecked
         val Right(UnitTester.Result(4, _)) =
-          tester.apply(bactickIdentifiers.`nested-module`.`nested-task`): @unchecked
+          tester.apply(bactickIdentifiers.`nested-module`.`nested-task`).runtimeChecked
       }
     }
 
@@ -528,7 +528,7 @@ object ExecutionTests extends TestSuite {
         UnitTester(exclusiveCommands, null).scoped { tester =>
           val result = tester.apply(exclusiveCommands.cleanClientWrong)
           assert(result.isLeft)
-          val Left(err) = result: @unchecked
+          val Left(err) = result.runtimeChecked
           val msg = err.toString
           assert(
             msg.contains("Non-Command task") &&
@@ -542,7 +542,7 @@ object ExecutionTests extends TestSuite {
         UnitTester(exclusiveCommands, null).scoped { tester =>
           val result = tester.apply(exclusiveCommands.cleanClientRight())
           assert(result.isRight)
-          val Right(UnitTester.Result(value, _)) = result: @unchecked
+          val Right(UnitTester.Result(value, _)) = result.runtimeChecked
           assert(value == "cleanClientRight done")
         }
       }
@@ -552,7 +552,7 @@ object ExecutionTests extends TestSuite {
         UnitTester(exclusiveCommands, null).scoped { tester =>
           val result = tester.apply(exclusiveCommands.cleanClientDownstream())
           assert(result.isRight)
-          val Right(UnitTester.Result(value, _)) = result: @unchecked
+          val Right(UnitTester.Result(value, _)) = result.runtimeChecked
           assert(value == "cleanClientDownstream done")
         }
       }

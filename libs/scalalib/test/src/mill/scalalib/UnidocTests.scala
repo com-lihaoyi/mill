@@ -45,7 +45,7 @@ object UnidocTests extends TestSuite {
     def doTest(module: UnidocTestRootModule, site: Boolean, isScala3: Boolean) =
       UnitTester(module, resourcePath).scoped { eval =>
         val task = if (site) module.docs.unidocSite else module.docs.unidocLocal
-        val Right(_) = eval.apply(task): @unchecked
+        val Right(_) = eval.apply(task).runtimeChecked
         val dest = eval.outPath / "docs" / (if (site) "unidocSite.dest" else "unidocLocal.dest")
         val sandbox = os.pwd
 

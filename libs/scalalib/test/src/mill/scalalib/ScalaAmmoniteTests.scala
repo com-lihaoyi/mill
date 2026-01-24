@@ -23,10 +23,10 @@ object ScalaAmmoniteTests extends TestSuite {
 
     test("replAmmoniteMainClass") - UnitTester(AmmoniteReplMainClass, null).scoped { eval =>
       val Right(result) =
-        eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass): @unchecked
+        eval.apply(AmmoniteReplMainClass.oldAmmonite.ammoniteMainClass).runtimeChecked
       assert(result.value == "ammonite.Main")
       val Right(result2) =
-        eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass): @unchecked
+        eval.apply(AmmoniteReplMainClass.newAmmonite.ammoniteMainClass).runtimeChecked
       assert(result2.value == "ammonite.AmmoniteMain")
     }
 

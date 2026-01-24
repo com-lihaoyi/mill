@@ -134,14 +134,14 @@ object ResolveDepsTests extends TestSuite {
   val tests = Tests {
     test("resolveValidDeps") {
       val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3")
-      val Success(paths) = evalDeps(deps): @unchecked
+      val Success(paths) = evalDeps(deps).runtimeChecked
       assert(paths.nonEmpty)
     }
 
     test("resolveValidDepsWithClassifier") {
       val deps = Seq(mvn"org.lwjgl:lwjgl:3.1.1;classifier=natives-macos")
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps): @unchecked
+      val Success(paths) = evalDeps(deps).runtimeChecked
       assert(paths.nonEmpty)
       assert(paths.head.path.toString.contains("natives-macos"))
     }
@@ -149,7 +149,7 @@ object ResolveDepsTests extends TestSuite {
     test("resolveTransitiveRuntimeDeps") {
       val deps = Seq(mvn"org.mockito:mockito-core:2.7.22")
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps): @unchecked
+      val Success(paths) = evalDeps(deps).runtimeChecked
       assert(paths.nonEmpty)
       assert(paths.exists(_.path.toString.contains("objenesis")))
       assert(paths.exists(_.path.toString.contains("byte-buddy")))
@@ -158,14 +158,14 @@ object ResolveDepsTests extends TestSuite {
     test("excludeTransitiveDeps") {
       val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps): @unchecked
+      val Success(paths) = evalDeps(deps).runtimeChecked
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     test("excludeTransitiveDepsByOrg") {
       val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps): @unchecked
+      val Success(paths) = evalDeps(deps).runtimeChecked
       assert(!paths.exists(path =>
         path.path.toString.contains("com/lihaoyi") && !path.path.toString.contains("pprint_2.12")
       ))
@@ -174,39 +174,39 @@ object ResolveDepsTests extends TestSuite {
     test("excludeTransitiveDepsByName") {
       val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
       assertRoundTrip(deps, simplified = true)
-      val Success(paths) = evalDeps(deps): @unchecked
+      val Success(paths) = evalDeps(deps).runtimeChecked
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     test("errOnInvalidOrgDeps") {
       val deps = Seq(mvn"xxx.yyy.invalid::pprint:0.5.3")
       assertRoundTrip(deps, simplified = true)
-      val (f: Result.Failure) = evalDeps(deps): @unchecked
+      val (f: Result.Failure) = evalDeps(deps).runtimeChecked
       assert(f.error.contains("xxx.yyy.invalid"))
     }
 
     test("errOnInvalidVersionDeps") {
       val deps = Seq(mvn"com.lihaoyi::pprint:invalid.version.num")
       assertRoundTrip(deps, simplified = true)
-      val (f: Result.Failure) = evalDeps(deps): @unchecked
+      val (f: Result.Failure) = evalDeps(deps).runtimeChecked
       assert(f.error.contains("invalid.version.num"))
     }
 
     test("errOnPartialSuccess") {
       val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3", mvn"fake::fake:fake")
       assertRoundTrip(deps, simplified = true)
-      val (f: Result.Failure) = evalDeps(deps): @unchecked
+      val (f: Result.Failure) = evalDeps(deps).runtimeChecked
       assert(f.error.contains("fake"))
     }
 
     test("pomArtifactType") {
       val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "pomArtifactType"
       UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
-        val Right(compileResult) = eval(TestCase.pomStuff.compileClasspath): @unchecked
+        val Right(compileResult) = eval(TestCase.pomStuff.compileClasspath).runtimeChecked
         val compileCp = compileResult.value.toSeq.map(_.path)
         assert(compileCp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
 
-        val Right(runResult) = eval(TestCase.pomStuff.runClasspath): @unchecked
+        val Right(runResult) = eval(TestCase.pomStuff.runClasspath).runtimeChecked
         val runCp = runResult.value.toSeq.map(_.path)
         assert(runCp.exists(_.lastOpt.contains("hadoop-yarn-server-3.4.0.pom")))
       }
@@ -316,13 +316,13 @@ object ResolveDepsTests extends TestSuite {
     test("resolvedMvnSources") {
       UnitTester(TestCase, null).scoped { eval =>
         // First check that regular resolvedMvnDeps works
-        val Right(depsResult) = eval(TestCase.sources.resolvedMvnDeps): @unchecked
+        val Right(depsResult) = eval(TestCase.sources.resolvedMvnDeps).runtimeChecked
         val deps = depsResult.value
         assert(deps.nonEmpty)
         assert(deps.exists(_.path.last.contains("geny")))
 
         // Now check resolvedMvnSources
-        val Right(result) = eval(TestCase.sources.resolvedMvnSources): @unchecked
+        val Right(result) = eval(TestCase.sources.resolvedMvnSources).runtimeChecked
         val sourcesDir = result.value.path
 
         // Check that the sources directory exists and contains unpacked source files

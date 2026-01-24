@@ -28,7 +28,7 @@ object ScalaVersionsRangesTests extends TestSuite {
       resourcePath
     ).scoped { eval =>
       ScalaVersionsRanges.core.crossModules.map { c =>
-        val Right(_) = eval(c.run()): @unchecked
+        val Right(_) = eval(c.run()).runtimeChecked
       }
     }
     test("test with Scala 2.12- and 2.13+ specific code") - UnitTester(
@@ -36,7 +36,7 @@ object ScalaVersionsRangesTests extends TestSuite {
       resourcePath
     ).scoped { eval =>
       ScalaVersionsRanges.core.crossModules.map { c =>
-        val Right(_) = eval(c.test.testForked()): @unchecked
+        val Right(_) = eval(c.test.testForked()).runtimeChecked
       }
     }
   }

@@ -55,13 +55,13 @@ object JavaHomeTests extends TestSuite {
 
       def testSuccess(module: TestRootModule, task: Task[?]): Unit = {
         captureOutput(module, task) { (result, _) =>
-          val Right(_) = result: @unchecked
+          val Right(_) = result.runtimeChecked
         }
       }
 
       def testFailure(module: TestRootModule, task: Task[?], errors: String*): Unit = {
         captureOutput(module, task) { (result, stderr) =>
-          val Left(failing) = result: @unchecked
+          val Left(failing) = result.runtimeChecked
           failing match {
             case _: ExecResult.Failure[?]
                 // javadoc fails with a process error code 1

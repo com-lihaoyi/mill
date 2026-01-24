@@ -45,7 +45,7 @@ object BuildGenYaml extends BuildGen {
       file
     }
 
-    val rootPackage +: nestedPackages = packages0: @unchecked
+    val rootPackage +: nestedPackages = packages0.runtimeChecked
     val millVersion = resolveMillVersion
     val millJvmVersion0 = resolveMillJvmVersion(millJvmVersion)
 

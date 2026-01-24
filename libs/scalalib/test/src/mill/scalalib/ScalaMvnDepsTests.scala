@@ -23,13 +23,13 @@ object ScalaMvnDepsTests extends TestSuite {
   def tests: Tests = Tests {
 
     test("mvnDeps") - UnitTester(HelloWorldMvnDeps, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(HelloWorldMvnDeps.moduleA.runClasspath): @unchecked
+      val Right(result) = eval.apply(HelloWorldMvnDeps.moduleA.runClasspath).runtimeChecked
       assert(
         result.value.exists(_.path.last == "sourcecode_2.12-0.1.3.jar"),
         !result.value.exists(_.path.last == "sourcecode_2.12-0.1.4.jar")
       )
 
-      val Right(result2) = eval.apply(HelloWorldMvnDeps.moduleB.runClasspath): @unchecked
+      val Right(result2) = eval.apply(HelloWorldMvnDeps.moduleB.runClasspath).runtimeChecked
       assert(
         result2.value.exists(_.path.last == "sourcecode_2.12-0.1.4.jar"),
         !result2.value.exists(_.path.last == "sourcecode_2.12-0.1.3.jar")

@@ -90,7 +90,7 @@ object CompileRunTests extends TestSuite {
             scalaVersion,
             scalaNativeVersion,
             mode
-          ).compile): @unchecked
+          ).compile).runtimeChecked
 
         val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last).toSet
@@ -106,7 +106,7 @@ object CompileRunTests extends TestSuite {
             scalaVersion,
             scalaNativeVersion,
             mode
-          ).compile): @unchecked
+          ).compile).runtimeChecked
         assert(result2.evalCount == 0)
       }
 
@@ -122,7 +122,7 @@ object CompileRunTests extends TestSuite {
             scala213,
             scalaNative05,
             ReleaseMode.ReleaseFast
-          ).jar): @unchecked
+          ).jar).runtimeChecked
         val jar = result.value.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("hello/Main$.nir"))
@@ -133,7 +133,7 @@ object CompileRunTests extends TestSuite {
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
         val task =
           HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).nativeLink
-        val Right(result) = eval(task): @unchecked
+        val Right(result) = eval(task).runtimeChecked
 
         val paths = ExecutionPaths.resolve(eval.outPath, task)
         val log = os.read(paths.log)
@@ -154,7 +154,7 @@ object CompileRunTests extends TestSuite {
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
         val task =
           HelloNativeWorld.build(scalaVersion, scalaNativeVersion, mode).runMain("hello.Main2")
-        val Right(result) = eval(task): @unchecked
+        val Right(result) = eval(task).runtimeChecked
 
         val paths = ExecutionPaths.resolve(eval.outPath, task)
         val stdout = os.proc(paths.dest / "out").call().out.lines()

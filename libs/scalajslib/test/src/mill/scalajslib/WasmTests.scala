@@ -33,7 +33,7 @@ object WasmTests extends TestSuite {
     test("should emit wasm") {
       UnitTester(Wasm, millSourcePath).scoped { evaluator =>
         val Right(result) =
-          evaluator(Wasm.fastLinkJS): @unchecked
+          evaluator(Wasm.fastLinkJS).runtimeChecked
         val publicModules = result.value.publicModules.toSeq
         val path = result.value.dest.path
         val main = publicModules.head
@@ -49,7 +49,7 @@ object WasmTests extends TestSuite {
 
     test("wasm is runnable") {
       UnitTester(Wasm, millSourcePath).scoped { evaluator =>
-        val Right(result) = evaluator(Wasm.fastLinkJS): @unchecked
+        val Right(result) = evaluator(Wasm.fastLinkJS).runtimeChecked
         val path = result.value.dest.path
         os.proc("node", "--experimental-wasm-exnref", "main.js").call(
           cwd = path,

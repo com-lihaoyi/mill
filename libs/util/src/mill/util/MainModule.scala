@@ -261,7 +261,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
           (allPaths, ts)
         }
 
-    (pathsToRemove: @unchecked).map {
+    (pathsToRemove.runtimeChecked).map {
       case (paths, allSegments) =>
         for {
           workerSegments <- evaluator.workerCache.keys.toList
@@ -416,7 +416,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
       val evaluated =
         evaluator.evaluate(Seq(selected.entryPoint) ++ parsed.rest.value, SelectMode.Separated)
 
-      (evaluated: @unchecked) match {
+      (evaluated.runtimeChecked) match {
         case f: Result.Failure => f
         case Result.Success(Evaluator.Result(
               _,
