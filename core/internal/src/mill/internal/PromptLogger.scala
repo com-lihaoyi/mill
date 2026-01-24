@@ -51,7 +51,8 @@ class PromptLogger(
         currentTimeMillis(),
         () => termDimensions,
         currentTimeMillis,
-        infoColor
+        infoColor,
+        highlightColor
       )
 
   private object streamManager extends StreamManager(
@@ -505,7 +506,8 @@ object PromptLogger {
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
       currentTimeMillis: () => Long,
-      infoColor: fansi.Attrs
+      infoColor: fansi.Attrs,
+      highlightColor: fansi.Attrs
   ) {
     private val statuses = collection.mutable.SortedMap
       .empty[Seq[String], Status](using PromptLoggerUtil.seqStringOrdering)
@@ -519,7 +521,6 @@ object PromptLogger {
     def getCurrentPrompt() = currentPromptBytes
 
     def updatePrompt(ending: Boolean = false): Boolean = {
-
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).beginTransitionTime
@@ -541,7 +542,7 @@ object PromptLogger {
         now,
         startTimeMillis,
         if (headerPrefix.isEmpty) "" else s"$headerPrefix]",
-        if (!ending) titleText else fansi.Str(titleText).plainText,
+        if (ending) highlightColor(titleText) else titleText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
         infoColor = infoColor
