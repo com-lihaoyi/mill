@@ -181,18 +181,13 @@ via `//| mill-jvm-version: system`
 
 ==== Notable Features
 
-* Updated `build.mill` files to use to Scala 3.8.1 final {link-pr}/6654[#6654]
-
-* Improvements to selective test execution and cache invalidation {link-pr}/6650[#6650],
-  and `selective.resolveTree`/`mill-invalidation-tree.json` reporting {link-pr}/6616[#6616]
-
-* Add `@nonBootstrapped` commands that run without the Mill bootstrap process completing
-  {link-pr}/6593[#6593],
+* Interactive commands like `./mill foo.repl` or `./mill foo.jshell` no longer require the
+  `-i`/`--interactive`/`--no-daemon` flag to be passed ({link-pr}/6602[#6602])
 
 * Add builtin support for `jshell` command on ``JavaModule``s and `./mill --jshell` flag to open
 a Java REPL ({link-pr}/5984[#5984])
 
-* Re-enable `./mill --repl` to open a Scala REPL not connected to any specific module ({link-pr}/5983[#5983])
+* Re-enable `./mill repl` to open a Scala REPL not connected to any specific module
 
 * Add `mill-jvm-index-version` to build header keys ({link-pr}/6085[#6085])
 
@@ -227,6 +222,15 @@ by ``_``s. The old syntax continues to be supported for backwards compatibility 
 
 
 ==== Other Changes
+
+* Updated `build.mill` files to use to Scala 3.8.1 final {link-pr}/6654[#6654]
+
+* Improvements to selective test execution and cache invalidation {link-pr}/6650[#6650],
+and `selective.resolveTree`/`mill-invalidation-tree.json` reporting {link-pr}/6616[#6616]
+
+* Tasks such as `./mill version`, `shutdown`, etc. that do not depend on the build files being compiled
+are now annotated `@nonBootstrapped` to let them run without the Mill bootstrap process completing
+{link-pr}/6593[#6593],
 
 * Rename `def jvmId` to `def jvmVersion` {link-pr}/6493[#6493]
 
