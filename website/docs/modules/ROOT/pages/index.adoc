@@ -52,28 +52,61 @@ compiling the same Netty codebase with Mill (~7s) vs Maven (~54s)
 :cast-file: _images/basic/MillMavenComparison.cast
 include::partial$Asciinema_Comparison.adoc[]
 
-* *Ergonomics*: Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative config files]
-are concise and easy to read, its xref:javalib/intro.adoc#_programmable_configuration[programmable config files]
-have xref:cli/installation-ide.adoc#_ide_support[full IDE support in IntelliJ and VSCode], and its
-syntax highlighted command-line output and
-xref:cli/installation-ide.adoc#_bashzsh_tab_completion[terminal tab-completion] mean developers can
-easily navigate their builds and resolve issues.
+* *Simplicity*: Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative
+build.mill.yaml files] contain only the essence of what you want to configure in
+your build, stripping away the reams of boilerplate and endless complexity that have built
+up in traditional JVM build tools over the years
++
+[cols="1a,1a"]
+|===
+| Mill `build.mill.yaml`
+```yaml
+extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+```
+| Maven `pom.xml`
+```xml
+<project xmlns="..." xmlns:xsi="...">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example</groupId>
+  <artifactId>html-scraper</artifactId>
+  <version>1.0</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.17.2</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>
+          org.codehaus.mojo
+        </groupId>
+        <artifactId>
+          exec-maven-plugin
+        </artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <mainClass>
+            HtmlScraper
+          </mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+```
+|===
 
+* *Ergonomics*: Mill's syntax highlighted command-line output and
+xref:cli/installation-ide.adoc#_bashzsh_tab_completion[terminal tab-completion] makes it easy for
+developers to navigate their builds and resolve issues without having to wade through pages of
+noisy logs or memorize arcane command-line invocations.
++
 image::basic/Ergonomics.png[]
-
-* *Scalability* Mill scales well from xref:javalib/intro.adoc#_single_file_scripts[single-file programs]
-to xref:large/large.adoc[large monorepos] with hundreds of modules and
-xref:large/multi-language-builds.adoc[multiple languages]. Mill makes building small programs
-convenient and large projects performant, so you never need to change toolchains as your project grows.
-
-* *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
-xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
-xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[publishing],
-building xref:javalib/packaging.adoc#_building_executable_assemblies[executable assemblies],
-xref:javalib/packaging.adoc#_building_native_image_binaries_with_graal_vm[native binaries]
-or xref:javalib/packaging.adoc#_java_installers_using_jpackage[installers],
-etc. This lets you focus on your actual project and spend less time
-fiddling with tooling and plugins.
 
 Mill can be used for applications built on top of common JVM frameworks like
 Spring Boot (both xref:javalib/spring-boot.adoc[in Java]
