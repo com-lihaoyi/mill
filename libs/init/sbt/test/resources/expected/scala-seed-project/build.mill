@@ -8,7 +8,7 @@ import mill.javalib.publish.*
 import mill.scalalib.*
 import millbuild.*
 
-object `package` extends PublishModule, SbtModule {
+object `package` extends SbtModule, PublishModule {
 
   def scalaVersion = "2.13.12"
 

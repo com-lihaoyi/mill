@@ -2,32 +2,24 @@ package mill.server
 
 import mill.api.daemon.SystemStreams
 import mill.client.*
-import mill.client.lock.{Lock, Locks}
-import mill.constants.{ProxyStream}
-import mill.constants.OutFiles.OutFiles
-import mill.server.MillDaemonServer.DaemonServerData
+import mill.client.lock.Locks
+import mill.launcher.DaemonRpc
+import mill.api.daemon.StopWithResponse
+import mill.client.ServerLauncher.DaemonConfig
+import mill.rpc.MillRpcWireTransport
 import mill.server.Server.ConnectionData
 
 import java.io.*
 import java.net.Socket
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters.*
-import scala.util.Using
-import scala.util.control.NonFatal
 
-/**
- * Models a long-lived server that receives requests from a client and calls a [[main0]]
- * method to run the commands in-process. Provides the command args, env variables,
- * JVM properties, wrapped input/output streams, and other metadata related to the
- * client command
- */
 abstract class MillDaemonServer[State](
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends Server[DaemonServerData, Int](Server.Args(
+) extends Server[MillDaemonServer.DaemonServerData, Int](Server.Args(
       daemonDir = daemonDir,
       acceptTimeout = Some(acceptTimeout),
       locks = locks,
@@ -42,138 +34,191 @@ abstract class MillDaemonServer[State](
 
   def initialStateCache: State
 
-  private var lastMillVersion = Option.empty[String]
-  private var lastJavaVersion = Option.empty[String]
+  private var lastConfig: Option[DaemonConfig] = None
 
   override def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
 
+  // For RPC, we don't need heartbeats - the RPC protocol handles connection state
   override def checkIfClientAlive(
       connectionData: ConnectionData,
-      data: DaemonServerData
+      data: MillDaemonServer.DaemonServerData
   ): Boolean = {
-    ProxyStream.sendHeartbeat(connectionData.serverToClient)
-    true
+    // The RPC protocol handles heartbeats via empty lines
+    // We just need to check if the connection is still open
+    try {
+      // Write empty line as heartbeat
+      connectionData.serverToClient.write('\n')
+      connectionData.serverToClient.flush()
+      true
+    } catch {
+      case _: IOException => false
+    }
   }
 
-  /**
-   * Invoked before a thread that runs [[handleConnection]] is spawned.
-   */
   override def prepareConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer
-  ): DaemonServerData = {
-    val stdout =
-      new PrintStream(
-        new ProxyStream.Output(connectionData.serverToClient, ProxyStream.OUT),
-        true
-      )
-    val stderr =
-      new PrintStream(
-        new ProxyStream.Output(connectionData.serverToClient, ProxyStream.ERR),
-        true
-      )
-
-    serverLog(s"preHandleConnection ${connectionData.socketName}")
-    serverLog("reading client init data")
-    val initData = ClientInitData.read(connectionData.clientToServer)
-    serverLog(s"read client init data: $initData")
-    import initData.*
-
-    serverLog("args " + upickle.write(args))
-    serverLog("env " + upickle.write(env.asScala))
-    serverLog("props " + upickle.write(userSpecifiedProperties.asScala))
-
-    val millVersionChanged = lastMillVersion.exists(_ != clientMillVersion)
-    val javaVersionChanged = lastJavaVersion.exists(_ != clientJavaVersion)
-
-    if (millVersionChanged || javaVersionChanged) {
-      MillDaemonServer.withOutLock(
-        noBuildLock = false,
-        noWaitForBuildLock = false,
-        out = outFolder,
-        millActiveCommandMessage = "checking server mill version and java version",
-        streams = new mill.api.daemon.SystemStreams(
-          new PrintStream(mill.api.daemon.DummyOutputStream),
-          new PrintStream(mill.api.daemon.DummyOutputStream),
-          mill.api.daemon.DummyInputStream
-        ),
-        outLock = outLock,
-        setIdle = _ => ()
-      ) {
-        if (millVersionChanged) {
-          stderr.println(
-            s"Mill version changed (${lastMillVersion.getOrElse("<unknown>")} -> $clientMillVersion), re-starting server"
-          )
-        }
-        if (javaVersionChanged) {
-          stderr.println(
-            s"Java version changed (${lastJavaVersion.getOrElse("<system>")} -> ${Option(clientJavaVersion).getOrElse("<system>")}), re-starting server"
-          )
-        }
-
-        stopServer(
-          s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
-          ClientUtil.ServerExitPleaseRetry()
-        )
-      }
-    }
-    lastMillVersion = Some(clientMillVersion)
-    lastJavaVersion = Some(clientJavaVersion)
-
-    DaemonServerData(stdout, stderr, AtomicBoolean(false), initData)
+  ): MillDaemonServer.DaemonServerData = {
+    serverLog(s"prepareConnection ${connectionData.socketName}")
+    MillDaemonServer.DaemonServerData(
+      shutdownRequest = AtomicReference(Option.empty[(String, Int)]),
+      rpcTransport = AtomicReference(Option.empty[MillRpcWireTransport])
+    )
   }
 
   override def handleConnection(
       connectionData: ConnectionData,
       stopServer: Server.StopServer,
       setIdle: Server.SetIdle,
-      data: DaemonServerData
+      data: MillDaemonServer.DaemonServerData
   ): Int = {
-    val (result, newStateCache) = main0(
-      data.clientData.args,
-      stateCache,
-      data.clientData.interactive,
-      new SystemStreams(data.stdout, data.stderr, connectionData.clientToServer),
-      data.clientData.env.asScala.toMap,
-      setIdle(_),
-      data.clientData.userSpecifiedProperties.asScala.toMap,
-      connectionData.initialSystemProperties,
-      stopServer = stopServer
+    serverLog("handleConnection: starting RPC server")
+
+    val transport = MillRpcWireTransport(
+      name = s"DaemonRpcServer-${connectionData.socketName}",
+      serverToClient = new BufferedReader(new InputStreamReader(connectionData.clientToServer)),
+      clientToServer = new PrintStream(connectionData.serverToClient, true),
+      writeSynchronizer = new Object
     )
 
-    stateCache = newStateCache
-    val exitCode = if (result) 0 else 1
+    // Store the transport so endConnection can send an RPC response if needed
+    data.rpcTransport.set(Some(transport))
 
-    serverLog(s"connection handler finished, sending exitCode $exitCode to client")
+    // Create a deferred stopServer that stores the shutdown request and throws StopWithResponse
+    // to stop the RPC server loop while still sending a proper response to the client.
+    val deferredStopServer: Server.StopServer = (reason, exitCode) => {
+      serverLog(
+        s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)"
+      )
+      data.shutdownRequest.set(Some((reason, exitCode)))
+      // Throw StopWithResponse to stop the RPC loop and send the response
+      throw new StopWithResponse(DaemonRpc.RunCommandResult(exitCode))
+    }
+
+    // Track the exit code from normal command completion.
+    // Initialize to exitCodeServerTerminated so interrupted clients get the right code.
+    var commandExitCode = exitCodeServerTerminated
+
+    val rpcServer = new DaemonRpcServer(
+      serverName = s"MillDaemon-${connectionData.socketName}",
+      transport = transport,
+      setIdle = setIdle,
+      writeToLocalLog = serverLog,
+      runCommand = (init, _, stdout, stderr, setIdleInner, serverToClient) => {
+        // Check for config changes using shared logic
+        val clientConfig = ServerLauncher.DaemonConfig(
+          millVersion = init.clientMillVersion,
+          javaVersion = init.clientJavaVersion,
+          jvmOpts = init.clientJvmOpts
+        )
+
+        lastConfig.foreach { stored =>
+          val mismatchReasons = stored.checkMismatchAgainst(clientConfig)
+          if (mismatchReasons.nonEmpty) {
+            Server.withOutLock(
+              noBuildLock = false,
+              noWaitForBuildLock = false,
+              out = outFolder,
+              daemonDir = daemonDir,
+              millActiveCommandMessage = "checking server configuration",
+              streams = new SystemStreams(
+                new PrintStream(mill.api.daemon.DummyOutputStream),
+                new PrintStream(mill.api.daemon.DummyOutputStream),
+                mill.api.daemon.DummyInputStream
+              ),
+              outLock = outLock,
+              setIdle = _ => ()
+            ) {
+              mismatchReasons.foreach(reason => stderr.println(s"$reason, re-starting server"))
+
+              // This sends RPC response and throws InterruptedException to stop the RPC loop
+              deferredStopServer(
+                s"config mismatch: ${mismatchReasons.mkString(", ")}",
+                ClientUtil.ServerExitPleaseRetry
+              )
+            }
+          }
+        }
+        lastConfig = Some(clientConfig)
+
+        // Run the actual command
+        val (result, newStateCache) = main0(
+          args = init.args.toArray,
+          stateCache = stateCache,
+          mainInteractive = init.interactive,
+          streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
+          env = init.env,
+          setIdle = setIdleInner(_),
+          userSpecifiedProperties = init.userSpecifiedProperties,
+          initialSystemProperties = connectionData.initialSystemProperties,
+          stopServer = deferredStopServer,
+          serverToClient = serverToClient
+        )
+
+        stateCache = newStateCache
+        commandExitCode = if (result) 0 else 1
+        DaemonRpc.RunCommandResult(commandExitCode)
+      }
+    )
+
+    serverLog("handleConnection: running RPC server")
+    rpcServer.run()
+
+    // Check for pending shutdown request and execute it
+    val exitCode = data.shutdownRequest.get() match {
+      case Some((reason, shutdownExitCode)) =>
+        serverLog(
+          s"handleConnection: executing deferred shutdown (reason=$reason, exitCode=$shutdownExitCode)"
+        )
+        stopServer(reason, shutdownExitCode)
+        shutdownExitCode
+      case None =>
+        // Normal completion
+        serverLog(s"handleConnection: RPC server finished normally, exitCode=$commandExitCode")
+        commandExitCode
+    }
+
     exitCode
   }
 
   override def endConnection(
       connectionData: ConnectionData,
-      data: Option[DaemonServerData],
+      data: Option[MillDaemonServer.DaemonServerData],
       result: Option[Int]
   ): Unit = {
-    // flush before closing the socket
-    System.out.flush()
-    System.err.flush()
+    // NOTE: System.out/err.flush() calls were removed - they can cause issues when
+    // stdout/stderr are redirected to a broken pipe after client disconnects
 
-    if (!data.exists(_.writtenExitCode.getAndSet(true) == true)) {
+    // If this connection is being closed externally (e.g., another client was interrupted),
+    // and there was no controlled shutdown, try to send a response so the client can retry.
+    // If shutdownRequest is set, response was already sent via StopWithResponse.
+    for {
+      d <- data
+      exitCode <- result
+      transport <- d.rpcTransport.get()
+      if d.shutdownRequest.get().isEmpty // Only send if not a controlled shutdown
+    } {
       try {
-        ProxyStream.sendEnd(connectionData.serverToClient, result.getOrElse(1))
-        connectionData.serverToClient.flush()
-        connectionData.serverToClient.close()
+        import mill.rpc.MillRpcServerToClient
+        val response = MillRpcServerToClient.Response(
+          Right(DaemonRpc.RunCommandResult(exitCode))
+        )
+        transport.writeSerialized(response, serverLog)
       } catch {
-        case _: Exception =>
-        // Sometimes the client may have died or gone away on its own, in that case
-        // just catch and swallow the exception so we don't blow up the server thread.
+        case _: Exception => // Ignore errors, connection might already be broken
       }
     }
+
+    try {
+      connectionData.serverToClient.flush()
+      connectionData.serverToClient.close()
+    } catch { case _: Exception => }
   }
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
 
-  def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry()
+  def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry
 
   def main0(
       args: Array[String],
@@ -184,53 +229,15 @@ abstract class MillDaemonServer[State](
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      stopServer: Server.StopServer
+      stopServer: Server.StopServer,
+      serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]
   ): (Boolean, State)
-
 }
 
 object MillDaemonServer {
   case class DaemonServerData(
-      stdout: PrintStream,
-      stderr: PrintStream,
-      writtenExitCode: AtomicBoolean,
-      clientData: ClientInitData
+      shutdownRequest: AtomicReference[Option[(String, Int)]],
+      // Store the RPC transport so we can send a response when connection is closed externally
+      rpcTransport: AtomicReference[Option[MillRpcWireTransport]]
   )
-  def withOutLock[T](
-      noBuildLock: Boolean,
-      noWaitForBuildLock: Boolean,
-      out: os.Path,
-      millActiveCommandMessage: String,
-      streams: SystemStreams,
-      outLock: Lock,
-      setIdle: Boolean => Unit
-  )(t: => T): T = {
-    if (noBuildLock) t
-    else {
-      def activeTaskString =
-        try os.read(out / OutFiles.millActiveCommand)
-        catch {
-          case NonFatal(_) => "<unknown>"
-        }
-
-      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
-
-      setIdle(true)
-      Using.resource {
-        val tryLocked = outLock.tryLock()
-        if (tryLocked.isLocked) tryLocked
-        else if (noWaitForBuildLock) throw new Exception(s"$activeTaskPrefix failing")
-        else {
-          streams.err.println(s"$activeTaskPrefix waiting for it to be done...")
-          outLock.lock()
-        }
-      } { _ =>
-        setIdle(false)
-        if (Thread.interrupted()) throw new InterruptedException()
-        os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
-        try t
-        finally os.remove.all(out / OutFiles.millActiveCommand)
-      }
-    }
-  }
 }

@@ -82,7 +82,7 @@ object Modeler {
     val props = new Properties()
     System.getenv().forEach((k, v) => props.put(s"env.$k", v))
     System.getProperties.forEach((k, v) => props.put(k, v))
-    props.put("maven.multiModuleProjectDirectory", os.pwd.toString)
+    props.put("maven.multiModuleProjectDirectory", mvnWorkspace.toString)
     props
   }
 }

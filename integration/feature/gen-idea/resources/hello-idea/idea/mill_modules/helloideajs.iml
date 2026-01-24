@@ -1,0 +1,18 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../../out/HelloIdeaJs/internalGenIdea/ideaCompileOutput.dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../../HelloIdeaJs">
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdeaJs/src" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../HelloIdeaJs/resources" type="java-resource"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="scala-js-SDK-3.3.1" level="project"/>
+        <orderEntry type="library" name="scala-library-<version>.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_sjs1_3-<version>.jar" level="project"/>
+        <orderEntry type="library" name="scalajs-javalib-1.16.0.jar" level="project"/>
+        <orderEntry type="library" name="scalajs-library_2.13-1.16.0.jar" level="project"/>
+        <orderEntry type="library" name="scalajs-scalalib_2.13-2.13.13%2B1.16.0.jar" level="project"/>
+    </component>
+</module>

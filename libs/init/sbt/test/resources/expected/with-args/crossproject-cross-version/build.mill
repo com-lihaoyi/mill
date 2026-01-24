@@ -15,9 +15,9 @@ object `package` extends Module {
 
   object dummy extends Module {
 
-    object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
+    object js extends Cross[JsModule]("2.12.21", "2.13.18", "3.7.1")
     trait JsModule
-        extends ScalaJSModule, PublishModule, CrossSbtPlatformModule {
+        extends CrossSbtPlatformModule, ScalaJSModule, PublishModule {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
@@ -27,12 +27,12 @@ object `package` extends Module {
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.21" => Seq(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
-          case "2.13.14" =>
+          case "2.13.18" =>
             Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Seq("-Wunused")
           case _       => Seq()
@@ -53,19 +53,19 @@ object `package` extends Module {
 
     }
 
-    object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
-    trait JvmModule extends PublishModule, CrossSbtPlatformModule {
+    object jvm extends Cross[JvmModule]("2.12.21", "2.13.18", "3.7.1")
+    trait JvmModule extends CrossSbtPlatformModule, PublishModule {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.21" => Seq(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
-          case "2.13.14" =>
+          case "2.13.18" =>
             Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Seq("-Wunused")
           case _       => Seq()
@@ -86,9 +86,9 @@ object `package` extends Module {
 
     }
 
-    object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
+    object native extends Cross[NativeModule]("2.12.21", "2.13.18", "3.7.1")
     trait NativeModule
-        extends ScalaNativeModule, PublishModule, CrossSbtPlatformModule {
+        extends CrossSbtPlatformModule, ScalaNativeModule, PublishModule {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
@@ -96,12 +96,12 @@ object `package` extends Module {
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.21" => Seq(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
-          case "2.13.14" =>
+          case "2.13.18" =>
             Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Seq("-Wunused")
           case _       => Seq()
@@ -126,9 +126,9 @@ object `package` extends Module {
 
   object full extends Module {
 
-    object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
+    object js extends Cross[JsModule]("2.12.21", "2.13.18", "3.7.1")
     trait JsModule
-        extends ScalaJSModule, PublishModule, CrossSbtPlatformModule {
+        extends CrossSbtPlatformModule, ScalaJSModule, PublishModule {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
@@ -138,12 +138,12 @@ object `package` extends Module {
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.21" => Seq(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
-          case "2.13.14" =>
+          case "2.13.18" =>
             Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Seq("-Wunused")
           case _       => Seq()
@@ -164,8 +164,8 @@ object `package` extends Module {
 
     }
 
-    object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
-    trait JvmModule extends PublishModule, CrossSbtPlatformModule {
+    object jvm extends Cross[JvmModule]("2.12.21", "2.13.18", "3.7.1")
+    trait JvmModule extends CrossSbtPlatformModule, PublishModule {
 
       def moduleDeps = Seq(build.`jvm-util`())
 
@@ -173,12 +173,12 @@ object `package` extends Module {
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.21" => Seq(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
-          case "2.13.14" =>
+          case "2.13.18" =>
             Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Seq("-Wunused")
           case _       => Seq()
@@ -199,9 +199,9 @@ object `package` extends Module {
 
     }
 
-    object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
+    object native extends Cross[NativeModule]("2.12.21", "2.13.18", "3.7.1")
     trait NativeModule
-        extends ScalaNativeModule, PublishModule, CrossSbtPlatformModule {
+        extends CrossSbtPlatformModule, ScalaNativeModule, PublishModule {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
@@ -209,12 +209,12 @@ object `package` extends Module {
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.21" => Seq(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
-          case "2.13.14" =>
+          case "2.13.18" =>
             Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Seq("-Wunused")
           case _       => Seq()
@@ -237,19 +237,19 @@ object `package` extends Module {
 
   }
 
-  object `jvm-util` extends Cross[JvmUtilModule]("2.12.20", "2.13.14", "3.7.1")
-  trait JvmUtilModule extends PublishModule, CrossSbtModule {
+  object `jvm-util` extends Cross[JvmUtilModule]("2.12.21", "2.13.18", "3.7.1")
+  trait JvmUtilModule extends CrossSbtModule, PublishModule {
 
     def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
     def scalacOptions = Seq("-deprecation") ++
       (crossScalaVersion match {
-        case "2.12.20" => Seq(
+        case "2.12.21" => Seq(
             "-Xlint:_,-unused",
             "-Ywarn-numeric-widen",
             "-Ywarn-unused:_,-nowarn,-privates"
           )
-        case "2.13.14" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+        case "2.13.18" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
         case "3.7.1"   => Seq("-Wunused")
         case _         => Seq()
       })
@@ -271,9 +271,9 @@ object `package` extends Module {
 
   object pure extends Module {
 
-    object js extends Cross[JsModule]("2.12.20", "2.13.14", "3.7.1")
+    object js extends Cross[JsModule]("2.12.21", "2.13.18", "3.7.1")
     trait JsModule
-        extends ScalaJSModule, PublishModule, CrossSbtPlatformModule {
+        extends CrossSbtPlatformModule, ScalaJSModule, PublishModule {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
@@ -283,12 +283,12 @@ object `package` extends Module {
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.21" => Seq(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
-          case "2.13.14" =>
+          case "2.13.18" =>
             Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Seq("-Wunused")
           case _       => Seq()
@@ -307,7 +307,7 @@ object `package` extends Module {
 
       def publishVersion = "0.1.0-SNAPSHOT"
 
-      object test extends ScalaJSTests, CrossSbtPlatformTests {
+      object test extends CrossSbtPlatformTests, ScalaJSTests {
 
         def testParallelism = false
 
@@ -319,19 +319,19 @@ object `package` extends Module {
 
     }
 
-    object jvm extends Cross[JvmModule]("2.12.20", "2.13.14", "3.7.1")
-    trait JvmModule extends PublishModule, CrossSbtPlatformModule {
+    object jvm extends Cross[JvmModule]("2.12.21", "2.13.18", "3.7.1")
+    trait JvmModule extends CrossSbtPlatformModule, PublishModule {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.21" => Seq(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
-          case "2.13.14" =>
+          case "2.13.18" =>
             Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Seq("-Wunused")
           case _       => Seq()
@@ -362,9 +362,9 @@ object `package` extends Module {
 
     }
 
-    object native extends Cross[NativeModule]("2.12.20", "2.13.14", "3.7.1")
+    object native extends Cross[NativeModule]("2.12.21", "2.13.18", "3.7.1")
     trait NativeModule
-        extends ScalaNativeModule, PublishModule, CrossSbtPlatformModule {
+        extends CrossSbtPlatformModule, ScalaNativeModule, PublishModule {
 
       def mvnDeps = Seq(mvn"com.lihaoyi::upickle::4.3.0")
 
@@ -372,12 +372,12 @@ object `package` extends Module {
 
       def scalacOptions = Seq("-deprecation") ++
         (crossScalaVersion match {
-          case "2.12.20" => Seq(
+          case "2.12.21" => Seq(
               "-Xlint:_,-unused",
               "-Ywarn-numeric-widen",
               "-Ywarn-unused:_,-nowarn,-privates"
             )
-          case "2.13.14" =>
+          case "2.13.18" =>
             Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
           case "3.7.1" => Seq("-Wunused")
           case _       => Seq()
@@ -396,7 +396,7 @@ object `package` extends Module {
 
       def publishVersion = "0.1.0-SNAPSHOT"
 
-      object test extends ScalaNativeTests, CrossSbtPlatformTests {
+      object test extends CrossSbtPlatformTests, ScalaNativeTests {
 
         def testParallelism = false
 

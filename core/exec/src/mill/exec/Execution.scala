@@ -3,7 +3,7 @@ package mill.exec
 import mill.api.daemon.internal.*
 import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.*
-import mill.internal.{JsonArrayLogger, PrefixLogger}
+import mill.internal.{CodeSigUtils, JsonArrayLogger, PrefixLogger}
 
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -35,7 +35,11 @@ case class Execution(
     staticBuildOverrideFiles: Map[java.nio.file.Path, String],
     enableTicker: Boolean,
     depth: Int,
-    isFinalDepth: Boolean
+    isFinalDepth: Boolean,
+    // JSON string to avoid classloader issues when crossing classloader boundaries
+    spanningInvalidationTree: Option[String],
+    // Tracks tasks invalidated due to version/classloader mismatch
+    versionMismatchReasons: ConcurrentHashMap[Task[?], String] = new ConcurrentHashMap()
 ) extends GroupExecution with AutoCloseable {
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
@@ -63,7 +67,9 @@ case class Execution(
       staticBuildOverrideFiles: Map[java.nio.file.Path, String],
       enableTicker: Boolean,
       depth: Int,
-      isFinalDepth: Boolean
+      isFinalDepth: Boolean,
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: Option[String]
   ) = this(
     baseLogger = baseLogger,
     profileLogger = new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
@@ -86,10 +92,13 @@ case class Execution(
     staticBuildOverrideFiles = staticBuildOverrideFiles,
     enableTicker = enableTicker,
     depth = depth,
-    isFinalDepth = isFinalDepth
+    isFinalDepth = isFinalDepth,
+    spanningInvalidationTree = spanningInvalidationTree
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)
+
+  def withIsFinalDepth(newIsFinalDepth: Boolean) = this.copy(isFinalDepth = newIsFinalDepth)
 
   /**
    * @param goals The tasks that need to be evaluated
@@ -301,6 +310,8 @@ case class Execution(
                   }
                 }
               } catch {
+                // Let StopWithResponse propagate - it's a controlled shutdown signal
+                case e: mill.api.daemon.StopWithResponse[?] => throw e
                 // Wrapping the fatal error in a non-fatal exception, so it would be caught by Scala's Future
                 // infrastructure, rather than silently terminating the future and leaving downstream Awaits hanging.
                 case e: Throwable if !scala.util.control.NonFatal(e) =>
@@ -342,12 +353,21 @@ case class Execution(
 
       val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
+      // Convert versionMismatchReasons to Map[String, String] for InvalidationForest
+      val taskInvalidationReasons = {
+        import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
+        versionMismatchReasons.asScala.collect {
+          case (t: Task.Named[?], reason) => t.ctx.segments.render -> reason
+        }.toMap
+      }
+
       ExecutionLogs.logInvalidationTree(
         interGroupDeps = interGroupDeps,
-        indexToTerminal = indexToTerminal,
         outPath = outPath,
         uncached = uncached,
-        changedValueHash = changedValueHash
+        changedValueHash = changedValueHash,
+        spanningInvalidationTree = spanningInvalidationTree,
+        taskInvalidationReasons = taskInvalidationReasons
       )
 
       val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
@@ -395,7 +415,7 @@ object Execution {
       completed: Boolean,
       errorColor: String => String,
       successColor: String => String
-  ): String = {
+  ): fansi.Str = {
     (completed, failures) match {
       case (false, 0) => ""
       case (false, _) => ", " + errorColor(s"$failures failing")

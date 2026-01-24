@@ -9,7 +9,7 @@ trait ProjectBaseModule extends MavenModule {
   def depManagement = Seq(mvn"org.apache.commons:commons-text:1.9")
   def javacOptions = Seq("-source", "11", "-target", "11")
 
-  trait ProjectBaseTests extends MavenTests {
+  trait ProjectBaseTests extends MavenTests, TestModule.Junit5 {
 
     def forkWorkingDir = moduleDir
     def mvnDeps = Seq(mvn"org.junit.jupiter:junit-jupiter:5.9.1")

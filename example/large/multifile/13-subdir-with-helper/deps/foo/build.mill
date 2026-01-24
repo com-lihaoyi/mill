@@ -1,0 +1,7 @@
+//| mill-allow-nested-build-mill: true
+// deps/foo/build.mill
+package build
+
+import mill.*, scalalib.*
+
+object `package` extends FooModule

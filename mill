@@ -2,7 +2,7 @@
 
 set -e
 
-if [ -z "${DEFAULT_MILL_VERSION}" ] ; then DEFAULT_MILL_VERSION="1.1.0-RC4"; fi
+if [ -z "${DEFAULT_MILL_VERSION}" ] ; then DEFAULT_MILL_VERSION="1.1.0-RC4-18-0577b3"; fi
 
 if [ -z "${GITHUB_RELEASE_CDN}" ] ; then GITHUB_RELEASE_CDN=""; fi
 
@@ -163,7 +163,7 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
 fi
 
 MILL_FIRST_ARG=""
-if [ "$1" = "--bsp" ] || [ "${1#"-i"}" != "$1" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--no-daemon" ] || [ "$1" = "--repl" ] || [ "$1" = "--help" ] ; then
+if [ "$1" = "--bsp" ] || [ "${1#"-i"}" != "$1" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--no-daemon" ] || [ "$1" = "--help" ] ; then
   # Need to preserve the first position of those listed options
   MILL_FIRST_ARG=$1
   shift

@@ -1,8 +1,7 @@
 package mill.tabcomplete
 
 import mill.*
-import mill.api.{Result, SelectMode}
-import mill.api.{Discover, Evaluator, ExternalModule}
+import mill.api.{Discover, Evaluator, ExternalModule, Result, SelectMode, nonBootstrapped}
 import mill.internal.MillCliConfig
 import mainargs.{ArgSig, TokensReader, arg}
 import mill.api.internal.Resolved
@@ -282,6 +281,7 @@ private object TabCompleteModule extends ExternalModule {
    * `~/.zshrc` and `~/.bash_profile`. Can be passed an optional `--dest <path>`
    * to instead write it to a manually-specified destination path
    */
+  @nonBootstrapped
   def install(dest: os.Path = null) = Task.Command(exclusive = true) {
     val script = os.read(os.resource / "mill/tabcomplete/complete.sh")
 
@@ -291,9 +291,13 @@ private object TabCompleteModule extends ExternalModule {
     }
     dest match {
       case null =>
-        val homeDest = ".cache/mill/download/mill-completion.sh"
+        val dataDir = Task.env.getOrElse("XDG_DATA_HOME", "~/.local/share/")
+        val destPath = os.Path.expandUser(dataDir) / "mill/completion/mill-completion.sh"
+        val homeDest =
+          if (destPath.startsWith(os.home)) s"~/${destPath.relativeTo(os.home)}"
+          else destPath.toString
 
-        writeLoudly(os.home / os.SubPath(homeDest), script)
+        writeLoudly(destPath, script)
         for (fileName <- Seq(".bash_profile", ".zshrc", ".bashrc")) {
           val file = os.home / fileName
           // We use the marker comment to help remove any previous `source` line before
@@ -306,12 +310,12 @@ private object TabCompleteModule extends ExternalModule {
 
           val updated = prevLines
             .filter(!_.contains(markerComment))
-            .++(Seq(s"source ~/$homeDest $markerComment\n"))
+            .++(Seq(s"source $homeDest $markerComment\n"))
             .mkString("\n")
 
           writeLoudly(file, updated)
         }
-        println(s"Please restart your shell or `source ~/$homeDest` to enable completions")
+        println(s"Please restart your shell or `source $homeDest` to enable completions")
 
       case dest => writeLoudly(dest, script)
     }

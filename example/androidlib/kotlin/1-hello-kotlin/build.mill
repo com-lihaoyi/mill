@@ -39,7 +39,7 @@ object app extends AndroidAppKotlinModule {
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDevice = super.androidVirtualDevice().withName("kotlin-test")
-  override def androidEmulatorPort: String = "5564"
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5556")
 
   override def androidIsDebug: T[Boolean] = Task { false }
 
@@ -106,6 +106,7 @@ object app extends AndroidAppKotlinModule {
 // ----
 //
 
+// This command runs unit tests on your local environment.
 /** Usage
 
 > ./mill -j 1 show app.test
@@ -119,7 +120,7 @@ object app extends AndroidAppKotlinModule {
 
 */
 
-// This command runs unit tests on your local environment.
+// Create an AVD and start an Android Emulator to install the APK.
 
 /** Usage
 
@@ -128,7 +129,18 @@ object app extends AndroidAppKotlinModule {
 > ./mill show app.startAndroidEmulator
 
 > ./mill show app.adbDevices
-...emulator-5564...device...
+...emulator-...device...
+
+> ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...
+
+*/
+
+// The android tests (existing typically in androidTest directory, aka instrumented tests)
+// typically run on an android device.
+// The `it` task runs the android tests on the emulator created and started earlier.
+
+/** Usage
 
 > ./mill show app.it
 ...
@@ -138,7 +150,19 @@ object app extends AndroidAppKotlinModule {
     {
       "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
       "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "duration": ...,
+      "duration": 0,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
       "status": "Success"
     }
   ]
@@ -148,15 +172,39 @@ object app extends AndroidAppKotlinModule {
 > cat out/app/it/testForked.dest/test-report.xml
 ...
 <?xml version='1.0' encoding='UTF-8'?>
-<testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
-        <testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="...">
-        <properties>
-      </properties>
-        <testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="...">
-        </testcase>
-      </testsuite>
-      </testsuites>
+<testsuites tests="3" failures="0" errors="0" skipped="0" time="0.0">
 ...
+
+*/
+
+// The instrumented tests command accepts additional parameters to filter tests using `adb` `-e` options.
+// (https://developer.android.com/studio/test/command-line#am-instrument-options[Documentation found here])
+//
+// For example, to run a specific package:
+/** Usage
+
+> ./mill show app.it -e package com.helloworld.logictest
+..."status": "Success"...
+*/
+
+// To run a specific class:
+/** Usage
+> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest
+..."status": "Success"...
+*/
+
+// You can combine multiple `-e` options as needed.
+/** Usage
+
+> ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest -e package com.helloworld.app
+..."status": "Success"...
+..."status": "Success"...
+..."status": "Success"...
+
+*/
+
+// After running the tests, you can stop and delete the Android Virtual Device (AVD).
+/** Usage
 
 > ./mill show app.stopAndroidEmulator
 
@@ -164,10 +212,4 @@ object app extends AndroidAppKotlinModule {
 
 */
 
-// The android tests (existing typically in androidTest directory, aka instrumented tests)
-// typically run on an android device.
-// The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
-// and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
-// against the available AVD. The stopAndroidEmulator command stops the AVD and the
-// destroyAndroidVirtualDevice command destroys the AVD.
 // The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.

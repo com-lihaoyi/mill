@@ -7,7 +7,7 @@ object testProject extends ScalaModule with SonatypeCentralPublishModule {
   def publishVersion = "0.0.1-SNAPSHOT"
 
   def publishOrganization = Task.Input {
-    sys.env.get("MILL_TESTS_PUBLISH_ORG").getOrElse(
+    Task.env.get("MILL_TESTS_PUBLISH_ORG").getOrElse(
       throw new Exception("MILL_TESTS_PUBLISH_ORG is not set")
     )
   }

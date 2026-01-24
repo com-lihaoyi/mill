@@ -451,6 +451,15 @@ If you use Github Actions for CI, you can use https://github.com/mikepenz/action
 your pipeline to render the generated `test-report.xml` files nicely on Github. See
 https://github.com/com-lihaoyi/mill/pull/4218/files for an example integration
 
+=== Selective Test Execution
+
+To minimize the number of unnecessary tests that you run on CI jobs, you should
+use xref:large/selective-execution.adoc[Selective Test Execution] for any large multi-module
+codebase. This allows you to limit the tests that run on your codebase to those in modules
+downstream of the code you changed, allowing you to save time and resources by not wastefully
+running tests that could not possibly be affected by your code change.
+
+
 == Using Mill without access to Maven Central
 
 Under some circumstances (e.g. corporate firewalls), you may not have access maven central.

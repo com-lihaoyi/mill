@@ -9,7 +9,7 @@ import utest.*
 object ScalaVersionsRangesTests extends TestSuite {
 
   object ScalaVersionsRanges extends TestRootModule {
-    object core extends Cross[CoreCrossModule]("2.12.13", "2.13.5", "3.3.3")
+    object core extends Cross[CoreCrossModule]("2.12.21", "2.13.18", "3.3.3")
     trait CoreCrossModule extends CrossScalaModule
         with CrossScalaVersionRanges {
       object test extends ScalaTests with TestModule.Utest {

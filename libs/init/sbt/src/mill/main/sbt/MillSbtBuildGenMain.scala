@@ -94,40 +94,30 @@ object MillSbtBuildGenMain {
     }
     val exportedBuild = os.list.stream(exportDir)
       .map(path => upickle.default.read[SbtModuleSpec](path.toNIO)).toSeq
-    var packages = exportedBuild.groupMap(_.sharedBaseDir)(_.module).map {
+    var packages = exportedBuild.groupMap(_.root)(_.module).map {
       case (Left(dir), Seq(module)) => PackageSpec(dir, module)
       case (Left(dir), crossVersionModules) => PackageSpec(dir, toCrossModule(crossVersionModules))
-      case (Right(dir), modules) =>
+      case (Right(root), modules) =>
         val children = modules.groupBy(_.name).map {
           case (_, Seq(module)) => module
           case (_, crossVersionModules) => toCrossModule(crossVersionModules)
         }.toSeq
-        val root = PackageSpec.root(dir)
         root.copy(module = root.module.copy(children = children))
     }.toSeq
     packages = normalizeBuild(packages)
 
     val (depNames, packages0) =
       if (noMeta.value) (Nil, packages) else buildGen.withNamedDeps(packages)
-    val (baseModule, packages1) = Option.when(!noMeta.value)(
-      buildGen.withBaseModule(
-        packages0,
-        Seq("CrossSbtPlatformModule"),
-        Seq("CrossSbtPlatformTests")
-      ).orElse(buildGen.withBaseModule(
-        packages0,
-        Seq("CrossSbtModule", "CrossSbtPlatformModule"),
-        Seq("CrossSbtTests")
-      )).orElse(buildGen.withBaseModule(
-        packages0,
-        Seq("SbtPlatformModule"),
-        Seq("SbtPlatformTests")
-      )).orElse(buildGen.withBaseModule(
-        packages0,
-        Seq("SbtModule", "SbtPlatformModule"),
-        Seq("SbtTests")
-      ))
-    ).flatten.fold((None, packages0))((base, packages) => (Some(base), packages))
+    val (baseModule, packages1) = if (noMeta.value) (None, packages0)
+    else buildGen.withBaseModule(
+      packages0,
+      "CrossSbtModule" -> "CrossSbtTests",
+      "CrossSbtPlatformModule" -> "CrossSbtPlatformTests"
+    ).orElse(buildGen.withBaseModule(
+      packages0,
+      "SbtModule" -> "SbtTests",
+      "SbtPlatformModule" -> "SbtPlatformTests"
+    )).fold((None, packages0))((base, packages) => (Some(base), packages))
     val millJvmOpts = {
       val file = millWorkspace / ".jvmopts"
       if (os.isFile(file)) os.read.lines(file)
@@ -136,6 +126,13 @@ object MillSbtBuildGenMain {
         .flatMap(_.split("\\s"))
       else Nil
     }
+    val metaMvnDeps =
+      packages.iterator.flatMap(_.module.tree).flatMap(_.supertypes).distinct.collect {
+        case "JmhModule" => "com.lihaoyi::mill-contrib-jmh:$MILL_VERSION"
+        case "ScoverageModule" => "com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION"
+        case "Mima" => millMimaDep
+        case "ScalafixModule" => millScalafixDep
+      }.toSeq.sorted
     buildGen.writeBuildFiles(
       baseDir = millWorkspace,
       packages = packages1,
@@ -143,7 +140,8 @@ object MillSbtBuildGenMain {
       baseModule = baseModule,
       millJvmVersion = millJvmId,
       millJvmOpts = millJvmOpts,
-      depNames = depNames
+      depNames = depNames,
+      metaMvnDeps = metaMvnDeps
     )
   }
 
@@ -161,9 +159,8 @@ object MillSbtBuildGenMain {
       name = a.name,
       imports = (a.imports ++ b.imports).distinct,
       supertypes = a.supertypes.intersect(b.supertypes),
-      mixins = if (a.mixins == b.mixins) a.mixins else Nil,
       crossKeys = a.crossKeys ++ b.crossKeys,
-      useOuterModuleDir = a.useOuterModuleDir && b.useOuterModuleDir,
+      moduleDir = combineValue(a.moduleDir, b.moduleDir),
       repositories = combineValues(a.repositories, b.repositories),
       mvnDeps = combineValues(a.mvnDeps, b.mvnDeps),
       compileMvnDeps = combineValues(a.compileMvnDeps, b.compileMvnDeps),
@@ -182,6 +179,7 @@ object MillSbtBuildGenMain {
       publishVersion = combineValue(a.publishVersion, b.publishVersion),
       versionScheme = combineValue(a.versionScheme, b.versionScheme),
       publishProperties = combineValues(a.publishProperties, b.publishProperties),
+      jmhCoreVersion = combineValue(a.jmhCoreVersion, b.jmhCoreVersion),
       scalacOptions = combineValues(a.scalacOptions, b.scalacOptions),
       scalacPluginMvnDeps = combineValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
       scalaJSVersion = combineValue(a.scalaJSVersion, b.scalaJSVersion),
@@ -191,6 +189,21 @@ object MillSbtBuildGenMain {
       testParallelism = combineValue(a.testParallelism, b.testParallelism),
       testSandboxWorkingDir = combineValue(a.testSandboxWorkingDir, b.testSandboxWorkingDir),
       testFramework = combineValue(a.testFramework, b.testFramework),
+      mimaPreviousVersions = combineValues(a.mimaPreviousVersions, b.mimaPreviousVersions),
+      mimaPreviousArtifacts = combineValues(a.mimaPreviousArtifacts, b.mimaPreviousArtifacts),
+      mimaCheckDirection = combineValue(a.mimaCheckDirection, b.mimaCheckDirection),
+      mimaBinaryIssueFilters = combineValues(a.mimaBinaryIssueFilters, b.mimaBinaryIssueFilters),
+      mimaBackwardIssueFilters =
+        combineValues(a.mimaBackwardIssueFilters, b.mimaBackwardIssueFilters),
+      mimaForwardIssueFilters = combineValues(a.mimaForwardIssueFilters, b.mimaForwardIssueFilters),
+      mimaExcludeAnnotations = combineValues(a.mimaExcludeAnnotations, b.mimaExcludeAnnotations),
+      mimaReportSignatureProblems =
+        combineValue(a.mimaReportSignatureProblems, b.mimaReportSignatureProblems),
+      scoverageVersion = combineValue(a.scoverageVersion, b.scoverageVersion),
+      branchCoverageMin = combineValue(a.branchCoverageMin, b.branchCoverageMin),
+      statementCoverageMin = combineValue(a.statementCoverageMin, b.statementCoverageMin),
+      scalafixConfig = combineValue(a.scalafixConfig, b.scalafixConfig),
+      scalafixIvyDeps = combineValues(a.scalafixIvyDeps, b.scalafixIvyDeps),
       children = a.children.map(a => b.children.find(_.name == a.name).fold(a)(combineModule(a, _)))
     )
     def normalizeValue[A](a: Value[A]): Value[A] = a.copy(cross = a.cross.collect {
@@ -199,6 +212,7 @@ object MillSbtBuildGenMain {
     def normalizeValues[A](a: Values[A]): Values[A] =
       a.copy(cross = a.cross.map((k, v) => (k, v.diff(a.base))).filter(_._2.nonEmpty))
     def normalizeModule(a: ModuleSpec): ModuleSpec = a.copy(
+      moduleDir = normalizeValue(a.moduleDir),
       repositories = normalizeValues(a.repositories),
       mvnDeps = normalizeValues(a.mvnDeps),
       compileMvnDeps = normalizeValues(a.compileMvnDeps),
@@ -217,6 +231,7 @@ object MillSbtBuildGenMain {
       publishVersion = normalizeValue(a.publishVersion),
       versionScheme = normalizeValue(a.versionScheme),
       publishProperties = normalizeValues(a.publishProperties),
+      jmhCoreVersion = normalizeValue(a.jmhCoreVersion),
       scalacOptions = normalizeValues(a.scalacOptions),
       scalacPluginMvnDeps = normalizeValues(a.scalacPluginMvnDeps),
       scalaJSVersion = normalizeValue(a.scalaJSVersion),
@@ -226,25 +241,42 @@ object MillSbtBuildGenMain {
       testParallelism = normalizeValue(a.testParallelism),
       testSandboxWorkingDir = normalizeValue(a.testSandboxWorkingDir),
       testFramework = normalizeValue(a.testFramework),
+      mimaPreviousVersions = normalizeValues(a.mimaPreviousVersions),
+      mimaPreviousArtifacts = normalizeValues(a.mimaPreviousArtifacts),
+      mimaCheckDirection = normalizeValue(a.mimaCheckDirection),
+      mimaBinaryIssueFilters = normalizeValues(a.mimaBinaryIssueFilters),
+      mimaBackwardIssueFilters = normalizeValues(a.mimaBackwardIssueFilters),
+      mimaForwardIssueFilters = normalizeValues(a.mimaForwardIssueFilters),
+      mimaExcludeAnnotations = normalizeValues(a.mimaExcludeAnnotations),
+      mimaReportSignatureProblems = normalizeValue(a.mimaReportSignatureProblems),
+      scoverageVersion = normalizeValue(a.scoverageVersion),
+      branchCoverageMin = normalizeValue(a.branchCoverageMin),
+      statementCoverageMin = normalizeValue(a.statementCoverageMin),
+      scalafixConfig = normalizeValue(a.scalafixConfig),
+      scalafixIvyDeps = normalizeValues(a.scalafixIvyDeps),
       children = a.children.map(normalizeModule)
     )
     normalizeModule(crossVersionModules.reduce(combineModule))
   }
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {
-    val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
-    def moduleDepExists(dep: ModuleDep) = moduleLookup.contains(dep.segments ++ dep.childSegment)
+    val moduleLookup: PartialFunction[ModuleDep, ModuleSpec] =
+      packages.flatMap(_.modulesBySegments).toMap
+        .compose[ModuleDep](dep => dep.segments ++ dep.childSegment)
+
     def filterModuleDeps(values: Values[ModuleDep]) = {
       import values.*
       values.copy(
-        base.filter(moduleDepExists),
-        cross.map((k, v) => (k, v.filter(moduleDepExists))).filter(_._2.nonEmpty)
+        base.filter(moduleLookup.isDefinedAt),
+        cross.map((k, v) => (k, v.filter(moduleLookup.isDefinedAt))).filter(_._2.nonEmpty)
       )
     }
+
     val platformedMvnDeps = packages.flatMap(_.module.tree).flatMap { module =>
       import module.*
       Seq(mvnDeps, compileMvnDeps, runMvnDeps, scalacPluginMvnDeps)
     }.flatMap(values => values.base ++ values.cross.flatMap(_._2)).filter(_.cross.platformed).toSet
+
     def toPlatformedMvnDep(dep: MvnDep) = {
       val dep0 = if (dep.cross.platformed) dep
       else dep.copy(cross = dep.cross match {
@@ -254,12 +286,15 @@ object MillSbtBuildGenMain {
       })
       if (platformedMvnDeps.contains(dep0)) dep0 else dep
     }
+
     def toPlatformedMvnDeps(deps: Values[MvnDep]) = deps.copy(
       base = deps.base.map(toPlatformedMvnDep),
       cross = deps.cross.map((k, v) => (k, v.map(toPlatformedMvnDep)))
     )
-    def recMvnDeps(module: ModuleSpec): Seq[MvnDep] = module.mvnDeps.base ++ module.moduleDeps.base
-      .flatMap(dep => recMvnDeps(moduleLookup(dep.segments ++ dep.childSegment)))
+
+    def recMvnDeps(module: ModuleSpec): Seq[MvnDep] = module.mvnDeps.base ++
+      module.moduleDeps.base.flatMap(dep => recMvnDeps(moduleLookup(dep)))
+
     packages.map(pkg =>
       pkg.copy(module = pkg.module.recMap { module =>
         import module.*
@@ -275,7 +310,8 @@ object MillSbtBuildGenMain {
         if (module0.testFramework.base.contains("")) {
           val testMixin = ModuleSpec.testModuleMixin(recMvnDeps(module0))
           if (testMixin.nonEmpty) {
-            module0 = module0.copy(mixins = module0.mixins ++ testMixin, testFramework = None)
+            module0 =
+              module0.copy(supertypes = module0.supertypes ++ testMixin, testFramework = None)
           }
         }
         module0

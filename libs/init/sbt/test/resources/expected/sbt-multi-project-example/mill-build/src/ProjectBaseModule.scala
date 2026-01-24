@@ -5,7 +5,7 @@ import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
 
-trait ProjectBaseModule extends PublishModule, SbtModule {
+trait ProjectBaseModule extends SbtModule, PublishModule {
 
   def scalaVersion = "2.12.3"
 

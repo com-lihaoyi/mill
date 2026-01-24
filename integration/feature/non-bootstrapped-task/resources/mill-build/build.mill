@@ -1,0 +1,28 @@
+package build
+
+import mill.*
+import mill.api.{Discover, nonBootstrapped}
+import mill.meta.MillBuildRootModule
+
+object `package` extends MillBuildRootModule {
+  override lazy val millDiscover: Discover = Discover[this.type]
+
+  /**
+   * A custom nonBootstrapped task that can be run even when the root build.mill has errors.
+   */
+  @nonBootstrapped
+  def myNonBootstrappedTask(): Command[String] =
+    Task.Command(exclusive = true) {
+      println("Running myNonBootstrappedTask")
+      "success"
+    }
+
+  /**
+   * A regular task that is NOT nonBootstrapped - this should fail when root build.mill has errors.
+   */
+  def myRegularTask(): Command[String] =
+    Task.Command(exclusive = true) {
+      println("Running myRegularTask")
+      "success"
+    }
+}

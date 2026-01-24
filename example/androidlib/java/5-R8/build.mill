@@ -43,7 +43,7 @@ object app extends AndroidR8AppModule { // <2>
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
 
   override def androidVirtualDevice = super.androidVirtualDevice().withName("java-r8-test")
-  override def androidEmulatorPort = "5556"
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5554")
   override def androidIsDebug: T[Boolean] = Task { false }
 
   def androidProjectProguardFiles = Task.Sources(

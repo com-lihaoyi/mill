@@ -1,15 +1,14 @@
 package mill.server
 
-import mill.api.SystemStreams
+import mill.api.daemon.SystemStreams
 import mill.client.lock.Locks
-import mill.client.{LaunchedServer, MillServerLauncher, ServerLauncher}
+import mill.client.LaunchedServer
 import mill.constants.{DaemonFiles, Util}
+import mill.launcher.{DaemonRpc, MillServerLauncher}
+import mill.rpc.MillRpcChannel
 import utest.*
 
 import java.io.*
-import java.util.Optional
-import java.nio.file.Path
-import scala.jdk.CollectionConverters.*
 import concurrent.duration.*
 
 object ClientServerTests extends ClientServerTestsBase {
@@ -71,21 +70,20 @@ trait ClientServerTestsBase extends TestSuite {
         setIdle: Boolean => Unit,
         systemProperties: Map[String, String],
         initialSystemProperties: Map[String, String],
-        systemExit: Server.StopServer
+        stopServer: Server.StopServer,
+        serverToClient: MillRpcChannel[DaemonRpc.ServerToClient]
     ) = {
       Thread.sleep(commandSleepMillis)
       if (!runCompleted) {
-        val reader = new BufferedReader(new InputStreamReader(streams.in))
-        val str = reader.readLine()
-        Thread.sleep(200)
+        // The RPC server doesn't have stdin - print env vars directly
         if (args.nonEmpty) {
-          streams.out.println(str + args(0))
+          streams.out.println("hello" + args(0))
         }
         env.toSeq.sortBy(_._1).foreach {
           case (key, value) => streams.out.println(s"$key=$value")
         }
         if (args.nonEmpty) {
-          streams.err.println(str.toUpperCase + args(0))
+          streams.err.println("HELLO" + args(0))
         }
         streams.out.flush()
         streams.err.flush()
@@ -97,7 +95,6 @@ trait ClientServerTestsBase extends TestSuite {
   class Tester(testLogEvenWhenServerIdWrong: Boolean, commandSleepMillis: Int = 0) {
 
     var nextServerId: Int = 0
-    val terminatedServers = collection.mutable.Set.empty[String]
     val dest = os.pwd / "out"
     os.makeDir.all(dest)
     val outDir = os.temp.dir(dest, deleteOnExit = false)
@@ -111,36 +108,35 @@ trait ClientServerTestsBase extends TestSuite {
         args: Array[String] = Array(),
         forceFailureForTestingMillisDelay: Int = -1
     ) = {
-      val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
+      val initServerFactory: (os.Path, Locks) => LaunchedServer = (daemonDir, locks) => {
+        nextServerId += 1
+        // Use a negative process ID to indicate we're not a real process.
+        val processId = -nextServerId
+        val server = EchoServer(
+          processId,
+          daemonDir,
+          locks,
+          testLogEvenWhenServerIdWrong,
+          commandSleepMillis = commandSleepMillis
+        )
+        val t = Thread(() => { server.run(); () })
+        t.start()
+        LaunchedServer.NewThread(t, () => { /* do nothing */ })
+      }
       val result = new MillServerLauncher(
-        ServerLauncher.Streams(in, out, err),
-        env.asJava,
-        args,
-        Optional.of(locks),
-        forceFailureForTestingMillisDelay,
-        /*useFileLocks */ false
-      ) {
-        def initServer(daemonDir: Path, locks: Locks) = {
-          nextServerId += 1
-          // Use a negative process ID to indicate we're not a real process.
-          val processId = -nextServerId
-          val server = EchoServer(
-            processId,
-            os.Path(daemonDir, os.pwd),
-            locks,
-            testLogEvenWhenServerIdWrong,
-            commandSleepMillis = commandSleepMillis
-          )
-          val t = Thread(() => { server.run(); () })
-          t.start()
-          LaunchedServer.NewThread(t, () => { /* do nothing */ })
-        }
-      }.run(
-        daemonDir.relativeTo(os.pwd).toNIO,
-        "",
-        msg => println(s"MillServerLauncher: $msg")
+        stdout = out,
+        stderr = err,
+        env = env,
+        args = args.toSeq,
+        forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay,
+        useFileLocks = false,
+        initServerFactory = initServerFactory
+      ).run(
+        daemonDir,
+        None,
+        msg => println(s"MillRpcServerLauncher: $msg")
       )
 
       ClientResult(
@@ -278,7 +274,9 @@ trait ClientServerTestsBase extends TestSuite {
     }
 
     test("clientLockReleasedOnFailure") {
-      val tester = new Tester(testLogEvenWhenServerIdWrong = false)
+      // Use commandSleepMillis > forceFailureForTestingMillisDelay to ensure
+      // the server is still processing when the client fails
+      val tester = new Tester(testLogEvenWhenServerIdWrong = false, commandSleepMillis = 500)
       // When the client gets interrupted via Ctrl-C, we exit the server immediately. This
       // is because Mill ends up executing arbitrary JVM code, and there is no generic way
       // to interrupt such an execution. The two options are to leave the server running
@@ -313,6 +311,43 @@ trait ClientServerTestsBase extends TestSuite {
         res1.out == s"helloworld$ENDL",
         res1.err == s"HELLOworld$ENDL"
       )
+    }
+
+    test("versionMismatchRestartsDaemon") - retry(3) {
+      if (!Util.isWindows) {
+        val tester = new Tester(testLogEvenWhenServerIdWrong = true)
+
+        // First client spawns server pid:-1
+        val res1 = tester(args = Array("world"))
+        assert(
+          res1.out == s"helloworld$ENDL",
+          res1.err == s"HELLOworld$ENDL"
+        )
+
+        // Mangle the version file to simulate a version mismatch
+        val fingerprintFile = res1.daemonDir / DaemonFiles.daemonLaunchFingerprint
+        os.write.over(
+          fingerprintFile,
+          """{"millVersion": "wrong-version", "javaVersion": "", "jvmOpts": []}"""
+        )
+
+        // Second client should detect mismatch, terminate old server, and spawn new one (pid:-2)
+        val res2 = tester(args = Array(" WORLD"))
+        assert(
+          res2.out == s"hello WORLD$ENDL",
+          res2.err == s"HELLO WORLD$ENDL"
+        )
+
+        // Wait for logs to be written
+        Thread.sleep(500)
+
+        // Verify that the old server (pid:-1) was terminated due to processId file being removed
+        // (which happens when version mismatch is detected)
+        assert(res2.logsForServerId("pid:-1").exists(_.contains("processId file missing")))
+
+        // Verify that a new server (pid:-2) was spawned
+        assert(res2.logsForServerId("pid:-2").nonEmpty)
+      }
     }
 
     test("envVars") - retry(3) {

@@ -6,9 +6,10 @@ object AsmWorkerImpl {
 
   def generateSyntheticClasses(classesDir: java.nio.file.Path, mainMethods: Array[String]): Unit = {
     // Find the MillScriptMain_ class name to forward to
+    // Match on $.class but return without $ since static forwarders are in the non-$ class
     val targetClassName = os.list(os.Path(classesDir))
       .map(_.last)
-      .collectFirst { case s"MillScriptMain_${s}$$.class" => s }
+      .collectFirst { case s"MillScriptMain_${s}$$.class" => s"MillScriptMain_${s}" }
       .getOrElse("MillScriptMain_")
 
     mainMethods.foreach { methodName =>

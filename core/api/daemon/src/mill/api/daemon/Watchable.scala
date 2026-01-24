@@ -17,6 +17,9 @@ private[mill] object Watchable {
    * @param signature the initial hash of the path contents
    */
   case class Path(p: java.nio.file.Path, quick: Boolean, signature: Int) extends Watchable
+  object Path {
+    def from(p: mill.api.daemon.internal.PathRefApi) = Path(p.javaPath, p.quick, p.sig)
+  }
 
   /**
    * Watched expression, can only be watched via polling.

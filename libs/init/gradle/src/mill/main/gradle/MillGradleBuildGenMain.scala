@@ -1,6 +1,7 @@
 package mill.main.gradle
 
 import mill.main.buildgen.*
+import mill.main.buildgen.ModuleSpec.ModuleDep
 import mill.main.gradle.BuildInfo.exportpluginAssemblyResource
 import mill.util.Jvm
 import org.gradle.tooling.GradleConnector
@@ -73,11 +74,8 @@ object MillGradleBuildGenMain {
 
     val (baseModule, packages0) =
       if (noMeta.value) (None, packages)
-      else buildGen.withBaseModule(
-        packages,
-        Seq("MavenModule"),
-        Seq("MavenTests")
-      ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
+      else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
+        .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     val millJvmOpts = {
       val properties = new Properties()
       val file = gradleWorkspace / "gradle/wrapper/gradle-wrapper.properties"
@@ -97,17 +95,23 @@ object MillGradleBuildGenMain {
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
+      .compose[ModuleDep](dep => dep.segments ++ dep.childSegment)
     packages.map(pkg =>
       pkg.copy(module = pkg.module.recMap { module =>
         var module0 = module
-        if (module0.supertypes.contains("PublishModule")) {
-          val (bomModuleDeps, bomModuleRefs) = module0.bomModuleDeps.base.partition { dep =>
-            moduleLookup(dep.segments ++ dep.childSegment).supertypes.contains("PublishModule")
+        if (module0.isPublishModule) {
+          val (managedBomModules, bomModuleDeps) = module0.bomModuleDeps.base.partitionMap { dep =>
+            val bomModule = moduleLookup(dep)
+            Either.cond(bomModule.isPublishModule, dep, bomModule)
           }
-          if (bomModuleRefs.nonEmpty) {
+          if (managedBomModules.nonEmpty) {
             module0 = module0.copy(
-              bomMvnDeps = module0.bomMvnDeps.copy(appendRefs = bomModuleRefs),
-              depManagement = module0.depManagement.copy(appendRefs = bomModuleRefs),
+              bomMvnDeps = module0.bomMvnDeps.copy(base =
+                module0.bomMvnDeps.base ++ managedBomModules.flatMap(_.bomMvnDeps.base)
+              ),
+              depManagement = module0.depManagement.copy(base =
+                module0.depManagement.base ++ managedBomModules.flatMap(_.depManagement.base)
+              ),
               bomModuleDeps = bomModuleDeps
             )
           }
