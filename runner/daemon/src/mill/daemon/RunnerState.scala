@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.api.Val
 import mill.api.JsonFormatters.*
-import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi}
+import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi, TaskApi}
 import mill.api.internal.RootModule
 import mill.api.daemon.Watchable
 import mill.api.MillURLClassLoader
@@ -62,6 +62,9 @@ object RunnerState {
   @internal
   case class Frame(
       workerCache: Map[String, (Int, Val)],
+      // Maps worker name to its Task, used to traverse inputs and determine
+      // worker dependencies for ordered closure (downstream first, then upstream).
+      workerTasks: Map[String, TaskApi[?]],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       codeSignatures: Map[String, Int],
@@ -113,7 +116,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map(), None)
+    def empty: Frame = Frame(Map.empty, Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map(), None)
   }
 
 }

@@ -15,6 +15,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   override def codeSignatures = delegate.codeSignatures
   override def rootModule = delegate.rootModule
   override def workerCache = delegate.workerCache
+  override def workerTasks: scala.collection.mutable.Map[String, daemon.internal.TaskApi[?]] = delegate.workerTasks
   override def env = delegate.env
   override def effectiveThreadCount = delegate.effectiveThreadCount
   override def offline: Boolean = delegate.offline

@@ -5,7 +5,8 @@ import mill.api.daemon.internal.{
   CompileProblemReporter,
   EvaluatorApi,
   PathRefApi,
-  RootModuleApi
+  RootModuleApi,
+  TaskApi
 }
 import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
@@ -277,6 +278,7 @@ class MillBuildBootstrap(
       case (f: Result.Failure, evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
+          workerTasks = evaluator.workerTasks.toMap,
           evalWatched = evalWatches,
           moduleWatched = moduleWatches,
           codeSignatures = Map.empty,
@@ -324,15 +326,11 @@ class MillBuildBootstrap(
         val classLoader = if (classLoaderChanged) {
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks, as well as all the workers in each subsequent
-          // frame's `workerCache`s that may depend on classes loaded by that classloader
-          prevRunnerState.frames.lift(depth - 1).foreach(
-            _.workerCache.collect { case (_, (_, Val(v: AutoCloseable))) =>
-              try v.close()
-              catch {
-                case _: Throwable => /*ignore failures on close*/
-              }
-            }
-          )
+          // frame's `workerCache`s that may depend on classes loaded by that classloader.
+          // Workers are closed in reverse dependency order (downstream first, then upstream).
+          prevRunnerState.frames.lift(depth - 1).foreach { frame =>
+            MillBuildBootstrap.closeWorkersInOrder(frame.workerCache, frame.workerTasks)
+          }
 
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
           val cl = mill.util.Jvm.createClassLoader(
@@ -348,6 +346,7 @@ class MillBuildBootstrap(
 
         val evalState = RunnerState.Frame(
           workerCache = evaluator.workerCache.toMap,
+          workerTasks = evaluator.workerTasks.toMap,
           evalWatched = evalWatches,
           moduleWatched = moduleWatches,
           codeSignatures = codeSignatures,
@@ -389,6 +388,7 @@ class MillBuildBootstrap(
 
     val evalState = RunnerState.Frame(
       workerCache = evaluator.workerCache.toMap,
+      workerTasks = evaluator.workerTasks.toMap,
       evalWatched = evalWatched,
       moduleWatched = moduleWatches,
       codeSignatures = Map.empty,
@@ -412,6 +412,57 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
+  /**
+   * Closes all workers in reverse dependency order (downstream first, then upstream).
+   * This ensures that workers are closed before their dependencies.
+   */
+  def closeWorkersInOrder(
+      workerCache: Map[String, (Int, Val)],
+      workerTasks: Map[String, TaskApi[?]]
+  ): Unit = {
+    // Find all worker names that a given task transitively depends on
+    def findWorkerDependencies(task: TaskApi[?], visited: Set[TaskApi[?]]): Set[String] = {
+      if (visited.contains(task)) Set.empty
+      else {
+        val directWorkerDeps = task.inputsApi.flatMap(_.workerNameApi).toSet
+        val transitiveDeps = task.inputsApi.flatMap(t => findWorkerDependencies(t, visited + task))
+        directWorkerDeps ++ transitiveDeps
+      }
+    }
+
+    // Build dependency map: worker name -> set of worker names it depends on
+    val workerDeps: Map[String, Set[String]] = workerTasks.map { case (name, task) =>
+      name -> findWorkerDependencies(task, Set.empty)
+    }
+
+    val remaining = collection.mutable.Set.from(workerCache.keys)
+
+    // Close workers in reverse dependency order
+    while (remaining.nonEmpty) {
+      // Find workers that have no remaining dependents (safe to close)
+      val safeToClose = remaining.filter { w =>
+        // A worker is safe to close if no remaining worker depends on it
+        val dependentsOfW = remaining.filter { other =>
+          workerDeps.getOrElse(other, Set.empty).contains(w)
+        }
+        dependentsOfW.isEmpty
+      }
+
+      // If no safe workers found (cyclic deps), just close one arbitrarily
+      val toClose = if (safeToClose.isEmpty) remaining.take(1) else safeToClose
+
+      for (name <- toClose) {
+        workerCache.get(name).foreach {
+          case (_, Val(v: AutoCloseable)) =>
+            try v.close()
+            catch { case _: Throwable => /*ignore failures on close*/ }
+          case _ => // not closeable
+        }
+        remaining -= name
+      }
+    }
+  }
+
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
   def makeEvaluator0(

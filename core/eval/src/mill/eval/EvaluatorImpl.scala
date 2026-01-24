@@ -47,6 +47,7 @@ final class EvaluatorImpl(
   def codeSignatures = execution.codeSignatures
   def rootModule = execution.rootModule.asInstanceOf[RootModule0]
   def workerCache = execution.workerCache
+  def workerTasks = execution.workerTasks.asInstanceOf[scala.collection.mutable.Map[String, mill.api.daemon.internal.TaskApi[?]]]
   def env = execution.env
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline

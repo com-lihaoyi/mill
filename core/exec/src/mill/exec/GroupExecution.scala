@@ -39,10 +39,10 @@ trait GroupExecution {
   def workerCache: mutable.Map[String, (Int, Val)]
 
   /**
-   * Tracks worker dependencies: maps worker name to the set of worker names it depends on.
-   * Used to ensure workers are closed in reverse dependency order (downstream first, then upstream).
+   * Maps worker name to its Task, used to traverse inputs and determine
+   * worker dependencies for ordered closure (downstream first, then upstream).
    */
-  def workerDependencies: mutable.Map[String, Set[String]]
+  def workerTasks: mutable.Map[String, Task[?]]
 
   def env: Map[String, String]
   def failFast: Boolean
@@ -570,6 +570,22 @@ trait GroupExecution {
   // classloader/class is the same or different doesn't matter.
   def workerCacheHash(inputHash: Int): Int = inputHash + classLoaderIdentityHash
 
+  /**
+   * Find all worker names that a task transitively depends on by traversing its inputs.
+   * Uses TaskApi methods so this logic can be shared with MillBuildBootstrap.
+   */
+  private def findTransitiveWorkerDependencies(
+      task: mill.api.daemon.internal.TaskApi[?],
+      visited: Set[mill.api.daemon.internal.TaskApi[?]]
+  ): Set[String] = {
+    if (visited.contains(task)) Set.empty
+    else {
+      val directWorkerDeps = task.inputsApi.flatMap(_.workerNameApi).toSet
+      val transitiveDeps = task.inputsApi.flatMap(t => findTransitiveWorkerDependencies(t, visited + task))
+      directWorkerDeps ++ transitiveDeps
+    }
+  }
+
   private def handleTaskResult(
       v: Val,
       hashCode: Int,
@@ -579,14 +595,9 @@ trait GroupExecution {
   ): Seq[PathRef] = {
     for (w <- labelled.asWorker) {
       val workerName = w.ctx.segments.render
-      // Extract the names of other workers that this worker depends on
-      val deps = labelled.inputs
-        .flatMap(_.asWorker)
-        .map(_.ctx.segments.render)
-        .toSet
       workerCache.synchronized {
         workerCache.update(workerName, (workerCacheHash(inputsHash), v))
-        workerDependencies.update(workerName, deps)
+        workerTasks.update(workerName, labelled)
       }
     }
 
@@ -715,15 +726,21 @@ trait GroupExecution {
       logger: Logger,
       closeAction: AutoCloseable => Unit
   ): Seq[String] = {
+    // Build dependency map by traversing worker tasks
+    val tasks: Map[String, mill.api.daemon.internal.TaskApi[?]] = workerCache.synchronized {
+      workerTasks.toMap
+    }
+    val workerDeps: Map[String, Set[String]] = tasks.map { case (name, task) =>
+      name -> findTransitiveWorkerDependencies(task, Set.empty)
+    }
+
     // Find all workers that transitively depend on the given worker
     def findDependents(name: String, visited: Set[String]): Set[String] = {
       if (visited.contains(name)) Set.empty
       else {
-        val directDependents = workerCache.synchronized {
-          workerDependencies.collect {
-            case (dependent, deps) if deps.contains(name) => dependent
-          }.toSet
-        }
+        val directDependents = workerDeps.collect {
+          case (dependent, deps) if deps.contains(name) => dependent
+        }.toSet
         val transitiveDependents = directDependents.flatMap(d => findDependents(d, visited + name))
         directDependents ++ transitiveDependents
       }
@@ -732,7 +749,6 @@ trait GroupExecution {
     val dependents = findDependents(workerName, Set.empty)
 
     // Build a topological order: dependents first, then the worker itself
-    // Workers that depend on more workers should be closed first
     val allToClose = dependents + workerName
     val closedWorkers = mutable.Buffer.empty[String]
     val remaining = mutable.Set.from(allToClose)
@@ -741,12 +757,9 @@ trait GroupExecution {
     while (remaining.nonEmpty) {
       // Find workers that have no remaining dependents (safe to close)
       val safeToClose = remaining.filter { w =>
-        val deps = workerCache.synchronized { workerDependencies.getOrElse(w, Set.empty) }
-        // A worker is safe to close if none of its dependencies are in the remaining set
-        // This means all workers that depend on this worker have already been closed
+        // A worker is safe to close if no remaining worker depends on it
         val dependentsOfW = remaining.filter { other =>
-          val otherDeps = workerCache.synchronized { workerDependencies.getOrElse(other, Set.empty) }
-          otherDeps.contains(w)
+          workerDeps.getOrElse(other, Set.empty).contains(w)
         }
         dependentsOfW.isEmpty
       }
@@ -772,7 +785,7 @@ trait GroupExecution {
             case _ => // not closeable, nothing to do
           }
           workerCache.remove(name)
-          workerDependencies.remove(name)
+          workerTasks.remove(name)
         }
         closedWorkers += name
         remaining -= name

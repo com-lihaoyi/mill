@@ -42,9 +42,9 @@ case class Execution(
     versionMismatchReasons: ConcurrentHashMap[Task[?], String] = new ConcurrentHashMap()
 ) extends GroupExecution with AutoCloseable {
 
-  // Track worker dependencies: maps worker name to the set of worker names it depends on.
-  // Used to ensure workers are closed in reverse dependency order.
-  val workerDependencies: mutable.Map[String, Set[String]] = mutable.Map.empty
+  // Maps worker name to its Task, used to traverse inputs and determine
+  // worker dependencies for ordered closure (downstream first, then upstream).
+  val workerTasks: mutable.Map[String, Task[?]] = mutable.Map.empty
 
   // Track nesting depth of executeTasks calls to only show final status on outermost call
   private val executionNestingDepth = new AtomicInteger(0)
