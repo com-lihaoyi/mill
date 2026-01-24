@@ -142,7 +142,7 @@ final class TestModuleUtil(
 
     val proc = BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
-        mainClass = "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+        mainClass = "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = (if (propagateEnv) Task.env else Map()) ++ forkEnv,
