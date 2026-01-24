@@ -705,11 +705,7 @@ trait GroupExecution {
    * This ensures downstream workers are closed before their upstream dependencies.
    * Returns the list of worker names that were closed, in the order they were closed.
    */
-  private def closeWorkerAndDependents(
-      workerName: String,
-      logger: Logger,
-      closeAction: AutoCloseable => Unit
-  ): Seq[String] = {
+  private def closeWorkerAndDependents(workerName: String): Seq[String] = {
     // Get snapshots of the caches under synchronization
     val (cacheSnapshot, tasksSnapshot) = workerCache.synchronized {
       (workerCache.toMap, workerTasks.toMap)
@@ -738,19 +734,7 @@ trait GroupExecution {
     val closedWorkers = GroupExecution.closeWorkersInTopologicalOrder(
       workersToClose = allToClose,
       workerCache = cacheSnapshot,
-      workerTasks = tasksSnapshot,
-      closeAction = (name, closeable) => {
-        try {
-          logger.debug(s"Closing worker: $name")
-          closeAction(closeable)
-        } catch {
-          case NonFatal(e) =>
-            logger.error(s"$name: Errors while closing obsolete worker: ${e.getMessage()}")
-        }
-      },
-      onCyclicDeps = Some(() =>
-        logger.debug(s"Warning: Cyclic worker dependencies detected, closing in arbitrary order")
-      )
+      workerTasks = tasksSnapshot
     )
 
     // Remove closed workers from the mutable caches
@@ -792,30 +776,7 @@ trait GroupExecution {
         case (_, Val(_: AutoCloseable)) =>
           // worker cached but obsolete, needs to be closed along with all dependents
           val workerName = labelled.asWorker.get.ctx.segments.render
-          logger.debug(s"Closing previous worker and dependents: $labelled")
-          closeWorkerAndDependents(
-            workerName,
-            logger,
-            closeable =>
-              GroupExecution.wrap(
-                workspace = workspace,
-                deps = deps,
-                outPath = outPath,
-                paths = paths,
-                upstreamPathRefs = upstreamPathRefs,
-                exclusive = exclusive,
-                multiLogger = multiLogger,
-                logger = logger,
-                exclusiveSystemStreams = exclusiveSystemStreams,
-                counterMsg = counterMsg,
-                destCreator = destCreator,
-                evaluator = getEvaluator().asInstanceOf[Evaluator],
-                terminal = terminal,
-                classLoader = rootModule.getClass.getClassLoader
-              ) {
-                closeable.close()
-              }
-          )
+          closeWorkerAndDependents(workerName)
           None
 
         case _ => None // worker not cached or obsolete
@@ -975,16 +936,12 @@ object GroupExecution {
    * @param workersToClose The set of worker names to close
    * @param workerCache Map of worker name to (hash, value)
    * @param workerTasks Map of worker name to its TaskApi (for traversing dependencies)
-   * @param closeAction Action to perform when closing each worker
-   * @param onCyclicDeps Optional callback when cyclic dependencies are detected
    * @return The list of worker names that were closed, in the order they were closed
    */
   def closeWorkersInTopologicalOrder(
       workersToClose: Set[String],
       workerCache: Map[String, (Int, Val)],
-      workerTasks: Map[String, mill.api.daemon.internal.TaskApi[?]],
-      closeAction: (String, AutoCloseable) => Unit,
-      onCyclicDeps: Option[() => Unit] = None
+      workerTasks: Map[String, mill.api.daemon.internal.TaskApi[?]]
   ): Seq[String] = {
     // Build dependency map: worker name -> set of worker names it depends on
     val workerDeps: Map[String, Set[String]] = workerTasks.collect {
@@ -1006,17 +963,14 @@ object GroupExecution {
         dependentsOfW.isEmpty
       }
 
-      val toClose = if (safeToClose.isEmpty && remaining.nonEmpty) {
-        // This shouldn't happen with acyclic dependencies, but handle it gracefully
-        // by closing in arbitrary order
-        onCyclicDeps.foreach(_())
-        remaining.take(1).toSet
-      } else safeToClose
+      // If no safe workers found (cyclic deps), just close one arbitrarily
+      val toClose = if (safeToClose.isEmpty) remaining.take(1).toSet else safeToClose
 
       for (name <- toClose) {
         workerCache.get(name).foreach {
           case (_, Val(closeable: AutoCloseable)) =>
-            closeAction(name, closeable)
+            try closeable.close()
+            catch { case _: Throwable => /*ignore failures on close*/ }
           case _ => // not closeable, nothing to do
         }
         closedWorkers += name

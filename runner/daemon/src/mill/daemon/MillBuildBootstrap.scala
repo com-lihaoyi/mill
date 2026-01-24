@@ -412,25 +412,6 @@ class MillBuildBootstrap(
 }
 
 object MillBuildBootstrap {
-  /**
-   * Closes all workers in reverse dependency order (downstream first, then upstream).
-   * This ensures that workers are closed before their dependencies.
-   */
-  def closeWorkersInOrder(
-      workerCache: Map[String, (Int, Val)],
-      workerTasks: Map[String, TaskApi[?]]
-  ): Unit = {
-    mill.exec.GroupExecution.closeWorkersInTopologicalOrder(
-      workersToClose = workerCache.keySet,
-      workerCache = workerCache,
-      workerTasks = workerTasks,
-      closeAction = (_, closeable) => {
-        try closeable.close()
-        catch { case _: Throwable => /*ignore failures on close*/ }
-      }
-    )
-  }
-
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
   def makeEvaluator0(
