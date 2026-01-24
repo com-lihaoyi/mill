@@ -292,6 +292,57 @@ object ExecutionTests extends TestSuite {
       }
     }
 
+    // https://github.com/com-lihaoyi/mill/issues/5810
+    // When upstream workers become obsolete, downstream workers that depend on them
+    // should be closed first (in reverse dependency order)
+    test("workerClosureOrder") {
+      var x = 10
+      val closureOrder = collection.mutable.Buffer.empty[String]
+
+      class UpstreamWorker(val n: Int) extends AutoCloseable {
+        def close() = {
+          closureOrder += "upstream"
+        }
+      }
+
+      class DownstreamWorker(val upstream: UpstreamWorker) extends AutoCloseable {
+        def close() = {
+          // Verify upstream is still open when downstream closes
+          closureOrder += "downstream"
+        }
+      }
+
+      object build extends TestRootModule {
+        def input = Task.Input { x }
+        def upstreamWorker = Task.Worker { new UpstreamWorker(input()) }
+        def downstreamWorker = Task.Worker { new DownstreamWorker(upstreamWorker()) }
+        lazy val millDiscover = Discover[this.type]
+      }
+
+      UnitTester(build, null).scoped { tester =>
+        // Create both workers
+        val Right(UnitTester.Result(upstream1, _)) = tester.apply(build.upstreamWorker): @unchecked
+        val Right(UnitTester.Result(downstream1, _)) = tester.apply(build.downstreamWorker): @unchecked
+
+        assert(upstream1.n == 10)
+        assert(downstream1.upstream eq upstream1)
+        assert(closureOrder.isEmpty)
+
+        // Change input to invalidate upstream worker
+        x = 20
+        closureOrder.clear()
+
+        // Request the upstream worker - this should trigger closure of both workers
+        // (downstream first, then upstream) because upstream is obsolete and downstream depends on it
+        val Right(UnitTester.Result(upstream2, _)) = tester.apply(build.upstreamWorker): @unchecked
+        assert(upstream2.n == 20)
+        assert(upstream2 ne upstream1)
+
+        // Verify downstream was closed before upstream (reverse dependency order)
+        assert(closureOrder == Seq("downstream", "upstream"))
+      }
+    }
+
     test("command") {
       var x = 10
       var y = 0

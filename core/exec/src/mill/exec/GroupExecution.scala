@@ -38,6 +38,12 @@ trait GroupExecution {
    */
   def workerCache: mutable.Map[String, (Int, Val)]
 
+  /**
+   * Tracks worker dependencies: maps worker name to the set of worker names it depends on.
+   * Used to ensure workers are closed in reverse dependency order (downstream first, then upstream).
+   */
+  def workerDependencies: mutable.Map[String, Set[String]]
+
   def env: Map[String, String]
   def failFast: Boolean
   def ec: Option[ThreadPoolExecutor]
@@ -571,10 +577,18 @@ trait GroupExecution {
       inputsHash: Int,
       labelled: Task.Named[?]
   ): Seq[PathRef] = {
-    for (w <- labelled.asWorker)
+    for (w <- labelled.asWorker) {
+      val workerName = w.ctx.segments.render
+      // Extract the names of other workers that this worker depends on
+      val deps = labelled.inputs
+        .flatMap(_.asWorker)
+        .map(_.ctx.segments.render)
+        .toSet
       workerCache.synchronized {
-        workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
+        workerCache.update(workerName, (workerCacheHash(inputsHash), v))
+        workerDependencies.update(workerName, deps)
       }
+    }
 
     def normalJson(w: upickle.Writer[?]) = PathRef.withSerializedPaths {
       upickle.writeJs(v.value)(using w.asInstanceOf[upickle.Writer[Any]])
@@ -690,6 +704,84 @@ trait GroupExecution {
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
   }
+
+  /**
+   * Closes a worker and all workers that depend on it (transitively), in reverse dependency order.
+   * This ensures downstream workers are closed before their upstream dependencies.
+   * Returns the list of worker names that were closed, in the order they were closed.
+   */
+  private def closeWorkerAndDependents(
+      workerName: String,
+      logger: Logger,
+      closeAction: AutoCloseable => Unit
+  ): Seq[String] = {
+    // Find all workers that transitively depend on the given worker
+    def findDependents(name: String, visited: Set[String]): Set[String] = {
+      if (visited.contains(name)) Set.empty
+      else {
+        val directDependents = workerCache.synchronized {
+          workerDependencies.collect {
+            case (dependent, deps) if deps.contains(name) => dependent
+          }.toSet
+        }
+        val transitiveDependents = directDependents.flatMap(d => findDependents(d, visited + name))
+        directDependents ++ transitiveDependents
+      }
+    }
+
+    val dependents = findDependents(workerName, Set.empty)
+
+    // Build a topological order: dependents first, then the worker itself
+    // Workers that depend on more workers should be closed first
+    val allToClose = dependents + workerName
+    val closedWorkers = mutable.Buffer.empty[String]
+    val remaining = mutable.Set.from(allToClose)
+
+    // Close workers in reverse dependency order
+    while (remaining.nonEmpty) {
+      // Find workers that have no remaining dependents (safe to close)
+      val safeToClose = remaining.filter { w =>
+        val deps = workerCache.synchronized { workerDependencies.getOrElse(w, Set.empty) }
+        // A worker is safe to close if none of its dependencies are in the remaining set
+        // This means all workers that depend on this worker have already been closed
+        val dependentsOfW = remaining.filter { other =>
+          val otherDeps = workerCache.synchronized { workerDependencies.getOrElse(other, Set.empty) }
+          otherDeps.contains(w)
+        }
+        dependentsOfW.isEmpty
+      }
+
+      if (safeToClose.isEmpty && remaining.nonEmpty) {
+        // This shouldn't happen with acyclic dependencies, but handle it gracefully
+        // by closing in arbitrary order
+        logger.debug(s"Warning: Cyclic worker dependencies detected, closing in arbitrary order")
+        safeToClose ++= remaining.take(1)
+      }
+
+      for (name <- safeToClose) {
+        workerCache.synchronized {
+          workerCache.get(name).foreach {
+            case (_, Val(closeable: AutoCloseable)) =>
+              try {
+                logger.debug(s"Closing worker: $name")
+                closeAction(closeable)
+              } catch {
+                case NonFatal(e) =>
+                  logger.error(s"$name: Errors while closing obsolete worker: ${e.getMessage()}")
+              }
+            case _ => // not closeable, nothing to do
+          }
+          workerCache.remove(name)
+          workerDependencies.remove(name)
+        }
+        closedWorkers += name
+        remaining -= name
+      }
+    }
+
+    closedWorkers.toSeq
+  }
+
   private def loadUpToDateWorker(
       logger: Logger,
       inputsHash: Int,
@@ -715,40 +807,33 @@ trait GroupExecution {
             if cachedHash == workerCacheHash(inputsHash) && !forceDiscard =>
           Some(upToDate) // worker cached and up-to-date
 
-        case (_, Val(obsolete: AutoCloseable)) =>
-          // worker cached but obsolete, needs to be closed
-          try {
-            logger.debug(s"Closing previous worker: $labelled")
-            GroupExecution.wrap(
-              workspace = workspace,
-              deps = deps,
-              outPath = outPath,
-              paths = paths,
-              upstreamPathRefs = upstreamPathRefs,
-              exclusive = exclusive,
-              multiLogger = multiLogger,
-              logger = logger,
-              exclusiveSystemStreams = exclusiveSystemStreams,
-              counterMsg = counterMsg,
-              destCreator = destCreator,
-              evaluator = getEvaluator().asInstanceOf[Evaluator],
-              terminal = terminal,
-              classLoader = rootModule.getClass.getClassLoader
-            ) {
-              obsolete.close()
-            }
-          } catch {
-            case NonFatal(e) =>
-              logger.error(
-                s"$labelled: Errors while closing obsolete worker: ${e.getMessage()}"
-              )
-          }
-          // make sure, we can no longer re-use a closed worker
-          labelled.asWorker.foreach { w =>
-            workerCache.synchronized {
-              workerCache.remove(w.ctx.segments.render)
-            }
-          }
+        case (_, Val(_: AutoCloseable)) =>
+          // worker cached but obsolete, needs to be closed along with all dependents
+          val workerName = labelled.asWorker.get.ctx.segments.render
+          logger.debug(s"Closing previous worker and dependents: $labelled")
+          closeWorkerAndDependents(
+            workerName,
+            logger,
+            closeable =>
+              GroupExecution.wrap(
+                workspace = workspace,
+                deps = deps,
+                outPath = outPath,
+                paths = paths,
+                upstreamPathRefs = upstreamPathRefs,
+                exclusive = exclusive,
+                multiLogger = multiLogger,
+                logger = logger,
+                exclusiveSystemStreams = exclusiveSystemStreams,
+                counterMsg = counterMsg,
+                destCreator = destCreator,
+                evaluator = getEvaluator().asInstanceOf[Evaluator],
+                terminal = terminal,
+                classLoader = rootModule.getClass.getClassLoader
+              ) {
+                closeable.close()
+              }
+          )
           None
 
         case _ => None // worker not cached or obsolete
