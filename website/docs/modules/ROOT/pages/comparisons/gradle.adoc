@@ -19,7 +19,7 @@ the Gradle's design to provide programmatic builds without the complexity or con
 == Extending Gradle
 
 Most real projects require some kind of ad-hoc build customizations: you may be pre-processing static
-assets for web deployment, embedding build metadata for runtime debugging, or generating
+assets for web deployment, embedding build metadata for production debugging, or generating
 reports for security scanning. For example, consider the following requirement:
 
 > Count the lines of code in this project and include this as a resource for use at runtime
@@ -30,8 +30,6 @@ real projects need to do in their build. Doing this in Gradle looks something li
 
 [,kotlin]
 ----
-import java.io.File
-
 tasks.register("generateLineCount") {
     val sourceDirs = listOf("src/main/java")
     val outputDir = layout.buildDirectory.dir("generated-resources")

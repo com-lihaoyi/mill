@@ -55,11 +55,11 @@ include::partial$Asciinema_Comparison.adoc[]
 * *Ergonomics*: Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative config files]
 are concise and easy to read, its xref:javalib/intro.adoc#_programmable_configuration[programmable config files]
 have xref:cli/installation-ide.adoc#_ide_support[full IDE support in IntelliJ and VSCode], and its
-xref:cli/installation-ide.adoc#_bashzsh_tab_completion[terminal tab-completion]
-and syntax highlighted command-line output and error messages mean developers can easily
-navigate their builds and resolve issues.
+syntax highlighted command-line output and
+xref:cli/installation-ide.adoc#_bashzsh_tab_completion[terminal tab-completion] mean developers can
+easily navigate their builds and resolve issues.
 
-image::basic/ErrorHighlighting.png[]
+image::basic/Ergonomics.png[]
 
 * *Scalability* Mill scales well from xref:javalib/intro.adoc#_single_file_scripts[single-file programs]
 to xref:large/large.adoc[large monorepos] with hundreds of modules and
