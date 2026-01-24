@@ -45,6 +45,7 @@ trait TestModule
    * For convenience, you can also mix-in one of these predefined traits:
    * - [[TestModule.Junit4]]
    * - [[TestModule.Junit5]]
+   * - [[TestModule.Junit6]]
    * - [[TestModule.Munit]]
    * - [[TestModule.ScalaTest]]
    * - [[TestModule.Specs2]]
@@ -433,6 +434,86 @@ object TestModule {
      *
      * Note that we access the test discovery via reflection, to avoid mill
      * itself having a dependency on Junit5. Hence, if you remove the
+     * `sbt-jupiter-interface` dependency from `mvnDeps`, make sure to also
+     * override this method.
+     */
+    override def discoveredTestClasses: T[Seq[String]] = Task {
+      val worker = jvmWorker().internalWorker()
+      worker.apply(
+        mill.javalib.api.internal.ZincOp.DiscoverJunit5Tests(
+          runClasspath().map(_.path),
+          testClasspath().map(_.path),
+          classesDir()
+        ),
+        javaHome().map(_.path)
+      )
+    }
+  }
+
+  /**
+   * TestModule that uses JUnit 6 Framework to run tests.
+   * You can override the [[jupiterVersion]] task or provide the JUnit 6-dependencies yourself.
+   *
+   * Note: JUnit 6 requires Java 17 or higher.
+   *
+   * JUnit 6 uses unified versioning where Platform, Jupiter, and Vintage all share
+   * the same version number (e.g., 6.0.2).
+   *
+   * See: https://junit.org/junit5/
+   */
+  trait Junit6 extends TestModule {
+
+    /** The JUnit 6 version to use, or empty, if you want to provide the dependencies yourself. */
+    def jupiterVersion: T[String] = Task { "" }
+
+    override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
+
+    override def bomMvnDeps: T[Seq[Dep]] = Task {
+      super.bomMvnDeps() ++ {
+        Seq(jupiterVersion())
+          .filter(!_.isBlank())
+          .flatMap(v =>
+            Seq(
+              mvn"org.junit:junit-bom:${v.trim()}"
+            )
+          )
+      }
+    }
+
+    override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
+      super.mandatoryMvnDeps() ++
+        Seq(mvn"${mill.javalib.api.Versions.jupiterInterface6}") ++
+        Seq(jupiterVersion())
+          .filter(!_.isBlank())
+          .flatMap(v =>
+            Seq(
+              mvn"org.junit.platform:junit-platform-launcher",
+              mvn"org.junit.jupiter:junit-jupiter-api:${v.trim()}"
+            )
+          )
+    }
+
+    private lazy val classesDir: Task[Option[os.Path]] = this match {
+      case withCompileTask: JavaModule => Task.Anon {
+          Some(withCompileTask.compile().classes.path)
+        }
+      case m => Task.Anon {
+          m.testClasspath().map(_.path).find { path =>
+            os.exists(path) && os.walk.stream(path).exists(p => os.isFile(p) && p.ext == "class")
+          }
+        }
+    }
+
+    /**
+     * Overridden since JUnit 6 (like JUnit 5) has its own discovery mechanism.
+     *
+     * This is basically a re-implementation of sbt's plugin for JUnit 5/6 test
+     * discovery mechanism. See
+     * https://github.com/sbt/sbt-jupiter-interface/blob/468d4f31f1f6ce8529fff8a8804dd733974c7686/src/plugin/src/main/scala/com/github/sbt/junit/jupiter/sbt/JupiterPlugin.scala#L97C15-L118
+     * for details.
+     *
+     * Note that we access the test discovery via reflection, to avoid mill
+     * itself having a dependency on JUnit 6. Hence, if you remove the
      * `sbt-jupiter-interface` dependency from `mvnDeps`, make sure to also
      * override this method.
      */
