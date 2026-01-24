@@ -519,6 +519,7 @@ object PromptLogger {
     def getCurrentPrompt() = currentPromptBytes
 
     def updatePrompt(ending: Boolean = false): Boolean = {
+
       val now = currentTimeMillis()
       for (k <- statuses.keySet) {
         val removedTime = statuses(k).beginTransitionTime
@@ -540,7 +541,7 @@ object PromptLogger {
         now,
         startTimeMillis,
         if (headerPrefix.isEmpty) "" else s"$headerPrefix]",
-        titleText,
+        if (!ending) titleText else fansi.Str(titleText).plainText,
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
         infoColor = infoColor
