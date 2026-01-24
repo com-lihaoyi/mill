@@ -2,8 +2,6 @@ name: post-build-selective
 
 env:
   FORCE_COLOR: '1'
-  # Use SNAPSHOT version for selective testing to avoid daemon version mismatches
-  MILL_UNSTABLE_VERSION: '1'
 
 on:
   workflow_call:
@@ -43,6 +41,9 @@ jobs:
     runs-on: ${{ inputs.os }}
     continue-on-error: false
     timeout-minutes: ${{ inputs.timeout-minutes }}
+    defaults:
+      run:
+        shell: ${{ inputs.shell }}
     steps:
       - uses: coursier/cache-action@v7
 
@@ -68,8 +69,9 @@ jobs:
           echo "DISPLAY=:99" >> $GITHUB_ENV
         if: ${{ inputs.install-xvfb }}
 
-      - uses: ./.github/actions/post-build-selective
+      - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
 
+      - uses: ./.github/actions/post-build-selective
         with:
           millargs: ${{ inputs.millargs }}
           shell: ${{ inputs.shell }}

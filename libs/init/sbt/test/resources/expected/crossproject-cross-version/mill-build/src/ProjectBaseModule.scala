@@ -9,7 +9,7 @@ import mill.scalalib.*
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.*
 
-trait ProjectBaseModule extends PublishModule, CrossSbtPlatformModule {
+trait ProjectBaseModule extends CrossSbtModule, PublishModule {
 
   def mvnDeps = Seq(Deps.upickle)
 
@@ -27,7 +27,7 @@ trait ProjectBaseModule extends PublishModule, CrossSbtPlatformModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  trait ProjectBaseTests extends CrossSbtPlatformTests {
+  trait ProjectBaseTests extends CrossSbtTests {
 
     def testParallelism = false
 

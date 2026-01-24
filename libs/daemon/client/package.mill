@@ -9,5 +9,5 @@ import mill.scalalib.*
  */
 object `package` extends MillPublishScalaModule with MillJava11ScalaModule {
   def moduleDeps = Seq(build.core.constants)
-  def mvnDeps = Seq(Deps.osLib)
+  def mvnDeps = Seq(Deps.osLib, Deps.upickle)
 }

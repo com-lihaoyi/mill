@@ -11,14 +11,13 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def buildInfoPackageName = "mill.bsp"
 
   def buildInfoMembers = Task {
-    val workerDep = worker.artifactMetadata()
     Seq(
       BuildInfo.Value(
         "bsp4jVersion",
         Deps.bsp4j.version,
         "BSP4j version (BSP Protocol version)."
       ),
-      BuildInfo.Value("millVersion", build.millVersion(), "Mill version.")
+      BuildInfo.Value("millVersion", "SNAPSHOT", "Mill version.")
     )
   }
 

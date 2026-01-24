@@ -110,6 +110,8 @@ object app
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
+    def androidIncludeAndroidResources = true
+
     def androidEnableCompose = true
 
     override def kspVersion = Versions.kspVersion
@@ -258,7 +260,7 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 ...
 
 > ./mill show app.createAndroidVirtualDevice
-...Name: test, DeviceId: medium_phone...
+...DeviceId: medium_phone...
 
 > ./mill show app.startAndroidEmulator
 

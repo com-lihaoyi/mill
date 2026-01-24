@@ -72,11 +72,11 @@ object MillMain0 {
 
       val outDir = BuildCtx.workspaceRoot / os.RelPath(OutFiles.outFor(OutFolderMode.BSP))
       val outFileStream = os.write.outputStream(
-        outDir / "mill-bsp/out.log",
+        outDir / os.RelPath(OutFiles.bspOutLog),
         createFolders = true
       )
       val errFileStream = os.write.outputStream(
-        outDir / "mill-bsp/err.log",
+        outDir / os.RelPath(OutFiles.bspErrLog),
         createFolders = true
       )
 
@@ -258,6 +258,7 @@ object MillMain0 {
                         noBuildLock = config.noBuildLock.value,
                         noWaitForBuildLock = config.noWaitForBuildLock.value,
                         out = out,
+                        daemonDir = daemonDir,
                         millActiveCommandMessage = millActiveCommandMessage,
                         streams = streams,
                         outLock = outLock,
@@ -337,7 +338,7 @@ object MillMain0 {
                         val bspLogger = getBspLogger(streams, config)
                         var prevRunnerStateOpt = Option.empty[RunnerState]
                         val (bspServerHandle, buildClient) =
-                          startBspServer(streams0, outLock, bspLogger)
+                          startBspServer(streams0, outLock, bspLogger, daemonDir)
                         var keepGoing = true
                         var errored = false
                         val initCommandLogger = new PrefixLogger(bspLogger, Seq("init"))
@@ -523,7 +524,8 @@ object MillMain0 {
   def startBspServer(
       bspStreams: SystemStreams,
       outLock: Lock,
-      bspLogger: Logger
+      bspLogger: Logger,
+      daemonDir: os.Path
   ): (BspServerHandle, BuildClient) = {
     bspLogger.info("Trying to load BSP server...")
 
@@ -540,7 +542,8 @@ object MillMain0 {
         true,
         outLock,
         bspLogger,
-        outFolder
+        outFolder,
+        daemonDir
       ).get
 
     bspLogger.info("BSP server started")
@@ -578,6 +581,29 @@ object MillMain0 {
       colors: Colors,
       out: os.Path
   ): Logger & AutoCloseable = {
+    val cmdTitle = sys.props.get("mill.main.cli")
+      .map { prog =>
+        val path = sys.env.get("PATH").map(_.split("[:]").toIndexedSeq).getOrElse(Seq())
+        // shorten the cmd path, when it is on the PATH
+        path.collectFirst {
+          case prefix if prog.startsWith(s"$prefix/") => prog.drop(prefix.length + 1)
+        }
+          // or use as-is
+          .getOrElse(prog)
+      }
+      // Fallback
+      .getOrElse("mill")
+
+    // Console log file for monitoring progress when another process is waiting
+    val consoleLogStream = new RotatingConsoleLogOutputStream(
+      daemonDir / DaemonFiles.consoleLog
+    )
+    val teeStreams = new SystemStreams(
+      new MultiStream(streams.out, consoleLogStream),
+      new MultiStream(streams.err, consoleLogStream),
+      streams.in
+    )
+
     val promptLogger = new PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
@@ -585,15 +611,19 @@ object MillMain0 {
       warnColor = colors.warn,
       errorColor = colors.error,
       successColor = colors.success,
-      systemStreams0 = streams,
+      highlightColor = colors.highlight,
+      systemStreams0 = teeStreams,
       debugEnabled = config.debugLog.value,
-      titleText = "./mill " + config.leftoverArgs.value.mkString(" "),
+      titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),
       terminfoPath = daemonDir / DaemonFiles.terminfo,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
     )
     new PrefixLogger(promptLogger, Nil) with AutoCloseable {
-      override def close(): Unit = promptLogger.close()
+      override def close(): Unit = {
+        promptLogger.close()
+        consoleLogStream.close()
+      }
     }
   }
 

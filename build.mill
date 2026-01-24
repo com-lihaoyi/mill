@@ -1,4 +1,4 @@
-//| mill-version: 1.1.0-RC4-30-8c053f
+//| mill-version: 1.1.0-RC4-59-be1b21
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C", "-DMILL_ENABLE_STATIC_CHECKS=true"]
 
@@ -26,20 +26,15 @@ import scala.util.Properties
 import mill.api.{BuildCtx, Evaluator}
 import mill.androidlib.AndroidSdkModule
 
-def millVersionIsStable0(using ctx: mill.api.TaskCtx) = !ctx.env.contains("MILL_UNSTABLE_VERSION")
-def millVersionIsStable: T[Boolean] = Task.Input { millVersionIsStable0 }
-
 def millVersion: T[String] = Task.Input {
-  if (millVersionIsStable0) {
-    val vcsState = VcsVersion.calcVcsState(Task.log)
-    // Fall back to SNAPSHOT if no git tag found (e.g., shallow clone in CI)
-    if (vcsState.lastTag.isEmpty) "SNAPSHOT"
-    // Ignore local changes when computing the VCS version string in CI,
-    // since we make those in CI and can promise they are safe, but make
-    // sure we include local dirty changes when iterating locally.
-    else if (Task.env.contains("CI")) vcsState.copy(dirtyHash = None).format()
-    else vcsState.format()
-  } else "SNAPSHOT"
+  val vcsState = VcsVersion.calcVcsState(Task.log)
+  // Fall back to SNAPSHOT if no git tag found (e.g., shallow clone in CI)
+  if (vcsState.lastTag.isEmpty) "SNAPSHOT"
+  // Ignore local changes when computing the VCS version string in CI,
+  // since we make those in CI and can promise they are safe, but make
+  // sure we include local dirty changes when iterating locally.
+  else if (Task.env.contains("CI")) vcsState.copy(dirtyHash = None).format()
+  else vcsState.format()
 }
 
 def latestUnstableVersion = Task.Input {
@@ -53,10 +48,8 @@ def latestUnstableVersion = Task.Input {
 }
 
 def millLastTag: T[String] = Task.Input {
-  if (millVersionIsStable0)
-    // Fall back to SNAPSHOT if no git tag found (e.g., shallow clone in CI)
-    VcsVersion.calcVcsState(Task.log).lastTag.getOrElse("SNAPSHOT")
-  else "SNAPSHOT"
+  // Fall back to SNAPSHOT if no git tag found (e.g., shallow clone in CI)
+  VcsVersion.calcVcsState(Task.log).lastTag.getOrElse("SNAPSHOT")
 }
 
 def millDownloadPrefix = Task {

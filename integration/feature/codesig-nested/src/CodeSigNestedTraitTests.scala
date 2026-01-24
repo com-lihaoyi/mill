@@ -6,6 +6,7 @@ object CodeSigNestedTraitTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("trait") - integrationTest { tester =>
       import tester.*
+      eval(("clean", "_"))
       val initial = eval("traitOuter.traitInner.inner")
       assert(
         initial.out.linesIterator.toSet == Set(

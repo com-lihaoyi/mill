@@ -58,8 +58,6 @@ concurrency:
 
 env:
   FORCE_COLOR: '1'
-  # Use SNAPSHOT version for selective testing to avoid daemon version mismatches
-  MILL_UNSTABLE_VERSION: '1'
 
 jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
@@ -68,6 +66,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
+      java-version: 21
       os: ubuntu-latest
       shell: bash
 
@@ -75,6 +74,7 @@ jobs:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
     uses: ./.github/workflows/pre-build.yml
     with:
+      java-version: 21
       os: windows-latest
       shell: powershell
 
@@ -121,6 +121,10 @@ jobs:
           java-version: ${{ matrix.java-version }}
           os: ${{ matrix.os }}
 
+
+      - run: ./mill -i -k selective.resolveTree ${{ matrix.millargs }}
+        shell: bash
+
       - uses: ./.github/actions/post-build-selective
         with:
           millargs: ${{ matrix.millargs }}
@@ -139,10 +143,10 @@ jobs:
           # We also try to group tests together to manually balance out the runtimes of each jobs
           - millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
 
-          - millargs: "'libs.{scalalib,init,tabcomplete}.__.test'"
-            install-sbt: true
+          - millargs: "'libs.scalalib.__.test'"
 
-          - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
+          - millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib,init,tabcomplete}.__.test'"
+            install-sbt: true
 
           - millargs: "example.kotlinlib.__.shared.daemon"
 
@@ -163,18 +167,22 @@ jobs:
 
           - millargs: "'example.{cli,fundamentals,depth,extending,large}.__.shared.daemon'"
 
-          - millargs: "'integration.{feature,ide}.__.proguard.daemon'"
+          - millargs: "'integration.feature.__.shared.daemon'"
+
+          - millargs: "'integration.dedicated.__.proguard.daemon'"
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
           - millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 
-            # These invalidation tests need to be exercised in both execution modes
-            # to make sure they work with and without -i/--no-server being passed
-          - millargs: "integration.invalidation.__.packaged.nodaemon"
+            # tests that need to be exercised in both execution modes to make
+            # sure they work with and without -i/--no-server being passed
+          - millargs: "integration.multimode.__.packaged.nodaemon"
 
           - millargs: "integration.migrating.__.packaged.daemon"
             install-sbt: true
+
+          - millargs: "'integration.failure.__.shared.daemon'"
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
@@ -191,7 +199,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - millargs: "integration.invalidation.__.packaged.daemon"
+          - millargs: "integration.multimode.__.packaged.daemon"
 
           - # turn of parallelism since it sometimes causes issues with concurrent migrations
             millargs: "example.migrating.javalib.__.packaged.daemon"
@@ -202,8 +210,6 @@ jobs:
           - millargs: '"example.scalalib.{basic,publishing}.__.proguard.daemon"'
 
           - millargs: "dist.scripts.test" # run this on both windows and mac to exercise bootstrap scripts
-
-          - millargs: "'integration.failure.__.packaged.nodaemon'"
 
           - millargs: "integration.bootstrap.no-java-bootstrap.native.daemon"
 

@@ -450,6 +450,7 @@ object Server {
       noBuildLock: Boolean,
       noWaitForBuildLock: Boolean,
       out: os.Path,
+      daemonDir: os.Path,
       millActiveCommandMessage: String,
       streams: SystemStreams,
       outLock: Lock,
@@ -457,33 +458,45 @@ object Server {
   )(t: => T): T = {
     if (noBuildLock) t
     else {
-      def activeTaskString =
-        try os.read(out / OutFiles.millActiveCommand)
-        catch {
-          case NonFatal(_) => "<unknown>"
+      def readActiveInfo(): (String, Option[os.Path]) = {
+        try {
+          val json = os.read(out / OutFiles.millActive)
+          // Simple JSON parsing for {"command":"...","processDir":"..."}
+          val commandPattern = """"command"\s*:\s*"([^"]*)"""".r
+          val processDirPattern = """"processDir"\s*:\s*"([^"]*)"""".r
+          val command = commandPattern.findFirstMatchIn(json).map(_.group(1)).getOrElse("<unknown>")
+          val processDir = processDirPattern.findFirstMatchIn(json).map(m => os.Path(m.group(1)))
+          (command, processDir)
+        } catch {
+          case NonFatal(_) => ("<unknown>", None)
         }
+      }
 
-      def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
-      def consoleLogPath = out / OutFiles.millDaemon / DaemonFiles.consoleLog
+      def activeTaskPrefix(command: String) = s"Another Mill process is running '$command',"
 
       setIdle(true)
       Using.resource {
         val tryLocked = outLock.tryLock()
         if (tryLocked.isLocked) tryLocked
-        else if (noWaitForBuildLock) throw new Exception(s"$activeTaskPrefix failing")
-        else {
+        else if (noWaitForBuildLock) {
+          val (command, _) = readActiveInfo()
+          throw new Exception(s"${activeTaskPrefix(command)} failing")
+        } else {
+          val (command, runningProcessDir) = readActiveInfo()
+          val consoleLogPath = runningProcessDir.getOrElse(daemonDir) / DaemonFiles.consoleLog
           streams.err.println(
-            s"$activeTaskPrefix waiting for it to be done... " +
-              s"(tail -f ${consoleLogPath.relativeTo(os.pwd)} to see its progress)"
+            s"${activeTaskPrefix(command)} waiting for it to be done... " +
+              s"(tail -F ${consoleLogPath.relativeTo(mill.api.BuildCtx.workspaceRoot)} to see its progress)"
           )
           outLock.lock()
         }
       } { _ =>
         setIdle(false)
         if (Thread.interrupted()) throw new InterruptedException()
-        os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
+        val json = s"""{"command":"$millActiveCommandMessage","processDir":"$daemonDir"}"""
+        os.write.over(out / OutFiles.millActive, json)
         try t
-        finally os.remove.all(out / OutFiles.millActiveCommand)
+        finally os.remove.all(out / OutFiles.millActive)
       }
     }
   }

@@ -58,17 +58,13 @@ object MillMavenBuildGenMain {
 
       model.getPackaging match {
         case "pom" =>
-          mainModule = mainModule.copy(
-            sourcesFolders = Values(empty = os.exists(moduleDir / "src/main/java")),
-            resources = Values(empty = os.exists(moduleDir / "src/main/resources"))
-          )
           if (Option(model.getDependencyManagement).exists(!_.getDependencies.isEmpty)) {
             val (bomDeps, deps) =
               model.getDependencyManagement.getDependencies.asScala.toSeq.partition(isBom)
             val (bomMvnDeps, bomModuleDeps) = bomDeps.partitionMap(toMvnOrModuleDep)
             val (depManagement, moduleDeps) = deps.partitionMap(toMvnOrModuleDep)
             mainModule = mainModule.copy(
-              imports = "import mill.javalib.*" +: mainModule.imports,
+              imports = "mill.javalib.*" +: mainModule.imports,
               supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
               bomMvnDeps = bomMvnDeps,
               depManagement = depManagement,
@@ -95,7 +91,7 @@ object MillMavenBuildGenMain {
               (bomMvnDeps, depManagement, bomModuleDeps)
             }
           mainModule = mainModule.copy(
-            imports = "import mill.javalib.*" +: mainModule.imports,
+            imports = "mill.javalib.*" +: mainModule.imports,
             supertypes = "MavenModule" +: mainModule.supertypes,
             mvnDeps = mvnDeps("compile"),
             compileMvnDeps = mvnDeps("provided"),
@@ -119,10 +115,9 @@ object MillMavenBuildGenMain {
             }
             var testModule = ModuleSpec(
               name = "test",
-              supertypes = Seq("MavenTests"),
-              mixins = testMixin.toSeq,
+              supertypes = "MavenTests" +: testMixin.toSeq,
               forkArgs = plugins.testForkArgs,
-              forkWorkingDir = Some(os.rel),
+              forkWorkingDir = Some("moduleDir"),
               mvnDeps = testMvnDeps,
               compileMvnDeps = mainModule.compileMvnDeps,
               runMvnDeps = mainModule.compileMvnDeps.base ++ mainModule.runMvnDeps.base,
@@ -162,8 +157,7 @@ object MillMavenBuildGenMain {
       }
       if (!plugins.skipDeploy) {
         mainModule = mainModule.copy(
-          imports =
-            "import mill.javalib.*" +: "import mill.javalib.publish.*" +: mainModule.imports,
+          imports = "mill.javalib.*" +: "mill.javalib.publish.*" +: mainModule.imports,
           supertypes = mainModule.supertypes :+ "PublishModule",
           pomPackagingType = Option(model.getPackaging).filter(_ != "jar"),
           pomParentProject = toPomParentProject(model.getParent),
@@ -180,11 +174,8 @@ object MillMavenBuildGenMain {
 
     val (baseModule, packages0) =
       if (noMeta.value) (None, packages)
-      else buildGen.withBaseModule(
-        packages,
-        Seq("MavenModule"),
-        Seq("MavenTests")
-      ).fold((None, packages))((base, pkgs) => (Some(base), pkgs))
+      else buildGen.withBaseModule(packages, "MavenModule" -> "MavenTests")
+        .fold((None, packages))((base, pkgs) => (Some(base), pkgs))
     buildGen.writeBuildFiles(
       baseDir = millWorkspace,
       packages = packages0,
@@ -266,20 +257,27 @@ object MillMavenBuildGenMain {
 
   private def normalizeBuild(packages: Seq[PackageSpec]) = {
     val moduleLookup = packages.flatMap(_.modulesBySegments).toMap
-    def recMvnDeps(module: ModuleSpec): Seq[MvnDep] = module.mvnDeps.base ++ module.moduleDeps.base
-      .flatMap(dep => recMvnDeps(moduleLookup(dep.segments ++ dep.childSegment)))
+      .compose[ModuleDep](dep => dep.segments ++ dep.childSegment)
+
+    def recMvnDeps(module: ModuleSpec): Seq[MvnDep] = module.mvnDeps.base ++
+      module.moduleDeps.base.flatMap(dep => recMvnDeps(moduleLookup(dep)))
+
     packages.map(pkg =>
       pkg.copy(module = pkg.module.recMap { module =>
         var module0 = module
-        if (module0.supertypes.contains("PublishModule")) {
-          val (bomModuleDeps, bomModuleRefs) = module0.bomModuleDeps.base.partition { dep =>
-            val module = moduleLookup(dep.segments ++ dep.childSegment)
-            module.supertypes.contains("BomModule") && module.supertypes.contains("PublishModule")
+        if (module0.isPublishModule) {
+          val (managedBomModules, bomModuleDeps) = module0.bomModuleDeps.base.partitionMap { dep =>
+            val bomModule = moduleLookup(dep)
+            Either.cond(bomModule.isBomModule && bomModule.isPublishModule, dep, bomModule)
           }
-          if (bomModuleRefs.nonEmpty) {
+          if (managedBomModules.nonEmpty) {
             module0 = module0.copy(
-              bomMvnDeps = module0.bomMvnDeps.copy(appendRefs = bomModuleRefs),
-              depManagement = module0.depManagement.copy(appendRefs = bomModuleRefs),
+              bomMvnDeps = module0.bomMvnDeps.copy(base =
+                module0.bomMvnDeps.base ++ managedBomModules.flatMap(_.bomMvnDeps.base)
+              ),
+              depManagement = module0.depManagement.copy(base =
+                module0.depManagement.base ++ managedBomModules.flatMap(_.depManagement.base)
+              ),
               bomModuleDeps = bomModuleDeps
             )
           }
@@ -287,7 +285,8 @@ object MillMavenBuildGenMain {
         if (module0.testFramework.base.contains("")) {
           val testMixin = ModuleSpec.testModuleMixin(recMvnDeps(module0))
           if (testMixin.nonEmpty) {
-            module0 = module0.copy(mixins = module0.mixins ++ testMixin, testFramework = None)
+            module0 =
+              module0.copy(supertypes = module0.supertypes ++ testMixin, testFramework = None)
           }
         }
         module0

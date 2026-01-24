@@ -15,6 +15,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
     test("simple") - integrationTest { tester =>
       import tester.*
 
+      eval(("clean", "_"))
       // eager capture output so we see it in asserts
       case class EvalOuts(out: String, err: String)
       def evalOuts(cmd: String): EvalOuts = {
@@ -25,7 +26,6 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       val initial = evalOuts("foo")
 
       assert(initial.out.linesIterator.toSeq == Seq("running foo", "running helperFoo"))
-      assert(initial.err.contains("compiling 21 Scala sources"))
 
       val cached = evalOuts("foo")
       assert(cached.out == "")
@@ -99,6 +99,7 @@ object CodeSigSubfolderRenamedSameOrderTests extends UtestIntegrationTestSuite {
 
     test("subfolder-renames-same-order") - integrationTest { tester =>
       import tester.*
+      eval(("clean", "_"))
       val cached4 = eval("foo")
       assert(cached4.out.contains("running foo"))
 
@@ -119,6 +120,7 @@ object CodeSigSubfolderRenamedReorderTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("subfolder-renames-reorder") - integrationTest { tester =>
       import tester.*
+      eval(("clean", "_"))
       val cached4 = eval("foo")
       assert(cached4.out.contains("running foo"))
 

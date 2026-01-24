@@ -33,7 +33,7 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends ProjectBaseTests, ScalaJSTests, TestModule.Utest {}
+    object test extends ProjectBaseTests, ScalaJSTests {}
 
   }
 
@@ -54,7 +54,7 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends ProjectBaseTests, TestModule.Utest {}
+    object test extends ProjectBaseTests {}
 
   }
 
@@ -77,7 +77,7 @@ object `package` extends Module {
       Seq()
     )
 
-    object test extends ProjectBaseTests, ScalaNativeTests, TestModule.Utest {}
+    object test extends ProjectBaseTests, ScalaNativeTests {}
 
   }
 

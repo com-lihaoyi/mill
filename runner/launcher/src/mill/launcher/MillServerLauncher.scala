@@ -18,7 +18,8 @@ class MillServerLauncher(
     forceFailureForTestingMillisDelay: Int,
     useFileLocks: Boolean,
     initServerFactory: (os.Path, Locks) => LaunchedServer,
-    millVersion: String = BuildInfo.millVersion
+    millVersion: String = BuildInfo.millVersion,
+    jvmOpts: Seq[String] = Seq.empty
 ) {
   private val serverInitWaitMillis = 10000
 
@@ -27,19 +28,21 @@ class MillServerLauncher(
     val locks = Locks.forDirectory(daemonDir.toString, useFileLocks)
     log(s"launchOrConnectToServer: $locks")
 
+    val config = ServerLauncher.DaemonConfig(
+      millVersion = millVersion,
+      javaVersion = javaHome.map(_.toString).getOrElse(""),
+      jvmOpts = jvmOpts
+    )
+
     val launched = ServerLauncher.launchOrConnectToServer(
       locks,
       daemonDir,
       serverInitWaitMillis,
       () => initServerFactory(daemonDir, locks),
-      serverDied => {
-        System.err.println("Server died during startup:")
-        System.err.println(serverDied.toString)
-        System.exit(1)
-      },
+      serverDied => throw new mill.api.MillException("Server died during startup: " + serverDied),
       s => log(s),
       true,
-      millVersion = Some(millVersion)
+      config = config
     )
 
     try {
@@ -67,7 +70,8 @@ class MillServerLauncher(
       val init = DaemonRpc.Initialize(
         interactive = Util.hasConsole(),
         clientMillVersion = BuildInfo.millVersion,
-        clientJavaVersion = javaHome,
+        clientJavaVersion = javaHome.map(_.toString).getOrElse(""),
+        clientJvmOpts = jvmOpts,
         args = args,
         env = env,
         userSpecifiedProperties = ClientUtil.getUserSetProperties()

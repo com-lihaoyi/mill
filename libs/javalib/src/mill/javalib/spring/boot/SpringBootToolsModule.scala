@@ -25,7 +25,7 @@ trait SpringBootToolsModule extends CoursierModule, OfflineSupportModule {
 
   private def fullWorkerDeps: T[Seq[Dep]] = Task {
     springBootToolsDeps() ++ Seq(
-      mvn"${Versions.millSpringBootWorkerDep}"
+      mvn"${Versions.millSpringBootWorkerDep}:${Versions.millVersion}"
     )
   }
 

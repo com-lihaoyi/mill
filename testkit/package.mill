@@ -9,8 +9,8 @@ import mill.api.BuildCtx
  * and published for third-party plugins to use in their own tests.
  */
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.eval, build.libs.util)
-  def mvnDeps = Seq(Deps.TestDeps.utest)
+  def moduleDeps = Seq(build.core.eval, build.libs.util, build.runner.launcher)
+  def mvnDeps = Seq(Deps.TestDeps.utest, Deps.fastparse)
 
   private def sources0 = Task.Sources(BuildCtx.workspaceRoot / "mill-build/src-testkit")
   def sources = super.sources() ++ sources0()
