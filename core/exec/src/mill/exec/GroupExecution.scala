@@ -732,12 +732,11 @@ trait GroupExecution {
 
         case (_, Val(_: AutoCloseable), _) =>
           // Close this worker and all workers that depend on it
-          val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
           val allToClose = GroupExecution.transitiveDownstream(labelled, reverseDeps)
             .filter(_.workerNameApi.isDefined)
           GroupExecution.closeWorkersInReverseTopologicalOrder(
             allToClose,
-            cacheSnapshot,
+            workerCache,
             workerTopoIndex,
             closeable =>
               try GroupExecution.wrap(
@@ -756,8 +755,7 @@ trait GroupExecution {
                   terminal,
                   rootModule.getClass.getClassLoader
                 )(closeable.close())
-              catch { case NonFatal(e) => logger.error(s"Error closing worker: ${e.getMessage}") },
-            name => workerCache.synchronized { workerCache.remove(name) }
+              catch { case NonFatal(e) => logger.error(s"Error closing worker: ${e.getMessage}") }
           )
           None
 
@@ -912,22 +910,18 @@ object GroupExecution {
 
   def closeWorkersInReverseTopologicalOrder(
       workersToClose: Set[TaskApi[?]],
-      workerCache: Map[String, (Int, Val, TaskApi[?])],
+      workerCache: mutable.Map[String, (Int, Val, TaskApi[?])],
       topoIndex: Map[TaskApi[?], Int],
-      closeAction: AutoCloseable => Unit = c =>
-        try c.close()
-        catch { case _: Throwable => },
-      removeFromCache: String => Unit = _ => ()
+      closeAction: AutoCloseable => Unit
   ): Unit = {
     val orderedWorkersToClose = workersToClose.toSeq.sortBy(w => -topoIndex(w))
 
     for (worker <- orderedWorkersToClose) {
       val name = worker.workerNameApi.get
-      workerCache.get(name).foreach {
+      workerCache.remove(name).foreach {
         case (_, Val(closeable: AutoCloseable), _) => closeAction(closeable)
         case _ =>
       }
-      removeFromCache(name)
     }
   }
 }

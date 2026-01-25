@@ -330,10 +330,12 @@ class MillBuildBootstrap(
             val deps = mill.exec.GroupExecution.workerDependencies(frame.workerCache)
             val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
             val allWorkers = frame.workerCache.values.map(_._3).toSet
+            val mutableCache = scala.collection.mutable.Map.from(frame.workerCache)
             mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
               allWorkers,
-              frame.workerCache,
-              topoIndex
+              mutableCache,
+              topoIndex,
+              closeable => try closeable.close() catch { case _: Throwable => }
             )
           }
 
