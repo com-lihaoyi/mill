@@ -240,7 +240,7 @@ class UnitTester(
   }
 
   def closeWithoutCheckingLeaks(): Unit = {
-    for (case (_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
+    for (case (_, Val(obsolete: AutoCloseable), _) <- evaluator.workerCache.values) {
       obsolete.close()
     }
     evaluator.close()

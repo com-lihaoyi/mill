@@ -292,6 +292,86 @@ object ExecutionTests extends TestSuite {
       }
     }
 
+    // https://github.com/com-lihaoyi/mill/issues/5810
+    // When upstream workers become obsolete, downstream workers that depend on them
+    // should be closed first (in reverse dependency order)
+    test("workerClosureOrder") {
+      var x = 10
+      val closureOrder = collection.mutable.Buffer.empty[String]
+
+      // Test direct worker-to-worker dependencies: workerC -> workerB -> workerA -> input
+      // When workerA is invalidated, workerC and workerB must be closed first
+      // But workerD (which depends on workerA through a task) should NOT be closed
+
+      class WorkerA(val n: Int) extends AutoCloseable {
+        def close() = {
+          closureOrder += "workerA"
+        }
+      }
+
+      class WorkerB(val a: WorkerA) extends AutoCloseable {
+        def close() = {
+          closureOrder += "workerB"
+        }
+      }
+
+      class WorkerC(val b: WorkerB) extends AutoCloseable {
+        def close() = {
+          closureOrder += "workerC"
+        }
+      }
+
+      // WorkerD depends on workerA indirectly through a task
+      class WorkerD(val value: Int) extends AutoCloseable {
+        def close() = {
+          closureOrder += "workerD"
+        }
+      }
+
+      object build extends TestRootModule {
+        def input = Task.Input { x }
+        def workerA = Task.Worker { new WorkerA(input()) }
+        // workerB depends directly on workerA
+        def workerB = Task.Worker { new WorkerB(workerA()) }
+        // workerC depends directly on workerB (and transitively on workerA)
+        def workerC = Task.Worker { new WorkerC(workerB()) }
+        // taskUsingA is a regular task that uses workerA
+        def taskUsingA = Task { workerA().n * 2 }
+        // workerD depends on workerA INDIRECTLY through taskUsingA (not a direct worker dep)
+        def workerD = Task.Worker { new WorkerD(taskUsingA()) }
+        lazy val millDiscover = Discover[this.type]
+      }
+
+      UnitTester(build, null).scoped { tester =>
+        // Create all workers
+        val Right(UnitTester.Result(a1, _)) = tester.apply(build.workerA): @unchecked
+        val Right(UnitTester.Result(b1, _)) = tester.apply(build.workerB): @unchecked
+        val Right(UnitTester.Result(c1, _)) = tester.apply(build.workerC): @unchecked
+        val Right(UnitTester.Result(d1, _)) = tester.apply(build.workerD): @unchecked
+
+        assert(a1.n == 10)
+        assert(b1.a eq a1)
+        assert(c1.b eq b1)
+        assert(d1.value == 20) // 10 * 2
+        assert(closureOrder.isEmpty)
+
+        // Change input to invalidate workerA
+        x = 20
+        closureOrder.clear()
+
+        // Request workerA - this should trigger closure of direct worker dependents only
+        // (workerC first, then workerB, then workerA)
+        // workerD should NOT be closed because it depends through a task, not directly
+        val Right(UnitTester.Result(a2, _)) = tester.apply(build.workerA): @unchecked
+        assert(a2.n == 20)
+        assert(a2 ne a1)
+
+        // Verify only direct worker dependents were closed in reverse dependency order
+        // workerD is NOT included because it depends on workerA through taskUsingA
+        assert(closureOrder.toSeq == Seq("workerC", "workerB", "workerA"))
+      }
+    }
+
     test("command") {
       var x = 10
       var y = 0
