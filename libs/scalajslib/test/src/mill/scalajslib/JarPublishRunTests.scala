@@ -16,7 +16,7 @@ object JarPublishRunTests extends TestSuite {
       test("containsSJSIRs") - UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
         val (scala, scalaJS) = HelloJSWorld.matrix.head
         val Right(result) =
-          eval(HelloJSWorld.build(scala, scalaJS).jar): @unchecked
+          eval(HelloJSWorld.build(scala, scalaJS).jar).runtimeChecked
         val jar = result.value.path
         val jarFile = new JarFile(jar.toIO)
         try {
@@ -31,7 +31,7 @@ object JarPublishRunTests extends TestSuite {
           val Right(result) = eval(HelloJSWorld.build(
             scalaVersion,
             scalaJSVersion
-          ).artifactMetadata): @unchecked
+          ).artifactMetadata).runtimeChecked
           assert(result.value.id == artifactId)
         }
       test("artifactId_10") {
@@ -53,7 +53,7 @@ object JarPublishRunTests extends TestSuite {
       UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
         val task = HelloJSWorld.build(scalaVersion, scalaJSVersion).run()
 
-        val Right(result) = eval(task): @unchecked
+        val Right(result) = eval(task).runtimeChecked
 
         val paths = ExecutionPaths.resolve(eval.outPath, task)
         val log = os.read(paths.log)

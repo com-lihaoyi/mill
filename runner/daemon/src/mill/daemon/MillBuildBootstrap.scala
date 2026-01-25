@@ -5,7 +5,8 @@ import mill.api.daemon.internal.{
   CompileProblemReporter,
   EvaluatorApi,
   PathRefApi,
-  RootModuleApi
+  RootModuleApi,
+  TaskApi
 }
 import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
@@ -324,15 +325,22 @@ class MillBuildBootstrap(
         val classLoader = if (classLoaderChanged) {
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks, as well as all the workers in each subsequent
-          // frame's `workerCache`s that may depend on classes loaded by that classloader
-          prevRunnerState.frames.lift(depth - 1).foreach(
-            _.workerCache.collect { case (_, (_, Val(v: AutoCloseable))) =>
-              try v.close()
-              catch {
-                case _: Throwable => /*ignore failures on close*/
-              }
-            }
-          )
+          // frame's `workerCache`s that may depend on classes loaded by that classloader.
+          // Workers are closed in reverse dependency order (downstream first, then upstream).
+          prevRunnerState.frames.lift(depth - 1).foreach { frame =>
+            val deps = mill.exec.GroupExecution.workerDependencies(frame.workerCache)
+            val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+            val allWorkers = frame.workerCache.values.map(_._3).toSet
+            val mutableCache = scala.collection.mutable.Map.from(frame.workerCache)
+            mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
+              allWorkers,
+              mutableCache,
+              topoIndex,
+              closeable =>
+                try closeable.close()
+                catch { case _: Throwable => }
+            )
+          }
 
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
           val cl = mill.util.Jvm.createClassLoader(
@@ -427,7 +435,7 @@ object MillBuildBootstrap {
       selectiveExecution: Boolean,
       offline: Boolean,
       useFileLocks: Boolean,
-      workerCache: Map[String, (Int, Val)],
+      workerCache: Map[String, (Int, Val, TaskApi[?])],
       codeSignatures: Map[String, Int],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String],

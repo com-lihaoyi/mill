@@ -28,7 +28,7 @@ object ProguardTests extends TestSuite {
     test("Proguard module") {
       test("should download proguard jars") - UnitTester(proguard, testModuleSourcesPath).scoped {
         eval =>
-          val Right(result) = eval.apply(proguard.proguardClasspath): @unchecked
+          val Right(result) = eval.apply(proguard.proguardClasspath).runtimeChecked
           assert(
             result.value.iterator.toSeq.nonEmpty,
             result.value.iterator.toSeq.head.path.toString().contains("proguard-base")
@@ -38,7 +38,7 @@ object ProguardTests extends TestSuite {
       test("assembly jar") - UnitTester(proguard, testModuleSourcesPath).scoped {
         eval =>
           // Not sure why this is broken in Scala 3
-          val Right(result) = eval.apply(proguard.assembly): @unchecked
+          val Right(result) = eval.apply(proguard.assembly).runtimeChecked
           assert(os.exists(result.value.path))
 
           val res = os.call(
@@ -55,7 +55,7 @@ object ProguardTests extends TestSuite {
 
       test("should create a proguarded jar") - UnitTester(proguard, testModuleSourcesPath).scoped {
         eval =>
-          val Right(result) = eval.apply(proguard.proguard): @unchecked
+          val Right(result) = eval.apply(proguard.proguard).runtimeChecked
           assert(os.exists(result.value.path))
 
           val res = os.call(

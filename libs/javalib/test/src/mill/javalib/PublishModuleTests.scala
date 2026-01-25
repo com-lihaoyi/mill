@@ -118,7 +118,7 @@ object PublishModuleTests extends TestSuite {
           )
         ).scoped { eval =>
           val Right(result) =
-            eval.apply(HelloJavaWithPublish.core.checkSonatypeCreds("")): @unchecked
+            eval.apply(HelloJavaWithPublish.core.checkSonatypeCreds("")).runtimeChecked
 
           assert(
             result.value == "user:password",
@@ -139,7 +139,7 @@ object PublishModuleTests extends TestSuite {
         ).scoped { eval =>
           val directValue = "direct:value"
           val Right(result) =
-            eval.apply(HelloJavaWithPublish.core.checkSonatypeCreds(directValue)): @unchecked
+            eval.apply(HelloJavaWithPublish.core.checkSonatypeCreds(directValue)).runtimeChecked
 
           assert(
             result.value == directValue,
@@ -151,7 +151,7 @@ object PublishModuleTests extends TestSuite {
         "should throw exception if neither environment variables or direct argument were not passed"
       ) - UnitTester(HelloJavaWithPublish, null).scoped { eval =>
         val Left(ExecResult.Failure(msg = msg)) =
-          eval.apply(HelloJavaWithPublish.core.checkSonatypeCreds("")): @unchecked
+          eval.apply(HelloJavaWithPublish.core.checkSonatypeCreds("")).runtimeChecked
 
         assert(
           msg.contains(
@@ -163,7 +163,7 @@ object PublishModuleTests extends TestSuite {
 
     test("pom-packaging-type") - {
       test("pom") - UnitTester(PomOnly, null).scoped { eval =>
-        val Right(result) = eval.apply(PomOnly.core.pom): @unchecked
+        val Right(result) = eval.apply(PomOnly.core.pom).runtimeChecked
 
         assert(
           os.exists(result.value.path),

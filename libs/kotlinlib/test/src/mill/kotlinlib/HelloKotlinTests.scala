@@ -57,7 +57,7 @@ object HelloKotlinTests extends TestSuite {
     test("compile") {
       testEval().scoped { eval =>
         HelloKotlin.main.crossModules.foreach(m => {
-          val Right(compiler) = eval.apply(m.kotlinCompilerMvnDeps): @unchecked
+          val Right(compiler) = eval.apply(m.kotlinCompilerMvnDeps).runtimeChecked
 
           assert(
             compiler.value.map(_.dep.module)
@@ -65,7 +65,7 @@ object HelloKotlinTests extends TestSuite {
               .contains(compilerDep(m.crossValue2))
           )
 
-          val Right(result) = eval.apply(m.compile): @unchecked
+          val Right(result) = eval.apply(m.compile).runtimeChecked
 
           assert(
             os.walk(result.value.classes.path).exists(_.last == "HelloKt.class")
@@ -77,7 +77,7 @@ object HelloKotlinTests extends TestSuite {
     test("testCompile") {
       testEval().scoped { eval =>
         HelloKotlin.main.crossModules.foreach(m => {
-          val Right(compiler) = eval.apply(m.test.kotlinCompilerMvnDeps): @unchecked
+          val Right(compiler) = eval.apply(m.test.kotlinCompilerMvnDeps).runtimeChecked
 
           assert(
             compiler.value.map(_.dep.module)
@@ -85,7 +85,7 @@ object HelloKotlinTests extends TestSuite {
               .contains(compilerDep(m.crossValue2))
           )
 
-          val Right(result1) = eval.apply(m.test.compile): @unchecked
+          val Right(result1) = eval.apply(m.test.compile).runtimeChecked
 
           assert(
             os.walk(result1.value.classes.path).exists(_.last == "HelloTest.class")
@@ -97,17 +97,17 @@ object HelloKotlinTests extends TestSuite {
     test("test") {
       testEval().scoped { eval =>
         HelloKotlin.main.crossModules.foreach(m => {
-          val Left(_: ExecResult.Failure[_]) = eval.apply(m.test.testForked()): @unchecked
+          val Left(_: ExecResult.Failure[_]) = eval.apply(m.test.testForked()).runtimeChecked
         })
       }
     }
     test("kotest") {
       testEval().scoped { eval =>
         HelloKotlin.main.crossModules.foreach(m => {
-          val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses): @unchecked
+          val Right(discovered) = eval.apply(m.kotest.discoveredTestClasses).runtimeChecked
           assert(discovered.value == Seq("hello.tests.FooTest"))
 
-          val Left(_: ExecResult.Failure[_]) = eval.apply(m.kotest.testForked()): @unchecked
+          val Left(_: ExecResult.Failure[_]) = eval.apply(m.kotest.testForked()).runtimeChecked
         })
       }
     }
@@ -119,15 +119,15 @@ object HelloKotlinTests extends TestSuite {
 
         HelloKotlin.main.crossModules.foreach(m => {
 
-          val Right(_) = eval.apply(m.compile): @unchecked
+          val Right(_) = eval.apply(m.compile).runtimeChecked
 
           os.write.over(mainJava, os.read(mainJava) + "}")
 
-          val Left(_) = eval.apply(m.compile): @unchecked
+          val Left(_) = eval.apply(m.compile).runtimeChecked
 
           os.write.over(mainJava, os.read(mainJava).dropRight(1))
 
-          val Right(_) = eval.apply(m.compile): @unchecked
+          val Right(_) = eval.apply(m.compile).runtimeChecked
         })
       }
     }
@@ -178,7 +178,7 @@ object HelloKotlinTests extends TestSuite {
         // First compile - full compilation (both files should be marked dirty)
         outStream.reset()
         errStream.reset()
-        val Right(result1) = eval.apply(btApiModule.compile): @unchecked
+        val Right(result1) = eval.apply(btApiModule.compile).runtimeChecked
         assert(
           os.walk(result1.value.classes.path).exists(_.last == "HelloKt.class"),
           os.walk(result1.value.classes.path).exists(_.last == "ExtraKt.class")
@@ -188,7 +188,7 @@ object HelloKotlinTests extends TestSuite {
         assert(dirty1.sorted == Seq("Extra.kt", "Hello.kt"))
 
         // Second compile without changes - should be cached by Mill
-        val Right(result2) = eval.apply(btApiModule.compile): @unchecked
+        val Right(result2) = eval.apply(btApiModule.compile).runtimeChecked
         assert(result2.evalCount == 0)
 
         // Modify the extra file - should trigger incremental compilation
@@ -202,7 +202,7 @@ object HelloKotlinTests extends TestSuite {
 
         outStream.reset()
         errStream.reset()
-        val Right(result3) = eval.apply(btApiModule.compile): @unchecked
+        val Right(result3) = eval.apply(btApiModule.compile).runtimeChecked
         assert(result3.evalCount > 0)
         assert(os.walk(result3.value.classes.path).exists(_.last == "ExtraKt.class"))
 
@@ -223,7 +223,7 @@ object HelloKotlinTests extends TestSuite {
 
         outStream.reset()
         errStream.reset()
-        val Right(result4) = eval.apply(btApiModule.compile): @unchecked
+        val Right(result4) = eval.apply(btApiModule.compile).runtimeChecked
         assert(result4.evalCount > 0)
         assert(os.walk(result4.value.classes.path).exists(_.last == "AnotherKt.class"))
 

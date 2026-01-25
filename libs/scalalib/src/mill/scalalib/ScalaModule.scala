@@ -434,18 +434,23 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         ScalaModule.stripModuleInfo(Task.dest, pathRef.path)
       }
 
-      Jvm.callInteractiveProcess(
-        mainClass =
-          if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
-          else "scala.tools.nsc.MainGenericRunner",
-        classPath = classPath,
-        jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
-        env = allForkEnv(),
-        mainArgs =
-          Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
-        cwd = forkWorkingDir()
-      )
-      ()
+      try {
+        Jvm.callInteractiveProcess(
+          mainClass =
+            if (JvmWorkerUtil.isDottyOrScala3(scalaVersion())) "dotty.tools.repl.Main"
+            else "scala.tools.nsc.MainGenericRunner",
+          classPath = classPath,
+          jvmArgs = forkArgs() ++ Jvm.getJvmSuppressionArgs(javaHome().map(_.path)),
+          env = allForkEnv(),
+          mainArgs =
+            Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)) ++ args.value,
+          cwd = forkWorkingDir()
+        )
+      } catch {
+        // Workaround for Scala 3.8.1 which doesn't trap Ctrl-C properly, which is fixed in
+        // https://github.com/scala/scala3/pull/24842 which should land in Scala 3.8.2
+        case _: java.io.IOError => // ignore
+      }
     }
 
   /**

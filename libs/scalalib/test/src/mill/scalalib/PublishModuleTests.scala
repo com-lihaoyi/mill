@@ -55,7 +55,7 @@ object PublishModuleTests extends TestSuite {
         HelloWorldWithPublish,
         resourcePath
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldWithPublish.core.pom): @unchecked
+        val Right(result) = eval.apply(HelloWorldWithPublish.core.pom).runtimeChecked
 
         assert(
           os.exists(result.value.path),
@@ -71,7 +71,7 @@ object PublishModuleTests extends TestSuite {
         )
       }
       test("versionScheme") - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldWithPublish.core.pom): @unchecked
+        val Right(result) = eval.apply(HelloWorldWithPublish.core.pom).runtimeChecked
 
         assert(
           os.exists(result.value.path),
@@ -89,7 +89,7 @@ object PublishModuleTests extends TestSuite {
         HelloWorldWithPublish,
         resourcePath
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloWorldWithPublish.core.ivy): @unchecked
+        val Right(result) = eval.apply(HelloWorldWithPublish.core.ivy).runtimeChecked
 
         assert(
           os.exists(result.value.path),

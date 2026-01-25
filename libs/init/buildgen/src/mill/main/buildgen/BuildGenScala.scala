@@ -98,7 +98,7 @@ object BuildGenScala extends BuildGen {
       )
       file
     }
-    val rootPackage +: nestedPackages = packages0: @unchecked
+    val rootPackage +: nestedPackages = packages0.runtimeChecked
     var buildHeader = Seq(
       s"//| mill-version: $resolveMillVersion",
       s"//| mill-jvm-version: ${resolveMillJvmVersion(millJvmVersion)}"

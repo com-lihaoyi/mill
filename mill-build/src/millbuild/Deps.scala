@@ -260,6 +260,7 @@ object Deps {
     val errorProneCore = mvn"com.google.errorprone:error_prone_core:2.31.0"
     val freemarker = mvn"org.freemarker:freemarker:2.3.34"
     val jupiterInterface = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
+    val jupiterInterface6 = mvn"com.github.sbt.junit:jupiter-interface:0.17.0"
     val kotestJvm =
       mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler:5.9.1"
     val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
@@ -281,6 +282,7 @@ object Deps {
       errorProneCore,
       freemarker,
       jupiterInterface,
+      jupiterInterface6,
       groovyCompiler,
       kotestJvm,
       kotlinxHtmlJvm,
