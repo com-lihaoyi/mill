@@ -58,26 +58,6 @@ object MillDaemonMain0 {
   type WorkerCacheQueue = java.util.concurrent.ConcurrentLinkedQueue[WorkerCache]
 
   /**
-   * Runs a block of code with worker cache tracking enabled.
-   * All worker caches created during evaluation are registered and closed in the finally block.
-   * Used by both daemon and non-daemon modes to ensure workers are properly cleaned up.
-   *
-   * @param body The code to run
-   * @param extraCleanup Optional additional cleanup to run after closing worker caches
-   * @return The result of the body
-   */
-  def withWorkerTracking[T](body: => T)(extraCleanup: => Unit = ()): T = {
-    val workerCaches = new java.util.concurrent.ConcurrentLinkedQueue[WorkerCache]()
-    currentDaemonWorkerCaches.withValue(Some(workerCaches)) {
-      try body
-      finally {
-        closeWorkerCaches(workerCaches)
-        extraCleanup
-      }
-    }
-  }
-
-  /**
    * Closes all workers in the given queue of worker caches.
    */
   def closeWorkerCaches(caches: WorkerCacheQueue): Unit = {

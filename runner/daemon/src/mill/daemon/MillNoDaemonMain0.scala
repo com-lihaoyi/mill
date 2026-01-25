@@ -11,9 +11,6 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 object MillNoDaemonMain0 {
-  /** Exception used to signal early exit while allowing finally blocks to run */
-  private case class EarlyExitException(exitCode: Int) extends Exception
-
   def main(args0: Array[String]): Unit = mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
     val initialSystemStreams = mill.api.SystemStreams.original
 
@@ -51,8 +48,15 @@ object MillNoDaemonMain0 {
       config =>
         DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
 
-    // Run with worker tracking - workers are automatically closed on exit
-    val exitCode = MillDaemonMain0.withWorkerTracking {
+    // Track worker caches so we can close them before exiting
+    val workerCaches = new java.util.concurrent.ConcurrentLinkedQueue[MillDaemonMain0.WorkerCache]()
+
+    def closeWorkersAndExit(code: Int): Nothing = {
+      MillDaemonMain0.closeWorkerCaches(workerCaches)
+      sys.exit(code)
+    }
+
+    val exitCode = MillDaemonMain0.currentDaemonWorkerCaches.withValue(Some(workerCaches)) {
       try {
         val (res, _) = MillMain0.main0(
           args = args.rest.toArray,
@@ -63,20 +67,19 @@ object MillNoDaemonMain0 {
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
-          // Throw exception instead of calling sys.exit() directly,
-          // so finally block can run to close workers before exiting
-          systemExit = ( /*reason*/ _, code) => throw EarlyExitException(code),
+          systemExit = ( /*reason*/ _, code) => closeWorkersAndExit(code),
           daemonDir = args.daemonDir,
           outLock = outLock,
           launcherSubprocessRunner = launcherRunner
         )
         if (res) 0 else 1
       } catch {
-        case EarlyExitException(code) => code
         case other => handleMillException(initialSystemStreams.err, 1)(other)._2
       }
-    }()
+    }
 
+    // Close workers before normal exit
+    MillDaemonMain0.closeWorkerCaches(workerCaches)
     System.exit(exitCode)
   }
 
