@@ -45,6 +45,7 @@ trait TestModule
    * For convenience, you can also mix-in one of these predefined traits:
    * - [[TestModule.Junit4]]
    * - [[TestModule.Junit5]]
+   * - [[TestModule.Junit6]]
    * - [[TestModule.Munit]]
    * - [[TestModule.ScalaTest]]
    * - [[TestModule.Specs2]]
@@ -372,47 +373,39 @@ object TestModule {
     /** The JUnit Jupiter version to use, or empty, if you want to provide the dependencies yourself. */
     def jupiterVersion: T[String] = Task { "" }
 
-    private def useJupiterBom: T[Boolean] = Task {
-      if (jupiterVersion().isBlank) {
-        false
-      } else {
-        Version.isAtLeast(jupiterVersion(), "5.12.0")(using Version.IgnoreQualifierOrdering)
-      }
+    /** Whether to use the JUnit BOM for dependency management. Override in subclasses. */
+    protected def useBom: T[Boolean] = Task {
+      if (jupiterVersion().isBlank) false
+      else Version.isAtLeast(jupiterVersion(), "5.12.0")(using Version.IgnoreQualifierOrdering)
     }
+
+    /** The jupiter interface artifact to use. Override in subclasses for different versions. */
+    protected def jupiterInterfaceArtifact: String = mill.javalib.api.Versions.jupiterInterface
 
     override def testFramework: T[String] = "com.github.sbt.junit.jupiter.api.JupiterFramework"
 
     override def bomMvnDeps: T[Seq[Dep]] = Task {
-      // cannot call super.bomMvnDeps because it will break mima compat
       super.bomMvnDeps() ++ {
         Seq(jupiterVersion())
-          .filter(!_.isBlank() && useJupiterBom())
-          .flatMap(v =>
-            Seq(
-              mvn"org.junit:junit-bom:${v.trim()}"
-            )
-          )
+          .filter(!_.isBlank() && useBom())
+          .map(v => mvn"org.junit:junit-bom:${v.trim()}")
       }
     }
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
-        Seq(mvn"${mill.javalib.api.Versions.jupiterInterface}") ++
+        Seq(mvn"${jupiterInterfaceArtifact}") ++
         Seq(junitPlatformVersion()).flatMap(v => {
-          if (!v.isBlank) {
-            Some(mvn"org.junit.platform:junit-platform-launcher:${v.trim()}")
-          } else if (useJupiterBom()) {
-            Some(mvn"org.junit.platform:junit-platform-launcher")
-          } else {
-            None
-          }
+          if (!v.isBlank) Some(mvn"org.junit.platform:junit-platform-launcher:${v.trim()}")
+          else if (useBom()) Some(mvn"org.junit.platform:junit-platform-launcher")
+          else None
         }) ++
         Seq(jupiterVersion())
           .filter(!_.isBlank())
           .map(v => mvn"org.junit.jupiter:junit-jupiter-api:${v.trim()}")
     }
 
-    private lazy val classesDir: Task[Option[os.Path]] = this match {
+    protected lazy val classesDir: Task[Option[os.Path]] = this match {
       case withCompileTask: JavaModule => Task.Anon {
           Some(withCompileTask.compile().classes.path)
         }
@@ -447,6 +440,30 @@ object TestModule {
         javaHome().map(_.path)
       )
     }
+  }
+
+  /**
+   * TestModule that uses JUnit 6 Framework to run tests.
+   * You can override the [[jupiterVersion]] task or provide the JUnit 6-dependencies yourself.
+   *
+   * Note: JUnit 6 requires Java 17 or higher.
+   *
+   * JUnit 6 uses unified versioning where Platform, Jupiter, and Vintage all share
+   * the same version number (e.g., 6.0.2).
+   *
+   * See: https://junit.org/junit6/
+   */
+  trait Junit6 extends Junit5 {
+
+    /** The JUnit 6 version to use, or empty, if you want to provide the dependencies yourself. */
+    override def jupiterVersion: T[String] = Task { "" }
+
+    // JUnit 6 BOM is always available when version is provided (no minimum version requirement like JUnit 5)
+    override protected def useBom: T[Boolean] = Task { !jupiterVersion().isBlank }
+
+    // Use JUnit 6's jupiter-interface dependency
+    override protected def jupiterInterfaceArtifact: String =
+      mill.javalib.api.Versions.jupiterInterface6
   }
 
   /**

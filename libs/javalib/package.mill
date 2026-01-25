@@ -102,6 +102,11 @@ object `package` extends MillStableScalaModule {
         Dep.unparse(Deps.RuntimeDeps.jupiterInterface).get,
         "Dependency to jupiter-interface"
       ),
+      BuildInfo.Value(
+        "jupiterInterface6",
+        Dep.unparse(Deps.RuntimeDeps.jupiterInterface6).get,
+        "Dependency to jupiter-interface for JUnit 6 (requires Java 17+)"
+      ),
       BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore.version),
       BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion),
       BuildInfo.Value("palantirFormatVersion", Deps.RuntimeDeps.palantirFormat.version),
