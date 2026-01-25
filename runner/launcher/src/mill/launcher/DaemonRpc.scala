@@ -37,9 +37,17 @@ object DaemonRpc {
         extends ServerToClient {
       type Response = SubprocessResult
     }
+
+    /** Request to poll for available stdin data from the client terminal. */
+    case class PollStdin() extends ServerToClient {
+      type Response = StdinResult
+    }
   }
 
   case class SubprocessResult(exitCode: Int) derives ReadWriter
+
+  /** Result of polling for stdin data. Contains available bytes (empty if none). */
+  case class StdinResult(bytes: Array[Byte]) derives ReadWriter
 
   def createClient(
       initialize: Initialize,
@@ -47,7 +55,8 @@ object DaemonRpc {
       clientToServer: PrintStream,
       stdout: RpcConsole.Message => Unit = RpcConsole.stdoutHandler,
       stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler,
-      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult = defaultRunSubprocess
+      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult = defaultRunSubprocess,
+      pollStdin: ServerToClient.PollStdin => StdinResult = defaultPollStdin
   ): MillRpcClient[ClientToServer, ServerToClient] = {
     val transport = MillRpcWireTransport(
       name = "DaemonRpcClient",
@@ -58,10 +67,20 @@ object DaemonRpc {
 
     val log = Logger.Actions.noOp
 
+    // Track when a subprocess is running to avoid racing for stdin
+    // (subprocesses run with inherited stdin via os.InheritRaw)
+    @volatile var subprocessRunning = false
+
     val serverMessageHandler = new MillRpcChannel[ServerToClient] {
       override def apply(input: ServerToClient): input.Response = input match {
         case req: ServerToClient.RunSubprocess =>
-          runSubprocess(req).asInstanceOf[input.Response]
+          subprocessRunning = true
+          try runSubprocess(req).asInstanceOf[input.Response]
+          finally subprocessRunning = false
+        case req: ServerToClient.PollStdin =>
+          // Don't poll stdin if a subprocess is using it
+          if (subprocessRunning) StdinResult(Array.empty).asInstanceOf[input.Response]
+          else pollStdin(req).asInstanceOf[input.Response]
       }
     }
 
@@ -90,6 +109,24 @@ object DaemonRpc {
       SubprocessResult(result.exitCode)
     } catch {
       case _: Exception => SubprocessResult(1)
+    }
+  }
+
+  def defaultPollStdin(@scala.annotation.unused req: ServerToClient.PollStdin): StdinResult = {
+    try {
+      val available = System.in.available()
+      if (available > 0) {
+        val toRead = math.min(available, 4 * 1024)
+        val buffer = new Array[Byte](toRead)
+        val bytesRead = System.in.read(buffer)
+        if (bytesRead == toRead) StdinResult(buffer)
+        else if (bytesRead > 0) StdinResult(java.util.Arrays.copyOf(buffer, bytesRead))
+        else StdinResult(Array.empty)
+      } else {
+        StdinResult(Array.empty)
+      }
+    } catch {
+      case _: Exception => StdinResult(Array.empty)
     }
   }
 }
