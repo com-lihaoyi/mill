@@ -67,7 +67,7 @@ abstract class MillDaemonServer[State](
       writeSynchronizer = new Object
     )
     MillDaemonServer.DaemonServerData(
-      shutdownRequest = AtomicReference(Option.empty[(String, Int)]),
+      shutdownRequest = AtomicReference[MillDaemonServer.ShutdownRequest](null),
       rpcTransport = transport
     )
   }
@@ -88,7 +88,7 @@ abstract class MillDaemonServer[State](
       serverLog(
         s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)"
       )
-      data.shutdownRequest.set(Some((reason, exitCode)))
+      data.shutdownRequest.set(MillDaemonServer.ShutdownRequest(reason, exitCode))
       // Throw StopWithResponse to stop the RPC loop and send the response
       throw new StopWithResponse(DaemonRpc.RunCommandResult(exitCode))
     }
@@ -164,13 +164,13 @@ abstract class MillDaemonServer[State](
 
     // Check for pending shutdown request and execute it
     val exitCode = data.shutdownRequest.get() match {
-      case Some((reason, shutdownExitCode)) =>
+      case MillDaemonServer.ShutdownRequest(reason, shutdownExitCode) =>
         serverLog(
           s"handleConnection: executing deferred shutdown (reason=$reason, exitCode=$shutdownExitCode)"
         )
         stopServer(reason, shutdownExitCode)
         shutdownExitCode
-      case None =>
+      case null =>
         // Normal completion
         serverLog(s"handleConnection: RPC server finished normally, exitCode=$commandExitCode")
         commandExitCode
@@ -184,16 +184,13 @@ abstract class MillDaemonServer[State](
       data: Option[MillDaemonServer.DaemonServerData],
       result: Option[Int]
   ): Unit = {
-    // NOTE: System.out/err.flush() calls were removed - they can cause issues when
-    // stdout/stderr are redirected to a broken pipe after client disconnects
-
     // If this connection is being closed externally (e.g., another client was interrupted),
     // and there was no controlled shutdown, try to send a response so the client can retry.
     // If shutdownRequest is set, response was already sent via StopWithResponse.
     for {
       d <- data
       exitCode <- result
-      if d.shutdownRequest.get().isEmpty // Only send if not a controlled shutdown
+      if d.shutdownRequest.get() == null // Only send if not a controlled shutdown
     } {
       try {
         import mill.rpc.MillRpcServerToClient
@@ -206,10 +203,11 @@ abstract class MillDaemonServer[State](
       }
     }
 
-    try {
-      connectionData.serverToClient.flush()
-      connectionData.serverToClient.close()
-    } catch { case _: Exception => }
+    // Close the transport to release resources
+    data.foreach { d =>
+      try d.rpcTransport.close()
+      catch { case _: Exception => }
+    }
   }
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)
@@ -231,8 +229,12 @@ abstract class MillDaemonServer[State](
 }
 
 object MillDaemonServer {
+  /** Represents a pending server shutdown request. */
+  case class ShutdownRequest(reason: String, exitCode: Int)
+
   case class DaemonServerData(
-      shutdownRequest: AtomicReference[Option[(String, Int)]],
+      // Pending shutdown request, or null if none. Set when deferredStopServer is called.
+      shutdownRequest: AtomicReference[ShutdownRequest],
       // Store the RPC transport for synchronized writes (heartbeats + RPC messages)
       rpcTransport: MillRpcWireTransport
   )

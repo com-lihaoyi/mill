@@ -187,6 +187,19 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
     val connExitCodeVar = new java.util.concurrent.atomic.AtomicReference[Option[Handled]](None)
 
+    // Guard to prevent endConnection from being called multiple times.
+    // This is needed because endConnection can be triggered from multiple places:
+    // - Normal completion in the finally block
+    // - Client interruption in the if (!idle) block
+    // - Server shutdown via closeServer
+    // - Connection tracker closing other connections
+    val endConnectionCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
+    def safeEndConnection(data: Option[Prepared], result: Option[Handled]): Unit = {
+      if (endConnectionCalled.compareAndSet(false, true)) {
+        endConnection(connectionData, data, result)
+      }
+    }
+
     def closeServer(reason: String, exitCode: Handled, data: Option[Prepared]) = {
       serverLog(
         s"`systemExit` invoked ($reason), ending connection and " +
@@ -195,7 +208,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
       // Notify all other connected clients before shutting down, so they can retry
       connectionTracker.closeOtherConnections(clientSocket)
-      endConnection(connectionData, data, Some(exitCode))
+      safeEndConnection(data, Some(exitCode))
       closeServer0(Some(exitCode))
     }
 
@@ -204,7 +217,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     // Register this connection with the tracker, providing a callback to close it
     connectionTracker.increment(
       clientSocket,
-      () => endConnection(connectionData, Some(data), Some(exitCodeServerTerminated))
+      () => safeEndConnection(Some(data), Some(exitCodeServerTerminated))
     )
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
@@ -259,13 +272,13 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         // Close all other connected clients with exitCodeServerTerminated so they can retry
         connectionTracker.closeOtherConnections(clientSocket)
         // Gracefully close the current client connection
-        endConnection(connectionData, Some(data), None)
+        safeEndConnection(Some(data), None)
         // Shut down the server
         closeServer0(None)
       }
 
       serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
-    } finally endConnection(connectionData, Some(data), connExitCodeVar.get())
+    } finally safeEndConnection(Some(data), connExitCodeVar.get())
   }
 }
 
