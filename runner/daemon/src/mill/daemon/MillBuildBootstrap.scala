@@ -328,7 +328,8 @@ class MillBuildBootstrap(
           // Workers are closed in reverse dependency order (downstream first, then upstream).
           prevRunnerState.frames.lift(depth - 1).foreach { frame =>
             val deps = mill.exec.GroupExecution.workerDependencies(frame.workerCache)
-            mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(frame.workerCache.keySet, frame.workerCache, deps)
+            val allWorkers = frame.workerCache.values.map(_._3).toSet
+            mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(allWorkers, frame.workerCache, deps)
           }
 
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
