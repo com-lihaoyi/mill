@@ -40,7 +40,7 @@ class PromptLogger(
   override def redirectOutToErr: Boolean = false
   override def unprefixedStreams: SystemStreams = streams
 
-  private var termDimensions: (Option[Int], Option[Int]) = (None, None)
+  @volatile private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 
   terminalDimsCallback().foreach(termDimensions = _)
 
