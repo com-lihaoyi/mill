@@ -61,7 +61,8 @@ object MillNoDaemonMain0 {
           systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
           daemonDir = args.daemonDir,
           outLock = outLock,
-          launcherSubprocessRunner = launcherRunner
+          launcherSubprocessRunner = launcherRunner,
+          serverToClientOpt = None
         )
       catch handleMillException(initialSystemStreams.err, ())
 

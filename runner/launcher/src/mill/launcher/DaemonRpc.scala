@@ -42,12 +42,20 @@ object DaemonRpc {
     case class PollStdin() extends ServerToClient {
       type Response = StdinResult
     }
+
+    /** Request to get current terminal dimensions from the client. */
+    case class GetTerminalDims() extends ServerToClient {
+      type Response = TerminalDimsResult
+    }
   }
 
   case class SubprocessResult(exitCode: Int) derives ReadWriter
 
   /** Result of polling for stdin data. Contains available bytes (empty if none). */
   case class StdinResult(bytes: Array[Byte]) derives ReadWriter
+
+  /** Result of getting terminal dimensions. None means dimension is unknown. */
+  case class TerminalDimsResult(width: Option[Int], height: Option[Int]) derives ReadWriter
 
   def createClient(
       initialize: Initialize,
@@ -56,7 +64,8 @@ object DaemonRpc {
       stdout: RpcConsole.Message => Unit = RpcConsole.stdoutHandler,
       stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler,
       runSubprocess: ServerToClient.RunSubprocess => SubprocessResult = defaultRunSubprocess,
-      pollStdin: ServerToClient.PollStdin => StdinResult = defaultPollStdin
+      pollStdin: ServerToClient.PollStdin => StdinResult = defaultPollStdin,
+      getTerminalDims: ServerToClient.GetTerminalDims => TerminalDimsResult = defaultGetTerminalDims
   ): MillRpcClient[ClientToServer, ServerToClient] = {
     val transport = MillRpcWireTransport(
       name = "DaemonRpcClient",
@@ -67,20 +76,14 @@ object DaemonRpc {
 
     val log = Logger.Actions.noOp
 
-    // Track when a subprocess is running to avoid racing for stdin
-    // (subprocesses run with inherited stdin via os.InheritRaw)
-    @volatile var subprocessRunning = false
-
     val serverMessageHandler = new MillRpcChannel[ServerToClient] {
       override def apply(input: ServerToClient): input.Response = input match {
         case req: ServerToClient.RunSubprocess =>
-          subprocessRunning = true
-          try runSubprocess(req).asInstanceOf[input.Response]
-          finally subprocessRunning = false
+          runSubprocess(req).asInstanceOf[input.Response]
         case req: ServerToClient.PollStdin =>
-          // Don't poll stdin if a subprocess is using it
-          if (subprocessRunning) StdinResult(Array.empty).asInstanceOf[input.Response]
-          else pollStdin(req).asInstanceOf[input.Response]
+          pollStdin(req).asInstanceOf[input.Response]
+        case req: ServerToClient.GetTerminalDims =>
+          getTerminalDims(req).asInstanceOf[input.Response]
       }
     }
 
@@ -128,5 +131,11 @@ object DaemonRpc {
     } catch {
       case _: Exception => StdinResult(Array.empty)
     }
+  }
+
+  def defaultGetTerminalDims(
+      @scala.annotation.unused req: ServerToClient.GetTerminalDims
+  ): TerminalDimsResult = {
+    MillProcessLauncher.getTerminalDims()
   }
 }

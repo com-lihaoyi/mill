@@ -115,7 +115,8 @@ class MillDaemonMain0(
         systemExit = systemExit,
         daemonDir = daemonDir,
         outLock = outLock,
-        launcherSubprocessRunner = launcherRunner
+        launcherSubprocessRunner = launcherRunner,
+        serverToClientOpt = Some(serverToClient)
       )
     catch {
       // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)
