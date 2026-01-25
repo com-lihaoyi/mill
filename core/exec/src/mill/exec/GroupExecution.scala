@@ -721,11 +721,13 @@ trait GroupExecution {
           // Close this worker and all workers that depend on it
           val workerName = labelled.asWorker.get.ctx.segments.render
           val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
+          val workerDeps = GroupExecution.workerDependencies(cacheSnapshot)
           val allToClose =
-            GroupExecution.transitiveReverseDependencies(workerName, cacheSnapshot) + workerName
-          GroupExecution.closeWorkersInTopologicalOrder(
+            GroupExecution.transitiveDownstream(workerName, workerDeps) + workerName
+          GroupExecution.closeWorkersInReverseTopologicalOrder(
             allToClose,
             cacheSnapshot,
+            workerDeps,
             closeable =>
               try GroupExecution.wrap(
                 workspace, deps, outPath, paths, upstreamPathRefs, exclusive, multiLogger,
@@ -871,39 +873,35 @@ object GroupExecution {
       serializedPaths: Seq[PathRef]
   )
 
-  private def workerDependencies(
+  def workerDependencies(
       workerCache: Map[String, (Int, Val, TaskApi[?])]
   ): Map[String, Set[String]] = {
-    def findDeps(task: TaskApi[?], visited: Set[TaskApi[?]]): Set[String] = {
-      if (visited.contains(task)) Set.empty
-      else {
-        val direct = task.inputsApi.flatMap(_.workerNameApi).toSet
-        val transitive = task.inputsApi.flatMap(t => findDeps(t, visited + task))
-        direct ++ transitive
-      }
+    workerCache.map { case (name, (_, _, task)) =>
+      val allInputs = SpanningForest.breadthFirst(task.inputsApi)(_.inputsApi)
+      name -> allInputs.flatMap(_.workerNameApi).toSet
     }
-    workerCache.map { case (name, (_, _, task)) => name -> findDeps(task, Set.empty) }
   }
 
-  def transitiveReverseDependencies(
+  def transitiveDownstream(
       workerName: String,
-      workerCache: Map[String, (Int, Val, TaskApi[?])]
+      deps: Map[String, Set[String]]
   ): Set[String] = {
-    val reverseDeps = SpanningForest.reverseEdges(workerDependencies(workerCache))
+    val reverseDeps = SpanningForest.reverseEdges(deps)
     SpanningForest.breadthFirst(Seq(workerName))(n => reverseDeps.getOrElse(n, Nil)).toSet - workerName
   }
 
-  def closeWorkersInTopologicalOrder(
+  def closeWorkersInReverseTopologicalOrder(
       workersToClose: Set[String],
       workerCache: Map[String, (Int, Val, TaskApi[?])],
+      deps: Map[String, Set[String]],
       closeAction: AutoCloseable => Unit = c => try c.close() catch { case _: Throwable => }
   ): Unit = {
-    val deps = workerDependencies(workerCache).view.filterKeys(workersToClose).toMap
-    val roots = workersToClose.filter(w => !deps.values.flatten.toSet.contains(w))
+    val filteredDeps = deps.view.filterKeys(workersToClose).toMap
+    val roots = workersToClose.filter(w => !filteredDeps.values.flatten.toSet.contains(w))
 
     // BFS from roots (workers with no dependents), following dependencies to reach all workers
     for (name <- SpanningForest.breadthFirst(roots)(n =>
-        deps.getOrElse(n, Set.empty).filter(workersToClose)
+        filteredDeps.getOrElse(n, Set.empty).filter(workersToClose)
       )) {
       workerCache.get(name).foreach {
         case (_, Val(closeable: AutoCloseable), _) => closeAction(closeable)

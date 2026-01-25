@@ -327,7 +327,8 @@ class MillBuildBootstrap(
           // frame's `workerCache`s that may depend on classes loaded by that classloader.
           // Workers are closed in reverse dependency order (downstream first, then upstream).
           prevRunnerState.frames.lift(depth - 1).foreach { frame =>
-            mill.exec.GroupExecution.closeWorkersInTopologicalOrder(frame.workerCache.keySet, frame.workerCache)
+            val deps = mill.exec.GroupExecution.workerDependencies(frame.workerCache)
+            mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(frame.workerCache.keySet, frame.workerCache, deps)
           }
 
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
