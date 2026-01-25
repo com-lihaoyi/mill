@@ -38,11 +38,6 @@ public class ProxyStream {
   public static final int END = 0;
   public static final int HEARTBEAT = 127;
 
-  private static boolean clientHasClosedConnection(SocketException e) {
-    var message = e.getMessage();
-    return message != null && message.contains("Broken pipe");
-  }
-
   public static void sendEnd(OutputStream out, int exitCode) throws IOException {
     synchronized (out) {
       try {
@@ -52,7 +47,7 @@ public class ProxyStream {
       } catch (SocketException e) {
         // If the client has already closed the connection, we don't really care about sending the
         // exit code to it.
-        if (!clientHasClosedConnection(e)) throw e;
+        if (!SocketUtil.clientHasClosedConnection(e)) throw e;
       }
     }
   }

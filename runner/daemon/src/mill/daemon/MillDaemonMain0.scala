@@ -42,19 +42,25 @@ object MillDaemonMain0 {
    * so they can be closed on daemon shutdown even if the evaluation is interrupted.
    */
   val currentDaemonWorkerCaches =
-    new scala.util.DynamicVariable[Option[java.util.concurrent.ConcurrentLinkedQueue[scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]]]](None)
+    new scala.util.DynamicVariable[Option[java.util.concurrent.ConcurrentLinkedQueue[
+      scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]
+    ]]](None)
 
   /**
    * Registers a worker cache with the current daemon instance (if any).
    * Called by `MillBuildBootstrap.makeEvaluator0()`.
    */
   def registerWorkerCache(
-      cache: scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]
+      cache: scala.collection.mutable.Map[
+        String,
+        (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])
+      ]
   ): Unit = {
     currentDaemonWorkerCaches.value.foreach(_.add(cache))
   }
 
-  type WorkerCache = scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]
+  type WorkerCache =
+    scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]
   type WorkerCacheQueue = java.util.concurrent.ConcurrentLinkedQueue[WorkerCache]
 
   /**
