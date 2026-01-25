@@ -33,12 +33,6 @@ trait GroupExecution {
    */
   def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
 
-  /**
-   * Worker cache mapping worker name to a tuple of:
-   * - Int: worker hash (for cache invalidation)
-   * - Val: the worker instance
-   * - TaskApi[?]: the worker's Task (for traversing dependencies during ordered closure)
-   */
   def workerCache: mutable.Map[String, (Int, Val, mill.api.daemon.internal.TaskApi[?])]
 
   def env: Map[String, String]
@@ -696,37 +690,46 @@ trait GroupExecution {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
   }
 
-  /**
-   * Closes a worker and all workers that depend on it (transitively), in reverse dependency order.
-   * This ensures downstream workers are closed before their upstream dependencies.
-   * Returns the list of worker names that were closed, in the order they were closed.
-   */
-  private def closeWorkerAndDependents(workerName: String): Seq[String] = {
+  private def closeWorkerAndDependents(workerName: String): Unit = {
     val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
 
     val workerDeps: Map[String, Set[String]] = cacheSnapshot.map { case (name, (_, _, task)) =>
       name -> GroupExecution.findTransitiveWorkerDependencies(task, Set.empty)
     }
 
+    // Find all workers that transitively depend on the given worker
     def findDependents(name: String, visited: Set[String]): Set[String] = {
       if (visited.contains(name)) Set.empty
       else {
         val directDependents = workerDeps.collect {
           case (dependent, deps) if deps.contains(name) => dependent
         }.toSet
-        val transitiveDependents = directDependents.flatMap(d => findDependents(d, visited + name))
-        directDependents ++ transitiveDependents
+        directDependents ++ directDependents.flatMap(d => findDependents(d, visited + name))
       }
     }
 
-    val dependents = findDependents(workerName, Set.empty)
-    val allToClose = dependents + workerName
+    val allToClose = findDependents(workerName, Set.empty) + workerName
+    val remaining = mutable.Set.from(allToClose)
 
-    val closedWorkers = GroupExecution.closeWorkersInTopologicalOrder(allToClose, cacheSnapshot)
+    // Close in reverse dependency order (no remaining dependents first)
+    while (remaining.nonEmpty) {
+      val safeToClose = remaining.filter { w =>
+        remaining.forall(other => !workerDeps.getOrElse(other, Set.empty).contains(w))
+      }
+      val toClose = if (safeToClose.isEmpty) remaining.take(1).toSet else safeToClose
 
-    workerCache.synchronized { closedWorkers.foreach(workerCache.remove) }
+      for (name <- toClose) {
+        cacheSnapshot.get(name).foreach {
+          case (_, Val(closeable: AutoCloseable), _) =>
+            try closeable.close()
+            catch { case _: Throwable => }
+          case _ =>
+        }
+        remaining -= name
+      }
+    }
 
-    closedWorkers
+    workerCache.synchronized { allToClose.foreach(workerCache.remove) }
   }
 
   private def loadUpToDateWorker(

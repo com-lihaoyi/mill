@@ -352,6 +352,7 @@ class MillBuildBootstrap(
           compileOutput = Some(compileClasses),
           evaluator = Option(evaluator),
           buildOverrideFiles = buildOverrideFiles,
+          // Only pass the spanning tree when classloader changed (meta-build was recompiled)
           spanningInvalidationTree = Option.when(classLoaderChanged)(spanningInvalidationTree)
         )
 
