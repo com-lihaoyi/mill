@@ -1,0 +1,44 @@
+package build
+import mill.*
+
+/**
+ * A simple AutoCloseable worker that writes files to track when it's created and closed.
+ * This is used to test that workers are properly closed when Mill shuts down.
+ *
+ * The worker writes marker files to its Task.dest folder. These files can be checked
+ * by the test by looking in out/trackedWorker.dest/
+ */
+class TrackedWorker(destDir: os.Path) extends AutoCloseable {
+  // Write a "running" marker file when the worker is created
+  val runningMarker = destDir / "worker-running"
+  val closedMarker = destDir / "worker-closed"
+  os.write.over(runningMarker, "worker is running")
+
+  def getValue: String = "worker value"
+
+  override def close(): Unit = {
+    // Remove the running marker and write a closed marker
+    if (os.exists(runningMarker)) os.remove(runningMarker)
+    os.write.over(closedMarker, "worker was closed")
+  }
+}
+
+def trackedWorker = Task.Worker {
+  new TrackedWorker(Task.dest)
+}
+
+/**
+ * Initialize the worker.
+ */
+def initWorker() = Task.Command {
+  trackedWorker().getValue
+}
+
+def waitForExists(fileName: os.Path) = Task.Command {
+  // Initialize the worker
+  val _ = trackedWorker().getValue
+  val relativeFileName = fileName.relativeTo(mill.api.BuildCtx.workspaceRoot)
+  println("Waiting on " + relativeFileName)
+  while (!os.exists(fileName)) Thread.sleep(10)
+  println("Found " + relativeFileName + " containing " + os.read(fileName))
+}
