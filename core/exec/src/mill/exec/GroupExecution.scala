@@ -10,7 +10,13 @@ import java.util.concurrent.ThreadPoolExecutor
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TaskApi, TestReporter}
+import mill.api.daemon.internal.{
+  BaseModuleApi,
+  CompileProblemReporter,
+  EvaluatorApi,
+  TaskApi,
+  TestReporter
+}
 import mill.internal.SpanningForest
 import upickle.core.BufferedValue
 
@@ -735,10 +741,21 @@ trait GroupExecution {
             workerTopoIndex,
             closeable =>
               try GroupExecution.wrap(
-                workspace, deps, outPath, paths, upstreamPathRefs, exclusive, multiLogger,
-                logger, exclusiveSystemStreams, counterMsg, destCreator,
-                getEvaluator().asInstanceOf[Evaluator], terminal, rootModule.getClass.getClassLoader
-              )(closeable.close())
+                  workspace,
+                  deps,
+                  outPath,
+                  paths,
+                  upstreamPathRefs,
+                  exclusive,
+                  multiLogger,
+                  logger,
+                  exclusiveSystemStreams,
+                  counterMsg,
+                  destCreator,
+                  getEvaluator().asInstanceOf[Evaluator],
+                  terminal,
+                  rootModule.getClass.getClassLoader
+                )(closeable.close())
               catch { case NonFatal(e) => logger.error(s"Error closing worker: ${e.getMessage}") },
             name => workerCache.synchronized { workerCache.remove(name) }
           )
@@ -882,7 +899,7 @@ object GroupExecution {
       workerCache: Map[String, (Int, Val, TaskApi[?])]
   ): Seq[(TaskApi[?], Seq[TaskApi[?]])] = {
     SpanningForest
-      .breadthFirst(workerCache.map { case (name, (_, _, task)) => task})(_.inputsApi)
+      .breadthFirst(workerCache.map { case (name, (_, _, task)) => task })(_.inputsApi)
       .map(t => (t, t.inputsApi))
   }
 
@@ -897,10 +914,12 @@ object GroupExecution {
       workersToClose: Set[TaskApi[?]],
       workerCache: Map[String, (Int, Val, TaskApi[?])],
       topoIndex: Map[TaskApi[?], Int],
-      closeAction: AutoCloseable => Unit = c => try c.close() catch { case _: Throwable => },
+      closeAction: AutoCloseable => Unit = c =>
+        try c.close()
+        catch { case _: Throwable => },
       removeFromCache: String => Unit = _ => ()
   ): Unit = {
-    val orderedWorkersToClose = workersToClose.toSeq.sortBy(w => -topoIndex.getOrElse(w, 0))
+    val orderedWorkersToClose = workersToClose.toSeq.sortBy(w => -topoIndex(w))
 
     for (worker <- orderedWorkersToClose) {
       val name = worker.workerNameApi.get
