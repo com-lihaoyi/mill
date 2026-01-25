@@ -46,14 +46,9 @@ abstract class MillDaemonServer[State](
   ): Boolean = {
     // The RPC protocol handles heartbeats via empty lines
     // We just need to check if the connection is still open
-    try {
-      // Write empty line as heartbeat
-      connectionData.serverToClient.write('\n')
-      connectionData.serverToClient.flush()
-      true
-    } catch {
-      case _: IOException => false
-    }
+    // Use the transport's synchronized writeHeartbeat to avoid race conditions with RPC messages
+    // and to properly check for errors (PrintStream swallows IOExceptions internally)
+    data.rpcTransport.writeHeartbeat()
   }
 
   override def prepareConnection(
@@ -61,9 +56,15 @@ abstract class MillDaemonServer[State](
       stopServer: Server.StopServer
   ): MillDaemonServer.DaemonServerData = {
     serverLog(s"prepareConnection ${connectionData.socketName}")
+    val transport = MillRpcWireTransport(
+      name = s"DaemonRpcServer-${connectionData.socketName}",
+      serverToClient = new BufferedReader(new InputStreamReader(connectionData.clientToServer)),
+      clientToServer = new PrintStream(connectionData.serverToClient, true),
+      writeSynchronizer = new Object
+    )
     MillDaemonServer.DaemonServerData(
-      shutdownRequest = AtomicReference(Option.empty[(String, Int)]),
-      rpcTransport = AtomicReference(Option.empty[MillRpcWireTransport])
+      shutdownRequest = AtomicReference[MillDaemonServer.ShutdownRequest](null),
+      rpcTransport = transport
     )
   }
 
@@ -75,15 +76,7 @@ abstract class MillDaemonServer[State](
   ): Int = {
     serverLog("handleConnection: starting RPC server")
 
-    val transport = MillRpcWireTransport(
-      name = s"DaemonRpcServer-${connectionData.socketName}",
-      serverToClient = new BufferedReader(new InputStreamReader(connectionData.clientToServer)),
-      clientToServer = new PrintStream(connectionData.serverToClient, true),
-      writeSynchronizer = new Object
-    )
-
-    // Store the transport so endConnection can send an RPC response if needed
-    data.rpcTransport.set(Some(transport))
+    val transport = data.rpcTransport
 
     // Create a deferred stopServer that stores the shutdown request and throws StopWithResponse
     // to stop the RPC server loop while still sending a proper response to the client.
@@ -91,7 +84,7 @@ abstract class MillDaemonServer[State](
       serverLog(
         s"deferredStopServer: storing shutdown request (reason=$reason, exitCode=$exitCode)"
       )
-      data.shutdownRequest.set(Some((reason, exitCode)))
+      data.shutdownRequest.set(MillDaemonServer.ShutdownRequest(reason, exitCode))
       // Throw StopWithResponse to stop the RPC loop and send the response
       throw new StopWithResponse(DaemonRpc.RunCommandResult(exitCode))
     }
@@ -167,13 +160,13 @@ abstract class MillDaemonServer[State](
 
     // Check for pending shutdown request and execute it
     val exitCode = data.shutdownRequest.get() match {
-      case Some((reason, shutdownExitCode)) =>
+      case MillDaemonServer.ShutdownRequest(reason, shutdownExitCode) =>
         serverLog(
           s"handleConnection: executing deferred shutdown (reason=$reason, exitCode=$shutdownExitCode)"
         )
         stopServer(reason, shutdownExitCode)
         shutdownExitCode
-      case None =>
+      case null =>
         // Normal completion
         serverLog(s"handleConnection: RPC server finished normally, exitCode=$commandExitCode")
         commandExitCode
@@ -187,29 +180,30 @@ abstract class MillDaemonServer[State](
       data: Option[MillDaemonServer.DaemonServerData],
       result: Option[Int]
   ): Unit = {
-    // NOTE: System.out/err.flush() calls were removed - they can cause issues when
-    // stdout/stderr are redirected to a broken pipe after client disconnects
-
     // If this connection is being closed externally (e.g., another client was interrupted),
     // and there was no controlled shutdown, try to send a response so the client can retry.
     // If shutdownRequest is set, response was already sent via StopWithResponse.
     for {
       d <- data
       exitCode <- result
-      transport <- d.rpcTransport.get()
-      if d.shutdownRequest.get().isEmpty // Only send if not a controlled shutdown
+      if d.shutdownRequest.get() == null // Only send if not a controlled shutdown
     } {
       try {
         import mill.rpc.MillRpcServerToClient
         val response = MillRpcServerToClient.Response(
           Right(DaemonRpc.RunCommandResult(exitCode))
         )
-        transport.writeSerialized(response, serverLog)
+        d.rpcTransport.writeSerialized(response, serverLog)
       } catch {
         case _: Exception => // Ignore errors, connection might already be broken
       }
     }
 
+    // Close only the raw output stream, not the full transport.
+    // We avoid closing the transport because:
+    // 1. Closing the input stream first could send a TCP RST and lose output data
+    // 2. Closing the PrintStream (vs raw stream) would cause subsequent writes to
+    //    throw, breaking other connections' heartbeat checks
     try {
       connectionData.serverToClient.flush()
       connectionData.serverToClient.close()
@@ -235,9 +229,13 @@ abstract class MillDaemonServer[State](
 }
 
 object MillDaemonServer {
+  /** Represents a pending server shutdown request. */
+  case class ShutdownRequest(reason: String, exitCode: Int)
+
   case class DaemonServerData(
-      shutdownRequest: AtomicReference[Option[(String, Int)]],
-      // Store the RPC transport so we can send a response when connection is closed externally
-      rpcTransport: AtomicReference[Option[MillRpcWireTransport]]
+      // Pending shutdown request, or null if none. Set when deferredStopServer is called.
+      shutdownRequest: AtomicReference[ShutdownRequest],
+      // Store the RPC transport for synchronized writes (heartbeats + RPC messages)
+      rpcTransport: MillRpcWireTransport
   )
 }

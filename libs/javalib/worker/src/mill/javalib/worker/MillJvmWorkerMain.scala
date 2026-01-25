@@ -11,7 +11,6 @@ import mill.server.Server.ConnectionData
 import pprint.{TPrint, TPrintColors}
 
 import java.io.{BufferedReader, InputStreamReader, PrintStream}
-import scala.util.Using
 
 /** Entry point for the Zinc worker subprocess. */
 object MillJvmWorkerMain {
@@ -36,8 +35,10 @@ object MillJvmWorkerMain {
     }
   }
 
+  private case class JvmWorkerServerData(rpcTransport: MillRpcWireTransport)
+
   private class JvmWorkerTcpServer(daemonDir: os.Path, jobs: Int, useFileLocks: Boolean)
-      extends Server[Object, Unit](Server.Args(
+      extends Server[JvmWorkerServerData, Unit](Server.Args(
         daemonDir,
         acceptTimeout = None, // The worker kills the process when it needs to.
         Locks.forDirectory(daemonDir.toString, useFileLocks),
@@ -56,40 +57,50 @@ object MillJvmWorkerMain {
     override def prepareConnection(
         connectionData: ConnectionData,
         stopServer: Server.StopServer0[Unit]
-    ): Object = new Object
+    ): JvmWorkerServerData = {
+      val serverName = s"$className{${connectionData.socketName}}"
+      val transport = MillRpcWireTransport(
+        name = serverName,
+        serverToClient = new BufferedReader(new InputStreamReader(connectionData.clientToServer)),
+        clientToServer = new PrintStream(connectionData.serverToClient, true),
+        writeSynchronizer = new Object
+      )
+      JvmWorkerServerData(transport)
+    }
 
     override def handleConnection(
         connectionData: ConnectionData,
         stopServer: Server.StopServer0[Unit],
         setIdle: Server.SetIdle,
-        writeSynchronizer: Object
-    ) = {
+        data: JvmWorkerServerData
+    ): Unit = {
+      val transport = data.rpcTransport
+      val serverName = transport.name
+      val server = JvmWorkerRpcServer(worker, serverName, transport, setIdle, serverLog)
 
-      val serverName = s"$className{${connectionData.socketName}}"
-      Using.Manager { use =>
-        val stdin = use(BufferedReader(InputStreamReader(connectionData.clientToServer)))
-        val stdout = use(PrintStream(connectionData.serverToClient))
-        val transport = MillRpcWireTransport(serverName, stdin, stdout, writeSynchronizer)
-        val server = JvmWorkerRpcServer(worker, serverName, transport, setIdle, serverLog)
-
-        // Make sure stdout and stderr is sent to the client
-        SystemStreamsUtils.withStreams(SystemStreams(
-          out = PrintStream(server.clientStdout.asStream),
-          err = PrintStream(server.clientStderr.asStream),
-          in = DummyInputStream
-        )) {
-          serverLog("server.run() starting")
-          server.run()
-          serverLog("server.run() finished")
-        }
-      }.get
+      // Make sure stdout and stderr is sent to the client
+      SystemStreamsUtils.withStreams(SystemStreams(
+        out = PrintStream(server.clientStdout.asStream),
+        err = PrintStream(server.clientStderr.asStream),
+        in = DummyInputStream
+      )) {
+        serverLog("server.run() starting")
+        server.run()
+        serverLog("server.run() finished")
+      }
     }
 
     override def endConnection(
         connectionData: ConnectionData,
-        writeSynchronizer: Option[Object],
+        data: Option[JvmWorkerServerData],
         result: Option[Unit]
-    ): Unit = {}
+    ): Unit = {
+      // Close the transport to release resources
+      data.foreach { d =>
+        try d.rpcTransport.close()
+        catch { case _: Exception => }
+      }
+    }
 
     def systemExit(exitCode: Unit): Nothing = ???
 
@@ -97,13 +108,11 @@ object MillJvmWorkerMain {
 
     override def checkIfClientAlive(
         connectionData: ConnectionData,
-        writeSynchronizer: Object
+        data: JvmWorkerServerData
     ): Boolean = {
-      writeSynchronizer.synchronized {
-        connectionData.serverToClient.write('\n'.toInt)
-        connectionData.serverToClient.flush()
-        true
-      }
+      // Use the transport's synchronized writeHeartbeat to avoid race conditions with RPC messages
+      // and to properly check for errors (PrintStream swallows IOExceptions internally)
+      data.rpcTransport.writeHeartbeat()
     }
   }
 }
