@@ -610,15 +610,15 @@ object MillMain0 {
     // Create terminal dimensions callback - uses RPC if available, otherwise gets directly
     val terminalDimsCallback: () => Option[(Option[Int], Option[Int])] = serverToClientOpt match {
       case Some(serverToClient) => () =>
-        try {
-          val result = serverToClient(mill.launcher.DaemonRpc.ServerToClient.GetTerminalDims())
-          Some((result.width, result.height))
-        } catch {
-          case _: Exception => None
-        }
+          try {
+            val result = serverToClient(mill.launcher.DaemonRpc.ServerToClient.GetTerminalDims())
+            Some((result.width, result.height))
+          } catch {
+            case _: Exception => None
+          }
       case None => () =>
-        val result = mill.launcher.MillProcessLauncher.getTerminalDims()
-        Some((result.width, result.height))
+          val result = mill.launcher.MillProcessLauncher.getTerminalDims()
+          Some((result.width, result.height))
     }
 
     val promptLogger = new PromptLogger(

@@ -247,8 +247,12 @@ object MillProcessLauncher {
         case Some((width, height)) => DaemonRpc.TerminalDimsResult(Some(width), Some(height))
         case None if !tputExists => DaemonRpc.TerminalDimsResult(Some(78), Some(24))
         case None =>
-          val width = try Some(getTerminalDim("cols", inheritError = true)) catch { case _: Exception => None }
-          val height = try Some(getTerminalDim("lines", inheritError = true)) catch { case _: Exception => None }
+          val width =
+            try Some(getTerminalDim("cols", inheritError = true))
+            catch { case _: Exception => None }
+          val height =
+            try Some(getTerminalDim("lines", inheritError = true))
+            catch { case _: Exception => None }
           DaemonRpc.TerminalDimsResult(width, height)
       }
     } catch {
