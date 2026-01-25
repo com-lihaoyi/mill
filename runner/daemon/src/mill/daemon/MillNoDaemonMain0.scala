@@ -48,7 +48,7 @@ object MillNoDaemonMain0 {
       config =>
         DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
 
-    val (result, _) =
+    val (result, runnerState) =
       try MillMain0.main0(
           args = args.rest.toArray,
           stateCache = RunnerState.empty,
@@ -63,7 +63,11 @@ object MillNoDaemonMain0 {
           outLock = outLock,
           launcherSubprocessRunner = launcherRunner
         )
-      catch handleMillException(initialSystemStreams.err, ())
+      catch handleMillException(initialSystemStreams.err, RunnerState.empty)
+
+    // Close all workers before exiting (in no-daemon mode, workers should be
+    // cleaned up when the process exits since they won't persist across commands)
+    runnerState.closeAllWorkers()
 
     System.exit(if (result) 0 else 1)
   }

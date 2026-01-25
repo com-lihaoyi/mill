@@ -461,6 +461,12 @@ object MillBuildBootstrap {
     val evalImplCls = cl.loadClass("mill.eval.EvaluatorImpl")
     val execCls = cl.loadClass("mill.exec.Execution")
 
+    // Create the mutable worker cache and register it with the daemon.
+    // This ensures workers can be closed even if the evaluation is interrupted
+    // before the state can be saved.
+    val mutableWorkerCache = workerCache.to(collection.mutable.Map)
+    MillDaemonMain0.registerWorkerCache(mutableWorkerCache)
+
     lazy val evaluator: EvaluatorApi =
       evalImplCls.getConstructors.minBy(_.getParameterCount).newInstance(
         allowPositionalCommandArgs,
@@ -475,7 +481,7 @@ object MillBuildBootstrap {
           rootModule,
           millClassloaderSigHash,
           millClassloaderIdentityHash,
-          workerCache.to(collection.mutable.Map),
+          mutableWorkerCache,
           env,
           !keepGoing,
           ec,

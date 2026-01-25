@@ -53,6 +53,31 @@ case class RunnerState(
 
   def watched: Seq[Watchable] =
     frames.flatMap(f => f.evalWatched ++ f.moduleWatched ++ bootstrapEvalWatched)
+
+  /**
+   * Closes all AutoCloseable workers in all frames' worker caches.
+   * This should be called when the daemon is shutting down to properly
+   * clean up resources like open sockets, file handles, etc.
+   */
+  def closeAllWorkers(): Unit = {
+    for (frame <- frames) {
+      val workerCache = frame.workerCache
+      if (workerCache.nonEmpty) {
+        val deps = mill.exec.GroupExecution.workerDependencies(workerCache)
+        val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+        val allWorkers = workerCache.values.map(_._3).toSet
+        val mutableCache = scala.collection.mutable.Map.from(workerCache)
+        mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
+          allWorkers,
+          mutableCache,
+          topoIndex,
+          closeable =>
+            try closeable.close()
+            catch { case scala.util.control.NonFatal(_) => }
+        )
+      }
+    }
+  }
 }
 
 object RunnerState {

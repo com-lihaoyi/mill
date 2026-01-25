@@ -220,6 +220,17 @@ abstract class MillDaemonServer[State](
 
   def exitCodeServerTerminated: Int = ClientUtil.ServerExitPleaseRetry
 
+  /**
+   * Called when the daemon is about to shut down, giving subclasses an opportunity
+   * to perform cleanup (e.g., closing workers).
+   */
+  protected def onDaemonShutdown(state: State): Unit = {}
+
+  /**
+   * Returns the current state cache. Subclasses can use this for cleanup on shutdown.
+   */
+  protected def getStateCache: State = stateCache
+
   def main0(
       args: Array[String],
       stateCache: State,
