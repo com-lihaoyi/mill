@@ -573,11 +573,8 @@ trait GroupExecution {
       inputsHash: Int,
       labelled: Task.Named[?]
   ): Seq[PathRef] = {
-    for (w <- labelled.asWorker) {
-      val workerName = w.ctx.segments.render
-      workerCache.synchronized {
-        workerCache.update(workerName, (workerCacheHash(inputsHash), v, labelled))
-      }
+    for (w <- labelled.asWorker) workerCache.synchronized {
+      workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v, labelled))
     }
 
     def normalJson(w: upickle.Writer[?]) = PathRef.withSerializedPaths {
@@ -726,7 +723,17 @@ trait GroupExecution {
           val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
           val allToClose =
             GroupExecution.transitiveReverseDependencies(workerName, cacheSnapshot) + workerName
-          GroupExecution.closeWorkersInTopologicalOrder(allToClose, cacheSnapshot)
+          GroupExecution.closeWorkersInTopologicalOrder(
+            allToClose,
+            cacheSnapshot,
+            closeable =>
+              try GroupExecution.wrap(
+                workspace, deps, outPath, paths, upstreamPathRefs, exclusive, multiLogger,
+                logger, exclusiveSystemStreams, counterMsg, destCreator,
+                getEvaluator().asInstanceOf[Evaluator], terminal, rootModule.getClass.getClassLoader
+              )(closeable.close())
+              catch { case NonFatal(e) => logger.error(s"Error closing worker: ${e.getMessage}") }
+          )
           workerCache.synchronized { allToClose.foreach(workerCache.remove) }
           None
 
@@ -888,18 +895,18 @@ object GroupExecution {
 
   def closeWorkersInTopologicalOrder(
       workersToClose: Set[String],
-      workerCache: Map[String, (Int, Val, TaskApi[?])]
+      workerCache: Map[String, (Int, Val, TaskApi[?])],
+      closeAction: AutoCloseable => Unit = c => try c.close() catch { case _: Throwable => }
   ): Unit = {
     val deps = workerDependencies(workerCache).view.filterKeys(workersToClose).toMap
     val roots = workersToClose.filter(w => !deps.values.flatten.toSet.contains(w))
-    val reverseDeps = SpanningForest.reverseEdges(deps)
 
-    // BFS from roots (workers with no dependents) gives reverse topological order
-    for (name <- SpanningForest.breadthFirst(roots)(n => reverseDeps.getOrElse(n, Nil))) {
+    // BFS from roots (workers with no dependents), following dependencies to reach all workers
+    for (name <- SpanningForest.breadthFirst(roots)(n =>
+        deps.getOrElse(n, Set.empty).filter(workersToClose)
+      )) {
       workerCache.get(name).foreach {
-        case (_, Val(closeable: AutoCloseable), _) =>
-          try closeable.close()
-          catch { case _: Throwable => }
+        case (_, Val(closeable: AutoCloseable), _) => closeAction(closeable)
         case _ =>
       }
     }

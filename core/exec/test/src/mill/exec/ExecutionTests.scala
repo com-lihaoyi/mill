@@ -299,47 +299,67 @@ object ExecutionTests extends TestSuite {
       var x = 10
       val closureOrder = collection.mutable.Buffer.empty[String]
 
-      class UpstreamWorker(val n: Int) extends AutoCloseable {
+      // Test indirect dependencies: workerC -> taskB -> workerA -> input
+      // When workerA is invalidated, workerC must be closed first
+
+      class WorkerA(val n: Int) extends AutoCloseable {
         def close() = {
-          closureOrder += "upstream"
+          closureOrder += "workerA"
         }
       }
 
-      class DownstreamWorker(val upstream: UpstreamWorker) extends AutoCloseable {
+      class WorkerB(val a: WorkerA) extends AutoCloseable {
         def close() = {
-          // Verify upstream is still open when downstream closes
-          closureOrder += "downstream"
+          closureOrder += "workerB"
+        }
+      }
+
+      class WorkerC(val value: Int) extends AutoCloseable {
+        def close() = {
+          closureOrder += "workerC"
         }
       }
 
       object build extends TestRootModule {
         def input = Task.Input { x }
-        def upstreamWorker = Task.Worker { new UpstreamWorker(input()) }
-        def downstreamWorker = Task.Worker { new DownstreamWorker(upstreamWorker()) }
+        def workerA = Task.Worker { new WorkerA(input()) }
+        // Intermediate task between workers
+        def taskUsingA = Task { workerA().n * 2 }
+        // workerB depends on workerA through taskUsingA
+        def workerB = Task.Worker { new WorkerB(workerA()) }
+        // Another intermediate task
+        def taskUsingB = Task { workerB().a.n + 100 }
+        // workerC depends on workerA indirectly through taskUsingB
+        def workerC = Task.Worker { new WorkerC(taskUsingB()) }
         lazy val millDiscover = Discover[this.type]
       }
 
       UnitTester(build, null).scoped { tester =>
-        // Create both workers
-        val Right(UnitTester.Result(upstream1, _)) = tester.apply(build.upstreamWorker): @unchecked
-        val Right(UnitTester.Result(downstream1, _)) = tester.apply(build.downstreamWorker): @unchecked
+        // Create all workers
+        val Right(UnitTester.Result(a1, _)) = tester.apply(build.workerA): @unchecked
+        val Right(UnitTester.Result(b1, _)) = tester.apply(build.workerB): @unchecked
+        val Right(UnitTester.Result(c1, _)) = tester.apply(build.workerC): @unchecked
 
-        assert(upstream1.n == 10)
-        assert(downstream1.upstream eq upstream1)
+        assert(a1.n == 10)
+        assert(b1.a eq a1)
+        assert(c1.value == 110) // 10 + 100
         assert(closureOrder.isEmpty)
 
-        // Change input to invalidate upstream worker
+        // Change input to invalidate workerA
         x = 20
         closureOrder.clear()
 
-        // Request the upstream worker - this should trigger closure of both workers
-        // (downstream first, then upstream) because upstream is obsolete and downstream depends on it
-        val Right(UnitTester.Result(upstream2, _)) = tester.apply(build.upstreamWorker): @unchecked
-        assert(upstream2.n == 20)
-        assert(upstream2 ne upstream1)
+        // Request workerA - this should trigger closure of all workers
+        // (workerC first, then workerB, then workerA) due to indirect dependencies
+        val Right(UnitTester.Result(a2, _)) = tester.apply(build.workerA): @unchecked
+        assert(a2.n == 20)
+        assert(a2 ne a1)
 
-        // Verify downstream was closed before upstream (reverse dependency order)
-        assert(closureOrder == Seq("downstream", "upstream"))
+        // Verify workers were closed in reverse dependency order
+        // workerC depends on workerA (indirectly through taskUsingB -> workerB -> workerA)
+        // workerB depends on workerA (directly)
+        // So closure order should be: workerC, workerB, workerA
+        assert(closureOrder.toSeq == Seq("workerC", "workerB", "workerA"))
       }
     }
 

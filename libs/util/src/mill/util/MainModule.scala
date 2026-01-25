@@ -266,7 +266,7 @@ trait MainModule extends RootModule0, MainModuleApi, JdkCommandsModule {
         for {
           workerSegments <- evaluator.workerCache.keys.toList
           if allSegments.exists(x => workerSegments.startsWith(x.render))
-          case (_, Val(closeable: AutoCloseable)) <-
+          case (_, Val(closeable: AutoCloseable), _) <-
             evaluator.workerCache.remove(workerSegments)
         } {
           closeable.close()
