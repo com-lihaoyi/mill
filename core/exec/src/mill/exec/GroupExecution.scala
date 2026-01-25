@@ -914,7 +914,7 @@ object GroupExecution {
   ): Unit = {
     for (worker <- workersToClose.toSeq.sortBy(w => -topoIndex(w))) {
       val name = worker.workerNameApi.get
-      workerCache.remove(name).foreach {
+      workerCache.synchronized(workerCache.remove(name)).foreach {
         case (_, Val(closeable: AutoCloseable), _) => closeAction(closeable)
         case _ =>
       }
