@@ -11,6 +11,9 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 object MillNoDaemonMain0 {
+  /** Exception used to signal early exit while allowing finally blocks to run */
+  private case class EarlyExitException(exitCode: Int) extends Exception
+
   def main(args0: Array[String]): Unit = mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
     val initialSystemStreams = mill.api.SystemStreams.original
 
@@ -48,8 +51,10 @@ object MillNoDaemonMain0 {
       config =>
         DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
 
-    val (result, runnerState) =
-      try MillMain0.main0(
+    // Run with worker tracking - workers are automatically closed on exit
+    val exitCode = MillDaemonMain0.withWorkerTracking {
+      try {
+        val (res, _) = MillMain0.main0(
           args = args.rest.toArray,
           stateCache = RunnerState.empty,
           mainInteractive = mill.constants.Util.hasConsole(),
@@ -58,18 +63,21 @@ object MillNoDaemonMain0 {
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
-          systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
+          // Throw exception instead of calling sys.exit() directly,
+          // so finally block can run to close workers before exiting
+          systemExit = ( /*reason*/ _, code) => throw EarlyExitException(code),
           daemonDir = args.daemonDir,
           outLock = outLock,
           launcherSubprocessRunner = launcherRunner
         )
-      catch handleMillException(initialSystemStreams.err, RunnerState.empty)
+        if (res) 0 else 1
+      } catch {
+        case EarlyExitException(code) => code
+        case other => handleMillException(initialSystemStreams.err, 1)(other)._2
+      }
+    }()
 
-    // Close all workers before exiting (in no-daemon mode, workers should be
-    // cleaned up when the process exits since they won't persist across commands)
-    runnerState.closeAllWorkers()
-
-    System.exit(if (result) 0 else 1)
+    System.exit(exitCode)
   }
 
 }

@@ -54,6 +54,57 @@ object MillDaemonMain0 {
     currentDaemonWorkerCaches.value.foreach(_.add(cache))
   }
 
+  type WorkerCache = scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]
+  type WorkerCacheQueue = java.util.concurrent.ConcurrentLinkedQueue[WorkerCache]
+
+  /**
+   * Runs a block of code with worker cache tracking enabled.
+   * All worker caches created during evaluation are registered and closed in the finally block.
+   * Used by both daemon and non-daemon modes to ensure workers are properly cleaned up.
+   *
+   * @param body The code to run
+   * @param extraCleanup Optional additional cleanup to run after closing worker caches
+   * @return The result of the body
+   */
+  def withWorkerTracking[T](body: => T)(extraCleanup: => Unit = ()): T = {
+    val workerCaches = new java.util.concurrent.ConcurrentLinkedQueue[WorkerCache]()
+    currentDaemonWorkerCaches.withValue(Some(workerCaches)) {
+      try body
+      finally {
+        closeWorkerCaches(workerCaches)
+        extraCleanup
+      }
+    }
+  }
+
+  /**
+   * Closes all workers in the given queue of worker caches.
+   */
+  def closeWorkerCaches(caches: WorkerCacheQueue): Unit = {
+    val iterator = caches.iterator()
+    while (iterator.hasNext) {
+      val cache = iterator.next()
+      closeWorkersInCache(cache)
+    }
+  }
+
+  private def closeWorkersInCache(cache: WorkerCache): Unit = {
+    val cacheSnapshot = cache.synchronized { cache.toMap }
+    if (cacheSnapshot.nonEmpty) {
+      val deps = mill.exec.GroupExecution.workerDependencies(cacheSnapshot)
+      val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+      val allWorkers = cacheSnapshot.values.map(_._3).toSet
+      mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
+        allWorkers,
+        cache,
+        topoIndex,
+        closeable =>
+          try closeable.close()
+          catch { case scala.util.control.NonFatal(_) => }
+      )
+    }
+  }
+
   def main(args0: Array[String]): Unit = {
     // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
@@ -104,48 +155,19 @@ class MillDaemonMain0(
    * Tracks worker caches from active evaluations. Workers may exist in these caches
    * even if the evaluation was interrupted before the state could be saved.
    */
-  private val activeWorkerCaches =
-    new java.util.concurrent.ConcurrentLinkedQueue[scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]]()
-
-  private def closeAllActiveWorkerCaches(): Unit = {
-    val iterator = activeWorkerCaches.iterator()
-    while (iterator.hasNext) {
-      val cache = iterator.next()
-      closeWorkersInCache(cache)
-    }
-  }
-
-  private def closeWorkersInCache(
-      cache: scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]
-  ): Unit = {
-    val cacheSnapshot = cache.synchronized { cache.toMap }
-    if (cacheSnapshot.nonEmpty) {
-      val deps = mill.exec.GroupExecution.workerDependencies(cacheSnapshot)
-      val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
-      val allWorkers = cacheSnapshot.values.map(_._3).toSet
-      mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
-        allWorkers,
-        cache,
-        topoIndex,
-        closeable =>
-          try closeable.close()
-          catch { case scala.util.control.NonFatal(_) => }
-      )
-    }
-  }
-
-  override protected def onDaemonShutdown(state: RunnerState): Unit = {
-    // Close workers from active (possibly interrupted) evaluations
-    closeAllActiveWorkerCaches()
-    // Also close any workers in the saved state (for completeness)
-    state.closeAllWorkers()
-  }
+  private val activeWorkerCaches: MillDaemonMain0.WorkerCacheQueue =
+    new java.util.concurrent.ConcurrentLinkedQueue()
 
   override def run(): Option[Int] = {
-    // Set up the worker cache registration for this daemon instance
+    // Set up worker cache tracking for this daemon instance
     MillDaemonMain0.currentDaemonWorkerCaches.withValue(Some(activeWorkerCaches)) {
       try super.run()
-      finally onDaemonShutdown(getStateCache)
+      finally {
+        // Close workers from active (possibly interrupted) evaluations
+        MillDaemonMain0.closeWorkerCaches(activeWorkerCaches)
+        // Also close any workers in the saved state (for completeness)
+        getStateCache.closeAllWorkers()
+      }
     }
   }
 
