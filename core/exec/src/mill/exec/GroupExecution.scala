@@ -736,7 +736,6 @@ trait GroupExecution {
             SpanningForest.breadthFirst(Seq(labelled: TaskApi[?]))(n =>
               reverseDeps.getOrElse(n, Nil)
             )
-              .filter(_.workerNameApi.isDefined)
           GroupExecution.closeWorkersInReverseTopologicalOrder(
             allToClose,
             workerCache,
@@ -899,9 +898,12 @@ object GroupExecution {
   def workerDependencies(
       workerCache: Map[String, (Int, Val, TaskApi[?])]
   ): Seq[(TaskApi[?], Seq[TaskApi[?]])] = {
-    SpanningForest
-      .breadthFirst(workerCache.map { case (name, (_, _, task)) => task })(_.inputsApi)
-      .map(t => (t, t.inputsApi))
+    // Build worker-to-worker edges only (direct worker inputs)
+    val workers = workerCache.values.map(_._3).toSeq
+    workers.map { worker =>
+      val directWorkerInputs = worker.inputsApi.filter(_.workerNameApi.isDefined)
+      (worker, directWorkerInputs)
+    }
   }
 
   def closeWorkersInReverseTopologicalOrder(
