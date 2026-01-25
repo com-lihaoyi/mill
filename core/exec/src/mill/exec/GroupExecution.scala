@@ -732,7 +732,8 @@ trait GroupExecution {
 
         case (_, Val(_: AutoCloseable), _) =>
           // Close this worker and all workers that depend on it
-          val allToClose = GroupExecution.transitiveDownstream(labelled, reverseDeps)
+          val allToClose =
+            SpanningForest.breadthFirst(Seq(labelled: TaskApi[?]))(n => reverseDeps.getOrElse(n, Nil))
             .filter(_.workerNameApi.isDefined)
           GroupExecution.closeWorkersInReverseTopologicalOrder(
             allToClose,
@@ -901,22 +902,13 @@ object GroupExecution {
       .map(t => (t, t.inputsApi))
   }
 
-  def transitiveDownstream(
-      worker: TaskApi[?],
-      reverseDeps: Map[TaskApi[?], Seq[TaskApi[?]]]
-  ): Set[TaskApi[?]] = {
-    SpanningForest.breadthFirst(Seq(worker))(n => reverseDeps.getOrElse(n, Nil)).toSet
-  }
-
   def closeWorkersInReverseTopologicalOrder(
-      workersToClose: Set[TaskApi[?]],
+      workersToClose: Iterable[TaskApi[?]],
       workerCache: mutable.Map[String, (Int, Val, TaskApi[?])],
       topoIndex: Map[TaskApi[?], Int],
       closeAction: AutoCloseable => Unit
   ): Unit = {
-    val orderedWorkersToClose = workersToClose.toSeq.sortBy(w => -topoIndex(w))
-
-    for (worker <- orderedWorkersToClose) {
+    for (worker <- workersToClose.toSeq.sortBy(w => -topoIndex(w))) {
       val name = worker.workerNameApi.get
       workerCache.remove(name).foreach {
         case (_, Val(closeable: AutoCloseable), _) => closeAction(closeable)
