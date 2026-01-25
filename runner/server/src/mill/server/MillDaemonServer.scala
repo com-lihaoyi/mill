@@ -229,6 +229,7 @@ abstract class MillDaemonServer[State](
 }
 
 object MillDaemonServer {
+
   /** Represents a pending server shutdown request. */
   case class ShutdownRequest(reason: String, exitCode: Int)
 
