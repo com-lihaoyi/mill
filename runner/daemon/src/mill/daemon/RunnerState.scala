@@ -76,7 +76,7 @@ object RunnerState {
 
     def loggedData: Frame.Logged = {
       Frame.Logged(
-        workerCache.map { case (k, (i, v)) =>
+        workerCache.map { case (k, (i, v, _)) =>
           (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
         evalWatched.collect { case Watchable.Path(p, _, _) =>

@@ -5,7 +5,8 @@ import mill.api.daemon.internal.{
   CompileProblemReporter,
   EvaluatorApi,
   PathRefApi,
-  RootModuleApi
+  RootModuleApi,
+  TaskApi
 }
 import mill.api.{BuildCtx, Logger, PathRef, Result, SelectMode, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
@@ -434,7 +435,7 @@ object MillBuildBootstrap {
       selectiveExecution: Boolean,
       offline: Boolean,
       useFileLocks: Boolean,
-      workerCache: Map[String, (Int, Val)],
+      workerCache: Map[String, (Int, Val, TaskApi[?])],
       codeSignatures: Map[String, Int],
       // JSON string to avoid classloader issues when crossing classloader boundaries
       spanningInvalidationTree: Option[String],
