@@ -10,7 +10,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Execution.html" t="n" class="documentableName ">Execution</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">baseLogger</span>: <a href="../api.html#Logger-0" t="t">Logger</a>, <span t="k"></span><span data-unresolved-link="" t="n">profileLogger</span>: <a href="../internal/JsonArrayLogger$$Profile.html" t="t">Profile</a>, <span t="k"></span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">outPath</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">externalOutPath</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">rootModule</span>: <a href="../api/daemon/internal/BaseModuleApi.html" t="t">BaseModuleApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">classLoaderSigHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">classLoaderIdentityHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">workerCache</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Int</span>, <a href="../api.html#Val-0" t="t">Val</a>)], <span t="k"></span><span data-unresolved-link="" t="n">env</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">failFast</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">ec</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">ThreadPoolExecutor</span>], <span t="k"></span><span data-unresolved-link="" t="n">codeSignatures</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">systemExit</span>: (<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>) <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Nothing</span>, <span t="k"></span><span data-unresolved-link="" t="n">exclusiveSystemStreams</span>: <a href="../api.html#SystemStreams-0" t="t">SystemStreams</a>, <span t="k"></span><span data-unresolved-link="" t="n">getEvaluator</span>: () <span t="k">=&gt;</span> <a href="../api/daemon/internal/EvaluatorApi.html" t="t">EvaluatorApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">offline</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">useFileLocks</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">staticBuildOverrideFiles</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">enableTicker</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">depth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">isFinalDepth</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">spanningInvalidationTree</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">versionMismatchReasons</span>: <span data-unresolved-link="" t="t">ConcurrentHashMap</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">String</span>] = ...)<span t="k"> extends </span><a href="GroupExecution.html" t="t">GroupExecution</a><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">AutoCloseable</span></span>
+  <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Execution.html" t="n" class="documentableName ">Execution</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">baseLogger</span>: <a href="../api.html#Logger-0" t="t">Logger</a>, <span t="k"></span><span data-unresolved-link="" t="n">profileLogger</span>: <a href="../internal/JsonArrayLogger$$Profile.html" t="t">Profile</a>, <span t="k"></span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">outPath</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">externalOutPath</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">rootModule</span>: <a href="../api/daemon/internal/BaseModuleApi.html" t="t">BaseModuleApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">classLoaderSigHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">classLoaderIdentityHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">workerCache</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Int</span>, <a href="../api.html#Val-0" t="t">Val</a>, <a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>])], <span t="k"></span><span data-unresolved-link="" t="n">env</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">failFast</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">ec</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">ThreadPoolExecutor</span>], <span t="k"></span><span data-unresolved-link="" t="n">codeSignatures</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">systemExit</span>: (<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>) <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Nothing</span>, <span t="k"></span><span data-unresolved-link="" t="n">exclusiveSystemStreams</span>: <a href="../api.html#SystemStreams-0" t="t">SystemStreams</a>, <span t="k"></span><span data-unresolved-link="" t="n">getEvaluator</span>: () <span t="k">=&gt;</span> <a href="../api/daemon/internal/EvaluatorApi.html" t="t">EvaluatorApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">offline</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">useFileLocks</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">staticBuildOverrideFiles</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">enableTicker</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">depth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">isFinalDepth</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">spanningInvalidationTree</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">versionMismatchReasons</span>: <span data-unresolved-link="" t="t">ConcurrentHashMap</span>[<a href="../api/Task.html" t="t">Task</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">String</span>] = ...)<span t="k"> extends </span><a href="GroupExecution.html" t="t">GroupExecution</a><span t="k">, </span></span><span class="signature-long"><span data-unresolved-link="" t="t">AutoCloseable</span></span>
  </div>
 </div>
 <div class="cover">
@@ -134,7 +134,7 @@ node9 -> node2;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Execution.html#<init>-1e7" t="n" class="documentableName ">this</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">baseLogger</span>: <a href="../api.html#Logger-0" t="t">Logger</a>, <span t="k"></span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">outPath</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">externalOutPath</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">rootModule</span>: <a href="../api/daemon/internal/BaseModuleApi.html" t="t">BaseModuleApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">classLoaderSigHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">classLoaderIdentityHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">workerCache</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Int</span>, <a href="../api.html#Val-0" t="t">Val</a>)], <span t="k"></span><span data-unresolved-link="" t="n">env</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">failFast</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">ec</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">ThreadPoolExecutor</span>], <span t="k"></span><span data-unresolved-link="" t="n">codeSignatures</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">systemExit</span>: (<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>) <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Nothing</span>, <span t="k"></span><span data-unresolved-link="" t="n">exclusiveSystemStreams</span>: <a href="../api.html#SystemStreams-0" t="t">SystemStreams</a>, <span t="k"></span><span data-unresolved-link="" t="n">getEvaluator</span>: () <span t="k">=&gt;</span> <a href="../api/daemon/internal/EvaluatorApi.html" t="t">EvaluatorApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">offline</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">useFileLocks</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">staticBuildOverrideFiles</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">enableTicker</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">depth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">isFinalDepth</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">spanningInvalidationTree</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>])
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Execution.html#<init>-1e7" t="n" class="documentableName ">this</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">baseLogger</span>: <a href="../api.html#Logger-0" t="t">Logger</a>, <span t="k"></span><span data-unresolved-link="" t="n">workspace</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">outPath</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">externalOutPath</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">rootModule</span>: <a href="../api/daemon/internal/BaseModuleApi.html" t="t">BaseModuleApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">classLoaderSigHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">classLoaderIdentityHash</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">workerCache</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Int</span>, <a href="../api.html#Val-0" t="t">Val</a>, <a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>])], <span t="k"></span><span data-unresolved-link="" t="n">env</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">failFast</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">ec</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">ThreadPoolExecutor</span>], <span t="k"></span><span data-unresolved-link="" t="n">codeSignatures</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">systemExit</span>: (<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">Int</span>) <span t="k">=&gt;</span> <span data-unresolved-link="" t="t">Nothing</span>, <span t="k"></span><span data-unresolved-link="" t="n">exclusiveSystemStreams</span>: <a href="../api.html#SystemStreams-0" t="t">SystemStreams</a>, <span t="k"></span><span data-unresolved-link="" t="n">getEvaluator</span>: () <span t="k">=&gt;</span> <a href="../api/daemon/internal/EvaluatorApi.html" t="t">EvaluatorApi</a>, <span t="k"></span><span data-unresolved-link="" t="n">offline</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">useFileLocks</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">staticBuildOverrideFiles</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">Path</span>, <span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">enableTicker</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">depth</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">isFinalDepth</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">spanningInvalidationTree</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>])
            </div>
           </div>
          </div>
@@ -248,6 +248,36 @@ node9 -> node2;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="reverseDeps-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Execution.html#reverseDeps-0" t="n" class="documentableName ">reverseDeps</a>: <span data-unresolved-link="" t="t">Map</span>[<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>]]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/Execution.scala" target="_blank">Execution.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="withBaseLogger-ffffff39">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -284,6 +314,71 @@ node9 -> node2;
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Execution.html#withIsFinalDepth-a8d" t="n" class="documentableName ">withIsFinalDepth</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">newIsFinalDepth</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="Execution.html" t="t">Execution</a>
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/Execution.scala" target="_blank">Execution.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="workerDeps-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Execution.html#workerDeps-0" t="n" class="documentableName ">workerDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[(<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>]])]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Lazily computed worker dependency graph and its reverse, for efficient worker closure ordering.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Lazily computed worker dependency graph and its reverse, for efficient worker closure ordering.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/Execution.scala" target="_blank">Execution.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="workerTopoIndex-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Execution.html#workerTopoIndex-0" t="n" class="documentableName ">workerTopoIndex</a>: <span data-unresolved-link="" t="t">Map</span>[<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">Int</span>]
            </div>
           </div>
          </div>
@@ -421,7 +516,7 @@ node9 -> node2;
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-daemon/dfe4dfe6/sandbox/library/src/scala/Product.scala" target="_blank">Product.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-daemon/355af4a5/sandbox/library/src/scala/Product.scala" target="_blank">Product.scala</a>
               </dd>
              </dl>
             </div>
@@ -468,7 +563,7 @@ node9 -> node2;
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-daemon/dfe4dfe6/sandbox/library/src/scala/Product.scala" target="_blank">Product.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-daemon/355af4a5/sandbox/library/src/scala/Product.scala" target="_blank">Product.scala</a>
               </dd>
              </dl>
             </div>

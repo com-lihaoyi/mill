@@ -435,6 +435,36 @@ node4 -> node0;
           </div>
          </div>
         </div>
+        <div class="documentableElement" id="reverseDeps-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="GroupExecution.html#reverseDeps-0" t="n" class="documentableName ">reverseDeps</a>: <span data-unresolved-link="" t="t">Map</span>[<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>]]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/GroupExecution.scala" target="_blank">GroupExecution.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
         <div class="documentableElement" id="rootModule-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -595,7 +625,7 @@ node4 -> node0;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="GroupExecution.html#workerCache-0" t="n" class="documentableName ">workerCache</a>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Int</span>, <a href="../api.html#Val-0" t="t">Val</a>)]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="GroupExecution.html#workerCache-0" t="n" class="documentableName ">workerCache</a>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, (<span data-unresolved-link="" t="t">Int</span>, <a href="../api.html#Val-0" t="t">Val</a>, <a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>])]
            </div>
           </div>
          </div>
@@ -605,12 +635,77 @@ node4 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p><code>String</code> is the worker name, <code>Int</code> is the worker hash, <code>Val</code> is the result of the worker invocation.</p>
+             <p><code>String</code> is the worker name, <code>Int</code> is the worker hash, <code>Val</code> is the worker instance, <code>TaskApi[?]</code> is the worker's Task (for traversing dependencies during ordered closure).</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p><code>String</code> is the worker name, <code>Int</code> is the worker hash, <code>Val</code> is the result of the worker invocation.</p>
+              <p><code>String</code> is the worker name, <code>Int</code> is the worker hash, <code>Val</code> is the worker instance, <code>TaskApi[?]</code> is the worker's Task (for traversing dependencies during ordered closure).</p>
              </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/GroupExecution.scala" target="_blank">GroupExecution.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="workerDeps-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="GroupExecution.html#workerDeps-0" t="n" class="documentableName ">workerDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[(<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">Seq</span>[<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>]])]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Lazily computed worker dependency graph and its reverse, for efficient worker closure ordering.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Lazily computed worker dependency graph and its reverse, for efficient worker closure ordering.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/exec/src/mill/exec/GroupExecution.scala" target="_blank">GroupExecution.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="workerTopoIndex-0">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="GroupExecution.html#workerTopoIndex-0" t="n" class="documentableName ">workerTopoIndex</a>: <span data-unresolved-link="" t="t">Map</span>[<a href="../api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="k">_</span>], <span data-unresolved-link="" t="t">Int</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
