@@ -5,7 +5,7 @@ https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.sh
 https://github.com/com-lihaoyi/mill[image:https://img.shields.io/github/stars/com-lihaoyi/mill[GitHub Repo stars]]
 
 
-Mill is a build tool that tries to improve upon the tools traditionally used
+Mill is a build tool that improves upon the tools traditionally used
 in the JVM ecosystem:
 
 * **xref:comparisons/maven.adoc[Simpler than Maven]**, with declarative `build.mill.yaml` files
@@ -54,10 +54,10 @@ include::partial$Asciinema_Comparison.adoc[]
 
 * *Simplicity*: Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative
 build.mill.yaml files] contain only the essence of what you want to configure in
-your build, stripping away the reams of boilerplate and endless complexity that have built
-up in traditional JVM build tools over the years
+your build, stripping away the reams of boilerplate and endless complexity in traditional
+JVM build tools that plague even the most simple build configurations
 +
-[cols="1a,1a"]
+[cols="1a,2a"]
 |===
 | Mill `build.mill.yaml`
 ```yaml
@@ -82,17 +82,11 @@ mvnDeps:
   <build>
     <plugins>
       <plugin>
-        <groupId>
-          org.codehaus.mojo
-        </groupId>
-        <artifactId>
-          exec-maven-plugin
-        </artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
         <version>3.2.0</version>
         <configuration>
-          <mainClass>
-            HtmlScraper
-          </mainClass>
+          <mainClass>HtmlScraper</mainClass>
         </configuration>
       </plugin>
     </plugins>
