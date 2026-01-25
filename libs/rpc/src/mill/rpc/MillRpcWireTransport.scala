@@ -56,14 +56,8 @@ class MillRpcWireTransport(
         None
 
       // Empty line means a heartbeat message
-      case Some("") =>
-        readAndTryToParse[A](typeName, log, firstInvocation = false)
-
-      case Some(line) =>
-        log(s"Received, will try to parse as $typeName: $line")
-        val parsed = upickle.read(line)
-        log(s"Parsed: ${pprint.apply(parsed)}")
-        Some(parsed)
+      case Some("") => readAndTryToParse[A](typeName, log, firstInvocation = false)
+      case Some(line) => Some(upickle.read(line))
     }
   }
 
