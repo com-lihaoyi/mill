@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TaskApi, TestReporter}
 import upickle.core.BufferedValue
 
 import java.io.ByteArrayOutputStream
@@ -33,7 +33,11 @@ trait GroupExecution {
    */
   def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
 
-  def workerCache: mutable.Map[String, (Int, Val, mill.api.daemon.internal.TaskApi[?])]
+  /**
+   * `String` is the worker name, `Int` is the worker hash, `Val` is the worker instance,
+   * `TaskApi[?]` is the worker's Task (for traversing dependencies during ordered closure).
+   */
+  def workerCache: mutable.Map[String, (Int, Val, TaskApi[?])]
 
   def env: Map[String, String]
   def failFast: Boolean
@@ -709,26 +713,7 @@ trait GroupExecution {
     }
 
     val allToClose = findDependents(workerName, Set.empty) + workerName
-    val remaining = mutable.Set.from(allToClose)
-
-    // Close in reverse dependency order (no remaining dependents first)
-    while (remaining.nonEmpty) {
-      val safeToClose = remaining.filter { w =>
-        remaining.forall(other => !workerDeps.getOrElse(other, Set.empty).contains(w))
-      }
-      val toClose = if (safeToClose.isEmpty) remaining.take(1).toSet else safeToClose
-
-      for (name <- toClose) {
-        cacheSnapshot.get(name).foreach {
-          case (_, Val(closeable: AutoCloseable), _) =>
-            try closeable.close()
-            catch { case _: Throwable => }
-          case _ =>
-        }
-        remaining -= name
-      }
-    }
-
+    GroupExecution.closeWorkersInTopologicalOrder(allToClose, cacheSnapshot)
     workerCache.synchronized { allToClose.foreach(workerCache.remove) }
   }
 
@@ -895,10 +880,7 @@ object GroupExecution {
       serializedPaths: Seq[PathRef]
   )
 
-  def findTransitiveWorkerDependencies(
-      task: mill.api.daemon.internal.TaskApi[?],
-      visited: Set[mill.api.daemon.internal.TaskApi[?]]
-  ): Set[String] = {
+  def findTransitiveWorkerDependencies(task: TaskApi[?], visited: Set[TaskApi[?]]): Set[String] = {
     if (visited.contains(task)) Set.empty
     else {
       val directWorkerDeps = task.inputsApi.flatMap(_.workerNameApi).toSet
@@ -909,7 +891,7 @@ object GroupExecution {
 
   def closeWorkersInTopologicalOrder(
       workersToClose: Set[String],
-      workerCache: Map[String, (Int, Val, mill.api.daemon.internal.TaskApi[?])]
+      workerCache: Map[String, (Int, Val, TaskApi[?])]
   ): Seq[String] = {
     val workerDeps: Map[String, Set[String]] = workerCache.collect {
       case (name, (_, _, task)) if workersToClose.contains(name) =>
