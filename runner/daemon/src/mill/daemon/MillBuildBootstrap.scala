@@ -335,7 +335,9 @@ class MillBuildBootstrap(
               allWorkers,
               mutableCache,
               topoIndex,
-              closeable => try closeable.close() catch { case _: Throwable => }
+              closeable =>
+                try closeable.close()
+                catch { case _: Throwable => }
             )
           }
 

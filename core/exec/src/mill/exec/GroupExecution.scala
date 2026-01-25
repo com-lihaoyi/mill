@@ -733,8 +733,10 @@ trait GroupExecution {
         case (_, Val(_: AutoCloseable), _) =>
           // Close this worker and all workers that depend on it
           val allToClose =
-            SpanningForest.breadthFirst(Seq(labelled: TaskApi[?]))(n => reverseDeps.getOrElse(n, Nil))
-            .filter(_.workerNameApi.isDefined)
+            SpanningForest.breadthFirst(Seq(labelled: TaskApi[?]))(n =>
+              reverseDeps.getOrElse(n, Nil)
+            )
+              .filter(_.workerNameApi.isDefined)
           GroupExecution.closeWorkersInReverseTopologicalOrder(
             allToClose,
             workerCache,
