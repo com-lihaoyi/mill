@@ -21,6 +21,18 @@ class MillRpcWireTransport(
     }
   }
 
+  /**
+   * Writes an empty line as a heartbeat and returns whether the write succeeded.
+   * Unlike `write("")`, this checks for errors since `PrintStream` swallows exceptions internally.
+   */
+  def writeHeartbeat(): Boolean = {
+    writeSynchronizer.synchronized {
+      clientToServer.println("")
+      clientToServer.flush()
+      !clientToServer.checkError()
+    }
+  }
+
   def close(): Unit = {
     serverToClient.close()
     clientToServer.close()

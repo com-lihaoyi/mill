@@ -46,13 +46,9 @@ abstract class MillDaemonServer[State](
   ): Boolean = {
     // The RPC protocol handles heartbeats via empty lines
     // We just need to check if the connection is still open
-    // Use the transport's synchronized write to avoid race conditions with RPC messages
-    try {
-      data.rpcTransport.write("")
-      true
-    } catch {
-      case _: IOException => false
-    }
+    // Use the transport's synchronized writeHeartbeat to avoid race conditions with RPC messages
+    // and to properly check for errors (PrintStream swallows IOExceptions internally)
+    data.rpcTransport.writeHeartbeat()
   }
 
   override def prepareConnection(
@@ -203,11 +199,15 @@ abstract class MillDaemonServer[State](
       }
     }
 
-    // Close the transport to release resources
-    data.foreach { d =>
-      try d.rpcTransport.close()
-      catch { case _: Exception => }
-    }
+    // Close only the raw output stream, not the full transport.
+    // We avoid closing the transport because:
+    // 1. Closing the input stream first could send a TCP RST and lose output data
+    // 2. Closing the PrintStream (vs raw stream) would cause subsequent writes to
+    //    throw, breaking other connections' heartbeat checks
+    try {
+      connectionData.serverToClient.flush()
+      connectionData.serverToClient.close()
+    } catch { case _: Exception => }
   }
 
   def systemExit(exitCode: Int): Nothing = sys.exit(exitCode)

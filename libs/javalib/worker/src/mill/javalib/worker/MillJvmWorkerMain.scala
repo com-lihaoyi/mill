@@ -10,8 +10,7 @@ import mill.server.Server
 import mill.server.Server.ConnectionData
 import pprint.{TPrint, TPrintColors}
 
-import java.io.{BufferedReader, IOException, InputStreamReader, PrintStream}
-import scala.util.Using
+import java.io.{BufferedReader, InputStreamReader, PrintStream}
 
 /** Entry point for the Zinc worker subprocess. */
 object MillJvmWorkerMain {
@@ -111,13 +110,9 @@ object MillJvmWorkerMain {
         connectionData: ConnectionData,
         data: JvmWorkerServerData
     ): Boolean = {
-      // Use the transport's synchronized write to avoid race conditions with RPC messages
-      try {
-        data.rpcTransport.write("")
-        true
-      } catch {
-        case _: IOException => false
-      }
+      // Use the transport's synchronized writeHeartbeat to avoid race conditions with RPC messages
+      // and to properly check for errors (PrintStream swallows IOExceptions internally)
+      data.rpcTransport.writeHeartbeat()
     }
   }
 }
