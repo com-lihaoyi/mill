@@ -3,6 +3,7 @@ package mill.eval
 import mill.api.daemon.internal.{CompileProblemReporter, TaskApi, TestReporter}
 import mill.constants.OutFiles.OutFiles
 import mill.api.{PathRef, *}
+import scala.collection.mutable
 import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
@@ -46,7 +47,7 @@ final class EvaluatorImpl(
   def outPath = execution.outPath
   def codeSignatures = execution.codeSignatures
   def rootModule = execution.rootModule.asInstanceOf[RootModule0]
-  def workerCache = execution.workerCache.asInstanceOf[scala.collection.mutable.Map[String, (Int, Val, TaskApi[?])]]
+  def workerCache = execution.workerCache.asInstanceOf[mutable.Map[String, (Int, Val, TaskApi[?])]]
   def env = execution.env
   def effectiveThreadCount = execution.effectiveThreadCount
   override def offline: Boolean = execution.offline
