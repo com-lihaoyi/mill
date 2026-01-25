@@ -607,7 +607,7 @@ object MillMain0 {
       streams.in
     )
 
-    // Create terminal dimensions callback - uses RPC if available, otherwise gets directly via tput
+    // Create terminal dimensions callback - uses RPC if available, otherwise gets directly
     val terminalDimsCallback: () => Option[(Option[Int], Option[Int])] = serverToClientOpt match {
       case Some(serverToClient) => () =>
         try {
@@ -617,10 +617,8 @@ object MillMain0 {
           case _: Exception => None
         }
       case None => () =>
-        def tputDim(s: String) =
-          try Some(os.proc("tput", s).call(stdin = os.Inherit, check = false).out.trim().toInt)
-          catch { case _: Exception => None }
-        Some((tputDim("cols"), tputDim("lines")))
+        val result = mill.launcher.MillProcessLauncher.getTerminalDims()
+        Some((result.width, result.height))
     }
 
     val promptLogger = new PromptLogger(
