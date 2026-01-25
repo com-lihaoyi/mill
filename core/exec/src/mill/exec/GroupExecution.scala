@@ -11,6 +11,7 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
 import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TaskApi, TestReporter}
+import mill.internal.SpanningForest
 import upickle.core.BufferedValue
 
 import java.io.ByteArrayOutputStream
@@ -694,29 +695,6 @@ trait GroupExecution {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
   }
 
-  private def closeWorkerAndDependents(workerName: String): Unit = {
-    val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
-
-    val workerDeps: Map[String, Set[String]] = cacheSnapshot.map { case (name, (_, _, task)) =>
-      name -> GroupExecution.findTransitiveWorkerDependencies(task, Set.empty)
-    }
-
-    // Find all workers that transitively depend on the given worker
-    def findDependents(name: String, visited: Set[String]): Set[String] = {
-      if (visited.contains(name)) Set.empty
-      else {
-        val directDependents = workerDeps.collect {
-          case (dependent, deps) if deps.contains(name) => dependent
-        }.toSet
-        directDependents ++ directDependents.flatMap(d => findDependents(d, visited + name))
-      }
-    }
-
-    val allToClose = findDependents(workerName, Set.empty) + workerName
-    GroupExecution.closeWorkersInTopologicalOrder(allToClose, cacheSnapshot)
-    workerCache.synchronized { allToClose.foreach(workerCache.remove) }
-  }
-
   private def loadUpToDateWorker(
       logger: Logger,
       inputsHash: Int,
@@ -743,7 +721,13 @@ trait GroupExecution {
           Some(upToDate)
 
         case (_, Val(_: AutoCloseable), _) =>
-          closeWorkerAndDependents(labelled.asWorker.get.ctx.segments.render)
+          // Close this worker and all workers that depend on it
+          val workerName = labelled.asWorker.get.ctx.segments.render
+          val cacheSnapshot = workerCache.synchronized { workerCache.toMap }
+          val allToClose =
+            GroupExecution.transitiveReverseDependencies(workerName, cacheSnapshot) + workerName
+          GroupExecution.closeWorkersInTopologicalOrder(allToClose, cacheSnapshot)
+          workerCache.synchronized { allToClose.foreach(workerCache.remove) }
           None
 
         case _ => None
@@ -880,46 +864,44 @@ object GroupExecution {
       serializedPaths: Seq[PathRef]
   )
 
-  def findTransitiveWorkerDependencies(task: TaskApi[?], visited: Set[TaskApi[?]]): Set[String] = {
-    if (visited.contains(task)) Set.empty
-    else {
-      val directWorkerDeps = task.inputsApi.flatMap(_.workerNameApi).toSet
-      val transitiveDeps = task.inputsApi.flatMap(t => findTransitiveWorkerDependencies(t, visited + task))
-      directWorkerDeps ++ transitiveDeps
+  private def workerDependencies(
+      workerCache: Map[String, (Int, Val, TaskApi[?])]
+  ): Map[String, Set[String]] = {
+    def findDeps(task: TaskApi[?], visited: Set[TaskApi[?]]): Set[String] = {
+      if (visited.contains(task)) Set.empty
+      else {
+        val direct = task.inputsApi.flatMap(_.workerNameApi).toSet
+        val transitive = task.inputsApi.flatMap(t => findDeps(t, visited + task))
+        direct ++ transitive
+      }
     }
+    workerCache.map { case (name, (_, _, task)) => name -> findDeps(task, Set.empty) }
+  }
+
+  def transitiveReverseDependencies(
+      workerName: String,
+      workerCache: Map[String, (Int, Val, TaskApi[?])]
+  ): Set[String] = {
+    val reverseDeps = SpanningForest.reverseEdges(workerDependencies(workerCache))
+    SpanningForest.breadthFirst(Seq(workerName))(n => reverseDeps.getOrElse(n, Nil)).toSet - workerName
   }
 
   def closeWorkersInTopologicalOrder(
       workersToClose: Set[String],
       workerCache: Map[String, (Int, Val, TaskApi[?])]
-  ): Seq[String] = {
-    val workerDeps: Map[String, Set[String]] = workerCache.collect {
-      case (name, (_, _, task)) if workersToClose.contains(name) =>
-        name -> findTransitiveWorkerDependencies(task, Set.empty)
-    }
+  ): Unit = {
+    val deps = workerDependencies(workerCache).view.filterKeys(workersToClose).toMap
+    val roots = workersToClose.filter(w => !deps.values.flatten.toSet.contains(w))
+    val reverseDeps = SpanningForest.reverseEdges(deps)
 
-    val closedWorkers = mutable.Buffer.empty[String]
-    val remaining = mutable.Set.from(workersToClose)
-
-    while (remaining.nonEmpty) {
-      val safeToClose = remaining.filter { w =>
-        remaining.forall(other => !workerDeps.getOrElse(other, Set.empty).contains(w))
-      }
-
-      val toClose = if (safeToClose.isEmpty) remaining.take(1).toSet else safeToClose
-
-      for (name <- toClose) {
-        workerCache.get(name).foreach {
-          case (_, Val(closeable: AutoCloseable), _) =>
-            try closeable.close()
-            catch { case _: Throwable => }
-          case _ =>
-        }
-        closedWorkers += name
-        remaining -= name
+    // BFS from roots (workers with no dependents) gives reverse topological order
+    for (name <- SpanningForest.breadthFirst(roots)(n => reverseDeps.getOrElse(n, Nil))) {
+      workerCache.get(name).foreach {
+        case (_, Val(closeable: AutoCloseable), _) =>
+          try closeable.close()
+          catch { case _: Throwable => }
+        case _ =>
       }
     }
-
-    closedWorkers.toSeq
   }
 }
