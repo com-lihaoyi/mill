@@ -16,8 +16,7 @@ case class JvmWorkerArgs(
     jobs: Int,
     zincLogDebug: Boolean,
     useFileLocks: Boolean,
-    close0: () => Unit,
-    zincLocalWorker0: Any
+    close0: () => Unit
 )
 
 @internal
