@@ -496,7 +496,7 @@ object Server {
           throw new Exception(s"${activeTaskPrefix(command)} failing")
         } else {
           val (command, runningProcessDir) = readActiveInfo()
-          val consoleLogPath = runningProcessDir.getOrElse(daemonDir) / DaemonFiles.consoleLog
+          val consoleLogPath = out / DaemonFiles.millConsoleTail
           streams.err.println(
             s"${activeTaskPrefix(command)} waiting for it to be done... " +
               s"(tail -F ${consoleLogPath.relativeTo(mill.api.BuildCtx.workspaceRoot)} to see its progress)"

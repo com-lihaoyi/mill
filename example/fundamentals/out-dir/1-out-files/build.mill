@@ -263,6 +263,14 @@ out/mill-daemon
 // except in code using Java Reflection or similar techniques which the code-change analysis
 // does not understand.
 //
+// === `mill-console-tail`
+//
+// `out/mill-console-tail` is a rotating log file that you can `tail -F` to see the streaming
+// logs of the currently running Mill process, including the prompt that displays the currently
+// running tasks. This is useful if Mill is being run by some external script or workflow which
+// otherwise would not be streaming the status and logs to your terminal, so you can figure out
+// what the Mill process is doing and whether it is stuck or making progress.
+//
 // === `mill-build/`
 //
 // Contains the files related ot the xref:extending/meta-build.adoc[]. It contains many
