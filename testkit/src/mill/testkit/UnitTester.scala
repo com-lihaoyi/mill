@@ -97,7 +97,7 @@ class UnitTester(
         systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         titleText = "",
-        terminfoPath = os.temp(),
+        terminalDimsCallback = () => None,
         currentTimeMillis = () => System.currentTimeMillis(),
         chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {

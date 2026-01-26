@@ -44,26 +44,17 @@ class MillRpcWireTransport(
   /** Helper that reads a message from the wire and tries to parse it, logging along the way. */
   @tailrec final def readAndTryToParse[A: Reader](
       typeName: String,
-      log: String => Unit,
-      firstInvocation: Boolean = true
+      log: String => Unit
   ): Option[A] = {
     // Only log on the first invocation, not when we get a heartbeat
-    if (firstInvocation) log(s"Trying to read $typeName")
-
     read() match {
       case None =>
         log("Transport wire broken.")
         None
 
       // Empty line means a heartbeat message
-      case Some("") =>
-        readAndTryToParse[A](typeName, log, firstInvocation = false)
-
-      case Some(line) =>
-        log(s"Received, will try to parse as $typeName: $line")
-        val parsed = upickle.read(line)
-        log(s"Parsed: ${pprint.apply(parsed)}")
-        Some(parsed)
+      case Some("") => readAndTryToParse[A](typeName, log)
+      case Some(line) => Some(upickle.read(line))
     }
   }
 

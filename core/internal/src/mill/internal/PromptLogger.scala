@@ -27,7 +27,7 @@ class PromptLogger(
     systemStreams0: SystemStreams,
     debugEnabled: Boolean,
     titleText: String,
-    terminfoPath: os.Path,
+    terminalDimsCallback: () => Option[(Option[Int], Option[Int])],
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true,
     val chromeProfileLogger: JsonArrayLogger.ChromeProfile
@@ -40,9 +40,9 @@ class PromptLogger(
   override def redirectOutToErr: Boolean = false
   override def unprefixedStreams: SystemStreams = streams
 
-  private var termDimensions: (Option[Int], Option[Int]) = (None, None)
+  @volatile private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 
-  readTerminalDims(terminfoPath).foreach(termDimensions = _)
+  terminalDimsCallback().foreach(termDimensions = _)
 
   def isInteractive() = termDimensions._1.nonEmpty
 
@@ -82,7 +82,7 @@ class PromptLogger(
           case _: InterruptedException => /*do nothing*/
         }
 
-        readTerminalDims(terminfoPath).foreach(termDimensions = _)
+        terminalDimsCallback().foreach(termDimensions = _)
 
         val now = System.currentTimeMillis()
         if (
