@@ -185,7 +185,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       initialSystemProperties
     )
 
-    val connExitCodeVar = new java.util.concurrent.atomic.AtomicReference[Option[Handled]](None)
+    @volatile var connExitCodeVar = Option.empty[Handled]
 
     // Guard to prevent endConnection from being called multiple times.
     // This is needed because endConnection can be triggered from multiple places:
@@ -223,10 +223,10 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
     // message to see if the socket can receive data.
-    @volatile var lastClientAlive = true
+    var lastClientAlive = true
 
     def checkClientAlive() = {
-      val result =
+      lastClientAlive =
         try checkIfClientAlive(connectionData, data)
         catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) =>
@@ -238,8 +238,8 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
             )
             false
         }
-      lastClientAlive = result
-      result
+
+      lastClientAlive
     }
 
     try {
@@ -251,7 +251,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
           val connResult =
             handleConnection(connectionData, closeServer(_, _, Some(data)), idle = _, data)
 
-          connExitCodeVar.compareAndSet(None, Some(connResult))
+          connExitCodeVar = Some(connResult)
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>
@@ -271,14 +271,12 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
         serverLog("client interrupted while server was executing command")
         // Close all other connected clients with exitCodeServerTerminated so they can retry
         connectionTracker.closeOtherConnections(clientSocket)
-        // Gracefully close the current client connection
-        safeEndConnection(Some(data), None)
-        // Shut down the server
-        closeServer0(None)
+        safeEndConnection(Some(data), None) // Gracefully close the current client connection
+        closeServer0(None) // Shut down the server
       }
 
       serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
-    } finally safeEndConnection(Some(data), connExitCodeVar.get())
+    } finally safeEndConnection(Some(data), connExitCodeVar)
   }
 }
 
