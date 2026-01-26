@@ -1,6 +1,6 @@
 = Comparing Mill vs Maven: Declarative Builds
 
-The xref:comparisons/maven.adoc[Maven] build tool is famous for pioneering the idea of
+The xref:comparisons/maven.adoc[Maven] build tool pioneered the idea of
 _"Declarative Builds"_: that you should only need to specify what your project needs,
 and the build tool should be able to get everything downloaded and cached and working on
 your behalf. However, although that is an excellent ideal to strive towards, in practice
@@ -112,7 +112,7 @@ However, the program _does_ use a third-party dependency - Jsoup - and so runnin
 longer so simple: we now need a build tool! The most common build tool in the Java ecosystem
 is Maven, and so you may want to set up a Maven `pom.xml` for the project.
 
-**CONSIDER: are you able to write out the `pom.xml` for this project
+**Are you able to write out the `pom.xml` for this project
 without copy-paste cargo-culting something from Stackoverflow or similar?**
 
 In practice, even experienced developers are not able to write ``pom.xml``s by hand. They're
@@ -151,13 +151,13 @@ an example `pom.xml` for the above project:
 
 Although copy-pasting something from Stackoverflow (or from an existing project, from ChatGPT,
 from Gemini, etc.) does get things working in the short term, longer term the boilerplate does
-have costs that may not be immediately obvious:
+have costs that may not be obvious up front:
 
 - When you need to _update_ the `pom.xml` later, splicing together multiple copy-pasted blobs
 of XML can be a lot more error-prone than copy-pasting things the first time
 
 - Although modern AI assistants like ChatGPT or Gemini are able to modify the code on your behalf,
-they sometimes make mistakes or hallucinate. Will you be able to catch these errors in the
+they sometimes make mistakes too! Will you be able to catch these errors in the
 reams of boilerplate?
 
 - When the build tool is misbehaving because something is misconfigured, and your AI assistant
@@ -168,7 +168,7 @@ But let's assume we have our `pom.xml` written, we next need to install Maven to
 
 === Installing Maven
 
-Next we need to install Maven. From the https://maven.apache.org/install.html[Maven docs], there
+From the https://maven.apache.org/install.html[Maven docs], there
 are a bunch of different commands needed for different operating systems or Linux distributions.
 
 ```console
@@ -198,14 +198,14 @@ using `mvn` rather than `./mvnw` out of muscle memory and getting confusing erro
 Similar to the challenges of xref:#_installing_java[], installing Maven __once__ isn't hard, but
 installing Maven consistently on your Mac laptop, or your colleague's Windows desktop, and
 on your Linux CI machines can be quite tricky! And trickier still is maintaining these
-installations as the different development environments inevitable evolve over time.
+installations as the various environments inevitable evolve over time.
 
 === Running your Java program
 
 Finally, now that we have our `HtmlScraper.java` written, `java` installed, our `pom.xml`
 set up, and `mvn` (or `./mvnw`) installed, we need to run our Java application.
 
-**CONSIDER: can you remember the command to run this Java application from the command line?**
+**Can you remember the command to run this Java application from the command line?**
 
 It's not
 
@@ -257,7 +257,7 @@ which gets in the way of the smooth user experience a declarative build tool sho
 able to provide. From installing Java and Maven to setting up the verbose `pom.xml` and
 the unusual command-line invocation syntax, none of this is rocket science. But it adds enough
 friction to our `HtmlScraper.java` that people prefer to write their small programs
-in Python or Javascript rather than in Java.
+in Python or Javascript instead.
 
 This is not for any fault of Java _the language_: while Java is a bit more verbose
 than Python or Bash, it is fine for writing this particular `HtmlScraper.java` program.

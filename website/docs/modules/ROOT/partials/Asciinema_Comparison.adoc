@@ -5,7 +5,7 @@
 <style>
 /* hack to make the stuff fit within the text body */
 .ap-terminal {
-  transform: scale(0.53);
+  transform: scale(0.55);
   transform-origin: top left;
 }
 </style>

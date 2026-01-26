@@ -294,6 +294,9 @@ method overrides.
 * We append the new resource entry to its prior value `super.resources()` that references
 the `resources/` folder on disk, so the resource folder on disk remains available
 
+* `Task.dest` is a path in the `out/` folder unique to each `Task`, so it can write files
+there without worrying about colliding with files written by other tasks
+
 This results in a small addition to the Mill build graph as shown below, with our
 two custom tasks `def lintCount` and `def resources` spliced in among existing Mill tasks:
 
@@ -320,29 +323,13 @@ the application code to use e.g. to print it out at runtime:
 Line Count: 18
 ----
 
-One thing worth highlighting is this `Task.dest` folder we are writing our `line-count.txt` file
-to. `Task.dest` is a path in the `out/` folder unique to each `Task`, so it can write files
-there without worrying about colliding with files written by other tasks. This makes the ownership
-of files in the `out/` folder clear, making it much easier for humans to understand where files
-came from and Mill itself to make use of that information (e.g. for automatic caching or invalidation).
-
 Nobody actually wants to count the lines of code in their program and write it in a resource file,
 but this example demonstrates how easy it is to extend your Mill module with custom logic in its
-own little pipeline: you just define method ``def``s calling other methods, `override`
-methods and call `super` as necessary. These are concepts that any Java developer has been using
-daily for decades, and Mill lets you re-use those concepts to configure and customize your build
-tool without having to learn a whole new set of build-tool-specific APIs.
-
-It's worth contrasting the Mill config above with e.g. the
-xref:#_extending_gradle[equivalent Gradle configuration] we discussed earlier.
-Where Gradle's programmatic configuration is built on top of global mutable variables,
-Mill is instead built on ``class``es,  `extends`, method ``def``s and calls, and `overrides`.
+own little pipeline. Where Gradle's programmatic configuration is built on top of global mutable
+variables, Mill is instead built on ``class``es,  `extends`, method ``def``s and calls, and `overrides`.
 These behave exactly as you would expect any object-oriented program to work, so you already
-know how Mill behaves even if you've never touched a Mill build before. And the fact
-that Mill build config is so much easier to write means that you're much less likely
-to have bugs causing slowness or flakiness, resulting in the improved performance
-(discussed above) and not needing to regularly run `clean` as you often have to do with other
-build tools.
+know how Mill behaves even if you've never touched a Mill build before, and will very likely
+get your Mill customizations right the first time without issue.
 
 === Mill IDE Support
 

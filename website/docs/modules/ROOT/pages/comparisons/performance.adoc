@@ -10,8 +10,6 @@ Maven (Right) running side by side compiling the Netty codebase.
 
 :cast-file: ../_images/basic/MillMavenComparison.cast
 
-* _Mill vs Maven_
-+
 include::partial$Asciinema_Comparison.adoc[]
 
 
@@ -35,11 +33,11 @@ both parallel and sequential, and for many modules or for a single module:
 
 |===
 | Benchmark | Maven | Mill | Speedup
-| Sequential Clean Compile All | 98.80s | 23.41s | 4.2x
-| Parallel Clean Compile All | 48.92s | 9.29s | 5.3x
-| Clean Compile Single Module | 4.89s | 0.88s | 5.6x
-| Incremental Compile Single Module | 6.82s | 0.18s | 37.9x
-| No-Op Compile Single Module | 5.25s | 0.12s  | 43.8x
+| Sequential Clean Compile All | 98.78s | 24.43s | 4.0x
+| Parallel Clean Compile All | 50.67s | 10.35s | 4.9x
+| Clean Compile Single Module | 6.33s | 0.90s | 7.0x
+| Incremental Compile Single Module | 6.76s | 0.22s | 30.7x
+| No-Op Compile Single Module | 5.28s | 0.12s  | 44.0x
 |===
 
 First, let's look at *Parallel Clean Compile All*.
@@ -83,11 +81,11 @@ same work.
 
 |===
 | Benchmark | Gradle | Mill | Speedup
-| Sequential Clean Compile All | 17.6s | 5.86s | 3.0x
-| Parallel Clean Compile All | 12.3s | 3.75s | 3.3x
-| Clean Compile Single Module | 4.41s | 1.30s | 3.4x
-| Incremental Compile Single Module | 1.37s | 0.20s | 6.9x
-| No-Op Compile Single Module | 0.94s | 0.11s | 8.5x
+| Sequential Clean Compile All | 18.3s | 5.0s | 3.7x
+| Parallel Clean Compile All | 14.8s | 3.87s | 3.6x
+| Clean Compile Single Module | 4.65s | 0.89s | 5.2x
+| Incremental Compile Single Module | 1.61s | 0.28s | 5.9x
+| No-Op Compile Single Module | 1.02s | 0.10s | 10.2x
 |===
 
 Mill's various "clean compile" workflows 3-4x faster than Gradle's, while it's incremental
@@ -181,16 +179,13 @@ For the benchmarks below, each provided number is the wall time of three consecu
 on my M1 Macbook Pro using Java 17 and Mill `0.12.9-native`. While ad-hoc, these benchmarks
 are enough to give you a flavor of how Mill's performance compares to Maven:
 
-[cols="1,1,1,1"]
 |===
 | Benchmark | Maven | Mill | Speedup
-
-
-| <<Sequential Clean Compile All>> | 98.80s | 23.41s | 4.2x
-| <<Parallel Clean Compile All>> | 48.92s | 9.29s | 5.3x
-| <<Clean Compile Single-Module>> | 4.89s | 0.88s | 5.6x
-| <<Incremental Compile Single-Module>> | 6.82s | 0.18s | 37.9x
-| <<No-Op Compile Single-Module>> | 5.25s | 0.12s  | 43.8x
+| Sequential Clean Compile All | 98.78s | 24.43s | 4.0x
+| Parallel Clean Compile All | 50.67s | 10.35s | 4.9x
+| Clean Compile Single Module | 6.33s | 0.90s | 7.0x
+| Incremental Compile Single Module | 6.76s | 0.22s | 30.7x
+| No-Op Compile Single Module | 5.28s | 0.12s  | 44.0x
 |===
 
 The column on the right shows the speedups of how much faster Mill is compared to the
@@ -203,15 +198,15 @@ we can explain the difference in performing the same task with the two different
 
 [source,console]
 ----
-$ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
-98.80s
-96.14s
-99.95s
+$ ./mvnw clean; time ./mvnw -Pfast -Denforcer.skip=true install
+97.20s
+98.35s
+100.8s
 
-$ ./mill clean; time ./mill -j1 __.compile
-22.83s
-23.41s
-23.47s
+$ ./mill clean _; time ./mill -j1 __.compile
+25.65s
+23.63s
+24.02s
 ----
 
 This benchmark exercises the simple "build everything from scratch" workflow, with all remote
@@ -258,10 +253,10 @@ Maven's overhead adds to the clean build:
 
 [source,console]
 ----
-$ ./mill clean; time ./mill -j1 __.jar
-26.74s
-26.02s
-26.53s
+$ ./mill clean _; time ./mill -j1 __.jar
+27.92s
+27.85s
+29.01s
 ----
 
 From this benchmark, we can see that although both Mill and Maven are doing the same work,
@@ -276,15 +271,15 @@ to avoid.
 
 [source,console]
 ----
-$ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-48.92s
-48.41s
-49.50s
+$ ./mvnw clean; time ./mvnw -T 10 -Pfast -Denforcer.skip=true install
+51.48s
+49.17s
+51.36s
 
-$ ./mill clean; time ./mill __.compile
-10.95s
-8.51s
-9.29s
+$ ./mill clean _; time ./mill __.compile
+10.73s
+10.05s
+10.27s
 ----
 
 This example compares Maven v.s. Mill, when performing the clean build on 10 threads.
@@ -301,15 +296,15 @@ when performing a clean build of the Netty repository.
 
 [source,console]
 ----
-$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
-4.85s
-4.96s
-4.89s
+$ ./mvnw clean; time ./mvnw -pl common -Pfast -Denforcer.skip=true -Dmaven.test.skip=true install
+6.38s
+6.46s
+6.17s
 
 $ ./mill clean common; time ./mill common.compile
-0.88s
-0.97s
-0.73s
+0.89s
+0.91s
+0.90s
 ----
 
 This exercise limits the comparison to compiling a single module, in this case `common/`,
@@ -331,17 +326,17 @@ $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=t
 Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
 Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
 
-6.89s
-6.34s
-6.82s
+7.75s
+6.33s
+6.22s
 
 
 $ echo "" >> common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mill common.test.compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 
-0.18s
-0.18s
+0.22s
+0.23s
 0.21s
 ----
 
@@ -428,14 +423,14 @@ the same thing in Maven
 
 [source,console]
 ----
-$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-5.08s
-5.25s
-5.26s
+$ time ./mvnw -pl common -Pfast -Denforcer.skip=true install
+6.31s
+4.76s
+4.77s
 
 $ time ./mill common.test.compile
-0.14s
 0.12s
+0.11s
 0.12s
 ----
 
@@ -503,16 +498,16 @@ For the benchmarks below, each provided number is the median wall time of three 
 on my M1 Macbook Pro with Java 17 and Mill `0.12.9-native`. While ad-hoc, these benchmarks are
 enough to give you a flavor of how Mill's performance compares to Gradle:
 
-[cols="1,1,1,1"]
+
 |===
 | Benchmark | Gradle | Mill | Speedup
-
-| <<Sequential Clean Compile All>> | 17.6s | 5.86s | 3.0x
-| <<Parallel Clean Compile All>> | 12.3s | 3.75s | 3.3x
-| <<Clean Compile Single-Module>> | 4.41s | 1.30s | 3.4x
-| <<Incremental Compile Single-Module>> | 1.37s | 0.20s | 6.9x
-| <<No-Op Compile Single-Module>> | 0.94s | 0.11s | 8.5x
+| Sequential Clean Compile All | 18.3s | 5.0s | 3.7x
+| Parallel Clean Compile All | 14.8s | 3.87s | 3.6x
+| Clean Compile Single Module | 4.65s | 0.89s | 5.2x
+| Incremental Compile Single Module | 1.61s | 0.28s | 5.9x
+| No-Op Compile Single Module | 1.02s | 0.10s | 10.2x
 |===
+
 
 The column on the right shows the speedups of how much faster Mill is compared to the
 equivalent Gradle workflow. In most cases,  Mill is 2-4x faster than Gradle. Below, we
@@ -523,15 +518,16 @@ we can explain the difference in performing the same task with the two different
 
 [source,console]
 ----
+$ # edit gradle.properties to set org.gradle.parallel=false
 $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
-17.6s
-18.2s
-17.4s
+18.28s
+18.26s
+18.28s
 
-$ ./mill clean; time ./mill -j 1 __.compile
-6.19s
-5.86s
-5.28s
+$ ./mill clean _; time ./mill -j1 __.compile
+4.98s
+4.96s
+5.06s
 ----
 
 This benchmark measures the time taken to sequentially compiled all the Java code in
@@ -565,15 +561,16 @@ on under the hood that I'm not aware of.
 
 [source,console]
 ----
+$ # edit gradle.properties to set org.gradle.parallel=true
 $ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
-13.8s
-12.3s
-11.4s
+14.1s
+15.6s
+14.8s
 
-$ ./mill clean; time ./mill __.compile
-3.75s
+$ ./mill clean _; time ./mill __.compile
 3.74s
-3.86s
+4.16s
+3.73s
 ----
 
 This benchmark is identical to the <<Sequential Clean Compile All>> benchmark above, but enables
@@ -593,14 +590,14 @@ each tool.
 [source,console]
 ----
 $ ./gradlew clean; time ./gradlew :classes --no-build-cache
-4.14s
-4.41s
-4.41s
+4.55s
+4.82s
+4.60s
 
-$ ./mill clean; time ./mill compile
-1.30s
-1.90s
-1.13s
+$ ./mill clean _; time ./mill compile
+0.84s
+0.81s
+1.03s
 ----
 
 This benchmark indicates the use case of clean-compiling a single module. In this case,
@@ -616,15 +613,15 @@ the results above.
 [source,console]
 ----
 $ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
-1.37s
-1.39s
-1.28s
+1.67s
+1.64s
+1.52s
 
 $ echo "" >> src/main/java/org/mockito/BDDMockito.java; time ./mill compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-0.23s
-0.20s
-0.20s
+0.27s
+0.26s
+0.33s
 ----
 
 This benchmark measures the common case of making a tiny change to a single file and
@@ -642,13 +639,13 @@ showing a ~2.7x speedup for this task
 [source,console]
 ----
 $ time ./gradlew :classes
-0.95s
-0.93s
-0.94s
+1.01s
+1.05s
+1.00s
 
 $ time ./mill compile
-0.13s
 0.11s
+0.09s
 0.10s
 ----
 
