@@ -37,7 +37,8 @@ no longer documented individually now that the final `1.1.0` release is out.
 
 ==== Declarative Module Definitions
 
-For example, you can define a simple `JavaModule` an it's test submodule via:
+In Mill 1.1.0, you can define a simple `JavaModule` an it's test submodule via a declarative
+`build.mill.yaml`/`package.mill.yaml` syntax:
 
 .`build.mill.yaml`
 [,yaml]
