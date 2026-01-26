@@ -246,7 +246,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       @volatile var done = false
       @volatile var idle = false
 
-      val runThread = StartThread(connectionHandlerThreadName(clientSocket)) {
+      StartThread(connectionHandlerThreadName(clientSocket)) {
         try {
           val connResult =
             handleConnection(connectionData, closeServer(_, _, Some(data)), idle = _, data)
