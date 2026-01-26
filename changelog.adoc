@@ -166,9 +166,10 @@ for more information
 ** This means `.sc` and `.mill.scala` will no longer be recognized as build files. Please rename
 any build files using those suffixes to `.mill` instead
 
-* Avoid using system java unless explicitly specified, instead use latest LTS Java version unless
-explicitly overridden with `system` ({link-pr}/6005[#6005]). This is intended to improve the
-reproduce-ability of Mill projects built across different environments.
+* Mill no longer uses system java unless explicitly specified, instead using latest LTS Java
+version unless explicitly overridden with `system` ({link-pr}/6005[#6005]).
+This is intended to improve the reproduce-ability of Mill projects built across different
+environments.
 ** Mill instead uses a fixed default version `zulu:21` when no `mill-jvm-version` is specified.
 Please set an explicit `//| mill-jvm-version:` in your build header to specify the version
 you need, or revert to the old default of using the environmental `java` installation
