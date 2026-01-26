@@ -135,12 +135,16 @@ abstract class MillDaemonServer[State](
         }
         lastConfig = Some(clientConfig)
 
+        // Create an InputStream that polls the client for stdin data via RPC.
+        // This allows the watch mode to detect Enter key presses.
+        val rpcStdin = new MillDaemonServer.RpcStdinInputStream(serverToClient)
+
         // Run the actual command
         val (result, newStateCache) = main0(
           args = init.args.toArray,
           stateCache = stateCache,
           mainInteractive = init.interactive,
-          streams = new SystemStreams(stdout, stderr, mill.api.daemon.DummyInputStream),
+          streams = new SystemStreams(stdout, stderr, rpcStdin),
           env = init.env,
           setIdle = setIdleInner(_),
           userSpecifiedProperties = init.userSpecifiedProperties,
@@ -239,4 +243,57 @@ object MillDaemonServer {
       // Store the RPC transport for synchronized writes (heartbeats + RPC messages)
       rpcTransport: MillRpcWireTransport
   )
+
+  /**
+   * An InputStream that polls the client for stdin data via RPC.
+   * Used to support "Enter to re-run" in watch mode when running in daemon mode.
+   *
+   * Note: This is designed for use with `lookForEnterKey` which calls `available()`
+   * first, then `read()`. The polling only happens in `available()`.
+   */
+  class RpcStdinInputStream(
+      serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]
+  ) extends InputStream {
+    private var buffer: Array[Byte] = Array.empty
+    private var pos: Int = 0
+
+    private def bufferedAvailable: Int = buffer.length - pos
+
+    override def available(): Int = {
+      if (bufferedAvailable > 0) {
+        bufferedAvailable
+      } else {
+        // Poll the client for available stdin data
+        try {
+          val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
+          buffer = result.bytes
+          pos = 0
+          buffer.length
+        } catch {
+          case _: Exception => 0
+        }
+      }
+    }
+
+    override def read(): Int = {
+      // Only read from buffer; caller should check available() first
+      if (bufferedAvailable == 0) -1
+      else {
+        val b = buffer(pos) & 0xff
+        pos += 1
+        b
+      }
+    }
+
+    override def read(b: Array[Byte], off: Int, len: Int): Int = {
+      if (len == 0) return 0
+      // Only read from buffer; caller should check available() first
+      val avail = bufferedAvailable
+      if (avail == 0) return -1
+      val toRead = math.min(len, avail)
+      System.arraycopy(buffer, pos, b, off, toRead)
+      pos += toRead
+      toRead
+    }
+  }
 }

@@ -110,7 +110,8 @@ object MillMain0 {
       systemExit: Server.StopServer,
       daemonDir: os.Path,
       outLock: Lock,
-      launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner
+      launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
+      serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]]
   ): (Boolean, RunnerState) = {
     mill.api.daemon.LauncherSubprocess.withValue(launcherSubprocessRunner) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
@@ -315,7 +316,8 @@ object MillMain0 {
                               daemonDir = daemonDir,
                               colored = colored,
                               colors = colors,
-                              out = out
+                              out = out,
+                              serverToClientOpt = serverToClientOpt
                             )) { logger =>
                               proceed(logger)
                             }
@@ -579,7 +581,8 @@ object MillMain0 {
       daemonDir: os.Path,
       colored: Boolean,
       colors: Colors,
-      out: os.Path
+      out: os.Path,
+      serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]]
   ): Logger & AutoCloseable = {
     val cmdTitle = sys.props.get("mill.main.cli")
       .map { prog =>
@@ -604,6 +607,20 @@ object MillMain0 {
       streams.in
     )
 
+    // Create terminal dimensions callback - uses RPC if available, otherwise gets directly
+    val terminalDimsCallback: () => Option[(Option[Int], Option[Int])] = serverToClientOpt match {
+      case Some(serverToClient) => () =>
+          try {
+            val result = serverToClient(mill.launcher.DaemonRpc.ServerToClient.GetTerminalDims())
+            Some((result.width, result.height))
+          } catch {
+            case _: Exception => None
+          }
+      case None => () =>
+          val result = mill.launcher.MillProcessLauncher.getTerminalDims()
+          Some((result.width, result.height))
+    }
+
     val promptLogger = new PromptLogger(
       colored = colored,
       enableTicker = enableTicker,
@@ -615,7 +632,7 @@ object MillMain0 {
       systemStreams0 = teeStreams,
       debugEnabled = config.debugLog.value,
       titleText = (cmdTitle +: config.leftoverArgs.value).mkString(" "),
-      terminfoPath = daemonDir / DaemonFiles.terminfo,
+      terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = () => System.currentTimeMillis(),
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
     )

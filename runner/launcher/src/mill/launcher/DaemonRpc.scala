@@ -37,9 +37,25 @@ object DaemonRpc {
         extends ServerToClient {
       type Response = SubprocessResult
     }
+
+    /** Request to poll for available stdin data from the client terminal. */
+    case class PollStdin() extends ServerToClient {
+      type Response = StdinResult
+    }
+
+    /** Request to get current terminal dimensions from the client. */
+    case class GetTerminalDims() extends ServerToClient {
+      type Response = TerminalDimsResult
+    }
   }
 
   case class SubprocessResult(exitCode: Int) derives ReadWriter
+
+  /** Result of polling for stdin data. Contains available bytes (empty if none). */
+  case class StdinResult(bytes: Array[Byte]) derives ReadWriter
+
+  /** Result of getting terminal dimensions. None means dimension is unknown. */
+  case class TerminalDimsResult(width: Option[Int], height: Option[Int]) derives ReadWriter
 
   def createClient(
       initialize: Initialize,
@@ -47,7 +63,9 @@ object DaemonRpc {
       clientToServer: PrintStream,
       stdout: RpcConsole.Message => Unit = RpcConsole.stdoutHandler,
       stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler,
-      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult = defaultRunSubprocess
+      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult = defaultRunSubprocess,
+      pollStdin: ServerToClient.PollStdin => StdinResult = defaultPollStdin,
+      getTerminalDims: ServerToClient.GetTerminalDims => TerminalDimsResult = defaultGetTerminalDims
   ): MillRpcClient[ClientToServer, ServerToClient] = {
     val transport = MillRpcWireTransport(
       name = "DaemonRpcClient",
@@ -62,6 +80,10 @@ object DaemonRpc {
       override def apply(input: ServerToClient): input.Response = input match {
         case req: ServerToClient.RunSubprocess =>
           runSubprocess(req).asInstanceOf[input.Response]
+        case req: ServerToClient.PollStdin =>
+          pollStdin(req).asInstanceOf[input.Response]
+        case req: ServerToClient.GetTerminalDims =>
+          getTerminalDims(req).asInstanceOf[input.Response]
       }
     }
 
@@ -91,5 +113,29 @@ object DaemonRpc {
     } catch {
       case _: Exception => SubprocessResult(1)
     }
+  }
+
+  def defaultPollStdin(@scala.annotation.unused req: ServerToClient.PollStdin): StdinResult = {
+    try {
+      val available = System.in.available()
+      if (available > 0) {
+        val toRead = math.min(available, 4 * 1024)
+        val buffer = new Array[Byte](toRead)
+        val bytesRead = System.in.read(buffer)
+        if (bytesRead == toRead) StdinResult(buffer)
+        else if (bytesRead > 0) StdinResult(java.util.Arrays.copyOf(buffer, bytesRead))
+        else StdinResult(Array.empty)
+      } else {
+        StdinResult(Array.empty)
+      }
+    } catch {
+      case _: Exception => StdinResult(Array.empty)
+    }
+  }
+
+  def defaultGetTerminalDims(
+      @scala.annotation.unused req: ServerToClient.GetTerminalDims
+  ): TerminalDimsResult = {
+    MillProcessLauncher.getTerminalDims()
   }
 }
