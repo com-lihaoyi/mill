@@ -182,19 +182,21 @@ via `//| mill-jvm-version: system`
 ==== Notable Features
 
 * Interactive commands like `./mill foo.repl` or `./mill foo.jshell` no longer require the
-  `-i`/`--interactive`/`--no-daemon` flag to be passed ({link-pr}/6602[#6602])
+  `-i`/`--interactive`/`--no-daemon` flag to be passed ({link-pr}/6602[#6602]),
+  via the `Jvm.runInteractiveCommand`/`callInteractiveProcess` APIs
 
-* Add builtin support for `jshell` command on ``JavaModule``s and `./mill --jshell` flag to open
+* Add builtin support for `jshell` command on ``JavaModule``s to open
 a Java REPL ({link-pr}/5984[#5984])
 
-* Re-enable `./mill repl` to open a Scala REPL not connected to any specific module
+* `./mill repl` and `./mill jshell` in a folder without a build defined can be used to
+  open a Scala REPL or JShell console not connected to any specific module
 
 * Add `mill-jvm-index-version` to build header keys ({link-pr}/6085[#6085])
 
 * Provide `./mill java`, `./mill javac`, etc. builtin commands to streamline using Mill as the
 sole source of a Java installation {link-pr}/6493[#6493]
 
-* Add `updateMillScripts` builtin command to easily update your `./mill` and `./mill.bat`
+* Add `./mill updateMillScripts` builtin command to easily update your `./mill` and `./mill.bat`
 bootstrap scripts to a specified version {link-pr}/6492[#6492]
 
 * Add `resolvedMvnSources` task to simplify downloading a module's dependencies' source jars
@@ -240,7 +242,7 @@ are now annotated `@nonBootstrapped` to let them run without the Mill bootstrap 
 
 * Add proper error message when circular task dependency is detected ({link-pr}/6044[#6044])
 
-* Repair CLI option `--help-advanced` ({link-pr}/5993[#5993])
+* Fix CLI option `--help-advanced` ({link-pr}/5993[#5993])
 
 * Support for HTTP Proxy settings in the Coursier dependency downloader ({link-pr}/5971[#5971])
 
