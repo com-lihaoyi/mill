@@ -1,5 +1,5 @@
 <component name="libraryTable">
-    <library name="scala-reflect-2.13.18.jar">
+    <library name="scala-reflect-<version>.jar">
         <CLASSES>
             <root url="jar://$USER_HOME$/COURSIER_CACHE/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<version>/scala-reflect-<version>.jar!/"/>
         </CLASSES>
