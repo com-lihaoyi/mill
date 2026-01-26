@@ -265,7 +265,9 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       }
 
       while (!done && checkClientAlive()) Thread.sleep(1)
-      runThread.interrupt()
+      // Don't interrupt, just wait for the watchAndWait code to realize the client has
+      // gone away when it regularly polls. `interrupt` has lots of weird side effects
+      // runThread.interrupt()
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
