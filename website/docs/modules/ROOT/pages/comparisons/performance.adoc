@@ -5,7 +5,9 @@ a reputation for being sluggish, even though the JVM has outstanding performance
 only to languages like C/C++/Rust, and xref:blog::1-java-compile.adoc[the Java compiler is extremely fast].
 Mill is able to trim a lot of the overhead that other build tools like Maven or Gradle
 impose, resulting in edit-compile-test workflows that are 3-7x faster than those of other
-Java build tools. To get a feel for this difference, play recording below to see Mill
+Java build tools.
+
+To get a feel for this difference, play recording below to see Mill
 (Left) and Maven (Right) running side by side compiling the Netty codebase.
 
 :cast-file: ../_images/basic/MillMavenComparison.cast

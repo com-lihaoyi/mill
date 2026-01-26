@@ -45,8 +45,8 @@ include::partial$Asciinema_Comparison.adoc[]
 
 Mill's xref:javalib/intro.adoc#_declarative_configuration[declarative
 build.mill.yaml files] contain only the essence of what you want to configure in
-your build, stripping away the reams of boilerplate and endless complexity in traditional
-JVM build tools to make your configuration easy to write, easy to read, and easy to understand
+your build, stripping away the endless complexity in traditional JVM build tools to
+make your project configuration easy to write, easy to read, and easy to understand
 
 [cols="3a,5a"]
 |===
