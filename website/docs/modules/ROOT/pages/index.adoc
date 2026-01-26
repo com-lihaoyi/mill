@@ -14,7 +14,7 @@ often 1/10th the lines of a `pom.xml`
 * **xref:comparisons/gradle.adoc[Easier than Gradle]** or SBT, with
 object-oriented builds any developer can intuitively understand
 
-* **xref:comparisons/performance.adoc[Fastest builds on the JVM]**, 3-6x
+* **xref:comparisons/performance.adoc[Fastest builds on the JVM]**, 3-7x
 faster than Maven or Gradle due to aggressive caching & parallelism
 
 Although the Java compiler is very fast and the Java language is easy to learn, JVM build
@@ -22,7 +22,6 @@ tools have a reputation for being sluggish, complicated, and confusing. Mill tri
 a better alternative that gives the Java platform the developer experience it deserves.
 
 For detailed comparisons with other build tools, check out these pages:
-
 
 [cols="1a,1a"]
 |===
