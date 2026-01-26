@@ -78,9 +78,10 @@ object BspServerTestUtil {
         )
         // Normalize third-party library versions in jar paths
         // Pattern: /artifactId/VERSION/artifactId-VERSION.jar -> /artifactId/<version>/artifactId-<version>.jar
+        // Also handles -sources.jar files
         .replaceAll(
-          "(/[a-zA-Z0-9_-]+)/([0-9]+\\.[0-9]+[^/]*)/([a-zA-Z0-9_-]+)-\\2(\\.jar)",
-          "$1/<version>/$3-<version>$4"
+          "(/[a-zA-Z0-9_-]+)/([0-9]+\\.[0-9]+[^/]*)/([a-zA-Z0-9_-]+)-\\2(-sources)?(\\.jar)",
+          "$1/<version>/$3-<version>$4$5"
         )
         // Normalize dist/raw/localRepo.dest vs dist/localRepo.dest path differences
         .replaceAll("dist/raw/localRepo\\.dest", "dist/localRepo.dest")
