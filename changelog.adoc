@@ -63,7 +63,8 @@ All the normal Mill commands still apply: `./mill compile`, `./mill test`, `./mi
 We expect that declarative `build.mill.yaml` files will help simplify the use of Mill for
 small projects, where the user typically just needs to set some config keys and doesn't need
 custom tasks or custom build logic that programmable module definitions allow. See the docs
-for https://mill-build.org/mill/main-branch/javalib/config.html[Declarative Java Modules]
+for https://mill-build.org/mill/main-branch/javalib/config.html[Declarative Java Modules] or
+https://mill-build.org/mill/main-branch/scalalib/config.html[Declarative Scala Modules]
 for more information.
 
 ==== Single-File Scripts
