@@ -37,7 +37,7 @@ Mill automatically xref:depth/caching.adoc[caches]
 and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
 to keep local development fast, uses a xref:depth/process-architecture.adoc[long-lived daemon] to keep the JVM warm,
 and shortens CI times with xref:large/selective-execution.adoc[selective test execution]. Play the
-video below to compare compiling the same 500,000 line Netty codebase with Mill (~7s) vs Maven (~54s)
+video below to compare compiling the same 500,000 line Netty codebase with Mill (~11s) vs Maven (~60s)
 
 :cast-file: _images/basic/MillMavenComparison.cast
 include::partial$Asciinema_Comparison.adoc[]
