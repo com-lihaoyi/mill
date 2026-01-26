@@ -264,14 +264,10 @@ object MillDaemonServer {
         bufferedAvailable
       } else {
         // Poll the client for available stdin data
-        try {
-          val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
-          buffer = result.bytes
-          pos = 0
-          buffer.length
-        } catch {
-          case _: Exception => 0
-        }
+        val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
+        buffer = result.bytes
+        pos = 0
+        buffer.length
       }
     }
 
