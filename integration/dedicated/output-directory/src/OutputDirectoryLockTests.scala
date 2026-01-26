@@ -51,7 +51,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
         stderrText.contains(
           s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."
         ) &&
-        stderrText.contains("tail -F out/mill-daemon/console.log to see its progress")
+        stderrText.contains("tail -F out/mill-console-tail to see its progress")
       }
 
       // Even after task starts waiting on blocking task, it is not complete

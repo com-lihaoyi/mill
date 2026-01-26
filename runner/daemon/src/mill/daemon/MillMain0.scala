@@ -598,9 +598,8 @@ object MillMain0 {
       .getOrElse("mill")
 
     // Console log file for monitoring progress when another process is waiting
-    val consoleLogStream = new RotatingConsoleLogOutputStream(
-      daemonDir / DaemonFiles.consoleLog
-    )
+    val consoleLogStream = new RotatingConsoleLogOutputStream(out / DaemonFiles.millConsoleTail)
+
     val teeStreams = new SystemStreams(
       new MultiStream(streams.out, consoleLogStream),
       new MultiStream(streams.err, consoleLogStream),
