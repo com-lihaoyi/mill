@@ -74,7 +74,7 @@ trait MillRpcServer[
           // Send the response, then stop the RPC loop
           sendToClient(MillRpcServerToClient.Response(Right(e.response)))
           return false
-        case _: InterruptedException => return false
+        case _: InterruptedException | _: RpcTransportClosedException => return false
         case NonFatal(e) => Left(RpcThrowable(e))
       }
 
@@ -87,9 +87,7 @@ trait MillRpcServer[
 
     while (responseReceived.isEmpty) {
       val clientToServerMsg = readAndTryToParse[MillRpcClientToServer[R]]().getOrElse(
-        throw new InterruptedException(
-          s"Transport wire broken while waiting for response to request."
-        )
+        throw new RpcTransportClosedException()
       )
 
       clientToServerMsg match {
