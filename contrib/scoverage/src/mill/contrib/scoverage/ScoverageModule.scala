@@ -165,6 +165,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       PathRef(Task.dest)
     }
 
+    override def platformSuffix = Task { outer.platformSuffix() }
     override def compileResources: T[Seq[PathRef]] = outer.compileResources
     override def generatedSources: T[Seq[PathRef]] = Task { outer.generatedSources() }
     override def allSources: T[Seq[PathRef]] = Task { outer.allSources() }

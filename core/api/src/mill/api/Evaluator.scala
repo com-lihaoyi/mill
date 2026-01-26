@@ -28,14 +28,17 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def outPathJava = outPath.toNIO
   private[mill] def codeSignatures: Map[String, Int]
   private[mill] def rootModule: RootModule0
-  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val, TaskApi[?])]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
   private[mill] def useFileLocks: Boolean = false
   private[mill] def staticBuildOverrides: Map[String, Located[internal.Appendable[BufferedValue]]] =
     Map()
-  private[mill] def invalidateAllHashes: Int = 0
+  // JSON string to avoid classloader issues when crossing classloader boundaries
+  private[mill] def spanningInvalidationTree: Option[String] = None
+  // Hash of the classloader signature (Mill jars + dependencies), used for selective execution
+  private[mill] def classLoaderSigHash: Int = 0
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 
   def resolveSegments(

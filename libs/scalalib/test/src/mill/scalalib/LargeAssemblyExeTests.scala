@@ -18,7 +18,7 @@ object LargeAssemblyExeTests extends TestSuite {
   object TestCase extends TestRootModule {
 
     trait ExtraDeps extends ScalaModule {
-      def scalaVersion = "2.13.11"
+      def scalaVersion = "2.13.18"
 
       def sources = Task.Sources(mill.api.BuildCtx.workspaceRoot / "src")
 
@@ -46,7 +46,7 @@ object LargeAssemblyExeTests extends TestSuite {
     test("exe") {
       UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
         val Left(ExecResult.Failure(msg = msg)) =
-          eval(TestCase.exe.assembly): @unchecked
+          eval(TestCase.exe.assembly).runtimeChecked
         val expectedMsg =
           """The created assembly jar contains more than 65535 ZIP entries.
             |JARs of that size are known to not work correctly with a prepended shell script.
@@ -60,7 +60,7 @@ object LargeAssemblyExeTests extends TestSuite {
     }
     test("noExe") {
       UnitTester(TestCase, sourceRoot = sources).scoped { eval =>
-        val Right(result) = eval(TestCase.noExe.assembly): @unchecked
+        val Right(result) = eval(TestCase.noExe.assembly).runtimeChecked
         os.call(
           cmd = (Jvm.javaExe, "-jar", result.value.path, "--text", "tutu"),
           env = Map.empty[String, String],

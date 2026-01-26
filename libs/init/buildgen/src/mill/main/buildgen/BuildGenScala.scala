@@ -3,7 +3,6 @@ package mill.main.buildgen
 import mill.constants.CodeGenConstants.rootModuleAlias
 import mill.constants.OutFiles.OutFiles.millBuild
 import mill.internal.Util.backtickWrap
-import mill.main.buildgen.BuildInfo.millVersion
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
@@ -26,7 +25,8 @@ object BuildGenScala extends BuildGen {
         bomMvnDeps,
         depManagement,
         errorProneDeps,
-        scalacPluginMvnDeps
+        scalacPluginMvnDeps,
+        scalafixIvyDeps
       )
     }.flatMap { values =>
       values.base ++ values.cross.flatMap(_._2)
@@ -50,14 +50,15 @@ object BuildGenScala extends BuildGen {
       pkg.copy(module = pkg.module.recMap { module =>
         import module.*
         module.copy(
-          imports = "import millbuild.*" +: imports,
+          imports = "millbuild.*" +: imports,
           mvnDeps = withRefs(mvnDeps),
           compileMvnDeps = withRefs(compileMvnDeps),
           runMvnDeps = withRefs(runMvnDeps),
           bomMvnDeps = withRefs(bomMvnDeps),
           depManagement = withRefs(depManagement),
           errorProneDeps = withRefs(errorProneDeps),
-          scalacPluginMvnDeps = withRefs(scalacPluginMvnDeps)
+          scalacPluginMvnDeps = withRefs(scalacPluginMvnDeps),
+          scalafixIvyDeps = withRefs(scalafixIvyDeps)
         )
       })
     )
@@ -71,7 +72,8 @@ object BuildGenScala extends BuildGen {
       baseModule: Option[ModuleSpec] = None,
       millJvmVersion: Option[String] = None,
       millJvmOpts: Seq[String] = Nil,
-      depNames: Seq[(MvnDep, String)] = Nil
+      depNames: Seq[(MvnDep, String)] = Nil,
+      metaMvnDeps: Seq[String] = Nil
   ): Seq[os.Path] = {
     var packages0 = fillPackages(packages).sortBy(_.dir)
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
@@ -96,19 +98,25 @@ object BuildGenScala extends BuildGen {
       )
       file
     }
-    val rootPackage +: nestedPackages = packages0: @unchecked
-    val millJvmVersion0 = resolveMillJvmVersion(millJvmVersion)
-    val millJvmOptsLine = if (millJvmOpts.isEmpty) ""
-    else millJvmOpts.mkString("//| mill-jvm-opts: [\"", "\", \"", s"\"]")
+    val rootPackage +: nestedPackages = packages0.runtimeChecked
+    var buildHeader = Seq(
+      s"//| mill-version: $resolveMillVersion",
+      s"//| mill-jvm-version: ${resolveMillJvmVersion(millJvmVersion)}"
+    )
+    if (millJvmOpts.nonEmpty) {
+      buildHeader :+= "//| mill-jvm-opts:"
+      buildHeader ++= millJvmOpts.map("//|   - " + _)
+    }
+    if (metaMvnDeps.nonEmpty) {
+      buildHeader :+= "//| mvnDeps:"
+      buildHeader ++= metaMvnDeps.map("//|   - " + _)
+    }
     println("writing build.mill")
     os.write(
       baseDir / "build.mill",
-      Seq(
-        s"//| mill-version: $millVersion",
-        s"//| mill-jvm-version: $millJvmVersion0",
-        millJvmOptsLine,
-        renderPackage(rootPackage)
-      ).filter(_.nonEmpty).mkString(lineSep)
+      s"""${buildHeader.mkString(lineSep)}
+         |${renderPackage(rootPackage)}
+         |""".stripMargin
     )
     val subFiles = for (pkg <- nestedPackages) yield {
       val file = os.sub / pkg.dir / "package.mill"
@@ -134,7 +142,7 @@ object BuildGenScala extends BuildGen {
   private def renderBaseModule(module: ModuleSpec): String = {
     import module.*
     Seq(
-      s"trait $name ${renderExtendsClause(supertypes ++ mixins)} {",
+      s"trait $name ${renderExtendsClause(supertypes)} {",
       "  " + renderModuleBody(module),
       "  " + children.sortBy(_.name).map(renderBaseModule).mkString(lineSep * 2),
       "}"
@@ -143,48 +151,100 @@ object BuildGenScala extends BuildGen {
 
   private def renderModuleBody(module: ModuleSpec) = {
     import module.*
-    val renderModuleDir = if (useOuterModuleDir) "def moduleDir = outer.moduleDir" else ""
-    Seq(
-      renderModuleDir,
-      render("moduleDeps", moduleDeps, encodeModuleDep, isTask = false),
-      render("compileModuleDeps", compileModuleDeps, encodeModuleDep, isTask = false),
-      render("runModuleDeps", runModuleDeps, encodeModuleDep, isTask = false),
-      render("bomModuleDeps", bomModuleDeps, encodeModuleDep, isTask = false),
-      render("mandatoryMvnDeps", mandatoryMvnDeps, encodeMvnDep),
-      render("mvnDeps", mvnDeps, encodeMvnDep),
-      render("compileMvnDeps", compileMvnDeps, encodeMvnDep),
-      render("runMvnDeps", runMvnDeps, encodeMvnDep),
-      render("bomMvnDeps", bomMvnDeps, encodeMvnDep),
-      render("depManagement", depManagement, encodeMvnDep),
-      render("scalaJSVersion", scalaJSVersion, encodeString),
-      render("moduleKind", moduleKind, identity[String]),
-      render("scalaNativeVersion", scalaNativeVersion, encodeString),
-      render("scalaVersion", scalaVersion, encodeString),
-      render("scalacOptions", scalacOptions, encodeLiteralOpt),
-      render("scalacPluginMvnDeps", scalacPluginMvnDeps, encodeMvnDep),
-      render("javacOptions", javacOptions, encodeOpt),
-      render("sourcesRootFolders", sourcesRootFolders, encodeString, isTask = false),
-      render("sourcesFolders", sourcesFolders, encodeString, isTask = false),
-      renderSources("sources", sources),
-      renderSources("resources", resources),
-      render("forkArgs", forkArgs, encodeOpt),
-      render("forkWorkingDir", forkWorkingDir, encodeRelPath("moduleDir", _)),
-      render("errorProneDeps", errorProneDeps, encodeMvnDep),
-      render("errorProneOptions", errorProneOptions, encodeString),
-      render("errorProneJavacEnableOptions", errorProneJavacEnableOptions, encodeOpt),
-      render("artifactName", artifactName, encodeString),
-      render("pomPackagingType", pomPackagingType, encodeString),
-      render("pomParentProject", pomParentProject, a => s"Some(${encodeArtifact(a)})"),
-      render("pomSettings", pomSettings, encodePomSettings),
-      render("publishVersion", publishVersion, encodeString),
-      render("versionScheme", versionScheme, a => s"Some($a)"),
-      render("publishProperties", publishProperties, encodeProperty, collection = "Map"),
-      render("testParallelism", testParallelism, _.toString),
-      render("testSandboxWorkingDir", testSandboxWorkingDir, _.toString),
-      render("testFramework", testFramework, encodeTestFramework),
-      render("repositories", repositories, encodeString)
-    ).mkString(lineSep * 2)
+    val lines = Seq.newBuilder[String]
+    for (a <- alias) lines += s"$a =>"
+    lines += renderDefValue("moduleDir", moduleDir, identity[String])
+    lines += renderDefValues("moduleDeps", moduleDeps, encodeModuleDep, isTask = false)
+    lines += renderDefValues(
+      "compileModuleDeps",
+      compileModuleDeps,
+      encodeModuleDep,
+      isTask = false
+    )
+    lines += renderDefValues("runModuleDeps", runModuleDeps, encodeModuleDep, isTask = false)
+    lines += renderDefValues("bomModuleDeps", bomModuleDeps, encodeModuleDep, isTask = false)
+    lines += renderDefValues("mandatoryMvnDeps", mandatoryMvnDeps, encodeMvnDep)
+    lines += renderDefValues("mvnDeps", mvnDeps, encodeMvnDep)
+    lines += renderDefValues("compileMvnDeps", compileMvnDeps, encodeMvnDep)
+    lines += renderDefValues("runMvnDeps", runMvnDeps, encodeMvnDep)
+    lines += renderDefValues("bomMvnDeps", bomMvnDeps, encodeMvnDep)
+    lines += renderDefValues("depManagement", depManagement, encodeMvnDep)
+    lines += renderDefValue("scalaJSVersion", scalaJSVersion, encodeString)
+    lines += renderDefValue("moduleKind", moduleKind, identity[String])
+    lines += renderDefValue("scalaNativeVersion", scalaNativeVersion, encodeString)
+    lines += renderDefValue("scalaVersion", scalaVersion, encodeString)
+    lines += renderDefValues("scalacOptions", scalacOptions, encodeLiteralOpt)
+    lines += renderDefValues("scalacPluginMvnDeps", scalacPluginMvnDeps, encodeMvnDep)
+    lines += renderDefValues("javacOptions", javacOptions, encodeOpt)
+    lines += renderDefValues(
+      "sourcesRootFolders",
+      sourcesRootFolders,
+      encodeString,
+      isTask = false
+    )
+    if (isBomModule) {
+      lines += "def sources = Nil"
+      lines += "def resources = Nil"
+    } else {
+      lines += renderDefValues("sourcesFolders", sourcesFolders, encodeString, isTask = false)
+      lines += renderDefSources("sources", sources)
+      lines += renderDefSources("resources", resources)
+    }
+    lines += renderDefValues("forkArgs", forkArgs, encodeOpt)
+    lines += renderDefValue("forkWorkingDir", forkWorkingDir, identity[String])
+    lines += renderDefValues("errorProneDeps", errorProneDeps, encodeMvnDep)
+    lines += renderDefValues("errorProneOptions", errorProneOptions, encodeString)
+    lines += renderDefValues(
+      "errorProneJavacEnableOptions",
+      errorProneJavacEnableOptions,
+      encodeOpt
+    )
+    lines += renderDefValue("jmhCoreVersion", jmhCoreVersion, encodeString)
+    lines += renderDefValue("scalafixConfig", scalafixConfig, encodeSome)
+    lines += renderDefValues("scalafixIvyDeps", scalafixIvyDeps, encodeMvnDep)
+    lines += renderDefValue("scoverageVersion", scoverageVersion, encodeString)
+    lines += renderDefValue("branchCoverageMin", branchCoverageMin, encodeSome)
+    lines += renderDefValue("statementCoverageMin", statementCoverageMin, encodeSome)
+    lines += renderDefValues("mimaPreviousVersions", mimaPreviousVersions, encodeString)
+    lines += renderDefValues("mimaPreviousArtifacts", mimaPreviousArtifacts, encodeMvnDep)
+    lines += renderDefValue("mimaCheckDirection", mimaCheckDirection, identity[String])
+    lines += renderDefValues("mimaBinaryIssueFilters", mimaBinaryIssueFilters, identity[String])
+    lines += renderDefValues(
+      "mimaBackwardIssueFilters",
+      mimaBackwardIssueFilters,
+      encodeIssueFiltersTuple,
+      collection = "Map"
+    )
+    lines += renderDefValues(
+      "mimaForwardIssueFilters",
+      mimaForwardIssueFilters,
+      encodeIssueFiltersTuple,
+      collection = "Map"
+    )
+    lines += renderDefValues("mimaExcludeAnnotations", mimaExcludeAnnotations, encodeString)
+    lines += renderDefValue("mimaReportSignatureProblems", mimaReportSignatureProblems, _.toString)
+    lines += renderDefValue("artifactName", artifactName, encodeString)
+    lines += renderDefValue("pomPackagingType", pomPackagingType, encodeString)
+    lines += renderDefValue(
+      "pomParentProject",
+      pomParentProject,
+      a => s"Some(${encodeArtifact(a)})"
+    )
+    lines += renderDefValue("pomSettings", pomSettings, encodePomSettings)
+    lines += renderDefValue("publishVersion", publishVersion, encodeString)
+    lines += renderDefValue("versionScheme", versionScheme, encodeSome)
+    lines += renderDefValues(
+      "publishProperties",
+      publishProperties,
+      encodeProperty,
+      collection = "Map"
+    )
+    lines += renderDefValue("testParallelism", testParallelism, _.toString)
+    lines += renderDefValue("testSandboxWorkingDir", testSandboxWorkingDir, _.toString)
+    lines += renderDefValue("testFramework", testFramework, encodeTestFramework)
+    lines += renderDefValues("repositories", repositories, encodeString)
 
+    lines.result().filter(_.nonEmpty).mkString(lineSep * 2)
   }
 
   private def renderPackage(pkg: PackageSpec) = {
@@ -200,7 +260,7 @@ object BuildGenScala extends BuildGen {
   private def renderModule(module: ModuleSpec, isPackageRoot: Boolean = false): String = {
     import module.*
     val name0 = if (isPackageRoot) "`package`" else backtickWrap(name)
-    val extendsClause = renderExtendsClause(supertypes ++ mixins)
+    val extendsClause = renderExtendsClause(supertypes)
     val typeDeclaration = if (crossKeys.isEmpty) s"object $name0 $extendsClause"
     else {
       val crossTraitName = backtickWrap(name.split("\\W") match {
@@ -211,22 +271,21 @@ object BuildGenScala extends BuildGen {
         crossKeys.sorted.mkString(s"extends Cross[$crossTraitName](\"", "\", \"", "\")")
       s"object $name0 $crossExtendsClause\ntrait $crossTraitName $extendsClause"
     }
-    val aliasDeclaration = if (children.exists(_.useOuterModuleDir)) " outer => " else ""
 
     Seq(
-      s"""$typeDeclaration {$aliasDeclaration""",
+      s"""$typeDeclaration {""",
       renderModuleBody(module),
       children.sortBy(_.name).map(renderModule(_)).mkString(lineSep * 2),
       "}"
     ).mkString(lineSep * 2)
   }
 
-  private def render[A](member: String, value: Value[A], encode: A => String): String = {
+  private def renderDefValue[A](member: String, value: Value[A], encode: A => String) = {
     import value.*
     if (cross.isEmpty) base.fold("")(a => s"def $member = ${encode(a)}")
     else renderCrossMatch(s"def $member = ", cross, base, encode, "")
   }
-  private def render[A](
+  private def renderDefValues[A](
       member: String,
       values: Values[A],
       encode: A => String,
@@ -235,8 +294,7 @@ object BuildGenScala extends BuildGen {
   ): String = {
     def encodeAll(as: Seq[A]) = as.map(encode).mkString(s"$collection(", ", ", ")")
     import values.*
-    if (empty) s"def $member = $collection()"
-    else if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
+    if (base.isEmpty && cross.isEmpty) ""
     else {
       val stmt = StringBuilder(s"def $member = ")
       var append = false
@@ -244,10 +302,6 @@ object BuildGenScala extends BuildGen {
       if (appendSuper) {
         append = true
         stmt ++= s"super.$member$invoke"
-      }
-      if (appendRefs.nonEmpty) {
-        if (append) stmt ++= " ++ " else append = true
-        stmt ++= appendRefs.map(encodeModuleDep(_) ++ s".$member$invoke").mkString(" ++ ")
       }
       if (base.nonEmpty) {
         if (append) stmt ++= " ++ " else append = true
@@ -263,16 +317,15 @@ object BuildGenScala extends BuildGen {
       }
     }
   }
-  private def renderSources(member: String, values: Values[os.RelPath]) = {
+  private def renderDefSources(member: String, values: Values[os.RelPath]) = {
     def encodeSources(rels: Seq[os.RelPath]) = rels.map(rel =>
       if (rel.ups == 0) encodeString(rel.toString) else encodeRelPath("os.rel", rel)
     ).mkString("Task.Sources(", ", ", ")")
     def encodeSeq(rels: Seq[os.RelPath]) =
       rels.map(encodeRelPath("os.rel", _)).mkString("Seq(", ", ", ")")
     import values.*
-    if (empty) s"def $member = Task.Sources()"
-    else if (base.isEmpty && cross.isEmpty && appendRefs.isEmpty) ""
-    else if (cross.isEmpty && !appendSuper && appendRefs.isEmpty) {
+    if (base.isEmpty && cross.isEmpty) ""
+    else if (cross.isEmpty && !appendSuper) {
       s"def $member = ${encodeSources(base)}"
     } else {
       val stmt = StringBuilder(s"def $member = ")
@@ -280,10 +333,6 @@ object BuildGenScala extends BuildGen {
       if (appendSuper) {
         append = true
         stmt ++= s"super.$member()"
-      }
-      if (appendRefs.nonEmpty) {
-        if (append) stmt ++= " ++ " else append = true
-        stmt ++= appendRefs.map(encodeModuleDep(_) ++ s".$member()").mkString(" ++ ")
       }
       if (base.nonEmpty) {
         val customTask = s"custom${member.capitalize}"
@@ -382,4 +431,7 @@ object BuildGenScala extends BuildGen {
   }
   private def encodeTestFramework(s: String) =
     if (s.isEmpty) "sys.error(\"no test framework\")" else encodeString(s)
+  private def encodeSome(a: Any) = s"Some($a)"
+  private def encodeIssueFiltersTuple(k: String, v: Seq[String]) =
+    s"""("$k", ${if (v.isEmpty) "Seq.empty[ProblemFilter]" else v.mkString("Seq(", ", ", ")")})"""
 }

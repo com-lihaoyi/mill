@@ -21,7 +21,7 @@ object CompileLinkTests extends TestSuite {
   }
 
   object HelloJSWorld extends TestRootModule {
-    val matrix = Seq("2.13.15" -> "1.19.0", "3.7.1" -> "1.19.0")
+    val matrix = Seq("2.13.18" -> "1.20.2", "3.7.4" -> "1.20.2")
 
     object build extends Cross[RootModule](matrix)
     trait RootModule extends HelloJSWorldModule {
@@ -77,11 +77,11 @@ object CompileLinkTests extends TestSuite {
     val jsFile =
       if (legacy) {
         val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-        val Right(result) = eval(task): @unchecked
+        val Right(result) = eval(task).runtimeChecked
         result.value.dest.path
       } else {
         val task = if (optimize) module.fullLinkJS else module.fastLinkJS
-        val Right(result) = eval(task): @unchecked
+        val Right(result) = eval(task).runtimeChecked
         result.value.dest.path / result.value.publicModules.head.jsFileName
       }
     val output = ScalaJsUtils.runJS(jsFile)
@@ -100,7 +100,7 @@ object CompileLinkTests extends TestSuite {
     test("compile") - UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
       def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
         val Right(result) =
-          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile): @unchecked
+          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile).runtimeChecked
 
         val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath)
@@ -112,7 +112,7 @@ object CompileLinkTests extends TestSuite {
 
         // don't recompile if nothing changed
         val Right(result2) =
-          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile): @unchecked
+          eval(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile).runtimeChecked
         assert(result2.evalCount == 0)
       }
 

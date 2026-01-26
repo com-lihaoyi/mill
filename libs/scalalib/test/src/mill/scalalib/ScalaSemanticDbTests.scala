@@ -32,7 +32,7 @@ object ScalaSemanticDbTests extends TestSuite {
       test("fromScratch") - UnitTester(SemanticWorld, sourceRoot = resourcePath).scoped { eval =>
         {
           println("first - expected full compile")
-          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
+          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData).runtimeChecked
 
           val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
           val outputFiles =
@@ -50,7 +50,7 @@ object ScalaSemanticDbTests extends TestSuite {
         {
           println("second - expected no compile")
           // don't recompile if nothing changed
-          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
+          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData).runtimeChecked
           assert(result2.evalCount == 0)
         }
       }
@@ -73,7 +73,7 @@ object ScalaSemanticDbTests extends TestSuite {
 
         {
           println("first - expected full compile")
-          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
+          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData).runtimeChecked
 
           val dataPath = eval.outPath / "core/semanticDbDataDetailed.dest/data"
           val outputFiles =
@@ -90,7 +90,7 @@ object ScalaSemanticDbTests extends TestSuite {
         // change nothing
         {
           println("second - expect no compile due to Mill caching")
-          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
+          val Right(result2) = eval.apply(SemanticWorld.core.semanticDbData).runtimeChecked
           assert(result2.evalCount == 0)
         }
 
@@ -99,7 +99,7 @@ object ScalaSemanticDbTests extends TestSuite {
           println("third - expect inc compile of one file\n")
           os.write.append(extraFiles.head._1, "  ")
 
-          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
+          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData).runtimeChecked
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
           val expectedFiles = semanticDbFiles.filter(_.ext != "class") ++ extraFiles.map(_._2)
@@ -113,7 +113,7 @@ object ScalaSemanticDbTests extends TestSuite {
           println("fourth - expect inc compile with one deleted file")
           os.remove(extraFiles.head._1)
 
-          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData): @unchecked
+          val Right(result) = eval.apply(SemanticWorld.core.semanticDbData).runtimeChecked
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
           val expectedFiles =

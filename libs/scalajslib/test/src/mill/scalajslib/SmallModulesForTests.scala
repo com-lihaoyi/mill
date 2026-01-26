@@ -28,7 +28,7 @@ object SmallModulesForTests extends TestSuite {
       UnitTester(SmallModulesForModule, millSourcePath).scoped { evaluator =>
         println(evaluator(SmallModulesForModule.sources))
 
-        val Right(result) = evaluator(SmallModulesForModule.fastLinkJS): @unchecked
+        val Right(result) = evaluator(SmallModulesForModule.fastLinkJS).runtimeChecked
         val publicModules = result.value.publicModules
 
         println(os.list(result.value.dest.path))

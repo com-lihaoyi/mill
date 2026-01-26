@@ -161,7 +161,7 @@ object CheckstyleModuleTest extends TestSuite {
 
           numViolations.value == violations.length && {
 
-            val Right(report) = eval(module.checkstyleOutput): @unchecked
+            val Right(report) = eval(module.checkstyleOutput).runtimeChecked
 
             if (os.exists(report.value.path)) {
               violations.isEmpty || {

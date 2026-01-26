@@ -9,25 +9,25 @@ import mill.scalalib.*
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.*
 
-trait ProjectBaseModule extends PublishModule, CrossSbtPlatformModule {
+trait ProjectBaseModule extends CrossSbtModule, PublishModule {
 
   def mvnDeps = Seq(Deps.upickle)
 
   def scalacOptions = Seq("-deprecation") ++
     (crossScalaVersion match {
-      case "2.12.20" => Seq(
+      case "2.12.21" => Seq(
           "-Xlint:_,-unused",
           "-Ywarn-numeric-widen",
           "-Ywarn-unused:_,-nowarn,-privates"
         )
-      case "2.13.14" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
+      case "2.13.18" => Seq("-Xlint:_,-unused", "-Wnumeric-widen", "-Wunused")
       case "3.7.1"   => Seq("-Wunused")
       case _         => Seq()
     })
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  trait ProjectBaseTests extends CrossSbtPlatformTests {
+  trait ProjectBaseTests extends CrossSbtTests {
 
     def testParallelism = false
 

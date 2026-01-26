@@ -41,18 +41,18 @@ object JvmWorkerReuseTests extends TestSuite {
         }
       }
 
-      val Right(_) = eval.apply(JvmWorkerReuse.foo.compile): @unchecked
+      val Right(_) = eval.apply(JvmWorkerReuse.foo.compile).runtimeChecked
       assert(getProcessIds().size == 1)
 
-      val Right(_) = eval.apply(JvmWorkerReuse.bar.compile): @unchecked
+      val Right(_) = eval.apply(JvmWorkerReuse.bar.compile).runtimeChecked
       // bar has same jvmId as foo, ZincWorkerMain should be reused
       assert(getProcessIds().size == 1)
 
-      val Right(_) = eval.apply(JvmWorkerReuse.qux.compile): @unchecked
+      val Right(_) = eval.apply(JvmWorkerReuse.qux.compile).runtimeChecked
       // qux has different jvmId as bar, ZincWorkerMain should be re-created
       assert(getProcessIds().size == 2)
 
-      val Right(_) = eval.apply(JvmWorkerReuse.baz.compile): @unchecked
+      val Right(_) = eval.apply(JvmWorkerReuse.baz.compile).runtimeChecked
       // baz has same jvmId as qux, ZincWorkerMain should be reused
       assert(getProcessIds().size == 2)
     }

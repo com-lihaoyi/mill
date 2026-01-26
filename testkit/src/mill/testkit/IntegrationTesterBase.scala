@@ -17,6 +17,7 @@ trait IntegrationTesterBase {
       case None => javaHomeBin
       case Some(p) => s"$javaHomeBin${System.getProperty("path.separator")}${p}"
     }
+
     if (!propagateJavaHome) Map.empty
     else Map("JAVA_HOME" -> sys.props("java.home"), "PATH" -> newPath)
   }

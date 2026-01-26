@@ -16,13 +16,8 @@ import scala.util.Properties
 trait MillJavaModule extends JavaModule {
 
   def testArgs: T[Seq[String]] = Task {
-    // Workaround for Zinc/JNA bug
-    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-    val jnaArgs = Seq("-Djna.nosys=true")
-    val userLang =
-      if (Properties.isMac || Properties.isWin) Seq("-Duser.language=en")
-      else Nil
-    jnaArgs ++ userLang
+    if (Properties.isMac || Properties.isWin) Seq("-Duser.language=en")
+    else Nil
   }
 
   def localTestExtraModules: Seq[MillJavaModule] = Nil

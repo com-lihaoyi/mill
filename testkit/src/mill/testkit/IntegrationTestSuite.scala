@@ -55,7 +55,8 @@ trait IntegrationTestSuite {
         debugLog,
         baseWorkspacePath = os.pwd,
         propagateJavaHome = propagateJavaHome,
-        cleanupProcessIdFile = cleanupProcessIdFile
+        cleanupProcessIdFile = cleanupProcessIdFile,
+        useInMemory = sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")
       )
       try block(tester)
       finally tester.close()

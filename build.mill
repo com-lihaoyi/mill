@@ -23,21 +23,18 @@ import mill.api.SelectMode
 import mill.T
 import mill.api.Cross
 import scala.util.Properties
-import mill.api.BuildCtx
+import mill.api.{BuildCtx, Evaluator}
 import mill.androidlib.AndroidSdkModule
 
-def millVersionIsStable0(using ctx: mill.api.TaskCtx) = ctx.env.contains("MILL_STABLE_VERSION")
-def millVersionIsStable: T[Boolean] = Task.Input { millVersionIsStable0 }
-
 def millVersion: T[String] = Task.Input {
-  if (millVersionIsStable0) {
-    val vcsState = VcsVersion.calcVcsState(Task.log)
-    // Ignore local changes when computing the VCS version string in CI,
-    // since we make those in CI and can promise they are safe, but make
-    // sure we include local dirty changes when iterating locally.
-    if (Task.env.contains("CI")) vcsState.copy(dirtyHash = None).format()
-    else vcsState.format()
-  } else "SNAPSHOT"
+  val vcsState = VcsVersion.calcVcsState(Task.log)
+  // Fall back to SNAPSHOT if no git tag found (e.g., shallow clone in CI)
+  if (vcsState.lastTag.isEmpty) "SNAPSHOT"
+  // Ignore local changes when computing the VCS version string in CI,
+  // since we make those in CI and can promise they are safe, but make
+  // sure we include local dirty changes when iterating locally.
+  else if (Task.env.contains("CI")) vcsState.copy(dirtyHash = None).format()
+  else vcsState.format()
 }
 
 def latestUnstableVersion = Task.Input {
@@ -51,11 +48,8 @@ def latestUnstableVersion = Task.Input {
 }
 
 def millLastTag: T[String] = Task.Input {
-  if (millVersionIsStable0)
-    VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
-      sys.error("No (last) git tag found. Your git history seems incomplete!")
-    )
-  else "SNAPSHOT"
+  // Fall back to SNAPSHOT if no git tag found (e.g., shallow clone in CI)
+  VcsVersion.calcVcsState(Task.log).lastTag.getOrElse("SNAPSHOT")
 }
 
 def millDownloadPrefix = Task {
@@ -223,4 +217,13 @@ trait AndroidDependencyFetchDummy extends DependencyFetchDummy {
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
+}
+
+def visualizeMillModules(evaluator: Evaluator): Command[Unit] = Task.Command(exclusive = true) {
+  val allPublishModules = build.moduleInternal.modules.collect {
+    case m: MillPublishJavaModule => m
+  }
+  val modulePaths = allPublishModules.map(_.toString + ".compile")
+  evaluator.evaluate(Seq("visualize") ++ modulePaths, SelectMode.Separated)
+  ()
 }
