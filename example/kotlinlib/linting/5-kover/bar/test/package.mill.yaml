@@ -1,5 +1,4 @@
-extends: [build.bar.KotlinTests, TestModule.Junit5, kover.KoverTests]
-forkArgs: !append
-- -Dkotest.framework.classpath.scanning.autoscan.disable=true
+extends: [build.bar.KotlinTests, TestModule.Junit5]
+
 mvnDeps:
-- io.kotest:kotest-runner-junit5:5.9.1
+  - io.kotest:kotest-runner-junit5:5.9.1

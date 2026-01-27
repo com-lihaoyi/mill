@@ -1,2 +1,2 @@
-extends: [KotlinModule, kover.KoverModule]
-kotlinVersion: 1.9.24
+extends: [KotlinModule, mill.kotlinlib.kover.KoverModule]
+kotlinVersion: "1.9.24"
