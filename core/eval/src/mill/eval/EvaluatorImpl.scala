@@ -413,7 +413,11 @@ final class EvaluatorImpl(
       resolveTasks(scriptArgs, selectMode, allowPositionalCommandArgs)
     }
     for (tasks <- resolved)
-      yield execute(tasks.asInstanceOf[Seq[Task[Any]]], reporter = reporter, selectiveExecution = selectiveExecution)
+      yield execute(
+        tasks.asInstanceOf[Seq[Task[Any]]],
+        reporter = reporter,
+        selectiveExecution = selectiveExecution
+      )
   }
 
   def close(): Unit = execution.close()
