@@ -7,9 +7,10 @@ _{author}, {revdate}_
 
 Java and other JVM languages like Scala or Kotlin are often used for large enterprise codebases,
 but the friction of configuring their tooling means they are less often used for small
-programs or scripts. The new release of the Mill build tool v1.1.0 contains two features
-that try to improve upon this pain point, allowing your projects to be configured via a
-compact `build.mill.yaml` file, rather than a verbose `pom.xml`:
+programs or scripts. The new release of the Mill build tool v1.1.0
+(https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110[changelog])
+contains two features that try to improve upon this pain point, allowing your projects
+to be configured via a compact `build.mill.yaml` file, rather than a verbose `pom.xml`:
 
 .build.mill.yaml
 ```yaml
@@ -544,42 +545,38 @@ on the JVM.
 
 === Rich Scripting on the JVM
 
-Mill's single-file scripts are unique in how well they support the full set of build-tool
-features and integrate with external tools and larger projects:
+Mill's single-file scripts are unique in how much they flesh out the JVM scripting experience:
 
 1. Mill scripts support the
-{mill-doc-url}/api/latest/mill/javalib/JavaModule.html#mvnDeps-0[full range of configuration options]
-available to any other Java module, where other JVM script runners tend to only support a subset
+{mill-doc-url}/api/latest/mill/javalib/JavaModule.html#mvnDeps-0[full range of configuration
+keys and tasks]: `jvmVersion`, `javacOptions`, `mvnDeps`, `jshell`, etc.
 
 2. Mill scripts can have xref:mill::javalib/intro.adoc#_testing_scripts[test suites]
-and xref:mill::javalib/script.adoc#_relative_and_absolute_script_moduledeps[depend on other scripts],
-which other JVM script runners usually don't support
+and xref:mill::javalib/script.adoc#_relative_and_absolute_script_moduledeps[depend on other scripts]
 
 3. Mill scripts can be xref:mill::javalib/script.adoc#_packaging_assemblies_and_native_binaries[packaged into assemblies or native binaries]
 for deployment
 
-4. Mill scripts can integrate easily into larger projects via xref:mill::javalib/script.adoc#_custom_script_module_classes[custom script module classes] or
-xref:mill::javalib/script.adoc#_project_moduledeps[project module deps], where other JVM script
-runners tend to run standalone
+4. Mill scripts can xref:mill::javalib/script.adoc#_project_moduledeps[depend on a larger project's modules]
+or xref:mill::javalib/script.adoc#_custom_script_module_classes[share their configuration]
 
 5. Mill scripts have xref:mill::javalib/script.adoc#_script_ide_integration[full support in IDEs]
-like IntelliJ or VSCode, where other JVM script runners often only have partial IDE support.
+like IntelliJ or VSCode (or forks like Cursor or Windsurf)
 
-image::ScriptIDESupport.png[]
+image::ScriptIntellijSupport.png[]
+image::ScriptVSCodeSupport.png[]
 
-Using Java to write small scripts isn't a new idea, with the ability to run `java Foo.java`
-from the command line introduced in Java 11, and tools like JBang providing a more
-feature-rich experience. But Mill takes the idea several step further in polish and
+Using Java, Scala or Kotlin to write small scripts isn't a new idea. The ability to run
+`java Foo.java` from the command line was introduced in Java 11, and tools like JBang providing
+a more feature-rich experience. But Mill takes the idea several step further in polish and
 robustness, hopefully to a level where scripting on the JVM can be a truly viable workflow
 rather than just a tech demo.
 
 === Multi-Language JVM Scripting
 
-Like the rest of Mill, single-file scripts support the three major JVM languages, and you can
-run scripts written in xref:mill::javalib/script.adoc[Java], xref:mill::scalalib/script.adoc[Scala],
-or xref:mill::kotlinlib/script.adoc[Kotlin]. For example,  if you think the `HtmlScraper.java` is too
-verbose, you may want to xref:mill::kotlinlib/script.adoc#_html_web_scraper[write your HtmlScraper in Kotlin]
-instead:
+Like the rest of Mill, single-file scripts support the three major JVM languages. For example,
+if you think the `HtmlScraper.java` is too verbose, you may want to
+xref:mill::kotlinlib/script.adoc#_html_web_scraper[write your HtmlScraper in Kotlin] instead:
 
 .HtmlScraper.kt
 ```kotlin
@@ -625,7 +622,10 @@ Government_of_Singapore
 ...
 ```
 
-And here is a xref:mill::scalalib/script.adoc#_html_web_scraper[Scala version of the HtmlScraper]:
+Or you may want to write your
+xref:mill::scalalib/script.adoc#_html_web_scraper[HtmlScraper in Scala], which feels
+similar to scripting in Ruby, Python, or Javascript, but with the performance,
+parallelizability and type-safety of a JVM language:
 
 .HtmlScraper.scala
 ```scala
@@ -661,10 +661,10 @@ def main(startArticle: String, depth: Int) = {
 ...
 ```
 
-Java is not the only JVM language, and languages like Kotlin or Scala complement it well by
-offering a more concise experience that may be more suitable for scripts. So even if scripting
-in Java may not suit you, scripting in Kotlin or Scala are definitely options you can consider
-while still benefiting from the robust runtime and rich ecosystem of the JVM.
+Java is not the only JVM language, and languages like Kotlin or Scala complement it
+offering a somewhat different experience. So even if scripting in Java may not suit you,
+scripting in Kotlin or Scala are definitely options you can consider while still benefiting
+from the robust runtime and rich ecosystem of the JVM.
 
 == Conclusion
 
@@ -673,7 +673,7 @@ major JVM languages are criminally under-utilized when it comes to writing scrip
 programs. Java, Scala, and Kotlin are all great languages, with high-quality standard libraries,
 rich ecosystems of third-party libraries, and a rock-solid JVM runtime. However, due to tooling
 complexity, JVM languages have never been the preferred choice for small programs the same way
-they are often used for large-scale enterprise systems.
+they are often used for large enterprise codebases.
 
 With the new declarative and single-file configuration styles in Mill 1.1.0, we hope to be
 able to change that. Mill's new declarative `build.mill.yaml` files take the best parts
