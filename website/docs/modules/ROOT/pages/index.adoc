@@ -94,11 +94,11 @@ mvnDeps:
 
 === Builtins
 
-Mill supports most common JVM development workflows built in: testing, publishing, packaging,
-managing JVM installations, and so on. This removes the need to fiddle with third-party plugins
-or install separate tools such as https://sdkman.io/[SdkMan] or https://www.jenv.be/[Jenv]
-just to get your project up and running. The example build file below shows
-how Mill handles many of the common settings that often need to be configured in a build tool:
+Mill supports most common JVM development workflows built in. This removes the need to
+fiddle with third-party plugins or install separate tools such as https://sdkman.io/[SdkMan]
+or https://www.jenv.be/[Jenv] just to get your project up and running. The example build file
+below shows how Mill handles many of the common settings that often need to be configured in
+a build tool:
 
 ```yaml
 extends: [JavaModule, PublishModule]
