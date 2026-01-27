@@ -9,12 +9,6 @@
 > ./mill java -version
 openjdk version "19..." ...
 
-> echo 'System.getProperty("java.version")' | ./mill jshell
-...19...
-
-> echo 'System.getProperty("java.version")' | ./mill repl
-...19...
-
 */
 
 //
