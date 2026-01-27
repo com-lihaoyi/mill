@@ -563,7 +563,12 @@ or xref:mill::javalib/script.adoc#_custom_script_module_classes[share their conf
 5. Mill scripts have xref:mill::javalib/script.adoc#_script_ide_integration[full support in IDEs]
 like IntelliJ or VSCode (or forks like Cursor or Windsurf)
 
+_Mill Script IntelliJ Support_
+
 image::ScriptIntellijSupport.png[]
+
+_Mill Script VSCode Support_
+
 image::ScriptVSCodeSupport.png[]
 
 Using Java, Scala or Kotlin to write small scripts isn't a new idea. The ability to run
