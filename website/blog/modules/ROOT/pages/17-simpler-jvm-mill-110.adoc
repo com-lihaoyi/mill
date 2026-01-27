@@ -202,7 +202,7 @@ it will be relatively rare for users to hit YAML-related issues in their `build.
 Mill's declarative configuration pushes the limits of how easily you can setup a
 Java project:
 
-1. Mill's `./mill`/`./mill.bat` xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[Bootstrap Scripts]
+1. Mill's `./mill` xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[Bootstrap Scripts]
 automatically xref:16-zero-setup.adoc[download and cache the right Mill and JVM versions].
 Anyone invoking the `./mill` automatically gets correct versions of Mill, `java`, `javac`,
 etc. without needing any prior installation or setup, regardless of operating system
