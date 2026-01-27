@@ -565,11 +565,11 @@ or xref:mill::javalib/script.adoc#_custom_script_module_classes[share their conf
 5. Mill scripts have xref:mill::javalib/script.adoc#_script_ide_integration[full support in IDEs]
 like IntelliJ or VSCode (or forks like Cursor or Windsurf)
 
-_Mill Script IntelliJ Support_
+*_Mill Script IntelliJ Support_*
 
 image::ScriptIntellijSupport.png[]
 
-_Mill Script VSCode Support_
+*_Mill Script VSCode Support_*
 
 image::ScriptVSCodeSupport.png[]
 
@@ -700,19 +700,16 @@ in this article resonate with your own personal experience. If you are intereste
 Mill's new declarative configuration syntax or single-file scripts, please check out the
 documentation linked below for each JVM language:
 
-[cols="1,2,2"]
+[cols="2,2"]
 |===
-| Java
-| xref:mill::javalib/intro.adoc#_declarative_configuration[Declarative Module Configuration]
-| xref:mill::javalib/intro.adoc#_single_file_scripts[Single-File Scripts]
+| xref:mill::javalib/intro.adoc#_declarative_configuration[Java Declarative Module Configuration]
+| xref:mill::javalib/intro.adoc#_single_file_scripts[Java Single-File Scripts]
 
-| Kotlin
-| xref:mill::kotlinlib/intro.adoc#_declarative_configuration[Declarative Module Configuration]
-| xref:mill::kotlinlib/intro.adoc#_single_file_scripts[Single-File Scripts]
+| xref:mill::kotlinlib/intro.adoc#_declarative_configuration[Kotlin Declarative Module Configuration]
+| xref:mill::kotlinlib/intro.adoc#_single_file_scripts[Kotlin Single-File Scripts]
 
-| Scala
-| xref:mill::scalalib/intro.adoc#_declarative_configuration[Declarative Module Configuration]
-| xref:mill::scalalib/intro.adoc#_single_file_scripts[Single-File Scripts]
+| xref:mill::scalalib/intro.adoc#_declarative_configuration[Scala Declarative Module Configuration]
+| xref:mill::scalalib/intro.adoc#_single_file_scripts[Scala Single-File Scripts]
 |===
 
 For anyone upgrading from an earlier version of Mill, please see the changelog with a more
