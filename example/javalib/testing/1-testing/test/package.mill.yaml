@@ -1,6 +1,2 @@
-extends: [build.JavaTests, TestModule.Junit5]
-mvnDeps: [
-  org.junit.jupiter:junit-jupiter-api:5.14.1,
-  org.junit.platform:junit-platform-launcher:1.14.1,
-  com.github.sbt.junit:jupiter-interface:0.16.0
-]
+extends: [build.JavaTests, TestModule.Junit6]
+jupiterVersion: "6.0.2"

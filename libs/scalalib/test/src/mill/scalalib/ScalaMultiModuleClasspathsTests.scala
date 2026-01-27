@@ -95,11 +95,11 @@ object ScalaMultiModuleClasspathsTests extends TestSuite {
         expectedCompileClasspath: Seq[String],
         expectedLocalClasspath: Seq[String]
     ) = {
-      val Right(runClasspathRes) = eval.apply(mod.runClasspath): @unchecked
-      val Right(compileClasspathRes) = eval.apply(mod.compileClasspath): @unchecked
+      val Right(runClasspathRes) = eval.apply(mod.runClasspath).runtimeChecked
+      val Right(compileClasspathRes) = eval.apply(mod.compileClasspath).runtimeChecked
       val Right(upstreamAssemblyClasspathRes) =
-        eval.apply(mod.upstreamAssemblyClasspath): @unchecked
-      val Right(localClasspathRes) = eval.apply(mod.localClasspath): @unchecked
+        eval.apply(mod.upstreamAssemblyClasspath).runtimeChecked
+      val Right(localClasspathRes) = eval.apply(mod.localClasspath).runtimeChecked
 
       val start = eval.evaluator.rootModule.moduleDir
       val startToken = Set("org", "com")

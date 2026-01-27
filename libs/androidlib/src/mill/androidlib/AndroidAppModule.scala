@@ -528,13 +528,30 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Autodetects the architecture of the image for the [[androidVirtualDevice]]
+   *
+   * Available architectures are x86_64 and arm64-v8a
+   *
+   * For more information, see [[https://developer.android.com/studio/run/emulator-acceleration#vm-accel-dev-env-reqs]]
+   */
+  def androidVirtualDeviceArchitecture: T[String] = Task {
+    System.getProperty("os.arch") match {
+      case "aarch64" | "arm64" => "arm64-v8a"
+      case "x86_64" | "amd64" => "x86_64"
+      case other =>
+        Task.log.warn(s"Unknown host architecture '$other', defaulting to x86_64")
+        "x86_64"
+    }
+  }
+
+  /**
    * Specifies the default configuration for the Android Virtual Device (AVD).
    */
   def androidVirtualDevice: T[AndroidVirtualDevice] = Task {
     AndroidVirtualDevice(
       deviceId = "medium_phone",
       apiVersion = androidSdkModule().platformsVersion(),
-      architecture = "x86_64",
+      architecture = androidVirtualDeviceArchitecture(),
       systemImageSource = "google_apis_playstore"
     )
   }

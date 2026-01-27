@@ -185,7 +185,20 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       initialSystemProperties
     )
 
-    val connExitCodeVar = new java.util.concurrent.atomic.AtomicReference[Option[Handled]](None)
+    @volatile var connExitCodeVar = Option.empty[Handled]
+
+    // Guard to prevent endConnection from being called multiple times.
+    // This is needed because endConnection can be triggered from multiple places:
+    // - Normal completion in the finally block
+    // - Client interruption in the if (!idle) block
+    // - Server shutdown via closeServer
+    // - Connection tracker closing other connections
+    val endConnectionCalled = new java.util.concurrent.atomic.AtomicBoolean(false)
+    def safeEndConnection(data: Option[Prepared], result: Option[Handled]): Unit = {
+      if (endConnectionCalled.compareAndSet(false, true)) {
+        endConnection(connectionData, data, result)
+      }
+    }
 
     def closeServer(reason: String, exitCode: Handled, data: Option[Prepared]) = {
       serverLog(
@@ -195,7 +208,7 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
 
       // Notify all other connected clients before shutting down, so they can retry
       connectionTracker.closeOtherConnections(clientSocket)
-      endConnection(connectionData, data, Some(exitCode))
+      safeEndConnection(data, Some(exitCode))
       closeServer0(Some(exitCode))
     }
 
@@ -204,16 +217,16 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
     // Register this connection with the tracker, providing a callback to close it
     connectionTracker.increment(
       clientSocket,
-      () => endConnection(connectionData, Some(data), Some(exitCodeServerTerminated))
+      () => safeEndConnection(Some(data), Some(exitCodeServerTerminated))
     )
 
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
     // message to see if the socket can receive data.
-    @volatile var lastClientAlive = true
+    var lastClientAlive = true
 
     def checkClientAlive() = {
-      val result =
+      lastClientAlive =
         try checkIfClientAlive(connectionData, data)
         catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) =>
@@ -225,20 +238,20 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
             )
             false
         }
-      lastClientAlive = result
-      result
+
+      lastClientAlive
     }
 
     try {
       @volatile var done = false
       @volatile var idle = false
 
-      val runThread = StartThread(connectionHandlerThreadName(clientSocket)) {
+      StartThread(connectionHandlerThreadName(clientSocket)) {
         try {
           val connResult =
             handleConnection(connectionData, closeServer(_, _, Some(data)), idle = _, data)
 
-          connExitCodeVar.compareAndSet(None, Some(connResult))
+          connExitCodeVar = Some(connResult)
         } catch {
           case e: SocketException if SocketUtil.clientHasClosedConnection(e) => // do nothing
           case e: Throwable =>
@@ -252,20 +265,20 @@ abstract class Server[Prepared, Handled](args: Server.Args) {
       }
 
       while (!done && checkClientAlive()) Thread.sleep(1)
-      runThread.interrupt()
+      // Don't interrupt, just wait for the watchAndWait code to realize the client has
+      // gone away when it regularly polls. `interrupt` has lots of weird side effects
+      // runThread.interrupt()
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
         // Close all other connected clients with exitCodeServerTerminated so they can retry
         connectionTracker.closeOtherConnections(clientSocket)
-        // Gracefully close the current client connection
-        endConnection(connectionData, Some(data), None)
-        // Shut down the server
-        closeServer0(None)
+        safeEndConnection(Some(data), None) // Gracefully close the current client connection
+        closeServer0(None) // Shut down the server
       }
 
       serverLog(s"done=$done, idle=$idle, lastClientAlive=$lastClientAlive")
-    } finally endConnection(connectionData, Some(data), connExitCodeVar.get())
+    } finally safeEndConnection(Some(data), connExitCodeVar)
   }
 }
 
@@ -483,7 +496,7 @@ object Server {
           throw new Exception(s"${activeTaskPrefix(command)} failing")
         } else {
           val (command, runningProcessDir) = readActiveInfo()
-          val consoleLogPath = runningProcessDir.getOrElse(daemonDir) / DaemonFiles.consoleLog
+          val consoleLogPath = out / DaemonFiles.millConsoleTail
           streams.err.println(
             s"${activeTaskPrefix(command)} waiting for it to be done... " +
               s"(tail -F ${consoleLogPath.relativeTo(mill.api.BuildCtx.workspaceRoot)} to see its progress)"

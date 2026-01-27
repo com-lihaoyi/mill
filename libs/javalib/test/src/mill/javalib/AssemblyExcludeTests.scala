@@ -15,7 +15,7 @@ object AssemblyExcludeTests extends TestSuite with AssemblyTestUtils {
         task: Task.Simple[PathRef],
         resourcePath: os.Path = assemblyMultiResourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(task): @unchecked
+      val Right(result) = eval.apply(task).runtimeChecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(!jarEntries(jarFile).contains("reference.conf"))
@@ -36,7 +36,7 @@ object AssemblyExcludeTests extends TestSuite with AssemblyTestUtils {
         HelloJavaMultiNoRules,
         sourceRoot = assemblyMultiResourcePath
       ).scoped { eval =>
-        val Right(result) = eval.apply(HelloJavaMultiNoRules.core.assembly): @unchecked
+        val Right(result) = eval.apply(HelloJavaMultiNoRules.core.assembly).runtimeChecked
 
         Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
           assert(jarEntries(jarFile).contains("reference.conf"))

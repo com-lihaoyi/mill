@@ -17,7 +17,7 @@ object AssemblyAppendTests extends TestSuite with AssemblyTestUtils {
       module,
       sourceRoot = assemblyMultiResourcePath
     ).scoped { eval =>
-      val Right(result) = eval.apply(task): @unchecked
+      val Right(result) = eval.apply(task).runtimeChecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(jarEntries(jarFile).contains("reference.conf"))
@@ -43,7 +43,7 @@ object AssemblyAppendTests extends TestSuite with AssemblyTestUtils {
       module,
       sourceRoot = assemblyMultiResourcePath
     ).scoped { eval =>
-      val Right(result) = eval.apply(task): @unchecked
+      val Right(result) = eval.apply(task).runtimeChecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(jarEntries(jarFile).contains("without-new-line.conf"))

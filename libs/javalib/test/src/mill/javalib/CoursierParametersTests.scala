@@ -30,7 +30,7 @@ object CoursierParametersTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("coursierParams") - UnitTester(CoursierTest, null).scoped { eval =>
-      val Right(result) = eval.apply(CoursierTest.core.compileClasspath): @unchecked
+      val Right(result) = eval.apply(CoursierTest.core.compileClasspath).runtimeChecked
       val classPath = result.value.toSeq.map(_.path)
       val guavaVersion = classPath
         .map(_.last)

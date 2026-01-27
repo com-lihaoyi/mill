@@ -96,14 +96,9 @@ object GenIdeaUtils {
         "(name=\"SBT: [^\"]+_2)\\.[0-9]+:([0-9][0-9a-zA-Z._-]*):jar\"",
         "$1.X:<version>:jar\""
       )
-      // Normalize simple library names with versions like name="scala3-library_3-3.8.0.jar"
+      // Normalize library jar names with semver versions like name="os-zip-0.11.6.jar" or name="scala3-library_3-3.8.0.jar"
       .replaceAll(
-        "(name=\"[a-zA-Z0-9_-]+_3)-[0-9]+\\.[0-9]+\\.[0-9]+\\.jar\"",
-        "$1-<version>.jar\""
-      )
-      // Normalize Scala 2 library jar names like name="scala-library-2.13.14.jar"
-      .replaceAll(
-        "(name=\"scala-library)-[0-9]+\\.[0-9]+\\.[0-9]+\\.jar\"",
+        "(name=\"[a-zA-Z0-9_-]+)-[0-9]+\\.[0-9]+\\.[0-9]+\\.jar\"",
         "$1-<version>.jar\""
       )
       // Normalize scala-SDK names like name="scala-SDK-3.8.0"

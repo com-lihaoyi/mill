@@ -28,7 +28,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def outPathJava = outPath.toNIO
   private[mill] def codeSignatures: Map[String, Int]
   private[mill] def rootModule: RootModule0
-  private[mill] def workerCache: mutable.Map[String, (Int, Val)]
+  private[mill] def workerCache: mutable.Map[String, (Int, Val, TaskApi[?])]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
