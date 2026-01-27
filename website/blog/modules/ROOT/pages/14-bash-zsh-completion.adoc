@@ -1,8 +1,6 @@
 = Writing Your Own Simple Tab-Completions for Bash and Zsh
-
-:link-github: https://github.com/com-lihaoyi/mill
+:link-github: {mill-github-url}
 :link-pr: {link-github}/pull
-
 // tag::header[]
 :author: Li Haoyi
 :revdate: 7 August 2025
