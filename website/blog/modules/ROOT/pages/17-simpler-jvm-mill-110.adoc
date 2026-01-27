@@ -333,7 +333,9 @@ mvn -pl common -am exec:java -Dexec.args="<args>"
 This solves the 3 frictions we xref:#_the_challenge_of_small_java_programs[mentioned earlier]
 in this article, letting you set up a new JVM project easily with a tiny config file and
 have it working across different environments and operating systems without needing to fiddle
-with messy installations, verbose configuration, or arcane command-line invocations.
+with messy installations, verbose configuration, or arcane command-line invocations. While
+this doesn't let you do anything you couldn't do before, it should make starting, using,
+and maintaining your Java projects much easier than when using traditional build tools.
 
 
 === Non-Trivial Declarative Builds
