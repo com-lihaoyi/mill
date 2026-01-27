@@ -861,10 +861,11 @@ mvnDeps:
 <div class="sect2">
 <h3 id="_builtins"><a class="anchor" href="#_builtins"></a>Builtins</h3>
 <div class="paragraph">
-<p>Mill supports most common JVM development workflows and tools built in, so you can
-get very far before you need to reach for <a href="extending/thirdparty-plugins.html" class="xref page">third-party plugins</a> or
-write custom code to extend your build system. The example build file below shows
-how Mill handles many of the common settings that often need to be configured in a build tool:</p>
+<p>Mill supports most JVM development workflows built in. This removes the need to
+fiddle with plugins or install separate tools such as <a href="https://sdkman.io/">SdkMan</a>
+or <a href="https://www.jenv.be/">Jenv</a> just to get your project up and running. The example build file
+below shows how Mill handles many of the common settings that often need to be configured in
+a build tool:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -878,7 +879,7 @@ repositories: [https://oss.sonatype.org/content/repositories/releases]
 
 mainClass: foo.Foo2
 
-jvmVersion: 11 # Pin a specific JVM version, supports &gt;=11
+jvmVersion: 11 # Pin a specific JVM version, downloaded and cached automatically
 
 # Add additional source and resource folders
 sources: !append [custom-src/]
@@ -902,7 +903,7 @@ pomSettings:
 </div>
 </div>
 <div class="paragraph">
-<p>Beyond this simple example, the table below links to the relevant part of the
+<p>Beyond this example, the table below links to the relevant part of the
 documentation and examples for each feature or tool that Mill supports:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">

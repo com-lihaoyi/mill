@@ -1012,19 +1012,14 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 <p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomMvnDeps</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-86-42b43a/mill-dist-1.1.0-RC4-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/dependencies/1-external-bom">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/dependencies/1-external-bom/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+bomMvnDeps:
+- com.google.cloud:libraries-bom:26.50.0
 
-object foo extends JavaModule {
-  def bomMvnDeps = Seq(
-    mvn"com.google.cloud:libraries-bom:26.50.0"
-  )
-  def mvnDeps = Seq(
-    mvn"io.grpc:grpc-protobuf"
-  )
-}</code></pre>
+mvnDeps:
+- io.grpc:grpc-protobuf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1048,20 +1043,15 @@ for a dependency, all exclusions are added to that dependency.</p>
 <p>Pass dependencies to <code>depManagement</code> in a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-86-42b43a/mill-dist-1.1.0-RC4-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/dependencies/2-managed">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/dependencies/2-managed/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+depManagement:
+- com.google.protobuf:protobuf-java:4.28.3
+- io.grpc:grpc-protobuf:1.67.1
 
-object foo extends JavaModule {
-  def depManagement = Seq(
-    mvn"com.google.protobuf:protobuf-java:4.28.3",
-    mvn"io.grpc:grpc-protobuf:1.67.1"
-  )
-  def mvnDeps = Seq(
-    mvn"io.grpc:grpc-protobuf"
-  )
-}</code></pre>
+mvnDeps:
+- io.grpc:grpc-protobuf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1077,8 +1067,12 @@ protobuf-java <code>4.28.3</code> ends up being pulled here.</p>
 <p>One can also add exclusions via dependency management, like</p>
 </div>
 <div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/dependencies/2-managed">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*
+
+object bar extends JavaModule {
   def depManagement = Seq(
     mvn"io.grpc:grpc-protobuf:1.67.1"
       .exclude(("com.google.protobuf", "protobuf-java"))
@@ -1119,17 +1113,14 @@ like</p>
 <p>One can manage and publish Bill of Material (BOM) modules from Mill, by using <code>BomModule</code>:</p>
 </div>
 <div class="listingblock">
+<div class="title">myBom/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/dependencies/2-managed/myBom/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myBom extends JavaModule, BomModule {
-  // Importing external BOMs from our BOM module with bomMvnDeps
-  def bomMvnDeps = Seq(
-    mvn"com.google.protobuf:protobuf-bom:4.28.1"
-  )
-  // Managing versions directly from our BOM module with depManagement
-  def depManagement = Seq(
-    mvn"io.grpc:grpc-protobuf:1.67.1"
-  )
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, BomModule]
+bomMvnDeps:
+- com.google.protobuf:protobuf-bom:4.28.1
+
+depManagement:
+- io.grpc:grpc-protobuf:1.67.1</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1205,26 +1196,23 @@ dependencies with particularly weird version numbers. For example, given the fol
 build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-86-42b43a/mill-dist-1.1.0-RC4-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/dependencies/3-search-updates">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/dependencies/3-search-updates/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-trait MyModule extends ScalaModule {
-  def scalaVersion = "2.13.16"
-}
-
-object foo extends MyModule {
-  def moduleDeps = Seq(bar)
-  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.4.0")
-}
-
-object bar extends MyModule {
-  def mvnDeps = Seq(
-    mvn"com.lihaoyi::mainargs:0.4.0",
-    mvn"com.lihaoyi::scalatags:0.8.2"
-  )
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
+scalaVersion: 2.13.16
+moduleDeps: [bar]
+mvnDeps:
+- com.lihaoyi::mainargs:0.4.0</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/dependencies/3-search-updates/bar/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
+scalaVersion: 2.13.16
+mvnDeps:
+- com.lihaoyi::mainargs:0.4.0
+- com.lihaoyi::scalatags:0.8.2</code></pre>
 </div>
 </div>
 <div class="paragraph">

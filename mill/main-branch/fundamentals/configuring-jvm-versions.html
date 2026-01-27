@@ -759,15 +759,44 @@ or <code>./mill jstack</code> on a stuck process, and so Mill exposes them for y
 </div>
 <div class="sect2">
 <h3 id="_customizing_mills_jvm_version"><a class="anchor" href="#_customizing_mills_jvm_version"></a>Customizing Mill&#8217;s JVM Version</h3>
+<div class="paragraph">
+<p>Mill&#8217;s JVM can be configured via the
+<a href="../cli/build-header.html#_mill_jvm_version" class="xref page">mill-jvm-version</a> key in your
+declarative <code>build.mill.yaml</code> file:</p>
+</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-86-42b43a/mill-dist-1.1.0-RC4-example-fundamentals-javahome-2-custom-builtin-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/javahome/2-custom-builtin-jvm">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-javahome-2-custom-jvm-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/javahome/2-custom-jvm-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 19</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: 19</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill java -version
+openjdk version "19..." ...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s JVM can be configured via the
-<a href="../cli/build-header.html#_mill_jvm_version" class="xref page">//| mill-jvm-version</a> key in your build header.</p>
+<p>The <code>mill-jvm-version</code> string has the form:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>"{version}"
+"{name}:{version}"</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To see what Jvms are available for download look at the index for your os
+and architecture {link-jvm-indices}[here].</p>
+</div>
+<div class="paragraph">
+<p>For programmable builds, you can se the JVM version via the <code>//| mill-jvm-version</code> build header:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-javahome-3-custom-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/javahome/3-custom-jvm">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 19</code></pre>
+</div>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -789,8 +818,9 @@ environments without a JVM installed</p>
 it behaves consistently without the problems that too-new or too-old versions may bring</p>
 </li>
 <li>
-<p>It makes it super easy to try out different JVMs: just change the <code>//| mill-jvm-version</code>
-and all the downloading/caching/installation is handled automatically!</p>
+<p>It makes it super easy to try out different JVMs: just change the <code>mill-jvm-version</code>
+and you have a <code>java</code> installation you can use, with all downloading/caching/installation
+handled automatically</p>
 </li>
 </ul>
 </div>
@@ -801,32 +831,21 @@ and all the downloading/caching/installation is handled automatically!</p>
 <h2 id="_setting_the_jvm_version_of_a_javamodule"><a class="anchor" href="#_setting_the_jvm_version_of_a_javamodule"></a>Setting the JVM Version of a JavaModule</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Configuring custom JVMs is done by setting the <code>def jvmVersion</code>
-of any <code>JavaModule</code>, <code>ScalaModule</code>, or <code>KotlinModule</code></p>
-</div>
-<div class="paragraph">
-<p>The <code>jvmVersion</code> string has the form:</p>
+<p>Configuring custom JVMs is done by setting the <code>jvmVersion</code>
+of any <code>JavaModule</code>, <code>ScalaModule</code>, or <code>KotlinModule</code>. This can be done
+declaratively via <code>package.mill.yaml</code> files:</p>
 </div>
 <div class="listingblock">
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/javahome/4-custom-module-jvm/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre>"{name}:{version}"</pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+jvmVersion: temurin:11.0.21</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>To see what Jvms are available for download look at the index for your os
-and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-86-42b43a/mill-dist-1.1.0-RC4-example-fundamentals-javahome-3-custom-module-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/javahome/3-custom-module-jvms">browse</a>)</div>
+<div class="title">foo/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/javahome/4-custom-module-jvm/foo/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, javalib.*
-import mill.api.ModuleRef
-
-object foo extends JavaModule {
-  def jvmVersion = "temurin:11.0.21"
-
-  object test extends JavaTests, TestModule.Junit4
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.foo.JavaTests, TestModule.Junit4]</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -868,7 +887,7 @@ Foo running on Java 11.0.21</code></pre>
 <p>By default, Mill comes bundled with a version of the JVM index that was published when
 each version of Mill is released. This ensures that the JVM versions you pick are stable,
 but means that the latest JVM versions may not be available. You can pass in the JVM
-index version explicitly via <code>def jvmIndexVersion</code> below, choosing a published
+index version explicitly via <code>jvmIndexVersion</code> below, choosing a published
 index version from the Maven Central:</p>
 </div>
 <div class="ulist">
@@ -884,14 +903,12 @@ although that might mean the JVM version is no longer stable and might change ov
 time as new releases are published:</p>
 </div>
 <div class="listingblock">
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/javahome/4-custom-module-jvm/bar/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib.*
-
-object bar extends ScalaModule {
-  def scalaVersion = "2.13.16"
-  def jvmVersion = "temurin:23.0.1"
-  def jvmIndexVersion = "latest.release"
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
+scalaVersion: 2.13.16
+jvmVersion: temurin:23.0.1
+jvmIndexVersion: latest.release</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -906,23 +923,27 @@ Bar running on Java 23.0.1</code></pre>
 <div class="paragraph">
 <p>You can also pass in the JVM download URL explicitly. Note that if you do so, you need
 to ensure yourself that you are downloading the appropriate JVM distribution for your
-operating system and CPU architecture. In the example below we switch between Mac/ARM and
-Linux/X64, but you may have additional cases if you need to support Windows or other
+operating system and CPU architecture. In the example below we use a Linux/X64 URL,
+but you may have additional cases if you need to support Mac, Windows or other
 OS/CPU combinations</p>
 </div>
 <div class="listingblock">
+<div class="title">qux/package.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/javahome/4-custom-module-jvm/qux/package.mill">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib.*
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.qux
+import mill._, javalib._
 
-object qux extends KotlinModule {
-  def kotlinVersion = "2.0.20"
-  def jvmVersion =
-    if (sys.props("os.name") == "Mac OS X") {
+object `package` extends JavaModule {
+  def jvmVersion = {
+    val osName = System.getProperty("os.name")
+    val osArch = System.getProperty("os.arch")
+    if (osName == "Mac OS X")
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
-    } else {
+    else if (osArch == "aarch64")
+      "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_linux_hotspot_22.0.2_9.tar.gz"
+    else
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz"
-    }
-
+  }
 }</code></pre>
 </div>
 </div>
@@ -939,10 +960,10 @@ Qux running on Java 22.0.2</code></pre>
 <p>Lastly, you can point Mill at any JVM distribution installed locally on disk via:</p>
 </div>
 <div class="listingblock">
+<div class="title">baz/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-fundamentals-javahome-4-custom-module-jvm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/javahome/4-custom-module-jvm/baz/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object baz extends JavaModule {
-  def javaHome = Some(PathRef(os.Path("/my/java/home"), quick = true))
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+javaHome: /my/java/home</code></pre>
 </div>
 </div>
 </div>

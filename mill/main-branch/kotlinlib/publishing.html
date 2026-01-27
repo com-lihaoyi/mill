@@ -728,7 +728,7 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-86-42b43a/mill-dist-1.1.0-RC4-example-kotlinlib-publishing-1-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/kotlinlib/publishing/1-publishing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-kotlinlib-publishing-1-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/kotlinlib/publishing/1-publishing/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [KotlinModule, PublishModule]
 kotlinVersion: 2.0.20
@@ -771,7 +771,7 @@ Sonatype Maven Central via:</p>
 <h2 id="_programmatic_publishing_configuration"><a class="anchor" href="#_programmatic_publishing_configuration"></a>Programmatic Publishing Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-86-42b43a/mill-dist-1.1.0-RC4-example-kotlinlib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/kotlinlib/publishing/2-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-kotlinlib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/kotlinlib/publishing/2-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -838,29 +838,27 @@ Central Portal. We extend <code>SonatypeCentralPublishModule</code> which provid
 simplified publishing tasks without requiring Nexus repository manager.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-86-42b43a/mill-dist-1.1.0-RC4-example-kotlinlib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/kotlinlib/publishing/3-publish-module-sonatype">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-kotlinlib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/kotlinlib/publishing/3-publish-module-sonatype/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 17
-
-package build
-
-import mill.*, kotlinlib.*, publish.*
-
-import mill.scalalib.SonatypeCentralPublishModule
-
-object foo extends KotlinModule, SonatypeCentralPublishModule {
-  def kotlinVersion = "2.2.21"
-  def publishVersion = "0.0.1"
-
-  def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-  )
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: 17</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-87-7585a6/mill-dist-1.1.0-RC4-example-kotlinlib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/kotlinlib/publishing/3-publish-module-sonatype/foo/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [KotlinModule, SonatypeCentralPublishModule]
+kotlinVersion: 2.2.21
+publishVersion: 0.0.1
+pomSettings:
+  description: Hello
+  organization: com.lihaoyi
+  url: https://github.com/lihaoyi/example
+  licenses: [MIT]
+  versionControl: github:lihaoyi/example
+  developers:
+  - id: lihaoyi
+    name: Li Haoyi
+    url: https://github.com/lihaoyi</code></pre>
 </div>
 </div>
 <div class="paragraph">
