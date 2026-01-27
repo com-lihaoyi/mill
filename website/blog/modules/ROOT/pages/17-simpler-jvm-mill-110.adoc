@@ -256,7 +256,7 @@ java -version
 |===
 
 2. Mill's declarative `build.mill.yaml` files are lightweight and boilerplate-free. This makes
-them much easier to write, read, and understand, simplifying getting started and longer-term
+them much easier to write, read, and understand, simplifying both getting started and longer-term
 maintainence
 +
 
