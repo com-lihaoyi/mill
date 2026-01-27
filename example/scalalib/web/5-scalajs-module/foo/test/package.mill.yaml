@@ -1,0 +1,2 @@
+extends: [build.foo.ScalaJSTests, TestModule.Utest]
+utestVersion: 0.8.9

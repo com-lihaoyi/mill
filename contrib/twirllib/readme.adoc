@@ -106,11 +106,11 @@ object app extends ScalaModule with TwirlModule {
 }
 
 // out.template.scala
-@import _root_.play.twirl.api.TwirlFeatureImports._
+@import _root_.play.twirl.api.TwirlFeatureImports.*
 // ...
 @import _root_.play.twirl.api.Xml
-@import my.additional.stuff._
-@import my.other.stuff._
+@import my.additional.stuff.*
+@import my.other.stuff.*
 ----
 
 To exclude the default imports, simply override `twirlImports` without calling `super`:
@@ -125,7 +125,7 @@ object app extends ScalaModule with TwirlModule {
 }
 
 // out.template.scala
-@import my.stuff._
+@import my.stuff.*
 ----
 
 === +def twirlFormats: Map[String, String]+

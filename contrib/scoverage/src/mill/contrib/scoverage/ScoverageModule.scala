@@ -58,8 +58,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    */
   def scoverageVersion: T[String]
 
-  def branchCoverageMin: Option[Double] = None
-  def statementCoverageMin: Option[Double] = None
+  def branchCoverageMin: T[Option[Double]] = Option.empty[Double]
+  def statementCoverageMin: T[Option[Double]] = Option.empty[Double]
 
   private def isScala3: Task[Boolean] = Task.Anon { JvmWorkerUtil.isScala3(outer.scalaVersion()) }
 
@@ -142,8 +142,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
 
     def validateCoverageMin(
-        statementCoverageMin: Option[Double],
-        branchCoverageMin: Option[Double]
+        statementCoverageMin: Task[Option[Double]],
+        branchCoverageMin: Task[Option[Double]]
     ): Task[Unit] = Task.Anon {
       ScoverageReportWorker
         .scoverageReportWorker()
@@ -151,8 +151,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         .validateCoverageMinimums(
           Seq(data().path),
           BuildCtx.workspaceRoot,
-          statementCoverageMin.getOrElse(0.0),
-          branchCoverageMin.getOrElse(0.0)
+          statementCoverageMin().getOrElse(0.0),
+          branchCoverageMin().getOrElse(0.0)
         )
     }
 
@@ -210,7 +210,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def xmlCoberturaReport(): Command[Unit] = Task.Command { doReport(ReportType.XmlCobertura)() }
     def consoleReport(): Command[Unit] = Task.Command { doReport(ReportType.Console)() }
     def validateCoverageMinimums(): Command[Unit] = Task.Command {
-      List(statementCoverageMin, branchCoverageMin).exists(_.isDefined) match {
+      List(statementCoverageMin(), branchCoverageMin()).exists(_.isDefined) match {
         case true => validateCoverageMin(statementCoverageMin, branchCoverageMin)()
         case _ => Task.fail(
             "Either statementCoverageMin or branchCoverageMin must be set in order to call the validateCoverageMinimums task."

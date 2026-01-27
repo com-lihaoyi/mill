@@ -1,0 +1,35 @@
+extends: MavenModule
+bomMvnDeps:
+- io.micronaut.platform:micronaut-platform:4.4.3
+
+annotationProcessorsMvnDeps:
+- io.micronaut.data:micronaut-data-processor
+- io.micronaut:micronaut-http-validation
+- io.micronaut.serde:micronaut-serde-processor
+- io.micronaut.validation:micronaut-validation-processor
+- io.micronaut:micronaut-inject-java
+
+annotationProcessorsJavacOptions: !append
+- -Amicronaut.processing.incremental=true
+- -Amicronaut.processing.group=example.micronaut
+- -Amicronaut.processing.module=todo
+- -Amicronaut.processing.annotations=example.micronaut.*
+
+javacOptions: !append
+- -parameters
+
+runMvnDeps:
+- ch.qos.logback:logback-classic:1.5.3
+- com.h2database:h2:2.2.224
+
+mvnDeps:
+- io.micronaut:micronaut-http-server-netty
+- io.micronaut.serde:micronaut-serde-jackson
+- io.micronaut.data:micronaut-data-jdbc
+- io.micronaut.sql:micronaut-jdbc-hikari
+- io.micronaut.validation:micronaut-validation
+- io.micronaut.views:micronaut-views-htmx
+- io.micronaut.views:micronaut-views-thymeleaf
+- org.webjars.npm:todomvc-common:1.0.5
+- org.webjars.npm:todomvc-app-css:2.4.1
+- org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10

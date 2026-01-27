@@ -174,7 +174,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     nativeGCInput().getOrElse(withScalaNativeBridge.apply().apply(_.defaultGarbageCollector()))
   }
 
-  def nativeTarget: T[Option[String]] = Task { None }
+  def nativeTarget: T[Option[String]] = Task { Option.empty[String] }
 
   // Options that are passed to clang during compilation
   def nativeCompileOptions = Task {
@@ -225,7 +225,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
    *  toolchain would detect if program uses system threads - when not thrads
    *  are not used, the program would be linked without multihreading support.
    */
-  def nativeMultithreading: T[Option[Boolean]] = Task { None }
+  def nativeMultithreading: T[Option[Boolean]] = Task { Option.empty[Boolean] }
 
   /**
    * List of service providers which shall be allowed in the final binary.

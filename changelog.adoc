@@ -9,6 +9,7 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
@@ -17,9 +18,9 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 === 1.1.0
 :version: 1.1.0
 :milestone-name: 1.1.0
-:milestone: 136
+:milestone: 139
 :prev-version: 1.0.6
-_2026-01-21_
+_2026-01-27_
 
 _Changes since {prev-version}:_
 
@@ -71,7 +72,7 @@ for more information.
 
 Single-file script modules allow you to write simple programs in a single file with a `//|`
 build header comment specifying its configuration. These are useful in scenarios where a separate
-build complexity is overkill: student projects, small experiments, prototypes, or command-line
+build file is overkill: student projects, small experiments, prototypes, or command-line
 scripts to replace the Bash and Python scripts common throughout the ecosystem.
 
 For example, a single-file script to spawn a simple
@@ -358,6 +359,11 @@ This is currently pretty bare, but will get fleshed out as we move towards `1.1.
 * Many improvements to Mill's Android build support {link-pr}/6527[#6527] {link-pr}/6551[#6551] {link-pr}/5887[#5887], {link-pr}/5888[#5888],
 {link-pr}/5926[#5926], {link-pr}/5963[#5963], {link-pr}/5997[#5997], {link-pr}/5980[#5980],
 {link-pr}/6063[#6063], {link-pr}/6073[#6073]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#1-0-6]
 === 1.0.6
@@ -1347,20 +1353,20 @@ is being selected and run.
 (https://mill-build.org/mill/main-branch/javalib/dependencies.html#_dependency_management[Documentation])
 
 * Built-in support for `mill.bat` launcher to run Mill natively on a Windows environment
-https://github.com/com-lihaoyi/mill/pull/4052[#4052]
+{link-pr}/4052[#4052]
 
 * Added documentation for https://mill-build.org/mill/migrating/migrating.html[Migrating to Mill],
 to try and help people who may be trying to move their existing codebase onto Mill from other build tools
 
-* Significant speedups for task resolution logic https://github.com/com-lihaoyi/mill/pull/4132[#4132],
+* Significant speedups for task resolution logic {link-pr}/4132[#4132],
 which should speed up cached-build workflows in particular
 
 * Improve precision of code signature task invalidation, reducing the amount of spurious
-task invalidations in the presence of multi-file builds https://github.com/com-lihaoyi/mill/pull/4113[#4113]
-https://github.com/com-lihaoyi/mill/pull/4116[#4116]
+task invalidations in the presence of multi-file builds {link-pr}/4113[#4113]
+{link-pr}/4116[#4116]
 
-* Reduced overhead of terminal prompt UI https://github.com/com-lihaoyi/mill/pull/4095[#4095]
-https://github.com/com-lihaoyi/mill/pull/4110[#4110]
+* Reduced overhead of terminal prompt UI {link-pr}/4095[#4095]
+{link-pr}/4110[#4110]
 
 * Launch of the https://mill-build.org/blog[Mill Build Engineering Blog], where we will post articles
 discussing topics around JVM build tooling
@@ -1391,10 +1397,10 @@ _Changes since {prev-version}:_
 * Make JVM version configurable per-module {link-pr}/3716[#3716]
 * Overhaul worker concurrency helpers with `mill.api.CacheFactory` {link-pr}/4001[#4001]
 * Optimize startup time using TCP sockets instead of junixsocket and `tput` instead of jline {link-pr}/4009[#4009]
-* Improvements to TUI build prompt https://github.com/com-lihaoyi/mill/pull/3933[#3933] https://github.com/com-lihaoyi/mill/pull/4014[#4014]
-* Lots of improvements to documentation, including a new https://github.com/com-lihaoyi/mill/pull/3965[Kotlin Spring-Boot Example #3965],
-a new page https://github.com/com-lihaoyi/mill/pull/3990[How Fast Does Java Compile? #3990], and
-https://github.com/com-lihaoyi/mill/pull/3938[Stable Links To Older Doc-site Versions #3938]
+* Improvements to TUI build prompt {link-pr}/3933[#3933] {link-pr}/4014[#4014]
+* Lots of improvements to documentation, including a new {link-pr}/3965[Kotlin Spring-Boot Example #3965],
+a new page {link-pr}/3990[How Fast Does Java Compile? #3990], and
+{link-pr}/3938[Stable Links To Older Doc-site Versions #3938]
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
@@ -1425,11 +1431,11 @@ _Changes since {prev-version}:_
 * Improve `inspect` command to show more detailed metadata on modules and tasks {link-pr}/3916[#3916]
 * Fix prompt updating logic to ensure the timestamp updates while tasks are running {link-pr}/3933[#3933]
 * Fix scoverage report generation for Scala 3 {link-pr}/3936[#3936]
-* Tons of documentation improvements: autoformatted all https://github.com/com-lihaoyi/mill/pull/3919[Java]
-and https://github.com/com-lihaoyi/mill/pull/3903[Scala] example files,
-[Scala-Native example builds]https://github.com/com-lihaoyi/mill/pull/3657,
-https://github.com/com-lihaoyi/mill/pull/3897[Scala-JS WASM example build],
-https://github.com/com-lihaoyi/mill/pull/3918[Re-run Maven comparison using proper flags]
+* Tons of documentation improvements: autoformatted all {link-pr}/3919[Java]
+and {link-pr}/3903[Scala] example files,
+[Scala-Native example builds]{link-pr}/3657,
+{link-pr}/3897[Scala-JS WASM example build],
+{link-pr}/3918[Re-run Maven comparison using proper flags]
 added `Why Use Mill?` and
 https://mill-build.org/mill/comparisons/unique.html[What Makes Mill Unique?] Sections
 

@@ -1,5 +1,6 @@
 extends: [build.qux.KotlinTests, TestModule.Junit5]
 mvnDeps:
-  - io.kotest:kotest-runner-junit5:5.9.1
-  - com.google.guava:guava:33.3.0-jre
+- io.kotest:kotest-runner-junit5:5.9.1
+- com.google.guava:guava:33.3.0-jre
+
 moduleDeps: [qux, baz.test]

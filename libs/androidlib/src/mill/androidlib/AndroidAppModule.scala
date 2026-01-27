@@ -106,12 +106,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Specifies the lint configuration XML file path. This allows setting custom lint rules or modifying existing ones.
    */
-  def androidLintConfigPath: T[Option[PathRef]] = Task { None }
+  def androidLintConfigPath: T[Option[PathRef]] = Task { Option.empty[PathRef] }
 
   /**
    * Specifies the lint baseline XML file path. This allows using a baseline to suppress known lint warnings.
    */
-  def androidLintBaselinePath: T[Option[PathRef]] = Task { None }
+  def androidLintBaselinePath: T[Option[PathRef]] = Task { Option.empty[PathRef] }
 
   /**
    * Determines whether the build should fail if Android Lint detects any issues.

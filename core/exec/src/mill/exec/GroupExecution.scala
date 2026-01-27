@@ -68,11 +68,18 @@ trait GroupExecution {
       labelled: Task.Named[_]
   ): Either[upickle.core.TraceVisitor.TraceException, Any] = {
     try {
+      val reader = labelled.readWriterOpt.getOrElse {
+        throw new IllegalStateException(
+          s"No ReadWriter registered for task '${labelled.ctx.segments.render}' " +
+            s"in module '${labelled.ctx.enclosingModule.getClass.getName}'. " +
+            s"This task cannot be overridden from YAML configuration."
+        )
+      }
       Right(PathRef.currentOverrideModulePath.withValue(
         labelled.ctx.enclosingModule.moduleCtx.millSourcePath
       ) {
         upickle.read[Any](interpolateEnvVarsInJson(located.value.value))(
-          using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+          using reader.asInstanceOf[upickle.Reader[Any]]
         )
       })
     } catch {
