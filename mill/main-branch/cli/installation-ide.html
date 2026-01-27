@@ -739,7 +739,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-82-0e6a26/mill-dist-1.1.0-RC4-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-83-d2032b/mill-dist-1.1.0-RC4-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
 1.1.0-RC4</code></pre>
@@ -748,7 +748,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-82-0e6a26/mill-dist-1.1.0-RC4-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-83-d2032b/mill-dist-1.1.0-RC4-mill.bat -o mill.bat
 &gt; ./mill version
 1.1.0-RC4</code></pre>
 </div>
@@ -812,7 +812,7 @@ pick one most similar to what you are doing so you can hit the ground running.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo sh -c '(curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill) &gt; /usr/local/bin/mill &amp;&amp; chmod +x /usr/local/bin/mill'</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo sh -c '(curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4-83-d2032b/mill-dist-1.1.0-RC4-mill.sh -o mill) &gt; /usr/local/bin/mill &amp;&amp; chmod +x /usr/local/bin/mill'</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -893,12 +893,12 @@ by adding a a <code>-jvm</code> suffix on the Mill version:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">{version}-jvm</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">1.1.0-RC4-jvm</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Mill&#8217;s JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
-when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
+when running Mill from the command line, and requires a JVM installed globally (version 17 or above)
 in order to run.</p>
 </div>
 </div>
@@ -916,9 +916,9 @@ in order to run.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This unpacks the completion script in <code>~/.cache/mill</code> and registers it in your <code>~/.bash_profile</code> and <code>~/.zshrc</code>.
-After that, doing <code>./mill &lt;TAB&gt;</code> should begin showing possible modules and tasks for you
-to select at the command line:</p>
+<p>This unpacks the completion script in <code>~/.local/share/mill/completion/mill-completion.sh</code>
+and registers it in your <code>~/.bash_profile</code> and <code>~/.zshrc</code>. After that, doing <code>./mill &lt;TAB&gt;</code>
+should begin showing possible modules and tasks for you to select at the command line:</p>
 </div>
 <div class="imageblock">
 <div class="content">

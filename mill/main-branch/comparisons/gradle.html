@@ -740,7 +740,7 @@ the Gradle&#8217;s design to provide programmatic builds without the complexity 
 <div class="sectionbody">
 <div class="paragraph">
 <p>Most real projects require some kind of ad-hoc build customizations: you may be pre-processing static
-assets for web deployment, embedding build metadata for runtime debugging, or generating
+assets for web deployment, embedding build metadata for production debugging, or generating
 reports for security scanning. For example, consider the following requirement:</p>
 </div>
 <div class="quoteblock">
@@ -757,9 +757,7 @@ real projects need to do in their build. Doing this in Gradle looks something li
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">import java.io.File
-
-tasks.register("generateLineCount") {
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">tasks.register("generateLineCount") {
     val sourceDirs = listOf("src/main/java")
     val outputDir = layout.buildDirectory.dir("generated-resources")
     val outputFile = outputDir.get().file("line-count.txt")
@@ -1085,6 +1083,10 @@ method overrides.</p>
 <p>We append the new resource entry to its prior value <code>super.resources()</code> that references
 the <code>resources/</code> folder on disk, so the resource folder on disk remains available</p>
 </li>
+<li>
+<p><code>Task.dest</code> is a path in the <code>out/</code> folder unique to each <code>Task</code>, so it can write files
+there without worrying about colliding with files written by other tasks</p>
+</li>
 </ul>
 </div>
 <div class="paragraph">
@@ -1169,31 +1171,13 @@ Line Count: 18</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>One thing worth highlighting is this <code>Task.dest</code> folder we are writing our <code>line-count.txt</code> file
-to. <code>Task.dest</code> is a path in the <code>out/</code> folder unique to each <code>Task</code>, so it can write files
-there without worrying about colliding with files written by other tasks. This makes the ownership
-of files in the <code>out/</code> folder clear, making it much easier for humans to understand where files
-came from and Mill itself to make use of that information (e.g. for automatic caching or invalidation).</p>
-</div>
-<div class="paragraph">
 <p>Nobody actually wants to count the lines of code in their program and write it in a resource file,
 but this example demonstrates how easy it is to extend your Mill module with custom logic in its
-own little pipeline: you just define method <code>def</code>s calling other methods, <code>override</code>
-methods and call <code>super</code> as necessary. These are concepts that any Java developer has been using
-daily for decades, and Mill lets you re-use those concepts to configure and customize your build
-tool without having to learn a whole new set of build-tool-specific APIs.</p>
-</div>
-<div class="paragraph">
-<p>It&#8217;s worth contrasting the Mill config above with e.g. the
-<a href="#_extending_gradle">equivalent Gradle configuration</a> we discussed earlier.
-Where Gradle&#8217;s programmatic configuration is built on top of global mutable variables,
-Mill is instead built on <code>class</code>es,  <code>extends</code>, method <code>def</code>s and calls, and <code>overrides</code>.
+own little pipeline. Where Gradle&#8217;s programmatic configuration is built on top of global mutable
+variables, Mill is instead built on <code>class</code>es,  <code>extends</code>, method <code>def</code>s and calls, and <code>overrides</code>.
 These behave exactly as you would expect any object-oriented program to work, so you already
-know how Mill behaves even if you&#8217;ve never touched a Mill build before. And the fact
-that Mill build config is so much easier to write means that you&#8217;re much less likely
-to have bugs causing slowness or flakiness, resulting in the improved performance
-(discussed above) and not needing to regularly run <code>clean</code> as you often have to do with other
-build tools.</p>
+know how Mill behaves even if you&#8217;ve never touched a Mill build before, and will very likely
+get your Mill customizations right the first time without issue.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1312,11 +1296,6 @@ module, but <code>bar.classPath</code> does)</p>
  viewBox="0.00 0.00 767.02 364.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"/>
-<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust3" class="cluster">
 <title>cluster_2</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="250.41,-8 250.41,-116 751.02,-116 751.02,-8 250.41,-8"/>
@@ -1326,6 +1305,11 @@ module, but <code>bar.classPath</code> does)</p>
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 484.87,-348 484.87,-240 8,-240"/>
 <text text-anchor="middle" x="246.43" y="-331.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"/>
+<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">

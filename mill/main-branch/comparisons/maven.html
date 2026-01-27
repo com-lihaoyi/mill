@@ -715,7 +715,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <a href="#">Maven</a> build tool is famous for pioneering the idea of
+<p>The <a href="#">Maven</a> build tool pioneered the idea of
 <em>"Declarative Builds"</em>: that you should only need to specify what your project needs,
 and the build tool should be able to get everything downloaded and cached and working on
 your behalf. However, although that is an excellent ideal to strive towards, in practice
@@ -864,7 +864,7 @@ longer so simple: we now need a build tool! The most common build tool in the Ja
 is Maven, and so you may want to set up a Maven <code>pom.xml</code> for the project.</p>
 </div>
 <div class="paragraph">
-<p><strong>CONSIDER: are you able to write out the <code>pom.xml</code> for this project
+<p><strong>Are you able to write out the <code>pom.xml</code> for this project
 without copy-paste cargo-culting something from Stackoverflow or similar?</strong></p>
 </div>
 <div class="paragraph">
@@ -908,7 +908,7 @@ an example <code>pom.xml</code> for the above project:</p>
 <div class="paragraph">
 <p>Although copy-pasting something from Stackoverflow (or from an existing project, from ChatGPT,
 from Gemini, etc.) does get things working in the short term, longer term the boilerplate does
-have costs that may not be immediately obvious:</p>
+have costs that may not be obvious up front:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -918,7 +918,7 @@ of XML can be a lot more error-prone than copy-pasting things the first time</p>
 </li>
 <li>
 <p>Although modern AI assistants like ChatGPT or Gemini are able to modify the code on your behalf,
-they sometimes make mistakes or hallucinate. Will you be able to catch these errors in the
+they sometimes make mistakes too! Will you be able to catch these errors in the
 reams of boilerplate?</p>
 </li>
 <li>
@@ -935,7 +935,7 @@ would you be able to debug it and figure out how to fix things?</p>
 <div class="sect2">
 <h3 id="_installing_maven"><a class="anchor" href="#_installing_maven"></a>Installing Maven</h3>
 <div class="paragraph">
-<p>Next we need to install Maven. From the <a href="https://maven.apache.org/install.html">Maven docs</a>, there
+<p>From the <a href="https://maven.apache.org/install.html">Maven docs</a>, there
 are a bunch of different commands needed for different operating systems or Linux distributions.</p>
 </div>
 <div class="listingblock">
@@ -966,7 +966,7 @@ syntax to make our specific package manage install it can be a challenge</p>
 <p>To solve the right-maven-version problem, many projects these days use
 <a href="https://maven.apache.org/tools/wrapper/maven-wrapper-plugin/usage.html">./mvnw bootstrap scripts</a>
 as a best practice. Should you be using that instead? And if you do, you&#8217;d still find people
-using <code>mvn</code> rather than <code>./mvnw</code> out of muscle memory and getting confusing errors</p>
+using <code>mvn</code> rather than <code>./mvnw</code> out of muscle memory and getting confusing errors due to version mismatches</p>
 </li>
 </ol>
 </div>
@@ -974,7 +974,7 @@ using <code>mvn</code> rather than <code>./mvnw</code> out of muscle memory and 
 <p>Similar to the challenges of <a href="#_installing_java">Installing Java</a>, installing Maven <em>once</em> isn&#8217;t hard, but
 installing Maven consistently on your Mac laptop, or your colleague&#8217;s Windows desktop, and
 on your Linux CI machines can be quite tricky! And trickier still is maintaining these
-installations as the different development environments inevitable evolve over time.</p>
+installations as the various environments inevitable evolve over time.</p>
 </div>
 </div>
 <div class="sect2">
@@ -984,7 +984,7 @@ installations as the different development environments inevitable evolve over t
 set up, and <code>mvn</code> (or <code>./mvnw</code>) installed, we need to run our Java application.</p>
 </div>
 <div class="paragraph">
-<p><strong>CONSIDER: can you remember the command to run this Java application from the command line?</strong></p>
+<p><strong>Can you remember the command to run this Java application from the command line?</strong></p>
 </div>
 <div class="paragraph">
 <p>It&#8217;s not</p>
@@ -1040,19 +1040,20 @@ without looking it up first.</p>
 <div class="sect2">
 <h3 id="_whither_declarative_builds"><a class="anchor" href="#_whither_declarative_builds"></a>Whither Declarative Builds?</h3>
 <div class="paragraph">
-<p>Although Maven is the first "declarative" build tool, in practice it has a lot of
-friction that has nothing to do with its declarative nature, which gets in the
-way of the smooth user experience a declarative build tool should be able to provide.
-From installing Java and Maven to setting up the verbose <code>pom.xml</code> and the unusual
-command-line invocation syntax, none of this is rocket science. But it adds enough
+<p>Maven is one of the first "declarative" build tools, and it gets a lot of things right:
+automatic dependency resolution, downloading, caching, parallelization, and so on.
+But it also has a lot of friction that has nothing to do with its declarative nature,
+which gets in the way of the smooth user experience a declarative build tool should be
+able to provide. From installing Java and Maven to setting up the verbose <code>pom.xml</code> and
+the unusual command-line invocation syntax, none of this is rocket science. But it adds enough
 friction to our <code>HtmlScraper.java</code> that people prefer to write their small programs
-in Python, Javascript.</p>
+in Python or Javascript instead.</p>
 </div>
 <div class="paragraph">
 <p>This is not for any fault of Java <em>the language</em>: while Java is a bit more verbose
 than Python or Bash, it is fine for writing this particular <code>HtmlScraper.java</code> program.
 Java may even be preferable when the time comes to add parallelism
-and concurrency and other features that may be harder to implement in Python or Bash.
+and concurrency, perform CPU intensive work, or make use of specialized Java libraries.
 The problem here is really that Java <em>build tools</em>: <code>HtmlScraper.java</code> is simple enough
 anyone could write it, but making sure <code>HtmlScraper.java</code> runs consistently on any
 machine you put it on can be surprisingly difficult.</p>
@@ -1066,6 +1067,102 @@ machine you put it on can be surprisingly difficult.</p>
 <div class="paragraph">
 <p>Because all of the issues above are with Java&#8217;s <em>tooling</em> rather than the <em>language itself</em>,
 the Mill build tool is able to streamline these things considerably.</p>
+</div>
+<div class="sect2">
+<h3 id="_mill_build_configuration"><a class="anchor" href="#_mill_build_configuration"></a>Mill Build Configuration</h3>
+<div class="paragraph">
+<p>Mill&#8217;s <code>build.mill.yaml</code> <a href="../javalib/intro.html#_declarative_configuration" class="xref page">declarative configuration
+files</a> are much simpler than the Maven <code>pom.xml</code>s you may be used to writing. For example, for
+the <code>HtmlScraper.java</code> file shown above, the minimal configuration file looks like this:</p>
+</div>
+<div class="paragraph">
+<p><code>build.mill.yaml</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this file,</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>extends</code> tells us what class of modules this is, e.g.
+<code>JavaModule</code>, <code>KotlinModule</code>, <code>ScalaModule</code>,</p>
+</li>
+<li>
+<p>The other keys such as <code>mvnDeps</code> tell us configuration on that module we want to override</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mill&#8217;s declarative <code>build.mill.yaml</code> config files are not limited to the trivial examples
+like the one above, but support the full range of features that any build tool does. This can
+be seen in the more heavily-configured example below:</p>
+</div>
+<div class="paragraph">
+<p><code>build.mill.yaml</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.javalib.JavaModule] # fully-qualified class name
+mvnDeps:
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7
+
+# Add a custom maven repository URL
+repositories: [https://oss.sonatype.org/content/repositories/releases]
+
+# Set an explicit main class
+mainClass: foo.Foo2
+
+# Pin a specific JVM version, supports &gt;=11
+jvmVersion: 11
+# Optionally specify the distribution: temurin, zulu, corretto, graalvm-community, etc.
+# jvmVersion: temurin:11
+
+# Add an additional source folder and resource folder, in addition to the default one.
+# Note the !append tag to append to the existing value rather than over-writing it
+sources: !append [custom-src/]
+resources: !append [custom-resources/]
+
+# Configure java compiler and runtime options and env vars
+javacOptions: [-deprecation]
+forkArgs: [-Dmy.custom.property=my-prop-value]
+forkEnv: { MY_CUSTOM_ENV: my-env-value }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill follows Mavens principle of <em>Convention over Configuration</em>: although there are a lot
+of possible configuration options (<code>mvnDeps</code>, <code>moduleDeps</code>, <code>repositories</code>,
+<code>javacOptions</code>, etc.) the  <code>build.mill.yaml</code> file only needs to contain
+the keys the user needs to customize. This greatly simplifies the common case where
+the user is mostly fine with the default configuration and avoids much of the
+complexity of <a href="#_setting_up_your_pom_xml">Setting up your pom.xml</a>.</p>
+</div>
+<div class="paragraph">
+<p>In general, Mill&#8217;s <code>build.mill.yaml</code> config files are concise enough you don&#8217;t need to
+copy-paste reams of boilerplate to set them up, or skim through reams of boilerplate to
+read and understand and maintain them. They contain only the configuration that you care
+about, with every key listed and documented in the Mill API documentation for that particular
+module:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/javalib/JavaModule.html#mvnDeps-0">mill.javalib.JavaModule</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you want to configure the <code>jvmVersion</code>, <code>repositories</code>, <code>javacOptions</code>, or any of the other
+normal build tool settings you can, but if you don&#8217;t need to configure them Mill makes
+it super easy to get started with reasonable defaults for everything.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_mill_bootstrap_scripts"><a class="anchor" href="#_mill_bootstrap_scripts"></a>Mill Bootstrap Scripts</h3>
@@ -1098,92 +1195,33 @@ or you can explicitly configure it in your <code>build.mill.yaml</code> file via
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">jvmId: 24
-jvmId: zulu:24
-jvmId: temurin:24</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">jvmVersion: 24
+jvmVersion: zulu:24
+jvmVersion: temurin:24</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can easily try out different Java versions by changing the <code>jvmId</code> config key,
-and any Mill project can set <code>jvmId</code> to specify a consistent JVM version that is used
+<p>You can easily try out different Java versions by changing the <code>jvmVersion</code> config key,
+and any Mill project can set <code>jvmVersion</code> to specify a consistent JVM version that is used
 regardless of where the project is being built. You can also have different
-projects or even different modules within the same project using different <code>jvmId</code>s,
+projects or even different modules within the same project using different <code>jvmVersion</code>s,
 and Mill will download/cache/use them without you needing to worry about collisions.</p>
 </div>
 <div class="paragraph">
 <p>With Mill, the Java version you
 use is managed declaratively: just like how Maven lets you declaratively configure the libraries
 that a project needs such as <code>org.jsoup:jsoup:1.17.2</code>, Mill lets you declaratively configure
-the <code>jvmId</code> the project needs and then handles any downloading and caching of those JVMs
+the <code>jvmVersion</code> the project needs and then handles any downloading and caching of those JVMs
 automatically for you.</p>
 </div>
 <div class="paragraph">
-<p>Thus the <code>./mill</code> bootstrap script is able to fix both the challenges
+<p>The <code>./mill</code> bootstrap script is thus able to fix both the challenges
 <a href="#_installing_java">Installing Java</a> as well as <a href="#_installing_maven">Installing Maven</a>.
 You don&#8217;t need to install Maven, you don&#8217;t need to install <a href="https://sdkman.io/">SdkMan</a> or
 <a href="https://www.jenv.be/">JEnv</a>, you don&#8217;t even need to install Mill! Any Mill project you check
 out should be buildable and runnable using the <code>./mill</code> bootstrap script without needing
 any prior installation, so you can immediately begin working on your project rather than
 fiddling with setup commands.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_mill_build_configuration"><a class="anchor" href="#_mill_build_configuration"></a>Mill Build Configuration</h3>
-<div class="paragraph">
-<p>Mill&#8217;s <code>build.mill.yaml</code> <a href="../javalib/intro.html#_declarative_configuration" class="xref page">declarative configuration
-files</a> are much simpler than the Maven <code>pom.xml</code>s you may be used to writing. For example, for
-the <code>HtmlScraper.java</code> file shown above, the minimal configuration file looks like this:</p>
-</div>
-<div class="paragraph">
-<p><code>build.mill.yaml</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
-mvnDeps:
-- org.jsoup:jsoup:1.7.2</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this file,</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>extends</code> tells us what class of modules this is, e.g.
-<code>mill.javalib.JavaModule</code>, <code>mill.kotlinlib.KotlinModule</code>, <code>mill.scalalib.ScalaModule</code>,</p>
-</li>
-<li>
-<p>The other keys such as <code>mvnDeps</code> tell us configuration on that module we want to override</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Mill follows Mavens principle of <em>Convention over Configuration</em>: although there are a lot
-of possible configuration options (<code>mvnDeps</code>, <code>moduleDeps</code>, <code>repositories</code>,
-<code>javacOptions</code>, etc.) the  <code>build.mill.yaml</code> file only needs to contain
-the keys the user needs to customize. This greatly simplifies the common case where
-the user is mostly fine with the default configuration and avoids much of the
-complexity of <a href="#_setting_up_your_pom_xml">Setting up your pom.xml</a>.</p>
-</div>
-<div class="paragraph">
-<p>In general, Mill&#8217;s <code>build.mill.yaml</code> config files are concise enough you don&#8217;t need to
-copy-paste reams of boilerplate to set them up, or skim through reams of boilerplate to
-read and understand and maintain them. They contain only the configuration that you care
-about, with every key listed and documented in the Mill API documentation for that particular
-module:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://mill-build.org/api/latest/mill/javalib/JavaModule.html#mvnDeps-0">mill.javalib.JavaModule</a></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>If you want to configure the <code>jvmId</code>, <code>repositories</code>, <code>javacOptions</code>, or any of the other
-normal build tool settings you can, but if you don&#8217;t need to configure them Mill makes
-it super easy to get started with reasonable defaults for everything.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1300,10 +1338,10 @@ single-file scripts are fully declarative:</p>
 </li>
 <li>
 <p>Any downloading of dependencies or compilation of the <code>.java</code> file is scheduled, parallelized
-and cached automatically</p>
+and cached</p>
 </li>
 <li>
-<p>You have full power to configure the script however you like: <code>jvmId</code>, <code>repositories</code>,
+<p>You can configure the script however you like: <code>jvmVersion</code>, <code>repositories</code>,
 <code>javacOptions</code>, etc.</p>
 </li>
 </ul>
@@ -1344,7 +1382,7 @@ small program in Python or Bash instead of Java.</p>
 <div class="paragraph">
 <p>Mill tries to learn from all the best-practices of Maven, but polishes the rough edges
 to provide a much smoother experience working with declarative builds. From the
-zero-setup installation process and declarative <code>jvmId</code> management,
+zero-setup installation process and declarative <code>jvmVersion</code> management,
 to the concise <code>build.mill.yaml</code> format and familiar command-line syntax, to
 support for single-file programs. Mill lets the key ideas of declarative shine
 through to provide an experience writing and running your Java programs that is every
@@ -1352,7 +1390,7 @@ bit as smooth as running a Python or Bash script from the command line.</p>
 </div>
 <div class="paragraph">
 <p>If you have ever worked with a Maven build you found it clunky to configure and clunky to use,
-do give Mill a try!</p>
+do <a href="../../javalib/intro.html" class="xref page">give Mill a try</a>!</p>
 </div>
 </div>
 </div>

@@ -719,7 +719,7 @@
 <a href="https://github.com/com-lihaoyi/mill"><span class="image"><img src="https://img.shields.io/github/stars/com-lihaoyi/mill" alt="GitHub Repo stars"></span></a></p>
 </div>
 <div class="paragraph">
-<p>Mill is a build tool that tries to improve upon the tools traditionally used
+<p>Mill is a build tool that improves upon the tools traditionally used
 in the JVM ecosystem:</p>
 </div>
 <div class="ulist">
@@ -729,176 +729,22 @@ in the JVM ecosystem:</p>
 often 1/10th the lines of a <code>pom.xml</code></p>
 </li>
 <li>
-<p><strong><a href="comparisons/gradle.html" class="xref page">Easier than Gradle</a></strong>, with
-object-oriented programmable builds Java developers can intuitively understand</p>
+<p><strong><a href="comparisons/gradle.html" class="xref page">Easier than Gradle</a></strong> or SBT, with
+object-oriented builds any developer can intuitively understand</p>
 </li>
 <li>
-<p><strong><a href="comparisons/performance.html" class="xref page">Fastest builds on the JVM</a></strong>, 3-6x
+<p><strong><a href="comparisons/performance.html" class="xref page">Fastest builds on the JVM</a></strong>, 3-7x
 faster than Maven or Gradle due to aggressive caching &amp; parallelism</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Although the Java compiler is very fast and the Java language is easy to learn,
-JVM build tools have a reputation for being sluggish, complicated, and confusing. Mill tries to
-offer a better alternative that gives the Java platform the developer experience it deserves.</p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_getting_started"><a class="anchor" href="#_getting_started"></a>Getting Started</h3>
-<div class="paragraph">
-<p>To get started using Mill for the first time, or migrating an existing JVM
-codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
-<ul>
-<li>
-<p><a href="cli/installation-ide.html" class="xref page">Installation &amp; IDE Setup</a></p>
-</li>
-</ul>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
-<ul>
-<li>
-<p><a href="migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
-</li>
-</ul>
-</div></div></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>Or see the language-specific introductory documentation linked below:</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="javalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-java.svg" alt="java" width="32"></span> Java with Mill</a></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="scalalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-scala.svg" alt="scala" width="20"></span> Scala with Mill</a></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p><a href="kotlinlib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-kotlin.svg" alt="kotlin" width="28"></span> Kotlin with Mill</a></p>
-</div></div></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect2">
-<h3 id="_mill_features"><a class="anchor" href="#_mill_features"></a>Mill Features</h3>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Performance</strong>: Mill automatically <a href="depth/caching.html" class="xref page">caches</a>
-and <a href="depth/parallelism.html" class="xref page">parallelizes build tasks</a> and <a href="https://mill-build.org/blog/11-jvm-test-parallelism.html">tests</a>
-to keep local development fast, <a href="https://mill-build.org/blog/9-mill-faster-assembly-jars.html">incrementally builds assembly jars</a>
-to speed up manual testing workflows, and shortens CI times with <a href="large/selective-execution.html" class="xref page">selective test execution</a>
-to only run the subset of tests necessary to validate a code change. Play the video below to compare
-compiling the same Netty codebase with Mill (~7s) vs Maven (~54s)</p>
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.css" />
-<script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.min.js"></script>
-<style>
-/* hack to make the stuff fit within the text body */
-.ap-terminal {
-  transform: scale(0.53);
-  transform-origin: top left;
-}
-</style>
-<div id="mill-maven-comparison"></div>
-<script>
-var player = AsciinemaPlayer.create(
-    '_images/basic/MillMavenComparison.cast',
-    document.getElementById('mill-maven-comparison'),
-    {startAt: 12, markers: [12], pauseOnMarkers: true, poster: "npt:00:12"}
-);
-</script>
-</li>
-<li>
-<p><strong>Ergonomics</strong>: Mill&#8217;s <a href="javalib/intro.html#_declarative_configuration" class="xref page">declarative config files</a>
-are concise and easy to read, its <a href="javalib/intro.html#_programmable_configuration" class="xref page">programmable config files</a>
-have <a href="cli/installation-ide.html#_ide_support" class="xref page">full IDE support in IntelliJ and VSCode</a>, and its
-<a href="cli/installation-ide.html#_bashzsh_tab_completion" class="xref page">terminal tab-completion</a>
-and syntax highlighted command-line output and error messages mean developers can easily
-navigate their builds and resolve issues.</p>
-</li>
-</ul>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/basic/ErrorHighlighting.png" alt="ErrorHighlighting">
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Scalability</strong> Mill scales well from <a href="javalib/intro.html#_single_file_scripts" class="xref page">single-file programs</a>
-to <a href="large/large.html" class="xref page">large monorepos</a> with hundreds of modules and
-<a href="large/multi-language-builds.html" class="xref page">multiple languages</a>. Mill makes building small programs
-convenient and large projects performant, so you never need to change toolchains as your project grows.</p>
-</li>
-<li>
-<p><strong>Builtins</strong>: Mill has builtin support for most common workflows: not just compile/run/test, but also
-<a href="fundamentals/configuring-jvm-versions.html" class="xref page">managing JVM versions</a>, <a href="javalib/linting.html" class="xref page">linting</a>,
-<a href="javalib/publishing.html#_publishing_to_sonatype_maven_central" class="xref page">publishing</a>,
-building <a href="javalib/packaging.html#_building_executable_assemblies" class="xref page">executable assemblies</a>,
-<a href="javalib/packaging.html#_building_native_image_binaries_with_graal_vm" class="xref page">native binaries</a>
-or <a href="javalib/packaging.html#_java_installers_using_jpackage" class="xref page">installers</a>,
-etc. This lets you focus on your actual project and spend less time
-fiddling with tooling and plugins.</p>
-</li>
-</ul>
+<p>Although the Java compiler is very fast and the Java language is easy to learn, JVM build
+tools have a reputation for being sluggish, complicated, and confusing. Mill tries to offer
+a better alternative that gives the Java platform the developer experience it deserves.</p>
 </div>
 <div class="paragraph">
-<p>Mill can be used for applications built on top of common JVM frameworks like
-Spring Boot (both <a href="javalib/spring-boot.html" class="xref page">in Java</a>
-and <a href="kotlinlib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Kotlin</a>),
-<a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>,
-<a href="kotlinlib/web-examples.html#_ktor_todomvc_app" class="xref page">Ktor</a>, or
-<a href="scalalib/web-examples.html#_todomvc_http4s_web_app" class="xref page">Http4S</a>.
-It is used in the wild to build many real-world projects, such as:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="https://github.com/swaldman/c3p0/blob/0.11.x/build.mill">C3P0 JDBC Connection Pool</a></p>
-</li>
-<li>
-<p><a href="https://github.com/coursier/coursier/blob/main/build.mill">Coursier dependency resolver</a></p>
-</li>
-<li>
-<p><a href="https://github.com/com-lihaoyi/Ammonite">Ammonite REPL</a></p>
-</li>
-<li>
-<p><a href="https://github.com/SpinalHDL/SpinalHDL">SpinalHDL</a> and <a href="https://github.com/chipsalliance/chisel/blob/main/build.mill">Chisel</a> chip design frameworks</p>
-</li>
-<li>
-<p>Projects at <a href="https://youtu.be/FckU1aHNh8U?t=2451">Netflix</a>,
-<a href="https://github.com/disneystreaming/smithy-translate/blob/main/build.sc">Disney-Streaming</a>,
-and other organizations</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Mill borrows ideas from other tools like <a href="https://maven.apache.org/">Maven</a>,
-<a href="https://gradle.org/">Gradle</a>, <a href="https://bazel.build/">Bazel</a>, and
-<a href="https://www.scala-sbt.org/">sbt</a>, but tries to learn from the
-strengths of each tool and improve on their weaknesses. For comparisons with existing
-build tools, check out these pages:</p>
+<p>For detailed comparisons with other build tools, check out these pages:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -917,13 +763,108 @@ build tools, check out these pages:</p>
 </tbody>
 </table>
 </div>
+</div>
 <div class="sect2">
-<h3 id="_tool_framework_support"><a class="anchor" href="#_tool_framework_support"></a>Tool &amp; Framework Support</h3>
+<h3 id="_performance"><a class="anchor" href="#_performance"></a>Performance</h3>
+<div class="paragraph">
+<p>Mill automatically <a href="depth/caching.html" class="xref page">caches</a>
+and <a href="depth/parallelism.html" class="xref page">parallelizes build tasks</a> and <a href="https://mill-build.org/blog/11-jvm-test-parallelism.html">tests</a>
+to keep local development fast, uses a <a href="depth/process-architecture.html" class="xref page">long-lived daemon</a> to keep the JVM warm,
+and shortens CI times with <a href="large/selective-execution.html" class="xref page">selective test execution</a>. Play the
+video below to compare compiling the same 500,000 line Netty codebase with Mill (~11s) vs Maven (~60s)</p>
+</div>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.css" />
+<script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.min.js"></script>
+<style>
+/* hack to make the stuff fit within the text body */
+.ap-terminal {
+  transform: scale(0.65);
+  transform-origin: top left;
+}
+</style>
+<div id="mill-maven-comparison"></div>
+<script>
+var player = AsciinemaPlayer.create(
+    '_images/basic/MillMavenComparison.cast',
+    document.getElementById('mill-maven-comparison'),
+    {startAt: 18, markers: [18, 80], pauseOnMarkers: true, poster: "npt:00:18"}
+);
+</script>
+</div>
+<div class="sect2">
+<h3 id="_simplicity"><a class="anchor" href="#_simplicity"></a>Simplicity</h3>
+<div class="paragraph">
+<p>Mill&#8217;s <a href="javalib/intro.html#_declarative_configuration" class="xref page">declarative
+build.mill.yaml files</a> contain only the essence of what you want to configure in
+your build, stripping away the endless complexity in traditional JVM build tools to
+make your project configuration easy to write, easy to read, and easy to understand</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 37.5%;">
+<col style="width: 62.5%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Mill <code>build.mill.yaml</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+- org.slf4j:slf4j-nop:2.0.7</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Maven <code>pom.xml</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;project xmlns="..." xmlns:xsi="..."&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  &lt;groupId&gt;example&lt;/groupId&gt;
+  &lt;artifactId&gt;html-scraper&lt;/artifactId&gt;
+  &lt;version&gt;1.0&lt;/version&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.jsoup&lt;/groupId&gt;
+      &lt;artifactId&gt;jsoup&lt;/artifactId&gt;
+      &lt;version&gt;1.17.2&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+      &lt;artifactId&gt;slf4j-nop&lt;/artifactId&gt;
+      &lt;version&gt;2.0.7&lt;/version&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+  &lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+        &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;3.2.0&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;mainClass&gt;HtmlScraper&lt;/mainClass&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+&lt;/project&gt;</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_builtins"><a class="anchor" href="#_builtins"></a>Builtins</h3>
 <div class="paragraph">
 <p>Mill supports most common JVM development workflows and tools built in, so you can
-get very far before you need to reach for third-party plugins or write custom code
-to extend your build pipelines. The table
-below links to the relevant part of the documentation and examples for each tool:</p>
+get very far before you need to reach for <a href="extending/thirdparty-plugins.html" class="xref page">third-party plugins</a> or
+write custom code to extend your build system. The table below links to the relevant part of the
+documentation and examples for each feature or tool:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1061,16 +1002,89 @@ below links to the relevant part of the documentation and examples for each tool
 </tbody>
 </table>
 <div class="paragraph">
-<p>When the time comes that you do need something not in its builtin feature set, Mill
-also has a rich ecosystem of third party plugins for less common use cases:</p>
+<p>Mill can be used for applications built on top of common JVM frameworks like
+Spring Boot (both <a href="javalib/spring-boot.html" class="xref page">in Java</a>
+and <a href="kotlinlib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Kotlin</a>),
+<a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>,
+<a href="kotlinlib/web-examples.html#_ktor_todomvc_app" class="xref page">Ktor</a>, or
+<a href="scalalib/web-examples.html#_todomvc_http4s_web_app" class="xref page">Http4s</a>.
+It is used in the wild to build many real-world projects, such as:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="extending/thirdparty-plugins.html" class="xref page">Third-Party Plugins</a></p>
+<p><a href="https://github.com/swaldman/c3p0/blob/0.11.x/build.mill">C3P0 JDBC Connection Pool</a></p>
+</li>
+<li>
+<p><a href="https://github.com/coursier/coursier/blob/main/build.mill">Coursier dependency resolver</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/Ammonite">Ammonite REPL</a></p>
+</li>
+<li>
+<p><a href="https://github.com/SpinalHDL/SpinalHDL">SpinalHDL</a> and <a href="https://github.com/chipsalliance/chisel/blob/main/build.mill">Chisel</a> chip design frameworks</p>
+</li>
+<li>
+<p>Projects at <a href="https://youtu.be/FckU1aHNh8U?t=2451">Netflix</a>,
+<a href="https://github.com/disneystreaming/smithy-translate/blob/main/build.sc">Disney-Streaming</a>,
+and other organizations</p>
 </li>
 </ul>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_getting_started"><a class="anchor" href="#_getting_started"></a>Getting Started</h3>
+<div class="paragraph">
+<p>To get started using Mill for the first time, or migrating an existing JVM
+codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p><a href="cli/installation-ide.html" class="xref page">Installation &amp; IDE Setup</a></p>
+</li>
+</ul>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p><a href="migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Or see the language-specific introductory documentation linked below:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><a href="javalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-java.svg" alt="java" width="32"></span> Java with Mill</a></p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><a href="scalalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-scala.svg" alt="scala" width="20"></span> Scala with Mill</a></p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><a href="kotlinlib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-kotlin.svg" alt="kotlin" width="28"></span> Kotlin with Mill</a></p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_commercial_support"><a class="anchor" href="#_commercial_support"></a>Commercial Support</h3>
