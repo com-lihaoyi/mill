@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC4</span>
+    <span class="version">1.1.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,7 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC4</a>
+          <a href="../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -716,10 +716,36 @@
 a reputation for being sluggish, even though the JVM has outstanding performance second
 only to languages like C/C++/Rust, and <a href="../../blog/1-java-compile.html" class="xref page">the Java compiler is extremely fast</a>.
 Mill is able to trim a lot of the overhead that other build tools like Maven or Gradle
-impose, resulting in edit-compile-test workflows that are 3-6x faster than those of other
-Java build tools. Apart from the raw performance, Mill also has a lot of useful
+impose, resulting in edit-compile-test workflows that are 3-7x faster than those of other
+Java build tools.</p>
+</div>
+<div class="paragraph">
+<p>To get a feel for this difference, play recording below to see Mill
+(Left) and Maven (Right) running side by side compiling the Netty codebase.</p>
+</div>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.css" />
+<script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.min.js"></script>
+<style>
+/* hack to make the stuff fit within the text body */
+.ap-terminal {
+  transform: scale(0.65);
+  transform-origin: top left;
+}
+</style>
+<div id="mill-maven-comparison"></div>
+<script>
+var player = AsciinemaPlayer.create(
+    '../_images/basic/MillMavenComparison.cast',
+    document.getElementById('mill-maven-comparison'),
+    {startAt: 18, markers: [18, 80], pauseOnMarkers: true, poster: "npt:00:18"}
+);
+</script>
+<div class="paragraph">
+<p>Apart from the raw performance, Mill also has a lot of useful
 performance-related features that you can use to help speed up your local development
-and CI workflows to keep your development efforts productive.</p>
+and CI workflows to keep your development efforts productive. This article contains
+a discussion of these performance differences, how the benchmarks were run, and
+how you can try them out yourselves.</p>
 </div>
 </div>
 </div>
@@ -736,15 +762,15 @@ all of that from Maven to Mill, we then ran the same common workflows on both
 equivalent builds to compare the performance: compiling everything, compiling a single module, etc.</p>
 </div>
 <div class="paragraph">
-<p>Overall across our benchmarks, Mill is 4-6x faster than Maven for clean compiles,
+<p>Overall across our benchmarks, Mill is 4-7x faster than Maven for clean compiles,
 both parallel and sequential, and for many modules or for a single module:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 40%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
 </colgroup>
 <tbody>
 <tr>
@@ -755,33 +781,33 @@ both parallel and sequential, and for many modules or for a single module:</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Sequential Clean Compile All</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">98.80s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">23.41s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.2x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">98.78s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24.43s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.0x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Parallel Clean Compile All</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">48.92s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">9.29s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.3x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50.67s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.35s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.9x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Clean Compile Single Module</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.89s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.88s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.33s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.90s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Incremental Compile Single Module</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.82s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.18s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">37.9x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.76s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.22s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30.7x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">No-Op Compile Single Module</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.28s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.12s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">43.8x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">44.0x</p></td>
 </tr>
 </tbody>
 </table>
@@ -792,34 +818,6 @@ everything in parallel. Mill sees a significant ~5x speedup over Maven for this 
 The same number of Java files are compiled, with the same classpath, in the same module
 layout, with the same Java compiler: the only difference is the reduction in build tool
 overhead giving the 5x speedup.</p>
-</div>
-<div class="paragraph">
-<p>To get a feel for this difference, play recording below to see Mill (Left) and
-Maven (Right) running side by side.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><em>Mill vs Maven</em></p>
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.css" />
-<script src="https://cdn.jsdelivr.net/npm/asciinema-player@3.10.0/dist/bundle/asciinema-player.min.js"></script>
-<style>
-/* hack to make the stuff fit within the text body */
-.ap-terminal {
-  transform: scale(0.53);
-  transform-origin: top left;
-}
-</style>
-<div id="mill-maven-comparison"></div>
-<script>
-var player = AsciinemaPlayer.create(
-    '../_images/basic/MillMavenComparison.cast',
-    document.getElementById('mill-maven-comparison'),
-    {startAt: 12, markers: [12, 70], pauseOnMarkers: true, poster: "npt:00:12"}
-);
-</script>
-</li>
-</ul>
 </div>
 <div class="paragraph">
 <p>The second benchmark worth noting is <strong>Incremental Compile Single Module</strong>.
@@ -873,10 +871,10 @@ same work.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
-<col style="width: 25%;">
+<col style="width: 40%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
 </colgroup>
 <tbody>
 <tr>
@@ -887,38 +885,38 @@ same work.</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Sequential Clean Compile All</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">17.6s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.86s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18.3s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.7x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Parallel Clean Compile All</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">12.3s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.75s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.3x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14.8s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.87s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.6x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Clean Compile Single Module</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.41s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.30s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.4x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.65s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.89s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.2x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Incremental Compile Single Module</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.37s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.20s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.9x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.61s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.28s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.9x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">No-Op Compile Single Module</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.94s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.11s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8.5x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.02s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.10s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.2x</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
-<p>Mill&#8217;s various "clean compile" workflows 3-4x faster than Gradle&#8217;s, while it&#8217;s incremental
+<p>Mill&#8217;s various "clean compile" workflows 3-5x faster than Gradle&#8217;s, while it&#8217;s incremental
 and no-op compile workflows are 7-9x faster. Both Gradle and Mill appear to do a good job
 limiting the compilation to only the changed file, but Mill has less fixed overhead than
 Gradle does, finishing in about ~0.2s rather than ~1.5 seconds.</p>
@@ -982,6 +980,27 @@ and makes all of them easy to set up and use.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_benchmarks_in_depth"><a class="anchor" href="#_benchmarks_in_depth"></a>Benchmarks in Depth</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following sections will go deeper into the benchmarks, exploring the root cause of the
+performance differences and what commands were used for each benchmark.</p>
+</div>
+<div class="paragraph">
+<p>The benchmarks on these page were run on with Mill 1.1.0 on a 10CPU/32GB 2021 M1 Macbook Pro,
+with whatever version of Maven or Gradle each respective project defaults to. Each command
+was run manually 5 times to allow warmup then the last 3 times recorded. The Netty
+and Mockito codebases used in the benchmark are available for download below, along with
+their example Mill configuration, so you can try running the benchmark commands yourself.</p>
+</div>
+<div class="paragraph">
+<p>Note that as Mill runs a JVM background daemon, it may require a few runs for the JVM to warm
+up to peak performance, and do be aware that benchmarked performance is expected to differ
+on different operating systems and hardware.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_mill_vs_maven_in_depth"><a class="anchor" href="#_mill_vs_maven_in_depth"></a>Mill vs Maven In Depth</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1003,15 +1022,9 @@ change any other files in the repository:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-thirdparty-netty.zip" class="bare">https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-thirdparty-netty.zip</a></p>
+<p><a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-thirdparty-netty.zip" class="bare">https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-thirdparty-netty.zip</a></p>
 </li>
 </ul>
-</div>
-<div class="paragraph">
-<p>And run the commands listed in the below sections yourself. Note that as Mill runs a JVM
-background daemon, it may require a few runs for the JVM to warm up to peak performance,
-and do be aware that benchmarked performance is expected to differ on different operating
-systems and hardware</p>
 </div>
 <div class="paragraph">
 <p>The Mill build for Netty is not 100% complete, but it covers most of the major parts of Netty:
@@ -1053,50 +1066,48 @@ are enough to give you a flavor of how Mill&#8217;s performance compares to Mave
 <col style="width: 25%;">
 <col style="width: 25%;">
 </colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Benchmark</th>
-<th class="tableblock halign-left valign-top">Maven</th>
-<th class="tableblock halign-left valign-top">Mill</th>
-<th class="tableblock halign-left valign-top">Speedup</th>
-</tr>
-</thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_sequential_clean_compile_all">Sequential Clean Compile All</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">98.80s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">23.41s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.2x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Benchmark</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maven</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Speedup</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_parallel_clean_compile_all">Parallel Clean Compile All</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">48.92s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">9.29s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.3x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sequential Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">98.78s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24.43s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.0x</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_clean_compile_single_module">Clean Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.89s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.88s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.6x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parallel Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50.67s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.35s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.9x</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.82s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.18s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">37.9x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clean Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.33s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.90s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7.0x</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_no_op_compile_single_module">No-Op Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.25s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Incremental Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6.76s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.22s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30.7x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No-Op Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.28s</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">0.12s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">43.8x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">44.0x</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
 <p>The column on the right shows the speedups of how much faster Mill is compared to the
-equivalent Maven workflow. In most cases,  Mill is 4-6x faster than Maven. Below, we
+equivalent Maven workflow. In most cases,  Mill is 4-7x faster than Maven. Below, we
 will go into more detail of each benchmark: how they were run, what they mean, and how
 we can explain the difference in performing the same task with the two different build tools.</p>
 </div>
@@ -1104,15 +1115,15 @@ we can explain the difference in performing the same task with the two different
 <h3 id="_sequential_clean_compile_all"><a class="anchor" href="#_sequential_clean_compile_all"></a>Sequential Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -Pfast  -Dcheckstyle.skip -Denforcer.skip=true -DskipTests install
-98.80s
-96.14s
-99.95s
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -Pfast -Denforcer.skip=true install
+97.20s
+98.35s
+100.8s
 
-$ ./mill clean; time ./mill -j1 __.compile
-22.83s
-23.41s
-23.47s</code></pre>
+$ ./mill clean _; time ./mill -j1 __.compile
+25.65s
+23.63s
+24.02s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1129,13 +1140,34 @@ to take 10-50 seconds without parallelism.
 The 20-30s taken by Mill seems about what you would expect for a codebase of this size,
 and the ~100s taken by Maven is far beyond what you would expect from simple Java compilation.</p>
 </div>
+<div class="paragraph">
+<p>From this benchmark, we can see that although both Mill and Maven are doing the same work,
+Mill takes about as long as it <em>should</em> for this task of compiling 500,000 lines of Java source
+code, while Maven takes considerably longer. This difference is purely build tool overhead
+in Maven - in the <code>install</code> workflow, in the JVM process warmup, etc. - that Mill manages
+to avoid.</p>
+</div>
+<div class="sect3">
+<h4 id="_mill_clean"><a class="anchor" href="#_mill_clean"></a>./mill clean _</h4>
+<div class="paragraph">
+<p>The first thing to take note is that we use <code>./mill clean <em></code> with an underscore <code></em></code>
+rather than <code>./mill clean</code> for this benchmark. The difference is that <code>./mill clean _</code>
+cleans the output of all user-defined modules or tasks, while <code>./mill clean</code> also
+wipes out Mill&#8217;s internal workers and machinery.</p>
+</div>
+<div class="paragraph">
+<p>From a user perspective, <code>./mill clean _</code> more accurately reflects what you are likely to
+see when working with your project, e.g. after performing a large refactor or git branch update
+that forces everything to re-compile, so that is what we use in this benchmark</p>
+</div>
+</div>
 <div class="sect3">
 <h4 id="_maven_compile_vs_install"><a class="anchor" href="#_maven_compile_vs_install"></a>Maven Compile vs Install</h4>
 <div class="paragraph">
-<p>In general, the reason we have to use <code>./mvnw install</code> rather than <code>./mvnw compile</code> is that
-Maven&#8217;s main mechanism for managing inter-module dependencies is via the local artifact cache
-at <code>~/.m2/repository</code>. Although many workflows work with <code>compile</code>, some don&#8217;t, and
-<code>./mvnw clean compile</code> on the Netty repository fails with:</p>
+<p>The second thing you may notice is the use of <code>./mvnw install</code> rather than <code>./mvnw compile</code>.
+The reason for this is that Maven&#8217;s main mechanism for managing inter-module dependencies
+is via the local artifact cache at <code>~/.m2/repository</code>. Although many workflows work with
+<code>compile</code>, some don&#8217;t. In particular, <code>./mvnw clean compile</code> on the Netty codebase fails with:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1163,18 +1195,11 @@ Maven&#8217;s overhead adds to the clean build:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill clean; time ./mill -j1 __.jar
-26.74s
-26.02s
-26.53s</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill clean _; time ./mill -j1 __.jar
+27.92s
+27.85s
+29.01s</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>From this benchmark, we can see that although both Mill and Maven are doing the same work,
-Mill takes about as long as it <em>should</em> for this task of compiling 500,000 lines of Java source
-code, while Maven takes considerably longer. This difference is purely build tool overhead
-in Maven - in the <code>install</code> workflow, in the JVM process warmup, etc. - that Mill manages
-to avoid.</p>
 </div>
 </div>
 </div>
@@ -1182,15 +1207,15 @@ to avoid.</p>
 <h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -T 10 -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-48.92s
-48.41s
-49.50s
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -T 10 -Pfast -Denforcer.skip=true install
+51.48s
+49.17s
+51.36s
 
-$ ./mill clean; time ./mill __.compile
-10.95s
-8.51s
-9.29s</code></pre>
+$ ./mill clean _; time ./mill __.compile
+10.73s
+10.05s
+10.27s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1209,15 +1234,15 @@ when performing a clean build of the Netty repository.</p>
 <h3 id="_clean_compile_single_module"><a class="anchor" href="#_clean_compile_single_module"></a>Clean Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true -Dmaven.test.skip=true install
-4.85s
-4.96s
-4.89s
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mvnw clean; time ./mvnw -pl common -Pfast -Denforcer.skip=true -Dmaven.test.skip=true install
+6.38s
+6.46s
+6.17s
 
 $ ./mill clean common; time ./mill common.compile
-0.88s
-0.97s
-0.73s</code></pre>
+0.89s
+0.91s
+0.90s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1241,17 +1266,17 @@ $ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=t
 Compiling 174 source files to /Users/lihaoyi/Github/netty/common/target/classes
 Compiling 60 source files to /Users/lihaoyi/Github/netty/common/target/test-classes
 
-6.89s
-6.34s
-6.82s
+7.75s
+6.33s
+6.22s
 
 
 $ echo "" &gt;&gt; common/src/main/java/io/netty/util/AbstractConstant.java
 $ time ./mill common.test.compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
 
-0.18s
-0.18s
+0.22s
+0.23s
 0.21s</code></pre>
 </div>
 </div>
@@ -1344,14 +1369,14 @@ the same thing in Maven</p>
 <h3 id="_no_op_compile_single_module"><a class="anchor" href="#_no_op_compile_single_module"></a>No-Op Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mvnw -pl common -Pfast -DskipTests  -Dcheckstyle.skip -Denforcer.skip=true install
-5.08s
-5.25s
-5.26s
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./mvnw -pl common -Pfast -Denforcer.skip=true install
+6.31s
+4.76s
+4.77s
 
 $ time ./mill common.test.compile
-0.14s
 0.12s
+0.11s
 0.12s</code></pre>
 </div>
 </div>
@@ -1405,7 +1430,7 @@ change any other files in the repository:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-thirdparty-mockito.zip" class="bare">https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-example-thirdparty-mockito.zip</a></p>
+<p><a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-thirdparty-mockito.zip" class="bare">https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-thirdparty-mockito.zip</a></p>
 </li>
 </ul>
 </div>
@@ -1450,44 +1475,42 @@ enough to give you a flavor of how Mill&#8217;s performance compares to Gradle:<
 <col style="width: 25%;">
 <col style="width: 25%;">
 </colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Benchmark</th>
-<th class="tableblock halign-left valign-top">Gradle</th>
-<th class="tableblock halign-left valign-top">Mill</th>
-<th class="tableblock halign-left valign-top">Speedup</th>
-</tr>
-</thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_sequential_clean_compile_all">Sequential Clean Compile All</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">17.6s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5.86s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Benchmark</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gradle</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Speedup</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_parallel_clean_compile_all">Parallel Clean Compile All</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">12.3s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.75s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.3x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sequential Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18.3s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.0s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.7x</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_clean_compile_single_module">Clean Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4.41s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.30s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.4x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parallel Clean Compile All</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14.8s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.87s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.6x</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_incremental_compile_single_module">Incremental Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.37s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.20s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">6.9x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clean Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.65s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.89s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.2x</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#_no_op_compile_single_module">No-Op Compile Single-Module</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.94s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">0.11s</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8.5x</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Incremental Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.61s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.28s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.9x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No-Op Compile Single Module</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.02s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0.10s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10.2x</p></td>
 </tr>
 </tbody>
 </table>
@@ -1501,15 +1524,16 @@ we can explain the difference in performing the same task with the two different
 <h3 id="_sequential_clean_compile_all_2"><a class="anchor" href="#_sequential_clean_compile_all_2"></a>Sequential Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
-17.6s
-18.2s
-17.4s
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ # edit gradle.properties to set org.gradle.parallel=false
+$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
+18.28s
+18.26s
+18.28s
 
-$ ./mill clean; time ./mill -j 1 __.compile
-6.19s
-5.86s
-5.28s</code></pre>
+$ ./mill clean _; time ./mill -j1 __.compile
+4.98s
+4.96s
+5.06s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1525,7 +1549,7 @@ lint, jar/docjar generation, and other steps that <code>build</code> performs to
 comparison. Furthermore, Gradle parallelizes the build by default and caches things globally
 under <code>~/.gradle/caches</code>, while Mill parallelizes by default but does not cache things globally.
 Again to make it a fair comparison, we use <code>--no-build-cache</code> in Gradle and set
-<code>org.gradle.parallel=false</code> in <code>gradle.properties</code>, and pass <code>-j 1</code> to limit Mill to a
+<code>org.gradle.parallel=false</code> in <code>gradle.properties</code>, and pass <code>-j1</code> to limit Mill to a
 single thread.</p>
 </div>
 <div class="paragraph">
@@ -1548,20 +1572,21 @@ on under the hood that I&#8217;m not aware of.</p>
 <h3 id="_parallel_clean_compile_all_2"><a class="anchor" href="#_parallel_clean_compile_all_2"></a>Parallel Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
-13.8s
-12.3s
-11.4s
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ # edit gradle.properties to set org.gradle.parallel=true
+$ ./gradlew clean; time ./gradlew classes testClasses --no-build-cache
+14.1s
+15.6s
+14.8s
 
-$ ./mill clean; time ./mill __.compile
-3.75s
+$ ./mill clean _; time ./mill __.compile
 3.74s
-3.86s</code></pre>
+4.16s
+3.73s</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This benchmark is identical to the <a href="#_sequential_clean_compile_all">Sequential Clean Compile All</a> benchmark above, but enables
-parallelism: Gradle by default, Mill without <code>-j 1</code> to run on 10 cores (the number on my Macbook Pro).</p>
+parallelism: Gradle by default, Mill without <code>-j1</code> to run on 10 cores (the number on my Macbook Pro).</p>
 </div>
 <div class="paragraph">
 <p>Neither Gradle nor Mill benefit hugely from parallelism: both show a moderate ~50% speedup,
@@ -1580,14 +1605,14 @@ each tool.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./gradlew clean; time ./gradlew :classes --no-build-cache
-4.14s
-4.41s
-4.41s
+4.55s
+4.82s
+4.60s
 
-$ ./mill clean; time ./mill compile
-1.30s
-1.90s
-1.13s</code></pre>
+$ ./mill clean _; time ./mill compile
+0.84s
+0.81s
+1.03s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1606,15 +1631,15 @@ the results above.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo "" &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./gradlew :classes
-1.37s
-1.39s
-1.28s
+1.67s
+1.64s
+1.52s
 
 $ echo "" &gt;&gt; src/main/java/org/mockito/BDDMockito.java; time ./mill compile
 compiling 1 Java source to /Users/lihaoyi/Github/netty/out/common/compile.dest/classes ...
-0.23s
-0.20s
-0.20s</code></pre>
+0.27s
+0.26s
+0.33s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1635,13 +1660,13 @@ showing a ~2.7x speedup for this task</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time ./gradlew :classes
-0.95s
-0.93s
-0.94s
+1.01s
+1.05s
+1.00s
 
 $ time ./mill compile
-0.13s
 0.11s
+0.09s
 0.10s</code></pre>
 </div>
 </div>

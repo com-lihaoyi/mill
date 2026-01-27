@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC4</span>
+    <span class="version">1.1.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,7 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC4</a>
+          <a href="../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -723,28 +723,24 @@
 <p>This example demonstrates more details about testing in Mill:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/1-testing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/1-testing/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/1-testing/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/1-testing/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, TestModule.Junit5]
-mvnDeps: [
-  org.junit.jupiter:junit-jupiter-api:5.14.1,
-  org.junit.platform:junit-platform-launcher:1.14.1,
-  com.github.sbt.junit:jupiter-interface:0.16.0
-]</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, TestModule.Junit6]
+jupiterVersion: "6.0.2"</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/1-testing/integration/package.mill.yaml">browse</a>)</div>
+<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/1-testing/integration/package.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, TestModule.Junit5]
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.JavaTests, TestModule.Junit6]
 moduleDeps: !append [test]
-mvnDeps: [org.junit.jupiter:junit-jupiter:5.8.2]</code></pre>
+jupiterVersion: "6.0.2"</code></pre>
 </div>
 </div>
 <div class="ulist">
@@ -842,7 +838,7 @@ Test qux.QuxIntegrationTests#helloworld() finished...
 to the test framework at the command line.</p>
 </div>
 <div class="paragraph">
-<p>e.g. the <a href="https://github.com/sbt/sbt-jupiter-interface">Junit5/Jupiter test interface</a>
+<p>e.g. the <a href="https://github.com/sbt/sbt-jupiter-interface">Junit6/Jupiter test interface</a>
 used in this example lets  you pass in a selector to decide which individual test
 case to run via:</p>
 </div>
@@ -869,13 +865,13 @@ Test run finished: 0 failed, 0 ignored, 1 total...</code></pre>
 "JUnit" as the testing framework, along with Mockito.</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/2-test-suite/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/2-test-suite/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/2-test-suite/foo/test/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/2-test-suite/foo/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.foo.JavaTests]
 testFramework: com.novocode.junit.JUnitFramework
@@ -885,7 +881,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/2-test-suite/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/2-test-suite/foo/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
 
@@ -901,7 +897,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/2-test-suite/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/2-test-suite/foo/test/src/foo/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
 
@@ -1008,13 +1004,13 @@ documented on their respective websites, so please see the links above for more
 details on how to use each one from the command line.</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/2-test-suite/bar/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/2-test-suite/bar/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/2-test-suite/bar/test/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/2-test-suite/bar/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.bar.JavaTests, TestModule.Junit4]
 mvnDeps: [org.mockito:mockito-core:4.6.1]</code></pre>
@@ -1143,27 +1139,27 @@ and <code>runMvnDeps</code> to declare dependencies in test modules, and test mo
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">baz/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/3-test-deps/baz/package.mill.yaml">browse</a>)</div>
+<div class="title">baz/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/3-test-deps/baz/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">baz/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/3-test-deps/baz/test/package.mill.yaml">browse</a>)</div>
+<div class="title">baz/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/3-test-deps/baz/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.baz.JavaTests, TestModule.Junit4]
 mvnDeps: [com.google.guava:guava:33.3.0-jre]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/3-test-deps/qux/package.mill.yaml">browse</a>)</div>
+<div class="title">qux/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/3-test-deps/qux/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 moduleDeps: [baz]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/3-test-deps/qux/test/package.mill.yaml">browse</a>)</div>
+<div class="title">qux/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/3-test-deps/qux/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.qux.JavaTests, TestModule.Junit4]
 mvnDeps: [com.google.guava:guava:33.3.0-jre]
@@ -1266,7 +1262,7 @@ distributes your test classes across multiple JVM subprocesses, while minimizing
 overhead of JVM creation by re-using the subprocesses where possible.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-5-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/5-test-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-5-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/5-test-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1313,7 +1309,7 @@ execute in parallel in a separate JVM when you call <code>test</code>. Test grou
 is enabled by overriding <code>def testForkGrouping</code>, as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/6-test-grouping">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/6-test-grouping">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1332,7 +1328,7 @@ object foo extends JavaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/HelloTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/6-test-grouping/foo/test/src/foo/HelloTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/HelloTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/6-test-grouping/foo/test/src/foo/HelloTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
 
@@ -1354,7 +1350,7 @@ public class HelloTests {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/WorldTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/6-test-grouping/foo/test/src/foo/WorldTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/WorldTests.java (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/6-test-grouping/foo/test/src/foo/WorldTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package foo;
 
@@ -1431,7 +1427,7 @@ execution, based on the unique constraints of your test suite.</p>
 <p><code>testParallelism</code> respects <code>testForkGrouping</code>, allowing you to use both features in a test module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-javalib-testing-7-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/javalib/testing/7-test-group-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-javalib-testing-7-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/testing/7-test-group-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*

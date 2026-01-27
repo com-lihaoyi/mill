@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC4</span>
+    <span class="version">1.1.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,7 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC4</a>
+          <a href="../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -731,7 +731,7 @@ they have a JVM installed on the machine they wish to run them on.</p>
 <p>You can also customize the assembly jar as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-scalalib-packaging-3-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/scalalib/packaging/3-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-packaging-3-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/packaging/3-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -739,7 +739,7 @@ import mill.scalalib.Assembly.*
 
 object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
-  def scalaVersion = "3.8.0"
+  def scalaVersion = "3.8.1"
   def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.11.4")
   def assemblyRules = Seq(
     // all application.conf files will be concatenated into single file
@@ -757,7 +757,7 @@ object foo extends ScalaModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "3.8.0"
+  def scalaVersion = "3.8.1"
 }</code></pre>
 </div>
 </div>
@@ -809,17 +809,17 @@ We recommend you <a href="../fundamentals/configuring-jvm-versions.html" class="
 via a custom <code>JvmWorkerModule</code> overriding <code>def jvmVersion</code> (shown above), as not every JVM can build Graal native images.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-scalalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/scalalib/packaging/1-native-image/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/packaging/1-native-image/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
-scalaVersion: 3.8.0</code></pre>
+scalaVersion: 3.8.1</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-scalalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/scalalib/packaging/1-native-image/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-packaging-1-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/packaging/1-native-image/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [ScalaModule, NativeImageModule]
-scalaVersion: 3.8.0
+scalaVersion: 3.8.1
 jvmVersion: graalvm-community:17.0.7
 nativeImageOptions: ["--no-fallback"]</code></pre>
 </div>
@@ -845,20 +845,21 @@ using <code>-Os</code> to optimize for the smallest binary size
 which is available in the <code>graalvm-community:23</code> JDK selected above</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-scalalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/scalalib/packaging/2-native-image-libs/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/packaging/2-native-image-libs/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
-scalaVersion: 3.8.0</code></pre>
+scalaVersion: 3.8.1</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-scalalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/scalalib/packaging/2-native-image-libs/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-packaging-2-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/packaging/2-native-image-libs/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [ScalaModule, NativeImageModule]
-scalaVersion: 3.8.0
+scalaVersion: 3.8.1
 mvnDeps:
-  - com.lihaoyi::scalatags:0.13.1
-  - com.lihaoyi::mainargs:0.7.8
+- com.lihaoyi::scalatags:0.13.1
+- com.lihaoyi::mainargs:0.7.8
+
 nativeImageOptions: ["--no-fallback", "-Os"]
 jvmVersion: graalvm-community:23.0.1</code></pre>
 </div>
@@ -916,7 +917,7 @@ Instead of copying and merging dependencies classes and resources into a flat ja
 One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-scalalib-packaging-4-repackage-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/scalalib/packaging/4-repackage-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-packaging-4-repackage-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/packaging/4-repackage-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -925,7 +926,7 @@ import mill.javalib.repackage.RepackageModule
 import mill.javalib.spring.boot.SpringBootToolsModule
 
 trait MyModule extends ScalaModule, PublishModule {
-  def scalaVersion = "3.8.0"
+  def scalaVersion = "3.8.1"
 
   def publishVersion = "0.0.1"
 
@@ -989,7 +990,7 @@ Bar.value: &lt;p&gt;world&lt;/p&gt;
 Qux.value: 31337
 
 &gt; unzip -l ./out/foo/repackagedJar.dest/out.jar "BOOT-INF/lib*" # mac/linux
-...BOOT-INF/lib/scala3-library_3-3.8.0.jar
+...BOOT-INF/lib/scala3-library_3-3.8.1.jar
 ...BOOT-INF/lib/thymeleaf-3.1.1.RELEASE.jar
 ...BOOT-INF/lib/ognl-3.3.4.jar
 ...BOOT-INF/lib/attoparser-2.0.6.RELEASE.jar

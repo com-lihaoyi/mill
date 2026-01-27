@@ -671,7 +671,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../../index.html">1.1.0-RC4</a>
+          <a href="../../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
@@ -833,11 +833,11 @@ object app extends ScalaModule with TwirlModule {
 }
 
 // out.template.scala
-@import _root_.play.twirl.api.TwirlFeatureImports._
+@import _root_.play.twirl.api.TwirlFeatureImports.*
 // ...
 @import _root_.play.twirl.api.Xml
-@import my.additional.stuff._
-@import my.other.stuff._</code></pre>
+@import my.additional.stuff.*
+@import my.other.stuff.*</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -853,7 +853,7 @@ object app extends ScalaModule with TwirlModule {
 }
 
 // out.template.scala
-@import my.stuff._</code></pre>
+@import my.stuff.*</code></pre>
 </div>
 </div>
 </div>

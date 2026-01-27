@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC4</span>
+    <span class="version">1.1.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,7 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC4</a>
+          <a href="../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -751,7 +751,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -795,7 +795,7 @@ import coursier.maven.MavenRepository</code></pre>
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDevice = super.androidVirtualDevice().withName("kotlin-test")
-  override def androidEmulatorPort: String = "5564"
+  override def androidEmulatorPort: String = System.getenv.getOrDefault("EMULATOR_PORT", "5556")
 
   override def androidIsDebug: T[Boolean] = Task { false }
 
@@ -864,6 +864,9 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 └── build.mill</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>This command runs unit tests on your local environment.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -j 1 show app.test
@@ -877,7 +880,7 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 </div>
 </div>
 <div class="paragraph">
-<p>This command runs unit tests on your local environment.</p>
+<p>Create an AVD and start an Android Emulator to install the APK.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -886,9 +889,20 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; ./mill show app.startAndroidEmulator
 
 &gt; ./mill show app.adbDevices
-...emulator-5564...device...
+...emulator-...device...
 
-&gt; ./mill show app.it
+&gt; ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The android tests (existing typically in androidTest directory, aka instrumented tests)
+typically run on an android device.
+The <code>it</code> task runs the android tests on the emulator created and started earlier.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.it
 ...
 {
   "msg": "",
@@ -896,7 +910,19 @@ all necessary steps (resource generation, APK creation, and signing) are execute
     {
       "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
       "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
-      "duration": ...,
+      "duration": 0,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest.kotlin_dir_text_size_is_correct",
+      "duration": 0,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "selector": "com.helloworld.logictest.SampleLogicInstrumentedTest.text_size_is_correct",
+      "duration": 0,
       "status": "Success"
     }
   ]
@@ -906,29 +932,55 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 &gt; cat out/app/it/testForked.dest/test-report.xml
 ...
 &lt;?xml version='1.0' encoding='UTF-8'?&gt;
-&lt;testsuites tests="1" failures="0" errors="0" skipped="0" time="..."&gt;
-        &lt;testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="..."&gt;
-        &lt;properties&gt;
-      &lt;/properties&gt;
-        &lt;testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="..."&gt;
-        &lt;/testcase&gt;
-      &lt;/testsuite&gt;
-      &lt;/testsuites&gt;
-...
-
-&gt; ./mill show app.stopAndroidEmulator
+&lt;testsuites tests="3" failures="0" errors="0" skipped="0" time="0.0"&gt;
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The instrumented tests command accepts additional parameters to filter tests using <code>adb</code> <code>-e</code> options.
+(<a href="https://developer.android.com/studio/test/command-line#am-instrument-options">Documentation found here</a>)</p>
+</div>
+<div class="paragraph">
+<p>For example, to run a specific package:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.it -e package com.helloworld.logictest
+..."status": "Success"...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To run a specific class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest
+..."status": "Success"...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can combine multiple <code>-e</code> options as needed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.it -e class com.helloworld.logictest.SampleLogicInstrumentedTest,com.helloworld.logictest.SampleLogicInKotlinDirInstrumentedTest -e package com.helloworld.app
+..."status": "Success"...
+..."status": "Success"...
+..."status": "Success"...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After running the tests, you can stop and delete the Android Virtual Device (AVD).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.stopAndroidEmulator
 
 &gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The android tests (existing typically in androidTest directory, aka instrumented tests)
-typically run on an android device.
-The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
-and the startAndroidEmulator command starts the AVD. The it task runs the integration tests
-against the available AVD. The stopAndroidEmulator command stops the AVD and the
-destroyAndroidVirtualDevice command destroys the AVD.
-The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.</p>
+<p>The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.</p>
 </div>
 <div class="paragraph">
 <p>This example demonstrates how to create a basic "Hello World" Android application

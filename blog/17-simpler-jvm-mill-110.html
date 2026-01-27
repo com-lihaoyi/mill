@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Simpler JVM Project Setup with Mill 1.1.0 :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/17-simpler-jvm-mill-110.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="16-zero-setup.html">
+    <meta name="generator" content="Antora 3.1.12">
+    <link rel="stylesheet" href="../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html"><em>The Mill Build Engineering Blog</em></a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="16-zero-setup.html">Zero-Setup Java Build Tooling via Mill Bootstrap Scripts</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="13-mill-build-tool-v1-0-0.html">Mill Build Tool v1.0.0 Release Highlights</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="12-direct-style-build-tool.html">Mill as a Direct Style Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="11-jvm-test-parallelism.html">Strategies for Efficiently Parallelizing JVM Test Suites</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="10-bytecode-callgraph-analysis.html">Invalidating build caches using JVM bytecode callgraph analysis</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="9-mill-faster-assembly-jars.html">Fast Incremental JVM Assembly Jar Creation with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="8-what-is-a-build-tool.html">What does a Build Tool do?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="7-graal-native-executables.html">How to Compile Java into Native Binaries with Mill and Graal</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="5-executable-jars.html">How JVM Executable Assembly Jars Work</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="4-flaky-tests.html">How To Manage Flaky Tests in your CI Workflows</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Mill Build Engineering Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">1.1.0</a>
+        </li>
+        <li class="version">
+          <a href="../mill/1.0.x/index.html">1.0.6</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.17</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Simpler JVM Project Setup with Mill 1.1.0</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 27 Jan 2026</em></p>
+</div>
+<div class="paragraph">
+<p>Java and other JVM languages like Scala or Kotlin are often used for large enterprise codebases,
+but the friction of configuring their tooling means they are less often used for small
+programs or scripts. The new release of the Mill build tool v1.1.0
+(<a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110">changelog</a>)
+contains two features that try to improve upon this pain point, allowing your projects
+to be configured via a compact <code>build.mill.yaml</code> file, rather than a verbose <code>pom.xml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+- org.slf4j:slf4j-nop:2.0.7</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And letting single-file programs be configured by a <code>//|</code> build header comment
+at the top of the file:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+import org.jsoup.Jsoup;
+public class HtmlScraper {
+  ...
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill HtmlScraper.java Singapore 1
+Hokkien
+Conscription_in_Singapore
+Malaysia_Agreement
+Government_of_Singapore
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This blog post will dive into these two new features: how they work, why they are interesting,
+and where they learn from or improve upon existing tools in the JVM ecosystem. We hope these
+features will streamline the process of setting up a project in Java, Scala, and Kotlin, making
+the JVM languages an attractive and easy way to write small-scale programs and scripts.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_challenge_of_small_java_programs"><a class="anchor" href="#_the_challenge_of_small_java_programs"></a>The Challenge of Small Java Programs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To understand the pain points of running small Java programs, consider a developer
+that has written a single-file Java program they want to run:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.jsoup.Jsoup;
+import java.util.*;
+
+public class HtmlScraper {
+  static List&lt;String&gt; fetchLinks(String title) throws Exception {
+    var url = "https://en.wikipedia.org/wiki/" + title;
+    var doc = Jsoup.connect(url).header("User-Agent", "My Scraper").get();
+    var links = new ArrayList&lt;String&gt;();
+    for (var a : doc.select("main p a")) {
+      var href = a.attr("href");
+      if (href.startsWith("/wiki/")) links.add(href.substring(6));
+    }
+    return links;
+  }
+
+  public static void main(String[] args) throws Exception {
+    if (args.length &lt; 2) throw new Exception("HtmlScraper.java &lt;start&gt; &lt;depth&gt;");
+    var seen = new HashSet&lt;&gt;(Set.of(args[0]));
+    var current = new HashSet&lt;&gt;(Set.of(args[0]));
+    for (int i = 0; i &lt; Integer.parseInt(args[1]); i++) {
+      var next = new HashSet&lt;String&gt;();
+      for (String article : current) {
+        for (String link : fetchLinks(article)) {
+          if (seen.add(link)) next.add(link);
+        }
+      }
+      current = next;
+    }
+    for (String s : seen) System.out.println(s);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is a simple program that uses the <a href="https://jsoup.org/">Jsoup</a> library to scrape
+the links off of a Wikipedia article&#8217;s HTML page, which it then uses to perform a breadth-first
+traversal across the Wikipedia article graph. While a bit contrived, this code is representative
+of many of the small programs that may be written in practice:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A student project</p>
+</li>
+<li>
+<p>A one-off prototype</p>
+</li>
+<li>
+<p>A small command-line script</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In all these cases, the program would have a small amount of code and a few third-party
+dependencies. But with traditional build tools like <a href="https://maven.apache.org/">Maven</a>, running
+such code can be surprisingly involved:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Installing Java and Maven, which has <a href="https://news.ycombinator.com/item?id=46037261">a surprising number of intricacies</a></p>
+</li>
+<li>
+<p>Writing out the <code>pom.xml</code> (can you write the POM for the above program without copy-paste cargo-culting from StackOverflow/Google/ChatGPT?)</p>
+<div class="listingblock">
+<div class="title">pom.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  &lt;groupId&gt;example&lt;/groupId&gt;
+  &lt;artifactId&gt;html-scraper&lt;/artifactId&gt;
+  &lt;version&gt;1.0&lt;/version&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.jsoup&lt;/groupId&gt;
+      &lt;artifactId&gt;jsoup&lt;/artifactId&gt;
+      &lt;version&gt;1.17.2&lt;/version&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+  &lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+        &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;3.2.0&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;mainClass&gt;HtmlScraper&lt;/mainClass&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+&lt;/project&gt;</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Running the program using Maven (can you remember the command-line invocation without looking it up?)</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mvn exec:java -Dexec.args="Singapore 1"
+Hokkien
+Conscription_in_Singapore
+Malaysia_Agreement
+Government_of_Singapore
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This gets even more fiddly when you need to select a submodule in a larger project with <code>-pl</code>
+and use <code>-am</code> to ensure the upstream modules get compiled</p>
+</div>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>None of these are <em>blockers</em>: after all we&#8217;ve been building and running Java programs
+for decades! But for someone trying to write a small program that can build and
+run reliably on their laptop, their colleagues' laptops, their CI machines and their
+production cluster, these things can end up being surprisingly tricky. Even modern
+AI assistants have limited context windows, which you don&#8217;t want to waste fumbling
+with version incompatibilities, or digging through XML boilerplate!</p>
+</div>
+<div class="paragraph">
+<p>In theory Java and the JVM is a great platform to write and run small programs: easy to learn,
+widely used, and a broad ecosystem of high-quality builtin and third-party libraries.
+But in practice, this build-tool-setup friction means that people prefer to write their small
+programs in Bash, Python, or Node.js rather than writing them in Java, Scala or Kotlin.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_declarative_mill_builds"><a class="anchor" href="#_declarative_mill_builds"></a>Declarative Mill Builds</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The first step Mill 1.1.0 takes towards solving the friction of running small JVM programs is
+a new declarative configuration format. That lets us turn the verbose <code>pom.xml</code> above into
+the declarative <code>build.mill.yaml</code> file below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which you can run via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">./mill run &lt;arg1&gt; &lt;arg2&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Compared to the equivalent Maven <code>pom.xml</code> or <code>build.gradle</code>, Mill&#8217;s <code>build.mill.yaml</code> files are
+really lightweight, without Maven&#8217;s reams of XML boilerplate or Gradle&#8217;s complex Groovy/Kotlin
+syntax. Even compared to Mill&#8217;s existing
+<a href="../mill/javalib/intro.html#_programmable_configuration" class="xref page">programmable config syntax</a>, it&#8217;s new
+<code>build.mill.yaml</code> files contain far less boilerplate and complexity.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>build.mill.yaml</code> files are written in <a href="https://yaml.org/spec/1.2.2/">YAML 1.2</a>, parsed
+using the <a href="https://bitbucket.org/snakeyaml/snakeyaml-engine">SnakeYaml-Engine</a> library. This helps
+mitigate many of the <a href="https://ruudvanasseldonk.com/2023/01/11/the-yaml-document-from-hell">issues
+that YAML has traditionally faced</a>, with YAML 1.2 resolving issues such as the famous
+<a href="https://www.bram.us/2022/01/11/yaml-the-norway-problem/">Norway Problem</a> and careful
+de-serialization avoiding the mangling of version numbers such as <code>1.10</code>. We expect
+it will be relatively rare for users to hit YAML-related issues in their <code>build.mill.yaml</code> files.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_simpler_java_project_setup_with_mill"><a class="anchor" href="#_simpler_java_project_setup_with_mill"></a>Simpler Java Project Setup with Mill</h3>
+<div class="paragraph">
+<p>Mill&#8217;s declarative configuration pushes the limits of how easily you can setup a
+Java project:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Mill&#8217;s <code>./mill</code> <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">Bootstrap Scripts</a>
+automatically <a href="16-zero-setup.html" class="xref page">download and cache the right Mill and JVM versions</a>.
+Anyone invoking the <code>./mill</code> automatically gets correct versions of Mill, <code>java</code>, <code>javac</code>,
+etc. without needing any prior installation or setup, regardless of operating system
+or CPU architecture:</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="title">Installing Mill</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill version
+1.1.0
+
+&gt; ./mill java -version
+openjdk version "21..." ...
+
+&gt; ./mill javac -version
+javac 21...</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="title">Installing Java + Maven</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Ubuntu
+sudo apt update
+sudo apt install -y openjdk-21-jdk maven
+# RHEL
+sudo dnf install -y java-21-openjdk-devel maven
+# Arch
+sudo pacman -S jdk-openjdk maven
+# Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install openjdk@21
+brew install maven
+# Macports
+curl -LO https://github.com/macports/macports-base/releases/latest/download/MacPorts.pkg
+sudo installer -pkg MacPorts.pkg -target /
+sudo port install openjdk21 maven
+# Winget
+winget install EclipseAdoptium.Temurin.21.JDK
+winget install Apache.Maven
+# Chocolatey
+choco install temurin21 maven -y
+# SDKMan
+curl -s "https://get.sdkman.io" | bash
+source "$HOME/.sdkman/bin/sdkman-init.sh"
+sdk install java 21.0.2-tem maven
+
+mvn --version
+java -version</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Mill&#8217;s declarative <code>build.mill.yaml</code> files are lightweight and boilerplate-free. This makes
+them much easier to write, read, and understand, simplifying both getting started and longer-term
+maintainence</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 37.5%;">
+<col style="width: 62.5%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="title">Mill <code>build.mill.yaml</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+- org.slf4j:slf4j-nop:2.0.7</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="title">Maven <code>pom.xml</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;project xmlns="..." xmlns:xsi="..."&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+  &lt;groupId&gt;example&lt;/groupId&gt;
+  &lt;artifactId&gt;html-scraper&lt;/artifactId&gt;
+  &lt;version&gt;1.0&lt;/version&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.jsoup&lt;/groupId&gt;
+      &lt;artifactId&gt;jsoup&lt;/artifactId&gt;
+      &lt;version&gt;1.17.2&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+      &lt;artifactId&gt;slf4j-nop&lt;/artifactId&gt;
+      &lt;version&gt;2.0.7&lt;/version&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+  &lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+        &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
+        &lt;version&gt;3.2.0&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;mainClass&gt;HtmlScraper&lt;/mainClass&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+&lt;/project&gt;</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>Mill&#8217;s CLI syntax for running the code  follows the conventions
+established by other CLIs so anyone picking up Mill can use it without the indirection of
+learning Maven&#8217;s unusual command-line conventions</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># run your Mill project
+./mill run &lt;arg1&gt; &lt;arg2&gt;
+
+# run a submodule
+./mill common.run &lt;args&gt;</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># run your Maven project
+mvn exec:java -Dexec.args="&lt;arg1&gt; &lt;arg2&gt;"
+
+# run a submodule
+mvn -pl common -am exec:java -Dexec.args="&lt;args&gt;"</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This solves the 3 frictions we <a href="#_the_challenge_of_small_java_programs">mentioned earlier</a>
+in this article, letting you set up a new JVM project easily with a tiny config file and
+have it working across different environments and operating systems without needing to fiddle
+with messy installations, verbose configuration, or arcane command-line invocations. While
+this doesn&#8217;t let you do anything you couldn&#8217;t do before, it should make starting, using,
+and maintaining your Java projects much easier than when using traditional build tools.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_non_trivial_declarative_builds"><a class="anchor" href="#_non_trivial_declarative_builds"></a>Non-Trivial Declarative Builds</h3>
+<div class="paragraph">
+<p>While Mill&#8217;s declarative build files are simpler than its programmable config files, they are
+by no means limited to toy projects. <code>build.mill.yaml</code> files support most of Mill&#8217;s
+build tool features, and below we have
+<a href="../mill/javalib/module-config.html#_declarative_configuration" class="xref page">a more verbose example</a> that
+demonstrates many of the common configuration keys a developer may want to set:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule]
+
+mvnDeps:
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7
+
+repositories: [https://oss.sonatype.org/content/repositories/releases]
+
+mainClass: foo.Foo2
+
+jvmVersion: 11 # Pin a specific JVM version, supports &gt;=11
+
+# Add additional source and resource folders
+sources: !append [custom-src/]
+resources: !append [custom-resources/]
+
+# Configure java compiler and runtime options and env vars
+javacOptions: [-deprecation]
+forkArgs: [-Dmy.custom.property=my-prop-value]
+forkEnv: { MY_CUSTOM_ENV: my-env-value }
+
+# Settings to publish to Maven Central
+publishVersion: 0.0.1
+artifactName: example
+pomSettings:
+  description: Example
+  organization: com.lihaoyi
+  url: https://github.com/com.lihaoyi/example
+  licenses: [MIT]
+  versionControl: https://github.com/com.lihaoyi/example
+  developers: [{name: Li Haoyi, email: example@example.com}]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill&#8217;s declarative builds go beyond toy projects and come with builtin support
+for all the core features that other build tools like Maven or Gradle support:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Workflows like <a href="../mill/javalib/testing.html" class="xref page">test suites</a>,
+<a href="../mill/javalib/intro.html#_multi_module_projects" class="xref page">multi-module projects</a>,
+<a href="../mill/javalib/packaging.html" class="xref page">packaging</a> and <a href="../mill/javalib/publishing.html" class="xref page">publishing</a></p>
+</li>
+<li>
+<p>Frameworks like <a href="../mill/javalib/spring-boot.html#_spring_boot_hello_world_app" class="xref page">Spring Boot</a>
+or <a href="../mill/javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a></p>
+</li>
+<li>
+<p>Other JVM languages like <a href="../mill/kotlinlib/module-config.html#_declarative_configuration" class="xref page">Kotlin</a>
+or <a href="../mill/scalalib/module-config.html#_declarative_configuration" class="xref page">Scala</a></p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="title">buill.mill.yaml for Kotlin</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
+kotlinVersion: 2.0.20
+mvnDeps:
+- org.jsoup:jsoup:1.7.2</code></pre>
+</div>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="title">buill.mill.yaml for Scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
+scalaVersion: 3.8.1
+mvnDeps:
+- org.jsoup:jsoup:1.7.2</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These configuration keys are all documented in
+<a href="https://mill-build.org/api/latest/mill/javalib/JavaModule.html#mvnDeps-0">the API reference</a>,
+and are the same keys that Mill&#8217;s traditional programmable configuration style lets
+you override. While declarative <code>build.mill.yaml</code> files are a lot simpler and more
+compact than their equivalent in Maven <code>pom.xml</code> or programmable <code>build.gradle</code>
+or <code>build.mill</code> files, they are very much featureful enough to build many real-world
+projects.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_simpler_declarative_builds"><a class="anchor" href="#_simpler_declarative_builds"></a>Simpler Declarative Builds</h3>
+<div class="paragraph">
+<p>We hope Mill&#8217;s new declarative <code>build.mill.yaml</code> syntax can be a
+viable alternative to Maven for Java developers who prefer declarative builds, complementing
+Mill&#8217;s existing programmable <code>build.mill</code> syntax:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For most projects that just need basic key-value configuration, Mill&#8217;s
+<a href="../mill/javalib/intro.html#_declarative_configuration" class="xref page">declarative build.mill.yaml files</a>
+bring out the best parts of Maven&#8217;s declarative config without the verbosity and clunkiness</p>
+</li>
+<li>
+<p>For projects that need custom build logic,
+<a href="../mill/javalib/intro.html#_programmable_configuration" class="xref page">programmable build.mill files</a>
+provide the necessary flexibility to get what you need done more easily than with Maven
+plugins, or custom Gradle or SBT tasks</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Traditionally, choosing between Maven or Gradle meant you were locked into a declarative or
+programmable style. This made it a big, irreversible decision, and the root of many "holy wars". In
+contrast, with Mill you can easily transition between declarative and programmable configuration
+styles as appropriate, even using both in different parts of the same project where necessary.
+This lets you pick whatever style makes sense at the moment knowing that you can
+easily incorporate the other style later.</p>
+</div>
+<div class="paragraph">
+<p>Beyond simplifying your build file format and command-line interface, Mill 1.1.0 has one more
+trick to simplify working with small Java programs: doing away with build files all together!</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_single_file_scripts"><a class="anchor" href="#_mill_single_file_scripts"></a>Mill Single-File Scripts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill 1.1.0 supports a new <a href="../mill/javalib/intro.html#_single_file_scripts" class="xref page">single-file script</a>
+format for Java, Scala, and Kotlin files. This lets you take the <code>HtmlScraper.java</code>
+file above, add a <code>//|</code> build-header comment with the <code>mvnDeps</code> configuration it needs, and
+<a href="../mill/javalib/script.html#_html_web_scraper" class="xref page">run it directly self-contained within a single file</a>:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+import org.jsoup.Jsoup;
+import java.util.*;
+
+public class HtmlScraper {
+  static List&lt;String&gt; fetchLinks(String title) throws Exception {
+    var url = "https://en.wikipedia.org/wiki/" + title;
+    var doc = Jsoup.connect(url).header("User-Agent", "My Scraper").get();
+    var links = new ArrayList&lt;String&gt;();
+    for (var a : doc.select("main p a")) {
+      var href = a.attr("href");
+      if (href.startsWith("/wiki/")) links.add(href.substring(6));
+    }
+    return links;
+  }
+
+  public static void main(String[] args) throws Exception {
+    if (args.length &lt; 2) throw new Exception("HtmlScraper.java &lt;start&gt; &lt;depth&gt;");
+    var seen = new HashSet&lt;&gt;(Set.of(args[0]));
+    var current = new HashSet&lt;&gt;(Set.of(args[0]));
+    for (int i = 0; i &lt; Integer.parseInt(args[1]); i++) {
+      var next = new HashSet&lt;String&gt;();
+      for (String article : current) {
+        for (String link : fetchLinks(article)) {
+          if (seen.add(link)) next.add(link);
+        }
+      }
+      current = next;
+    }
+    for (String s : seen) System.out.println(s);
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This can be run via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill HtmlScraper.java Singapore 1
+Hokkien
+Conscription_in_Singapore
+Malaysia_Agreement
+Government_of_Singapore
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Another neat example is <a href="../mill/javalib/script.html#_web_server" class="xref page">running a Spring-Boot
+webserver, configured and implemented in a single file</a>:</p>
+</div>
+<div class="listingblock">
+<div class="title">WebServer.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]
+package example;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.*;
+
+@SpringBootApplication
+@RestController
+public class WebServer {
+  public static void main(String[] args) throws Exception {
+    SpringApplication.run(WebServer.class, args);
+    Thread.sleep(Integer.MAX_VALUE);
+  }
+
+  @PostMapping("/reverse-string")
+  public String reverseString(@RequestBody String body) {
+    return new StringBuilder(body).reverse().toString();
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill WebServer.java:runBackground
+
+&gt; curl -d 'helloworld' localhost:8080/reverse-string
+dlrowolleh</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill single-file scripts are inspired by the <a href="https://www.jbang.dev/">JBang</a> project for Java,
+<a href="https://ammonite.io/">Ammonite</a> and <a href="https://scala-cli.virtuslab.org/">Scala-CLI</a> for Scala,
+and <a href="https://blog.jetbrains.com/kotlin/2024/11/state-of-kotlin-scripting-2024/">Scripting for Kotlin</a>,
+which all give you the ability to write single-files scripts in JVM languages. But while many
+projects support single-file scripts for cute demos like the one above, Mill fleshes them out
+far beyond most such script runners, hopefully enough to make them a viable way of writing code
+on the JVM.</p>
+</div>
+<div class="sect2">
+<h3 id="_rich_scripting_on_the_jvm"><a class="anchor" href="#_rich_scripting_on_the_jvm"></a>Rich Scripting on the JVM</h3>
+<div class="paragraph">
+<p>Mill&#8217;s single-file scripts are unique in how much they flesh out the JVM scripting experience:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Mill scripts support the
+<a href="https://mill-build.org/api/latest/mill/javalib/JavaModule.html#mvnDeps-0">full range of configuration
+keys and tasks</a>: <code>jvmVersion</code>, <code>javacOptions</code>, <code>mvnDeps</code>, <code>jshell</code>, etc.</p>
+</li>
+<li>
+<p>Mill scripts can have <a href="../mill/javalib/intro.html#_testing_scripts" class="xref page">test suites</a>
+and <a href="../mill/javalib/script.html#_relative_and_absolute_script_moduledeps" class="xref page">depend on other scripts</a></p>
+</li>
+<li>
+<p>Mill scripts can be <a href="../mill/javalib/script.html#_packaging_assemblies_and_native_binaries" class="xref page">packaged into assemblies or native binaries</a>
+for deployment</p>
+</li>
+<li>
+<p>Mill scripts can <a href="../mill/javalib/script.html#_project_moduledeps" class="xref page">depend on a larger project&#8217;s modules</a>
+or <a href="../mill/javalib/script.html#_custom_script_module_classes" class="xref page">share their configuration</a></p>
+</li>
+<li>
+<p>Mill scripts have <a href="../mill/javalib/script.html#_script_ide_integration" class="xref page">full support in IDEs</a>
+like IntelliJ or VSCode (or forks like Cursor or Windsurf)</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p><strong><em>Mill Script IntelliJ Support</em></strong></p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ScriptIntellijSupport.png" alt="ScriptIntellijSupport">
+</div>
+</div>
+<div class="paragraph">
+<p><strong><em>Mill Script VSCode Support</em></strong></p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ScriptVSCodeSupport.png" alt="ScriptVSCodeSupport">
+</div>
+</div>
+<div class="paragraph">
+<p>Using Java, Scala or Kotlin to write small scripts isn&#8217;t a new idea. The ability to run
+<code>java Foo.java</code> from the command line was introduced in Java 11, and tools like JBang providing
+a more feature-rich experience. But Mill takes the idea several step further in polish and
+robustness, hopefully to a level where scripting on the JVM can be a truly viable workflow
+rather than just a tech demo.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_multi_language_jvm_scripting"><a class="anchor" href="#_multi_language_jvm_scripting"></a>Multi-Language JVM Scripting</h3>
+<div class="paragraph">
+<p>Like the rest of Mill, single-file scripts support the three major JVM languages. For example,
+if you think the <code>HtmlScraper.java</code> is too verbose, you may want to
+<a href="../mill/kotlinlib/script.html#_html_web_scraper" class="xref page">write your HtmlScraper in Kotlin</a> instead:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.kt</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+import org.jsoup.Jsoup
+
+fun fetchLinks(title: String): List&lt;String&gt; {
+    val url = "https://en.wikipedia.org/wiki/$title"
+    val doc = Jsoup.connect(url).header("User-Agent", "My Scraper").get()
+
+    return doc.select("main p a")
+        .mapNotNull { a -&gt;
+            val href = a.attr("href")
+            if (href.startsWith("/wiki/")) href.removePrefix("/wiki/")
+            else null
+        }
+}
+
+fun main(args: Array&lt;String&gt;) {
+    if (args.size &lt; 2) throw Exception("HtmlScraper.kt &lt;start&gt; &lt;depth&gt;")
+    var seen = mutableSetOf(args[0])
+    var current = mutableSetOf(args[0])
+
+    repeat(args[1].toInt()) {
+        val next = mutableSetOf&lt;String&gt;()
+        for (article in current) {
+            for (link in fetchLinks(article)) {
+                if (seen.add(link)) next.add(link)
+            }
+        }
+        current = next
+    }
+    seen.forEach { println(it) }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill HtmlScraper.kt singapore 1
+Hokkien
+Conscription_in_Singapore
+Malaysia_Agreement
+Government_of_Singapore
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or you may want to write your
+<a href="../mill/scalalib/script.html#_html_web_scraper" class="xref page">HtmlScraper in Scala</a>, which feels
+similar to scripting in Ruby, Python, or Javascript, but with the performance,
+parallelizability and type-safety of a JVM language:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.scala</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+import org.jsoup.*
+import scala.collection.JavaConverters.*
+
+def fetchLinks(title: String): Seq[String] = {
+  Jsoup.connect(s"https://en.wikipedia.org/wiki/$title")
+    .header("User-Agent", "My Scraper")
+    .get().select("main p a").asScala.toSeq.map(_.attr("href"))
+    .collect { case s"/wiki/$rest" =&gt; rest }
+}
+
+def main(startArticle: String, depth: Int) = {
+  var seen = Set(startArticle)
+  var current = Set(startArticle)
+  for (i &lt;- Range(0, depth)) {
+    current = current.flatMap(fetchLinks(_)).filter(!seen.contains(_))
+    seen = seen ++ current
+  }
+
+  pprint.log(seen, height = Int.MaxValue)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill HtmlScraper.scala --start-article singapore --depth 1
+  "Hokkien",
+  "Conscription_in_Singapore",
+  "Malaysia_Agreement",
+  "Government_of_Singapore",
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Java is not the only JVM language, and languages like Kotlin or Scala complement it
+offering a somewhat different experience. So even if scripting in Java may not suit you,
+scripting in Kotlin or Scala are definitely options you can consider while still benefiting
+from the robust runtime and rich ecosystem of the JVM.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>While developers may differ in what their preferred JVM language is, we think that all three
+major JVM languages are criminally under-utilized when it comes to writing scripts and small
+programs. Java, Scala, and Kotlin are all great languages, with high-quality standard libraries,
+rich ecosystems of third-party libraries, and a rock-solid JVM runtime. However, due to tooling
+complexity, JVM languages have never been the preferred choice for small programs the same way
+they are often used for large enterprise codebases.</p>
+</div>
+<div class="paragraph">
+<p>With the new declarative and single-file configuration styles in Mill 1.1.0, we hope to be
+able to change that. Mill&#8217;s new declarative <code>build.mill.yaml</code> files take the best parts
+of declarative builds from Maven, but streamlines installation, configuration, and command-line
+usage. Mill&#8217;s single-file scripts take that a step further allowing any <code>.java</code>, <code>.scala</code>, or
+<code>.kt</code> file to be annotated and run without needing to set up a separate "project"
+or "build file".</p>
+</div>
+<div class="paragraph">
+<p>Lastly, rather than having to juggle a zoo of different tools for different purposes -
+<a href="https://www.jenv.be/">JEnv</a>, <a href="https://sdkman.io/">SdkMan</a>, <a href="https://maven.apache.org/">Maven</a>,
+<a href="https://gradle.org/">Gradle</a>, <a href="https://www.jbang.dev/">JBang</a> - Mill provides everything you
+need in one <a href="16-zero-setup.html" class="xref page">zero-setup bootstrap script</a>. This makes it trivial to
+for anyone using any JVM language to run your code conveniently and consistently.</p>
+</div>
+<div class="paragraph">
+<p>If you have made it this far, we hope that some of the problems and challenges we have discussed
+in this article resonate with your own personal experience. If you are interested in trying out
+Mill&#8217;s new declarative configuration syntax or single-file scripts, please check out the
+documentation linked below for each JVM language:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../mill/javalib/intro.html#_declarative_configuration" class="xref page">Java Declarative Module Configuration</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../mill/javalib/intro.html#_single_file_scripts" class="xref page">Java Single-File Scripts</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../mill/kotlinlib/intro.html#_declarative_configuration" class="xref page">Kotlin Declarative Module Configuration</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../mill/kotlinlib/intro.html#_single_file_scripts" class="xref page">Kotlin Single-File Scripts</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../mill/scalalib/intro.html#_declarative_configuration" class="xref page">Scala Declarative Module Configuration</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../mill/scalalib/intro.html#_single_file_scripts" class="xref page">Scala Single-File Scripts</a></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>For anyone upgrading from an earlier version of Mill, please see the changelog with a more
+thorough listing of improvements and migration instructions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110">Mill 1.1.0 Changelog</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html"><em>The Mill Build Engineering Blog</em></a></span>
+  <span class="next"><a href="16-zero-setup.html">Zero-Setup Java Build Tooling via Mill Bootstrap Scripts</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async src="../search-index.js"></script>
+  </body>
+</html>

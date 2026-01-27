@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC4</span>
+    <span class="version">1.1.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,7 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC4</a>
+          <a href="../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -752,19 +752,17 @@ This should work regardless of if you are using a mill or sbt project layout.</p
 &gt; mill foo.flywayMigrate</code></pre>
 </div>
 </div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-You should never hard-code credentials or check them into a version control system.
+<div class="literalblock">
+<div class="content">
+<pre>if you want to use this plugin with mysql database, make sure to add `org.flywaydb:flyway-mysql:11.20.1` extra dependency in the build file header</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CAUTION: You should never hard-code credentials or check them into a version control system.
 You should write some code to populate the settings for flyway instead.
-For example <code>def flywayPassword = Task.Input(Task.ctx.env("FLYWAY_PASSWORD"))</code>
-</td>
-</tr>
-</table>
+For example `def flywayPassword = Task.Input(Task.ctx.env("FLYWAY_PASSWORD"))`</pre>
+</div>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="docker.html">Docker</a></span>

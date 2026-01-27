@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>The Mill Build Engineering Blog :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/blog/index.html">
-    <link rel="next" href="16-zero-setup.html">
+    <link rel="next" href="17-simpler-jvm-mill-110.html">
     <meta name="generator" content="Antora 3.1.12">
     <link rel="stylesheet" href="../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -134,10 +134,14 @@
   </li>
 
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="16-zero-setup.html">Zero-Setup Java Build Tooling via Mill Bootstrap Scripts</a>
+    <a class="nav-link" href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a>
   </li>
 
   <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="16-zero-setup.html">Zero-Setup Java Build Tooling via Mill Bootstrap Scripts</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
     <a class="nav-link" href="15-android-build-flow.html">Mill as an Alternative Android Build Tool</a>
   </li>
 
@@ -214,7 +218,7 @@
           <a href="../mill/main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-latest">
-          <a href="../mill/index.html">1.1.0-RC4</a>
+          <a href="../mill/index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../mill/1.0.x/index.html">1.0.6</a>
@@ -259,6 +263,65 @@
 technical topics related to JVM platform tooling and language-agnostic build tooling,
 some specific to the Mill build tool but mostly applicable to anyone working on
 build tooling for large codebases in JVM and non-JVM languages.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_simpler_jvm_project_setup_with_mill_1_1_0"><a class="anchor" href="#_simpler_jvm_project_setup_with_mill_1_1_0"></a><a href="17-simpler-jvm-mill-110.html" class="xref page">Simpler JVM Project Setup with Mill 1.1.0</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 27 Jan 2026</em></p>
+</div>
+<div class="paragraph">
+<p>Java and other JVM languages like Scala or Kotlin are often used for large enterprise codebases,
+but the friction of configuring their tooling means they are less often used for small
+programs or scripts. The new release of the Mill build tool v1.1.0
+(<a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110">changelog</a>)
+contains two features that try to improve upon this pain point, allowing your projects
+to be configured via a compact <code>build.mill.yaml</code> file, rather than a verbose <code>pom.xml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+- org.slf4j:slf4j-nop:2.0.7</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And letting single-file programs be configured by a <code>//|</code> build header comment
+at the top of the file:</p>
+</div>
+<div class="listingblock">
+<div class="title">HtmlScraper.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
+//| - org.jsoup:jsoup:1.7.2
+import org.jsoup.Jsoup;
+public class HtmlScraper {
+  ...
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill HtmlScraper.java Singapore 1
+Hokkien
+Conscription_in_Singapore
+Malaysia_Agreement
+Government_of_Singapore
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This blog post will dive into these two new features: how they work, why they are interesting,
+and where they learn from or improve upon existing tools in the JVM ecosystem. We hope these
+features will streamline the process of setting up a project in Java, Scala, and Kotlin, making
+the JVM languages an attractive and easy way to write small-scale programs and scripts.</p>
+</div>
+<div class="paragraph">
+<p><a href="17-simpler-jvm-mill-110.html" class="xref page">Read More&#8230;&#8203;</a></p>
 </div>
 </div>
 </div>
@@ -684,7 +747,7 @@ faster in the presence of parallelism</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="next"><a href="16-zero-setup.html">Zero-Setup Java Build Tooling via Mill Bootstrap Scripts</a></span>
+  <span class="next"><a href="17-simpler-jvm-mill-110.html">Simpler JVM Project Setup with Mill 1.1.0</a></span>
 </nav>
 </article>
   </div>

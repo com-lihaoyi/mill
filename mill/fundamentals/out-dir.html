@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC4</span>
+    <span class="version">1.1.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,7 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC4</a>
+          <a href="../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -724,7 +724,7 @@ project&#8217;s module structure.</p>
 <p>For the purposes of this page, we will be using the following minimal Mill build</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-fundamentals-out-dir-1-out-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/out-dir/1-out-files">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-fundamentals-out-dir-1-out-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/out-dir/1-out-files">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -871,7 +871,7 @@ were cached, and if not whether their outputs changed as a result of them being 
 [
   {
     "label": "mill.javalib.JvmWorkerModule/internalWorker",
-    "millis": 0,
+    "millis": ...,
     "cached": true,
     "valueHashChanged": false,
     "dependencies": [
@@ -986,16 +986,14 @@ a second time, and thus this file shows how <code>foo.sources</code> invalidated
 <p>Again, if there are multiple paths through which one task was invalidated by another,
 one path is chosen arbitrarily to be shown in the spanning tree</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_codesignatures_spanninginvalidationtree"><a class="anchor" href="#_codesignatures_spanninginvalidationtree"></a><code>codeSignatures spanningInvalidationTree</code></h3>
+<div class="sect3">
+<h4 id="_code_change_invalidation"><a class="anchor" href="#_code_change_invalidation"></a>Code Change Invalidation</h4>
 <div class="paragraph">
 <p>Sometimes invalidation can be caused by a code change in your <code>build.mill</code>/<code>package.mill</code>
 files, rather than by a change in the project&#8217;s source files or inputs. In such cases,
-the root tasks in <code>mill-invalidation-tree.json</code> may not necessarily be inputs. In such
-cases, you can look at <code>out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json</code>
-to see an invalidation tree for how code changes in specfic methods propagate throughout
-the <code>build.mill</code> codebase.</p>
+<code>mill-invalidation-tree.json</code> will show the method-level code changes that caused the
+invalidation, with <code>def</code> and <code>call</code> nodes showing how the code change propagates through
+the build definition to reach the invalidated tasks.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1003,27 +1001,20 @@ the <code>build.mill</code> codebase.</p>
 
 &gt; ./mill foo.compile # compile after changing build.mill
 
-&gt; cat out/mill-build/codeSignatures.dest/current/spanningInvalidationTree.json
+&gt; cat out/mill-invalidation-tree.json
 {
-...
-    "def build_.package_$foo$#&lt;init&gt;(build_.package_)void": {
-      "call build_.package_$foo$!&lt;init&gt;(build_.package_)void": {
-        "def build_.package_#foo$lzyINIT1()java.lang.Object": {
-          "call build_.package_!foo$lzyINIT1()java.lang.Object": {
-            "def build_.package_#foo()build_.package_$foo$": {}
-          }
-        }
-      }
-    }
-...
-}</code></pre>
+  "def build_.package_$foo$#&lt;init&gt;(build_.package_)void": {
+    "foo.compileGeneratedSources": {
+      "foo.compile": {}
+...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In the <code>spanningInvalidationTree.json</code> above, we can see how to addition of the call
+<p>In the <code>mill-invalidation-tree.json</code> above, we can see how the addition of the call
 to <code>scala.Predef.println</code> caused the <code>&lt;init&gt;</code> constructor method of <code>build_.package_.foo</code>
-to invalidation, and ends up invalidating <code>def build_.package_#foo()</code> which is the method
-representing the <code>build.foo</code> task that will thus need to be re-evaluated.</p>
+to be invalidated, and ends up invalidating <code>def build_.package_#foo()</code> which is the method
+representing the <code>build.foo</code> module. All tasks defined in that module (including <code>foo.compile</code>)
+are shown as invalidated underneath.</p>
 </div>
 <div class="paragraph">
 <p>Mill&#8217;s code-change invalidation analysis is <em>approximate</em> and <em>conservative</em>. That means
@@ -1031,6 +1022,17 @@ that it invalidates each task when any method it calls (transitively) is changed
 sometimes invalidate <em>too many</em> tasks, but it generally does not invalidate <em>too few</em> tasks,
 except in code using Java Reflection or similar techniques which the code-change analysis
 does not understand.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mill_console_tail"><a class="anchor" href="#_mill_console_tail"></a><code>mill-console-tail</code></h3>
+<div class="paragraph">
+<p><code>out/mill-console-tail</code> is a rotating log file that you can <code>tail -F</code> to see the streaming
+logs of the currently running Mill process, including the prompt that displays the currently
+running tasks. This is useful if Mill is being run by some external script or workflow which
+otherwise would not be streaming the status and logs to your terminal, so you can figure out
+what the Mill process is doing and whether it is stuck or making progress.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1060,7 +1062,7 @@ in a faster or a writable filesystem for example, you can change the output dire
 via the <code>MILL_OUTPUT_DIR</code> environment variable.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-fundamentals-out-dir-2-custom-out.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/fundamentals/out-dir/2-custom-out">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-fundamentals-out-dir-2-custom-out.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/fundamentals/out-dir/2-custom-out">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 

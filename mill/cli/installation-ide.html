@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC4</span>
+    <span class="version">1.1.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,7 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC4</a>
+          <a href="../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -736,18 +736,18 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-mill.sh -o mill
 &gt; chmod +x mill
 &gt; ./mill version
-1.1.0-RC4</code></pre>
+1.1.0</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-1.1.0-RC4-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-mill.bat -o mill.bat
 &gt; ./mill version
-1.1.0-RC4</code></pre>
+1.1.0</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -809,7 +809,7 @@ pick one most similar to what you are doing so you can hit the ground running.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo sh -c '(curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill) &gt; /usr/local/bin/mill &amp;&amp; chmod +x /usr/local/bin/mill'</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sudo sh -c '(curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-mill.sh -o mill) &gt; /usr/local/bin/mill &amp;&amp; chmod +x /usr/local/bin/mill'</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -890,12 +890,12 @@ by adding a a <code>-jvm</code> suffix on the Mill version:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">{version}-jvm</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">1.1.0-jvm</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Mill&#8217;s JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
-when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
+when running Mill from the command line, and requires a JVM installed globally (version 17 or above)
 in order to run.</p>
 </div>
 </div>
@@ -913,9 +913,9 @@ in order to run.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This unpacks the completion script in <code>~/.cache/mill</code> and registers it in your <code>~/.bash_profile</code> and <code>~/.zshrc</code>.
-After that, doing <code>./mill &lt;TAB&gt;</code> should begin showing possible modules and tasks for you
-to select at the command line:</p>
+<p>This unpacks the completion script in <code>~/.local/share/mill/completion/mill-completion.sh</code>
+and registers it in your <code>~/.bash_profile</code> and <code>~/.zshrc</code>. After that, doing <code>./mill &lt;TAB&gt;</code>
+should begin showing possible modules and tasks for you to select at the command line:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1350,6 +1350,16 @@ then share the compiled output with downstream workers.</p>
 <p>If you use Github Actions for CI, you can use <a href="https://github.com/mikepenz/action-junit-report" class="bare">https://github.com/mikepenz/action-junit-report</a> in
 your pipeline to render the generated <code>test-report.xml</code> files nicely on Github. See
 <a href="https://github.com/com-lihaoyi/mill/pull/4218/files" class="bare">https://github.com/com-lihaoyi/mill/pull/4218/files</a> for an example integration</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_selective_test_execution"><a class="anchor" href="#_selective_test_execution"></a>Selective Test Execution</h3>
+<div class="paragraph">
+<p>To minimize the number of unnecessary tests that you run on CI jobs, you should
+use <a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a> for any large multi-module
+codebase. This allows you to limit the tests that run on your codebase to those in modules
+downstream of the code you changed, allowing you to save time and resources by not wastefully
+running tests that could not possibly be affected by your code change.</p>
 </div>
 </div>
 </div>

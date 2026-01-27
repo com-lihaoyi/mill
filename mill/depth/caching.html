@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC4</span>
+    <span class="version">1.1.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,7 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC4</a>
+          <a href="../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -831,15 +831,10 @@ for each task indicating whether or not that task was cached.</p>
 <p><a href="../fundamentals/out-dir.html#_mill_invalidation_tree_json" class="xref page">mill-invalidation-tree.json</a>:
 this file groups together the un-cached files in a tree structure according to their
 task dependencies. It is useful to find the "root" uncached tasks, which are the cause
-of downstream tasks having their caches invalidated.</p>
-</li>
-<li>
-<p><a href="../fundamentals/out-dir.html#_codesignatures_spanninginvalidationtree" class="xref page">codeSignatures spanningInvalidationTree</a>:
-this file contains information about tasks whose caches were invalidated due to
-<em>code changes in the <code>build.mill</code> or <code>package.mill</code> files</em>, and again shows a tree
-of invalidated method signatures organized into a tree using their call graph dependencies.
-This is most useful to figure out why a code change in your <code>.mill</code> files ended up
-changing some task&#8217;s code signature, causing it to miss the cache and be re-computed</p>
+of downstream tasks having their caches invalidated. For tasks invalidated due to
+<em>code changes in the <code>build.mill</code> or <code>package.mill</code> files</em>, the tree also shows
+the method-level code changes with <code>def</code> and <code>call</code> nodes indicating how code changes
+propagate through the build definition to reach the invalidated tasks.</p>
 </li>
 </ul>
 </div>

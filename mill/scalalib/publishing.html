@@ -661,7 +661,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.1.0-RC4</span>
+    <span class="version">1.1.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -671,7 +671,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.1.0-RC4</a>
+          <a href="../index.html">1.1.0</a>
         </li>
         <li class="version">
           <a href="../1.0.x/index.html">1.0.6</a>
@@ -725,10 +725,10 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-scalalib-publishing-1-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/scalalib/publishing/1-publishing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-publishing-1-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/publishing/1-publishing/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [ScalaModule, PublishModule]
-scalaVersion: 3.8.0
+scalaVersion: 3.8.1
 publishVersion: 0.0.1
 artifactName: example
 pomSettings:
@@ -768,13 +768,13 @@ Sonatype Maven Central via:</p>
 <h2 id="_programmatic_publishing_configuration"><a class="anchor" href="#_programmatic_publishing_configuration"></a>Programmatic Publishing Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-scalalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/scalalib/publishing/2-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/publishing/2-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
 
 object foo extends ScalaModule, PublishModule {
-  def scalaVersion = "3.8.0"
+  def scalaVersion = "3.8.1"
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -834,26 +834,27 @@ Central Portal. We extend <code>SonatypeCentralPublishModule</code> which provid
 simplified publishing tasks without requiring Nexus repository manager.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-RC4/mill-dist-SNAPSHOT-example-scalalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0-RC4/example/scalalib/publishing/3-publish-module-sonatype">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/publishing/3-publish-module-sonatype/build.mill.yaml">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-version: 17
-
-package build
-import mill.*, scalalib.*, publish.*
-
-object foo extends ScalaModule, SonatypeCentralPublishModule {
-  def scalaVersion = "3.8.0"
-  def publishVersion = "0.0.1"
-
-  def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-  )
-}</code></pre>
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: 17</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0/mill-dist-1.1.0-example-scalalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/publishing/3-publish-module-sonatype/foo/package.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [ScalaModule, SonatypeCentralPublishModule]
+scalaVersion: 3.8.1
+publishVersion: 0.0.1
+pomSettings:
+  description: Hello
+  organization: com.lihaoyi
+  url: https://github.com/lihaoyi/example
+  licenses: [MIT]
+  versionControl: github:lihaoyi/example
+  developers:
+  - id: lihaoyi
+    name: Li Haoyi
+    url: https://github.com/lihaoyi</code></pre>
 </div>
 </div>
 <div class="paragraph">
