@@ -57,9 +57,10 @@ object VisualizeModule extends ExternalModule {
 
     evaluator.resolveTasks(tasks, SelectMode.Multi).flatMap {
       rs =>
+        val rsCast = rs.asInstanceOf[List[Task.Named[Any]]]
         planTasks match {
-          case Some(allRs) => callVisualizeModule(rs, allRs)
-          case None => callVisualizeModule(rs, rs)
+          case Some(allRs) => callVisualizeModule(rsCast, allRs.asInstanceOf[List[Task.Named[Any]]])
+          case None => callVisualizeModule(rsCast, rsCast)
         }
     }
   }

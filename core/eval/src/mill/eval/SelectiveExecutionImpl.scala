@@ -60,11 +60,12 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
     val allTasks = transitiveNamed.map(t => t: Task[?])
+    val allTasksAny = allTasks.asInstanceOf[Seq[Task[Any]]]
     def globalInvalidate(name: String, key: SelectiveExecution.Metadata => Any) = {
       Option.when(key(oldHashes) != key(newHashes)) {
         DownstreamResult(
           allTasks.toSet,
-          allTasks,
+          allTasksAny,
           globalInvalidationReason = Some(s"$name:${key(oldHashes)}->${key(newHashes)}")
         )
       }
@@ -105,7 +106,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
           changedRootTasks,
           breadthFirst(changedRootTasks) { t =>
             downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
-          }
+          }.asInstanceOf[Seq[Task[Any]]]
         )
       }
   }

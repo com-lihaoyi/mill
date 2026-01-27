@@ -153,7 +153,7 @@ object Applicative {
       }
 
       val newBody = treeMap.transformTree(t.asTerm)(Symbol.spliceOwner).asExprOf[Z[T]]
-      val exprsList = Expr.ofList(exprs.toList.map(_.asExprOf[W[Any]]))
+      val exprsList = Expr.ofList(exprs.toList.map(e => '{ ${ e.asExpr }.asInstanceOf[W[Any]] }))
 
       (newBody, exprsList)
     }

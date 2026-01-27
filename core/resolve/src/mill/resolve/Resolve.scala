@@ -94,7 +94,7 @@ object Resolve {
         flattened.flatMap {
           case Left(m) => Some(Left(m))
           case Right(None) => None
-          case Right(Some(t)) => Some(Right(t))
+          case Right(Some(t)) => Some(Right(t.asInstanceOf[Task.Named[Any]]))
         }
       )
     }
@@ -193,7 +193,7 @@ object Resolve {
       val sequenced = Result.sequence(taskList).map(_.flatten)
 
       sequenced.flatMap(flattened =>
-        if (flattened.nonEmpty) Result.Success(flattened)
+        if (flattened.nonEmpty) Result.Success(flattened.asInstanceOf[Seq[Task.Named[Any]]])
         else Result.Failure(s"Cannot find default task to evaluate for module ${selector.render}")
       )
     }
