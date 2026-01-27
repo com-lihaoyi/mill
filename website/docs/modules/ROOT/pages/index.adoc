@@ -96,8 +96,45 @@ mvnDeps:
 
 Mill supports most common JVM development workflows and tools built in, so you can
 get very far before you need to reach for xref::extending/thirdparty-plugins.adoc[third-party plugins] or
-write custom code to extend your build system. The table below links to the relevant part of the
-documentation and examples for each feature or tool:
+write custom code to extend your build system. The example build file below shows
+how Mill handles many of the common settings that often need to be configured in a build tool:
+
+```yaml
+extends: [JavaModule, PublishModule]
+
+mvnDeps:
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7
+
+repositories: [https://oss.sonatype.org/content/repositories/releases]
+
+mainClass: foo.Foo2
+
+jvmVersion: 11 # Pin a specific JVM version, supports >=11
+
+# Add additional source and resource folders
+sources: !append [custom-src/]
+resources: !append [custom-resources/]
+
+# Configure java compiler and runtime options and env vars
+javacOptions: [-deprecation]
+forkArgs: [-Dmy.custom.property=my-prop-value]
+forkEnv: { MY_CUSTOM_ENV: my-env-value }
+
+# Settings to publish to Maven Central
+publishVersion: 0.0.1
+artifactName: example
+pomSettings:
+  description: Example
+  organization: com.lihaoyi
+  url: https://github.com/com.lihaoyi/example
+  licenses: [MIT]
+  versionControl: https://github.com/com.lihaoyi/example
+  developers: [{name: Li Haoyi, email: example@example.com}]
+```
+
+Beyond this simple example, the table below links to the relevant part of the
+documentation and examples for each feature or tool that Mill supports:
 
 include::partial$Feature_Support.adoc[]
 
