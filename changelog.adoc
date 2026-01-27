@@ -71,7 +71,7 @@ for more information.
 
 Single-file script modules allow you to write simple programs in a single file with a `//|`
 build header comment specifying its configuration. These are useful in scenarios where a separate
-build complexity is overkill: student projects, small experiments, prototypes, or command-line
+build file is overkill: student projects, small experiments, prototypes, or command-line
 scripts to replace the Bash and Python scripts common throughout the ecosystem.
 
 For example, a single-file script to spawn a simple
