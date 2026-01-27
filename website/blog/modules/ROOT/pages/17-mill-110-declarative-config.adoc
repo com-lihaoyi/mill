@@ -5,7 +5,7 @@
 
 _{author}, {revdate}_
 
-Java and other JVM languages like Kotlin or Scala are often used for large enterprise codebases,
+Java and other JVM languages like Scala or Kotlin are often used for large enterprise codebases,
 but the friction of configuring their tooling means they are less often used for small
 programs or scripts. The new release of the Mill build tool v1.1.0 contains two features
 that try to improve upon this pain point, allowing your projects to be configured via a
@@ -202,7 +202,7 @@ issues in their `build.mill.yaml` files.
 Mill's declarative configuration pushes the limits of how easily you can setup a
 Java project:
 
-1. Mill's xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[Bootstrap Scripts]
+1. Mill's `./mill` xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[Bootstrap Scripts]
 automatically xref:16-zero-setup.adoc[download and cache the right Mill and JVM versions],
 so anyone invoking the `./mill` automatically gets  correct versions of Mill, `java`, `javac`,
 etc. to work with without needing any prior installation or setup:
@@ -247,6 +247,26 @@ xref:mill::scalalib/module-config.adoc#_declarative_configuration[Scala], and xr
 So anyone using a JVM language, or even multiple JVM languages, can use it to simplify their
 project setup and development workflows.
 
+[cols="1a,1a"]
+|===
+|
+.buill.mill.yaml for Kotlin
+```yaml
+extends: KotlinModule
+kotlinVersion: 2.0.20
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+```
+|
+.buill.mill.yaml for Scala
+```yaml
+extends: ScalaModule
+scalaVersion: 3.8.1
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+```
+|===
+
 
 === Non-Trivial Declarative Builds
 
@@ -258,37 +278,28 @@ demonstrates many of the common configuration keys a developer may want to set:
 
 .build.mill.yaml
 ```yaml
-extends: [mill.javalib.JavaModule] # fully-qualified module name
+extends: [JavaModule, PublishModule]
+
 mvnDeps:
 - org.thymeleaf:thymeleaf:3.1.1.RELEASE
 - org.slf4j:slf4j-nop:2.0.7
 
-# Add a custom maven repository URL
 repositories: [https://oss.sonatype.org/content/repositories/releases]
 
-# Set an explicit main class
 mainClass: foo.Foo2
 
-# Pin a specific JVM version, supports >=11
-jvmVersion: 11
-# Optionally specify the distribution: temurin, zulu, corretto, graalvm-community, etc.
-# jvmVersion: temurin:11
+jvmVersion: 11 # Pin a specific JVM version, supports >=11
 
-# Add an additional source folder and resource folder, in addition to the default one
-sources: [src/, custom-src/]
-resources: [resources/, custom-resources/]
+# Add additional source and resource folders
+sources: !append [custom-src/]
+resources: !append [custom-resources/]
 
 # Configure java compiler and runtime options and env vars
 javacOptions: [-deprecation]
 forkArgs: [-Dmy.custom.property=my-prop-value]
 forkEnv: { MY_CUSTOM_ENV: my-env-value }
-```
 
-Another example below shows how to configure publishing for Maven Central:
-
-.build.mill.yaml
-```yaml
-extends: [JavaModule, PublishModule]
+# Settings to publish to Maven Central
 publishVersion: 0.0.1
 artifactName: example
 pomSettings:
@@ -298,12 +309,6 @@ pomSettings:
   licenses: [MIT]
   versionControl: https://github.com/com.lihaoyi/example
   developers: [{name: Li Haoyi, email: example@example.com}]
-```
-```console
-> ./mill publishLocal # publish locally
-Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...
-
-> ./mill mill.scalalib.SonatypeCentralPublishModule/ # publish to Maven Central
 ```
 
 Mill's declarative builds support
@@ -579,8 +584,8 @@ complexity, JVM languages have never been the preferred choice for small program
 they are often used for large-scale enterprise systems.
 
 With the new declarative and single-file configuration styles in Mill 1.1.0, we hope to be
-able to change that. Mill's new declarative `build.mill.yaml` files take the best ideas from
-Maven, while streamlining installation, configuration syntax, and command-line
+able to change that. Mill's new declarative `build.mill.yaml` files take the best parts
+of declarative builds from Maven, but streamlines installation, configuration, and command-line
 usage. Mill's single-file scripts take that a step further allowing any `.java`, `.scala`, or
 `.kt` file to be annotated and run without needing to set up a separate "project"
 or "build file".
