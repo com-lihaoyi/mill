@@ -18,12 +18,12 @@ import scala.quoted.*
 @internal
 object Applicative {
 
-  trait Applyable[M[+_], +T] { this: M[T] =>
+  trait Applyable[M[_], +T] { this: M[T] =>
     @compileTimeOnly("Task#apply() can only be used within a Task{...} block")
     def apply(): T = ???
   }
 
-  type Id[+T] = T
+  type Id[T] = T
 
   /**
    * @param allowNestedTasks whether `Task[Task[A]]` or `Task[Something[Task[A]]]` and similar structures
