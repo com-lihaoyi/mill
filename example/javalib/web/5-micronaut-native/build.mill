@@ -2,53 +2,18 @@ package build
 
 import mill.*
 import javalib.*
-import javalib.micronaut.MicronautNativeAotModule
-import mill.api.{PathRef, Task}
-import os.zip.ZipSource
 
-import java.util.jar.JarInputStream
+/** See Also: build.mill.yaml */
 
-object `package` extends MavenModule, MicronautNativeAotModule {
+// The programmatic overrides extend the YAML configuration
+override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
+  "-Amicronaut.processing.incremental=true",
+  "-Amicronaut.processing.annotations=hello.world.*"
+)
 
-  def micronautPackage = "hello.world"
-
-  override def bomMvnDeps = Seq(
-    mvn"io.micronaut.platform:micronaut-platform:4.10.3"
-  )
-
-  def mvnDeps = Seq(
-    mvn"io.micronaut:micronaut-http-client",
-    mvn"io.micronaut.serde:micronaut-serde-jackson"
-  )
-
-  def jvmVersion = "graalvm-community:21.0.2"
-
-  def finalMainClass = "hello.world.Application"
-
-  def annotationProcessorsMvnDeps = Seq(
-    mvn"io.micronaut:micronaut-http-validation",
-    mvn"io.micronaut.serde:micronaut-serde-processor"
-  )
-
-  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
-    "-Amicronaut.processing.incremental=true",
-    "-Amicronaut.processing.annotations=hello.world.*"
-  )
-
-  def javacOptions = super.javacOptions() ++ Seq(
-    "-parameters"
-  )
-
-  def compileMvnDeps = Seq(
-    mvn"io.micronaut:micronaut-http-client"
-  )
-
-  override def runMvnDeps = Seq(
-    mvn"io.micronaut:micronaut-http-server-netty",
-    mvn"ch.qos.logback:logback-classic"
-  )
-
-}
+def javacOptions = super.javacOptions() ++ Seq(
+  "-parameters"
+)
 
 // This example demonstrates how to configure mill for a simple micronaut native project.
 // It uses Micronaut AOT to optimize the application for the native image generation.

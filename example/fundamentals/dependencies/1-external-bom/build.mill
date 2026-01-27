@@ -1,17 +1,6 @@
 // Pass an external BOM to a `JavaModule` / `ScalaModule` / `KotlinModule` with `bomMvnDeps`, like
 
-//// SNIPPET:BUILD1
-package build
-import mill.*, javalib.*
-
-object foo extends JavaModule {
-  def bomMvnDeps = Seq(
-    mvn"com.google.cloud:libraries-bom:26.50.0"
-  )
-  def mvnDeps = Seq(
-    mvn"io.grpc:grpc-protobuf"
-  )
-}
+/** See Also: foo/package.mill.yaml */
 
 // The version of grpc-protobuf (`io.grpc:grpc-protobuf`) isn't written down here, so the version
 // from the BOM, `1.67.1` is used.

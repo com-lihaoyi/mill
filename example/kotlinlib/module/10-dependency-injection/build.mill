@@ -1,41 +1,5 @@
-//// SNIPPET:BUILD
-
-package build
-import mill.*, kotlinlib.*
-import kotlinlib.ksp.KspModule
-
-object dagger extends KspModule {
-
-  def kotlinVersion = "2.2.0"
-  def kspVersion = "2.0.2"
-  def kspJvmTarget = "17"
-
-  def mainClass = Some("com.example.dagger.MainKt")
-
-  def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
-
-  def mvnDeps = Seq(
-    mvn"com.google.dagger:dagger:2.57"
-  )
-
-  def kotlinSymbolProcessors = Seq(
-    mvn"com.google.dagger:dagger-compiler:2.57"
-  )
-
-  object test extends KspTests, TestModule.Junit5 {
-
-    def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
-
-    def mvnDeps = Seq(
-      mvn"com.google.dagger:dagger-compiler:2.57",
-      mvn"io.kotest:kotest-runner-junit5:5.9.1"
-    )
-
-    def kotlinSymbolProcessors = Seq(
-      mvn"com.google.dagger:dagger-compiler:2.57"
-    )
-  }
-}
+/** See Also: dagger/package.mill.yaml */
+/** See Also: dagger/test/package.mill.yaml */
 
 // This is a basic Mill build for a single `KotlinModule`, with
 // the purpose to demonstrate the Kotlin Symbol Processing API

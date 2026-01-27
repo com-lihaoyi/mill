@@ -1,42 +1,8 @@
 package build
 import mill.*, javalib.*
 
-object `package` extends MicronautModule {
-  def micronautVersion = "4.4.3"
-  def runMvnDeps = Seq(
-    mvn"ch.qos.logback:logback-classic:1.5.3",
-    mvn"com.h2database:h2:2.2.224"
-  )
-
-  def mvnDeps = Seq(
-    mvn"io.micronaut:micronaut-http-server-netty",
-    mvn"io.micronaut.serde:micronaut-serde-jackson",
-    mvn"io.micronaut.data:micronaut-data-jdbc",
-    mvn"io.micronaut.sql:micronaut-jdbc-hikari",
-    mvn"io.micronaut.validation:micronaut-validation",
-    mvn"io.micronaut.views:micronaut-views-htmx",
-    mvn"io.micronaut.views:micronaut-views-thymeleaf",
-    mvn"org.webjars.npm:todomvc-common:1.0.5",
-    mvn"org.webjars.npm:todomvc-app-css:2.4.1",
-    mvn"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
-  )
-
-  object test extends MavenTests, TestModule.Junit5 {
-
-    override def bomMvnDeps = Seq(
-      mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
-    )
-
-    def mvnDeps = Seq(
-      mvn"com.h2database:h2:2.2.224",
-      mvn"io.micronaut:micronaut-http-client",
-      mvn"io.micronaut.test:micronaut-test-junit5"
-    )
-
-    // Micronaut test not compatible with running in parallel
-    def testParallelism = false
-  }
-}
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
 
 trait MicronautModule extends MavenModule {
   def micronautVersion: String

@@ -94,9 +94,10 @@ mvnDeps:
 
 === Builtins
 
-Mill supports most common JVM development workflows and tools built in, so you can
-get very far before you need to reach for xref::extending/thirdparty-plugins.adoc[third-party plugins] or
-write custom code to extend your build system. The example build file below shows
+Mill supports most common JVM development workflows built in: testing, publishing, packaging,
+managing JVM installations, and so on. This removes the need to fiddle with third-party plugins
+or install separate tools such as https://sdkman.io/[SdkMan] or https://www.jenv.be/[Jenv]
+just to get your project up and running. The example build file below shows
 how Mill handles many of the common settings that often need to be configured in a build tool:
 
 ```yaml
@@ -110,7 +111,7 @@ repositories: [https://oss.sonatype.org/content/repositories/releases]
 
 mainClass: foo.Foo2
 
-jvmVersion: 11 # Pin a specific JVM version, supports >=11
+jvmVersion: 11 # Pin a specific JVM version, downloaded and cached automatically
 
 # Add additional source and resource folders
 sources: !append [custom-src/]
@@ -133,7 +134,7 @@ pomSettings:
   developers: [{name: Li Haoyi, email: example@example.com}]
 ```
 
-Beyond this simple example, the table below links to the relevant part of the
+Beyond this example, the table below links to the relevant part of the
 documentation and examples for each feature or tool that Mill supports:
 
 include::partial$Feature_Support.adoc[]
