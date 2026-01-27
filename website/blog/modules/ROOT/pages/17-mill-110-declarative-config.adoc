@@ -1,4 +1,4 @@
-= Simpler Declarative JVM Project Setup with Mill 1.1.0
+= Simpler JVM Project Setup with Mill 1.1.0
 // tag::header[]
 :author: Li Haoyi
 :revdate: 27 Jan 2026
@@ -6,9 +6,9 @@
 _{author}, {revdate}_
 
 Java and other JVM languages like Kotlin or Scala are often used for large enterprise codebases,
-but the friction of configuring their build tools means they are less often used for small
+but the friction of configuring their tooling means they are less often used for small
 programs or scripts. The new release of the Mill build tool v1.1.0 contains two features
-that try to improve upon this pain point, allowing your project's to be configured via a
+that try to improve upon this pain point, allowing your projects to be configured via a
 compact `build.mill.yaml` file:
 
 .build.mill.yaml
@@ -18,7 +18,8 @@ mvnDeps:
 - org.jsoup:jsoup:1.7.2
 ```
 
-Or even together with the program code in a single-file with a `//|` build header comment:
+And further letting small single-file programs be configured by a `//|` build header comment
+at the top of the file:
 
 .HtmlScraper.java
 ```java
@@ -41,8 +42,9 @@ Government_of_Singapore
 
 This blog post will dive into these two new features: how they work, why they are interesting,
 and where they learn from or improve upon existing tools in the JVM ecosystem. We will discuss
-how we hope these features will streamline the process of getting started with Java programs,
-making Java and other JVM languages a viable way to write small-scale programs and scripts.
+how we hope these features will streamline the process of getting started with Java, Scala,
+or Kotlin, making the JVM languages an attractive and easy way to write small-scale programs and
+scripts.
 
 
 // end::header[]
@@ -149,7 +151,10 @@ None of these are _blockers_: after all we've been building and running Java pro
 for decades! There is no doubt most people would be able to get __something__ working
 on their machine. But for someone trying to write a small program that can build and
 run reliably on their laptop, their colleagues' laptops, their CI machines and their
-production environment, these things can end up being surprisingly tricky.
+production environment, these things can end up being surprisingly tricky. Even modern
+AI assistants have limited context windows, which you don't want to waste fumbling
+with installation instructions and version incompatibilities or digging through XML
+boilerplate!
 
 In theory Java and the JVM is a great platform to write and run small programs: easy to learn,
 widely used, and a rich standard library and ecosystem of high-quality third-party libraries.
