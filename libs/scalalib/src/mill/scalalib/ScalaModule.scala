@@ -242,7 +242,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * If `None`, Mill fetches and compiles if needed a compiler bridge on its own.
    * If set to `Some(...)`, Mill uses the passed bridge and doesn't attempt to fetch one.
    */
-  def scalaCompilerBridge: T[Option[PathRef]] = Task(None)
+  def scalaCompilerBridge: T[Option[PathRef]] = Task { Option.empty[PathRef] }
 
   /**
    * Classpath of the scaladoc (or dottydoc) tool.

@@ -71,7 +71,7 @@ trait PublishModule extends JavaModule { outer =>
    *
    * @since Mill after 0.10.0-M5
    */
-  def versionScheme: T[Option[VersionScheme]] = Task { None }
+  def versionScheme: T[Option[VersionScheme]] = Task { Option.empty[VersionScheme] }
 
   def publishMvnDeps
       : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Seq[Dependency]] =
