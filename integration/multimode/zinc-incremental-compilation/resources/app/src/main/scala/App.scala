@@ -1,11 +1,11 @@
 package app
 
-import io.getquill.*
+import io.getquill._
 
 object App {
 
   val ctx = new SqlMirrorContext(PostgresDialect, SnakeCase)
-  import ctx.*
+  import ctx._
 
   case class Person(name: String, age: Int)
 

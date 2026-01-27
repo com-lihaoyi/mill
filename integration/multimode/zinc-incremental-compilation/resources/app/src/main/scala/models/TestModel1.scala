@@ -1,6 +1,6 @@
 package models
 
-import java.time.*
+import java.time._
 
 case class Foo(
     id: Long = 0L,

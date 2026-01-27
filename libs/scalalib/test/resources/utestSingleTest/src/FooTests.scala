@@ -1,6 +1,6 @@
 package utestSingleTest.src
 
-import utest.*
+import utest._
 
 object FooTests extends TestSuite {
   val tests = Tests {

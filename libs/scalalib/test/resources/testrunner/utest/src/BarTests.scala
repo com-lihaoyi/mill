@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import utest.*
+import utest._
 
 object BarTests extends TestSuite {
   val tests = Tests {

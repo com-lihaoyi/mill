@@ -1,6 +1,6 @@
 package mill.contrib.jmh
 
-import org.openjdk.jmh.annotations.*
+import org.openjdk.jmh.annotations._
 import java.util.concurrent.TimeUnit
 
 @BenchmarkMode(Array(Mode.AverageTime))

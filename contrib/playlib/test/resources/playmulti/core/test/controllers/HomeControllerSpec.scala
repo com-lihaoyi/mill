@@ -1,9 +1,9 @@
 package controllers
 
-import org.scalatestplus.play.*
-import org.scalatestplus.play.guice.*
-import play.api.test.*
-import play.api.test.Helpers.*
+import org.scalatestplus.play._
+import org.scalatestplus.play.guice._
+import play.api.test._
+import play.api.test.Helpers._
 
 /**
  * Add your spec here.
