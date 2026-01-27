@@ -8,38 +8,42 @@ _{author}, {revdate}_
 Java and other JVM languages like Scala or Kotlin are often used for large enterprise codebases,
 but the friction of configuring their tooling means they are less often used for small
 programs or scripts. The new release of the Mill build tool v1.1.0
-(https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110[changelog])
+({mill-github-url}/blob/main/changelog.adoc#1-1-0[changelog])
 contains two features that try to improve upon this pain point, allowing your projects
 to be configured via a compact `build.mill.yaml` file, rather than a verbose `pom.xml`:
 
-.build.mill.yaml
-```yaml
+.`build.mill.yaml`
+[,yaml]
+----
 extends: JavaModule
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
 - org.slf4j:slf4j-nop:2.0.7
-```
+----
 
 And letting single-file programs be configured by a `//|` build header comment
 at the top of the file:
 
-.HtmlScraper.java
-```java
+.`HtmlScraper.java`
+[,java]
+----
 //| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
 import org.jsoup.Jsoup;
 public class HtmlScraper {
   ...
 }
-```
-```console
+----
+
+[,console]
+----
 > ./mill HtmlScraper.java Singapore 1
 Hokkien
 Conscription_in_Singapore
 Malaysia_Agreement
 Government_of_Singapore
 ...
-```
+----
 
 
 This blog post will dive into these two new features: how they work, why they are interesting,
@@ -55,8 +59,9 @@ the JVM languages an attractive and easy way to write small-scale programs and s
 To understand the pain points of running small Java programs, consider a developer
 that has written a single-file Java program they want to run:
 
-.HtmlScraper.java
-```java
+.`HtmlScraper.java`
+[,java]
+----
 import org.jsoup.Jsoup;
 import java.util.*;
 
@@ -88,7 +93,7 @@ public class HtmlScraper {
     for (String s : seen) System.out.println(s);
   }
 }
-```
+----
 
 This is a simple program that uses the https://jsoup.org/[Jsoup] library to scrape
 the links off of a Wikipedia article's HTML page, which it then uses to perform a breadth-first
@@ -106,8 +111,9 @@ such code can be surprisingly involved:
 1. Installing Java and Maven, which has https://news.ycombinator.com/item?id=46037261[a surprising number of intricacies]
 2. Writing out the `pom.xml` (can you write the POM for the above program without copy-paste cargo-culting from StackOverflow/Google/ChatGPT?)
 +
-.pom.xml
-```xml
+.`pom.xml`
+[,xml]
+----
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
@@ -134,18 +140,19 @@ such code can be surprisingly involved:
     </plugins>
   </build>
 </project>
-```
+----
 
 3. Running the program using Maven (can you remember the command-line invocation without looking it up?)
 +
-```console
+[,console]
+----
 > mvn exec:java -Dexec.args="Singapore 1"
 Hokkien
 Conscription_in_Singapore
 Malaysia_Agreement
 Government_of_Singapore
 ...
-```
+----
 +
 This gets even more fiddly when you need to select a submodule in a larger project with `-pl`
 and use `-am` to ensure the upstream modules get compiled
@@ -168,18 +175,20 @@ The first step Mill 1.1.0 takes towards solving the friction of running small JV
 a new declarative configuration format. That lets us turn the verbose `pom.xml` above into
 the declarative `build.mill.yaml` file below:
 
-.build.mill.yaml
-```yaml
+.`build.mill.yaml`
+[,yaml]
+----
 extends: JavaModule
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
-```
+----
 
 Which you can run via
 
-```console
-./mill run <arg1> <arg2>
-```
+[,console]
+----
+> ./mill run <arg1> <arg2>
+----
 
 Compared to the equivalent Maven `pom.xml` or `build.gradle`, Mill's `build.mill.yaml` files are
 really lightweight, without Maven's reams of XML boilerplate or Gradle's complex Groovy/Kotlin
@@ -264,15 +273,17 @@ maintainence
 |===
 |
 .Mill `build.mill.yaml`
-```yaml
+[source,yaml]
+----
 extends: JavaModule
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
 - org.slf4j:slf4j-nop:2.0.7
-```
+----
 |
 .Maven `pom.xml`
-```xml
+[,xml]
+----
 <project xmlns="..." xmlns:xsi="...">
   <modelVersion>4.0.0</modelVersion>
   <groupId>example</groupId>
@@ -303,7 +314,7 @@ mvnDeps:
     </plugins>
   </build>
 </project>
-```
+----
 |===
 
 3. Mill's CLI syntax for running the code  follows the conventions
@@ -313,21 +324,23 @@ learning Maven's unusual command-line conventions
 [cols="1a,2a"]
 |===
 |
-```bash
+[,bash]
+----
 # run your Mill project
 ./mill run <arg1> <arg2>
 
 # run a submodule
 ./mill common.run <args>
-```
+----
 |
-```bash
+[,bash]
+----
 # run your Maven project
 mvn exec:java -Dexec.args="<arg1> <arg2>"
 
 # run a submodule
 mvn -pl common -am exec:java -Dexec.args="<args>"
-```
+----
 |===
 
 This solves the 3 frictions we xref:#_the_challenge_of_small_java_programs[mentioned earlier]
@@ -346,8 +359,9 @@ build tool features, and below we have
 xref:mill::javalib/module-config.adoc#_declarative_configuration[a more verbose example] that
 demonstrates many of the common configuration keys a developer may want to set:
 
-.build.mill.yaml
-```yaml
+.`build.mill.yaml`
+[,yaml]
+----
 extends: [JavaModule, PublishModule]
 
 mvnDeps:
@@ -379,7 +393,7 @@ pomSettings:
   licenses: [MIT]
   versionControl: https://github.com/com.lihaoyi/example
   developers: [{name: Li Haoyi, email: example@example.com}]
-```
+----
 
 Mill's declarative builds go beyond toy projects and come with builtin support
 for all the core features that other build tools like Maven or Gradle support:
@@ -397,21 +411,23 @@ or xref:mill::scalalib/module-config.adoc#_declarative_configuration[Scala]
 [cols="1a,1a"]
 |===
 |
-.buill.mill.yaml for Kotlin
-```yaml
+.`buill.mill.yaml` for Kotlin
+[,yaml]
+----
 extends: KotlinModule
 kotlinVersion: 2.0.20
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
-```
+----
 |
-.buill.mill.yaml for Scala
-```yaml
+.`buill.mill.yaml` for Scala
+[,yaml]
+----
 extends: ScalaModule
 scalaVersion: 3.8.1
 mvnDeps:
 - org.jsoup:jsoup:1.7.2
-```
+----
 |===
 
 
@@ -455,8 +471,9 @@ format for Java, Scala, and Kotlin files. This lets you take the `HtmlScraper.ja
 file above, add a `//|` build-header comment with the `mvnDeps` configuration it needs, and
 xref:mill::javalib/script.adoc#_html_web_scraper[run it directly self-contained within a single file]:
 
-.HtmlScraper.java
-```java
+.`HtmlScraper.java`
+[,java]
+----
 //| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
 import org.jsoup.Jsoup;
@@ -490,25 +507,27 @@ public class HtmlScraper {
     for (String s : seen) System.out.println(s);
   }
 }
-```
+----
 
 This can be run via
 
-```console
+[,console]
+----
 > ./mill HtmlScraper.java Singapore 1
 Hokkien
 Conscription_in_Singapore
 Malaysia_Agreement
 Government_of_Singapore
 ...
-```
+----
 
 
 Another neat example is xref:mill::javalib/script.adoc#_web_server[running a Spring-Boot
 webserver, configured and implemented in a single file]:
 
-.WebServer.java
-```java
+.`WebServer.java`
+[,java]
+----
 //| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]
 package example;
 import org.springframework.boot.SpringApplication;
@@ -528,14 +547,15 @@ public class WebServer {
     return new StringBuilder(body).reverse().toString();
   }
 }
-```
+----
 
-```console
+[,console]
+----
 > ./mill WebServer.java:runBackground
 
 > curl -d 'helloworld' localhost:8080/reverse-string
 dlrowolleh
-```
+----
 
 Mill single-file scripts are inspired by the https://www.jbang.dev/[JBang] project for Java,
 https://ammonite.io/[Ammonite] and https://scala-cli.virtuslab.org/[Scala-CLI] for Scala,
@@ -585,8 +605,9 @@ Like the rest of Mill, single-file scripts support the three major JVM languages
 if you think the `HtmlScraper.java` is too verbose, you may want to
 xref:mill::kotlinlib/script.adoc#_html_web_scraper[write your HtmlScraper in Kotlin] instead:
 
-.HtmlScraper.kt
-```kotlin
+.`HtmlScraper.kt`
+[,kotlin]
+----
 //| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
 import org.jsoup.Jsoup
@@ -619,23 +640,26 @@ fun main(args: Array<String>) {
     }
     seen.forEach { println(it) }
 }
-```
-```console
+----
+
+[,console]
+----
 > ./mill HtmlScraper.kt singapore 1
 Hokkien
 Conscription_in_Singapore
 Malaysia_Agreement
 Government_of_Singapore
 ...
-```
+----
 
 Or you may want to write your
 xref:mill::scalalib/script.adoc#_html_web_scraper[HtmlScraper in Scala], which feels
 similar to scripting in Ruby, Python, or Javascript, but with the performance,
 parallelizability and type-safety of a JVM language:
 
-.HtmlScraper.scala
-```scala
+.`HtmlScraper.scala`
+[,scala]
+----
 //| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
 import org.jsoup.*
@@ -658,15 +682,17 @@ def main(startArticle: String, depth: Int) = {
 
   pprint.log(seen, height = Int.MaxValue)
 }
-```
-```console
+----
+
+[,console]
+----
 > ./mill HtmlScraper.scala --start-article singapore --depth 1
   "Hokkien",
   "Conscription_in_Singapore",
   "Malaysia_Agreement",
   "Government_of_Singapore",
 ...
-```
+----
 
 Java is not the only JVM language, and languages like Kotlin or Scala complement it
 offering a somewhat different experience. So even if scripting in Java may not suit you,
@@ -715,4 +741,4 @@ documentation linked below for each JVM language:
 For anyone upgrading from an earlier version of Mill, please see the changelog with a more
 thorough listing of improvements and migration instructions:
 
-- https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110[Mill 1.1.0 Changelog]
+- {mill-github-url}/blob/main/changelog.adoc#1-1-0[Mill 1.1.0 Changelog]
