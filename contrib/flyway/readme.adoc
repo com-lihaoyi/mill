@@ -39,6 +39,8 @@ You can then run common flyway commands like
 > mill foo.flywayInfo
 > mill foo.flywayMigrate
 ----
+ if you want to use this plugin with mysql database, make sure to add `org.flywaydb:flyway-mysql:11.20.1` extra dependency in the build file header
+----
 
 CAUTION: You should never hard-code credentials or check them into a version control system.
 You should write some code to populate the settings for flyway instead.

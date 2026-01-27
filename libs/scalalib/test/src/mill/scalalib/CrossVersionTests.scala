@@ -135,7 +135,7 @@ object CrossVersionTests extends TestSuite {
       expectedMvnDepsTree: Option[String] = None
   ) = {
     init().scoped { eval =>
-      val Right(result) = eval.apply(mod.showMvnDepsTree(MvnDepsTreeArgs())): @unchecked
+      val Right(result) = eval.apply(mod.showMvnDepsTree(MvnDepsTreeArgs())).runtimeChecked
 
       expectedMvnDepsTree.foreach { tree =>
         if (scala.util.Properties.isWin) {
@@ -146,7 +146,7 @@ object CrossVersionTests extends TestSuite {
         }
       }
 
-      val Right(libs) = eval.apply(mod.compileClasspath): @unchecked
+      val Right(libs) = eval.apply(mod.compileClasspath).runtimeChecked
 
       val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
       assert(libNames == expectedLibs.sorted)

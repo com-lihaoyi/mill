@@ -7,7 +7,6 @@ import mill.constants.*
 
 import java.io.File
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicReference
 import scala.jdk.CollectionConverters._
 
 object MillProcessLauncher {
@@ -227,8 +226,6 @@ object MillProcessLauncher {
     result.out.trim().toInt
   }
 
-  private val memoizedTerminalDims = new AtomicReference[String]()
-
   // Returns native terminal size if available, avoiding calling getSize twice
   private def getNativeTerminalSize(): Option[(Int, Int)] = {
     JLineNativeLoader.initJLineNative()
@@ -242,28 +239,24 @@ object MillProcessLauncher {
     } else None
   }
 
-  private def writeTerminalDims(daemonDir: os.Path): Unit = {
-    val str =
-      try {
-        if (!Util.hasConsole()) "0 0"
-        else getNativeTerminalSize() match {
-          case Some((width, height)) => s"$width $height"
-          case None if !tputExists =>
-            // Hardcoded size of a quarter screen terminal on 13" windows laptop
-            "78 24"
-          case None =>
-            s"${getTerminalDim("cols", inheritError = true)} ${getTerminalDim("lines", inheritError = true)}"
-        }
-      } catch {
-        case _: Exception => "0 0"
+  /** Get current terminal dimensions. Returns TerminalDimsResult with width/height. */
+  def getTerminalDims(): DaemonRpc.TerminalDimsResult = {
+    try {
+      if (!Util.hasConsole()) DaemonRpc.TerminalDimsResult(None, None)
+      else getNativeTerminalSize() match {
+        case Some((width, height)) => DaemonRpc.TerminalDimsResult(Some(width), Some(height))
+        case None if !tputExists => DaemonRpc.TerminalDimsResult(Some(78), Some(24))
+        case None =>
+          val width =
+            try Some(getTerminalDim("cols", inheritError = true))
+            catch { case _: Exception => None }
+          val height =
+            try Some(getTerminalDim("lines", inheritError = true))
+            catch { case _: Exception => None }
+          DaemonRpc.TerminalDimsResult(width, height)
       }
-
-    // We memoize previously seen values to avoid causing lots
-    // of upstream work if the value hasn't actually changed.
-    // See https://github.com/com-lihaoyi/mill/discussions/4092
-    val oldValue = memoizedTerminalDims.getAndSet(str)
-    if (oldValue == null || oldValue != str) {
-      os.write.over(daemonDir / DaemonFiles.terminfo, str)
+    } catch {
+      case _: Exception => DaemonRpc.TerminalDimsResult(None, None)
     }
   }
 
@@ -279,29 +272,7 @@ object MillProcessLauncher {
   }
 
   def prepareMillRunFolder(daemonDir: os.Path): Unit = {
-    // Clear out run-related files from the server folder to make sure we
-    // never hit issues where we are reading the files from a previous run
-    os.remove(daemonDir / DaemonFiles.terminfo, checkExists = false)
-
     os.makeDir.all(daemonDir / DaemonFiles.sandbox)
-
-    writeTerminalDims(daemonDir)
-
-    val termInfoPropagatorThread = new Thread(
-      () => {
-        try {
-          while (true) {
-            writeTerminalDims(daemonDir)
-            Thread.sleep(100)
-          }
-        } catch {
-          case _: Exception =>
-        }
-      },
-      "TermInfoPropagatorThread"
-    )
-    termInfoPropagatorThread.setDaemon(true)
-    termInfoPropagatorThread.start()
   }
 
   def getExecutablePath: String = {

@@ -74,5 +74,5 @@ public class DaemonFiles {
   /**
    * Console log file containing output from the running Mill command
    */
-  public static final String consoleLog = "console.log";
+  public static final String millConsoleTail = "mill-console-tail";
 }

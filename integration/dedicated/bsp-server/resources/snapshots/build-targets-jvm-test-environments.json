@@ -30,7 +30,7 @@
       },
       "mainClasses": [
         {
-          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+          "className": "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
           "arguments": [
             "",
             "/workspace/.bsp/out/app/test/getTestEnvironmentVars.dest/testargs"
@@ -65,7 +65,7 @@
       },
       "mainClasses": [
         {
-          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+          "className": "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
           "arguments": [
             "",
             "/workspace/.bsp/out/hello-java/test/getTestEnvironmentVars.dest/testargs"
@@ -101,7 +101,7 @@
       },
       "mainClasses": [
         {
-          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+          "className": "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
           "arguments": [
             "",
             "/workspace/.bsp/out/hello-scala/test/getTestEnvironmentVars.dest/testargs"
@@ -147,7 +147,7 @@
       },
       "mainClasses": [
         {
-          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
+          "className": "mill.javalib.testrunner.entrypoint.MillTestRunnerMain",
           "arguments": [
             "",
             "/workspace/.bsp/out/scripts/folder2/FooTest.java/getTestEnvironmentVars.dest/testargs"

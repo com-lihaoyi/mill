@@ -48,7 +48,7 @@ object RunTests extends TestSuite {
           eval.apply(HelloJavaWithMain.app.runMain(
             "hello.Main",
             "testArg"
-          )): @unchecked
+          )).runtimeChecked
         assert(result.evalCount > 0)
       }
       test("notRunInvalidMainObject") - UnitTester(
@@ -56,7 +56,7 @@ object RunTests extends TestSuite {
         resourcePath
       ).scoped { eval =>
         val Left(ExecResult.Failure(msg = "Subprocess failed")) =
-          eval.apply(HelloJavaWithMain.app.runMain("Invalid")): @unchecked
+          eval.apply(HelloJavaWithMain.app.runMain("Invalid")).runtimeChecked
       }
       test("notRunWhenCompileFailed") - UnitTester(
         HelloJavaWithMain,
@@ -68,7 +68,7 @@ object RunTests extends TestSuite {
         )
 
         val Left(_: ExecResult.Failure[_]) =
-          eval.apply(HelloJavaWithMain.app.runMain("hello.Main")): @unchecked
+          eval.apply(HelloJavaWithMain.app.runMain("hello.Main")).runtimeChecked
 
       }
     }
@@ -77,7 +77,7 @@ object RunTests extends TestSuite {
       test("runIfMainClassProvided") - UnitTester(HelloJavaWithMain, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(
           HelloJavaWithMain.app.run(Task.Anon(Args("testArg")))
-        ): @unchecked
+        ).runtimeChecked
 
         assert(result.evalCount > 0)
       }
@@ -86,12 +86,13 @@ object RunTests extends TestSuite {
         sourceRoot = noMainResourcePath
       ).scoped { eval =>
         val Left(_: ExecResult.Failure[_]) =
-          eval.apply(HelloJavaWithoutMain.app.run()): @unchecked
+          eval.apply(HelloJavaWithoutMain.app.run()).runtimeChecked
       }
 
       test("allLocalMainClasses") - UnitTester(HelloJavaDefaultMain, resourcePath).scoped {
         eval =>
-          val Right(result) = eval.apply(HelloJavaDefaultMain.app.allLocalMainClasses): @unchecked
+          val Right(result) =
+            eval.apply(HelloJavaDefaultMain.app.allLocalMainClasses).runtimeChecked
 
           val found = result.value
           val expected = Seq("hello.Main")
@@ -105,7 +106,7 @@ object RunTests extends TestSuite {
           // discovered and used
           val Right(result) = eval.apply(
             HelloJavaDefaultMain.app.run(Task.Anon(Args("testArg")))
-          ): @unchecked
+          ).runtimeChecked
 
           assert(result.evalCount > 0)
       }
@@ -115,14 +116,14 @@ object RunTests extends TestSuite {
       test("runIfMainClassProvided") - UnitTester(HelloJavaWithMain, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(
           HelloJavaWithMain.app.runLocal(Task.Anon(Args("testArg")))
-        ): @unchecked
+        ).runtimeChecked
 
         assert(result.evalCount > 0)
       }
       test("runWithDefaultMain") - UnitTester(HelloJavaDefaultMain, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(
           HelloJavaDefaultMain.app.runLocal(Task.Anon(Args("testArg")))
-        ): @unchecked
+        ).runtimeChecked
 
         assert(result.evalCount > 0)
       }
@@ -131,7 +132,7 @@ object RunTests extends TestSuite {
         sourceRoot = noMainResourcePath
       ).scoped { eval =>
         val Left(_: ExecResult.Failure[_]) =
-          eval.apply(HelloJavaWithoutMain.app.runLocal()): @unchecked
+          eval.apply(HelloJavaWithoutMain.app.runLocal()).runtimeChecked
       }
     }
   }

@@ -278,17 +278,97 @@ object ExecutionTests extends TestSuite {
       }
 
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(worker1, _)) = tester.apply(build.worker): @unchecked
-        val Right(UnitTester.Result(worker2, _)) = tester.apply(build.worker): @unchecked
+        val Right(UnitTester.Result(worker1, _)) = tester.apply(build.worker).runtimeChecked
+        val Right(UnitTester.Result(worker2, _)) = tester.apply(build.worker).runtimeChecked
         assert(worker1 == worker2)
         assert(worker1.n == 10)
         assert(!worker1.closed)
         x = 11
-        val Right(UnitTester.Result(worker3, _)) = tester.apply(build.worker): @unchecked
+        val Right(UnitTester.Result(worker3, _)) = tester.apply(build.worker).runtimeChecked
         assert(worker3 != worker2)
         assert(worker3.n == 11)
         assert(!worker3.closed)
         assert(worker1.closed)
+      }
+    }
+
+    // https://github.com/com-lihaoyi/mill/issues/5810
+    // When upstream workers become obsolete, downstream workers that depend on them
+    // should be closed first (in reverse dependency order)
+    test("workerClosureOrder") {
+      var x = 10
+      val closureOrder = collection.mutable.Buffer.empty[String]
+
+      // Test direct worker-to-worker dependencies: workerC -> workerB -> workerA -> input
+      // When workerA is invalidated, workerC and workerB must be closed first
+      // But workerD (which depends on workerA through a task) should NOT be closed
+
+      class WorkerA(val n: Int) extends AutoCloseable {
+        def close() = {
+          closureOrder += "workerA"
+        }
+      }
+
+      class WorkerB(val a: WorkerA) extends AutoCloseable {
+        def close() = {
+          closureOrder += "workerB"
+        }
+      }
+
+      class WorkerC(val b: WorkerB) extends AutoCloseable {
+        def close() = {
+          closureOrder += "workerC"
+        }
+      }
+
+      // WorkerD depends on workerA indirectly through a task
+      class WorkerD(val value: Int) extends AutoCloseable {
+        def close() = {
+          closureOrder += "workerD"
+        }
+      }
+
+      object build extends TestRootModule {
+        def input = Task.Input { x }
+        def workerA = Task.Worker { new WorkerA(input()) }
+        // workerB depends directly on workerA
+        def workerB = Task.Worker { new WorkerB(workerA()) }
+        // workerC depends directly on workerB (and transitively on workerA)
+        def workerC = Task.Worker { new WorkerC(workerB()) }
+        // taskUsingA is a regular task that uses workerA
+        def taskUsingA = Task { workerA().n * 2 }
+        // workerD depends on workerA INDIRECTLY through taskUsingA (not a direct worker dep)
+        def workerD = Task.Worker { new WorkerD(taskUsingA()) }
+        lazy val millDiscover = Discover[this.type]
+      }
+
+      UnitTester(build, null).scoped { tester =>
+        // Create all workers
+        val Right(UnitTester.Result(a1, _)) = tester.apply(build.workerA): @unchecked
+        val Right(UnitTester.Result(b1, _)) = tester.apply(build.workerB): @unchecked
+        val Right(UnitTester.Result(c1, _)) = tester.apply(build.workerC): @unchecked
+        val Right(UnitTester.Result(d1, _)) = tester.apply(build.workerD): @unchecked
+
+        assert(a1.n == 10)
+        assert(b1.a eq a1)
+        assert(c1.b eq b1)
+        assert(d1.value == 20) // 10 * 2
+        assert(closureOrder.isEmpty)
+
+        // Change input to invalidate workerA
+        x = 20
+        closureOrder.clear()
+
+        // Request workerA - this should trigger closure of direct worker dependents only
+        // (workerC first, then workerB, then workerA)
+        // workerD should NOT be closed because it depends through a task, not directly
+        val Right(UnitTester.Result(a2, _)) = tester.apply(build.workerA): @unchecked
+        assert(a2.n == 20)
+        assert(a2 ne a1)
+
+        // Verify only direct worker dependents were closed in reverse dependency order
+        // workerD is NOT included because it depends on workerA through taskUsingA
+        assert(closureOrder.toSeq == Seq("workerC", "workerB", "workerA"))
       }
     }
 
@@ -347,10 +427,10 @@ object ExecutionTests extends TestSuite {
 
       UnitTester(build, null).scoped { tester =>
         assert(y == 0)
-        val Right(_) = tester.apply(build.task): @unchecked
+        val Right(_) = tester.apply(build.task).runtimeChecked
         assert(y == 10)
         x = 0
-        val Left(_) = tester.apply(build.task): @unchecked
+        val Left(_) = tester.apply(build.task).runtimeChecked
         assert(y == 10)
       }
     }
@@ -364,13 +444,13 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(build.task4): @unchecked
+        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(build.task4).runtimeChecked
       }
     }
     test("traverse") {
       UnitTester(traverseBuild, null).scoped { tester =>
         val Right(UnitTester.Result(Seq(1, 10, 100), _)) =
-          tester.apply(traverseBuild.task4): @unchecked
+          tester.apply(traverseBuild.task4).runtimeChecked
       }
     }
 
@@ -382,7 +462,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result((1, 10), _)) = tester.apply(build.task4): @unchecked
+        val Right(UnitTester.Result((1, 10), _)) = tester.apply(build.task4).runtimeChecked
       }
     }
 
@@ -394,7 +474,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(11, _)) = tester.apply(build.task2): @unchecked
+        val Right(UnitTester.Result(11, _)) = tester.apply(build.task2).runtimeChecked
       }
     }
 
@@ -472,13 +552,13 @@ object ExecutionTests extends TestSuite {
     test("backticked") {
       UnitTester(bactickIdentifiers, null).scoped { tester =>
         val Right(UnitTester.Result(1, _)) =
-          tester.apply(bactickIdentifiers.`up-task`): @unchecked
+          tester.apply(bactickIdentifiers.`up-task`).runtimeChecked
         val Right(UnitTester.Result(3, _)) =
-          tester.apply(bactickIdentifiers.`a-down-task`): @unchecked
+          tester.apply(bactickIdentifiers.`a-down-task`).runtimeChecked
         val Right(UnitTester.Result(3, _)) =
-          tester.apply(bactickIdentifiers.`invisible&`): @unchecked
+          tester.apply(bactickIdentifiers.`invisible&`).runtimeChecked
         val Right(UnitTester.Result(4, _)) =
-          tester.apply(bactickIdentifiers.`nested-module`.`nested-task`): @unchecked
+          tester.apply(bactickIdentifiers.`nested-module`.`nested-task`).runtimeChecked
       }
     }
 
@@ -528,7 +608,7 @@ object ExecutionTests extends TestSuite {
         UnitTester(exclusiveCommands, null).scoped { tester =>
           val result = tester.apply(exclusiveCommands.cleanClientWrong)
           assert(result.isLeft)
-          val Left(err) = result: @unchecked
+          val Left(err) = result.runtimeChecked
           val msg = err.toString
           assert(
             msg.contains("Non-Command task") &&
@@ -542,7 +622,7 @@ object ExecutionTests extends TestSuite {
         UnitTester(exclusiveCommands, null).scoped { tester =>
           val result = tester.apply(exclusiveCommands.cleanClientRight())
           assert(result.isRight)
-          val Right(UnitTester.Result(value, _)) = result: @unchecked
+          val Right(UnitTester.Result(value, _)) = result.runtimeChecked
           assert(value == "cleanClientRight done")
         }
       }
@@ -552,7 +632,7 @@ object ExecutionTests extends TestSuite {
         UnitTester(exclusiveCommands, null).scoped { tester =>
           val result = tester.apply(exclusiveCommands.cleanClientDownstream())
           assert(result.isRight)
-          val Right(UnitTester.Result(value, _)) = result: @unchecked
+          val Right(UnitTester.Result(value, _)) = result.runtimeChecked
           assert(value == "cleanClientDownstream done")
         }
       }

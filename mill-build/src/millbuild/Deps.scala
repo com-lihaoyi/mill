@@ -137,7 +137,7 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.21.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.25.1"
-  val osLibVersion = "0.11.6"
+  val osLibVersion = "0.11.7"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.6"
@@ -260,6 +260,7 @@ object Deps {
     val errorProneCore = mvn"com.google.errorprone:error_prone_core:2.31.0"
     val freemarker = mvn"org.freemarker:freemarker:2.3.34"
     val jupiterInterface = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
+    val jupiterInterface6 = mvn"com.github.sbt.junit:jupiter-interface:0.17.0"
     val kotestJvm =
       mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler:5.9.1"
     val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
@@ -281,6 +282,7 @@ object Deps {
       errorProneCore,
       freemarker,
       jupiterInterface,
+      jupiterInterface6,
       groovyCompiler,
       kotestJvm,
       kotlinxHtmlJvm,

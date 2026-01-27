@@ -32,7 +32,7 @@ object InitModuleTests extends TestSuite {
 
         assert(results.transitiveFailing.size == 0)
 
-        val mill.api.ExecResult.Success(Val(value)) = results.results.head: @unchecked
+        val mill.api.ExecResult.Success(Val(value)) = results.results.head.runtimeChecked
         val consoleShown = outStream.toString
 
         val examplesList: Seq[String] = value.asInstanceOf[Seq[String]]

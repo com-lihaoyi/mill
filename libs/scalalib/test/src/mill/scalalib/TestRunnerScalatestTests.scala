@@ -9,12 +9,12 @@ object TestRunnerScalatestTests extends TestSuite {
   import TestRunnerTestUtils.*
   override def tests: Tests = Tests {
     test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval(testrunner.scalatest.testForked()): @unchecked
+      val Right(result) = eval(testrunner.scalatest.testForked()).runtimeChecked
       assert(result.value.results.size == 9)
       junitReportIn(eval.outPath, "scalatest").shouldHave(9 -> Status.Success)
     }
     test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses): @unchecked
+      val Right(result) = eval.apply(testrunner.scalatest.discoveredTestClasses).runtimeChecked
       val expected = Seq(
         "mill.scalalib.ScalaTestSpec",
         "mill.scalalib.ScalaTestSpec2",
@@ -125,7 +125,7 @@ object TestRunnerScalatestTests extends TestSuite {
               "tagged",
               "-l",
               "tagged"
-            )): @unchecked
+            )).runtimeChecked
           assert(msg.contains("Test selector does not match any test"))
         }
       }

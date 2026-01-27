@@ -31,7 +31,7 @@ object CompiledClassesSemanticDbTests extends TestSuite {
       sourceRoot = resourcePath
     ).scoped { eval =>
       val Right(result) =
-        eval.apply(CompiledClassesSemanticDb.test.compiledClassesAndSemanticDbFiles): @unchecked
+        eval.apply(CompiledClassesSemanticDb.test.compiledClassesAndSemanticDbFiles).runtimeChecked
 
       val outFolder = eval.outPath
       val files = os.walk(outFolder).map(_.relativeTo(outFolder))

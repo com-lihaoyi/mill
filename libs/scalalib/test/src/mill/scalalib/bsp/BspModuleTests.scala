@@ -46,7 +46,7 @@ object BspModuleTests extends TestSuite {
       def testSingleModule(eval: UnitTester, needsToMerge: Boolean) = {
         val Right(result) = eval.apply(
           MultiBase.HelloBsp.bspCompileClasspath(needsToMerge)
-        ): @unchecked
+        ).runtimeChecked
 
         val relResult =
           result.value(eval.evaluator).map(s => os.Path(new java.net.URI(s)).last).toSeq.sorted
@@ -74,7 +74,7 @@ object BspModuleTests extends TestSuite {
       def testDependentModule(eval: UnitTester, needsToMerge: Boolean, expectedPath: os.Path) = {
         val Right(result) = eval.apply(
           MultiBase.HelloBsp2.bspCompileClasspath(needsToMerge)
-        ): @unchecked
+        ).runtimeChecked
 
         val relResults: Seq[FilePath] = result.value(eval.evaluator).iterator.map { p =>
           val path = os.Path(new java.net.URI(p))
@@ -127,7 +127,7 @@ object BspModuleTests extends TestSuite {
               val start = System.currentTimeMillis()
               val Right(_) = eval.apply(
                 InterDeps.Mod(entry).compileClasspath
-              ): @unchecked
+              ).runtimeChecked
               val timeSpent = System.currentTimeMillis() - start
               assert(timeSpent < maxTime)
               s"${timeSpent} msec"
@@ -141,7 +141,7 @@ object BspModuleTests extends TestSuite {
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
               InterDeps.Mod(entry).bspCompileClasspath(needsToMergeResourcesIntoCompileDest = false)
-            ): @unchecked
+            ).runtimeChecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)
             s"${timeSpent} msec"
@@ -160,7 +160,7 @@ object BspModuleTests extends TestSuite {
         eval =>
           val Right(_) = eval.apply(
             MultiBase.HelloBsp2.bspBuildTargetCompile(needsToMergeResourcesIntoCompileDest = true)
-          ): @unchecked
+          ).runtimeChecked
       }
 
       // https://github.com/com-lihaoyi/mill/issues/5271

@@ -9,11 +9,11 @@
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
-        <orderEntry type="library" scope="PROVIDED" name="jcl-over-slf4j-1.7.25.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="logback-classic-1.2.3.jar" level="project"/>
-        <orderEntry type="library" name="logback-core-1.2.3.jar" level="project"/>
+        <orderEntry type="library" scope="PROVIDED" name="jcl-over-slf4j-<version>.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="logback-classic-<version>.jar" level="project"/>
+        <orderEntry type="library" name="logback-core-<version>.jar" level="project"/>
         <orderEntry type="library" name="scala-library-<version>.jar" level="project"/>
-        <orderEntry type="library" name="slf4j-api-1.7.25.jar" level="project"/>
+        <orderEntry type="library" name="slf4j-api-<version>.jar" level="project"/>
         <orderEntry type="module" module-name="helloidea" exported=""/>
     </component>
 </module>

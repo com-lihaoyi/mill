@@ -47,7 +47,7 @@ object MetadataLoaderFactoryTests extends TestSuite {
       val Right(ivyRepo) = IvyRepository.parse(
         "https://dl.bintray.com/sbt/sbt-plugin-releases/" + coursier.ivy.Pattern.default.string,
         dropInfoAttributes = true
-      ): @unchecked
+      ).runtimeChecked
       assertMatch(MetadataLoaderFactory(ivyRepo)) { case None => }
     }
     test("otherRepository") {

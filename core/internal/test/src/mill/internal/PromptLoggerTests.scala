@@ -7,7 +7,7 @@ import utest.*
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 object PromptLoggerTests extends TestSuite {
 
-  def setup(now: () => Long, terminfoPath: os.Path) = {
+  def setup(now: () => Long, terminalDimsCallback: () => Option[(Option[Int], Option[Int])]) = {
     val baos = new ByteArrayOutputStream()
     val baosOut = new PrintStream(new ProxyStream.Output(baos, ProxyStream.OUT))
     val baosErr = new PrintStream(new ProxyStream.Output(baos, ProxyStream.ERR))
@@ -22,7 +22,7 @@ object PromptLoggerTests extends TestSuite {
       systemStreams0 = new SystemStreams(baosOut, baosErr, System.in),
       debugEnabled = false,
       titleText = "TITLE",
-      terminfoPath = terminfoPath,
+      terminalDimsCallback = terminalDimsCallback,
       currentTimeMillis = now,
       autoUpdate = false,
       chromeProfileLogger = new JsonArrayLogger.ChromeProfile(os.temp())
@@ -59,7 +59,7 @@ object PromptLoggerTests extends TestSuite {
     test("nonInteractive") - retry(3) {
       var now = 0L
 
-      val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp())
+      val (baos, promptLogger, prefixLogger) = setup(() => now, () => None)
 
       promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
@@ -104,7 +104,7 @@ object PromptLoggerTests extends TestSuite {
     test("interactive") - retry(3) {
 
       var now = 0L
-      val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
+      val (baos, promptLogger, prefixLogger) = setup(() => now, () => Some((Some(80), Some(40))))
 
       promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.refreshPrompt()
@@ -260,7 +260,7 @@ object PromptLoggerTests extends TestSuite {
       // tasks on each thread are short-lived enough they would not normally get shown if run
       // alone.
       @volatile var now = 0L
-      val (baos, promptLogger, prefixLogger) = setup(() => now, os.temp("80 40"))
+      val (baos, promptLogger, prefixLogger) = setup(() => now, () => Some((Some(80), Some(40))))
 
       promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.refreshPrompt()

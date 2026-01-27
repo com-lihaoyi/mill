@@ -13,7 +13,7 @@ import java.util.stream.Stream;
  * conflict with the testrunner classpath or issues due to user code running in
  * nested classloaders.
  */
-public class TestRunnerMain {
+public class MillTestRunnerMain {
   public static void main(String[] args) throws Exception {
     URL[] testRunnerClasspath = Stream.of(args[0].split(","))
         .map(s -> {
@@ -28,17 +28,17 @@ public class TestRunnerMain {
     URLClassLoader cl = new URLClassLoader(testRunnerClasspath, null) {
       public Class<?> findClass(String name) throws ClassNotFoundException {
         if (name.startsWith("sbt.testing")) {
-          return TestRunnerMain.class.getClassLoader().loadClass(name);
+          return MillTestRunnerMain.class.getClassLoader().loadClass(name);
         } else {
           return super.findClass(name);
         }
       }
     };
 
-    Class<?> testRunnerCls = cl.loadClass("mill.javalib.testrunner.TestRunnerMain0");
+    Class<?> testRunnerCls = cl.loadClass("mill.javalib.testrunner.MillTestRunnerMain0");
     Method mainMethod = testRunnerCls.getMethod("main0", String[].class, ClassLoader.class);
 
     // Wrap in String[][] to counter varargs expansion
-    mainMethod.invoke(null, args, TestRunnerMain.class.getClassLoader());
+    mainMethod.invoke(null, args, MillTestRunnerMain.class.getClassLoader());
   }
 }
