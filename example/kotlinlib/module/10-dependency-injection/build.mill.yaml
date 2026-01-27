@@ -6,5 +6,6 @@ mainClass: com.example.dagger.MainKt
 kotlincOptions: !append [-no-reflect, -verbose]
 mvnDeps:
 - com.google.dagger:dagger:2.57
+
 kotlinSymbolProcessors:
 - com.google.dagger:dagger-compiler:2.57

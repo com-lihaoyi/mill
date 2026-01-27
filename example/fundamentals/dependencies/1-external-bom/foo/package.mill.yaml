@@ -1,5 +1,6 @@
 extends: JavaModule
 bomMvnDeps:
 - com.google.cloud:libraries-bom:26.50.0
+
 mvnDeps:
 - io.grpc:grpc-protobuf
