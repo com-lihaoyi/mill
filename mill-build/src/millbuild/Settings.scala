@@ -23,7 +23,7 @@ object Settings {
     "1.1.0"
   )
   val mimaBaseVersions: Seq[String] =
-    Seq("1.1.0", "1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6")
+    Seq("1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.0.4", "1.0.5", "1.0.6", "1.1.0")
 
   val graalvmJvmId = "graalvm-community:23.0.1"
 }
