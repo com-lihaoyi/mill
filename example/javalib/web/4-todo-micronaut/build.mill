@@ -1,35 +1,5 @@
-package build
-import mill.*, javalib.*
-
 /** See Also: build.mill.yaml */
 /** See Also: test/package.mill.yaml */
-
-trait MicronautModule extends MavenModule {
-  def micronautVersion: String
-
-  override def bomMvnDeps = Seq(
-    mvn"io.micronaut.platform:micronaut-platform:${micronautVersion}"
-  )
-
-  override def annotationProcessorsMvnDeps = Seq(
-    mvn"io.micronaut.data:micronaut-data-processor",
-    mvn"io.micronaut:micronaut-http-validation",
-    mvn"io.micronaut.serde:micronaut-serde-processor",
-    mvn"io.micronaut.validation:micronaut-validation-processor",
-    mvn"io.micronaut:micronaut-inject-java"
-  )
-
-  override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
-    "-Amicronaut.processing.incremental=true",
-    "-Amicronaut.processing.group=example.micronaut",
-    "-Amicronaut.processing.module=todo",
-    "-Amicronaut.processing.annotations=example.micronaut.*"
-  )
-
-  def javacOptions = super.javacOptions() ++ Seq(
-    "-parameters"
-  )
-}
 
 // This example is a more complete example using Micronaut, adapted from
 // https://github.com/sdelamo/todomvc. On top of the `MicronautModule` and

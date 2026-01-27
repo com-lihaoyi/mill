@@ -1,8 +1,8 @@
-extends: [build.MavenTests, TestModule.Junit5]
+extends: [MavenTests, TestModule.Junit5]
 bomMvnDeps:
 - io.micronaut.platform:micronaut-platform:4.4.3
 mvnDeps:
 - com.h2database:h2:2.2.224
 - io.micronaut:micronaut-http-client
 - io.micronaut.test:micronaut-test-junit5
-testParallelism: 0
+testParallelism: false

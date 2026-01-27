@@ -1,22 +1,7 @@
-package build
-
-import mill.*
-import javalib.*
-
-/** See Also: build.mill.yaml */
-
-// The programmatic overrides extend the YAML configuration
-override def annotationProcessorsJavacOptions = super.annotationProcessorsJavacOptions() ++ Seq(
-  "-Amicronaut.processing.incremental=true",
-  "-Amicronaut.processing.annotations=hello.world.*"
-)
-
-def javacOptions = super.javacOptions() ++ Seq(
-  "-parameters"
-)
-
 // This example demonstrates how to configure mill for a simple micronaut native project.
 // It uses Micronaut AOT to optimize the application for the native image generation.
+
+/** See Also: build.mill.yaml */
 
 /** Usage
 

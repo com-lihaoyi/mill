@@ -1,5 +1,5 @@
-/** See Also: dagger/package.mill.yaml */
-/** See Also: dagger/test/package.mill.yaml */
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
 
 // This is a basic Mill build for a single `KotlinModule`, with
 // the purpose to demonstrate the Kotlin Symbol Processing API
@@ -7,25 +7,25 @@
 
 /** Usage
 
-> ./mill show dagger.generatedSources
+> ./mill show generatedSources
 [
-  "ref:v0:.../out/dagger/generatedSourcesWithKsp2.dest/generated/java",
-  "ref:v0:.../out/dagger/generatedSourcesWithKsp2.dest/generated/kotlin"
+  "ref:v0:.../out/generatedSourcesWithKsp2.dest/generated/java",
+  "ref:v0:.../out/generatedSourcesWithKsp2.dest/generated/kotlin"
 ]
 
-> ls out/dagger/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
+> ls out/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
 DaggerNumberApp.java
 NumberService_Factory.java
 RandomNumberGenerator_Factory.java
 
-> ./mill dagger.compile
-Compiling 6 Kotlin sources and reading 3 Java sources to out/dagger/compile.dest/classes ...
-compiling 3 Java sources to out/dagger/compile.dest/classes ...
+> ./mill compile
+Compiling 6 Kotlin sources and reading 3 Java sources to out/compile.dest/classes ...
+compiling 3 Java sources to out/compile.dest/classes ...
 
-> ./mill dagger.run
+> ./mill run
 Random number: ...
 
-> ./mill show dagger.test
+> ./mill show test
 ...
 {
   "msg": "",
@@ -46,7 +46,7 @@ Random number: ...
 }
 ...
 
-> ls out/dagger/test/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
+> ls out/test/generatedSourcesWithKsp2.dest/generated/java/com/example/dagger/
 ConstantNumberGenerator_Factory.java
 DaggerDemoComponent.java
 DaggerTestApp.java
