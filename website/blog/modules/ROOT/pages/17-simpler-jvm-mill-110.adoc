@@ -534,19 +534,13 @@ public class WebServer {
 dlrowolleh
 ```
 
-Although superficially Mill single-file scripts look like running a Python or Bash script, under
-the hood it actually goes through the full build tool process - dependency resolution, compilation,
-and execution - but every step is cached and parallelized to be as fast possible. Scripts can be
-xref:mill::javalib/script.adoc#_packaging_assemblies_and_native_binaries[packaged into assemblies or
-native images], have xref:mill::javalib/intro.adoc#_testing_scripts[tests], and generally have the
-full featureset of the Mill build tool available to them.
-
 Mill single-file scripts are inspired by the https://www.jbang.dev/[JBang] project for Java,
 https://ammonite.io/[Ammonite] and https://scala-cli.virtuslab.org/[Scala-CLI] for Scala,
 and https://blog.jetbrains.com/kotlin/2024/11/state-of-kotlin-scripting-2024/[Scripting for Kotlin],
 which all give you the ability to write single-files scripts in JVM languages. But while many
 projects support single-file scripts for cute demos like the one above, Mill fleshes them out
-enough that they are a viable way of writing code on the JVM.
+far beyond most such script runners, hopefully enough to make them a viable way of writing code
+on the JVM.
 
 === Rich Scripting on the JVM
 
