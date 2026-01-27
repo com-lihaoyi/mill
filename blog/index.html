@@ -276,12 +276,12 @@ build tooling for large codebases in JVM and non-JVM languages.</p>
 <p>Java and other JVM languages like Scala or Kotlin are often used for large enterprise codebases,
 but the friction of configuring their tooling means they are less often used for small
 programs or scripts. The new release of the Mill build tool v1.1.0
-(<a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110">changelog</a>)
+(<a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#1-1-0">changelog</a>)
 contains two features that try to improve upon this pain point, allowing your projects
 to be configured via a compact <code>build.mill.yaml</code> file, rather than a verbose <code>pom.xml</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml</div>
+<div class="title"><code>build.mill.yaml</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps:
@@ -294,7 +294,7 @@ mvnDeps:
 at the top of the file:</p>
 </div>
 <div class="listingblock">
-<div class="title">HtmlScraper.java</div>
+<div class="title"><code>HtmlScraper.java</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
@@ -416,7 +416,7 @@ normally only available on Zsh and not on Bash.</p>
 <p>But with some work, you can make your tab-completions work on both shells, including
 nice quality-of-life features like completion descriptions. This blog post will explore how it
 can be done, based on our recent experience implementing this in the <a href="https://mill-build.org">Mill build tool</a>
-version <a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#103">1.0.3</a>,
+version <a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#1-0-3">1.0.3</a>,
 providing the great tab-completion experience you see below in a way that works across
 both common shells. Hopefully based on this, you will know enough and have enough reference
 examples to set up Bash and Zsh completions for your own command-line tooling.</p>
@@ -450,7 +450,7 @@ improve upon existing build tools in areas like
 and <a href="../mill/comparisons/gradle.html#_gradle_ide_support" class="xref page">IDE support</a>.
 The new release of Mill 1.0.0 is a major breaking version of the Mill project focused on setting
 a solid technical foundation that can provide stability for the coming years of development. While the
-<a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100">Changelog</a> contains a thorough
+<a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#1-0-0">Changelog</a> contains a thorough
 listing of the various changes, as well as detailed migration instructions, this article
 instead spends more time discussing some of the highlights of the Mill 1.0.0 release.</p>
 </div>

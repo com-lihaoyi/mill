@@ -266,12 +266,12 @@
 <p>Java and other JVM languages like Scala or Kotlin are often used for large enterprise codebases,
 but the friction of configuring their tooling means they are less often used for small
 programs or scripts. The new release of the Mill build tool v1.1.0
-(<a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110">changelog</a>)
+(<a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#1-1-0">changelog</a>)
 contains two features that try to improve upon this pain point, allowing your projects
 to be configured via a compact <code>build.mill.yaml</code> file, rather than a verbose <code>pom.xml</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml</div>
+<div class="title"><code>build.mill.yaml</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps:
@@ -284,7 +284,7 @@ mvnDeps:
 at the top of the file:</p>
 </div>
 <div class="listingblock">
-<div class="title">HtmlScraper.java</div>
+<div class="title"><code>HtmlScraper.java</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
@@ -320,7 +320,7 @@ the JVM languages an attractive and easy way to write small-scale programs and s
 that has written a single-file Java program they want to run:</p>
 </div>
 <div class="listingblock">
-<div class="title">HtmlScraper.java</div>
+<div class="title"><code>HtmlScraper.java</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">import org.jsoup.Jsoup;
 import java.util.*;
@@ -387,7 +387,7 @@ such code can be surprisingly involved:</p>
 <li>
 <p>Writing out the <code>pom.xml</code> (can you write the POM for the above program without copy-paste cargo-culting from StackOverflow/Google/ChatGPT?)</p>
 <div class="listingblock">
-<div class="title">pom.xml</div>
+<div class="title"><code>pom.xml</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
@@ -462,7 +462,7 @@ a new declarative configuration format. That lets us turn the verbose <code>pom.
 the declarative <code>build.mill.yaml</code> file below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml</div>
+<div class="title"><code>build.mill.yaml</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: JavaModule
 mvnDeps:
@@ -474,7 +474,7 @@ mvnDeps:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">./mill run &lt;arg1&gt; &lt;arg2&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run &lt;arg1&gt; &lt;arg2&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -685,7 +685,7 @@ build tool features, and below we have
 demonstrates many of the common configuration keys a developer may want to set:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml</div>
+<div class="title"><code>build.mill.yaml</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule]
 
@@ -746,7 +746,7 @@ or <a href="../mill/scalalib/module-config.html#_declarative_configuration" clas
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="title">buill.mill.yaml for Kotlin</div>
+<div class="title"><code>buill.mill.yaml</code> for Kotlin</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 2.0.20
@@ -755,7 +755,7 @@ mvnDeps:
 </div>
 </div></div></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
-<div class="title">buill.mill.yaml for Scala</div>
+<div class="title"><code>buill.mill.yaml</code> for Scala</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 3.8.1
@@ -826,7 +826,7 @@ file above, add a <code>//|</code> build-header comment with the <code>mvnDeps</
 <a href="../mill/javalib/script.html#_html_web_scraper" class="xref page">run it directly self-contained within a single file</a>:</p>
 </div>
 <div class="listingblock">
-<div class="title">HtmlScraper.java</div>
+<div class="title"><code>HtmlScraper.java</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
@@ -881,7 +881,7 @@ Government_of_Singapore
 webserver, configured and implemented in a single file</a>:</p>
 </div>
 <div class="listingblock">
-<div class="title">WebServer.java</div>
+<div class="title"><code>WebServer.java</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">//| mvnDeps: [org.springframework.boot:spring-boot-starter-web:3.2.0]
 package example;
@@ -983,7 +983,7 @@ if you think the <code>HtmlScraper.java</code> is too verbose, you may want to
 <a href="../mill/kotlinlib/script.html#_html_web_scraper" class="xref page">write your HtmlScraper in Kotlin</a> instead:</p>
 </div>
 <div class="listingblock">
-<div class="title">HtmlScraper.kt</div>
+<div class="title"><code>HtmlScraper.kt</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">//| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
@@ -1036,7 +1036,7 @@ similar to scripting in Ruby, Python, or Javascript, but with the performance,
 parallelizability and type-safety of a JVM language:</p>
 </div>
 <div class="listingblock">
-<div class="title">HtmlScraper.scala</div>
+<div class="title"><code>HtmlScraper.scala</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
 //| - org.jsoup:jsoup:1.7.2
@@ -1140,7 +1140,7 @@ thorough listing of improvements and migration instructions:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#110">Mill 1.1.0 Changelog</a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#1-1-0">Mill 1.1.0 Changelog</a></p>
 </li>
 </ul>
 </div>
