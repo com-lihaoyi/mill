@@ -18,7 +18,7 @@ include::partial$example/fundamentals/javahome/3-custom-jvm.adoc[]
 
 == Setting the JVM Version of a JavaModule
 
-include::partial$example/fundamentals/javahome/4-custom-module-jvms.adoc[]
+include::partial$example/fundamentals/javahome/4-custom-module-jvm.adoc[]
 
 == Choosing a JVM Version
 
