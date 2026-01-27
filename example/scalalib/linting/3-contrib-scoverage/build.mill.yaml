@@ -1,4 +1,8 @@
-extends: ScoverageModule
+mill-build:
+  mvnDeps:
+  - com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION
+
+extends: mill.contrib.scoverage.ScoverageModule
 scoverageVersion: 2.1.0
 scalaVersion: 3.8.1
 mvnDeps:
