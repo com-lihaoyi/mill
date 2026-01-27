@@ -263,15 +263,13 @@ object MillDaemonServer {
       if (bufferedAvailable > 0) {
         bufferedAvailable
       } else {
-        // Poll the client for available stdin data
-        try {
-          val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
-          buffer = result.bytes
-          pos = 0
-          buffer.length
-        } catch {
-          case _: Exception => 0
-        }
+        // Poll the client for available stdin data.
+        // Don't catch exceptions - let them propagate so the RPC loop exits
+        // cleanly when the client disconnects.
+        val result = serverToClient(DaemonRpc.ServerToClient.PollStdin())
+        buffer = result.bytes
+        pos = 0
+        buffer.length
       }
     }
 
