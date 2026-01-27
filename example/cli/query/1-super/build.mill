@@ -6,7 +6,7 @@ package build
 import mill.*, scalalib.*
 
 object foo extends ScalaModule {
-  def scalaVersion = "3.8.0"
+  def scalaVersion = "3.8.1"
 }
 
 /** Usage

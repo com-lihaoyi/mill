@@ -1,5 +1,5 @@
 extends: ScalaModule
-scalaVersion: 3.8.0
+scalaVersion: 3.8.1
 mvnDeps:
 - com.lihaoyi::cask:0.9.1
 - com.lihaoyi::upickle:4.3.0

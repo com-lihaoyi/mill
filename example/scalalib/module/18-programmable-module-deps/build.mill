@@ -11,13 +11,13 @@ package build
 import mill.*, scalalib.*
 
 object bar extends ScalaModule {
-  def scalaVersion = "3.8.0"
+  def scalaVersion = "3.8.1"
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
 }
 
 object qux extends Cross[QuxModule](1, 2, 3)
 trait QuxModule extends ScalaModule, Cross.Module[Int] {
-  def scalaVersion = "3.8.0"
+  def scalaVersion = "3.8.1"
 }
 
 /** See Also: foo/package.mill.yaml */
