@@ -1,0 +1,6 @@
+extends: [JavaModule, BomModule]
+bomMvnDeps:
+- com.google.protobuf:protobuf-bom:4.28.1
+
+depManagement:
+- io.grpc:grpc-protobuf:1.67.1

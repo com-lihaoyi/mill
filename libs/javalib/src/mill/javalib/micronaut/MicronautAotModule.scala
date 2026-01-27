@@ -16,7 +16,7 @@ import mill.javalib.{Dep, DepSyntax, JavaModule}
 @experimental
 trait MicronautAotModule extends JavaModule {
 
-  def micronautPackage: String
+  def micronautPackage: T[String]
 
   protected def aotRuntime: T[String] = Task {
     "jit"
@@ -86,7 +86,7 @@ trait MicronautAotModule extends JavaModule {
       "--classpath",
       (runClasspath() ++ resolvedMicronautAotCli()).map(_.path).mkString(":"),
       "--package",
-      micronautPackage,
+      micronautPackage(),
       "--runtime",
       aotRuntime(),
       "--config",

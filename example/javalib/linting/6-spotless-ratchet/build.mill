@@ -13,7 +13,7 @@
 
 /** Usage
 > git init . -b main
-> git add .gitignore build.mill build.mill.yaml src/A.java
+> git add .gitignore build.mill.yaml src/A.java
 > git commit -a -m "1"
 */
 
@@ -23,10 +23,9 @@
 > echo " module hello {}" > src/module-info.java  # content has leading space at start
 
 > ./mill spotless --check
-format errors in build.mill
 format errors in src/A.java
 format errors in src/module-info.java
-error: ...format check failed for 3 files
+error: ...format check failed for 2 files
 */
 
 // The `spotless` command finds format errors in all files.

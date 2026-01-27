@@ -1,24 +1,11 @@
 // :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
 //
-// Configuring custom JVMs is done by setting the `def jvmVersion`
-// of any `JavaModule`, `ScalaModule`, or `KotlinModule`
-//
-// The `jvmVersion` string has the form:
-//
-// ----
-// "{name}:{version}"
-// ----
-//
-// To see what Jvms are available for download look at the index for your os
-// and architecture {link-jvm-indices}[here].
-import mill.*, javalib.*
-import mill.api.ModuleRef
+// Configuring custom JVMs is done by setting the `jvmVersion`
+// of any `JavaModule`, `ScalaModule`, or `KotlinModule`. This can be done
+// declaratively via `package.mill.yaml` files:
 
-object foo extends JavaModule {
-  def jvmVersion = "temurin:11.0.21"
-
-  object test extends JavaTests, TestModule.Junit4
-}
+/** See Also: foo/package.mill.yaml */
+/** See Also: foo/test/package.mill.yaml */
 
 /** Usage
 
@@ -59,7 +46,7 @@ Foo running on Java 11.0.21
 // By default, Mill comes bundled with a version of the JVM index that was published when
 // each version of Mill is released. This ensures that the JVM versions you pick are stable,
 // but means that the latest JVM versions may not be available. You can pass in the JVM
-// index version explicitly via `def jvmIndexVersion` below, choosing a published
+// index version explicitly via `jvmIndexVersion` below, choosing a published
 // index version from the Maven Central:
 //
 // * https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central]
@@ -68,13 +55,7 @@ Foo running on Java 11.0.21
 // although that might mean the JVM version is no longer stable and might change over
 // time as new releases are published:
 
-import scalalib.*
-
-object bar extends ScalaModule {
-  def scalaVersion = "2.13.16"
-  def jvmVersion = "temurin:23.0.1"
-  def jvmIndexVersion = "latest.release"
-}
+/** See Also: bar/package.mill.yaml */
 
 /** Usage
 
@@ -87,22 +68,11 @@ Bar running on Java 23.0.1
 //
 // You can also pass in the JVM download URL explicitly. Note that if you do so, you need
 // to ensure yourself that you are downloading the appropriate JVM distribution for your
-// operating system and CPU architecture. In the example below we switch between Mac/ARM and
-// Linux/X64, but you may have additional cases if you need to support Windows or other
+// operating system and CPU architecture. In the example below we use a Linux/X64 URL,
+// but you may have additional cases if you need to support Mac, Windows or other
 // OS/CPU combinations
 
-import kotlinlib.*
-
-object qux extends KotlinModule {
-  def kotlinVersion = "2.0.20"
-  def jvmVersion =
-    if (sys.props("os.name") == "Mac OS X") {
-      "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
-    } else {
-      "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz"
-    }
-
-}
+/** See Also: qux/package.mill */
 
 /** Usage
 
@@ -115,6 +85,4 @@ Qux running on Java 22.0.2
 //
 // Lastly, you can point Mill at any JVM distribution installed locally on disk via:
 
-object baz extends JavaModule {
-  def javaHome = Some(PathRef(os.Path("/my/java/home"), quick = true))
-}
+/** See Also: baz/package.mill.yaml */
