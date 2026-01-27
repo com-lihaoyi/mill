@@ -1,0 +1,4 @@
+extends: [build.KotlinTests, TestModule.Junit5]
+mvnDeps:
+- io.kotest:kotest-runner-junit5:5.9.1
+- io.ktor:ktor-server-test-host:2.3.12
