@@ -20,14 +20,17 @@
 //// SNIPPET:TREE
 //
 // ----
-// build.mill
+// build.mill.yaml
 // foo/
+//     package.mill.yaml
 //     src/
 //         Foo.scala
 // bar/
+//     package.mill.yaml
 //     src/
 //         Bar.scala
 //     test/
+//         package.mill.yaml
 //         src/
 //             BarTests.scala
 // out/
