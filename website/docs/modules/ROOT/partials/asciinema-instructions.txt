@@ -28,3 +28,4 @@ ENTER
 Ctrl-d
 Ctrl-a TAB
 Ctrl-d
+Ctrl-d

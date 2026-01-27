@@ -89,7 +89,7 @@ This is useful for analysis of why the test passed or failed.
 
 [source,console]
 ----
-> ./mill -i dist.run example/javalib/basic/3-simple -i foo.run --text hello
+> ./mill dist.run example/javalib/basic/3-simple -i foo.run --text hello
 ----
 
 **Manual Test using Launcher Script**

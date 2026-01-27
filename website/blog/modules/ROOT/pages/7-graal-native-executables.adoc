@@ -575,7 +575,7 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
+      - run: ./mill mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
 ----
 
 Note that the default `ubuntu-latest` job publishes `__.publishArtifacts` (all artifacts),

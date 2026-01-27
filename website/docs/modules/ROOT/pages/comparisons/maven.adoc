@@ -1,6 +1,6 @@
 = Comparing Mill vs Maven: Declarative Builds
 
-The xref:comparisons/maven.adoc[Maven] build tool is famous for pioneering the idea of
+The xref:comparisons/maven.adoc[Maven] build tool pioneered the idea of
 _"Declarative Builds"_: that you should only need to specify what your project needs,
 and the build tool should be able to get everything downloaded and cached and working on
 your behalf. However, although that is an excellent ideal to strive towards, in practice
@@ -112,7 +112,7 @@ However, the program _does_ use a third-party dependency - Jsoup - and so runnin
 longer so simple: we now need a build tool! The most common build tool in the Java ecosystem
 is Maven, and so you may want to set up a Maven `pom.xml` for the project.
 
-**CONSIDER: are you able to write out the `pom.xml` for this project
+**Are you able to write out the `pom.xml` for this project
 without copy-paste cargo-culting something from Stackoverflow or similar?**
 
 In practice, even experienced developers are not able to write ``pom.xml``s by hand. They're
@@ -151,13 +151,13 @@ an example `pom.xml` for the above project:
 
 Although copy-pasting something from Stackoverflow (or from an existing project, from ChatGPT,
 from Gemini, etc.) does get things working in the short term, longer term the boilerplate does
-have costs that may not be immediately obvious:
+have costs that may not be obvious up front:
 
 - When you need to _update_ the `pom.xml` later, splicing together multiple copy-pasted blobs
 of XML can be a lot more error-prone than copy-pasting things the first time
 
 - Although modern AI assistants like ChatGPT or Gemini are able to modify the code on your behalf,
-they sometimes make mistakes or hallucinate. Will you be able to catch these errors in the
+they sometimes make mistakes too! Will you be able to catch these errors in the
 reams of boilerplate?
 
 - When the build tool is misbehaving because something is misconfigured, and your AI assistant
@@ -168,7 +168,7 @@ But let's assume we have our `pom.xml` written, we next need to install Maven to
 
 === Installing Maven
 
-Next we need to install Maven. From the https://maven.apache.org/install.html[Maven docs], there
+From the https://maven.apache.org/install.html[Maven docs], there
 are a bunch of different commands needed for different operating systems or Linux distributions.
 
 ```console
@@ -193,19 +193,19 @@ syntax to make our specific package manage install it can be a challenge
 2. To solve the right-maven-version problem, many projects these days use
 https://maven.apache.org/tools/wrapper/maven-wrapper-plugin/usage.html[./mvnw bootstrap scripts]
 as a best practice. Should you be using that instead? And if you do, you'd still find people
-using `mvn` rather than `./mvnw` out of muscle memory and getting confusing errors
+using `mvn` rather than `./mvnw` out of muscle memory and getting confusing errors due to version mismatches
 
 Similar to the challenges of xref:#_installing_java[], installing Maven __once__ isn't hard, but
 installing Maven consistently on your Mac laptop, or your colleague's Windows desktop, and
 on your Linux CI machines can be quite tricky! And trickier still is maintaining these
-installations as the different development environments inevitable evolve over time.
+installations as the various environments inevitable evolve over time.
 
 === Running your Java program
 
 Finally, now that we have our `HtmlScraper.java` written, `java` installed, our `pom.xml`
 set up, and `mvn` (or `./mvnw`) installed, we need to run our Java application.
 
-**CONSIDER: can you remember the command to run this Java application from the command line?**
+**Can you remember the command to run this Java application from the command line?**
 
 It's not
 
@@ -250,18 +250,19 @@ without looking it up first.
 
 === Whither Declarative Builds?
 
-Although Maven is the first "declarative" build tool, in practice it has a lot of
-friction that has nothing to do with its declarative nature, which gets in the
-way of the smooth user experience a declarative build tool should be able to provide.
-From installing Java and Maven to setting up the verbose `pom.xml` and the unusual
-command-line invocation syntax, none of this is rocket science. But it adds enough
+Maven is one of the first "declarative" build tools, and it gets a lot of things right:
+automatic dependency resolution, downloading, caching, parallelization, and so on.
+But it also has a lot of friction that has nothing to do with its declarative nature,
+which gets in the way of the smooth user experience a declarative build tool should be
+able to provide. From installing Java and Maven to setting up the verbose `pom.xml` and
+the unusual command-line invocation syntax, none of this is rocket science. But it adds enough
 friction to our `HtmlScraper.java` that people prefer to write their small programs
-in Python, Javascript.
+in Python or Javascript instead.
 
 This is not for any fault of Java _the language_: while Java is a bit more verbose
 than Python or Bash, it is fine for writing this particular `HtmlScraper.java` program.
 Java may even be preferable when the time comes to add parallelism
-and concurrency and other features that may be harder to implement in Python or Bash.
+and concurrency, perform CPU intensive work, or make use of specialized Java libraries.
 The problem here is really that Java _build tools_: `HtmlScraper.java` is simple enough
 anyone could write it, but making sure `HtmlScraper.java` runs consistently on any
 machine you put it on can be surprisingly difficult.
@@ -270,6 +271,78 @@ machine you put it on can be surprisingly difficult.
 
 Because all of the issues above are with Java's _tooling_ rather than the _language itself_,
 the Mill build tool is able to streamline these things considerably.
+
+=== Mill Build Configuration
+
+Mill's `build.mill.yaml` xref:javalib/intro.adoc#_declarative_configuration[declarative configuration
+files] are much simpler than the Maven ``pom.xml``s you may be used to writing. For example, for
+the `HtmlScraper.java` file shown above, the minimal configuration file looks like this:
+
+`build.mill.yaml`
+```yaml
+extends: JavaModule
+mvnDeps:
+- org.jsoup:jsoup:1.7.2
+```
+
+In this file,
+
+- `extends` tells us what class of modules this is, e.g.
+`JavaModule`, `KotlinModule`, `ScalaModule`,
+- The other keys such as `mvnDeps` tell us configuration on that module we want to override
+
+Mill's declarative `build.mill.yaml` config files are not limited to the trivial examples
+like the one above, but support the full range of features that any build tool does. This can
+be seen in the more heavily-configured example below:
+
+`build.mill.yaml`
+```yaml
+extends: [mill.javalib.JavaModule] # fully-qualified class name
+mvnDeps:
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
+- org.slf4j:slf4j-nop:2.0.7
+
+# Add a custom maven repository URL
+repositories: [https://oss.sonatype.org/content/repositories/releases]
+
+# Set an explicit main class
+mainClass: foo.Foo2
+
+# Pin a specific JVM version, supports >=11
+jvmVersion: 11
+# Optionally specify the distribution: temurin, zulu, corretto, graalvm-community, etc.
+# jvmVersion: temurin:11
+
+# Add an additional source folder and resource folder, in addition to the default one.
+# Note the !append tag to append to the existing value rather than over-writing it
+sources: !append [custom-src/]
+resources: !append [custom-resources/]
+
+# Configure java compiler and runtime options and env vars
+javacOptions: [-deprecation]
+forkArgs: [-Dmy.custom.property=my-prop-value]
+forkEnv: { MY_CUSTOM_ENV: my-env-value }
+```
+
+Mill follows Mavens principle of _Convention over Configuration_: although there are a lot
+of possible configuration options (`mvnDeps`, `moduleDeps`, `repositories`,
+`javacOptions`, etc.) the  `build.mill.yaml` file only needs to contain
+the keys the user needs to customize. This greatly simplifies the common case where
+the user is mostly fine with the default configuration and avoids much of the
+complexity of xref:#_setting_up_your_pom_xml[].
+
+In general, Mill's `build.mill.yaml` config files are concise enough you don't need to
+copy-paste reams of boilerplate to set them up, or skim through reams of boilerplate to
+read and understand and maintain them. They contain only the configuration that you care
+about, with every key listed and documented in the Mill API documentation for that particular
+module:
+
+- {mill-doc-url}/api/latest/mill/javalib/JavaModule.html#mvnDeps-0[mill.javalib.JavaModule]
+
+If you want to configure the `jvmVersion`, `repositories`, `javacOptions`, or any of the other
+normal build tool settings you can, but if you don't need to configure them Mill makes
+it super easy to get started with reasonable defaults for everything.
+
 
 === Mill Bootstrap Scripts
 
@@ -293,24 +366,24 @@ own JVM by downloaded and caching it on-demand. This defaults to `{default-mill-
 or you can explicitly configure it in your `build.mill.yaml` file via:
 
 ```yaml
-jvmId: 24
-jvmId: zulu:24
-jvmId: temurin:24
+jvmVersion: 24
+jvmVersion: zulu:24
+jvmVersion: temurin:24
 ```
 
-You can easily try out different Java versions by changing the `jvmId` config key,
-and any Mill project can set `jvmId` to specify a consistent JVM version that is used
+You can easily try out different Java versions by changing the `jvmVersion` config key,
+and any Mill project can set `jvmVersion` to specify a consistent JVM version that is used
 regardless of where the project is being built. You can also have different
-projects or even different modules within the same project using different ``jvmId``s,
+projects or even different modules within the same project using different ``jvmVersion``s,
 and Mill will download/cache/use them without you needing to worry about collisions.
 
 With Mill, the Java version you
 use is managed declaratively: just like how Maven lets you declaratively configure the libraries
 that a project needs such as `org.jsoup:jsoup:1.17.2`, Mill lets you declaratively configure
-the `jvmId` the project needs and then handles any downloading and caching of those JVMs
+the `jvmVersion` the project needs and then handles any downloading and caching of those JVMs
 automatically for you.
 
-Thus the `./mill` bootstrap script is able to fix both the challenges
+The `./mill` bootstrap script is thus able to fix both the challenges
 xref:#_installing_java[Installing Java] as well as xref:#_installing_maven[Installing Maven].
 You don't need to install Maven, you don't need to install https://sdkman.io/[SdkMan] or
 https://www.jenv.be/[JEnv], you don't even need to install Mill! Any Mill project you check
@@ -318,43 +391,6 @@ out should be buildable and runnable using the `./mill` bootstrap script without
 any prior installation, so you can immediately begin working on your project rather than
 fiddling with setup commands.
 
-=== Mill Build Configuration
-
-Mill's `build.mill.yaml` xref:javalib/intro.adoc#_declarative_configuration[declarative configuration
-files] are much simpler than the Maven ``pom.xml``s you may be used to writing. For example, for
-the `HtmlScraper.java` file shown above, the minimal configuration file looks like this:
-
-`build.mill.yaml`
-```yaml
-extends: JavaModule
-mvnDeps:
-- org.jsoup:jsoup:1.7.2
-```
-
-In this file,
-
-- `extends` tells us what class of modules this is, e.g.
-`mill.javalib.JavaModule`, `mill.kotlinlib.KotlinModule`, `mill.scalalib.ScalaModule`,
-- The other keys such as `mvnDeps` tell us configuration on that module we want to override
-
-Mill follows Mavens principle of _Convention over Configuration_: although there are a lot
-of possible configuration options (`mvnDeps`, `moduleDeps`, `repositories`,
-`javacOptions`, etc.) the  `build.mill.yaml` file only needs to contain
-the keys the user needs to customize. This greatly simplifies the common case where
-the user is mostly fine with the default configuration and avoids much of the
-complexity of xref:#_setting_up_your_pom_xml[].
-
-In general, Mill's `build.mill.yaml` config files are concise enough you don't need to
-copy-paste reams of boilerplate to set them up, or skim through reams of boilerplate to
-read and understand and maintain them. They contain only the configuration that you care
-about, with every key listed and documented in the Mill API documentation for that particular
-module:
-
-- {mill-doc-url}/api/latest/mill/javalib/JavaModule.html#mvnDeps-0[mill.javalib.JavaModule]
-
-If you want to configure the `jvmId`, `repositories`, `javacOptions`, or any of the other
-normal build tool settings you can, but if you don't need to configure them Mill makes
-it super easy to get started with reasonable defaults for everything.
 
 === Running Programs with Mill
 
@@ -454,8 +490,8 @@ single-file scripts are fully declarative:
 
 - Any build configuration is set in the `//|` build header comment to specify what the file needs
 - Any downloading of dependencies or compilation of the `.java` file is scheduled, parallelized
-  and cached automatically
-- You have full power to configure the script however you like: `jvmId`, `repositories`,
+  and cached
+- You can configure the script however you like: `jvmVersion`, `repositories`,
   `javacOptions`, etc.
 
 But unlike Maven, Mill is able to streamline the process of taking your `.java` file
@@ -487,11 +523,11 @@ small program in Python or Bash instead of Java.
 
 Mill tries to learn from all the best-practices of Maven, but polishes the rough edges
 to provide a much smoother experience working with declarative builds. From the
-zero-setup installation process and declarative `jvmId` management,
+zero-setup installation process and declarative `jvmVersion` management,
 to the concise `build.mill.yaml` format and familiar command-line syntax, to
 support for single-file programs. Mill lets the key ideas of declarative shine
 through to provide an experience writing and running your Java programs that is every
 bit as smooth as running a Python or Bash script from the command line.
 
 If you have ever worked with a Maven build you found it clunky to configure and clunky to use,
-do give Mill a try!
+do xref:mill::javalib/intro.adoc[give Mill a try]!
