@@ -1,7 +1,7 @@
-= Simpler Declarative Java Project Setup with Mill 1.1.0
+= Simpler Declarative JVM Project Setup with Mill 1.1.0
 // tag::header[]
 :author: Li Haoyi
-:revdate: 31 Jan 2026
+:revdate: 27 Jan 2026
 
 _{author}, {revdate}_
 
@@ -42,7 +42,7 @@ Government_of_Singapore
 This blog post will dive into these two new features: how they work, why they are interesting,
 and where they learn from or improve upon existing tools in the JVM ecosystem. We will discuss
 how we hope these features will streamline the process of getting started with Java programs,
-making Java and other JVM languages the best way to write small-scale programs and scripts.
+making Java and other JVM languages a viable way to write small-scale programs and scripts.
 
 
 // end::header[]
