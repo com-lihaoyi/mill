@@ -1,0 +1,7 @@
+extends: ScalaModule
+scalaVersion: 3.8.0
+mvnDeps:
+- org.http4s::http4s-ember-server::0.23.30
+- org.http4s::http4s-dsl::0.23.30
+- org.http4s::http4s-scalatags::0.25.2
+- io.circe::circe-generic::0.14.10

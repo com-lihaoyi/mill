@@ -1,0 +1,2 @@
+extends: [KotlinModule, kover.KoverModule]
+kotlinVersion: 1.9.24

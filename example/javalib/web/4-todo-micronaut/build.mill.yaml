@@ -1,0 +1,16 @@
+extends: build.MicronautModule
+micronautVersion: 4.4.3
+runMvnDeps:
+- ch.qos.logback:logback-classic:1.5.3
+- com.h2database:h2:2.2.224
+mvnDeps:
+- io.micronaut:micronaut-http-server-netty
+- io.micronaut.serde:micronaut-serde-jackson
+- io.micronaut.data:micronaut-data-jdbc
+- io.micronaut.sql:micronaut-jdbc-hikari
+- io.micronaut.validation:micronaut-validation
+- io.micronaut.views:micronaut-views-htmx
+- io.micronaut.views:micronaut-views-thymeleaf
+- org.webjars.npm:todomvc-common:1.0.5
+- org.webjars.npm:todomvc-app-css:2.4.1
+- org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10

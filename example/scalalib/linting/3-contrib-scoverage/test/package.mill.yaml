@@ -1,0 +1,4 @@
+extends: build.ScoverageTests
+mvnDeps:
+- com.lihaoyi::utest:0.9.1
+testFramework: utest.runner.Framework

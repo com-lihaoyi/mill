@@ -1,0 +1,1 @@
+extends: [build.bar.KotlinTests, build.KotestTests, kover.KoverTests]

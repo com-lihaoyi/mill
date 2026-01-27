@@ -1,0 +1,17 @@
+extends: [MavenModule, micronaut.MicronautNativeAotModule]
+micronautPackage: hello.world
+bomMvnDeps:
+- io.micronaut.platform:micronaut-platform:4.10.3
+mvnDeps:
+- io.micronaut:micronaut-http-client
+- io.micronaut.serde:micronaut-serde-jackson
+jvmVersion: graalvm-community:21.0.2
+finalMainClass: hello.world.Application
+annotationProcessorsMvnDeps:
+- io.micronaut:micronaut-http-validation
+- io.micronaut.serde:micronaut-serde-processor
+compileMvnDeps:
+- io.micronaut:micronaut-http-client
+runMvnDeps:
+- io.micronaut:micronaut-http-server-netty
+- ch.qos.logback:logback-classic
