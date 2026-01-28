@@ -31,7 +31,6 @@ object MillSbtBuildGenMain {
   ): Unit = {
     println("converting sbt build")
 
-    val buildGen = BuildGenScala
     val sbtWorkspace = os.Path.expandUser(projectDir, os.pwd)
     val millWorkspace = os.pwd
 
@@ -97,27 +96,15 @@ object MillSbtBuildGenMain {
     var packages = exportedBuild.groupMap(_.root)(_.module).map {
       case (Left(dir), Seq(module)) => PackageSpec(dir, module)
       case (Left(dir), crossVersionModules) => PackageSpec(dir, toCrossModule(crossVersionModules))
-      case (Right(root), modules) =>
+      case (Right(pkg), modules) =>
         val children = modules.groupBy(_.name).map {
           case (_, Seq(module)) => module
           case (_, crossVersionModules) => toCrossModule(crossVersionModules)
         }.toSeq
-        root.copy(module = root.module.copy(children = children))
+        pkg.copy(module = pkg.module.copy(children = children))
     }.toSeq
-    packages = normalizeBuild(packages)
+    packages = normalizePackages(packages)
 
-    val (depNames, packages0) =
-      if (noMeta.value) (Nil, packages) else buildGen.withNamedDeps(packages)
-    val (baseModule, packages1) = if (noMeta.value) (None, packages0)
-    else buildGen.withBaseModule(
-      packages0,
-      "CrossSbtModule" -> "CrossSbtTests",
-      "CrossSbtPlatformModule" -> "CrossSbtPlatformTests"
-    ).orElse(buildGen.withBaseModule(
-      packages0,
-      "SbtModule" -> "SbtTests",
-      "SbtPlatformModule" -> "SbtPlatformTests"
-    )).fold((None, packages0))((base, packages) => (Some(base), packages))
     val millJvmOpts = {
       val file = millWorkspace / ".jvmopts"
       if (os.isFile(file)) os.read.lines(file)
@@ -133,14 +120,27 @@ object MillSbtBuildGenMain {
         case "Mima" => millMimaDep
         case "ScalafixModule" => millScalafixDep
       }.toSeq.sorted
-    buildGen.writeBuildFiles(
-      baseDir = millWorkspace,
-      packages = packages1,
+
+    val build = BuildSpec(packages)
+    if (!noMeta.value) {
+      build.deriveDepNames()
+      build.deriveBaseModule(
+        "CrossSbtModule" -> "CrossSbtTests",
+        "CrossSbtPlatformModule" -> "CrossSbtPlatformTests"
+      )
+      if (build.baseModule.isEmpty) {
+        build.deriveBaseModule(
+          "SbtModule" -> "SbtTests",
+          "SbtPlatformModule" -> "SbtPlatformTests"
+        )
+      }
+    }
+    build.writeFiles(
+      declarative = false,
       merge = merge.value,
-      baseModule = baseModule,
+      workspace = millWorkspace,
       millJvmVersion = millJvmId,
       millJvmOpts = millJvmOpts,
-      depNames = depNames,
       metaMvnDeps = metaMvnDeps
     )
   }
@@ -259,7 +259,7 @@ object MillSbtBuildGenMain {
     normalizeModule(crossVersionModules.reduce(combineModule))
   }
 
-  private def normalizeBuild(packages: Seq[PackageSpec]) = {
+  private def normalizePackages(packages: Seq[PackageSpec]) = {
     val moduleLookup: PartialFunction[ModuleDep, ModuleSpec] =
       packages.flatMap(_.modulesBySegments).toMap
         .compose[ModuleDep](dep => dep.segments ++ dep.childSegment)
@@ -298,20 +298,26 @@ object MillSbtBuildGenMain {
     packages.map(pkg =>
       pkg.copy(module = pkg.module.recMap { module =>
         import module.*
+        // Remove references to any non-existent modules
         var module0 = module.copy(
           moduleDeps = filterModuleDeps(moduleDeps),
           compileModuleDeps = filterModuleDeps(compileModuleDeps),
-          runModuleDeps = filterModuleDeps(runModuleDeps),
-          mvnDeps = toPlatformedMvnDeps(mvnDeps),
-          compileMvnDeps = toPlatformedMvnDeps(compileMvnDeps),
-          runMvnDeps = toPlatformedMvnDeps(runMvnDeps),
-          scalacPluginMvnDeps = toPlatformedMvnDeps(scalacPluginMvnDeps)
+          runModuleDeps = filterModuleDeps(runModuleDeps)
         )
+        if (platformedMvnDeps.nonEmpty) {
+          // For cross-platform modules, convert mvnDeps to platformed to avoid dep name-clash
+          module0 = module.copy(
+            mvnDeps = toPlatformedMvnDeps(mvnDeps),
+            compileMvnDeps = toPlatformedMvnDeps(compileMvnDeps),
+            runMvnDeps = toPlatformedMvnDeps(runMvnDeps),
+            scalacPluginMvnDeps = toPlatformedMvnDeps(scalacPluginMvnDeps)
+          )
+        }
         if (module0.testFramework.base.contains("")) {
-          val testMixin = ModuleSpec.testModuleMixin(recMvnDeps(module0))
-          if (testMixin.nonEmpty) {
+          // Search recursive mvnDeps for supported test module
+          for (testMixin <- ModuleSpec.testModuleMixin(recMvnDeps(module0))) {
             module0 =
-              module0.copy(supertypes = module0.supertypes ++ testMixin, testFramework = None)
+              module0.copy(supertypes = module0.supertypes :+ testMixin, testFramework = None)
           }
         }
         module0
