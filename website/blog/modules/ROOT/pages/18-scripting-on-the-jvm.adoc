@@ -1,29 +1,33 @@
-= Scripting on the JVM with Java, Kotlin, and Scala
+= Scripting on the JVM with Java, Scala, and Kotlin
 // tag::header[]
 :author: Li Haoyi
-:revdate: 24 September 2025
+:revdate: 3 February 2025
 
 _{author}, {revdate}_
 
+Lots of people write code in Java, Scala, or Kotlin, but that code is normally relegated to
+large enterprise codebases. This article will explore the pros and cons of using JVM languages
+for small-scale scripting instead, as an alternative to Python, Javascript, or Bash:
 
-This article will explore use of JVM languages as scripting languages, replacing the Bash and
-Python scripts common throughout the industry. We will walk through examples of how the
-performance, compile-time safety, and vast library ecosystem of the JVM are advantages over
-traditional scripting languages, but also how verbosity, build tool overhead, and lack
-of script-focused libraries causes issues. Lastly we will demonstrate how lightweight
-languages and script-focused tooling is able to smooth over some of those issues, making
-the JVM truly a world-class scripting environment as robust and convenient as any scripting
-language out there.
+- How the performance and compile-time safety of the JVM are advantages over scripting languages
+
+- How verbosity, build tool overhead, and lack of script-focused libraries causes issues
+
+Lastly we will discuss how lightweight languages, tooling, and script-focused libraries
+is able to smooth over some of those issues, making the JVM truly a world-class scripting
+environment as robust and convenient as any scripting language out there.
 
 // end::header[]
 
 == An Example Java Single-file Script
 
 Consider this small Java program that someone may write.
-This program uses `unirest-java` and `jackson-databind` to fetch the links of a
+This program uses https://github.com/Kong/unirest-java[unirest-java] and
+https://github.com/FasterXML/jackson-databind[jackson-databind] to fetch the links of a
 wikipedia page via the wikipedia API, which it then uses to perform
 a breadth-first traversal of the wikipedia article graph. The user provides the
-starting input via command-line articles parsed with `picocli`.
+starting input via command-line articles parsed with
+https://github.com/remkop/picocli[picocli].
 
 .JsonApiClient.java
 ```java
@@ -104,7 +108,11 @@ public class JsonApiClient implements Callable<Integer> {
 While this example is a
 toy program, it is representative of the many kinds of small programs or scripts that
 people typically use scripting languages for: simple code gluing together various
-data sources and APIs and performing some computation based on them.
+data sources and APIs and performing some simple computation based on them.
+
+Typically these are written in Python, Javascript, or Bash. The example above in contrast
+is written in Java, which is not very common. Why would someone want to do that, and what
+are the challenges of doing so?
 
 == Benefits of Scripting on the JVM
 
@@ -113,13 +121,11 @@ are many benefits from writing and running your scripts on the JVM:
 
 === Library Ecosystem
 
-The first benefit of JVM scripting we will discuss is the JVM library ecosystem, which is
-mostly hosted on https://central.sonatype.com/[Sonatype Central]. Java and the JVM has
-one of the largest and most comprehensive set of third-party libraries of any programming language,
-including high-quality well-maintained libraries such as https://github.com/FasterXML/jackson[Jackson],
-https://github.com/Kong/unirest-java[Unirest], and https://picocli.info/[PicoCLI] that we used
-above. Other JVM languages like Kotlin or Scala host their libraries on the same platform,
-which allows them to inter-operate and use each other's libraries.
+Java libraries are mostly hosted on https://central.sonatype.com/[Sonatype Central], which is
+one of the largest and most comprehensive set of third-party libraries of any programming language.
+This includes high-quality well-maintained libraries such as Jackson, Unirest, and PicoCLI that
+we used above. Other JVM languages like Kotlin or Scala host their libraries on the same platform,
+which allows them to interoperate and use each other's libraries.
 If a library exists anywhere in the world, it is likely you will find a Java version
 of it on Sonatype Central for you to use.
 
@@ -127,8 +133,8 @@ of it on Sonatype Central for you to use.
 
 Java is known for having great IDEs such as IntelliJ that make it much easier to navigate,
 understand, and work with your codebase. This is just as helpful for small scripts as it
-is for larger applications, as even in scripts you may be working with third-party libraries
-(such as PicoCLI below) for which IDE assistance can come in very useful
+is for larger applications, as even in scripts you may be working with unfamiliar third-party
+libraries for which IDE assistance can be especially helpful.
 
 image::ScriptIDESupportJava.png[ScriptIDESupportJava.png]
 
@@ -151,6 +157,21 @@ threads to parallelize your script across multiple cores. This makes it much eas
 optimize and fix slow scripts on the JVM than when running on slower single-threaded
 runtimes like Node.js or Python
 
+=== Compile-time Checking
+
+Scripts have a reputation for being fragile and easy to break. This is because they are
+often poorly tested, for a variety of reasons:
+
+- They are often ad-hoc glue code between different systems, and evolve rapidly as requirements change
+- They often interact with external files, processes, or APIs that may be difficult to mock out
+- They can run relatively slowly, making automated testing slow and expensive
+
+Writing your scripts in a JVM language like Java, Scala or Kotlin doesn't solve the
+testing problems above, but it does give you one more tool to lean on: the compiler checking
+that all your method calls and parameter types are properly wired up. While this won't
+catch every bug, it at least provides an additional guardrail helping prevent silly mistakes
+and nudging your scripts towards correctness.
+
 == Challenges of Small-Scale Java Programs
 
 While there are many benefits to writing scripts running on the JVM, in practice
@@ -162,32 +183,32 @@ scripts.
 
 The first thing you may notice is: the program above is pretty verbose! Although the Java
 language has gotten more concise over the years, with features like the `var` keyword
-that we make good use of in the script above, Java _libraries_ tend to still have a
-pretty verbose code style that makes the code using them verbose. While
+that we make good use of in the script above, overall Java code tends to still be
+significantly more lines than a typical scripting language. While
 the code above seems _fine_, it might not seem elegant enough that you would choose
 to write your scripts in Java on the JVM rather than Python.
 
-=== Tricky to install Java and Maven
+=== Tricky installation
 
 The next thing you might deal with writing scripts is how to run them: you need `java`,
 and you need a build tool like https://maven.apache.org/[Maven]
 
 * Installing Java can be surprisingly tricky (https://news.ycombinator.com/item?id=46037261[link]),
-with a lot of subtle choices and decisions and ways things can go wrong. Installing Maven is
-usually more straightforward.
+with a lot of subtle choices and decisions and ways things can go wrong. Installing Maven similarly
+can take some fiddling
 
-* Installing Java and Maven on all environments your script may
-run on is more difficult: you need to ensure every laptop, CI work, or production machine has
-the same exact versions of Java and Maven installed.
+* Installing Java and Maven on all environments your script may run on is more difficult:
+you need to ensure every laptop, CI work, or production machine has the same exact versions
+of Java and Maven installed.
 
 * Most difficult is maintaining this installation over time: as laptops get provisioned and
-retired, Java or Maven versions get upgrades, CI workers get cycled out, ensuring that every
-machine has the right version of Java and Maven installed at all times can be quite challenging.
+retired, Java or Maven versions get upgrades, CI workers and production servers get cycled out,
+ensuring that every machine has the right version of Java and Maven installed at all times can
+be quite challenging.
 
-Installing Java and Maven is not a blocker: many people have done it in many codebases over
-the past few decades. But it is certainly something that can be a lot more fiddly than expected,
-especially when you have to ensure consistency over a fleet of heterogeneous machines and
-ensure it stays consistent over time.
+Installing Java and Maven is not a blocker. But it is certainly something that can be a lot
+more fiddly than expected, especially when you have to ensure consistency over a fleet of
+heterogeneous machines and ensure it stays consistent over time.
 
 === Configuring Maven is Tedious
 
@@ -273,8 +294,11 @@ annoying to run the `JsonApiClient.java` file we have already written.
 None of these issues with Maven or Java are fatal. We've all been writing and running
 Java programs for decades by now, in my case since Java 4 in 2004. But the sum-total
 of all these papercuts is that it's not pleasant to write small programs in Java.
-So small programs and scripts end up being written in Python or Javascript or Ruby,
-and even though in theory Java or Scala or Kotlin could work, in practice nobody uses them
+Even modern AI assistants have limited context windows and benefit from having short,
+concise code to work with, and don't benefit from digging through verbose boilerplate.
+
+And so small programs and scripts end up being written in Python or Bash or Javascript.
+Even though in theory Java or Scala or Kotlin could work, in practice nobody uses them
 for scripting.
 
 == Improving the JVM Scripting Experience
@@ -305,7 +329,7 @@ import picocli.CommandLine;
 ```
 
 ```console
-> jbang HtmlScraper.java -s Functional_programming -d 2
+> jbang JsonApiClient.java -s Functional_programming -d 2
 ```
 
 The Mill build tool uses a similar
@@ -325,7 +349,25 @@ import picocli.CommandLine;
 ```
 
 ```console
-> ./mill HtmlScraper.java -s Functional_programming -d 2
+> ./mill JsonApiClient.java --start Functional_programming --depth 2
+
+> cat fetched.json | jq
+[
+  "Agent-based model in biology",
+  "Answer set program",
+  "Algebraic data type",
+  "Functional_programming",
+  "Atom (text editor)",
+  "Actor-Based Concurrent Language",
+  "Audrey Tang",
+  "A440 (pitch standard)",
+  "Abductive logic programming",
+  "ALGAMS",
+  "110 film",
+  "Bibcode (identifier)",
+  ".NET",
+  "BSD licenses",
+...
 ```
 
 Such lightweight build tools make it much easier to run our small Java program:
@@ -342,17 +384,17 @@ Such lightweight build tools make it much easier to run our small Java program:
 
 However, even if building and running small scripts written in Java is convenient, writing
 and maintaining the code itself can be a pain due to the verbosity of the Java language
-and libraries that makes even simple programs (such as that above) take pages and pages of code.
+and libraries that makes even simple programs take pages and pages of code.
 While Java's verbosity may be fine - or even beneficial - for complicated application code,
-the same verbosity can get in the way of writing small scripts.
+the same verbosity can get in the way of writing throwaway scripts.
 
 But Java isn't the only language on the JVM!
 
 === Kotlin as a Lightweight Language
 
-One option here is to write the script in Kotlin. Kotlin is much more syntactically concise
+One option to consider is to write the script in Kotlin. Kotlin is much more syntactically concise
 than Java, which means much less code to write the same things overall. A version of the
-`HtmlScraper.java` translated to Kotlin is shown below, using the Kotlin
+`JsonApiClient.java` translated to Kotlin is shown below, using the Kotlin
 https://ajalt.github.io/clikt/[Clikt] library rather than PicoCLI:
 
 .JsonApiClient.kt
@@ -444,10 +486,10 @@ https://github.com/com-lihaoyi/mainargs[MainArgs],
 https://github.com/com-lihaoyi/requests-scala[Requests-Scala],
 https://github.com/com-lihaoyi/upickle[uPickle],
 or https://github.com/com-lihaoyi/PPrint[PPrint] that make it very convenient to write
-small script-like programs in Scala. The above `HtmlScraper.kt` translated to an equivalent
-`HtmlScraper.scala` is shown below:
+small script-like programs in Scala. The above `JsonApiClient.kt` translated to an equivalent
+`JsonApiClient.scala` is shown below:
 
-.HtmlScraper.scala
+.JsonApiClient.scala
 ```scala
 def fetchLinks(title: String): Seq[String] = {
   val resp = requests.get.stream(
@@ -480,35 +522,33 @@ def main(start: String, depth: Int) = {
 ```
 
 ```console
-> ./mill HtmlScraper.scala --start Functional_programming --depth 2
+> ./mill JsonApiClient.scala --start Functional_programming --depth 2
 ```
 
-What is notable about `HtmlScraper.scala` is how much less _stuff_ there is to read,
-with about 1/2 the lines of code as `HtmlScraper.kt` and 1/3 the lines of code as
-the `HtmlScraper.java`:
+What is notable about `JsonApiClient.scala` is how much less _stuff_ there is to read,
+with about 1/2 the lines of code as `JsonApiClient.kt` and 1/3 the lines of code as
+the `JsonApiClient.java`:
 
-- The `requests.get`, `ujson.read`, and `os.write` APIs come from the Mill's bundled
-  libraries, which makes it super easy to interact with third-party services, parse
-  their responses, and deal with the filesystem
+- The `requests.get`, `ujson.read`, and `os.write` APIs come from the Mill's
+  xref:mill::fundamentals/bundled-libraries.adoc[bundled libraries], which makes it super
+  easy to interact with the filesystem, subprocess, and JSON APIs over HTTP
 
 - Rather than parsing arguments via annotations or a special class, which is how it's
-  done in PicoCLI or Clikt, `HtmlScraper.scala` uses MainArgs which lets you simply
+  done in PicoCLI or Clikt, `JsonApiClient.scala` uses
+  https://github.com/com-lihaoyi/mainargs[MainArgs] which lets you simply
   define a `def main` method and turns the parameter list into the command-line parser
 
-In general, the Scala script we see above looks similar to any scripting language,
-with code that specifies clearly the logical steps of accessing the Wikipedia
+
+In general, the Scala script we see above looks similar to any scripting language.
+It has code that specifies clearly the logical steps of accessing the Wikipedia
 API and performing the breadth-first search, but without the verbose machinery
 necessary to implement that logic in Kotlin or Java.
 And although the Scala program is much shorter and more concise than the Java program
 we started with, overall it still has all the benefits of running on the JVM:
 
-- We can depend on any JVM library via `//| mvnDeps`. Although the Scala ecosystem
-  may be smaller than the Java ecosystem, Scala can make use of any Java library as well,
-  and so you can always find a library to do whatever you need to do
-
-- We have full support in IDEs like IntelliJ or VSCode:
-
-image::ScriptIDESupportScala.png[ScriptIDESupportScala.png]
+- We can depend on any JVM library via `//| mvnDeps`. Scala can make use of
+  both Java and Scala-specific libraries, and so you can always find a library to
+  do whatever you need to do
 
 - All other JVM tools work with Scala just as easily as they do with Java: `jstack`,
   Yourkit, JProfiler, etc.
@@ -517,14 +557,60 @@ image::ScriptIDESupportScala.png[ScriptIDESupportScala.png]
   to parallelize things using `scala.concurrent.Future` so your scripts can make
   full use of the multiple cores available on any modern computer.
 
-If you are interested in scripting and interested in the JVM, you should definitely give
-scripting with Mill in Scala on the JVM a try. The Mill build tool has builtin support
-for scripting in all 3 popular JVM languages -
-xref:mill::javalib/intro.adoc#_single_file_scripts[Java],
-xref:mill::kotlinlib/intro.adoc#_single_file_scripts[Kotlin],
-xref:mill::scalalib/intro.adoc#_single_file_scripts[Scala] - but the experience writing
-scripts in Scala is definitely a lot more streamlined than that of writing scripts in
-Kotlin or Java.
+- We have full support in IDEs like IntelliJ or VSCode:
+
+image::ScriptIDESupportScala.png[ScriptIDESupportScala.png]
+
+== Parallelizing Our Scripts
+
+Since our `JsonApiClient.scala` script is running on the JVM, we can take advantage
+of the JVM's support for threading to parallelize our web crawl. The example below
+does this using the `Future` API in the `scala.concurrent` package, that builds upon
+Java ``Thread``s to make each `fetchLinks` call run on a configurable thread pool:
+
+.JsonApiClient.scala
+```scala
+import scala.concurrent.*, duration.Duration, ExecutionContext.Implicits.global
+def fetchLinks(title: String): Seq[String] = {
+  val resp = requests.get.stream(
+    "https://en.wikipedia.org/w/api.php",
+    params = Seq(
+      "action" -> "query",
+      "titles" -> title,
+      "prop" -> "links",
+      "format" -> "json"
+    )
+  )
+  for {
+    page <- ujson.read(resp)("query")("pages").obj.values.toSeq
+    links <- page.obj.get("links").toSeq
+    link <- links.arr
+  } yield link("title").str
+}
+
+def main(start: String, depth: Int) = {
+  var seen = Set(start)
+  var current = Set(start)
+  for (i <- Range(0, depth)) {
+    current = current
+      .map(c => Future{ fetchLinks(c) })
+      .map(Await.result(_, Duration.Inf))
+      .flatten
+      .filter(!seen.contains(_))
+
+    seen = seen ++ current
+  }
+
+  pprint.log(seen)
+  os.write(os.pwd / "fetched.json", upickle.stream(seen, indent = 4))
+}
+```
+
+This kind of ad-hoc parallelism is something that is very difficult or messy to achieve
+in traditional scripting languages like Python, Bash, or Javascript. But when scripting
+on the JVM, threads are just a fact of life, and there are many builtin and third-party
+libraries that make it super easy to parallelize any scripts that may be a bottleneck
+in your developer workflow.
 
 == Conclusion
 
@@ -547,6 +633,12 @@ Despite that, scripting on the JVM can definitely be a valuable tool in your
 toolbox. If you are interested in learning more about scripting in Java, Kotlin
 and Scala, check out the links to the documentation below:
 
-- xref:mill::javalib/intro.adoc#_single_file_scripts[Java Single-File Scripts],
-- xref:mill::kotlinlib/intro.adoc#_single_file_scripts[Kotlin Single-File Scripts],
-- xref:mill::scalalib/intro.adoc#_single_file_scripts[Scala Single-File Scripts]
+[cols="1a,1a"]
+|===
+| xref:mill::javalib/intro.adoc#_single_file_scripts[Java Single-File Scripts]
+| xref:mill::javalib/script.adoc#_script_use_cases[Java Script Use Cases]
+| xref:mill::kotlinlib/intro.adoc#_single_file_scripts[Kotlin Single-File Scripts]
+| xref:mill::kotlinlib/script.adoc#_script_use_cases[Kotlin Script Use Cases]
+| xref:mill::scalalib/intro.adoc#_single_file_scripts[Scala Single-File Scripts]
+| xref:mill::scalalib/script.adoc#_script_use_cases[Scala Script Use Cases]
+|===
