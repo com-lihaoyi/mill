@@ -11,6 +11,7 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.plugins.quality.CheckstyleExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.*
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
@@ -91,6 +92,16 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         runModuleDeps = moduleDeps("runtimeOnly"),
         bomModuleDeps = mainBomDeps.collect(toModuleDep)
       ).withErrorProneModule(mvnDeps("errorprone"))
+      for (ext <- Option(getExtensions.findByType(classOf[CheckstyleExtension]))) {
+        val configFile = os.Path(ext.getConfigFile)
+        val properties = Seq(("config_loc", (configFile / os.up).toString))
+        mainModule = mainModule.withCheckstyleModule(
+          checkstyleProperties = Values(properties, appendSuper = true),
+          checkstyleMvnDeps = Values(mvnDeps("checkstyle"), appendSuper = true),
+          checkstyleConfig = configFile.relativeTo(moduleDir),
+          checkstyleVersion = ext.getToolVersion
+        )
+      }
 
       if (os.exists(moduleDir / "src/test")) {
         val testMixin = ModuleSpec.testModuleMixin(configs.find(_.getName == "testRuntimeClasspath")

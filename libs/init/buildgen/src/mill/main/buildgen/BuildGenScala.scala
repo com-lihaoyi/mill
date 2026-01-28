@@ -3,7 +3,6 @@ package mill.main.buildgen
 import mill.constants.CodeGenConstants.rootModuleAlias
 import mill.constants.OutFiles.OutFiles.millBuild
 import mill.internal.Util.backtickWrap
-import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
 
@@ -12,96 +11,22 @@ import pprint.Util.literalize
  *
  * See also [[BuildGenYaml]]
  */
-object BuildGenScala extends BuildGen {
+object BuildGenScala {
 
-  def withNamedDeps(packages: Seq[PackageSpec]): (Seq[(MvnDep, String)], Seq[PackageSpec]) = {
-    val names = packages.flatMap(_.module.tree).flatMap { module =>
-      import module.*
-      Seq(
-        mandatoryMvnDeps,
-        mvnDeps,
-        compileMvnDeps,
-        runMvnDeps,
-        bomMvnDeps,
-        depManagement,
-        errorProneDeps,
-        scalacPluginMvnDeps,
-        scalafixIvyDeps
-      )
-    }.flatMap { values =>
-      values.base ++ values.cross.flatMap(_._2)
-    }.distinct.filter(_.version.nonEmpty).groupBy(_.name).flatMap { (name, deps) =>
-      val ref = name.split("\\W") match {
-        case Array(head) => head
-        case parts => parts.tail.map(_.capitalize).mkString(parts.head, "", "")
-      }
-      deps match {
-        case Seq(dep) => Seq((dep, ref))
-        case _ => deps.sortBy(_.toString).zipWithIndex.map((dep, i) => (dep, s"`$ref#$i`"))
-      }
-    }
-    if (names.isEmpty) return (Nil, packages)
-    val lookup = names.lift.andThen(_.map(ref => s"Deps.$ref"))
-    def withRefs(values: Values[MvnDep]) = values.copy(
-      base = values.base.map(dep => dep.copy(ref = lookup(dep))),
-      cross = values.cross.map((k, v) => (k, v.map(dep => dep.copy(ref = lookup(dep)))))
-    )
-    val packages0 = packages.map(pkg =>
-      pkg.copy(module = pkg.module.recMap { module =>
-        import module.*
-        module.copy(
-          imports = "millbuild.*" +: imports,
-          mvnDeps = withRefs(mvnDeps),
-          compileMvnDeps = withRefs(compileMvnDeps),
-          runMvnDeps = withRefs(runMvnDeps),
-          bomMvnDeps = withRefs(bomMvnDeps),
-          depManagement = withRefs(depManagement),
-          errorProneDeps = withRefs(errorProneDeps),
-          scalacPluginMvnDeps = withRefs(scalacPluginMvnDeps),
-          scalafixIvyDeps = withRefs(scalafixIvyDeps)
-        )
-      })
-    )
-    (names.toSeq, packages0)
-  }
+  inline def lineSep: String = System.lineSeparator()
 
-  override def writeBuildFiles(
-      baseDir: os.Path,
+  def writeBuildFiles(
+      workspace: os.Path,
       packages: Seq[PackageSpec],
-      merge: Boolean = false,
-      baseModule: Option[ModuleSpec] = None,
-      millJvmVersion: Option[String] = None,
+      millVersion: String,
+      millJvmVersion: String,
       millJvmOpts: Seq[String] = Nil,
-      depNames: Seq[(MvnDep, String)] = Nil,
       metaMvnDeps: Seq[String] = Nil
-  ): Seq[os.Path] = {
-    var packages0 = fillPackages(packages).sortBy(_.dir)
-    packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
-    removeExistingBuildFiles()
-
-    if (depNames.nonEmpty) {
-      val file = os.sub / millBuild / "src/Deps.scala"
-      println(s"writing $file")
-      os.write(baseDir / file, renderDepsObject(depNames), createFolders = true)
-    }
-    val baseFile = for (module <- baseModule) yield {
-      val file = os.sub / millBuild / os.SubPath(s"src/${module.name}.scala")
-      println(s"writing $file")
-      os.write(
-        baseDir / file,
-        Seq(
-          "package millbuild",
-          renderImports(module),
-          renderBaseModule(module)
-        ).mkString(lineSep * 2),
-        createFolders = true
-      )
-      file
-    }
-    val rootPackage +: nestedPackages = packages0.runtimeChecked
+  ): Unit = {
+    val rootPackage +: nestedPackages = packages.runtimeChecked
     var buildHeader = Seq(
-      s"//| mill-version: $resolveMillVersion",
-      s"//| mill-jvm-version: ${resolveMillJvmVersion(millJvmVersion)}"
+      s"//| mill-version: $millVersion",
+      s"//| mill-jvm-version: $millJvmVersion"
     )
     if (millJvmOpts.nonEmpty) {
       buildHeader :+= "//| mill-jvm-opts:"
@@ -113,18 +38,59 @@ object BuildGenScala extends BuildGen {
     }
     println("writing build.mill")
     os.write(
-      baseDir / "build.mill",
+      workspace / "build.mill",
       s"""${buildHeader.mkString(lineSep)}
          |${renderPackage(rootPackage)}
          |""".stripMargin
     )
-    val subFiles = for (pkg <- nestedPackages) yield {
+    for (pkg <- nestedPackages) yield {
       val file = os.sub / pkg.dir / "package.mill"
       println(s"writing $file")
-      os.write(baseDir / file, renderPackage(pkg))
+      os.write(workspace / file, renderPackage(pkg))
       file
     }
-    (baseFile.toSeq ++ subFiles).map(baseDir / _)
+  }
+
+  def writeMetaBuildFiles(
+      workspace: os.Path,
+      baseModule: Option[ModuleSpec] = None,
+      depNames: Seq[(MvnDep, String)] = Nil,
+      mvnDeps: Seq[String] = Nil
+  ): Unit = {
+    if (mvnDeps.nonEmpty) {
+      val file = os.sub / "build.mill"
+      println(s"writing $file")
+      os.write(workspace / file, renderMetaBuildRoot(mvnDeps))
+    }
+    if (depNames.nonEmpty) {
+      val file = os.sub / millBuild / "src/Deps.scala"
+      println(s"writing $file")
+      os.write(workspace / file, renderDepsObject(depNames), createFolders = true)
+    }
+    for (module <- baseModule) yield {
+      val file = os.sub / millBuild / os.SubPath(s"src/${module.name}.scala")
+      println(s"writing $file")
+      os.write(
+        workspace / file,
+        Seq(
+          "package millbuild",
+          renderImports(module),
+          renderBaseModule(module)
+        ).mkString(lineSep * 2),
+        createFolders = true
+      )
+    }
+  }
+
+  private def renderMetaBuildRoot(mvnDeps: Seq[String]) = {
+    val mvnDeps0 = mvnDeps.map(_.replace("$MILL_VERSION", "${millVersion()}"))
+    s"""package millbuild
+       |import mill.*
+       |import mill.meta.MillBuildRootModule
+       |import mill.scalalib.*
+       |object `package` extends MillBuildRootModule {
+       |  def mvnDeps = Seq(${mvnDeps0.mkString(", ")})
+       |}""".stripMargin
   }
 
   private def renderDepsObject(depNames: Seq[(MvnDep, String)]) = {
@@ -147,6 +113,16 @@ object BuildGenScala extends BuildGen {
       "  " + children.sortBy(_.name).map(renderBaseModule).mkString(lineSep * 2),
       "}"
     ).mkString(lineSep * 2)
+  }
+
+  private def renderImports(module: ModuleSpec) = {
+    val imports = module.tree.flatMap(_.imports)
+    ("mill.*" +: imports).distinct.sorted.map("import " + _).mkString(lineSep)
+  }
+
+  private def renderExtendsClause(supertypes: Seq[String]) = {
+    if (supertypes.isEmpty) "extends Module"
+    else supertypes.mkString("extends ", ", ", "")
   }
 
   private def renderModuleBody(module: ModuleSpec) = {
@@ -200,6 +176,15 @@ object BuildGenScala extends BuildGen {
       encodeOpt
     )
     lines += renderDefValue("jmhCoreVersion", jmhCoreVersion, encodeString)
+    lines += renderDefValues(
+      "checkstyleProperties",
+      checkstyleProperties,
+      encodeProperty,
+      collection = "Map"
+    )
+    lines += renderDefValues("checkstyleMvnDeps", checkstyleMvnDeps, encodeMvnDep)
+    lines += renderDefValue("checkstyleConfig", checkstyleConfig, encodeSource)
+    lines += renderDefValue("checkstyleVersion", checkstyleVersion, encodeString)
     lines += renderDefValue("scalafixConfig", scalafixConfig, encodeSome)
     lines += renderDefValues("scalafixIvyDeps", scalafixIvyDeps, encodeMvnDep)
     lines += renderDefValue("scoverageVersion", scoverageVersion, encodeString)
@@ -318,15 +303,12 @@ object BuildGenScala extends BuildGen {
     }
   }
   private def renderDefSources(member: String, values: Values[os.RelPath]) = {
-    def encodeSources(rels: Seq[os.RelPath]) = rels.map(rel =>
-      if (rel.ups == 0) encodeString(rel.toString) else encodeRelPath("os.rel", rel)
-    ).mkString("Task.Sources(", ", ", ")")
-    def encodeSeq(rels: Seq[os.RelPath]) =
-      rels.map(encodeRelPath("os.rel", _)).mkString("Seq(", ", ", ")")
+    def encode(rels: Seq[os.RelPath]) = rels.map(encodeRelPath).mkString("Task.Sources(", ", ", ")")
+    def encodeSeq(rels: Seq[os.RelPath]) = rels.map(encodeRelPath).mkString("Seq(", ", ", ")")
     import values.*
     if (base.isEmpty && cross.isEmpty) ""
     else if (cross.isEmpty && !appendSuper) {
-      s"def $member = ${encodeSources(base)}"
+      s"def $member = ${encode(base)}"
     } else {
       val stmt = StringBuilder(s"def $member = ")
       var append = false
@@ -336,7 +318,7 @@ object BuildGenScala extends BuildGen {
       }
       if (base.nonEmpty) {
         val customTask = s"custom${member.capitalize}"
-        stmt.insert(0, s"def $customTask = ${encodeSources(base)}$lineSep")
+        stmt.insert(0, s"def $customTask = ${encode(base)}$lineSep")
         if (append) stmt ++= " ++ " else append = true
         stmt ++= s"$customTask()"
       }
@@ -389,11 +371,15 @@ object BuildGenScala extends BuildGen {
   private def encodeString(s: String) = s"\"$s\""
   private def encodeLiteralOpt(a: Opt) = a.group.map(literalize(_)).mkString(", ")
   private def encodeOpt(a: Opt) = a.group.mkString("\"", "\", \"", "\"")
-  private def encodeRelPath(root: String, a: os.RelPath) = {
-    val ups = " / os.up" * a.ups
-    val segments = if (a.segments.isEmpty) "" else a.segments.mkString(" / \"", "/", "\"")
-    s"$root$ups$segments"
+  private def encodeRelPath(a: os.RelPath) = {
+    if (a.ups == 0) s""""$a""""
+    else {
+      val ups = " / os.up" * a.ups
+      val segments = if (a.segments.isEmpty) "" else a.segments.mkString(" / \"", "/", "\"")
+      s"os.rel$ups$segments"
+    }
   }
+  private def encodeSource(a: os.RelPath) = s"""Task.Source(${encodeRelPath(a)})"""
   private def encodeArtifact(a: Artifact) = {
     import a.*
     s"""Artifact("$group", "$id", "$version")"""

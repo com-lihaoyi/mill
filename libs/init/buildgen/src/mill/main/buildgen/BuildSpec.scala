@@ -1,29 +1,76 @@
 package mill.main.buildgen
 
-import mill.main.buildgen.ModuleSpec.{MvnDep, Value, Values}
+import mill.init.Util
+import mill.main.buildgen.BuildInfo.millVersion
+import mill.main.buildgen.ModuleSpec.*
 
 import scala.collection.mutable
 
-/**
- * Shared interface to generate Mill project files.
- */
-trait BuildGen {
+class BuildSpec(var packages: Seq[PackageSpec]) {
 
-  def writeBuildFiles(
-      baseDir: os.Path,
-      packages: Seq[PackageSpec],
-      merge: Boolean = false,
-      baseModule: Option[ModuleSpec] = None,
-      millJvmVersion: Option[String] = None,
-      millJvmOpts: Seq[String] = Nil,
-      depNames: Seq[(MvnDep, String)] = Nil,
-      metaMvnDeps: Seq[String] = Nil
-  ): Seq[os.Path]
+  var depNames: Seq[(MvnDep, String)] = Nil
+  var baseModule: Option[ModuleSpec] = None
 
-  def withBaseModule(
-      packages: Seq[PackageSpec],
-      baseTestHierarchy: (String, String)*
-  ): Option[(ModuleSpec, Seq[PackageSpec])] = {
+  def deriveDepNames(): Unit = {
+    val depNames = packages.flatMap(_.module.tree).flatMap { module =>
+      import module.*
+      Seq(
+        mandatoryMvnDeps,
+        mvnDeps,
+        compileMvnDeps,
+        runMvnDeps,
+        bomMvnDeps,
+        depManagement,
+        errorProneDeps,
+        checkstyleMvnDeps,
+        scalacPluginMvnDeps,
+        scalafixIvyDeps
+      )
+    }.flatMap { values =>
+      values.base ++ values.cross.flatMap(_._2)
+    }.distinct.filter(_.version.nonEmpty).groupBy(_.name).flatMap { (name, deps) =>
+      val ref = name.split("\\W") match {
+        case Array(head) => head
+        case parts => parts.tail.map(_.capitalize).mkString(parts.head, "", "")
+      }
+      deps match {
+        case Seq(dep) => Seq((dep, ref))
+        case _ => deps.sortBy(_.toString).zipWithIndex.map((dep, i) => (dep, s"`$ref#$i`"))
+      }
+    }
+    val lookupRef = depNames.lift.andThen(_.map(ref => s"Deps.$ref"))
+
+    def updateMvnDeps(values: Values[MvnDep]) = values.copy(
+      base = values.base.map(dep => dep.copy(ref = lookupRef(dep))),
+      cross = values.cross.map((k, v) => (k, v.map(dep => dep.copy(ref = lookupRef(dep)))))
+    )
+
+    def updateModule(module: ModuleSpec) = {
+      import module.*
+      module.copy(
+        imports = "millbuild.*" +: imports,
+        mvnDeps = updateMvnDeps(mvnDeps),
+        compileMvnDeps = updateMvnDeps(compileMvnDeps),
+        runMvnDeps = updateMvnDeps(runMvnDeps),
+        bomMvnDeps = updateMvnDeps(bomMvnDeps),
+        depManagement = updateMvnDeps(depManagement),
+        errorProneDeps = updateMvnDeps(errorProneDeps),
+        checkstyleMvnDeps = updateMvnDeps(checkstyleMvnDeps),
+        scalacPluginMvnDeps = updateMvnDeps(scalacPluginMvnDeps),
+        scalafixIvyDeps = updateMvnDeps(scalafixIvyDeps)
+      )
+    }
+
+    if (depNames.nonEmpty) {
+      this.depNames = depNames.toSeq
+      baseModule = baseModule.map(_.recMap(updateModule))
+      packages = packages.map(pkg =>
+        pkg.copy(module = pkg.module.recMap(updateModule))
+      )
+    }
+  }
+
+  def deriveBaseModule(baseTestHierarchy: (String, String)*): Unit = {
     def parentValue[A](a: Value[A], b: Value[A]) = Value(
       if (a.base == b.base) a.base else None,
       a.cross.intersect(b.cross)
@@ -73,6 +120,10 @@ trait BuildGen {
         errorProneJavacEnableOptions =
           parentValues(a.errorProneJavacEnableOptions, b.errorProneJavacEnableOptions),
         jmhCoreVersion = parentValue(a.jmhCoreVersion, b.jmhCoreVersion),
+        checkstyleProperties = parentValues(a.checkstyleProperties, b.checkstyleProperties),
+        checkstyleMvnDeps = parentValues(a.checkstyleMvnDeps, b.checkstyleMvnDeps),
+        checkstyleConfig = parentValue(a.checkstyleConfig, b.checkstyleConfig),
+        checkstyleVersion = parentValue(a.checkstyleVersion, b.checkstyleVersion),
         scalaVersion = parentValue(a.scalaVersion, b.scalaVersion),
         scalacOptions = parentValues(a.scalacOptions, b.scalacOptions),
         scalacPluginMvnDeps = parentValues(a.scalacPluginMvnDeps, b.scalacPluginMvnDeps),
@@ -143,6 +194,10 @@ trait BuildGen {
       errorProneJavacEnableOptions =
         extendValues(a.errorProneJavacEnableOptions, parent.errorProneJavacEnableOptions),
       jmhCoreVersion = extendValue(a.jmhCoreVersion, parent.jmhCoreVersion),
+      checkstyleProperties = extendValues(a.checkstyleProperties, parent.checkstyleProperties),
+      checkstyleMvnDeps = extendValues(a.checkstyleMvnDeps, parent.checkstyleMvnDeps),
+      checkstyleConfig = extendValue(a.checkstyleConfig, parent.checkstyleConfig),
+      checkstyleVersion = extendValue(a.checkstyleVersion, parent.checkstyleVersion),
       scalaVersion = extendValue(a.scalaVersion, parent.scalaVersion),
       scalacOptions = extendValues(a.scalacOptions, parent.scalacOptions),
       scalacPluginMvnDeps = extendValues(a.scalacPluginMvnDeps, parent.scalacPluginMvnDeps),
@@ -193,7 +248,7 @@ trait BuildGen {
     }
 
     val extendingModules = packages.flatMap(_.module.tree).filter(canExtend)
-    Option.when(extendingModules.length > 1) {
+    if (extendingModules.length > 1) {
       var baseModule = extendingModules
         .reduce(parentModule(_, _, "ProjectBaseModule", baseHierarchy))
       val testModule = extendingModules.flatMap(_.children.filter(isTestModule))
@@ -215,9 +270,92 @@ trait BuildGen {
           testModule.copy(supertypes = testSupertypes.toSeq)
         }
       baseModule = baseModule.copy(children = testModule.toSeq)
-      val packages0 =
-        packages.map(pkg => pkg.copy(module = recExtendModule(pkg.module, baseModule)))
-      (baseModule, packages0)
+      this.baseModule = Some(baseModule)
+      packages = packages.map(pkg => pkg.copy(module = recExtendModule(pkg.module, baseModule)))
+    }
+  }
+
+  def writeFiles(
+      declarative: Boolean,
+      merge: Boolean,
+      workspace: os.Path = os.pwd,
+      millJvmVersion: Option[String] = None,
+      millJvmOpts: Seq[String] = Nil,
+      metaMvnDeps: Seq[String] = Nil
+  ): Unit = {
+    // Recursively construct package tree "filling-in" any gaps
+    var packages0 = {
+      def recPackageTree(dir: os.SubPath): Seq[PackageSpec] = {
+        val rootPackage = packages.find(_.dir == dir).getOrElse(PackageSpec.root(dir))
+        val nestedPackages = packages.collect {
+          case pkg if pkg.dir.startsWith(dir) && pkg.dir != dir =>
+            os.sub / pkg.dir.segments.take(dir.segments.length + 1)
+        }.distinct.flatMap(recPackageTree)
+        rootPackage +: nestedPackages
+      }
+
+      recPackageTree(os.sub)
+    }
+    if (merge) {
+      // Recursively add nested module trees as children of parent package module
+      val rootPackage +: nestedPackages = packages0.runtimeChecked
+      def recModuleTree(parentDir: os.SubPath): Seq[ModuleSpec] = {
+        val childDepth = parentDir.segments.length + 1
+        nestedPackages.collect {
+          case child
+              if child.dir.startsWith(parentDir) && child.dir.segments.length == childDepth =>
+            child.module.copy(children = child.module.children ++ recModuleTree(child.dir))
+        }
+      }
+
+      packages0 = Seq(rootPackage.copy(module =
+        rootPackage.module.copy(children =
+          rootPackage.module.children ++ recModuleTree(rootPackage.dir)
+        )
+      ))
+    }
+    val millVersion0 = if (sys.env.contains("MILL_UNSTABLE_VERSION")) "SNAPSHOT" else millVersion
+    val millJvmVersion0 = millJvmVersion.getOrElse {
+      val path = workspace / ".mill-jvm-version"
+      if (os.exists(path)) os.read(path) else "system"
+    }
+
+    val existingBuildFiles = Util.buildFiles(workspace)
+    if (existingBuildFiles.nonEmpty) {
+      println("removing existing build files ...")
+      for (file <- existingBuildFiles) do os.remove(file)
+    }
+
+    if (declarative) {
+      // YAML build scripts require meta-build Scala files
+      BuildGenScala.writeMetaBuildFiles(
+        workspace = workspace,
+        baseModule = baseModule,
+        depNames = depNames,
+        mvnDeps = metaMvnDeps
+      )
+      BuildGenYaml.writeBuildFiles(
+        workspace = workspace,
+        packages = packages0,
+        millVersion = millVersion0,
+        millJvmVersion = millJvmVersion0,
+        millJvmOpts = millJvmOpts
+      )
+    } else {
+      // metaMvnDeps are added in root build file header
+      BuildGenScala.writeMetaBuildFiles(
+        workspace = workspace,
+        baseModule = baseModule,
+        depNames = depNames
+      )
+      BuildGenScala.writeBuildFiles(
+        workspace = workspace,
+        packages = packages0,
+        millVersion = millVersion0,
+        millJvmVersion = millJvmVersion0,
+        millJvmOpts = millJvmOpts,
+        metaMvnDeps = metaMvnDeps
+      )
     }
   }
 }
