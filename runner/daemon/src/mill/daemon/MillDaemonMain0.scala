@@ -36,6 +36,61 @@ object MillDaemonMain0 {
     }
   }
 
+  /**
+   * Thread-local holding the current daemon's worker cache queue.
+   * Used by `MillBuildBootstrap` to register worker caches with the daemon
+   * so they can be closed on daemon shutdown even if the evaluation is interrupted.
+   */
+  val currentDaemonWorkerCaches =
+    new scala.util.DynamicVariable[Option[java.util.concurrent.ConcurrentLinkedQueue[
+      scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]
+    ]]](None)
+
+  /**
+   * Registers a worker cache with the current daemon instance (if any).
+   * Called by `MillBuildBootstrap.makeEvaluator0()`.
+   */
+  def registerWorkerCache(
+      cache: scala.collection.mutable.Map[
+        String,
+        (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])
+      ]
+  ): Unit = {
+    currentDaemonWorkerCaches.value.foreach(_.add(cache))
+  }
+
+  type WorkerCache =
+    scala.collection.mutable.Map[String, (Int, mill.api.Val, mill.api.daemon.internal.TaskApi[?])]
+  type WorkerCacheQueue = java.util.concurrent.ConcurrentLinkedQueue[WorkerCache]
+
+  /**
+   * Closes all workers in the given queue of worker caches.
+   */
+  def closeWorkerCaches(caches: WorkerCacheQueue): Unit = {
+    val iterator = caches.iterator()
+    while (iterator.hasNext) {
+      val cache = iterator.next()
+      closeWorkersInCache(cache)
+    }
+  }
+
+  private def closeWorkersInCache(cache: WorkerCache): Unit = {
+    val cacheSnapshot = cache.synchronized { cache.toMap }
+    if (cacheSnapshot.nonEmpty) {
+      val deps = mill.exec.GroupExecution.workerDependencies(cacheSnapshot)
+      val topoIndex = deps.iterator.map(_._1).zipWithIndex.toMap
+      val allWorkers = cacheSnapshot.values.map(_._3).toSet
+      mill.exec.GroupExecution.closeWorkersInReverseTopologicalOrder(
+        allWorkers,
+        cache,
+        topoIndex,
+        closeable =>
+          try closeable.close()
+          catch { case scala.util.control.NonFatal(_) => }
+      )
+    }
+  }
+
   def main(args0: Array[String]): Unit = {
     // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
@@ -81,6 +136,26 @@ class MillDaemonMain0(
     ) {
 
   def initialStateCache = RunnerState.empty
+
+  /**
+   * Tracks worker caches from active evaluations. Workers may exist in these caches
+   * even if the evaluation was interrupted before the state could be saved.
+   */
+  private val activeWorkerCaches: MillDaemonMain0.WorkerCacheQueue =
+    new java.util.concurrent.ConcurrentLinkedQueue()
+
+  override def run(): Option[Int] = {
+    // Set up worker cache tracking for this daemon instance
+    MillDaemonMain0.currentDaemonWorkerCaches.withValue(Some(activeWorkerCaches)) {
+      try super.run()
+      finally {
+        // Close workers from active (possibly interrupted) evaluations
+        MillDaemonMain0.closeWorkerCaches(activeWorkerCaches)
+        // Also close any workers in the saved state (for completeness)
+        getStateCache.closeAllWorkers()
+      }
+    }
+  }
 
   val outFolder: os.Path = os.Path(OutFiles.outFor(outMode), BuildCtx.workspaceRoot)
 
