@@ -57,3 +57,20 @@ runs:
         annotate_only: true
         require_tests: false
         report_paths: 'out/**/test-report.xml'
+
+    - name: Sanitize artifact name
+      id: sanitize
+      if: always()
+      shell: bash
+      run: |
+        # Replace invalid artifact name characters with underscores
+        SANITIZED=$(echo "${{ inputs.millargs }}" | tr "'\"\\/:<>|*?{}[]" "_" | cut -c1-100)
+        echo "millargs=$SANITIZED" >> $GITHUB_OUTPUT
+
+    - name: Upload Chrome Profile
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: mill-chrome-profile-${{ runner.os }}-${{ steps.sanitize.outputs.millargs }}
+        path: out/mill-chrome-profile.json
+        if-no-files-found: ignore
