@@ -477,7 +477,7 @@ which are also used in Gradle and other projects.
 Although scripts in Kotlin are markedly nicer to write and read than scripts written
 in Java, there is one more step further that we can take:
 
-== Scala with its Lightweight Libraries
+=== Scala with its Lightweight Libraries
 
 The last step to simplify scripting on the JVM is to write the script in Scala.
 Scala is yet another JVM language, like Kotlin. But unlike Kotlin, Scala has
