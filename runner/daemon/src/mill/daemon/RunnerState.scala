@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.api.Val
 import mill.api.JsonFormatters.*
-import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi}
+import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi, TaskApi}
 import mill.api.internal.RootModule
 import mill.api.daemon.Watchable
 import mill.api.MillURLClassLoader
@@ -61,7 +61,7 @@ object RunnerState {
 
   @internal
   case class Frame(
-      workerCache: Map[String, (Int, Val)],
+      workerCache: Map[String, (Int, Val, TaskApi[?])],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       codeSignatures: Map[String, Int],
@@ -69,12 +69,14 @@ object RunnerState {
       runClasspath: Seq[PathRefApi],
       compileOutput: Option[PathRefApi],
       evaluator: Option[EvaluatorApi],
-      buildOverrideFiles: Map[java.nio.file.Path, String]
+      buildOverrideFiles: Map[java.nio.file.Path, String],
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: Option[String]
   ) {
 
     def loggedData: Frame.Logged = {
       Frame.Logged(
-        workerCache.map { case (k, (i, v)) =>
+        workerCache.map { case (k, (i, v, _)) =>
           (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
         evalWatched.collect { case Watchable.Path(p, _, _) =>
@@ -111,7 +113,7 @@ object RunnerState {
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
 
-    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map())
+    def empty: Frame = Frame(Map.empty, Nil, Nil, Map.empty, None, Nil, None, None, Map(), None)
   }
 
 }

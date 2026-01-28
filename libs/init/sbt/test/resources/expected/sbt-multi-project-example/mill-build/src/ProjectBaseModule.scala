@@ -5,7 +5,7 @@ import mill.javalib.PublishModule
 import mill.javalib.publish.*
 import mill.scalalib.*
 
-trait ProjectBaseModule extends PublishModule, SbtModule {
+trait ProjectBaseModule extends SbtModule, PublishModule {
 
   def scalaVersion = "2.12.3"
 
@@ -28,7 +28,7 @@ trait ProjectBaseModule extends PublishModule, SbtModule {
     "https://oss.sonatype.org/content/repositories/snapshots"
   )
 
-  trait Tests extends SbtTests, TestModule.ScalaTest {
+  trait ProjectBaseTests extends SbtTests, TestModule.ScalaTest {
 
     def mvnDeps = Seq(Deps.scalatest, Deps.scalacheck)
 

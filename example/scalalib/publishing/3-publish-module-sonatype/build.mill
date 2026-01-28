@@ -1,26 +1,9 @@
-//| mill-jvm-version: 17
 // This example is configured for publishing to Sonatype Maven Central via
 // Central Portal. We extend `SonatypeCentralPublishModule` which provides
 // simplified publishing tasks without requiring Nexus repository manager.
-//// SNIPPET:BUILD
-package build
-import mill.*, scalalib.*, publish.*
 
-object foo extends ScalaModule, SonatypeCentralPublishModule {
-  def scalaVersion = "3.7.1"
-  def publishVersion = "0.0.1"
-
-  def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-  )
-}
-
-//// SNIPPET:END
+/** See Also: build.mill.yaml */
+/** See Also: foo/package.mill.yaml */
 
 // Note that when publishing artifacts to Maven repositories, the JVM version used to build the
 // artifacts will be the minimum version that downstream projects will need to use in order to

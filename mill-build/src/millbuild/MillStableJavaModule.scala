@@ -67,6 +67,10 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ),
     ProblemFilter.exclude[InheritedNewAbstractMethodProblem](
       "mill.util.MainModule.mill$api$Module$_setter_$moduleLinearized_="
+    ),
+    // Moved to the upstream mill-constants artifact, but should still be on classpath so it's OK
+    ProblemFilter.exclude[MissingClassProblem](
+      "mill.api.daemon.MillException"
     )
   )
 

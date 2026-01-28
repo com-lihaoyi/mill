@@ -74,9 +74,10 @@ pick one most similar to what you are doing so you can hit the ground running.
 
 You can also install the Mill bootstrap script globally on Mac and Linux via:
 
-```console
+[source,console,subs="verbatim,attributes"]
+----
 > sudo sh -c '(curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
-```
+----
 
 This can be useful when using Mill to run script files (written in xref:javalib/script.adoc[Java],
 xref:scalalib/script.adoc[Scala], or xref:kotlinlib/script.adoc[Kotlin]) which may not belong
@@ -128,11 +129,11 @@ by adding a a `-jvm` suffix on the Mill version:
 
 [source,subs="verbatim,attributes"]
 ----
-{version}-jvm
+{mill-version}-jvm
 ----
 
 Mill's JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
-when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
+when running Mill from the command line, and requires a JVM installed globally (version 17 or above)
 in order to run.
 
 == Bash/Zsh Tab Completion
@@ -144,9 +145,9 @@ You can set up Bash and Zsh tab completions by subsequently running the command:
 > ./mill mill.tabcomplete/install
 ----
 
-This unpacks the completion script in `~/.cache/mill` and registers it in your `~/.bash_profile` and `~/.zshrc`.
-After that, doing `./mill <TAB>` should begin showing possible modules and tasks for you
-to select at the command line:
+This unpacks the completion script in `~/.local/share/mill/completion/mill-completion.sh`
+and registers it in your `~/.bash_profile` and `~/.zshrc`. After that, doing `./mill <TAB>`
+should begin showing possible modules and tasks for you to select at the command line:
 
 image::basic/TabCompleteCommand.png[]
 
@@ -387,11 +388,15 @@ IDE fails to import your Mill project
 
 == Setting up Mill in CI
 
+=== CI Bootstrap Scripts
+
 Due to Mill's usage of xref:#_bootstrap_scripts[Bootstrap Scripts], you typically do not
 need to setup anything in your CI system to make Mill work. Any Mill project should be
 buildable via `./mill` on your CI machines without needing to first install Java, Mill,
 or other dependencies, and the `./mill` bootstrap script will download these dependencies
 as necessary.
+
+=== FORCE_COLOR
 
 One thing that you should set up manually is to enable a https://force-color.org/[FORCE_COLOR]
 environment variable in your CI system. For example, in Github Actions this can be configured
@@ -414,6 +419,47 @@ image::basic/ForceColor0.png[]
 **With FORCE_COLOR=1**
 
 image::basic/ForceColor1.png[]
+
+=== Re-using the `out/` Folder
+
+Mill caches its outputs locally in the xref:fundamentals/out-dir.adoc[out/ folder]. You
+can preserve this `out/` folder between CI workers, e.g. to allow a subsequent CI worker
+to use a previous worker's cached results, or to perform initial compilation on one worker
+then share the compiled output with downstream workers.
+
+For example, for Github Actions you may configure `out/` folder uploading via
+
+```yaml
+  - uses: actions/upload-artifact@v4
+    with:
+      name: build-out
+      path: out/
+```
+
+And downloading via
+
+```yaml
+  - uses: actions/download-artifact@v4
+    with:
+      name: build-out
+      path: out/
+```
+
+
+=== Github Actions Test Reports
+
+If you use Github Actions for CI, you can use https://github.com/mikepenz/action-junit-report in
+your pipeline to render the generated `test-report.xml` files nicely on Github. See
+https://github.com/com-lihaoyi/mill/pull/4218/files for an example integration
+
+=== Selective Test Execution
+
+To minimize the number of unnecessary tests that you run on CI jobs, you should
+use xref:large/selective-execution.adoc[Selective Test Execution] for any large multi-module
+codebase. This allows you to limit the tests that run on your codebase to those in modules
+downstream of the code you changed, allowing you to save time and resources by not wastefully
+running tests that could not possibly be affected by your code change.
+
 
 == Using Mill without access to Maven Central
 

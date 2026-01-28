@@ -8,7 +8,7 @@ import mill.*, scalalib.*
 import mill.api.ModuleRef
 
 object foo extends ScalaModule {
-  def scalaVersion = "3.7.1"
+  def scalaVersion = "3.8.1"
 
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
@@ -59,7 +59,7 @@ object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "3.7.1"
+  def scalaVersion = "3.8.1"
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 

@@ -32,7 +32,7 @@ object KotlinJsCompileTests extends TestSuite {
     test("compile") {
       testEval().scoped { eval =>
 
-        val Right(result) = eval.apply(module.foo.compile): @unchecked
+        val Right(result) = eval.apply(module.foo.compile).runtimeChecked
 
         val irDir = result.value.classes.path
         assert(
@@ -49,15 +49,15 @@ object KotlinJsCompileTests extends TestSuite {
 
         val compilationUnit = module.foo.moduleDir / "src/foo/Hello.kt"
 
-        val Right(_) = eval.apply(module.foo.compile): @unchecked
+        val Right(_) = eval.apply(module.foo.compile).runtimeChecked
 
         os.write.over(compilationUnit, os.read(compilationUnit) + "}")
 
-        val Left(_) = eval.apply(module.foo.compile): @unchecked
+        val Left(_) = eval.apply(module.foo.compile).runtimeChecked
 
         os.write.over(compilationUnit, os.read(compilationUnit).dropRight(1))
 
-        val Right(_) = eval.apply(module.foo.compile): @unchecked
+        val Right(_) = eval.apply(module.foo.compile).runtimeChecked
       }
     }
   }

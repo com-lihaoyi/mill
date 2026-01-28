@@ -22,10 +22,12 @@ class PromptLogger(
     infoColor: fansi.Attrs,
     warnColor: fansi.Attrs,
     errorColor: fansi.Attrs,
+    successColor: fansi.Attrs,
+    highlightColor: fansi.Attrs,
     systemStreams0: SystemStreams,
     debugEnabled: Boolean,
     titleText: String,
-    terminfoPath: os.Path,
+    terminalDimsCallback: () => Option[(Option[Int], Option[Int])],
     currentTimeMillis: () => Long,
     autoUpdate: Boolean = true,
     val chromeProfileLogger: JsonArrayLogger.ChromeProfile
@@ -38,9 +40,9 @@ class PromptLogger(
   override def redirectOutToErr: Boolean = false
   override def unprefixedStreams: SystemStreams = streams
 
-  private var termDimensions: (Option[Int], Option[Int]) = (None, None)
+  @volatile private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 
-  readTerminalDims(terminfoPath).foreach(termDimensions = _)
+  terminalDimsCallback().foreach(termDimensions = _)
 
   def isInteractive() = termDimensions._1.nonEmpty
 
@@ -49,7 +51,8 @@ class PromptLogger(
         currentTimeMillis(),
         () => termDimensions,
         currentTimeMillis,
-        infoColor
+        infoColor,
+        highlightColor
       )
 
   private object streamManager extends StreamManager(
@@ -79,7 +82,7 @@ class PromptLogger(
           case _: InterruptedException => /*do nothing*/
         }
 
-        readTerminalDims(terminfoPath).foreach(termDimensions = _)
+        terminalDimsCallback().foreach(termDimensions = _)
 
         val now = System.currentTimeMillis()
         if (
@@ -268,7 +271,12 @@ class PromptLogger(
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
         if (message != "") beginChromeProfileEntry(message)
-        promptLineState.setCurrent(key, Some(Logger.formatPrefix0(key) + spaceNonEmpty(message)))
+        promptLineState.setCurrent(
+          key,
+          Some(fansi.Str(
+            Logger.formatPrefix0(key) ++ spaceNonEmpty(this.highlightColor(message).toString)
+          ))
+        )
         seenIdentifiers(key) = (keySuffix, message)
       }
 
@@ -284,6 +292,8 @@ class PromptLogger(
     def infoColor(s: String): String = PromptLogger.this.infoColor(s).render
     def warnColor(s: String): String = PromptLogger.this.warnColor(s).render
     def errorColor(s: String): String = PromptLogger.this.errorColor(s).render
+    def successColor(s: String): String = PromptLogger.this.successColor(s).render
+    override def highlightColor(s: String): String = PromptLogger.this.highlightColor(s).render
     def colored: Boolean = PromptLogger.this.colored
   }
   def ticker(s: String): Unit = ()
@@ -495,11 +505,12 @@ object PromptLogger {
    * "smoothly" even as the underlying statuses may be rapidly changed during evaluation.
    */
   private class PromptLineState(
-      titleText: String,
+      titleText: fansi.Str,
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
       currentTimeMillis: () => Long,
-      infoColor: fansi.Attrs
+      infoColor: fansi.Attrs,
+      highlightColor: fansi.Attrs
   ) {
     private val statuses = collection.mutable.SortedMap
       .empty[Seq[String], Status](using PromptLoggerUtil.seqStringOrdering)
@@ -534,14 +545,16 @@ object PromptLogger {
         now,
         startTimeMillis,
         if (headerPrefix.isEmpty) "" else s"$headerPrefix]",
-        titleText,
+        if (ending) titleText else highlightColor(titleText),
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
         infoColor = infoColor
       )
 
       val oldPromptBytes = currentPromptBytes
-      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive).getBytes
+      currentPromptBytes =
+        renderPromptWrapped(currentPromptLines.map(_.toString), interactive).getBytes
+
       !java.util.Arrays.equals(oldPromptBytes, currentPromptBytes)
     }
 
@@ -552,7 +565,7 @@ object PromptLogger {
       statuses.updateWith(key)(_.map(se => se.copy(next = se.next.map(_.copy(detail = detail)))))
     }
 
-    def setCurrent(key: Seq[String], sOpt: Option[String]): Option[Status] = {
+    def setCurrent(key: Seq[String], sOpt: Option[fansi.Str]): Option[Status] = {
 
       val now = currentTimeMillis()
       def stillTransitioning(status: Status) = {

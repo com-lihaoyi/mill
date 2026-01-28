@@ -1,21 +1,5 @@
-package build
-import mill.*, scalalib.*
-
-object `package` extends ScalaModule {
-  def scalaVersion = "3.7.1"
-  def mvnDeps = Seq(
-    mvn"com.lihaoyi::cask:0.9.1",
-    mvn"com.lihaoyi::upickle:4.3.0",
-    mvn"com.lihaoyi::scalatags:0.13.1"
-  )
-
-  object test extends ScalaTests, TestModule.Utest {
-    def mvnDeps = Seq(
-      mvn"com.lihaoyi::utest::0.8.9",
-      mvn"com.lihaoyi::requests::0.6.9"
-    )
-  }
-}
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
 
 // This example demonstrates how to set up a simple Scala webserver
 // implementing the popular Todo-MVC demo application. It includes a test suite

@@ -130,7 +130,7 @@ object HelloGroovyTests extends TestSuite {
     test("running a Groovy script") {
       testEval().scoped { eval =>
         main.crossModules.foreach(m => {
-          val Right(_) = eval.apply(m.script.run()): @unchecked
+          val Right(_) = eval.apply(m.script.run()).runtimeChecked
         })
       }
     }
@@ -138,7 +138,7 @@ object HelloGroovyTests extends TestSuite {
     test("running a Groovy script") {
       testEval().scoped { eval =>
         main.crossModules.foreach(m => {
-          val Right(_) = eval.apply(m.script.run()): @unchecked
+          val Right(_) = eval.apply(m.script.run()).runtimeChecked
         })
       }
     }
@@ -146,13 +146,13 @@ object HelloGroovyTests extends TestSuite {
     test("compile & run Groovy module") {
       testEval().scoped { eval =>
         main.crossModules.foreach(m => {
-          val Right(result) = eval.apply(m.compile): @unchecked
+          val Right(result) = eval.apply(m.compile).runtimeChecked
 
           assert(
             os.walk(result.value.classes.path).exists(_.last == "Hello.class")
           )
 
-          val Right(_) = eval.apply(m.run()): @unchecked
+          val Right(_) = eval.apply(m.run()).runtimeChecked
         })
       }
     }
@@ -160,16 +160,16 @@ object HelloGroovyTests extends TestSuite {
     test("compile & run Groovy JUnit5 test") {
       testEval().scoped { eval =>
         main.crossModules.foreach(m => {
-          val Right(result) = eval.apply(m.test.compile): @unchecked
+          val Right(result) = eval.apply(m.test.compile).runtimeChecked
 
           assert(
             os.walk(result.value.classes.path).exists(_.last == "HelloTest.class")
           )
 
-          val Right(discovered) = eval.apply(m.test.discoveredTestClasses): @unchecked
+          val Right(discovered) = eval.apply(m.test.discoveredTestClasses).runtimeChecked
           assert(discovered.value == Seq("hello.tests.HelloTest"))
 
-          val Right(_) = eval.apply(m.test.testForked()): @unchecked
+          val Right(_) = eval.apply(m.test.testForked()).runtimeChecked
         })
       }
     }
@@ -177,11 +177,11 @@ object HelloGroovyTests extends TestSuite {
     test("compile & run a statically compiled Groovy") {
       testEval().scoped { eval =>
         main.crossModules.foreach(m => {
-          val Right(result) = eval.apply(m.staticcompile.compile): @unchecked
+          val Right(result) = eval.apply(m.staticcompile.compile).runtimeChecked
           assert(
             os.walk(result.value.classes.path).exists(_.last == "HelloStatic.class")
           )
-          val Right(_) = eval.apply(m.staticcompile.run()): @unchecked
+          val Right(_) = eval.apply(m.staticcompile.run()).runtimeChecked
         })
       }
     }
@@ -189,7 +189,7 @@ object HelloGroovyTests extends TestSuite {
     test("compile joint (groovy <-> java cycle) & run") {
       testEval().scoped { eval =>
         main.crossModules.foreach(m => {
-          val Right(result) = eval.apply(m.`joint-compile`.compile): @unchecked
+          val Right(result) = eval.apply(m.`joint-compile`.compile).runtimeChecked
 
           assert(
             os.walk(result.value.classes.path).exists(_.last == "JavaPrinter.class")
@@ -198,7 +198,7 @@ object HelloGroovyTests extends TestSuite {
             os.walk(result.value.classes.path).exists(_.last == "GroovyGreeter.class")
           )
 
-          val Right(_) = eval.apply(m.`joint-compile`.run()): @unchecked
+          val Right(_) = eval.apply(m.`joint-compile`.run()).runtimeChecked
         })
       }
     }
@@ -229,7 +229,7 @@ object HelloGroovyTests extends TestSuite {
 
       testEval().scoped { eval =>
         main.crossModules.foreach(m => {
-          val Right(result) = eval.apply(m.compileroptions.compile): @unchecked
+          val Right(result) = eval.apply(m.compileroptions.compile).runtimeChecked
 
           val compiledClassFile =
             os.walk(result.value.classes.path).find(_.last == "HelloCompilerOptions.class")
@@ -243,7 +243,7 @@ object HelloGroovyTests extends TestSuite {
           assert(bytecodeVersion.javaVersion == m.compileroptions.javaVersion)
           assert(bytecodeVersion.is11PreviewEnabled)
 
-          val Right(_) = eval.apply(m.compileroptions.run()): @unchecked
+          val Right(_) = eval.apply(m.compileroptions.run()).runtimeChecked
         })
       }
     }
@@ -251,26 +251,26 @@ object HelloGroovyTests extends TestSuite {
     test("compile & test module (only test uses Groovy)") {
       testEval().scoped { eval =>
 
-        val Right(_) = eval.apply(mixed.test.compile): @unchecked
-        val Right(discovered) = eval.apply(mixed.test.discoveredTestClasses): @unchecked
+        val Right(_) = eval.apply(mixed.test.compile).runtimeChecked
+        val Right(discovered) = eval.apply(mixed.test.discoveredTestClasses).runtimeChecked
         assert(discovered.value == Seq("hello.maven.tests.HelloMavenTestOnly"))
 
-        val Right(_) = eval.apply(mixed.test.testForked()): @unchecked
+        val Right(_) = eval.apply(mixed.test.testForked()).runtimeChecked
       }
     }
 
     test("compile & run Spock test") {
       testEval().scoped { eval =>
         main.crossModules.foreach(m => {
-          val Right(result1) = eval.apply(m.spock.tests.compile): @unchecked
+          val Right(result1) = eval.apply(m.spock.tests.compile).runtimeChecked
           assert(
             os.walk(result1.value.classes.path).exists(_.last == "SpockTest.class")
           )
 
-          val Right(discovered) = eval.apply(m.spock.tests.discoveredTestClasses): @unchecked
+          val Right(discovered) = eval.apply(m.spock.tests.discoveredTestClasses).runtimeChecked
           assert(discovered.value == Seq("hello.spock.SpockTest"))
 
-          val Right(_) = eval.apply(m.spock.tests.testForked()): @unchecked
+          val Right(_) = eval.apply(m.spock.tests.testForked()).runtimeChecked
         })
       }
     }
@@ -283,7 +283,7 @@ object HelloGroovyTests extends TestSuite {
 
         test("groovy bom is added when version is at least 4.0.26") {
           testEval().scoped { eval =>
-            val Right(result) = eval.apply(deps.groovyBom.bomMvnDeps): @unchecked
+            val Right(result) = eval.apply(deps.groovyBom.bomMvnDeps).runtimeChecked
 
             assert(
               result.value.contains(groovyBom)
@@ -293,7 +293,7 @@ object HelloGroovyTests extends TestSuite {
 
         test("groovy bom is NOT added when version is below 4.0.26") {
           testEval().scoped { eval =>
-            val Right(result) = eval.apply(deps.groovyNoBom.bomMvnDeps): @unchecked
+            val Right(result) = eval.apply(deps.groovyNoBom.bomMvnDeps).runtimeChecked
 
             assert(
               !result.value.contains(groovyBom)
@@ -308,7 +308,7 @@ object HelloGroovyTests extends TestSuite {
 
         test("spock bom is added when version is at least 2.3") {
           testEval().scoped { eval =>
-            val Right(result) = eval.apply(deps.spockBom.bomMvnDeps): @unchecked
+            val Right(result) = eval.apply(deps.spockBom.bomMvnDeps).runtimeChecked
 
             assert(
               result.value.contains(spockBom)
@@ -318,7 +318,7 @@ object HelloGroovyTests extends TestSuite {
 
         test("spock bom is NOT added when version is below 2.3") {
           testEval().scoped { eval =>
-            val Right(result) = eval.apply(deps.spockNoBom.bomMvnDeps): @unchecked
+            val Right(result) = eval.apply(deps.spockNoBom.bomMvnDeps).runtimeChecked
 
             assert(
               !result.value.contains(spockBom)

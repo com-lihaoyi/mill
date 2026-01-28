@@ -7,7 +7,17 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{MillException, Result}
+import mill.api.{
+  BuildCtx,
+  DefaultTaskModule,
+  MillException,
+  ModuleRef,
+  PathRef,
+  Result,
+  Segment,
+  Task,
+  TaskCtx
+}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
 import mill.api.daemon.internal.bsp.{
   BspBuildTarget,
@@ -19,7 +29,6 @@ import mill.api.daemon.internal.bsp.{
 import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
-import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincOp}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
@@ -1058,15 +1067,7 @@ trait JavaModule
     compileResources() ++ unmanagedClasspath()
   }
 
-  /**
-   * Resolved dependencies
-   */
-  def resolvedMvnDeps: T[Seq[PathRef]] = Task {
-    if (resolvedDepsWarnNonPlatform()) {
-      Dep.validatePlatformDeps(platformSuffix(), mvnDeps()).pipe(warn =>
-        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
-      )
-    }
+  private def resolvedMvnDeps0(sources: Boolean) = Task.Anon {
     millResolver().classpath(
       Seq(
         BoundDep(
@@ -1075,7 +1076,8 @@ trait JavaModule
         ),
         BoundDep(coursierDependencyTask(), force = false)
       ),
-      artifactTypes = Some(artifactTypes()),
+      sources = sources,
+      artifactTypes = if (sources) None else Some(artifactTypes()),
       resolutionParamsMapOpt =
         Some { params =>
           params
@@ -1089,6 +1091,34 @@ trait JavaModule
             )
         }
     )
+  }
+
+  /**
+   * Resolved dependencies
+   */
+  def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+    if (resolvedDepsWarnNonPlatform()) {
+      Dep.validatePlatformDeps(platformSuffix(), mvnDeps()).pipe(warn =>
+        if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
+      )
+    }
+    resolvedMvnDeps0(sources = false)()
+  }
+
+  /**
+   * Resolved dependency sources, unpacked into a single directory. Useful to quickly
+   * look up the sources of the dependencies on your classpath so you can find the
+   * exact source code you are compiling and running against.
+   */
+  def resolvedMvnSources: T[PathRef] = Task {
+    for (jar <- resolvedMvnDeps0(sources = true)()) {
+      val jarName = jar.path.last.stripSuffix(".jar")
+      os.unzip(jar.path, Task.dest / jarName)
+    }
+    println(
+      s"Unpacked sources of transitive third-party dependencies into ${Task.dest.relativeTo(BuildCtx.workspaceRoot)} for browsing"
+    )
+    PathRef(Task.dest)
   }
 
   override def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
@@ -1276,25 +1306,19 @@ trait JavaModule
    * for you to test and operate your code interactively.
    */
   def jshell(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    if (!mill.constants.Util.hasConsole()) {
-      Task.fail("jshell needs to be run with the -i/--interactive flag")
-    } else {
-      val classPath = runClasspath()
-        .map(_.path)
-        .filter(_.ext != "pom")
-        .filter(os.exists)
-      val jshellArgs = Seq("--class-path", classPath.mkString(java.io.File.pathSeparator)) ++ args
+    val classPath = runClasspath()
+      .map(_.path)
+      .filter(_.ext != "pom")
+      .filter(os.exists)
+    val jshellArgs = Seq("--class-path", classPath.mkString(java.io.File.pathSeparator)) ++ args
+    val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
 
-      val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
-      os.call(
-        cmd = cmd,
-        env = allForkEnv(),
-        cwd = forkWorkingDir(),
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
-      ()
-    }
+    Jvm.runInteractiveCommand(
+      cmd = cmd,
+      env = allForkEnv(),
+      cwd = forkWorkingDir()
+    )
+    ()
   }
 
   def launcher: T[PathRef] = Task { launcher0() }

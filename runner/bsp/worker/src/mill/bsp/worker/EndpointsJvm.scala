@@ -1,0 +1,130 @@
+package mill.bsp.worker
+
+import ch.epfl.scala.bsp4j.{
+  BuildTargetIdentifier,
+  JvmBuildServer,
+  JvmCompileClasspathItem,
+  JvmCompileClasspathParams,
+  JvmCompileClasspathResult,
+  JvmEnvironmentItem,
+  JvmMainClass,
+  JvmRunEnvironmentParams,
+  JvmRunEnvironmentResult,
+  JvmTestEnvironmentParams,
+  JvmTestEnvironmentResult
+}
+import mill.api.daemon.internal.{JavaModuleApi, RunModuleApi, TestModuleApi}
+import mill.bsp.worker.Utils.sanitizeUri
+import java.util.concurrent.CompletableFuture
+
+import scala.jdk.CollectionConverters.*
+
+private trait EndpointsJvm extends JvmBuildServer with EndpointsApi {
+
+  override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
+      : CompletableFuture[JvmRunEnvironmentResult] = {
+    jvmRunEnvironmentFor(
+      params.getTargets.asScala,
+      new JvmRunEnvironmentResult(_),
+      params.getOriginId
+    )
+  }
+
+  override def buildTargetJvmTestEnvironment(params: JvmTestEnvironmentParams)
+      : CompletableFuture[JvmTestEnvironmentResult] = {
+    jvmTestEnvironmentFor(
+      params.getTargets.asScala,
+      new JvmTestEnvironmentResult(_),
+      params.getOriginId
+    )
+  }
+
+  private def jvmTestEnvironmentFor[V](
+      targetIds: collection.Seq[BuildTargetIdentifier],
+      agg: java.util.List[JvmEnvironmentItem] => V,
+      originId: String
+  )(using name: sourcecode.Name): CompletableFuture[V] = {
+    handlerTasks(
+      targetIds = _ => targetIds,
+      tasks = { case m: (RunModuleApi & TestModuleApi & JavaModuleApi) =>
+        m.bspRunModule().bspJvmTestEnvironment
+      },
+      requestDescription = "Getting JVM test environment of {}",
+      originId = originId
+    ) { ctx =>
+      val (classpath, forkArgs, forkWorkingDir, forkEnv, _, testEnvVarsOpt) = ctx.value
+      testEnvVarsOpt match {
+        case Some(testEnvVars) =>
+          val fullMainArgs: List[String] =
+            List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
+          val item = new JvmEnvironmentItem(
+            ctx.id,
+            testEnvVars.classpath.map(sanitizeUri).asJava,
+            forkArgs.asJava,
+            forkWorkingDir.toString(),
+            forkEnv.asJava
+          )
+          item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
+            _,
+            fullMainArgs.asJava
+          )).asJava)
+          item
+        case None =>
+          // Fallback when test environment vars are not available
+          new JvmEnvironmentItem(
+            ctx.id,
+            classpath.map(sanitizeUri).asJava,
+            forkArgs.asJava,
+            forkWorkingDir.toString(),
+            forkEnv.asJava
+          )
+      }
+    } { (values, _) =>
+      agg(values)
+    }
+  }
+
+  private def jvmRunEnvironmentFor[V](
+      targetIds: collection.Seq[BuildTargetIdentifier],
+      agg: java.util.List[JvmEnvironmentItem] => V,
+      originId: String
+  )(using name: sourcecode.Name): CompletableFuture[V] = {
+    handlerTasks(
+      targetIds = _ => targetIds,
+      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunEnvironment },
+      requestDescription = "Getting JVM run environment of {}",
+      originId = originId
+    ) { ctx =>
+      val classpath = ctx.value.runClasspath.map(sanitizeUri)
+      val item = new JvmEnvironmentItem(
+        ctx.id,
+        classpath.asJava,
+        ctx.value.forkArgs.asJava,
+        ctx.value.forkWorkingDir.toString(),
+        ctx.value.forkEnv.asJava
+      )
+
+      val classes = ctx.value.mainClass.toList ++ ctx.value.localMainClasses
+      item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
+      item
+    } { (values, _) =>
+      agg(values)
+    }
+  }
+
+  override def buildTargetJvmCompileClasspath(params: JvmCompileClasspathParams)
+      : CompletableFuture[JvmCompileClasspathResult] =
+    handlerTasks(
+      targetIds = _ => params.getTargets.asScala,
+      tasks = {
+        case m: JavaModuleApi =>
+          m.bspCompileClasspath(sessionInfo.clientType.mergeResourcesIntoClasses)
+      },
+      requestDescription = "Getting JVM compile class path of {}",
+      originId = ""
+    ) { ctx =>
+      new JvmCompileClasspathItem(ctx.id, ctx.value(ctx.evaluator).asJava)
+    } { (values, _) =>
+      new JvmCompileClasspathResult(values)
+    }
+}

@@ -243,7 +243,7 @@ object TestGraphs {
   }
 
   object versionedCross extends TestRootModule {
-    object cross extends mill.Cross[Cross]("2.12.20", "2.13.15", "3.5.0")
+    object cross extends mill.Cross[Cross]("2.12.21", "2.13.18", "3.5.0")
     trait Cross extends Cross.Module[String] {
       def suffix = Task { crossValue }
     }
@@ -252,7 +252,7 @@ object TestGraphs {
 
   object versionedDoubleCross extends TestRootModule {
     val crossMatrix = for {
-      scalaVersion <- Seq("2.12.20", "2.13.15", "3.5.0")
+      scalaVersion <- Seq("2.12.21", "2.13.18", "3.5.0")
       platform <- Seq("jvm", "js", "native")
     } yield (scalaVersion, platform)
     object cross extends mill.Cross[Cross](crossMatrix)

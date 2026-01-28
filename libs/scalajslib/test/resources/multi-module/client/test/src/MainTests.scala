@@ -1,4 +1,4 @@
-import utest.*
+import utest._
 import shared.Utils
 
 object MainTests extends TestSuite {

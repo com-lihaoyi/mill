@@ -10,7 +10,7 @@ import mill.javalib.repackage.RepackageModule
 import mill.javalib.spring.boot.SpringBootToolsModule
 
 trait MyModule extends ScalaModule, PublishModule {
-  def scalaVersion = "3.7.3"
+  def scalaVersion = "3.8.1"
 
   def publishVersion = "0.0.1"
 
@@ -67,7 +67,7 @@ Bar.value: <p>world</p>
 Qux.value: 31337
 
 > unzip -l ./out/foo/repackagedJar.dest/out.jar "BOOT-INF/lib*" # mac/linux
-...BOOT-INF/lib/scala3-library_3-3.7.3.jar
+...BOOT-INF/lib/scala3-library_3-3.8.1.jar
 ...BOOT-INF/lib/thymeleaf-3.1.1.RELEASE.jar
 ...BOOT-INF/lib/ognl-3.3.4.jar
 ...BOOT-INF/lib/attoparser-2.0.6.RELEASE.jar

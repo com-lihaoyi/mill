@@ -1,0 +1,13 @@
+mill-build:
+  mvnDeps:
+  - com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION
+
+extends: mill.contrib.scoverage.ScoverageModule
+scoverageVersion: 2.1.0
+scalaVersion: 3.8.1
+mvnDeps:
+- com.lihaoyi::scalatags:0.13.1
+- com.lihaoyi::mainargs:0.7.8
+
+statementCoverageMin: 10.00
+branchCoverageMin: 90.00

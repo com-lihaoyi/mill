@@ -1,0 +1,20 @@
+//| mill-jvm-version: 19
+
+/** Usage
+
+> ./mill java -version
+openjdk version "19..." ...
+
+*/
+
+// Mill's managed JVMs are useful for three reasons:
+//
+// * It provides your project using `./mill` to have access to a JVM it can use, even if run in
+//   environments without a JVM installed
+//
+// * It provides a JVM with a fixed version regardless of where your project is being run, ensuring
+//   it behaves consistently without the problems that too-new or too-old versions may bring
+//
+// * It makes it super easy to try out different JVMs: just change the `mill-jvm-version`
+//   and you have a `java` installation you can use, with all downloading/caching/installation
+//   handled automatically

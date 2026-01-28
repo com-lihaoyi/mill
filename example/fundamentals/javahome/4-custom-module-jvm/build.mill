@@ -1,0 +1,88 @@
+// :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
+//
+// Configuring custom JVMs is done by setting the `jvmVersion`
+// of any `JavaModule`, `ScalaModule`, or `KotlinModule`. This can be done
+// declaratively via `package.mill.yaml` files:
+
+/** See Also: foo/package.mill.yaml */
+/** See Also: foo/test/package.mill.yaml */
+
+/** Usage
+
+> ./mill foo.run
+Foo running on Java 11.0.21
+
+> ./mill foo.test
+Testing with JVM version: 11.0.21
+Test foo.FooTest.testSimple finished...
+
+*/
+
+// Selecting a custom JVM via `jvmVersion` means that JVM is used for
+// compiling, testing, and running that module via Mill. Note that `.assembly` is not
+// affected, as JVM assembly jars do not bundle a JVM and have to be run using a
+// JVM installed on the target host machine.
+//
+// For any module `foo` with a custom `jvmVersion`, you can also access `java` and other commands
+// on the module's JVM via `foo.java`, `foo.javap`, etc. For example, can be useful if you want to
+// test a module's assembly jar using the same `java` version with which it was built:
+
+/** Usage
+
+> ./mill foo.java -version
+openjdk version "11..." ...
+
+> ./mill show foo.assembly
+".../out/foo/assembly.dest/out.jar"
+
+> ./mill foo.java -jar out/foo/assembly.dest/out.jar
+Foo running on Java 11.0.21
+
+*/
+
+//
+// === Selecting JVM Index Versions
+//
+// By default, Mill comes bundled with a version of the JVM index that was published when
+// each version of Mill is released. This ensures that the JVM versions you pick are stable,
+// but means that the latest JVM versions may not be available. You can pass in the JVM
+// index version explicitly via `jvmIndexVersion` below, choosing a published
+// index version from the Maven Central:
+//
+// * https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central]
+//
+// Or alternatively pass in `"latest.release"` to pick the latest JVM index available,
+// although that might mean the JVM version is no longer stable and might change over
+// time as new releases are published:
+
+/** See Also: bar/package.mill.yaml */
+
+/** Usage
+
+> ./mill bar.run
+Bar running on Java 23.0.1
+
+*/
+
+// === Explicit JVM Download URLs
+//
+// You can also pass in the JVM download URL explicitly. Note that if you do so, you need
+// to ensure yourself that you are downloading the appropriate JVM distribution for your
+// operating system and CPU architecture. In the example below we use a Linux/X64 URL,
+// but you may have additional cases if you need to support Mac, Windows or other
+// OS/CPU combinations
+
+/** See Also: qux/package.mill */
+
+/** Usage
+
+> ./mill qux.run
+Qux running on Java 22.0.2
+
+*/
+
+// === Locally-Installed JVMs
+//
+// Lastly, you can point Mill at any JVM distribution installed locally on disk via:
+
+/** See Also: baz/package.mill.yaml */

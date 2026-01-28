@@ -1,5 +1,5 @@
 mill-build:
   mvnDeps: [com.goyeau::mill-scalafix_mill1:0.6.0]
 extends: [ScalaModule, com.goyeau.mill.scalafix.ScalafixModule]
-scalaVersion: 3.7.2
+scalaVersion: 3.8.1
 scalacOptions: [-Wunused:all]

@@ -54,7 +54,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       val deps = configs.flatMap(_.getDependencies.asScala)
       val constraints = configs.flatMap(_.getDependencyConstraints.asScala)
       mainModule = mainModule.copy(
-        imports = "import mill.javalib.*" +: mainModule.imports,
+        imports = "mill.javalib.*" +: mainModule.imports,
         supertypes = "JavaModule" +: "BomModule" +: mainModule.supertypes,
         bomMvnDeps = deps.filter(isBom).collect(toMvnDep),
         depManagement = constraints.collect(toMvnDep),
@@ -78,7 +78,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       }
       val buildDir = os.Path(getLayout.getBuildDirectory.get().getAsFile)
       mainModule = mainModule.copy(
-        imports = "import mill.javalib.*" +: mainModule.imports,
+        imports = "mill.javalib.*" +: mainModule.imports,
         supertypes = "MavenModule" +: mainModule.supertypes,
         mvnDeps = mvnDeps("implementation", "api"),
         compileMvnDeps = mvnDeps("compileOnly", "compileOnlyApi"),
@@ -99,14 +99,13 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
         val testConstraints = testConfigs.flatMap(_.getDependencyConstraints.asScala)
         var testModule = ModuleSpec(
           name = "test",
-          supertypes = Seq("MavenTests"),
-          mixins = testMixin.toSeq,
+          supertypes = "MavenTests" +: testMixin.toSeq,
           forkArgs = task[Test]("test").fold(Nil) { task =>
             task.getSystemProperties.asScala.map {
               case (k, v) => Opt(s"-D$k=$v")
             }.toSeq ++ Opt.groups(task.getJvmArgs.asScala.toSeq)
           },
-          forkWorkingDir = Some(os.rel),
+          forkWorkingDir = Some("moduleDir"),
           mvnDeps = mvnDeps("testImplementation"),
           compileMvnDeps = mvnDeps("testCompileOnly"),
           runMvnDeps = mvnDeps("testRuntimeOnly"),
@@ -158,7 +157,7 @@ class BuildModelBuilder(ctx: GradleBuildCtx, objectFactory: ObjectFactory, works
       pom = Option(pub.getPom)
     } do {
       mainModule = mainModule.copy(
-        imports = "import mill.javalib.*" +: "import mill.javalib.publish.*" +: mainModule.imports,
+        imports = "mill.javalib.*" +: "mill.javalib.publish.*" +: mainModule.imports,
         supertypes = mainModule.supertypes :+ "PublishModule",
         artifactName = Option(pub.getArtifactId),
         pomPackagingType = pom.flatMap(toPomPackagingType),

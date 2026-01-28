@@ -13,7 +13,7 @@ package build
 import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "3.7.1"
+  def scalaVersion = "3.8.1"
   def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.7.8")
 
   def generatedSources: T[Seq[PathRef]] = Task {

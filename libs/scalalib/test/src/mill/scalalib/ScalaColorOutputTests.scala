@@ -32,7 +32,7 @@ object ScalaColorOutputTests extends TestSuite {
         errStream = new PrintStream(errStream, true)
       ).scoped { eval =>
         val Left(ExecResult.Failure(msg = "Compilation failed")) =
-          eval.apply(HelloWorldColorOutput.core.compile): @unchecked
+          eval.apply(HelloWorldColorOutput.core.compile).runtimeChecked
         val output = errStream.toString
         assert(output.contains(s"${Console.RED}!${Console.RESET}${Console.BLUE}I"))
         assert(output.contains(

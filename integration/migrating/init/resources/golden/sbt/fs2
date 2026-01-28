@@ -1143,7 +1143,6 @@ Module dependencies of unidocs.3_3_5:
     "org.openjdk.jmh:jmh-generator-reflection:1.37"
   ],
   "core.js.2_12_20.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -1157,7 +1156,6 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.js.2_13_16.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -1171,7 +1169,6 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.js.3_3_5.mvnDeps": [
-    "org.scodec::scodec-core::2.2.1",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -1185,7 +1182,6 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.jvm.2_12_20.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -1201,7 +1197,6 @@ Module dependencies of unidocs.3_3_5:
     "org.scalatestplus::testng-7-5:3.2.14.0"
   ],
   "core.jvm.2_13_16.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -1217,7 +1212,6 @@ Module dependencies of unidocs.3_3_5:
     "org.scalatestplus::testng-7-5:3.2.14.0"
   ],
   "core.jvm.3_3_5.mvnDeps": [
-    "org.scodec::scodec-core::2.2.1",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -1233,7 +1227,6 @@ Module dependencies of unidocs.3_3_5:
     "org.scalatestplus::testng-7-5:3.2.14.0"
   ],
   "core.native.2_12_20.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -1248,7 +1241,6 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.native.2_13_16.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -1263,7 +1255,6 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::scalacheck-effect-munit::2.0.0-M2"
   ],
   "core.native.3_3_5.mvnDeps": [
-    "org.scodec::scodec-core::2.2.1",
     "org.scodec::scodec-bits::1.1.38",
     "org.typelevel::cats-core::2.11.0",
     "org.typelevel::cats-effect::3.6.0"
@@ -1290,57 +1281,48 @@ Module dependencies of unidocs.3_3_5:
     "org.typelevel::munit-cats-effect::2.0.0"
   ],
   "io.js.2_12_20.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.js.2_12_20.test.mvnDeps": [],
   "io.js.2_13_16.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.js.2_13_16.test.mvnDeps": [],
   "io.js.3_3_5.mvnDeps": [
-    "org.scodec::scodec-core::2.2.1",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.js.3_3_5.test.mvnDeps": [],
   "io.jvm.2_12_20.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.jvm.2_12_20.test.mvnDeps": [
     "com.google.jimfs:jimfs:1.3.0"
   ],
   "io.jvm.2_13_16.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.jvm.2_13_16.test.mvnDeps": [
     "com.google.jimfs:jimfs:1.3.0"
   ],
   "io.jvm.3_3_5.mvnDeps": [
-    "org.scodec::scodec-core::2.2.1",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.jvm.3_3_5.test.mvnDeps": [
     "com.google.jimfs:jimfs:1.3.0"
   ],
   "io.native.2_12_20.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.native.2_12_20.test.mvnDeps": [
     "org.scala-native::test-interface::0.4.17"
   ],
   "io.native.2_13_16.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.native.2_13_16.test.mvnDeps": [
     "org.scala-native::test-interface::0.4.17"
   ],
   "io.native.3_3_5.mvnDeps": [
-    "org.scodec::scodec-core::2.2.1",
     "com.comcast::ip4s-core::3.6.0"
   ],
   "io.native.3_3_5.test.mvnDeps": [
@@ -1355,45 +1337,27 @@ Module dependencies of unidocs.3_3_5:
   "mdoc.3_3_5.mvnDeps": [
     "org.scalameta::mdoc:2.6.2"
   ],
-  "protocols.js.2_12_20.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10"
-  ],
+  "protocols.js.2_12_20.mvnDeps": [],
   "protocols.js.2_12_20.test.mvnDeps": [],
-  "protocols.js.2_13_16.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10"
-  ],
+  "protocols.js.2_13_16.mvnDeps": [],
   "protocols.js.2_13_16.test.mvnDeps": [],
-  "protocols.js.3_3_5.mvnDeps": [
-    "org.scodec::scodec-core::2.2.1"
-  ],
+  "protocols.js.3_3_5.mvnDeps": [],
   "protocols.js.3_3_5.test.mvnDeps": [],
-  "protocols.jvm.2_12_20.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10"
-  ],
+  "protocols.jvm.2_12_20.mvnDeps": [],
   "protocols.jvm.2_12_20.test.mvnDeps": [],
-  "protocols.jvm.2_13_16.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10"
-  ],
+  "protocols.jvm.2_13_16.mvnDeps": [],
   "protocols.jvm.2_13_16.test.mvnDeps": [],
-  "protocols.jvm.3_3_5.mvnDeps": [
-    "org.scodec::scodec-core::2.2.1"
-  ],
+  "protocols.jvm.3_3_5.mvnDeps": [],
   "protocols.jvm.3_3_5.test.mvnDeps": [],
-  "protocols.native.2_12_20.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10"
-  ],
+  "protocols.native.2_12_20.mvnDeps": [],
   "protocols.native.2_12_20.test.mvnDeps": [
     "org.scala-native::test-interface::0.4.17"
   ],
-  "protocols.native.2_13_16.mvnDeps": [
-    "org.scodec::scodec-core::1.11.10"
-  ],
+  "protocols.native.2_13_16.mvnDeps": [],
   "protocols.native.2_13_16.test.mvnDeps": [
     "org.scala-native::test-interface::0.4.17"
   ],
-  "protocols.native.3_3_5.mvnDeps": [
-    "org.scodec::scodec-core::2.2.1"
-  ],
+  "protocols.native.3_3_5.mvnDeps": [],
   "protocols.native.3_3_5.test.mvnDeps": [
     "org.scala-native::test-interface::0.4.17"
   ],

@@ -1,6 +1,7 @@
 package mill.rpc
 
 import mill.api.daemon.Logger
+import mill.api.daemon.StopWithResponse
 import pprint.TPrint
 import upickle.{Reader, Writer}
 
@@ -69,6 +70,10 @@ trait MillRpcServer[
     val result =
       try Right(run())
       catch {
+        case e: StopWithResponse[Response @unchecked] =>
+          // Send the response, then stop the RPC loop
+          sendToClient(MillRpcServerToClient.Response(Right(e.response)))
+          return false
         case _: InterruptedException => return false
         case NonFatal(e) => Left(RpcThrowable(e))
       }

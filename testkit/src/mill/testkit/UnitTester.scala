@@ -8,6 +8,7 @@ import mill.constants.OutFiles.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
 import mill.internal.JsonArrayLogger
+import mill.launcher.DaemonRpc
 
 import java.io.InputStream
 import java.io.PrintStream
@@ -91,10 +92,12 @@ class UnitTester(
         infoColor = mill.internal.Colors.Default.info,
         warnColor = mill.internal.Colors.Default.warn,
         errorColor = mill.internal.Colors.Default.error,
+        successColor = mill.internal.Colors.Default.success,
+        highlightColor = mill.internal.Colors.Default.highlight,
         systemStreams0 = new SystemStreams(out = outStream, err = errStream, in = inStream),
         debugEnabled = debugEnabled,
         titleText = "",
-        terminfoPath = os.temp(),
+        terminalDimsCallback = () => None,
         currentTimeMillis = () => System.currentTimeMillis(),
         chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {
@@ -137,7 +140,10 @@ class UnitTester(
     offline = offline,
     useFileLocks = false,
     enableTicker = false,
-    staticBuildOverrideFiles = Map()
+    staticBuildOverrideFiles = Map(),
+    depth = 0,
+    isFinalDepth = true,
+    spanningInvalidationTree = None
   )
 
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
@@ -224,13 +230,17 @@ class UnitTester(
   def scoped[T](tester: UnitTester => T): T = {
     try {
       BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
-        tester(this)
+        mill.api.daemon.LauncherSubprocess.withValue(config =>
+          DaemonRpc.defaultRunSubprocess(DaemonRpc.ServerToClient.RunSubprocess(config)).exitCode
+        ) {
+          tester(this)
+        }
       }
     } finally close()
   }
 
   def closeWithoutCheckingLeaks(): Unit = {
-    for (case (_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
+    for (case (_, Val(obsolete: AutoCloseable), _) <- evaluator.workerCache.values) {
       obsolete.close()
     }
     evaluator.close()

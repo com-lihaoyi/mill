@@ -9,111 +9,21 @@ endif::[]
 :link-milestone: {link-github}/milestone
 // find-replace-regex: https://github.com/com-lihaoyi/mill/pull/(\d*) -> {link-pr}/$1[#$1]
 
+
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
-[#1-1-0-RC3]
-=== 1.1.0-RC3
-:version: 1.1.0-RC3
-:milestone-name: 1.1.0-RC3
-:milestone: 135
-:prev-version: 1.1.0-RC2
-_2025-12-03_
-
-_Changes since {prev-version}:_
-
-* Support `FORCE_COLOR` environment variable {link-pr}/6300[#6300]. This can be configured in your CI 
-  system (e.g. Github Actions) to make Mill produced colored output logs for more comfortable viewing
-
-* Improve lifecycle management and stability of `ZincWorkerMain` subprocesses to try and fix
-  crashes and instability {link-pr}/6295[#6295]
-
-* Overhaul of the `Result.Failure` data type ({link-pr}/6278[#6278], {link-pr}/6279[#6279],
-  {link-pr}/6284[#6284]). Rather than being a thin wrapper around `String`, `Result.Failure`
-  now models a linked list of ``error: String``s along with optional file-position and stack-trace
-  metadata for any error, with a new `.zip` method that aggregates errors and aggregating errors
-  in `Result.sequence` and `Result.traverse`. This allows us to improve the command-line formatting
-  for structured errors while being backwards compatible with existing code that will just use the
-  `error: String` and ignoring the other metadata
-
-* Many improvements to the error reporting of YAML errors in `build.mill.yaml`/`package.mill.yaml`
-  files and `//|` build headers {link-pr}/6234[#6234] {link-pr}/6248[#6248] {link-pr}/6273[#6273] {link-pr}/6275[#6275]
-
-* Report error if build header comment conflicts with task defined in `mill-build/build.mill`
-  {link-pr}/6271[#6271]
-
-* Allow `console`/`--repl` to take arguments from the command line {link-pr}/6269[#6269]
-
-* Make unsuccessful tasks always run the subsequent time when --watch is active {link-pr}/6263[#6263]
-
-* Fix deadlock in logging infrastructure caused by locking on wrong stream. {link-pr}/6255[#6255]
-
-* Add TestModule#testArgsDefault {link-pr}/6252[#6252]
-
-* Use Scala 3.8.0-RC2 for build files {link-pr}/6242[#6242] {link-pr}/6268[#6268]
-
-* Many formatting and stability improvements for the terminal logging {link-pr}/6223[#6223]
-  {link-pr}/6235[#6235] {link-pr}/6241[#6241]
-
-* Add PublishCredentialsModule, MavenPublish and MavenPublishModule {link-pr}/6231[#6231]
-
-* Make `run` commands exclusive {link-pr}/6220[#6220]
-
-* Support for generating Software Bill Of Materials (SBOM) {link-pr}/4757[#4757]
-
-* Improvements to Android build support {link-pr}/6219[#6219] {link-pr}/6233[#6233]
-
-* Improvements to Spring-Boot support {link-pr}/6208[#6208]
-
-* Add `MILL_BSP_OUTPUT_DIR` env var and rework defaults {link-pr}/6262[#6262]
-
-
-[#1-1-0-RC2]
-=== 1.1.0-RC2
-:version: 1.1.0-RC2
-:milestone-name: 1.1.0-RC2
-:milestone: 134
-:prev-version: 1.1.0-RC1
-_2025-11-17_
-
-_Changes since {prev-version}:_
-
-* Improvements to example `.zip` file downloads to make them more user-friendly {link-pr}/6122[#6122]
-* Improvements and cleanup of Mill bootstrap scripts {link-pr}/6117[#6117]
-* Fix Junit5 test discovery when using custom JVM version {link-pr}/6127[#6127]
-* Improve performance of test discovery and test initialization when using custom JVM
-  versions by running this logic in ZincWorker rather than spawning a subprocess {link-pr}/6125[#6125]
-* Improve handling of cancellation daemon shutdown in the presence of multiple connected launchers {link-pr}/6136[#6136]
-* `millBinPlatform` should be `1` for `1.1.0-RCx` {link-pr}/6134[#6134]
-* Overhaul of `.mill.yaml` and `//|` builder header handling, reducing recompilation latencies
-  and improving error messages {link-pr}/6155[#6155] {link-pr}/6170[#6170]
-* Make selective execution trigger on changes to build overrides {link-pr}/6158[#6158]
-* Shift the responsibility of setting up annotation processors from the
-  user (via javacOptions) to mill (via a new annotationProcessor API) {link-pr}/6168[#6168]
-* Improvements to Mill Spring-Boot docs and examples {link-pr}/6181[#6181] {link-pr}/6099[#6099]
-* Greatly reduced verbosity of command line logging to make errors easier to skim and understand
-  {link-pr}/6186[#6186] {link-pr}/6187[#6187]
-* More aggressively skip files when discovering scripts for BSP import {link-pr}/6194[#6194]
-
-
-[#1-1-0-RC1]
-=== 1.1.0-RC1
-:version: 1.1.0-RC1
-:milestone-name: 1.1.0-RC1
-:milestone: 133
+[#1-1-0]
+=== 1.1.0
+:version: 1.1.0
+:milestone-name: 1.1.0
+:milestone: 139
 :prev-version: 1.0.6
-_2025-11-04_
-
-* https://github.com/com-lihaoyi/mill/discussions/6116[1.1.0-RC1 Discussion Thread]
+_2026-01-27_
 
 _Changes since {prev-version}:_
 
-`1.1.0-RC1` is the first release candidate of the upcoming `1.1.0` release, due December 2025.
-`1.1.0` contains locally-breaking changes but preserves plugin compatibility: you may need to update
-your local builds to be compatible, but existing plugins published for 1.x can continue to be
-used unchanged. `1.1.0-RC1` is intended to give users a chance to try out the new Mill features,
-so any issues can be surfaced and resolved before being stabilized in Mill `1.1.0` final.
 
 The big feature of Mill `1.1.0` is support for declarative modules defined in `build.mill.yaml`
 files and single-file `.java`, `.scala`, or `.kt` scripts with a YAML build header. These
@@ -121,17 +31,23 @@ are compatible with existing `.mill` module definitions, and are intended for si
 or modules that do not need the flexibility of a full programming language to configure their
 build.
 
+`1.1.0` contains locally-breaking changes but preserves plugin compatibility: you may need to update
+your local builds to be compatible, but existing plugins published for 1.x can continue to be
+used unchanged. This section aggregates the changes from `1.1.0-RC1` to `1.1.0-RC4`, which are
+no longer documented individually now that the final `1.1.0` release is out.
+
 ==== Declarative Module Definitions
 
-For example, you can define a simple `JavaModule` an it's test submodule via:
+In Mill 1.1.0, you can define a simple `JavaModule` an it's test submodule via a declarative
+`build.mill.yaml`/`package.mill.yaml` syntax:
 
 .`build.mill.yaml`
 [,yaml]
 ----
 extends: JavaModule
 mvnDeps:
-- "net.sourceforge.argparse4j:argparse4j:0.9.0"
-- "org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+- net.sourceforge.argparse4j:argparse4j:0.9.0
+- org.thymeleaf:thymeleaf:3.1.1.RELEASE
 ----
 
 .`test/package.mill.yaml`
@@ -139,7 +55,7 @@ mvnDeps:
 ----
 extends: [build.JavaTests, mill.javalib.TestModule.Junit4]
 mvnDeps:
-- "com.google.guava:guava:33.3.0-jre"
+- com.google.guava:guava:33.3.0-jre
 ----
 
 This is equivalent to Mill's existing `object foo extends JavaModule{ def mvnDeps = ... }` syntax.
@@ -148,14 +64,15 @@ All the normal Mill commands still apply: `./mill compile`, `./mill test`, `./mi
 We expect that declarative `build.mill.yaml` files will help simplify the use of Mill for
 small projects, where the user typically just needs to set some config keys and doesn't need
 custom tasks or custom build logic that programmable module definitions allow. See the docs
-for https://mill-build.org/mill/main-branch/javalib/config.html[Declarative Java Modules]
+for https://mill-build.org/mill/main-branch/javalib/config.html[Declarative Java Modules] or
+https://mill-build.org/mill/main-branch/scalalib/config.html[Declarative Scala Modules]
 for more information.
 
 ==== Single-File Scripts
 
 Single-file script modules allow you to write simple programs in a single file with a `//|`
 build header comment specifying its configuration. These are useful in scenarios where a separate
-build complexity is overkill: student projects, small experiments, prototypes, or command-line
+build file is overkill: student projects, small experiments, prototypes, or command-line
 scripts to replace the Bash and Python scripts common throughout the ecosystem.
 
 For example, a single-file script to spawn a simple
@@ -248,34 +165,205 @@ for more information
 
 * Cut down the number of Mill file suffixes to just `.mill`, and `.mill.yaml` ({link-pr}/6016[#6016])
 ** This means `.sc` and `.mill.scala` will no longer be recognized as build files. Please rename
-   any build files using those suffixes to `.mill` instead
+any build files using those suffixes to `.mill` instead
 
-* Avoid using system java unless explicitly specified, instead use latest LTS Java version unless
-  explicitly overridden with `system` ({link-pr}/6005[#6005]). This is intended to improve the
-  reproduce-ability of Mill projects built across different environments.
+* Mill no longer uses system java unless explicitly specified, instead using latest LTS Java
+version unless explicitly overridden with `system` ({link-pr}/6005[#6005]).
+This is intended to improve the reproduce-ability of Mill projects built across different
+environments.
 ** Mill instead uses a fixed default version `zulu:21` when no `mill-jvm-version` is specified.
-   Please set an explicit `//| mill-jvm-version:` in your build header to specify the version
-   you need, or revert to the old default of using the environmental `java` installation
-   via `//| mill-jvm-version: system`
+Please set an explicit `//| mill-jvm-version:` in your build header to specify the version
+you need, or revert to the old default of using the environmental `java` installation
+via `//| mill-jvm-version: system`
+
+* `ScalaModule#repl` now is an alias for `ScalaModule#console`, and runs the default Scala
+  REPL instead of Ammonite. Set `def ammoniteRepl = true` to opt-in to making it run Ammonite
+  {link-pr}/6455[#6455]
+
+==== Notable Features
+
+* Interactive commands like `./mill foo.repl` or `./mill foo.jshell` no longer require the
+  `-i`/`--interactive`/`--no-daemon` flag to be passed ({link-pr}/6602[#6602]),
+  via the `Jvm.runInteractiveCommand`/`callInteractiveProcess` APIs
+
+* Add builtin support for `jshell` command on ``JavaModule``s to open
+a Java REPL ({link-pr}/5984[#5984])
+
+* `./mill repl` and `./mill jshell` in a folder without a build defined can be used to
+  open a Scala REPL or JShell console not connected to any specific module
+
+* Add `mill-jvm-index-version` to build header keys ({link-pr}/6085[#6085])
+
+* Provide `./mill java`, `./mill javac`, etc. builtin commands to streamline using Mill as the
+sole source of a Java installation {link-pr}/6493[#6493]
+
+* Add `./mill updateMillScripts` builtin command to easily update your `./mill` and `./mill.bat`
+bootstrap scripts to a specified version {link-pr}/6492[#6492]
+
+* Add `resolvedMvnSources` task to simplify downloading a module's dependencies' source jars
+and unpacking them, for browsing by humans and LLMs {link-pr}/6537[#6537]
+
+* Allow users to specify `.super` when invoking tasks from the command line {link-pr}/6482[#6482]
+
+* Add a `.bsp/out/mill-chrome-profile.json` file for Mill's BSP server, making it easier to
+investigate where Mill's IDE import and integration is spending its time {link-pr}/6508[#6508]
+
+* Support `FORCE_COLOR` environment variable {link-pr}/6300[#6300]. This can be configured in your CI
+system (e.g. Github Actions) to make Mill produced colored output logs for more comfortable viewing
+
+* Overhaul of the `Result.Failure` data type ({link-pr}/6278[#6278], {link-pr}/6279[#6279],
+{link-pr}/6284[#6284]). Rather than being a thin wrapper around `String`, `Result.Failure`
+now models a linked list of ``error: String``s along with optional file-position and stack-trace
+metadata for any error, with a new `.zip` method that aggregates errors and aggregating errors
+in `Result.sequence` and `Result.traverse`. This allows us to improve the command-line formatting
+for structured errors while being backwards compatible with existing code that will just use the
+`error: String` and ignoring the other metadata
+
+* Cross module command-line syntax has been changed from `foo[js,2.12.20].bar` to
+`foo.js.2_12_20.bar`, with dot-separated labels and any dots within cross values substituted
+by ``_``s. The old syntax continues to be supported for backwards compatibility {link-pr}/6376[#6376]
+
 
 ==== Other Changes
 
-* Add builtin support for `jshell` command on ``JavaModule``s and `./mill --jshell` flag to open
-  a Java REPL ({link-pr}/5984[#5984])
-* Re-enable `./mill --repl` to open a Scala REPL not connected to any specific module ({link-pr}/5983[#5983])
-* Add `mill-jvm-index-version` to build header keys ({link-pr}/6085[#6085])
+* Updated `build.mill` files to use to Scala 3.8.1 final {link-pr}/6654[#6654]
+
+* Improvements to selective test execution and cache invalidation {link-pr}/6650[#6650],
+and `selective.resolveTree`/`mill-invalidation-tree.json` reporting {link-pr}/6616[#6616]
+
+* Tasks such as `./mill version`, `shutdown`, etc. that do not depend on the build files being compiled
+are now annotated `@nonBootstrapped` to let them run without the Mill bootstrap process completing
+{link-pr}/6593[#6593],
+
+* Rename `def jvmId` to `def jvmVersion` {link-pr}/6493[#6493]
+
 * Allow users to disable some modules in BSP via `def enableBsp = false` ({link-pr}/6065[#6065])
+
 * Fix Scala Native link logs in server-client mode ({link-pr}/6053[#6053])
+
 * Add proper error message when circular task dependency is detected ({link-pr}/6044[#6044])
-* Many improvements to `./mill init` build importer ({link-pr}/5428[#5428])
-* Repair CLI option --help-advanced ({link-pr}/5993[#5993])
+
+* Fix CLI option `--help-advanced` ({link-pr}/5993[#5993])
+
 * Support for HTTP Proxy settings in the Coursier dependency downloader ({link-pr}/5971[#5971])
+
 * Start of a dedicated documentation page and examples for using Mill to build
-  Spring-Boot projects (https://mill-build.org/mill/main-branch/javalib/springboot-examples.html[link]).
-  This is currently pretty bare, but will get fleshed out as we move towards `1.1.0` final
-* Many improvements to Mill's Android build support ({link-pr}/5887[#5887], {link-pr}/5888[#5888],
-  {link-pr}/5926[#5926], {link-pr}/5963[#5963], {link-pr}/5997[#5997], {link-pr}/5980[#5980],
-  {link-pr}/6063[#6063], {link-pr}/6073[#6073])
+Spring-Boot projects (https://mill-build.org/mill/main-branch/javalib/springboot-examples.html[link]).
+This is currently pretty bare, but will get fleshed out as we move towards `1.1.0` final
+
+
+* Ensure changes in `mill-version` or `mill-jvm-version` trigger selective execution
+  for all tasks {link-pr}/6582[#6582]
+
+* Fix "Can't clean external worker" {link-pr}/6559[#6559]
+
+* Support selecting the deepest meta-build with `--meta-build -1` {link-pr}/6516[#6516]
+
+* Add ability to run `./mill path` between queries resolving multiple `src` and `dest` tasks
+  {link-pr}/6512[#6512]
+
+* Make client-server lock use atomic file creation rather than native file locks {link-pr}/6472[#6472]
+
+* Build Mill's Graal native image launchers in compatibility mode {link-pr}/6491[#6491]
+
+* Make `mill.scalalib.scalafmt.ScalafmtModule/` default to `/scalafmt` {link-pr}/6478[#6478]
+
+* Fix `bspClean` {link-pr}/6477[#6477]
+
+* Disable `finishProjectCompilation` to resolve intermittent crashes in Kotlin compilation
+  {link-pr}/6476[#6476]
+
+* Silence spurious warnings on newer JDK versions {link-pr}/6475[#6475]
+
+* Support proguard for Java modules {link-pr}/6473[#6473]
+
+* `./mill init` now generates declarative `.mill.yaml` files for Maven and Gradle import
+  by default  {link-pr}/6441[#6441]
+
+* Integrate Kotlin incremental compilation {link-pr}/6360[#6360]
+
+* Syntax-highlight Java compilation errors {link-pr}/6354[#6354]
+
+* Improvements to `ZincWorkerMain` compile-worker stability when using custom `def jvmId`
+  {link-pr}/6348[#6348] {link-pr}/6349[#6349]
+
+* Improvements to GraalVM Native Image support {link-pr}/6315[#6315] {link-pr}/6547[#6547] {link-pr}/6315[#6315]
+
+* Ensure `must be defs defined in a Module class/trait/object body` error happens reliably
+  for commands {link-pr}/6336[#6336]
+
+* Lock around info, warn, error, debug logs to avoid interleaving {link-pr}/6321[#6321]
+
+* Add a new task type `Task.Uncached` {link-pr}/6436[#6436]
+* Allow un-prefixed dependencies in `--import` {link-pr}/6461[#6461]
+
+* Improve lifecycle management and stability of `ZincWorkerMain` subprocesses to try and fix
+  crashes and instability {link-pr}/6295[#6295]
+
+* Report error if build header comment conflicts with task defined in `mill-build/build.mill`
+  {link-pr}/6271[#6271]
+
+* Allow `console`/`--repl` to take arguments from the command line {link-pr}/6269[#6269]
+
+* Make unsuccessful tasks always run the subsequent time when `--watch` is active {link-pr}/6263[#6263]
+
+* Fix deadlock in logging infrastructure caused by locking on wrong stream. {link-pr}/6255[#6255]
+
+* Add `TestModule#testArgsDefault` {link-pr}/6252[#6252]
+
+* Many formatting and stability improvements for the terminal logging {link-pr}/6223[#6223]
+  {link-pr}/6235[#6235] {link-pr}/6241[#6241]
+
+* Add PublishCredentialsModule, MavenPublish and MavenPublishModule {link-pr}/6231[#6231]
+
+* Make `run` commands exclusive {link-pr}/6220[#6220]
+
+* Support for generating Software Bill Of Materials (SBOM) {link-pr}/4757[#4757]
+
+* Improvements to Android build support {link-pr}/6219[#6219] {link-pr}/6233[#6233]
+
+* Improvements to Spring-Boot support {link-pr}/6208[#6208]
+
+* Add `MILL_BSP_OUTPUT_DIR` env var and rework defaults {link-pr}/6262[#6262]
+
+* Improvements to example `.zip` file downloads to make them more user-friendly {link-pr}/6122[#6122]
+
+* Improvements and cleanup of Mill bootstrap scripts {link-pr}/6117[#6117]
+
+* Fix Junit5 test discovery when using custom JVM version {link-pr}/6127[#6127]
+
+* Improve performance of test discovery and test initialization when using custom JVM
+  versions by running this logic in ZincWorker rather than spawning a subprocess {link-pr}/6125[#6125]
+
+* Improve handling of cancellation daemon shutdown in the presence of multiple connected launchers {link-pr}/6136[#6136]
+
+* `millBinPlatform` should be `1` for `1.1.0-RCx` {link-pr}/6134[#6134]
+
+* Overhaul of `.mill.yaml` and `//|` builder header handling, reducing recompilation latencies
+  and improving error messages {link-pr}/6155[#6155] {link-pr}/6170[#6170]
+
+* Make selective execution trigger on changes to build overrides {link-pr}/6158[#6158]
+
+* Shift the responsibility of setting up annotation processors from the
+  user (via javacOptions) to mill (via a new annotationProcessor API) {link-pr}/6168[#6168]
+
+* Improvements to Mill Spring-Boot docs and examples {link-pr}/6181[#6181] {link-pr}/6099[#6099]
+
+* Greatly reduced verbosity of command line logging to make errors easier to skim and understand
+  {link-pr}/6186[#6186] {link-pr}/6187[#6187]
+
+* More aggressively skip files when discovering scripts for BSP import {link-pr}/6194[#6194]
+
+* Improvements to `./mill init` {link-pr}/6658[#6658]{link-pr}/6566[#6566] {link-pr}/6567[#6567] {link-pr}/6434[#6434] {link-pr}/5428[#5428]
+
+* Many improvements to Mill's Android build support {link-pr}/6527[#6527] {link-pr}/6551[#6551] {link-pr}/5887[#5887], {link-pr}/5888[#5888],
+{link-pr}/5926[#5926], {link-pr}/5963[#5963], {link-pr}/5997[#5997], {link-pr}/5980[#5980],
+{link-pr}/6063[#6063], {link-pr}/6073[#6073]
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 [#1-0-6]
 === 1.0.6
@@ -1265,20 +1353,20 @@ is being selected and run.
 (https://mill-build.org/mill/main-branch/javalib/dependencies.html#_dependency_management[Documentation])
 
 * Built-in support for `mill.bat` launcher to run Mill natively on a Windows environment
-https://github.com/com-lihaoyi/mill/pull/4052[#4052]
+{link-pr}/4052[#4052]
 
 * Added documentation for https://mill-build.org/mill/migrating/migrating.html[Migrating to Mill],
 to try and help people who may be trying to move their existing codebase onto Mill from other build tools
 
-* Significant speedups for task resolution logic https://github.com/com-lihaoyi/mill/pull/4132[#4132],
+* Significant speedups for task resolution logic {link-pr}/4132[#4132],
 which should speed up cached-build workflows in particular
 
 * Improve precision of code signature task invalidation, reducing the amount of spurious
-task invalidations in the presence of multi-file builds https://github.com/com-lihaoyi/mill/pull/4113[#4113]
-https://github.com/com-lihaoyi/mill/pull/4116[#4116]
+task invalidations in the presence of multi-file builds {link-pr}/4113[#4113]
+{link-pr}/4116[#4116]
 
-* Reduced overhead of terminal prompt UI https://github.com/com-lihaoyi/mill/pull/4095[#4095]
-https://github.com/com-lihaoyi/mill/pull/4110[#4110]
+* Reduced overhead of terminal prompt UI {link-pr}/4095[#4095]
+{link-pr}/4110[#4110]
 
 * Launch of the https://mill-build.org/blog[Mill Build Engineering Blog], where we will post articles
 discussing topics around JVM build tooling
@@ -1309,10 +1397,10 @@ _Changes since {prev-version}:_
 * Make JVM version configurable per-module {link-pr}/3716[#3716]
 * Overhaul worker concurrency helpers with `mill.api.CacheFactory` {link-pr}/4001[#4001]
 * Optimize startup time using TCP sockets instead of junixsocket and `tput` instead of jline {link-pr}/4009[#4009]
-* Improvements to TUI build prompt https://github.com/com-lihaoyi/mill/pull/3933[#3933] https://github.com/com-lihaoyi/mill/pull/4014[#4014]
-* Lots of improvements to documentation, including a new https://github.com/com-lihaoyi/mill/pull/3965[Kotlin Spring-Boot Example #3965],
-a new page https://github.com/com-lihaoyi/mill/pull/3990[How Fast Does Java Compile? #3990], and
-https://github.com/com-lihaoyi/mill/pull/3938[Stable Links To Older Doc-site Versions #3938]
+* Improvements to TUI build prompt {link-pr}/3933[#3933] {link-pr}/4014[#4014]
+* Lots of improvements to documentation, including a new {link-pr}/3965[Kotlin Spring-Boot Example #3965],
+a new page {link-pr}/3990[How Fast Does Java Compile? #3990], and
+{link-pr}/3938[Stable Links To Older Doc-site Versions #3938]
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
@@ -1343,11 +1431,11 @@ _Changes since {prev-version}:_
 * Improve `inspect` command to show more detailed metadata on modules and tasks {link-pr}/3916[#3916]
 * Fix prompt updating logic to ensure the timestamp updates while tasks are running {link-pr}/3933[#3933]
 * Fix scoverage report generation for Scala 3 {link-pr}/3936[#3936]
-* Tons of documentation improvements: autoformatted all https://github.com/com-lihaoyi/mill/pull/3919[Java]
-and https://github.com/com-lihaoyi/mill/pull/3903[Scala] example files,
-[Scala-Native example builds]https://github.com/com-lihaoyi/mill/pull/3657,
-https://github.com/com-lihaoyi/mill/pull/3897[Scala-JS WASM example build],
-https://github.com/com-lihaoyi/mill/pull/3918[Re-run Maven comparison using proper flags]
+* Tons of documentation improvements: autoformatted all {link-pr}/3919[Java]
+and {link-pr}/3903[Scala] example files,
+[Scala-Native example builds]{link-pr}/3657,
+{link-pr}/3897[Scala-JS WASM example build],
+{link-pr}/3918[Re-run Maven comparison using proper flags]
 added `Why Use Mill?` and
 https://mill-build.org/mill/comparisons/unique.html[What Makes Mill Unique?] Sections
 

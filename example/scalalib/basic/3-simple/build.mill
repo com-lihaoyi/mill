@@ -157,21 +157,13 @@ compiling 1 Scala source to...
 //
 // [source,console]
 // ----
-// > ./mill -i console    # start a Scala console within your project
-// > ./mill -i test.repl
+// > ./mill repl    # start a Scala REPL within your project
+// > ./mill test.repl
 //
-// > ./mill -i repl       # start an Ammonite Scala REPL within your project
 // ----
 //
-// You can also start a standalone Scala REPL with the
-// xref:fundamentals/bundled-libraries.adoc[Bundled Libraries]
-// included via `./mill --repl`. This is useful if you just need a Scala REPL to experiment
-// with at the command line without being attached to a particular project or module.
-//
-// [source,console]
-// ----
-// > ./mill --repl
-// ----
+// You can also start a standalone Scala REPL via `./mill repl` from any directory,
+// even without a `build.mill` file present.
 //
 //// SNIPPET:END
 //

@@ -43,7 +43,7 @@ public class OutFiles {
      * Default hard-coded value for the Mill `out/` folder path in BSP server mode.
      * To get the effective out dir, use {@link #outFor}.
      */
-    public final String defaultBspOut = ".bsp/mill-bsp-out";
+    public final String defaultBspOut = ".bsp/out";
 
     /**
      * Effective path of the Mill `out/` folder.
@@ -73,6 +73,16 @@ public class OutFiles {
           throw new IllegalArgumentException("Unknown out folder mode: " + outMode);
       }
     }
+
+    /**
+     * Location of the BSP server output logfile, relative to [[bspOut]].
+     */
+    public final String bspOutLog = "mill-bsp/out.log";
+
+    /**
+     * Location of the BSP server error output logfile, relative to [[bspOut]].
+     */
+    public final String bspErrLog = "mill-bsp/err.log";
 
     /**
      * Path of the Mill "meta-build", used to compile the `build.sc` file so we can
@@ -118,9 +128,9 @@ public class OutFiles {
     public final String millOutLock = "mill-out-lock";
 
     /**
-     * Any active Mill command that is currently run, for debugging purposes
+     * JSON file containing info about the active Mill process (command and process directory)
      */
-    public final String millActiveCommand = "mill-active-command";
+    public final String millActive = "mill-active.json";
 
     /**
      * File used to store metadata related to selective execution, mostly
@@ -167,6 +177,7 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millRunnerState = OutFiles.millRunnerState;
+
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millDaemon = OutFiles.millDaemon;
@@ -178,7 +189,10 @@ public class OutFiles {
   public static final String millOutLock = OutFiles.millOutLock;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
-  public static final String millActiveCommand = OutFiles.millActiveCommand;
+  public static final String millActive = OutFiles.millActive;
+  /** @deprecated Use millActive instead */
+  @Deprecated
+  public static final String millActiveCommand = OutFiles.millActive;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millSelectiveExecution = OutFiles.millSelectiveExecution;

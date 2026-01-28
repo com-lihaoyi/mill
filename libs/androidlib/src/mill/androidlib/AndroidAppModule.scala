@@ -103,12 +103,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Specifies the lint configuration XML file path. This allows setting custom lint rules or modifying existing ones.
    */
-  def androidLintConfigPath: T[Option[PathRef]] = Task { None }
+  def androidLintConfigPath: T[Option[PathRef]] = Task { Option.empty[PathRef] }
 
   /**
    * Specifies the lint baseline XML file path. This allows using a baseline to suppress known lint warnings.
    */
-  def androidLintBaselinePath: T[Option[PathRef]] = Task { None }
+  def androidLintBaselinePath: T[Option[PathRef]] = Task { Option.empty[PathRef] }
 
   /**
    * Determines whether the build should fail if Android Lint detects any issues.
@@ -528,13 +528,30 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Autodetects the architecture of the image for the [[androidVirtualDevice]]
+   *
+   * Available architectures are x86_64 and arm64-v8a
+   *
+   * For more information, see [[https://developer.android.com/studio/run/emulator-acceleration#vm-accel-dev-env-reqs]]
+   */
+  def androidVirtualDeviceArchitecture: T[String] = Task {
+    System.getProperty("os.arch") match {
+      case "aarch64" | "arm64" => "arm64-v8a"
+      case "x86_64" | "amd64" => "x86_64"
+      case other =>
+        Task.log.warn(s"Unknown host architecture '$other', defaulting to x86_64")
+        "x86_64"
+    }
+  }
+
+  /**
    * Specifies the default configuration for the Android Virtual Device (AVD).
    */
   def androidVirtualDevice: T[AndroidVirtualDevice] = Task {
     AndroidVirtualDevice(
       deviceId = "medium_phone",
       apiVersion = androidSdkModule().platformsVersion(),
-      architecture = "x86_64",
+      architecture = androidVirtualDeviceArchitecture(),
       systemImageSource = "google_apis_playstore"
     )
   }
@@ -543,14 +560,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * Installs the android system image specified in [[androidVirtualDevice]]
    * using sdkmanager . E.g. "system-images;android-35;google_apis_playstore;x86_64"
    */
-  def sdkInstallSystemImage(): Command[String] = Task.Command {
+  def sdkInstallSystemImage: T[String] = Task {
+    val installCall = androidSdkManagerModule().androidSdkManagerInstall(
+      Task.Anon(androidSdkModule().sdkManagerExe()),
+      Task.Anon(Seq(androidVirtualDevice().systemImage))
+    )()
+
     val image = androidVirtualDevice().systemImage
-    Task.log.info(s"Downloading $image")
-    val installCall = os.call((
-      androidSdkModule().sdkManagerExe().path,
-      "--install",
-      image
-    ))
 
     if (installCall.exitCode != 0) {
       Task.log.error(
@@ -574,7 +590,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "--name",
       name,
       "--package",
-      sdkInstallSystemImage()(),
+      sdkInstallSystemImage(),
       "--device",
       deviceId,
       "--force"
@@ -646,7 +662,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val bootMessage: Option[String] = startEmuCmd.stdout.buffered.lines().filter(l => {
       Task.log.debug(l.trim())
-      l.contains("Boot completed in")
+      l.contains("Boot completed in") || l.contains("Successfully loaded snapshot")
     }).findFirst().toScala
 
     if (bootMessage.isEmpty) {
@@ -667,7 +683,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Stops the android emulator
    */
-  def stopAndroidEmulator: T[String] = Task {
+  def stopAndroidEmulator(): Command[String] = Task.Command {
     val emulator = runningEmulator()
     os.call(
       (androidSdkModule().adbExe().path, "-s", emulator, "emu", "kill")
@@ -675,7 +691,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
     emulator
   }
 
-  /** The emulator port where adb connects to. Defaults to 5554 */
+  /**
+   * Port number for the android emulator console to listen on
+   * It is suggested to use even numbers between 5554 and 5584
+   *
+   * See more at `-port` on:
+   * [[https://developer.android.com/studio/run/emulator-commandline#common]]
+   */
   def androidEmulatorPort: String = "5554"
 
   /**
@@ -741,15 +763,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Task.Sources(subPaths*)
   }
 
-  private def androidMillHomeDir: Task[PathRef] = Task.Anon {
-    val globalDebugFileLocation = os.home / ".mill-android"
-    if (!os.exists(globalDebugFileLocation))
-      os.makeDir(globalDebugFileLocation)
-    PathRef(globalDebugFileLocation)
-  }
-
   private def debugKeystoreFile: Task[PathRef] = Task.Anon {
-    PathRef(androidMillHomeDir().path / "mill-debug.jks")
+    PathRef(androidSdkModule().androidMillHomeDir().path / "mill-debug.jks")
   }
 
   private def keytoolModuleRef: ModuleRef[KeytoolModule] = ModuleRef(KeytoolModule)
@@ -761,7 +776,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   private def androidDebugKeystore: Task[PathRef] = Task.Anon {
     val debugKeystoreFilePath = debugKeystoreFile().path
-    os.makeDir.all(androidMillHomeDir().path)
+    os.makeDir.all(androidSdkModule().androidMillHomeDir().path)
     keytoolModuleRef().createKeystoreWithCertificate(
       Task.Anon(Seq(
         "--keystore",
@@ -1069,7 +1084,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
     /**
      * Runs the tests on the [[runningEmulator]] with the [[androidTestApk]]
      * against the [[androidApk]]
-     * @param args
+     *
+     * @param args Additional adb shell am instrument arguments.
+     *             See [[https://developer.android.com/studio/test/command-line#am-instrument-options]]
      * @param globSelectors
      * @return
      */
@@ -1088,7 +1105,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
           "am",
           "instrument",
           "-w",
-          "-r",
+          "-r"
+        ) ++ args() ++ Seq(
           s"${androidApplicationId}/${testFramework()}"
         )
       ).spawn()
@@ -1167,6 +1185,7 @@ case class UnpackedDep(
     repackagedJars: Seq[PathRef],
     proguardRules: Option[PathRef],
     androidResources: Option[PathRef],
+    assets: Option[PathRef],
     manifest: Option[PathRef],
     lintJar: Option[PathRef],
     metaInf: Option[PathRef],

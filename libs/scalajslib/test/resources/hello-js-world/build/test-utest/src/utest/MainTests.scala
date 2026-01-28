@@ -1,4 +1,4 @@
-import utest.*
+import utest._
 
 object MainTests extends TestSuite {
 

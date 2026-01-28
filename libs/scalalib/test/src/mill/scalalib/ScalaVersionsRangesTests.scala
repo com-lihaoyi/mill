@@ -9,7 +9,7 @@ import utest.*
 object ScalaVersionsRangesTests extends TestSuite {
 
   object ScalaVersionsRanges extends TestRootModule {
-    object core extends Cross[CoreCrossModule]("2.12.13", "2.13.5", "3.3.3")
+    object core extends Cross[CoreCrossModule]("2.12.21", "2.13.18", "3.3.3")
     trait CoreCrossModule extends CrossScalaModule
         with CrossScalaVersionRanges {
       object test extends ScalaTests with TestModule.Utest {
@@ -28,7 +28,7 @@ object ScalaVersionsRangesTests extends TestSuite {
       resourcePath
     ).scoped { eval =>
       ScalaVersionsRanges.core.crossModules.map { c =>
-        val Right(_) = eval(c.run()): @unchecked
+        val Right(_) = eval(c.run()).runtimeChecked
       }
     }
     test("test with Scala 2.12- and 2.13+ specific code") - UnitTester(
@@ -36,7 +36,7 @@ object ScalaVersionsRangesTests extends TestSuite {
       resourcePath
     ).scoped { eval =>
       ScalaVersionsRanges.core.crossModules.map { c =>
-        val Right(_) = eval(c.test.testForked()): @unchecked
+        val Right(_) = eval(c.test.testForked()).runtimeChecked
       }
     }
   }

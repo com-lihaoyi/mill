@@ -242,16 +242,31 @@ object Util {
                   objVisitor.visitEnd(index)
 
                 case sequence: SequenceNode =>
-                  val arrVisitor = v.visitArray(sequence.getValue.size(), index)
-                    .asInstanceOf[upickle.core.ArrVisitor[Any, J]]
-                  for (item <- sequence.getValue.asScala) {
-                    val itemResult = rec(item, arrVisitor.subVisitor)
-                    arrVisitor.visitValue(
-                      itemResult,
-                      item.getStartMark.map(_.getIndex.intValue()).orElse(0)
-                    )
+                  def visitSequence[T](visitor: upickle.core.Visitor[?, T]): T = {
+                    val arrVisitor = visitor.visitArray(sequence.getValue.size(), index)
+                      .asInstanceOf[upickle.core.ArrVisitor[Any, T]]
+                    for (item <- sequence.getValue.asScala) {
+                      arrVisitor.visitValue(
+                        rec(item, arrVisitor.subVisitor),
+                        item.getStartMark.map(_.getIndex.intValue()).orElse(0)
+                      )
+                    }
+                    arrVisitor.visitEnd(index)
                   }
-                  arrVisitor.visitEnd(index)
+                  // Check for !append tag - if present, wrap in {$millAppend: <array>}
+                  if (sequence.getTag.getValue == "!append") {
+                    import mill.api.internal.Appendable.AppendMarkerKey
+                    val objVisitor = v.visitObject(1, jsonableKeys = true, index)
+                      .asInstanceOf[upickle.core.ObjVisitor[Any, J]]
+                    objVisitor.visitKeyValue(objVisitor.visitKey(index).visitString(
+                      AppendMarkerKey,
+                      index
+                    ))
+                    objVisitor.visitValue(visitSequence(objVisitor.subVisitor), index)
+                    objVisitor.visitEnd(index)
+                  } else {
+                    visitSequence(v)
+                  }
               }
             } catch {
               case e: upickle.core.Abort =>
@@ -307,6 +322,46 @@ object Util {
             )
         }
     }
+  }
+
+  /**
+   * Parses a config value from the YAML header data.
+   * Returns the parsed value or a default on missing key. Throws on parse failure.
+   */
+  def parseBuildHeaderValue[T: upickle.default.Reader](
+      headerData: String,
+      configKey: String,
+      default: T
+  ): T =
+    parseYaml0(
+      "build header",
+      headerData,
+      upickle.default.reader[Map[String, ujson.Value]]
+    ) match {
+      case Result.Success(conf) =>
+        conf.get(configKey) match {
+          case Some(value) => upickle.default.read[T](value)
+          case None => default
+        }
+      case f: Result.Failure =>
+        throw new mill.api.daemon.MillException(s"Failed parsing build header: ${f.error}")
+    }
+
+  /**
+   * Reads a boolean flag from the root build.mill YAML header.
+   */
+  def readBooleanFromBuildHeader(
+      projectRoot: os.Path,
+      configKey: String,
+      rootBuildFileNames: Seq[String]
+  ): Boolean = {
+    rootBuildFileNames
+      .map(name => projectRoot / name)
+      .find(os.exists)
+      .exists { buildFile =>
+        val headerData = mill.constants.Util.readBuildHeader(buildFile.toNIO, buildFile.last)
+        parseBuildHeaderValue[Boolean](headerData, configKey, default = false)
+      }
   }
 
   def splitPreserveEOL(bytes: Array[Byte]): Seq[Array[Byte]] = {
@@ -365,7 +420,7 @@ object Util {
           fs match {
             case f: ExecResult.Failure[_] => convertFailure(f)
             case ex: ExecResult.Exception =>
-              mill.api.daemon.ExecResult.exceptionToFailure(ex.throwable, ex.outerStack).copy(
+              Result.Failure.fromException(ex.throwable, ex.outerStack.value.length).copy(
                 error = key.toString,
                 tickerPrefix = keyPrefix
               )

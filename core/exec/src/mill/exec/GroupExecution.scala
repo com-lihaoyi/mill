@@ -2,16 +2,22 @@ package mill.exec
 
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
-import mill.api.internal.Cached
-import mill.internal.MultiLogger
-import mill.internal.FileLogger
+import mill.api.internal.{Appendable, Cached, Located}
+import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
 
 import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+import mill.api.daemon.internal.{
+  BaseModuleApi,
+  CompileProblemReporter,
+  EvaluatorApi,
+  TaskApi,
+  TestReporter
+}
+import mill.internal.SpanningForest
 import upickle.core.BufferedValue
 
 import java.io.ByteArrayOutputStream
@@ -29,9 +35,23 @@ trait GroupExecution {
   def classLoaderIdentityHash: Int
 
   /**
-   * `String` is the worker name, `Int` is the worker hash, `Val` is the result of the worker invocation.
+   * Tracks tasks invalidated due to version/classloader mismatch, with the reason string.
+   * Populated by loadCachedJson, used by ExecutionLogs.logInvalidationTree.
    */
-  def workerCache: mutable.Map[String, (Int, Val)]
+  def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
+
+  /**
+   * `String` is the worker name, `Int` is the worker hash, `Val` is the worker instance,
+   * `TaskApi[?]` is the worker's Task (for traversing dependencies during ordered closure).
+   */
+  def workerCache: mutable.Map[String, (Int, Val, TaskApi[?])]
+
+  /**
+   * Lazily computed worker dependency graph and its reverse, for efficient worker closure ordering.
+   */
+  def workerDeps: Seq[(TaskApi[?], Seq[TaskApi[?]])]
+  def reverseDeps: Map[TaskApi[?], Seq[TaskApi[?]]]
+  def workerTopoIndex: Map[TaskApi[?], Int]
 
   def env: Map[String, String]
   def failFast: Boolean
@@ -42,69 +62,123 @@ trait GroupExecution {
   def getEvaluator: () => EvaluatorApi
   def staticBuildOverrideFiles: Map[java.nio.file.Path, String]
 
-  import mill.api.internal.Located
-  val staticBuildOverrides: Map[String, Located[BufferedValue]] = staticBuildOverrideFiles
-    .flatMap { case (path0, rawText) =>
-      val path = os.Path(path0)
-      val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
+  /** Evaluate a build override YAML value and deserialize it */
+  private def evaluateBuildOverride(
+      located: Located[Appendable[BufferedValue]],
+      labelled: Task.Named[_]
+  ): Either[upickle.core.TraceVisitor.TraceException, Any] = {
+    try {
+      val reader = labelled.readWriterOpt.getOrElse {
+        throw new IllegalStateException(
+          s"No ReadWriter registered for task '${labelled.ctx.segments.render}' " +
+            s"in module '${labelled.ctx.enclosingModule.getClass.getName}'. " +
+            s"This task cannot be overridden from YAML configuration."
+        )
+      }
+      Right(PathRef.currentOverrideModulePath.withValue(
+        labelled.ctx.enclosingModule.moduleCtx.millSourcePath
+      ) {
+        upickle.read[Any](interpolateEnvVarsInJson(located.value.value))(
+          using reader.asInstanceOf[upickle.Reader[Any]]
+        )
+      })
+    } catch {
+      case e: upickle.core.TraceVisitor.TraceException => Left(e)
+    }
+  }
 
-      def rec(
-          segments: Seq[String],
-          bufValue: upickle.core.BufferedValue
-      ): Seq[(String, Located[BufferedValue])] = {
-        val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
-        val (rawKvs, nested) = kvs.partitionMap { case (upickle.core.BufferedValue.Str(k, i), v) =>
-          k.toString.split(" +") match {
-            case Array(k) => Left((k, i, v))
-            case Array("object", k) => Right(rec(segments ++ Seq(k), v))
+  /** Create an ExecResult.Failure from a deserialization exception */
+  private def buildOverrideDeserializationError(
+      e: upickle.core.TraceVisitor.TraceException,
+      located: Located[Appendable[BufferedValue]]
+  ) = {
+    val errorIndex = e.getCause match {
+      case abort: upickle.core.AbortException => abort.index
+      case _ => located.value.value.index
+    }
+    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
+    (
+      ExecResult.Failure(
+        msg,
+        Some(Result.Failure(msg, path = located.path.toNIO, index = errorIndex))
+      ),
+      Nil
+    )
+  }
+
+  val staticBuildOverrides: Map[String, Located[Appendable[BufferedValue]]] = {
+    staticBuildOverrideFiles
+      .flatMap { case (path0, rawText) =>
+        val path = os.Path(path0)
+        val headerDataReader = mill.api.internal.HeaderData.headerDataReader(path)
+
+        def rec(
+            segments: Seq[String],
+            bufValue: upickle.core.BufferedValue
+        ): Seq[(String, Located[Appendable[BufferedValue]])] = {
+          val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
+          val (rawKvs, nested) = kvs.partitionMap {
+            case (upickle.core.BufferedValue.Str(k, i), v) =>
+              k.toString.split(" +") match {
+                case Array(k) => Left((k, i, v))
+                case Array("object", k) => Right(rec(segments ++ Seq(k), v))
+              }
           }
+
+          val currentResults: Seq[(String, Located[Appendable[BufferedValue]])] =
+            BufferedValue.transform(
+              BufferedValue.Obj(
+                rawKvs.map { case (k, i, v) => (BufferedValue.Str(k, i), v) }.to(
+                  mutable.ArrayBuffer
+                ),
+                true,
+                -1
+              ),
+              headerDataReader
+            )
+              .rest
+              .map { case (k, v) =>
+                val (actualValue, append) = Appendable.unwrapAppendMarker(v)
+                (segments ++ Seq(k.value)).mkString(".") -> Located(
+                  path,
+                  k.index,
+                  Appendable(actualValue, append)
+                )
+              }
+              .toSeq
+
+          val nestedResults: Seq[(String, Located[Appendable[BufferedValue]])] =
+            nested.flatten.toSeq
+
+          currentResults ++ nestedResults
         }
 
-        val currentResults: Seq[(String, Located[BufferedValue])] =
-          BufferedValue.transform(
-            BufferedValue.Obj(
-              rawKvs.map { case (k, i, v) => (BufferedValue.Str(k, i), v) }.to(mutable.ArrayBuffer),
-              true,
-              -1
-            ),
+        val parsed0 = BufferedValue.Obj(
+          mill.internal.Util.parseYaml0(
+            path0.toString,
+            rawText.replace("\r", ""),
             headerDataReader
-          )
+          ).get
             .rest
-            .map { case (k, v) =>
-              (segments ++ Seq(k.value)).mkString(".") -> Located(path, k.index, v)
-            }
-            .toSeq
-
-        val nestedResults: Seq[(String, Located[BufferedValue])] = nested.flatten.toSeq
-
-        currentResults ++ nestedResults
-      }
-
-      val parsed0 = BufferedValue.Obj(
-        mill.internal.Util.parseYaml0(
-          path0.toString,
-          rawText.replace("\r", ""),
-          headerDataReader
-        ).get
-          .rest
-          .map { case (k, v) => (BufferedValue.Str(k.value, k.index), v) }
-          .to(mutable.ArrayBuffer),
-        true,
-        -1
-      )
-      if ((path / "..").startsWith(workspace)) {
-        rec(
-          (path / "..").subRelativeTo(workspace).segments,
-          if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
-            parsed0
-              .value0
-              .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
-              .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
-          } else parsed0
+            .map { case (k, v) => (BufferedValue.Str(k.value, k.index), v) }
+            .to(mutable.ArrayBuffer),
+          true,
+          -1
         )
-      } else Nil
-    }
-    .toMap
+        if ((path / "..").startsWith(workspace)) {
+          rec(
+            (path / "..").subRelativeTo(workspace).segments,
+            if (path == os.Path(rootModule.moduleDirJava) / "../build.mill.yaml") {
+              parsed0
+                .value0
+                .collectFirst { case (BufferedValue.Str("mill-build", _), v) => v }
+                .getOrElse(BufferedValue.Obj(mutable.ArrayBuffer.empty, true, 0))
+            } else parsed0
+          )
+        } else Nil
+      }
+      .toMap
+  }
 
   def offline: Boolean
   def useFileLocks: Boolean
@@ -189,179 +263,188 @@ trait GroupExecution {
         val out = if (!labelled.ctx.external) outPath else externalOutPath
         val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
         val dynamicBuildOverride = labelled.ctx.enclosingModule.moduleDynamicBuildOverrides
-        staticBuildOverrides.get(labelled.ctx.segments.render)
-          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render)) match {
+        val buildOverrideOpt = staticBuildOverrides.get(labelled.ctx.segments.render)
+          .orElse(dynamicBuildOverride.get(labelled.ctx.segments.render))
 
-          case Some(jsonData) =>
-            lazy val originalText = os.read(jsonData.path)
-            lazy val strippedText = originalText.replace("\n//|", "\n")
-            lazy val lookupLineSuffix = fastparse
-              .IndexedParserInput(strippedText)
-              .prettyIndex(jsonData.index)
-              .takeWhile(_ != ':') // split off column since it's not that useful
+        // Helper to create a cached result (no evaluation occurred)
+        def cachedResult(
+            execRes: ExecResult[(Val, Int)],
+            serializedPaths: Seq[PathRef]
+        ): GroupExecution.Results = GroupExecution.Results(
+          newResults = Map(labelled -> execRes),
+          newEvaluated = Nil,
+          cached = true,
+          inputsHash = inputsHash,
+          previousInputsHash = -1,
+          valueHashChanged = false,
+          serializedPaths = serializedPaths
+        )
 
-            val (execRes, serializedPaths) =
-              if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
-                // If the build override conflicts with a task defined in the mill-build/build.mill,
-                // it is probably a user error so fail loudly. In other scenarios, it may be an
-                // intentional override, but in this one case we can be reasonably sure it's a mistake
+        // Helper to evaluate the task with full caching support
+        def evaluateTaskWithCaching(): GroupExecution.Results = {
+          val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
-                (
-                  ExecResult.Failure(
-                    s"Build header config in ${jsonData.path.relativeTo(workspace)}:$lookupLineSuffix conflicts with task defined " +
-                      s"in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
-                  ),
-                  Nil
+          // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
+          val (multiLogger, fileLoggerOpt) = resolveLogger(Some(paths).map(_.log), logger)
+          val upToDateWorker = loadUpToDateWorker(
+            logger = logger,
+            inputsHash = inputsHash,
+            labelled = labelled,
+            forceDiscard = cached.isEmpty,
+            deps = deps,
+            paths = Some(paths),
+            upstreamPathRefs = upstreamPathRefs,
+            exclusive = exclusive,
+            multiLogger = multiLogger,
+            counterMsg = countMsg,
+            destCreator = new GroupExecution.DestCreator(Some(paths)),
+            terminal = terminal
+          )
+
+          val cachedValueAndHash =
+            upToDateWorker.map(w => (w -> Nil, inputsHash))
+              .orElse(cached.flatMap { case (_, valOpt, valueHash) =>
+                valOpt.map((_, valueHash))
+              })
+
+          cachedValueAndHash match {
+            case Some(((v, serializedPaths), hashCode)) =>
+              cachedResult(ExecResult.Success((v, hashCode)), serializedPaths)
+
+            case _ =>
+              // uncached
+              if (!labelled.persistent && os.exists(paths.dest)) {
+                logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
+                os.remove.all(paths.dest)
+              }
+
+              val (newResults, newEvaluated) =
+                executeGroup(
+                  group = group,
+                  results = results,
+                  inputsHash = inputsHash,
+                  paths = Some(paths),
+                  taskLabelOpt = Some(terminal.toString),
+                  counterMsg = countMsg,
+                  reporter = zincProblemReporter,
+                  testReporter = testReporter,
+                  logger = logger,
+                  executionContext = executionContext,
+                  exclusive = exclusive,
+                  deps = deps,
+                  upstreamPathRefs = upstreamPathRefs,
+                  terminal = labelled
                 )
-              } else {
-                // apply build override
-                try {
-                  val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-                    PathRef.currentOverrideModulePath.withValue(
-                      labelled.ctx.enclosingModule.moduleCtx.millSourcePath
-                    ) {
-                      upickle.read[Any](interpolateEnvVarsInJson(jsonData.value))(
-                        using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
-                      )
-                    }
-                  }
 
+              val (valueHash, serializedPaths) = newResults(labelled) match {
+                case ExecResult.Success((v, _)) =>
+                  val valueHash = getValueHash(v, terminal, inputsHash)
+                  val serializedPaths =
+                    handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                  (valueHash, serializedPaths)
+
+                case _ =>
+                  // Wipe out any cached meta.json file that exists, so
+                  // a following run won't look at the cached metadata file and
+                  // assume it's associated with the possibly-borked state of the
+                  // destPath after an evaluation failure.
+                  os.remove.all(paths.meta)
+                  (0, Nil)
+              }
+
+              GroupExecution.Results(
+                newResults = newResults,
+                newEvaluated = newEvaluated.toSeq,
+                cached =
+                  if (
+                    labelled.isInstanceOf[Task.Input[?]] ||
+                    labelled.isInstanceOf[Task.Uncached[?]]
+                  ) null
+                  else false,
+                inputsHash = inputsHash,
+                previousInputsHash = cached.map(_._1).getOrElse(-1),
+                valueHashChanged = !cached.map(_._3).contains(valueHash),
+                serializedPaths = serializedPaths
+              )
+          }
+        }
+
+        // Helper to evaluate build override only (no task evaluation)
+        def evaluateBuildOverrideOnly(located: Located[Appendable[BufferedValue]])
+            : GroupExecution.Results = {
+
+          val (execRes, serializedPaths) =
+            if (os.Path(labelled.ctx.fileName).endsWith("mill-build/build.mill")) {
+              val msg =
+                s"Build header config conflicts with task defined in ${os.Path(labelled.ctx.fileName).relativeTo(workspace)}:${labelled.ctx.lineNum}"
+              (
+                ExecResult.Failure(
+                  msg,
+                  Some(Result.Failure(msg, path = located.path.toNIO, index = located.index))
+                ),
+                Nil
+              )
+            } else {
+              evaluateBuildOverride(located, labelled) match {
+                case Right(yamlValue) =>
+                  val (data, serializedPaths) = PathRef.withSerializedPaths { yamlValue }
                   // Write build header override JSON to meta `.json` file to support `show`
                   writeCacheJson(
                     paths.meta,
-                    upickle.core.BufferedValue.transform(jsonData.value, ujson.Value),
-                    resultData.##,
-                    inputsHash + jsonData.value.##
+                    upickle.core.BufferedValue.transform(located.value.value, ujson.Value),
+                    data.##,
+                    inputsHash + located.value.value.##
                   )
+                  (ExecResult.Success(Val(data), data.##), serializedPaths)
+                case Left(e) => buildOverrideDeserializationError(e, located)
+              }
+            }
 
-                  (ExecResult.Success(Val(resultData), resultData.##), serializedPaths)
-                } catch {
-                  case e: upickle.core.TraceVisitor.TraceException =>
-                    // Try to get more specific index from AbortException if available
-                    val errorIndex = e.getCause match {
-                      case abort: upickle.core.AbortException => abort.index
-                      case _ => jsonData.value.index
+          cachedResult(execRes, serializedPaths)
+        }
+
+        // Three-way conditional:
+        // 1. Build override only (!append): just evaluate YAML
+        // 2. Both (append): evaluate task with caching, evaluate YAML, merge
+        // 3. Task only (no override): evaluate task with caching
+        buildOverrideOpt match {
+          case Some(appendLocated) if appendLocated.value.append =>
+            val taskResults = evaluateTaskWithCaching()
+
+            // Check if task evaluation failed - if so, propagate the failure
+            taskResults.newResults.get(labelled) match {
+              case Some(ExecResult.Success((v, _))) =>
+                val taskValue = v.value.asInstanceOf[Seq[Any]]
+                // Evaluate the YAML override and merge
+                evaluateBuildOverride(appendLocated, labelled) match {
+                  case Right(yamlValue) =>
+                    val (mergedData, serializedPaths) = PathRef.withSerializedPaths {
+                      (taskValue ++ yamlValue.asInstanceOf[Seq[Any]]).asInstanceOf[Any]
                     }
-
-                    val msg = s"Failed de-serializing config override: ${e.getCause.getMessage}"
-                    (
-                      ExecResult.Failure(
-                        s"Failed de-serializing config override: ${e.getCause.getMessage}",
-                        Some(Result.Failure(msg, path = jsonData.path.toNIO, index = errorIndex))
-                      ),
-                      Nil
+                    // Don't write merged result to paths.meta - that would overwrite the task
+                    // cache and cause the task to re-execute every time. The task cache stays
+                    // valid with inputsHash, and show uses the in-memory result from newResults.
+                    taskResults.copy(
+                      newResults =
+                        Map(labelled -> ExecResult.Success(Val(mergedData), mergedData.##)),
+                      serializedPaths = serializedPaths
+                    )
+                  case Left(e) =>
+                    val (failure, _) = buildOverrideDeserializationError(e, appendLocated)
+                    taskResults.copy(
+                      newResults = Map(labelled -> failure),
+                      serializedPaths = Nil
                     )
                 }
-              }
-
-            GroupExecution.Results(
-              newResults = Map(labelled -> execRes),
-              newEvaluated = Nil,
-              cached = true,
-              inputsHash = inputsHash,
-              previousInputsHash = -1,
-              valueHashChanged = false,
-              serializedPaths = serializedPaths
-            )
-
-          case None => // no build overrides
-            val cached = loadCachedJson(logger, inputsHash, labelled, paths)
-
-            // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
-            val (multiLogger, fileLoggerOpt) = resolveLogger(Some(paths).map(_.log), logger)
-            val upToDateWorker = loadUpToDateWorker(
-              logger = logger,
-              inputsHash = inputsHash,
-              labelled = labelled,
-              forceDiscard = cached.isEmpty,
-              deps = deps,
-              paths = Some(paths),
-              upstreamPathRefs = upstreamPathRefs,
-              exclusive = exclusive,
-              multiLogger = multiLogger,
-              counterMsg = countMsg,
-              destCreator = new GroupExecution.DestCreator(Some(paths)),
-              terminal = terminal
-            )
-
-            val cachedValueAndHash =
-              upToDateWorker.map(w => (w -> Nil, inputsHash))
-                .orElse(cached.flatMap { case (_, valOpt, valueHash) =>
-                  valOpt.map((_, valueHash))
-                })
-
-            cachedValueAndHash match {
-              case Some(((v, serializedPaths), hashCode)) =>
-                val res = ExecResult.Success((v, hashCode))
-                val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
-                  Map(labelled -> res)
-
-                GroupExecution.Results(
-                  newResults = newResults,
-                  newEvaluated = Nil,
-                  cached = true,
-                  inputsHash = inputsHash,
-                  previousInputsHash = -1,
-                  valueHashChanged = false,
-                  serializedPaths = serializedPaths
-                )
-
-              case _ =>
-                // uncached
-                if (!labelled.persistent && os.exists(paths.dest)) {
-                  logger.debug(s"Deleting task dest dir ${paths.dest.relativeTo(workspace)}")
-                  os.remove.all(paths.dest)
-                }
-
-                val (newResults, newEvaluated) =
-                  executeGroup(
-                    group = group,
-                    results = results,
-                    inputsHash = inputsHash,
-                    paths = Some(paths),
-                    taskLabelOpt = Some(terminal.toString),
-                    counterMsg = countMsg,
-                    reporter = zincProblemReporter,
-                    testReporter = testReporter,
-                    logger = logger,
-                    executionContext = executionContext,
-                    exclusive = exclusive,
-                    deps = deps,
-                    upstreamPathRefs = upstreamPathRefs,
-                    terminal = labelled
-                  )
-
-                val (valueHash, serializedPaths) = newResults(labelled) match {
-                  case ExecResult.Success((v, _)) =>
-                    val valueHash = getValueHash(v, terminal, inputsHash)
-                    val serializedPaths =
-                      handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                    (valueHash, serializedPaths)
-
-                  case _ =>
-                    // Wipe out any cached meta.json file that exists, so
-                    // a following run won't look at the cached metadata file and
-                    // assume it's associated with the possibly-borked state of the
-                    // destPath after an evaluation failure.
-                    os.remove.all(paths.meta)
-                    (0, Nil)
-                }
-
-                GroupExecution.Results(
-                  newResults = newResults,
-                  newEvaluated = newEvaluated.toSeq,
-                  cached =
-                    if (
-                      labelled.isInstanceOf[Task.Input[?]] ||
-                      labelled.isInstanceOf[Task.Uncached[?]]
-                    ) null
-                    else false,
-                  inputsHash = inputsHash,
-                  previousInputsHash = cached.map(_._1).getOrElse(-1),
-                  valueHashChanged = !cached.map(_._3).contains(valueHash),
-                  serializedPaths = serializedPaths
-                )
+              // Task evaluation failed - propagate the failure
+              case _ => taskResults
             }
+
+          // Build override only (no append)
+          case Some(appendLocated) => evaluateBuildOverrideOnly(appendLocated)
+
+          // Task only (no build override)
+          case None => evaluateTaskWithCaching()
         }
       case _ =>
         val (newResults, newEvaluated) = executeGroup(
@@ -510,20 +593,15 @@ trait GroupExecution {
       inputsHash: Int,
       labelled: Task.Named[?]
   ): Seq[PathRef] = {
-    for (w <- labelled.asWorker)
-      workerCache.synchronized {
-        workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
-      }
+    for (w <- labelled.asWorker) workerCache.synchronized {
+      workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v, labelled))
+    }
 
     def normalJson(w: upickle.Writer[?]) = PathRef.withSerializedPaths {
       upickle.writeJs(v.value)(using w.asInstanceOf[upickle.Writer[Any]])
     }
     lazy val workerJson = labelled.asWorker.map { _ =>
-      ujson.Obj(
-        "worker" -> ujson.Str(labelled.toString),
-        "toString" -> ujson.Str(v.value.toString),
-        "inputsHash" -> ujson.Num(inputsHash)
-      ) -> Nil
+      Task.workerJson(labelled.toString, v.value, inputsHash) -> Nil
     }
 
     val terminalResult: Option[(ujson.Value, Seq[PathRef])] = labelled
@@ -543,7 +621,17 @@ trait GroupExecution {
   def writeCacheJson(metaPath: os.Path, json: ujson.Value, hashCode: Int, inputsHash: Int) = {
     os.write.over(
       metaPath,
-      upickle.stream(Cached(json, hashCode, inputsHash), indent = 4),
+      upickle.stream(
+        Cached(
+          json,
+          hashCode,
+          inputsHash,
+          millVersion = mill.constants.BuildInfo.millVersion,
+          millJvmVersion = sys.props("java.version"),
+          classLoaderSigHash = classLoaderSigHash
+        ),
+        indent = 4
+      ),
       createFolders = true
     )
   }
@@ -576,31 +664,54 @@ trait GroupExecution {
         catch {
           case NonFatal(_) => None
         }
-    } yield (
-      cached.inputsHash,
-      for {
-        _ <- Option.when(cached.inputsHash == inputsHash)(())
-        reader <- labelled.readWriterOpt
-        (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
-              reader
-            )))
-          catch {
-            case e: PathRef.PathRefValidationException =>
-              logger.debug(
-                s"$labelled: re-evaluating; ${e.getMessage}"
-              )
-              None
-            case NonFatal(_) => None
-          }
-      } yield (Val(parsed), serializedPaths),
-      cached.valueHash
-    )
+    } yield {
+      // Check for version/classloader mismatch - treat as cache miss if they differ
+      def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
+        val matches = cachedValue == currentValue
+        if (!matches) {
+          versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
+        }
+        matches
+      }
+
+      val currentMillVersion = mill.constants.BuildInfo.millVersion
+      val currentJvmVersion = sys.props("java.version")
+      val millVersionMatches =
+        checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
+      val jvmVersionMatches =
+        checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
+      val classLoaderMatches =
+        checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
+
+      (
+        cached.inputsHash,
+        for {
+          _ <- Option.when(
+            cached.inputsHash == inputsHash && millVersionMatches && jvmVersionMatches && classLoaderMatches
+          )(())
+          reader <- labelled.readWriterOpt
+          (parsed, serializedPaths) <-
+            try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
+                reader
+              )))
+            catch {
+              case e: PathRef.PathRefValidationException =>
+                logger.debug(
+                  s"$labelled: re-evaluating; ${e.getMessage}"
+                )
+                None
+              case NonFatal(_) => None
+            }
+        } yield (Val(parsed), serializedPaths),
+        cached.valueHash
+      )
+    }
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
   }
+
   private def loadUpToDateWorker(
       logger: Logger,
       inputsHash: Int,
@@ -622,47 +733,42 @@ trait GroupExecution {
         }
       }
       .flatMap {
-        case (cachedHash, upToDate)
+        case (cachedHash, upToDate, _)
             if cachedHash == workerCacheHash(inputsHash) && !forceDiscard =>
-          Some(upToDate) // worker cached and up-to-date
+          Some(upToDate)
 
-        case (_, Val(obsolete: AutoCloseable)) =>
-          // worker cached but obsolete, needs to be closed
-          try {
-            logger.debug(s"Closing previous worker: $labelled")
-            GroupExecution.wrap(
-              workspace = workspace,
-              deps = deps,
-              outPath = outPath,
-              paths = paths,
-              upstreamPathRefs = upstreamPathRefs,
-              exclusive = exclusive,
-              multiLogger = multiLogger,
-              logger = logger,
-              exclusiveSystemStreams = exclusiveSystemStreams,
-              counterMsg = counterMsg,
-              destCreator = destCreator,
-              evaluator = getEvaluator().asInstanceOf[Evaluator],
-              terminal = terminal,
-              classLoader = rootModule.getClass.getClassLoader
-            ) {
-              obsolete.close()
-            }
-          } catch {
-            case NonFatal(e) =>
-              logger.error(
-                s"$labelled: Errors while closing obsolete worker: ${e.getMessage()}"
-              )
-          }
-          // make sure, we can no longer re-use a closed worker
-          labelled.asWorker.foreach { w =>
-            workerCache.synchronized {
-              workerCache.remove(w.ctx.segments.render)
-            }
-          }
+        case (_, Val(_: AutoCloseable), _) =>
+          // Close this worker and all workers that depend on it
+          val allToClose =
+            SpanningForest.breadthFirst(Seq(labelled: TaskApi[?]))(n =>
+              reverseDeps.getOrElse(n, Nil)
+            )
+          GroupExecution.closeWorkersInReverseTopologicalOrder(
+            allToClose,
+            workerCache,
+            workerTopoIndex,
+            closeable =>
+              try GroupExecution.wrap(
+                  workspace,
+                  deps,
+                  outPath,
+                  paths,
+                  upstreamPathRefs,
+                  exclusive,
+                  multiLogger,
+                  logger,
+                  exclusiveSystemStreams,
+                  counterMsg,
+                  destCreator,
+                  getEvaluator().asInstanceOf[Evaluator],
+                  terminal,
+                  rootModule.getClass.getClassLoader
+                )(closeable.close())
+              catch { case NonFatal(e) => logger.error(s"Error closing worker: ${e.getMessage}") }
+          )
           None
 
-        case _ => None // worker not cached or obsolete
+        case _ => None
       }
   }
 }
@@ -795,4 +901,30 @@ object GroupExecution {
       valueHashChanged: Boolean,
       serializedPaths: Seq[PathRef]
   )
+
+  def workerDependencies(
+      workerCache: Map[String, (Int, Val, TaskApi[?])]
+  ): Seq[(TaskApi[?], Seq[TaskApi[?]])] = {
+    // Build worker-to-worker edges only (direct worker inputs)
+    val workers = workerCache.values.map(_._3).toSeq
+    workers.map { worker =>
+      val directWorkerInputs = worker.inputsApi.filter(_.workerNameApi.isDefined)
+      (worker, directWorkerInputs)
+    }
+  }
+
+  def closeWorkersInReverseTopologicalOrder(
+      workersToClose: Iterable[TaskApi[?]],
+      workerCache: mutable.Map[String, (Int, Val, TaskApi[?])],
+      topoIndex: Map[TaskApi[?], Int],
+      closeAction: AutoCloseable => Unit
+  ): Unit = {
+    for (worker <- workersToClose.toSeq.sortBy(w => -topoIndex(w))) {
+      val name = worker.workerNameApi.get
+      workerCache.synchronized(workerCache.remove(name)).foreach {
+        case (_, Val(closeable: AutoCloseable), _) => closeAction(closeable)
+        case _ =>
+      }
+    }
+  }
 }

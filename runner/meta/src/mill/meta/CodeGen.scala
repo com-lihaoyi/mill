@@ -3,11 +3,12 @@ package mill.meta
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.constants.CodeGenConstants as CGConst
 import mill.api.Result
+import mill.api.internal.ModuleDepsResolver.{ModuleDepsEntry, ModuleDepsConfig}
 import mill.internal.Util.backtickWrap
+import mill.api.internal.*
 import pprint.Util.literalize
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.internal.HeaderData
-import mill.api.daemon.Segment
 
 import scala.util.control.Breaks.*
 
@@ -27,15 +28,30 @@ object CodeGen {
       parser: MillScalaParser
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
+    val allowNestedBuildMillFiles = mill.internal.Util.readBooleanFromBuildHeader(
+      projectRoot,
+      mill.constants.ConfigConstants.millAllowNestedBuildMill,
+      CGConst.rootBuildFileNames.asScala.toSeq
+    )
 
-    // Provide `build` as an alias to the root `build_.package_`, since from the user's
-    // perspective it looks like they're writing things that live in `package build`,
-    // but at compile-time we rename things, we so provide an alias to preserve the fiction
-    val aliasImports = "import build_.{package_ => build}"
+    // Collect moduleDeps configuration from all YAML files to write to a classpath resource
+    val moduleDepsConfig = collection.mutable.Map.empty[String, ModuleDepsConfig]
+
+    // Find all directories that contain build.mill files (root build files only)
+    // This is used to determine the enclosing build context for nested builds
+    val rootBuildFileNamesSet = CGConst.rootBuildFileNames.asScala.toSet
+    val nestedBuildFileDirs = scriptSources
+      .filter(p => rootBuildFileNamesSet.contains(p.last))
+      .map(_ / os.up)
+      .toSet
+
+    // All build file names (including package.mill) for child module detection
+    val allBuildFileNames =
+      (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
 
     for (scriptPath <- scriptSources) {
       val scriptFolderPath = scriptPath / os.up
-      val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
+      val packageSegments = DiscoveredBuildFiles.fileImportToSegments(projectRoot, scriptPath)
       val wrappedDestFile = wrappedDest / packageSegments
       val pkgSegments = packageSegments.drop(1).dropRight(1)
       def pkgSelector0(pre: Option[String], s: Option[String]) =
@@ -46,11 +62,30 @@ object CodeGen {
       val segments = calcSegments(scriptFolderPath, projectRoot)
       val supportDestDir = supportDest / packageSegments / os.up
 
+      // Find the nearest enclosing build.mill file's segments by walking up from
+      // the current script's folder until we find a directory containing a build.mill file.
+      // Only considers build.mill files, not package.mill files, since package.mill files
+      // don't create a new build context - they use the enclosing build.mill's context.
+      val enclosingBuildSegments = {
+        var dir = scriptFolderPath
+        while (dir != projectRoot && !nestedBuildFileDirs.contains(dir)) dir = dir / os.up
+        calcSegments(dir, projectRoot)
+      }
+
+      // Provide `build` as an alias to the enclosing `build_.package_`, since from
+      // the user's perspective it looks like they're writing things that live in
+      // `package build`, but at compile-time we rename things, so we provide an alias
+      // to preserve the fiction. For nested builds, we alias to the nested package
+      // so that project-relative imports continue working.
+      val aliasImports = {
+        val nestedPath = (Seq("build_") ++ enclosingBuildSegments.map(backtickWrap)).mkString(".")
+        s"import $nestedPath.{package_ => build}"
+      }
       val childNames = scriptSources
         .collect {
           case path
               if path != scriptPath
-                && CGConst.nestedBuildFileNames.contains(path.last)
+                && allBuildFileNames.contains(path.last)
                 && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
@@ -88,7 +123,7 @@ object CodeGen {
       if (scriptPath.last.endsWith(".yaml")) {
         val newParent =
           if (segments.isEmpty) "_root_.mill.util.MainRootModule"
-          else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
+          else "_root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover)"
         val parsedHeaderData = mill.internal.Util.parseHeaderData(scriptPath).get
 
         val prelude =
@@ -149,51 +184,50 @@ object CodeGen {
               renderTemplate(s"object $k", nestedData, path :+ k)
           ).filter(_.nonEmpty)
 
-          def parseRender(moduleDep: String) = {
-            mill.resolve.ParseArgs.extractSegments(moduleDep) match {
-              case f: Result.Failure =>
-                sys.error("Unable to parse module dep " + literalize(moduleDep) + ": " + f.error)
-              case Result.Success((rootModulePrefix, taskSegments)) =>
-                val renderedSegments = taskSegments.value
-                  .map {
-                    case Segment.Label(s) => backtickWrap(s)
-                    case Segment.Cross(vs) => "lookup(" + vs.map(literalize(_)).mkString(", ") + ")"
-                  }
-                  .mkString(".")
-
-                rootModulePrefix match {
-                  case "" => renderedSegments
-                  case s"$externalModulePrefix/" => s"$externalModulePrefix.$renderedSegments"
-                }
-            }
+          // Helper to extract ModuleDepsEntry from HeaderData field
+          // Each Located[String] contains (path, index, value) - we extract (value, index)
+          def extractEntry(deps: Located[Appendable[Seq[Located[String]]]]): ModuleDepsEntry = {
+            val appendable = deps.value
+            ModuleDepsEntry(appendable.value.map(loc => (loc.value, loc.index)), appendable.append)
           }
 
-          val moduleDepsSnippet =
-            if (data.moduleDeps.value.isEmpty) ""
-            else
-              s"override def moduleDeps = Seq(${data.moduleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+          // Collect moduleDeps config for this module path and store in the map
+          val modulePathKey = path.mkString(".")
+          val moduleDepsEntry = extractEntry(data.moduleDeps)
+          val compileModuleDepsEntry = extractEntry(data.compileModuleDeps)
+          val runModuleDepsEntry = extractEntry(data.runModuleDeps)
+          val bomModuleDepsEntry = extractEntry(data.bomModuleDeps)
 
-          val compileModuleDepsSnippet =
-            if (data.compileModuleDeps.value.isEmpty) ""
-            else
-              s"override def compileModuleDeps = Seq(${data.compileModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+          val config = ModuleDepsConfig(
+            yamlPath = scriptPath.toString,
+            moduleDeps = moduleDepsEntry,
+            compileModuleDeps = compileModuleDepsEntry,
+            runModuleDeps = runModuleDepsEntry,
+            bomModuleDeps = bomModuleDepsEntry
+          )
 
-          val runModuleDepsSnippet =
-            if (data.runModuleDeps.value.isEmpty) ""
-            else
-              s"override def runModuleDeps = Seq(${data.runModuleDeps.value.map(_.value).map(parseRender).mkString(", ")})"
+          moduleDepsConfig(modulePathKey) = config
+
+          // Always generate defs without override - use macro to get super value if it exists
+          val pathLiteral = literalize(modulePathKey)
+          def moduleDepsSnippet(name: String) =
+            s"def $name = _root_.mill.api.internal.ModuleDepsResolver.resolveModuleDeps(build, $pathLiteral, ${literalize(name)}, _root_.mill.api.internal.ModuleDepsResolver.superMethod(${literalize(name)}))"
+
+          val moduleDepsSnippets = Seq(
+            moduleDepsSnippet("moduleDeps"),
+            moduleDepsSnippet("compileModuleDeps"),
+            moduleDepsSnippet("runModuleDeps"),
+            moduleDepsSnippet("bomModuleDeps")
+          )
 
           val extendsSnippet =
             if (extendsConfig.nonEmpty)
               s" extends ${extendsConfig.mkString(", ")}, AutoOverride[_root_.mill.T[?]]"
             else " extends AutoOverride[_root_.mill.T[?]]"
 
-          val allSnippets = Seq(
-            moduleDepsSnippet,
-            compileModuleDepsSnippet,
-            runModuleDepsSnippet,
+          val allSnippets = moduleDepsSnippets ++ Seq(
             "inline def autoOverrideImpl[T](): T = ${ mill.api.Task.notImplementedImpl[T] }"
-          ).filter(_.nonEmpty) ++ definitions
+          ) ++ definitions
 
           s"""$prefix$extendsSnippet {
              |  ${allSnippets.mkString("\n  ")}
@@ -231,9 +265,11 @@ object CodeGen {
             scriptFolderPath == projectRoot
             && CGConst.nestedBuildFileNames.contains(scriptName)
           ) break()
+
           if (
             scriptFolderPath != projectRoot
             && CGConst.rootBuildFileNames.contains(scriptName)
+            && !allowNestedBuildMillFiles
           ) break()
 
           val scriptCode = allScriptCode(scriptPath)
@@ -292,6 +328,13 @@ object CodeGen {
         }
       }
     }
+
+    val resourceFile = resourceDest / "mill" / "module-deps-config.json"
+    os.write.over(
+      resourceFile,
+      upickle.default.write(moduleDepsConfig.toMap, indent = 2),
+      createFolders = true
+    )
   }
 
   private def calcSegments(scriptFolderPath: os.Path, projectRoot: os.Path) =
@@ -375,7 +418,7 @@ object CodeGen {
 
     val newParent =
       if (segments.isEmpty) "_root_.mill.util.MainRootModule"
-      else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
+      else "_root_.mill.api.internal.SubfolderModule(_root_.build_.package_.millDiscover)"
 
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>

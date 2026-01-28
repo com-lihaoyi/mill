@@ -9,7 +9,7 @@ package build
 import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "3.7.4"
+  def scalaVersion = "3.8.1"
 
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
@@ -52,7 +52,7 @@ object `package` extends ScalaModule {
   def forkEnv: T[Map[String, String]] = Map("MY_CUSTOM_ENV" -> "my-env-value")
 
   // Additional Scala compiler options, e.g. to turn warnings into errors
-  def scalacOptions: T[Seq[String]] = Seq("-deprecation", "-Xfatal-warnings")
+  def scalacOptions: T[Seq[String]] = Seq("-deprecation", "-Werror")
 }
 // If you want to better understand how the various upstream tasks feed into
 // a task of interest, such as `run`, you can visualize their relationships via

@@ -5,7 +5,6 @@ This plugin creates Software Bill of Materials (SBOM)
 
 This module has some limitations at the moment:
 
-- Minimal SBOM, various properties of libraries are missing. e.g. the license.
 - Only JVM ecosystem libraries are reported.
 - Only the CycloneDX JSON format is supported
 

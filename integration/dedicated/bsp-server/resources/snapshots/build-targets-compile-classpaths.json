@@ -1,0 +1,267 @@
+{
+  "items": [
+    {
+      "target": {
+        "uri": "file:///workspace/app"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/<version>/logback-core-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
+        "file:///workspace/lib/compile-resources",
+        "file:///workspace/.bsp/out/lib/compile.dest/classes",
+        "file:///workspace/app/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/app/test"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/<version>/logback-core-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
+        "file:///workspace/lib/compile-resources",
+        "file:///workspace/.bsp/out/lib/compile.dest/classes",
+        "file:///workspace/app/compile-resources",
+        "file:///workspace/.bsp/out/app/compile.dest/classes",
+        "file:///workspace/app/test/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/delayed"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/delayed/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/diag"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/diag/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/diag/many"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/diag/many/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/compilation-error"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/errored/compilation-error/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/exception"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/errored/exception/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java"
+      },
+      "classpath": [
+        "file:///workspace/hello-java/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java/test"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/<version>/junit-interface-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/junit/junit/<version>/junit-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/<version>/test-interface-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/<version>/hamcrest-core-<version>.jar",
+        "file:///workspace/hello-java/compile-resources",
+        "file:///workspace/.bsp/out/hello-java/compile.dest/classes",
+        "file:///workspace/hello-java/test/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-kotlin"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/<kotlin-version>/kotlin-stdlib-<kotlin-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/jetbrains/annotations/<annotations-version>/annotations-<annotations-version>.jar",
+        "file:///workspace/hello-kotlin/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/hello-scala/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala/test"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/utest_2.13/0.8.5/utest_2.13-0.8.5.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/<version>/test-interface-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.13/1.1.3/portable-scala-reflect_2.13-1.1.3.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/<scala-version>/scala-reflect-<scala-version>.jar",
+        "file:///workspace/hello-scala/compile-resources",
+        "file:///workspace/.bsp/out/hello-scala/compile.dest/classes",
+        "file:///workspace/hello-scala/test/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/lib"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/junit/junit/<version>/junit-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/<version>/hamcrest-core-<version>.jar",
+        "file:///workspace/lib/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts"
+      },
+      "classpath": [
+        "file:///workspace/scripts/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder1/script.scala"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/<version>/pprint_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/<version>/os-lib_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/<version>/upickle_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/<version>/requests_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/<version>/mainargs_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/<version>/scalatags_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala3-version>/scala-library-<scala3-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/<version>/fansi_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/<version>/sourcecode_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/<version>/geny_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/<version>/os-zip-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/<version>/ujson_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/<version>/upack_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/<version>/upickle-implicits_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/<version>/scala-collection-compat_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/<version>/upickle-core_3-<version>.jar"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/Foo.java"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/<version>/argparse4j-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/<version>/thymeleaf-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ognl/ognl/<version>/ognl-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/attoparser/attoparser/<version>/attoparser-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/<version>/unbescape-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/<version>/javassist-<version>.jar"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/folder2/FooTest.java"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/<version>/junit-interface-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/guava/guava/<version>/guava-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/<version>/argparse4j-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/<version>/thymeleaf-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/junit/junit/<version>/junit-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/<version>/test-interface-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/guava/failureaccess/<version>/failureaccess-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/<version>/listenablefuture-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/<version>/jsr305-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/<version>/checker-qual-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/<version>/error_prone_annotations-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/<version>/j2objc-annotations-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ognl/ognl/<version>/ognl-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/attoparser/attoparser/<version>/attoparser-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/<version>/unbescape-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/<version>/hamcrest-core-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/<version>/javassist-<version>.jar",
+        "file:///workspace/.bsp/out/scripts/folder2/Foo.java/compile.dest/classes"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/Foo.java"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/net/sourceforge/argparse4j/argparse4j/<version>/argparse4j-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/thymeleaf/thymeleaf/<version>/thymeleaf-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/ognl/ognl/<version>/ognl-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/attoparser/attoparser/<version>/attoparser-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/unbescape/unbescape/<version>/unbescape-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/<version>/slf4j-api-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/javassist/javassist/<version>/javassist-<version>.jar"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/foldershared/script.scala"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/<scala3-version>/scala3-library_3-<scala3-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/pprint_3/<version>/pprint_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/<version>/os-lib_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle_3/<version>/upickle_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/requests_3/<version>/requests_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/mainargs_3/<version>/mainargs_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/scalatags_3/<version>/scalatags_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala3-version>/scala-library-<scala3-version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/<version>/fansi_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/<version>/sourcecode_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/<version>/geny_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/os-zip/<version>/os-zip-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/ujson_3/<version>/ujson_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upack_3/<version>/upack_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-implicits_3/<version>/upickle-implicits_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/<version>/scala-collection-compat_3-<version>.jar",
+        "file:///coursier-cache/https/repo1.maven.org/maven2/com/lihaoyi/upickle-core_3/<version>/upickle-core_3-<version>.jar"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/scripts/ignored-folder-2/negated-not-ignored.java"
+      },
+      "classpath": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/sourcesNeedCompile"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/sourcesNeedCompile/compile-resources"
+      ]
+    }
+  ]
+}

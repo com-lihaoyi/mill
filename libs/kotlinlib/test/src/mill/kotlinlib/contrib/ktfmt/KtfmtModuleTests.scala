@@ -122,7 +122,7 @@ object KtfmtModuleTests extends TestSuite {
         sources = Tasks(sources)
       )).get
 
-      val Right(sources2) = eval(module.sources): @unchecked
+      val Right(sources2) = eval(module.sources).runtimeChecked
 
       sources2.value.flatMap(ref => walkFiles(ref.path))
     }
@@ -145,7 +145,7 @@ object KtfmtModuleTests extends TestSuite {
         ),
         sources = Tasks(Seq(module.sources))
       )).fold(_.get, _.value)
-      val Right(sources) = eval(module.sources): @unchecked
+      val Right(sources) = eval(module.sources).runtimeChecked
       sources.value.flatMap(ref => walkFiles(ref.path))
     }
   }

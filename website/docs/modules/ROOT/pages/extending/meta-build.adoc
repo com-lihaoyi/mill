@@ -14,20 +14,9 @@ Meta-builds are recursive, which means they can themselves have nested meta-buil
 To run a task on a meta-build, you specify the `--meta-level` option to select
 the meta-build level.
 
-== Autoformatting the `build.mill`
+== Meta-build Tasks
 
-As an example of running a task on the meta-build, you can format the `build.mill` with Scalafmt.
-Everything is already provided by Mill.
-You only need a `.scalafmt.conf` config file which at least needs configure the Scalafmt version.
-
-.Run Scalafmt on the `build.mill` (and potentially included files)
-----
-$ mill --meta-level 1 mill.scalalib.scalafmt/
-----
-
-* `--meta-level 1` selects the first meta-build. Without any customization, this is the only built-in meta-build.
-* `mill.scalalib.scalafmt/reformatAll` is a generic task to format scala source files with Scalafmt. It requires the tasks that refer to the source files as argument
-* `sources` this selects the `sources` tasks of the meta-build, which at least contains the `build.mill`.
+include::partial$example/extending/metabuild/3-meta-tasks.adoc[]
 
 == Finding plugin updates
 

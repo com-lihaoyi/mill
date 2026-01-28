@@ -1,0 +1,4 @@
+extends: [JavaModule, JlinkModule]
+jlinkModuleName: foo
+jlinkModuleVersion: "1.0"
+jlinkCompressLevel: "2"
