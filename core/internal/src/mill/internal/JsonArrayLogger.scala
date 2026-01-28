@@ -1,6 +1,7 @@
 package mill.internal
 
 import java.io.{BufferedOutputStream, PrintStream}
+import java.lang.management.ManagementFactory
 import java.nio.file.{Files, StandardOpenOption}
 import java.util.concurrent.ArrayBlockingQueue
 
@@ -111,6 +112,43 @@ object JsonArrayLogger {
   class ChromeProfile(outPath: os.Path)
       extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
 
+    private val startTimeNanos = System.nanoTime()
+
+    // Background thread for collecting system metrics every 1 second
+    @volatile private var metricsThreadStopped = false
+    val processorCount = Runtime.getRuntime.availableProcessors()
+    private val metricsThread = mill.api.daemon.StartThread("chrome-profile-metrics-thread") {
+      val osMXBean = ManagementFactory.getOperatingSystemMXBean
+        .asInstanceOf[com.sun.management.OperatingSystemMXBean]
+
+      while (!metricsThreadStopped && !closed) {
+        try {
+          val ts = (System.nanoTime() - startTimeNanos) / 1000 // microseconds
+
+          // CPU load (0.0 to 1.0, or -1 if not available)
+          val cpuLoad = osMXBean.getCpuLoad
+          if (cpuLoad >= 0) {
+            log(ChromeProfile.TraceEvent.Counter(
+              name = "CPU Count",
+              ts = ts,
+              pid = 1,
+              args = Map("CPUS" -> processorCount)
+            ))
+            log(ChromeProfile.TraceEvent.Counter(
+              name = "CPU Load 0.0-1.0",
+              ts = ts,
+              pid = 1,
+              args = Map("load" -> cpuLoad)
+            ))
+          }
+
+          Thread.sleep(1000)
+        } catch {
+          case _: InterruptedException => // exit gracefully
+        }
+      }
+    }
+
     def logBegin(
         terminal: String,
         cat: String,
@@ -121,7 +159,7 @@ object JsonArrayLogger {
       val event = ChromeProfile.TraceEvent.Begin(
         name = terminal,
         cat = cat,
-        ts = startTime,
+        ts = startTime - startTimeNanos / 1000,
         pid = 1,
         tid = threadId
       )
@@ -134,11 +172,18 @@ object JsonArrayLogger {
     ): Unit = {
 
       val event = ChromeProfile.TraceEvent.End(
-        ts = endTime,
+        ts = endTime - startTimeNanos / 1000,
         pid = 1,
         tid = threadId
       )
       log(event)
+    }
+
+    override def close(): Unit = {
+      metricsThreadStopped = true
+      metricsThread.interrupt()
+      metricsThread.join()
+      super.close()
     }
   }
 
@@ -162,6 +207,13 @@ object JsonArrayLogger {
           ts: Long,
           pid: Int,
           tid: Int
+      )
+
+      @upickle.implicits.key("C") case Counter(
+          name: String,
+          ts: Long,
+          pid: Int,
+          args: Map[String, Double]
       )
     }
 
