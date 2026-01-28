@@ -1,6 +1,7 @@
 package mill.rpc
 
 import mill.api.daemon.{Logger, Result}
+import mill.api.daemon.internal.NonFatal.millNonFatal
 import mill.constants.EnvVars
 import pprint.TPrint
 import upickle.{Reader, Writer}
@@ -83,8 +84,8 @@ object MillRpcClient {
     }
 
     def handleServerMessage(msg: ServerToClient): Unit = {
-      val response =
-        Try(currentServerMessageHandler(msg)).toEither.left.map(RpcThrowable.fromThrowable)
+      val response = Try.millNonFatal(currentServerMessageHandler(msg))
+        .toEither.left.map(RpcThrowable.fromThrowable)
       wireTransport.writeSerialized(MillRpcClientToServer.Response(response))
     }
 

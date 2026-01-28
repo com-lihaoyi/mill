@@ -5,7 +5,10 @@ import mill.integration.BspServerTestUtil.*
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 import java.io.ByteArrayOutputStream
+import java.net.URI
+import java.nio.file.Paths
 import java.util.concurrent.ExecutionException
+import scala.jdk.CollectionConverters.*
 
 object BspServerErrorTests extends UtestIntegrationTestSuite {
   def tests: Tests = Tests {
@@ -54,6 +57,40 @@ object BspServerErrorTests extends UtestIntegrationTestSuite {
         // look for some stack trace bits
         assert(res.left.exists(_.contains("(CoursierModule.scala:")))
         assert(res.left.exists(_.contains("(JavaModule.scala")))
+
+        val buildTargets = buildServer.workspaceBuildTargets().get()
+
+        val helloScalaTarget = buildTargets
+          .getTargets
+          .asScala
+          .find { target =>
+            os.Path(Paths.get(new URI(target.getBaseDirectory))) == workspacePath / "hello-scala"
+          }
+          .getOrElse {
+            sys.error("hello-scala not found in build targets")
+          }
+
+        val targetId = helloScalaTarget.getId
+        val resourcesRes =
+          try
+            Right {
+              buildServer
+                .buildTargetResources(
+                  new b.ResourcesParams(List(targetId).asJava)
+                )
+                .get()
+            }
+          catch {
+            case ex: Exception =>
+              Left(ex)
+          }
+        assert(resourcesRes.isRight)
+        assert(resourcesRes.forall(_.getItems.isEmpty))
+
+        val logs = new String(stderr.toByteArray)
+        assert(logs.contains("[error] hello-scala.resources task failed"))
+
+        ()
       }
     }
   }

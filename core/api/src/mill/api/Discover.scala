@@ -64,7 +64,7 @@ object Discover {
   private object Router {
     import quoted.*
     import mainargs.Macros.*
-    import scala.util.control.NonFatal
+    import mill.api.daemon.internal.NonFatal
 
     def applyImpl[T: Type](using quotes: Quotes): Expr[Discover] = {
       import quotes.reflect.*
