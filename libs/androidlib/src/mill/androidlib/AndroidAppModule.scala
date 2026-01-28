@@ -44,7 +44,6 @@ object AndroidLintReportFormat extends Enumeration {
   // Define an implicit ReadWriter for the Format case class
   implicit val formatRW: ReadWriter[Format] = macroRW
 
-  // ReadWriter for Value (needed for Task types)
   implicit val valueRW: ReadWriter[Value] = formatRW.asInstanceOf[ReadWriter[Value]]
 
   // Optional: Add a method to retrieve all possible values

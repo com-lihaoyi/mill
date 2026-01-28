@@ -51,7 +51,7 @@ object Resolve {
     override def deduplicate(items: List[Resolved]): List[Resolved] = items.distinct
   }
 
-  object Inspect extends Resolve[Either[Module, Task.Named[Any]]] {
+  object Inspect extends Resolve[Either[Module, Task.Named[?]]] {
     def handleResolved(
         rootModule: RootModule0,
         rootModulePrefix: String,
@@ -94,7 +94,7 @@ object Resolve {
         flattened.flatMap {
           case Left(m) => Some(Left(m))
           case Right(None) => None
-          case Right(Some(t)) => Some(Right(t.asInstanceOf[Task.Named[Any]]))
+          case Right(Some(t)) => Some(Right(t))
         }
       )
     }

@@ -40,7 +40,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
   case class DownstreamResult(
       changedRootTasks: Set[Task[?]],
-      downstreamTasks: Seq[Task[Any]],
+      downstreamTasks: Seq[Task[?]],
       // Global invalidation reason for selective execution (e.g., "mill-version-changed:OLD->NEW")
       globalInvalidationReason: Option[String] = None
   )
@@ -49,7 +49,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       transitiveNamed: Seq[Task.Named[?]],
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
-  ): (Set[Task[?]], Seq[Task[Any]]) = {
+  ): (Set[Task[?]], Seq[Task[?]]) = {
     val result = computeDownstreamDetailed(transitiveNamed, oldHashes, newHashes)
     (result.changedRootTasks, result.downstreamTasks)
   }
@@ -60,12 +60,11 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       newHashes: SelectiveExecution.Metadata
   ): DownstreamResult = {
     val allTasks = transitiveNamed.map(t => t: Task[?])
-    val allTasksAny = allTasks.asInstanceOf[Seq[Task[Any]]]
     def globalInvalidate(name: String, key: SelectiveExecution.Metadata => Any) = {
       Option.when(key(oldHashes) != key(newHashes)) {
         DownstreamResult(
           allTasks.toSet,
-          allTasksAny,
+          allTasks,
           globalInvalidationReason = Some(s"$name:${key(oldHashes)}->${key(newHashes)}")
         )
       }
@@ -106,7 +105,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
           changedRootTasks,
           breadthFirst(changedRootTasks) { t =>
             downstreamEdgeMap.getOrElse(t.asInstanceOf[Task[Nothing]], Nil)
-          }.asInstanceOf[Seq[Task[Any]]]
+          }
         )
       }
   }
