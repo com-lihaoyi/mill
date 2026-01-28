@@ -81,6 +81,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
+            "chrome-profile-metrics-thread",
             "main",
             "prompt-logger-stream-pumper-thread"
           )
@@ -109,6 +110,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
+              "chrome-profile-metrics-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -138,6 +140,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
+              "chrome-profile-metrics-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -163,6 +166,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
+            "chrome-profile-metrics-thread",
             "main",
             "prompt-logger-stream-pumper-thread"
           )
@@ -191,6 +195,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
+              "chrome-profile-metrics-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -221,6 +226,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
+              "chrome-profile-metrics-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -253,6 +259,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
               "Timer",
+              "chrome-profile-metrics-thread",
               "main",
               "prompt-logger-stream-pumper-thread"
             )
@@ -282,6 +289,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
             "Timer",
+            "chrome-profile-metrics-thread",
             "leaked thread",
             "main",
             "prompt-logger-stream-pumper-thread"

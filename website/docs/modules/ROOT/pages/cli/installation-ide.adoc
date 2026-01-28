@@ -460,6 +460,28 @@ codebase. This allows you to limit the tests that run on your codebase to those 
 downstream of the code you changed, allowing you to save time and resources by not wastefully
 running tests that could not possibly be affected by your code change.
 
+=== Uploading Chrome Profiles
+
+For investigating performance issues in CI, you may find it useful to upload the
+xref:fundamentals/out-dir.adoc#_mill_chrome_profile_json[out/mill-chrome-profile.json] file
+at the end of every run. This gives you insight into how long each task took, what tasks
+were running sequentially or in paralle, and overall system CPU utilization during the run.
+
+For example, the Github Actions steps to upload the `out/mill-chrome-profile.json` file as
+an artifact looks something like this, placed after your `./mill` commands:
+
+```yaml
+  - name: Upload Chrome Profile
+    uses: actions/upload-artifact@v4
+    if: always()
+    with:
+      name: mill-chrome-profile
+      path: out/mill-chrome-profile.json
+      if-no-files-found: ignore
+```
+
+You can then download the `mill-chrome-profile.zip` from the Github Actions Web UI, unzip
+it, then load it into `chrome://tracing` to visualize the time spent during that CI run.
 
 == Using Mill without access to Maven Central
 
