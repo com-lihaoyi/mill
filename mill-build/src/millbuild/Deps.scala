@@ -43,7 +43,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.9"
+    val scalanativeVersion = "0.5.10"
     val scalanativeTools = mvn"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = mvn"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = mvn"org.scala-native::nir:${scalanativeVersion}"
