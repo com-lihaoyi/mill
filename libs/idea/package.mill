@@ -1,0 +1,13 @@
+package build.libs.idea
+
+import mill.*
+import millbuild.*
+
+/**
+ * Module for IntelliJ IDEA project file generation.
+ * Contains the GenIdea ExternalModule that loads the implementation reflectively.
+ */
+object `package` extends MillStableScalaModule {
+  def moduleDeps = Seq(build.core.api, build.libs.javalib)
+  def runModuleDeps = Seq(build.runner.idea)
+}
