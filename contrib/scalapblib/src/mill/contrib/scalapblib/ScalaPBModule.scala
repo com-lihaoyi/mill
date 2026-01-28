@@ -79,7 +79,7 @@ trait ScalaPBModule extends ScalaModule {
   /**
    * A [[Option]] option which determines the protoc compiler to use. If `None`, a java embedded protoc will be used, if set to `Some` path, the given binary is used.
    */
-  def scalaPBProtocPath: T[Option[String]] = Task { Option.empty[String] }
+  def scalaPBProtocPath: T[Option[String]] = Task { None }
 
   /**
    * Paths to search for `.proto` files and generate scala case classes for.

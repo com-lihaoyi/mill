@@ -1,13 +1,16 @@
 //// SNIPPET:TREE
 // ----
-// build.mill
+// build.mill.yaml
 // foo/
+//     package.mill.yaml
 //     src/
 //         foo/Foo.kt
 // bar/
+//     package.mill.yaml
 //     src/
 //         bar/Bar.kt
 //     test/
+//         package.mill.yaml
 //         src/
 //             bar/BarTests.kt
 // out/

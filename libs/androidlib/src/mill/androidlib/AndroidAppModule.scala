@@ -44,6 +44,8 @@ object AndroidLintReportFormat extends Enumeration {
   // Define an implicit ReadWriter for the Format case class
   implicit val formatRW: ReadWriter[Format] = macroRW
 
+  implicit val valueRW: ReadWriter[Value] = formatRW.asInstanceOf[ReadWriter[Value]]
+
   // Optional: Add a method to retrieve all possible values
   val allFormats: List[Format] = List(Html, Xml, Txt, Sarif)
 }
@@ -103,12 +105,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Specifies the lint configuration XML file path. This allows setting custom lint rules or modifying existing ones.
    */
-  def androidLintConfigPath: T[Option[PathRef]] = Task { Option.empty[PathRef] }
+  def androidLintConfigPath: T[Option[PathRef]] = Task { None }
 
   /**
    * Specifies the lint baseline XML file path. This allows using a baseline to suppress known lint warnings.
    */
-  def androidLintBaselinePath: T[Option[PathRef]] = Task { Option.empty[PathRef] }
+  def androidLintBaselinePath: T[Option[PathRef]] = Task { None }
 
   /**
    * Determines whether the build should fail if Android Lint detects any issues.

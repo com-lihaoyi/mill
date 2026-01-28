@@ -3,7 +3,6 @@ package mill.kotlinlib.ksp
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.*
-import mill.api.daemon.MillURLClassLoader
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.ksp2.{KspWorker, KspWorkerArgs}
 import mill.kotlinlib.worker.api.KotlinWorkerTarget

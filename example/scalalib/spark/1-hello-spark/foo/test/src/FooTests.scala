@@ -1,7 +1,7 @@
 package foo
 
 import org.apache.spark.sql.SparkSession
-import utest.*
+import utest._
 
 object FooTests extends TestSuite {
   def tests = Tests {

@@ -40,7 +40,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
 
   case class DownstreamResult(
       changedRootTasks: Set[Task[?]],
-      downstreamTasks: Seq[Task[Any]],
+      downstreamTasks: Seq[Task[?]],
       // Global invalidation reason for selective execution (e.g., "mill-version-changed:OLD->NEW")
       globalInvalidationReason: Option[String] = None
   )
@@ -49,7 +49,7 @@ class SelectiveExecutionImpl(evaluator: Evaluator)
       transitiveNamed: Seq[Task.Named[?]],
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
-  ): (Set[Task[?]], Seq[Task[Any]]) = {
+  ): (Set[Task[?]], Seq[Task[?]]) = {
     val result = computeDownstreamDetailed(transitiveNamed, oldHashes, newHashes)
     (result.changedRootTasks, result.downstreamTasks)
   }
