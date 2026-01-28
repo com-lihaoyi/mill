@@ -25,7 +25,7 @@ import scala.quoted.*
  * Generally not instantiated manually, but instead constructed via the
  * [[Task.apply]] & similar macros.
  */
-sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with TaskApi[T] {
+sealed abstract class Task[T] extends Task.Ops[T] with Applyable[Task, T] with TaskApi[T] {
 
   /**
    * What other tasks does this task depend on?
@@ -356,7 +356,7 @@ object Task {
     override def readWriterOpt = Some(rw)
   }
 
-  abstract class Ops[+T] { this: Task[T] =>
+  abstract class Ops[T] { this: Task[T] =>
     def map[V](f: T => V): Task[V] = new Task.Mapped(this, f)
     def filter(f: T => Boolean): Task[T] = this
     def withFilter(f: T => Boolean): Task[T] = this
@@ -364,7 +364,7 @@ object Task {
 
   }
 
-  private[api] class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
+  private[api] class Sequence[T](inputs0: Seq[Task[T]]) extends Task[Seq[T]] {
     val inputs: Seq[Task[?]] = inputs0
     def evaluate(ctx: mill.api.TaskCtx): Result[Seq[T]] = {
       for (i <- 0 until ctx.args.length)
@@ -372,12 +372,12 @@ object Task {
     }
   }
 
-  private[api] class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V] {
+  private[api] class Mapped[T, V](source: Task[T], f: T => V) extends Task[V] {
     def evaluate(ctx: mill.api.TaskCtx): Result[V] = f(ctx.arg(0))
     val inputs: Seq[Task[?]] = List(source)
   }
 
-  private[api] class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
+  private[api] class Zipped[T, V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
     def evaluate(ctx: mill.api.TaskCtx): Result[(T, V)] = (ctx.arg(0), ctx.arg(1))
     val inputs: Seq[Task[?]] = List(source1, source2)
   }
@@ -387,7 +387,7 @@ object Task {
    * tasks, `Task.Input`, `Task.Worker`, etc. but not including anonymous
    * `Task.Anon` or `Task.traverse` etc. instances
    */
-  trait Named[+T] extends Task[T] with NamedTaskApi[T] {
+  trait Named[T] extends Task[T] with NamedTaskApi[T] {
 
     def ctx0: mill.api.ModuleCtx
 
@@ -413,7 +413,7 @@ object Task {
     def writerOpt: Option[upickle.Writer[?]] = readWriterOpt.orElse(None)
   }
 
-  class Computed[+T](
+  class Computed[T](
       val inputs: Seq[Task[Any]],
       val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       val ctx0: mill.api.ModuleCtx,
@@ -431,7 +431,7 @@ object Task {
    * A Simple Task is a [[Task.Named]] that is cached on disk; either a
    * [[Task.Computed]] or an [[Input]]
    */
-  trait Simple[+T] extends Task.Named[T]
+  trait Simple[T] extends Task.Named[T]
 
   object Simple {
 
@@ -474,7 +474,7 @@ object Task {
       s"Task.Anon@${System.identityHashCode(this).toHexString}(${enclosing.value})"
   }
 
-  class Command[+T](
+  class Command[T](
       val inputs: Seq[Task[Any]],
       val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       val ctx0: mill.api.ModuleCtx,
@@ -489,7 +489,7 @@ object Task {
     override def writerOpt: Some[Writer[?]] = Some(writer)
   }
 
-  class Worker[+T](
+  class Worker[T](
       val inputs: Seq[Task[Any]],
       val evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       val ctx0: mill.api.ModuleCtx,

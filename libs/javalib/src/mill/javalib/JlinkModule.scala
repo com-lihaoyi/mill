@@ -18,7 +18,7 @@ trait JlinkModule extends JavaModule {
   def jlinkModuleName: T[String] = Task { "" }
 
   /** The main module's version number. */
-  def jlinkModuleVersion: T[Option[String]] = Task { Option.empty[String] }
+  def jlinkModuleVersion: T[Option[String]] = Task { None }
 
   /** The main class to use as the runtime entry point. */
   def jlinkMainClass: T[String] = Task { finalMainClass() }

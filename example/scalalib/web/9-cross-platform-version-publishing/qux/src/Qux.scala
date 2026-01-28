@@ -1,5 +1,5 @@
 package qux
-import scalatags.Text.all.*
+import scalatags.Text.all._
 object Qux {
   def main(args: Array[String]): Unit = {
     println("Bar.value: " + bar.Bar.value)

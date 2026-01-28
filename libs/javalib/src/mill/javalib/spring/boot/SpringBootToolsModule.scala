@@ -5,7 +5,6 @@ import mill.*
 import mill.api.{Discover, ExternalModule}
 import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
 import mill.javalib.api.Versions
-import mill.api.MillURLClassLoader
 import mill.javalib.spring.boot.worker.SpringBootTools
 
 trait SpringBootToolsModule extends CoursierModule, OfflineSupportModule {
