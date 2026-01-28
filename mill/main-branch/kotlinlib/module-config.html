@@ -674,6 +674,9 @@
           <a href="../../index.html">1.1.0</a>
         </li>
         <li class="version">
+          <a href="../../dev-1.1.0-10-fec938/index.html">dev-1.1.0-10-fec938</a>
+        </li>
+        <li class="version">
           <a href="../../1.0.x/index.html">1.0.6</a>
         </li>
         <li class="version">
@@ -737,7 +740,7 @@ sources/resources, and setting compilation/run
 options.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-1-basic-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/1-basic-config/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-1-basic-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/1-basic-config/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [mill.kotlinlib.KotlinModule] # fully-qualified class name
 kotlinVersion: 1.9.24
@@ -849,7 +852,7 @@ a module to contain the exact annotation processors you want, and pass
 in <code>-Xplugin</code> to <code>kotlincOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-2-kotlin-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/2-kotlin-compiler-plugins/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-2-kotlin-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/2-kotlin-compiler-plugins/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 1.9.24
@@ -861,7 +864,7 @@ kotlincPluginMvnDeps: [org.jetbrains.kotlin:kotlin-serialization-compiler-plugin
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-2-kotlin-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/2-kotlin-compiler-plugins/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-2-kotlin-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/2-kotlin-compiler-plugins/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KotlinTests, TestModule.Junit5]
 mvnDeps: [io.kotest:kotest-runner-junit5:5.9.1]</code></pre>
@@ -883,7 +886,7 @@ Test foo.ProjectTest simple finished...
 like to create the docs for, configured via <code>dokkaOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-3-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/3-docjar/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-3-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/3-docjar/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 1.9.24</code></pre>
@@ -916,7 +919,7 @@ allow setting all the same keys as <code>build.mill.yaml</code> files, and addit
 can implement custom build logic such as <code>def generatedSources</code> below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-4-programmable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/4-programmable-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-4-programmable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/4-programmable-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1065,7 +1068,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-5-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/5-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-5-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/5-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1306,7 +1309,7 @@ change.</p>
 <div class="sect2">
 <h3 id="_generated_sources"><a class="anchor" href="#_generated_sources"></a>Generated Sources</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-6-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/6-generated-sources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-6-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/6-generated-sources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1347,7 +1350,7 @@ Hello World</code></pre>
 <div class="sect2">
 <h3 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1411,31 +1414,31 @@ provide the folder path as an environment variable that the test can make use of
 <p>Example application code demonstrating the techniques above can be seen below:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/resources/file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="title">foo/resources/file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/resources/file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Hello World Resource File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-a.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File A</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-b.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Test Hello World Resource File B</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/other-files/other-file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">Other Hello World File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/Foo.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/src/Foo.kt">browse</a>)</div>
+<div class="title">foo/src/Foo.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/src/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package foo
 
@@ -1447,7 +1450,7 @@ object Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/FooTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/test/src/FooTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/FooTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/7-resources/foo/test/src/FooTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package foo
 
@@ -1520,7 +1523,7 @@ the sandbox and make the tests run in the project root.</p>
 <div class="sect2">
 <h3 id="_dependency_injection_with_dagger_and_ksp"><a class="anchor" href="#_dependency_injection_with_dagger_and_ksp"></a>Dependency Injection with Dagger and KSP</h3>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-10-dependency-injection.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/10-dependency-injection/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-10-dependency-injection.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/10-dependency-injection/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ksp.KspModule
 kotlinVersion: 2.2.0
@@ -1536,7 +1539,7 @@ kotlinSymbolProcessors:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-10-dependency-injection.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/10-dependency-injection/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-10-dependency-injection.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/10-dependency-injection/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KspTests, TestModule.Junit5]
 kotlincOptions: !append [-no-reflect, -verbose]
@@ -1604,7 +1607,7 @@ DaggerTestApp.java</code></pre>
 <div class="sect2">
 <h3 id="_native_c_code_with_jni"><a class="anchor" href="#_native_c_code_with_jni"></a>Native C Code with JNI</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/15-jni">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/15-jni">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1709,14 +1712,14 @@ Test foo.HelloWorldTest simple finished...
 and are not limited to the builtin <code>trait</code>s provided by Mill:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-17-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/17-custom-trait/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-17-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/17-custom-trait/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [millbuild.LineCountKotlinModule]
 kotlinVersion: 2.0.20</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">mill-build/src/LineCountKotlinModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-17-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/17-custom-trait/mill-build/src/LineCountKotlinModule.scala">browse</a>)</div>
+<div class="title">mill-build/src/LineCountKotlinModule.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-17-custom-trait.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/17-custom-trait/mill-build/src/LineCountKotlinModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package millbuild
 import mill.*, kotlinlib.*
@@ -1760,7 +1763,7 @@ more advanced customizations, and have them inter-operate with each other seamle
 a programmable module <code>bar</code> and a programmable cross-module <code>qux[1]</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-18-programmable-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/18-programmable-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-18-programmable-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/18-programmable-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1779,7 +1782,7 @@ trait QuxModule extends KotlinModule, Cross.Module[Int] {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-10-fec938/mill-dist-1.1.0-example-kotlinlib-module-18-programmable-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/18-programmable-module-deps/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-11-da7543/mill-dist-1.1.0-example-kotlinlib-module-18-programmable-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/module/18-programmable-module-deps/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 moduleDeps: [bar, "qux[1]"]
