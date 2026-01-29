@@ -199,7 +199,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - millargs: "integration.multimode._.testForked"
+          - millargs: "integration.multimode._"
 
           - # turn of parallelism since it sometimes causes issues with concurrent migrations
             millargs: "example.migrating.javalib._.packaged.daemon"
