@@ -97,7 +97,7 @@ class MillDaemonMain0(
       initialSystemProperties: Map[String, String],
       systemExit: Server.StopServer,
       serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient],
-      millRepositories: Seq[String] = Seq.empty
+      millRepositories: Seq[String]
   ): (Boolean, RunnerState) = {
     // Create runner that sends subprocess requests to the launcher via RPC
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =

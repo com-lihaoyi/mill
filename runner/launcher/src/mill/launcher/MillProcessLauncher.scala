@@ -19,7 +19,7 @@ object MillProcessLauncher {
       useFileLocks: Boolean,
       workDir: os.Path,
       env: Map[String, String],
-      millRepositories: Seq[String] = Nil
+      millRepositories: Seq[String]
   ): Int = {
     val sig = f"${UUID.randomUUID().hashCode}%08x"
     val processDir =
@@ -56,7 +56,7 @@ object MillProcessLauncher {
       useFileLocks: Boolean,
       workDir: os.Path,
       env: Map[String, String],
-      millRepositories: Seq[String] = Nil
+      millRepositories: Seq[String]
   ): os.SubProcess = {
     val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
       Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
@@ -169,8 +169,8 @@ object MillProcessLauncher {
 
   def javaHome(
       outMode: OutFolderMode,
-      workDir: os.Path = os.pwd,
-      millRepositories: Seq[String] = Nil
+      workDir: os.Path,
+      millRepositories: Seq[String]
   ): Option[os.Path] = {
     val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion, workDir)
       .headOption
@@ -188,8 +188,8 @@ object MillProcessLauncher {
 
   def javaExe(
       outMode: OutFolderMode,
-      workDir: os.Path = os.pwd,
-      millRepositories: Seq[String] = Nil
+      workDir: os.Path,
+      millRepositories: Seq[String]
   ): String = {
     javaHome(outMode, workDir, millRepositories) match {
       case None => "java"
@@ -202,8 +202,8 @@ object MillProcessLauncher {
   def millLaunchJvmCommand(
       runnerClasspath: Seq[os.Path],
       outMode: OutFolderMode,
-      workDir: os.Path = os.pwd,
-      millRepositories: Seq[String] = Nil
+      workDir: os.Path,
+      millRepositories: Seq[String]
   ): Seq[String] = {
     val millProps = sys.props.toSeq
       .filter(_._1.startsWith("MILL_"))

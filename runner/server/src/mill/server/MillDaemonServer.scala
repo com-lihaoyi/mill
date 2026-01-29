@@ -231,7 +231,7 @@ abstract class MillDaemonServer[State](
       initialSystemProperties: Map[String, String],
       stopServer: Server.StopServer,
       serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient],
-      millRepositories: Seq[String] = Seq.empty
+      millRepositories: Seq[String]
   ): (Boolean, State)
 }
 

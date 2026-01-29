@@ -20,7 +20,7 @@ object ServerLauncher {
       millVersion: String,
       javaVersion: String,
       jvmOpts: Seq[String],
-      millRepositories: Seq[String] = Seq.empty
+      millRepositories: Seq[String]
   ) derives upickle.ReadWriter {
 
     /**

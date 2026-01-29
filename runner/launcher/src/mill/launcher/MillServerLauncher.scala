@@ -19,8 +19,8 @@ class MillServerLauncher(
     useFileLocks: Boolean,
     initServerFactory: (os.Path, Locks) => LaunchedServer,
     millVersion: String = BuildInfo.millVersion,
-    jvmOpts: Seq[String] = Seq.empty,
-    millRepositories: Seq[String] = Seq.empty
+    jvmOpts: Seq[String],
+    millRepositories: Seq[String]
 ) {
   private val serverInitWaitMillis = 10000
 

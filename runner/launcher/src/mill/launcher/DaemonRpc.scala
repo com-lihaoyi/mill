@@ -20,7 +20,7 @@ object DaemonRpc {
       args: Seq[String],
       env: Map[String, String],
       userSpecifiedProperties: Map[String, String],
-      millRepositories: Seq[String] = Seq.empty
+      millRepositories: Seq[String]
   ) derives ReadWriter
 
   sealed trait ClientToServer extends MillRpcChannel.Message derives ReadWriter

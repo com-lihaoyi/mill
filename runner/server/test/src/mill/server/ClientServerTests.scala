@@ -133,7 +133,9 @@ trait ClientServerTestsBase extends TestSuite {
         args = args.toSeq,
         forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay,
         useFileLocks = false,
-        initServerFactory = initServerFactory
+        initServerFactory = initServerFactory,
+        jvmOpts = Seq.empty,
+        millRepositories = Seq.empty
       ).run(
         daemonDir,
         None,

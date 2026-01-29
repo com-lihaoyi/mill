@@ -87,21 +87,12 @@ trait CoursierConfigModule extends Module {
 
   /** Default repositories for dependency resolution */
   def defaultRepositories: Task[Seq[Repository]] = Task.Anon {
-    // Get the standard default repositories from environment/properties
     val (env, props) = coursierEnv()
     val envRepos = CoursierEnv.defaultRepositories(
       CoursierEnv.repositories.readFrom(env, props),
       CoursierEnv.scalaCliConfig.readFrom(env, props)
     )
-
-    // Check if mill-repositories was configured in the build header
-    val millRepos = mill.api.BuildCtx.millRepositories
-    if (millRepos.nonEmpty) {
-      // Configured repos prepend to (take precedence over) defaults, but don't replace them
-      mill.util.Jvm.reposFromStrings(millRepos).get ++ envRepos
-    } else {
-      envRepos
-    }
+    mill.util.Jvm.reposFromStrings(mill.api.BuildCtx.millRepositories).get ++ envRepos
   }
 
   /** Default JSON configuration files to be used by coursier */

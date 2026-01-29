@@ -53,12 +53,11 @@ object CoursierClient {
     }
   }
 
-  def resolveMillDaemon(outMode: OutFolderMode, millRepositories: Seq[String] = Nil): Seq[os.Path] = {
+  def resolveMillDaemon(outMode: OutFolderMode, millRepositories: Seq[String]): Seq[os.Path] = {
     val testOverridesRepos = Option(System.getenv("MILL_LOCAL_TEST_REPO"))
       .toSeq
       .flatMap(_.split(File.pathSeparator).toSeq)
 
-    // Cache key includes mill version, any test override repos, and configured repositories
     val cacheKey = s"${BuildInfo.millVersion}:${testOverridesRepos.sorted.mkString(":")}:${millRepositories.sorted.mkString(":")}"
 
     cached[Seq[os.Path]](
@@ -76,7 +75,6 @@ object CoursierClient {
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
 
       val artifactsResultOrError = {
-        // Configured repos prepend to (take precedence over) defaults, but don't replace them
         val allRepos = testOverridesMavenRepos ++ configuredRepos ++ Resolve.defaultRepositories
         val resolve = Resolve()
           .withCache(coursierCache0)
@@ -105,11 +103,9 @@ object CoursierClient {
       id: String,
       jvmIndexVersionOpt: Option[String],
       outMode: OutFolderMode,
-      millRepositories: Seq[String] = Nil
+      millRepositories: Seq[String]
   ): os.Path = {
     val indexVersion = jvmIndexVersionOpt.getOrElse(mill.client.Versions.coursierJvmIndexVersion)
-
-    // Cache key includes jvm id, index version, and configured repositories
     val cacheKey = s"$id:$indexVersion:${millRepositories.sorted.mkString(":")}"
 
     cached[os.Path](
@@ -121,15 +117,12 @@ object CoursierClient {
         .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
-      // Configured repos prepend to (take precedence over) defaults, but don't replace them
-      val repos = configuredRepos ++ Resolve.defaultRepositories
-
       val jvmCache = JvmCache()
         .withArchiveCache(ArchiveCache().withCache(coursierCache0))
         .withIndex(
           JvmIndex.load(
             cache = coursierCache0,
-            repositories = repos,
+            repositories = configuredRepos ++ Resolve.defaultRepositories,
             indexChannel = JvmChannel.module(JvmChannel.centralModule(), version = indexVersion)
           )
         )
