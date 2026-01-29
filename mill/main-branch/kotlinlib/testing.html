@@ -726,21 +726,21 @@
 <p>This example demonstrates more details about testing in Mill:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/1-testing/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/1-testing/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 1.9.24</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/1-testing/test/package.mill.yaml">browse</a>)</div>
+<div class="title">test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/1-testing/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KotlinTests, TestModule.Junit5]
 mvnDeps: [io.kotest:kotest-runner-junit5:5.9.1]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/1-testing/integration/package.mill.yaml">browse</a>)</div>
+<div class="title">integration/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-1-testing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/1-testing/integration/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.KotlinTests, TestModule.Junit5]
 moduleDeps: !append [test]
@@ -849,14 +849,14 @@ to the test framework at the command line.</p>
 "JUnit" + "Kotest" as the testing framework, along with Mockito.</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/foo/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/foo/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 1.9.24</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/foo/test/package.mill.yaml">browse</a>)</div>
+<div class="title">foo/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/foo/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.foo.KotlinTests]
 testFramework: com.github.sbt.junit.jupiter.api.JupiterFramework
@@ -869,7 +869,7 @@ kotlincOptions: ["-jvm-target", "11"]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/foo/src/foo/Foo.kt">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/foo/src/foo/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package foo
 
@@ -881,7 +881,7 @@ fun main(args: Array&lt;String&gt;) = println(Foo().hello())</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/foo/test/src/foo/FooTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/foo/test/src/foo/FooTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package foo
 
@@ -990,7 +990,7 @@ documented on their respective websites, so please see the links above for more
 details on how to use each one from the command line.</p>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/bar/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/bar/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 1.9.24
@@ -998,7 +998,7 @@ mainClass: bar.BarKt</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/bar/test/package.mill.yaml">browse</a>)</div>
+<div class="title">bar/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-2-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/2-test-suite/bar/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.bar.KotlinTests, TestModule.Junit5]
 mvnDeps:
@@ -1113,14 +1113,14 @@ and <code>runMvnDeps</code> to declare dependencies in test modules, and test mo
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">baz/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/3-test-deps/baz/package.mill.yaml">browse</a>)</div>
+<div class="title">baz/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/3-test-deps/baz/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 1.9.24</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">baz/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/3-test-deps/baz/test/package.mill.yaml">browse</a>)</div>
+<div class="title">baz/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/3-test-deps/baz/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.baz.KotlinTests, TestModule.Junit5]
 mvnDeps:
@@ -1129,7 +1129,7 @@ mvnDeps:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/3-test-deps/qux/package.mill.yaml">browse</a>)</div>
+<div class="title">qux/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/3-test-deps/qux/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: KotlinModule
 kotlinVersion: 1.9.24
@@ -1137,7 +1137,7 @@ moduleDeps: [baz]</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/3-test-deps/qux/test/package.mill.yaml">browse</a>)</div>
+<div class="title">qux/test/package.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-3-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/3-test-deps/qux/test/package.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [build.qux.KotlinTests, TestModule.Junit5]
 mvnDeps:
@@ -1243,7 +1243,7 @@ distributes your test classes across multiple JVM subprocesses, while minimizing
 overhead of JVM creation by re-using the subprocesses where possible.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-5-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/5-test-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-5-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/5-test-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1295,7 +1295,7 @@ execute in parallel in a separate JVM when you call <code>test</code>. Test grou
 is enabled by overriding <code>def testForkGrouping</code>, as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/6-test-grouping">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/6-test-grouping">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1319,7 +1319,7 @@ object foo extends KotlinModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/HelloTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/6-test-grouping/foo/test/src/foo/HelloTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/foo/HelloTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/6-test-grouping/foo/test/src/foo/HelloTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package foo
 
@@ -1339,7 +1339,7 @@ class HelloTests :
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/WorldTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/6-test-grouping/foo/test/src/foo/WorldTests.kt">browse</a>)</div>
+<div class="title">foo/test/src/foo/WorldTests.kt (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-6-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/6-test-grouping/foo/test/src/foo/WorldTests.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kt hljs" data-lang="kt">package foo
 
@@ -1415,7 +1415,7 @@ execution, based on the unique constraints of your test suite.</p>
 <p><code>testParallelism</code> respects <code>testForkGrouping</code>, allowing you to use both features in a test module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-15-65e176/mill-dist-1.1.0-example-kotlinlib-testing-7-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/7-test-group-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-16-7ecbb3/mill-dist-1.1.0-example-kotlinlib-testing-7-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/kotlinlib/testing/7-test-group-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
