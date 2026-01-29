@@ -55,7 +55,8 @@ object MillLauncherMain {
     coursier.Resolve.proxySetup()
 
     // Read the mill-repositories config
-    val millRepositories = MillProcessLauncher.loadMillConfig(ConfigConstants.millRepositories, workDir)
+    val millRepositories =
+      MillProcessLauncher.loadMillConfig(ConfigConstants.millRepositories, workDir)
 
     val runnerClasspath = CoursierClient.resolveMillDaemon(outMode, millRepositories)
     try {
