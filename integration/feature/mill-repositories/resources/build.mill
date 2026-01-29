@@ -4,4 +4,8 @@ package build
 
 import mill._, javalib._
 
-object foo extends JavaModule
+object foo extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi:mill-core-constants:SNAPSHOT"
+  )
+}
