@@ -54,7 +54,6 @@ if [ -z "${MILL_FINAL_DOWNLOAD_FOLDER}" ] ; then MILL_FINAL_DOWNLOAD_FOLDER="${M
 
 MILL_NATIVE_SUFFIX="-native"
 MILL_JVM_SUFFIX="-jvm"
-FULL_MILL_VERSION=$MILL_VERSION
 ARTIFACT_SUFFIX=""
 
 # Check if GLIBC version is at least the required version
@@ -81,7 +80,7 @@ check_glibc_version() {
 }
 
 set_artifact_suffix(){
-  if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" = "Linux" ]; then
+  if [ "$(uname -s 2>/dev/null | cut -c 1-5)" = "Linux" ]; then
     # Native binaries require new enough GLIBC; fall back to JVM launcher if older
     if ! check_glibc_version; then
       return
@@ -173,8 +172,8 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
 
 
   if [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
-    echo $MILL_DOWNLOAD_URL
-    echo $MILL
+    echo "$MILL_DOWNLOAD_URL"
+    echo "$MILL"
     exit 0
   fi
 
