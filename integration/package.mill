@@ -179,8 +179,8 @@ object `package` extends mill.Module {
 
     object shared extends IntegrationLauncherModule {
       override def useSharedOut = true
-      def millIntegrationLauncher = build.dist.raw.launcher()
-      def millIntegrationIsPackagedLauncher = Task(false)
+      def millIntegrationLauncher = build.dist.raw.executable()
+      def millIntegrationIsPackagedLauncher = Task(true)
     }
     object packaged extends IntegrationLauncherModule {
       def millIntegrationLauncher = build.dist.raw.executable()

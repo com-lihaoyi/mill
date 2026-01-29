@@ -32,27 +32,21 @@ object MillRepositoriesTests extends UtestIntegrationTestSuite {
       // han the `localRepo.dest` that would be normally be used in the integration tests
       assertGoldenLiteral(
         findConstants(vs),
-        List(
-          "/run-1/custom-local-repo/com/lihaoyi/mill-core-constants/SNAPSHOT/mill-core-constants-SNAPSHOT.jar"
-        )
+        List("/custom-local-repo/com/lihaoyi/mill-core-constants/SNAPSHOT/mill-core-constants-SNAPSHOT.jar")
       )
 
       val metaClasspath = eval(("--meta-level", "1", "show", "compileClasspath"))
       assert(metaClasspath.isSuccess)
       assertGoldenLiteral(
         findConstants(upickle.read[Seq[String]](metaClasspath.out)),
-        List(
-          "/run-1/custom-local-repo/com/lihaoyi/mill-core-constants/SNAPSHOT/mill-core-constants-SNAPSHOT.jar"
-        )
+        List("/custom-local-repo/com/lihaoyi/mill-core-constants/SNAPSHOT/mill-core-constants-SNAPSHOT.jar")
       )
 
       val fooClasspath = eval(("show", "foo.compileClasspath"))
       assert(fooClasspath.isSuccess)
       assertGoldenLiteral(
         findConstants(upickle.read[Seq[String]](fooClasspath.out)),
-        List(
-          "/run-1/custom-local-repo/com/lihaoyi/mill-core-constants/SNAPSHOT/mill-core-constants-SNAPSHOT.jar"
-        )
+        List("/custom-local-repo/com/lihaoyi/mill-core-constants/SNAPSHOT/mill-core-constants-SNAPSHOT.jar")
       )
     }
   }
