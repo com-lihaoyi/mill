@@ -6,12 +6,7 @@ import utest.*
 
 object TestQuickJavaModuleTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    def filterLines(out: String): Set[String] = {
-      out.linesIterator
-        .filter(line => !line.contains("[info]") && !line.isEmpty)
-        .map(_.trim)
-        .toSet
-    }
+    
 
     test("testQuick") - integrationTest { tester =>
       import tester.*
@@ -56,7 +51,7 @@ object TestQuickJavaModuleTests extends UtestIntegrationTestSuite {
       // Modify to make a test fail
       modifyFile(
         workspacePath / "foo/src/Calculator.java",
-        _.replace("return a + b;", "return a + b + 1;")  // Wrong result
+        _.replace("return a + b;", "return a + b + 1;") // Wrong result
       )
 
       val withFailure = eval("foo.test.testQuick")
@@ -66,7 +61,7 @@ object TestQuickJavaModuleTests extends UtestIntegrationTestSuite {
       // Fix the bug
       modifyFile(
         workspacePath / "foo/src/Calculator.java",
-        _.replace("return a + b + 1;", "return a + b;")  // Fixed
+        _.replace("return a + b + 1;", "return a + b;") // Fixed
       )
 
       // The failed test should re-run to verify the fix

@@ -197,7 +197,9 @@ trait TestModule
         try {
           val json = upickle.read[ujson.Value](os.read(stateFile))
           Some(TestQuickState(
-            json.obj.get("signatures").map(_.obj.map { case (k, v) => k -> v.num.toInt }.toMap).getOrElse(Map.empty),
+            json.obj.get("signatures").map(_.obj.map { case (k, v) =>
+              k -> v.num.toInt
+            }.toMap).getOrElse(Map.empty),
             json.obj.get("failedTests").map(_.arr.map(_.str).toSet).getOrElse(Set.empty),
             json.obj.get("passedTests").map(_.arr.map(_.str).toSet).getOrElse(Set.empty)
           ))
@@ -244,7 +246,7 @@ trait TestModule
             // Also check if the test class itself changed
             currentSignatures.exists { case (sig, hash) =>
               sig.contains(testClassPath) &&
-                prev.signatures.get(sig).exists(_ != hash)
+              prev.signatures.get(sig).exists(_ != hash)
             }
           }
 
@@ -836,6 +838,7 @@ object TestModule {
     def mandatoryMvnDeps: T[Seq[Dep]] = Seq()
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
     def bomMvnDeps: T[Seq[Dep]] = Seq()
+
     /** Override in JavaModule to provide method code hash signatures for selective testing */
     def methodCodeHashSignatures: T[Map[String, Int]] = Task { Map.empty[String, Int] }
   }
