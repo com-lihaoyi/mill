@@ -72,6 +72,7 @@ object `package` extends mill.Module {
   def sharedOutFolder = Task.Worker {
 
     // Include millVersion in the worker path to invalidate when Mill version changes
+    os.list(Task.dest).foreach(os.remove.all(_))
     val versionDir = Task.dest / build.millVersion()
     val counter = new java.util.concurrent.atomic.AtomicInteger(0)
     new mill.util.CachedFactory[Unit, SharedWorkerInfo] {
