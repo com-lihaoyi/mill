@@ -62,7 +62,8 @@ object MillNoDaemonMain0 {
           daemonDir = args.daemonDir,
           outLock = outLock,
           launcherSubprocessRunner = launcherRunner,
-          serverToClientOpt = None
+          serverToClientOpt = None,
+          millRepositories = Seq.empty
         )
       catch handleMillException(initialSystemStreams.err, ())
 

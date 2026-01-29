@@ -19,7 +19,8 @@ object DaemonRpc {
       clientJvmOpts: Seq[String],
       args: Seq[String],
       env: Map[String, String],
-      userSpecifiedProperties: Map[String, String]
+      userSpecifiedProperties: Map[String, String],
+      millRepositories: Seq[String]
   ) derives ReadWriter
 
   sealed trait ClientToServer extends MillRpcChannel.Message derives ReadWriter

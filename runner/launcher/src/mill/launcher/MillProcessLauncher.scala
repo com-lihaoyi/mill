@@ -18,7 +18,8 @@ object MillProcessLauncher {
       mainClass: String,
       useFileLocks: Boolean,
       workDir: os.Path,
-      env: Map[String, String]
+      env: Map[String, String],
+      millRepositories: Seq[String]
   ): Int = {
     val sig = f"${UUID.randomUUID().hashCode}%08x"
     val processDir =
@@ -28,7 +29,7 @@ object MillProcessLauncher {
 
     val userPropsSeq = ClientUtil.getUserSetProperties().map { case (k, v) => s"-D$k=$v" }.toSeq
 
-    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
       userPropsSeq ++
       Seq(mainClass, processDir.toString, outMode.asString, useFileLocks.toString) ++
       loadMillConfig(ConfigConstants.millOpts, workDir) ++
@@ -54,9 +55,10 @@ object MillProcessLauncher {
       runnerClasspath: Seq[os.Path],
       useFileLocks: Boolean,
       workDir: os.Path,
-      env: Map[String, String]
+      env: Map[String, String],
+      millRepositories: Seq[String]
   ): os.SubProcess = {
-    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir) ++
+    val cmd = millLaunchJvmCommand(runnerClasspath, outMode, workDir, millRepositories) ++
       Seq("mill.daemon.MillDaemonMain", daemonDir.toString, outMode.asString, useFileLocks.toString)
 
     configureRunMillProcess(
@@ -165,7 +167,11 @@ object MillProcessLauncher {
 
   def isWin: Boolean = System.getProperty("os.name", "").startsWith("Windows")
 
-  def javaHome(outMode: OutFolderMode, workDir: os.Path = os.pwd): Option[os.Path] = {
+  def javaHome(
+      outMode: OutFolderMode,
+      workDir: os.Path,
+      millRepositories: Seq[String]
+  ): Option[os.Path] = {
     val jvmVersion = loadMillConfig(ConfigConstants.millJvmVersion, workDir)
       .headOption
       .getOrElse(BuildInfo.defaultJvmVersion)
@@ -175,13 +181,17 @@ object MillProcessLauncher {
     // Handle "system" specially - return None to use PATH-based Java lookup
     // (javaExe returns "java" when javaHome is None, using PATH lookup)
     if (jvmVersion == "system") None
-    else if (jvmVersion != null)
-      Some(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion, outMode))
-    else None
+    else Option.when(jvmVersion != null) {
+      CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion, outMode, millRepositories)
+    }
   }
 
-  def javaExe(outMode: OutFolderMode, workDir: os.Path = os.pwd): String = {
-    javaHome(outMode, workDir) match {
+  def javaExe(
+      outMode: OutFolderMode,
+      workDir: os.Path,
+      millRepositories: Seq[String]
+  ): String = {
+    javaHome(outMode, workDir, millRepositories) match {
       case None => "java"
       case Some(home) =>
         val exeName = if (isWin) "java.exe" else "java"
@@ -192,7 +202,8 @@ object MillProcessLauncher {
   def millLaunchJvmCommand(
       runnerClasspath: Seq[os.Path],
       outMode: OutFolderMode,
-      workDir: os.Path = os.pwd
+      workDir: os.Path,
+      millRepositories: Seq[String]
   ): Seq[String] = {
     val millProps = sys.props.toSeq
       .filter(_._1.startsWith("MILL_"))
@@ -207,7 +218,7 @@ object MillProcessLauncher {
       "-Dsun.stderr.encoding=UTF-8"
     )
 
-    Seq(javaExe(outMode, workDir)) ++
+    Seq(javaExe(outMode, workDir, millRepositories)) ++
       millProps ++
       serverTimeoutOpt ++
       encodingOpts ++

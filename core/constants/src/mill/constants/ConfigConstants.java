@@ -8,6 +8,7 @@ public class ConfigConstants {
   public static final String millJvmOpts = "mill-jvm-opts";
   public static final String millOpts = "mill-opts";
   public static final String millAllowNestedBuildMill = "mill-allow-nested-build-mill";
+  public static final String millRepositories = "mill-repositories";
 
   public static String[] all() {
     return new String[] {
@@ -17,7 +18,8 @@ public class ConfigConstants {
       millJvmIndexVersion,
       millJvmOpts,
       millOpts,
-      millAllowNestedBuildMill
+      millAllowNestedBuildMill,
+      millRepositories
     };
   }
 }
