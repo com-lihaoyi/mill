@@ -76,7 +76,8 @@ object CoursierClient {
       val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
 
       val artifactsResultOrError = {
-        val allRepos = testOverridesMavenRepos ++ configuredRepos ++ Resolve.defaultRepositories
+        // configuredRepos (from mill-repositories) comes first so user config takes precedence
+        val allRepos = configuredRepos ++ testOverridesMavenRepos ++ Resolve.defaultRepositories
         val resolve = Resolve()
           .withCache(coursierCache0)
           .withDependencies(Seq(Dependency(

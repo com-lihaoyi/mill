@@ -861,7 +861,8 @@ object Jvm {
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      .withRepositories(testOverridesRepos ++ repositories0)
+      // repositories0 (which includes mill-repositories) comes first so user config takes precedence
+      .withRepositories(repositories0 ++ testOverridesRepos)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)
