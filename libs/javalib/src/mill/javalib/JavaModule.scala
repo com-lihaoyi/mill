@@ -933,6 +933,54 @@ trait JavaModule
     )
   }
 
+  /**
+   * Computes method-level code hash signatures from the bytecode of this module.
+   *
+   * These signatures are used by [[TestModule.testQuick]] to determine which test
+   * classes are affected by code changes and need to be re-executed.
+   *
+   * The signatures are computed using the `mill.codesig` bytecode analysis library,
+   * which builds a callgraph and computes transitive hash signatures for each method.
+   *
+   * This task is persistent, meaning it stores both the current and previous run's
+   * signatures to enable comparison across builds.
+   */
+  def methodCodeHashSignatures: T[Map[String, Int]] = Task(persistent = true) {
+    val classFiles = os.walk(compile().classes.path).filter(_.ext == "class")
+    if (classFiles.isEmpty) {
+      Map.empty[String, Int]
+    } else {
+      // Move previous run's data for comparison
+      os.remove.all(Task.dest / "previous")
+      if (os.exists(Task.dest / "current"))
+        os.move.over(Task.dest / "current", Task.dest / "previous")
+
+      val codesig = mill.codesig.CodeSig.compute(
+        classFiles = classFiles,
+        upstreamClasspath = compileClasspath().toSeq.map(_.path),
+        ignoreCall = (_, _) => false, // Don't filter any calls for user code
+        logger = new mill.codesig.Logger(
+          Task.dest / "current",
+          Option.when(Task.log.debugEnabled)(Task.dest / "current")
+        ),
+        prevTransitiveCallGraphHashesOpt = () =>
+          Option.when(os.exists(Task.dest / "previous/transitiveCallGraphHashes0.json"))(
+            upickle.read[Map[String, Int]](
+              os.read.stream(Task.dest / "previous/transitiveCallGraphHashes0.json")
+            )
+          ),
+        prevMethodCodeHashesOpt = () =>
+          Option.when(os.exists(Task.dest / "previous/methodCodeHashes.json"))(
+            upickle.read[Map[String, Int]](
+              os.read.stream(Task.dest / "previous/methodCodeHashes.json")
+            )
+          )
+      )
+
+      codesig.transitiveCallGraphHashes
+    }
+  }
+
   /** Resolves paths relative to the `out` folder. */
   @internal
   private[mill] def resolveRelativeToOut(

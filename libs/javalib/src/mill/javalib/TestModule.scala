@@ -168,6 +168,159 @@ trait TestModule
   }
 
   /**
+   * Runs tests selectively based on code changes since the last run.
+   *
+   * This command compares method-level bytecode signatures between the current
+   * and previous run to identify which classes have changed. It then runs only:
+   *
+   * 1. Tests whose code or dependencies have changed
+   * 2. Tests that failed in the previous run (to verify fixes)
+   * 3. All tests if no previous state exists (first run)
+   *
+   * State is persisted in `testQuick-state.json` in the task's destination directory.
+   *
+   * @param args Optional arguments passed to the test framework
+   */
+  def testQuick(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] = {
+    Task.Command(persistent = true) {
+      val stateFile = Task.dest / "testQuick-state.json"
+      val currentSignatures = methodCodeHashSignatures()
+
+      // Load previous state
+      case class TestQuickState(
+          signatures: Map[String, Int],
+          failedTests: Set[String],
+          passedTests: Set[String]
+      )
+
+      val prevState: Option[TestQuickState] = if (os.exists(stateFile)) {
+        try {
+          val json = upickle.read[ujson.Value](os.read(stateFile))
+          Some(TestQuickState(
+            json.obj.get("signatures").map(_.obj.map { case (k, v) => k -> v.num.toInt }.toMap).getOrElse(Map.empty),
+            json.obj.get("failedTests").map(_.arr.map(_.str).toSet).getOrElse(Set.empty),
+            json.obj.get("passedTests").map(_.arr.map(_.str).toSet).getOrElse(Set.empty)
+          ))
+        } catch {
+          case _: Exception => None
+        }
+      } else None
+
+      val discovered = discoveredTestClasses()
+
+      // Determine which tests to run
+      val testsToRun: Seq[String] = prevState match {
+        case None =>
+          // No previous state - run all tests
+          Task.log.info("testQuick: No previous state found, running all tests")
+          discovered
+
+        case Some(prev) =>
+          // Find changed methods
+          val changedMethods = currentSignatures.filter { case (method, hash) =>
+            prev.signatures.get(method) match {
+              case Some(prevHash) => prevHash != hash
+              case None => true // New method
+            }
+          }.keySet
+
+          // Extract class names from method signatures (format: "className#methodName(...)")
+          val changedClasses = changedMethods.flatMap { sig =>
+            sig.split('#').headOption.map(_.replace('/', '.'))
+          }
+
+          // Tests to run: those referencing changed classes + previously failed
+          val affectedTests = discovered.filter { testClass =>
+            // A test is affected if any of its methods are in the changed set
+            // or if it references any changed class (conservative approach)
+            val testClassPath = testClass.replace('.', '/')
+            changedClasses.exists { changedClass =>
+              testClass.startsWith(changedClass) ||
+              changedClass.startsWith(testClass) ||
+              currentSignatures.keys.exists { sig =>
+                sig.contains(testClassPath) && changedMethods.exists(sig.contains)
+              }
+            } ||
+            // Also check if the test class itself changed
+            currentSignatures.exists { case (sig, hash) =>
+              sig.contains(testClassPath) &&
+                prev.signatures.get(sig).exists(_ != hash)
+            }
+          }
+
+          // Include previously failed tests
+          val testsFromFailures = prev.failedTests.filter(discovered.contains)
+
+          // New tests (not in previous run)
+          val newTests = discovered.filterNot(t =>
+            prev.passedTests.contains(t) || prev.failedTests.contains(t)
+          )
+
+          val combined = (affectedTests ++ testsFromFailures ++ newTests).distinct
+
+          if (combined.isEmpty) {
+            Task.log.info("testQuick: No changes detected, skipping tests")
+          } else {
+            Task.log.info(s"testQuick: Running ${combined.size} of ${discovered.size} tests")
+          }
+
+          combined
+      }
+
+      // Run the selected tests using TestModuleUtil directly
+      val (msg, results) = if (testsToRun.isEmpty) {
+        ("No tests to run - all tests passed and no changes detected", Seq.empty[TestResult])
+      } else {
+        val testModuleUtil = new TestModuleUtil(
+          testUseArgsFile(),
+          forkArgs(),
+          testsToRun, // Use the computed selectors directly
+          jvmWorker().scalalibClasspath(),
+          resources(),
+          testFramework(),
+          runClasspath(),
+          testClasspath(),
+          testArgsDefault() ++ args,
+          testForkGrouping(),
+          jvmWorker().testrunnerEntrypointClasspath(),
+          allForkEnv(),
+          testSandboxWorkingDir(),
+          forkWorkingDir(),
+          testReportXml(),
+          javaHome().map(_.path),
+          testParallelism(),
+          testLogLevel(),
+          propagateEnv(),
+          jvmWorker().internalWorker()
+        )
+        testModuleUtil.runTests()
+      }
+
+      // Save new state
+      val newFailedTests = results.filter(_.status == "Failure").map(_.fullyQualifiedName).toSet
+      val newPassedTests = results.filter(_.status == "Success").map(_.fullyQualifiedName).toSet
+
+      // Carry forward results from tests we didn't run (if they hadn't changed)
+      val allPassedTests = prevState.map(_.passedTests).getOrElse(Set.empty).diff(
+        newFailedTests ++ testsToRun.toSet
+      ) ++ newPassedTests
+
+      val allFailedTests = prevState.map(_.failedTests).getOrElse(Set.empty).diff(
+        newPassedTests ++ testsToRun.filterNot(newFailedTests.contains).toSet
+      ) ++ newFailedTests
+
+      val stateJson = ujson.Obj(
+        "signatures" -> ujson.Obj.from(currentSignatures.map { case (k, v) => k -> ujson.Num(v) }),
+        "failedTests" -> ujson.Arr.from(allFailedTests.map(ujson.Str(_))),
+        "passedTests" -> ujson.Arr.from(allPassedTests.map(ujson.Str(_)))
+      )
+      os.write.over(stateFile, upickle.write(stateJson, indent = 2))
+
+      (msg, results)
+    }
+  }
+
+  /**
    * Controls whether the TestRunner should receive its arguments via an args-file instead of a long parameter list.
    * Defaults to what `runUseArgsFile` return.
    */
@@ -683,6 +836,8 @@ object TestModule {
     def mandatoryMvnDeps: T[Seq[Dep]] = Seq()
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
     def bomMvnDeps: T[Seq[Dep]] = Seq()
+    /** Override in JavaModule to provide method code hash signatures for selective testing */
+    def methodCodeHashSignatures: T[Map[String, Int]] = Task { Map.empty[String, Int] }
   }
 
   trait ScalaModuleBase extends mill.Module {
