@@ -71,7 +71,8 @@ trait ClientServerTestsBase extends TestSuite {
         systemProperties: Map[String, String],
         initialSystemProperties: Map[String, String],
         stopServer: Server.StopServer,
-        serverToClient: MillRpcChannel[DaemonRpc.ServerToClient]
+        serverToClient: MillRpcChannel[DaemonRpc.ServerToClient],
+        millRepositories: Seq[String]
     ) = {
       Thread.sleep(commandSleepMillis)
       if (!runCompleted) {
@@ -132,7 +133,9 @@ trait ClientServerTestsBase extends TestSuite {
         args = args.toSeq,
         forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay,
         useFileLocks = false,
-        initServerFactory = initServerFactory
+        initServerFactory = initServerFactory,
+        jvmOpts = Seq.empty,
+        millRepositories = Seq.empty
       ).run(
         daemonDir,
         None,
@@ -328,7 +331,7 @@ trait ClientServerTestsBase extends TestSuite {
         val fingerprintFile = res1.daemonDir / DaemonFiles.daemonLaunchFingerprint
         os.write.over(
           fingerprintFile,
-          """{"millVersion": "wrong-version", "javaVersion": "", "jvmOpts": []}"""
+          """{"millVersion": "wrong-version", "javaVersion": "", "jvmOpts": [], "millRepositories": []}"""
         )
 
         // Second client should detect mismatch, terminate old server, and spawn new one (pid:-2)

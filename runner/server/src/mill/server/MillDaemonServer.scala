@@ -103,7 +103,8 @@ abstract class MillDaemonServer[State](
         val clientConfig = ServerLauncher.DaemonConfig(
           millVersion = init.clientMillVersion,
           javaVersion = init.clientJavaVersion,
-          jvmOpts = init.clientJvmOpts
+          jvmOpts = init.clientJvmOpts,
+          millRepositories = init.millRepositories
         )
 
         lastConfig.foreach { stored =>
@@ -150,7 +151,8 @@ abstract class MillDaemonServer[State](
           userSpecifiedProperties = init.userSpecifiedProperties,
           initialSystemProperties = connectionData.initialSystemProperties,
           stopServer = deferredStopServer,
-          serverToClient = serverToClient
+          serverToClient = serverToClient,
+          millRepositories = init.millRepositories
         )
 
         stateCache = newStateCache
@@ -228,7 +230,8 @@ abstract class MillDaemonServer[State](
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
       stopServer: Server.StopServer,
-      serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]
+      serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient],
+      millRepositories: Seq[String]
   ): (Boolean, State)
 }
 

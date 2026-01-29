@@ -1,0 +1,4 @@
+extends: ScalaModule
+scalaVersion: 3.8.3-RC1-bin-20260128-3882481-NIGHTLY
+repositories:
+- https://repo.scala-lang.org/artifactory/maven-nightlies/

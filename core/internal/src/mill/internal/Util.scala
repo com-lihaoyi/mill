@@ -428,4 +428,19 @@ object Util {
         }
     )
   }
+
+  /**
+   * Creates a map of standard environment variables for interpolation in Mill config files.
+   * This includes PWD, PWD_URI, WORKSPACE, MILL_VERSION, and MILL_BIN_PLATFORM.
+   */
+  def envForInterpolation(workDir: os.Path): Map[String, String] = {
+    val workspaceDir = workDir.toString
+    sys.env ++ Map(
+      "PWD" -> workspaceDir,
+      "PWD_URI" -> workDir.toNIO.toUri.toString,
+      "WORKSPACE" -> workspaceDir,
+      "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
+      "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
+    )
+  }
 }

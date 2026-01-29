@@ -19,7 +19,8 @@ class MillServerLauncher(
     useFileLocks: Boolean,
     initServerFactory: (os.Path, Locks) => LaunchedServer,
     millVersion: String = BuildInfo.millVersion,
-    jvmOpts: Seq[String] = Seq.empty
+    jvmOpts: Seq[String],
+    millRepositories: Seq[String]
 ) {
   private val serverInitWaitMillis = 10000
 
@@ -31,7 +32,8 @@ class MillServerLauncher(
     val config = ServerLauncher.DaemonConfig(
       millVersion = millVersion,
       javaVersion = javaHome.map(_.toString).getOrElse(""),
-      jvmOpts = jvmOpts
+      jvmOpts = jvmOpts,
+      millRepositories = millRepositories
     )
 
     val launched = ServerLauncher.launchOrConnectToServer(
@@ -74,7 +76,8 @@ class MillServerLauncher(
         clientJvmOpts = jvmOpts,
         args = args,
         env = env,
-        userSpecifiedProperties = ClientUtil.getUserSetProperties()
+        userSpecifiedProperties = ClientUtil.getUserSetProperties(),
+        millRepositories = millRepositories
       )
 
       val stdoutPs = new PrintStream(stdout, true)

@@ -96,7 +96,8 @@ class MillDaemonMain0(
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
       systemExit: Server.StopServer,
-      serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]
+      serverToClient: mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient],
+      millRepositories: Seq[String]
   ): (Boolean, RunnerState) = {
     // Create runner that sends subprocess requests to the launcher via RPC
     val launcherRunner: mill.api.daemon.LauncherSubprocess.Runner =
@@ -116,7 +117,8 @@ class MillDaemonMain0(
         daemonDir = daemonDir,
         outLock = outLock,
         launcherSubprocessRunner = launcherRunner,
-        serverToClientOpt = Some(serverToClient)
+        serverToClientOpt = Some(serverToClient),
+        millRepositories = millRepositories
       )
     catch {
       // Let InterruptedException propagate without printing (used by deferredStopServer for shutdown)

@@ -116,6 +116,36 @@ object JvmWorkerUtil {
     }
 
   /**
+   * Returns the Scala compiler bridge dependency information for a given Scala version.
+   *
+   * @param scalaVersion The Scala version
+   * @param scalaOrganization The Scala organization (typically "org.scala-lang")
+   * @return A tuple of (dependency string in "org:name:version" format, artifact name, version)
+   */
+  def scalaCompilerBridgeDep(
+      scalaVersion: String,
+      scalaOrganization: String
+  ): (String, String, String) = {
+    if (isDottyOrScala3(scalaVersion)) {
+      val name =
+        if (isDotty(scalaVersion)) "dotty-sbt-bridge"
+        else "scala3-sbt-bridge"
+      (s"$scalaOrganization:$name:$scalaVersion", name, scalaVersion)
+    } else if (millCompilerBridgeScalaVersions.contains(scalaVersion)) {
+      val name = s"mill-scala-compiler-bridge_$scalaVersion"
+      (
+        s"com.lihaoyi:$name:${Versions.millCompilerBridgeVersion}",
+        name,
+        Versions.millCompilerBridgeVersion
+      )
+    } else {
+      val scalaBinVersion = scalaBinaryVersion(scalaVersion)
+      val name = s"compiler-bridge_$scalaBinVersion"
+      (s"org.scala-sbt:$name:${Versions.zinc}", name, Versions.zinc)
+    }
+  }
+
+  /**
    * Given a version string using a semantic versioning scheme (like x.y.z) it
    * returns all the sub-versions in it (major, minor, patch, etc.).
    * For example, matchingVersions("2.0.0") returns "2.0.0", "2.0" and "2"

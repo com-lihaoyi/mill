@@ -306,6 +306,11 @@ object `package` extends MillJavaModule with Proguard with DistModule {
 
     def localTestExtraModules = allPublishModules
 
+    // Use the unified localRepo instead of individual publishLocalTestRepo paths
+    override def localTestOverridesEnv = Task {
+      Seq("MILL_LOCAL_TEST_REPO" -> localRepo().path.toString)
+    }
+
     def localBinName = "mill-assembly.jar"
 
     def assemblyRules = super.assemblyRules ++ Seq(

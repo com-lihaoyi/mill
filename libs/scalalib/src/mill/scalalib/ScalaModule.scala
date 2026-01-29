@@ -242,7 +242,35 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    * If `None`, Mill fetches and compiles if needed a compiler bridge on its own.
    * If set to `Some(...)`, Mill uses the passed bridge and doesn't attempt to fetch one.
    */
-  def scalaCompilerBridge: T[Option[PathRef]] = Task { None }
+  def scalaCompilerBridge: T[Option[PathRef]] = Task {
+    val sv = scalaVersion()
+    val so = scalaOrganization()
+
+    // For Scala versions where a binary bridge is available (Scala 3, some Scala 2.x),
+    // resolve the bridge using this module's resolver so that custom repositories
+    // (e.g., for nightly builds) are respected.
+    if (JvmWorkerUtil.isBinaryBridgeAvailable(sv)) {
+      val (bridgeDep0, bridgeName, bridgeVersion) = JvmWorkerUtil.scalaCompilerBridgeDep(sv, so)
+      val bridgeDep = Dep.parse(bridgeDep0)
+
+      val deps = defaultResolver().classpath(
+        Seq(bridgeDep),
+        sources = false,
+        mapDependencies = Some { (dep: coursier.Dependency) =>
+          if (dep.module.name.value == "scala-library") {
+            dep.withModule(dep.module.withOrganization(coursier.Organization(so)))
+              .withVersion(sv)
+          } else dep
+        }
+      )
+
+      Some(JvmWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, sources = false))
+    } else {
+      // For older Scala versions that require compiling the bridge from sources,
+      // let the JvmWorkerModule handle it
+      None
+    }
+  }
 
   /**
    * Classpath of the scaladoc (or dottydoc) tool.
