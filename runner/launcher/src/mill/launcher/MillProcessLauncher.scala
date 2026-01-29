@@ -110,18 +110,7 @@ object MillProcessLauncher {
 
   def loadMillConfig(key: String, workDir: os.Path = os.pwd): Seq[String] = {
     val configFile = workDir / s".$key"
-    val workspaceDir = workDir.toString
-
-    // Build environment map for variable interpolation
-    val env = sys.env ++ Map(
-      // Hardcode support for PWD because the graal native launcher has it set to the
-      // working dir of the enclosing process, when we want it to be set to the working
-      // dir of the current process
-      "PWD" -> workspaceDir,
-      "WORKSPACE" -> workspaceDir,
-      "MILL_VERSION" -> BuildInfo.millVersion,
-      "MILL_BIN_PLATFORM" -> BuildInfo.millBinPlatform
-    )
+    val env = mill.internal.Util.envForInterpolation(workDir)
 
     if (os.exists(configFile)) {
       ClientUtil.readOptsFileLines(configFile, env)

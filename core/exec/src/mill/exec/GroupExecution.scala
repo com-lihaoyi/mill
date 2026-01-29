@@ -189,17 +189,10 @@ trait GroupExecution {
   val effectiveThreadCount: Int =
     ec.map(_.getMaximumPoolSize).getOrElse(1)
 
-  private val envVarsForInterpolation = Seq(
-    "PWD" -> workspace.toString,
-    "PWD_URI" -> workspace.toURI.toString,
-    "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
-    "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
-  )
-
   /** Recursively examine all `ujson.Str` values and replace '${VAR}' patterns. */
   private def interpolateEnvVarsInJson(json: upickle.core.BufferedValue): ujson.Value = {
     import scala.jdk.CollectionConverters.*
-    val envWithPwd = (env ++ envVarsForInterpolation).asJava
+    val envWithPwd = (env ++ mill.internal.Util.envForInterpolation(workspace)).asJava
 
     // recursively convert java data structure to ujson.Value
     def rec(json: ujson.Value): ujson.Value = json match {
