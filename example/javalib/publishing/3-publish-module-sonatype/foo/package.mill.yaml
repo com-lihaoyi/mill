@@ -1,0 +1,12 @@
+extends: [JavaModule, SonatypeCentralPublishModule]
+publishVersion: 0.0.1
+pomSettings:
+  description: Hello
+  organization: com.lihaoyi
+  url: https://github.com/lihaoyi/example
+  licenses: [MIT]
+  versionControl: github:lihaoyi/example
+  developers:
+  - id: lihaoyi
+    name: Li Haoyi
+    url: https://github.com/lihaoyi

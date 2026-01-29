@@ -51,7 +51,7 @@ object ErrorProneTests extends TestSuite {
       }
       test("compileWarn") {
         UnitTester(errorProneCustom, testModuleSourcesPath).scoped { eval =>
-          val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions): @unchecked
+          val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions).runtimeChecked
           assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
           val res = eval(errorProneCustom.compile)
           assert(res.isRight)
@@ -61,7 +61,7 @@ object ErrorProneTests extends TestSuite {
         // ErrorProne 2.36.0+ requires --should-stop=ifError=FLOW
         // See https://github.com/com-lihaoyi/mill/issues/4926
         UnitTester(errorProne236, testModuleSourcesPath).scoped { eval =>
-          val Right(opts) = eval(errorProne236.mandatoryJavacOptions): @unchecked
+          val Right(opts) = eval(errorProne236.mandatoryJavacOptions).runtimeChecked
           assert(opts.value.contains("--should-stop=ifError=FLOW"))
           val res = eval(errorProne236.compile)
           assert(res.isRight)

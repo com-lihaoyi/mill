@@ -28,7 +28,7 @@ object AuxiliaryClassFilesTests extends TestSuite {
       AuxiliaryClassFiles,
       sourceRoot = resourcePath
     ).scoped { eval =>
-      val Right(_) = eval.apply(AuxiliaryClassFiles.app.compile): @unchecked
+      val Right(_) = eval.apply(AuxiliaryClassFiles.app.compile).runtimeChecked
 
       val classes = eval.outPath / "app/compile.dest/classes"
       val firstRun = os.list(classes).map(_.last).sorted
@@ -38,7 +38,7 @@ object AuxiliaryClassFilesTests extends TestSuite {
       // Remove the source file
       os.remove(eval.evaluator.workspace / "app/src/foo.scala")
 
-      val Right(_) = eval.apply(AuxiliaryClassFiles.app.compile): @unchecked
+      val Right(_) = eval.apply(AuxiliaryClassFiles.app.compile).runtimeChecked
 
       val secondRun = os.list(classes).map(_.last)
 
@@ -56,7 +56,7 @@ object AuxiliaryClassFilesTests extends TestSuite {
         "object bar { println(foo) }"
       )
 
-      val Right(_) = eval.apply(AuxiliaryClassFiles.app.compile): @unchecked
+      val Right(_) = eval.apply(AuxiliaryClassFiles.app.compile).runtimeChecked
 
       val classes = eval.outPath / "app/compile.dest/classes"
       val firstRun = os.list(classes).map(_.last).sorted
@@ -73,7 +73,7 @@ object AuxiliaryClassFilesTests extends TestSuite {
       // Remove foo.scala (bar depends on it)
       os.remove(eval.evaluator.workspace / "app/src/foo.scala")
 
-      val Left(_) = eval.apply(AuxiliaryClassFiles.app.compile): @unchecked
+      val Left(_) = eval.apply(AuxiliaryClassFiles.app.compile).runtimeChecked
 
       val secondRun = os.list(classes).map(_.last)
 

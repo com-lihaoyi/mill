@@ -8,6 +8,12 @@ public class DaemonFiles {
   /** Daemon process id is stored in this file, if you delete it the daemon will die. */
   public static final String processId = "processId";
 
+  /**
+   * JSON file containing daemon launch configuration (mill version, java version, JVM opts).
+   * Used to detect when the daemon needs to restart due to configuration changes.
+   */
+  public static final String daemonLaunchFingerprint = "daemonLaunchFingerprint.json";
+
   public static final String sandbox = "sandbox";
 
   /**
@@ -64,4 +70,9 @@ public class DaemonFiles {
    * Terminal information that we need to propagate from client to server
    */
   public static final String terminfo = "terminfo";
+
+  /**
+   * Console log file containing output from the running Mill command
+   */
+  public static final String millConsoleTail = "mill-console-tail";
 }

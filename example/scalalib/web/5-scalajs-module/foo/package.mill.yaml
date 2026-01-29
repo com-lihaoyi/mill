@@ -1,0 +1,5 @@
+extends: mill.scalajslib.ScalaJSModule
+scalaVersion: 3.8.1
+scalaJSVersion: 1.20.2
+mvnDeps:
+- com.lihaoyi::scalatags::0.13.1

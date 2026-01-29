@@ -2,7 +2,6 @@ package mill.main.buildgen
 
 import mill.constants.CodeGenConstants.rootModuleAlias
 import mill.internal.Util.backtickWrap
-import mill.main.buildgen.BuildInfo.millVersion
 import mill.main.buildgen.BuildGenUtil.*
 import mill.main.buildgen.ModuleSpec.*
 import pprint.Util.literalize
@@ -23,7 +22,8 @@ object BuildGenYaml extends BuildGen {
       baseModule: Option[ModuleSpec] = None,
       millJvmVersion: Option[String] = None,
       millJvmOpts: Seq[String] = Nil,
-      depNames: Seq[(MvnDep, String)] = Nil
+      depNames: Seq[(MvnDep, String)] = Nil,
+      metaMvnDeps: Seq[String] = Nil
   ): Seq[os.Path] = {
     var packages0 = fillPackages(packages).sortBy(_.dir)
     packages0 = if (merge) Seq(mergePackages(packages0.head, packages0.tail)) else packages0
@@ -45,7 +45,8 @@ object BuildGenYaml extends BuildGen {
       file
     }
 
-    val rootPackage +: nestedPackages = packages0: @unchecked
+    val rootPackage +: nestedPackages = packages0.runtimeChecked
+    val millVersion = resolveMillVersion
     val millJvmVersion0 = resolveMillJvmVersion(millJvmVersion)
 
     println("writing build.mill.yaml")
@@ -66,7 +67,7 @@ object BuildGenYaml extends BuildGen {
   private def renderBaseModule(module: ModuleSpec): String = {
     import module.*
     Seq(
-      s"trait $name ${renderExtendsClause(supertypes ++ mixins)} {",
+      s"trait $name ${renderExtendsClause(supertypes)} {",
       "  " + renderScalaModuleBody(module),
       "  " + children.sortBy(_.name).map(renderBaseModule).mkString(lineSep * 2),
       "}"
@@ -80,7 +81,7 @@ object BuildGenYaml extends BuildGen {
     renderScalaStringValues("def repositories", repositories).foreach(lines += _)
     renderScalaModuleDepValues("def bomModuleDeps", bomModuleDeps).foreach(lines += _)
     renderScalaOptValues("def forkArgs", forkArgs).foreach(lines += _)
-    forkWorkingDir.base.foreach(_ => lines += "def forkWorkingDir = moduleDir")
+    forkWorkingDir.base.foreach(dir => lines += s"def forkWorkingDir = $dir")
     renderScalaMvnDepValues("def mandatoryMvnDeps", mandatoryMvnDeps).foreach(lines += _)
     renderScalaMvnDepValues("def mvnDeps", mvnDeps).foreach(lines += _)
     renderScalaMvnDepValues("def compileMvnDeps", compileMvnDeps).foreach(lines += _)
@@ -214,9 +215,8 @@ object BuildGenYaml extends BuildGen {
     val lines = Seq.newBuilder[String]
 
     // extends - add Module as base if there are children but no explicit supertypes
-    val allSupertypes = supertypes ++ mixins
     val effectiveSupertypes =
-      if (allSupertypes.isEmpty && children.nonEmpty) Seq("Module") else allSupertypes
+      if (supertypes.isEmpty && children.nonEmpty) Seq("Module") else supertypes
     if (effectiveSupertypes.nonEmpty) {
       lines += renderYamlExtends(effectiveSupertypes)
     }

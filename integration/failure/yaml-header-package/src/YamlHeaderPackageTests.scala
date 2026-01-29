@@ -8,11 +8,11 @@ object YamlHeaderPackageTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       import tester.*
-      val res = eval("version")
+      val res = eval(("resolve", "_"))
 
       assert(res.isSuccess == false)
       res.assertContainsLines(
-        "[error] [error] package.mill:2:1",
+        "[error] parseBuildFiles [error] package.mill:2:1",
         "//| mill-version: 1.0.0-RC1",
         "^"
       )

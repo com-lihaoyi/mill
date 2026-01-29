@@ -1306,25 +1306,19 @@ trait JavaModule
    * for you to test and operate your code interactively.
    */
   def jshell(args: String*): Command[Unit] = Task.Command(exclusive = true) {
-    if (!mill.constants.Util.hasConsole()) {
-      Task.fail("jshell needs to be run with the -i/--interactive flag")
-    } else {
-      val classPath = runClasspath()
-        .map(_.path)
-        .filter(_.ext != "pom")
-        .filter(os.exists)
-      val jshellArgs = Seq("--class-path", classPath.mkString(java.io.File.pathSeparator)) ++ args
+    val classPath = runClasspath()
+      .map(_.path)
+      .filter(_.ext != "pom")
+      .filter(os.exists)
+    val jshellArgs = Seq("--class-path", classPath.mkString(java.io.File.pathSeparator)) ++ args
+    val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
 
-      val cmd = Seq(Jvm.jdkTool("jshell", javaHome().map(_.path))) ++ jshellArgs
-      os.call(
-        cmd = cmd,
-        env = allForkEnv(),
-        cwd = forkWorkingDir(),
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
-      ()
-    }
+    Jvm.runInteractiveCommand(
+      cmd = cmd,
+      env = allForkEnv(),
+      cwd = forkWorkingDir()
+    )
+    ()
   }
 
   def launcher: T[PathRef] = Task { launcher0() }

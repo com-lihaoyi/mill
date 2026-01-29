@@ -8,6 +8,7 @@ import coursier.params.Mirror
 import coursier.util.{EnvEntry, EnvValues}
 import mill.api.*
 import mill.{T, Task}
+import upickle.implicits.namedTuples.default.given
 
 import scala.concurrent.duration.Duration
 
@@ -81,7 +82,7 @@ trait CoursierConfigModule extends Module {
     val env = Task.env.filterKeys(envVars).toMap
     val props =
       propNames.iterator.flatMap(name => sys.props.get(name).iterator.map(name -> _)).toMap
-    (env, props)
+    (env = env, props = props)
   }
 
   /** Default repositories for dependency resolution */

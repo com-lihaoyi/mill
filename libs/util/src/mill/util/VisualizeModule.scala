@@ -20,9 +20,9 @@ object VisualizeModule extends ExternalModule {
 
   private type VizWorker = (
       LinkedBlockingQueue[(
-          scala.Seq[Task.Named[Any]],
-          scala.Seq[Task.Named[Any]],
-          MultiBiMap[Task.Named[Any], Task[?]],
+          scala.Seq[Task.Named[?]],
+          scala.Seq[Task.Named[?]],
+          MultiBiMap[Task.Named[?], Task[?]],
           mill.api.Plan,
           os.Path
       )],
@@ -37,14 +37,14 @@ object VisualizeModule extends ExternalModule {
       planTasks: Option[List[Task.Named[?]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
-        tasks: List[Task.Named[Any]],
-        transitiveTasks: List[Task.Named[Any]]
+        tasks: List[Task.Named[?]],
+        transitiveTasks: List[Task.Named[?]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
       val transitive = evaluator.transitiveTasks(tasks)
       val topoSorted = evaluator.topoSorted(transitive)
       val sortedGroups = evaluator.groupAroundImportantTasks(topoSorted) {
-        case x: Task.Named[Any] if transitiveTasks.contains(x) => x
+        case x: Task.Named[?] if transitiveTasks.contains(x) => x
       }
       val plan = evaluator.plan(transitiveTasks)
       in.put((tasks, transitiveTasks, sortedGroups, plan, ctx.dest))
@@ -94,9 +94,9 @@ object VisualizeModule extends ExternalModule {
   @nowarn("msg=.*Workers should implement AutoCloseable.*")
   private[mill] def worker: Worker[(
       LinkedBlockingQueue[(
-          scala.Seq[Task.Named[Any]],
-          scala.Seq[Task.Named[Any]],
-          MultiBiMap[Task.Named[Any], Task[?]],
+          scala.Seq[Task.Named[?]],
+          scala.Seq[Task.Named[?]],
+          MultiBiMap[Task.Named[?], Task[?]],
           mill.api.Plan,
           os.Path
       )],
@@ -104,9 +104,9 @@ object VisualizeModule extends ExternalModule {
   )] = mill.api.Task.Worker {
     val in =
       new LinkedBlockingQueue[(
-          scala.Seq[Task.Named[Any]],
-          scala.Seq[Task.Named[Any]],
-          MultiBiMap[Task.Named[Any], Task[?]],
+          scala.Seq[Task.Named[?]],
+          scala.Seq[Task.Named[?]],
+          MultiBiMap[Task.Named[?], Task[?]],
           mill.api.Plan,
           os.Path
       )]()

@@ -75,6 +75,16 @@ public class OutFiles {
     }
 
     /**
+     * Location of the BSP server output logfile, relative to [[bspOut]].
+     */
+    public final String bspOutLog = "mill-bsp/out.log";
+
+    /**
+     * Location of the BSP server error output logfile, relative to [[bspOut]].
+     */
+    public final String bspErrLog = "mill-bsp/err.log";
+
+    /**
      * Path of the Mill "meta-build", used to compile the `build.sc` file so we can
      * run the primary Mill build. Can be nested for multiple stages of bootstrapping
      */
@@ -118,9 +128,9 @@ public class OutFiles {
     public final String millOutLock = "mill-out-lock";
 
     /**
-     * Any active Mill command that is currently run, for debugging purposes
+     * JSON file containing info about the active Mill process (command and process directory)
      */
-    public final String millActiveCommand = "mill-active-command";
+    public final String millActive = "mill-active.json";
 
     /**
      * File used to store metadata related to selective execution, mostly
@@ -167,6 +177,7 @@ public class OutFiles {
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millRunnerState = OutFiles.millRunnerState;
+
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millDaemon = OutFiles.millDaemon;
@@ -178,7 +189,10 @@ public class OutFiles {
   public static final String millOutLock = OutFiles.millOutLock;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
-  public static final String millActiveCommand = OutFiles.millActiveCommand;
+  public static final String millActive = OutFiles.millActive;
+  /** @deprecated Use millActive instead */
+  @Deprecated
+  public static final String millActiveCommand = OutFiles.millActive;
   /** @deprecated Use inner OutFiles instead, since Mill 1.1.0 */
   @Deprecated
   public static final String millSelectiveExecution = OutFiles.millSelectiveExecution;

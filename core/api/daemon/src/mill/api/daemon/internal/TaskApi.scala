@@ -13,4 +13,7 @@ trait TaskApi[+T] {
    * that has no upstream dependencies and re-evaluates every time.
    */
   private[mill] def isInputTask: Boolean = false
+
+  private[mill] def asWorkerApi: Option[TaskApi[?]] = None
+  private[mill] def workerNameApi: Option[String] = None
 }

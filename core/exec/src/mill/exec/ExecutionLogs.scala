@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.constants.OutFiles.OutFiles
 import mill.api.Task
-import mill.internal.SpanningForest
+import mill.internal.{InvalidationForest, SpanningForest}
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
@@ -25,43 +25,32 @@ private object ExecutionLogs {
   }
   def logInvalidationTree(
       interGroupDeps: Map[Task[?], Seq[Task[?]]],
-      indexToTerminal: Array[Task[?]],
       outPath: os.Path,
       uncached: ConcurrentHashMap[Task[?], Unit],
-      changedValueHash: ConcurrentHashMap[Task[?], Unit]
+      changedValueHash: ConcurrentHashMap[Task[?], Unit],
+      // JSON string to avoid classloader issues when crossing classloader boundaries
+      spanningInvalidationTree: Option[String] = None,
+      // Per-task invalidation reasons (e.g., version mismatch reasons)
+      taskInvalidationReasons: Map[String, String] = Map.empty
   ): Unit = {
+    val changedTasks = changedValueHash.keys().asScala.toSet
     val reverseInterGroupDeps = SpanningForest.reverseEdges(interGroupDeps)
+    val filteredReverseInterGroupDeps = reverseInterGroupDeps.view.filterKeys(changedTasks).toMap
+    val downstreamSources = filteredReverseInterGroupDeps.filter(_._2.nonEmpty).keySet
 
-    val changedTerminalIndices = changedValueHash.keys().asScala.toSet
-
-    val (vertexToIndex, downstreamIndexEdges) = SpanningForest.graphMapToIndices(
-      indexToTerminal,
-      reverseInterGroupDeps.view.filterKeys(changedTerminalIndices).toMap
-    )
-
-    val edgeSourceIndices = downstreamIndexEdges
-      .zipWithIndex
-      .collect { case (es, i) if es.nonEmpty => i }
+    // Root invalidated tasks: uncached tasks that either cause downstream invalidations
+    // or are non-input tasks (e.g. invalidated due to codesig change)
+    val rootInvalidatedTasks = uncached.keys().asScala
+      .filter(task => !task.isInstanceOf[Task.Input[?]] || downstreamSources.contains(task))
       .toSet
 
-    SpanningForest.writeJsonFile(
-      outPath / OutFiles.millInvalidationTree,
-      downstreamIndexEdges,
-      uncached.keys().asScala
-        .flatMap { uncachedTask =>
-          val uncachedIndex = vertexToIndex(uncachedTask)
-          Option.when(
-            // Filter out input and source tasks which do not cause downstream invalidations
-            // from the invalidation tree, because most of them are un-interesting and the
-            // user really only cares about (a) inputs that cause downstream tasks to invalidate
-            // or (b) non-input tasks that were invalidated alone (e.g. due to a codesig change)
-            !uncachedTask.isInstanceOf[Task.Input[?]] || edgeSourceIndices(uncachedIndex)
-          ) {
-            uncachedIndex
-          }
-        }
-        .toSet,
-      indexToTerminal(_).toString
+    val finalTree = InvalidationForest.buildInvalidationTree(
+      upstreamTaskEdges0 = interGroupDeps,
+      rootInvalidatedTasks = rootInvalidatedTasks,
+      codeSignatureTree = spanningInvalidationTree,
+      taskInvalidationReasons = taskInvalidationReasons
     )
+
+    os.write.over(outPath / OutFiles.millInvalidationTree, finalTree.render(indent = 2))
   }
 }

@@ -30,23 +30,19 @@
 
 /** Usage
 > ./mill spotless --check   # check fails initially
-checking format in 1 mill files
-format errors in build.mill
 checking format in 1 java files
 format errors in src/B.java
 checking format in 1 kt files
 format errors in src/A.kt
-format errors in 3 files
-error: ...format check failed for 3 files
+format errors in 2 files
+error: ...format check failed for 2 files
 
 > ./mill spotless           # auto-fix format
-formatting build.mill
 formatting src/B.java
 formatting src/A.kt
-formatted 3 files
+formatted 2 files
 
 > ./mill spotless           # fast incremental format
-1 mill files are already formatted
 1 java files are already formatted
 1 kt files are already formatted
 */
@@ -64,7 +60,6 @@ formatted 3 files
 
 /** Usage
 > ./mill mill.javalib.spotless.SpotlessModule/ --check
-checking format in 1 mill files
 checking format in 1 java files
 checking format in 1 kt files
 format check completed

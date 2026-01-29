@@ -14,7 +14,7 @@ object TestingTests extends TestSuite {
     def runTests(testTask: Task.Named[(msg: String, results: Seq[TestResult])])
         : Unit =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Left(_: ExecResult.Failure[_]) = eval(testTask): @unchecked
+        val Left(_: ExecResult.Failure[_]) = eval(testTask).runtimeChecked
 
 //        val (doneMsg, testResults) = res
 //        testResults
@@ -59,8 +59,8 @@ object TestingTests extends TestSuite {
 
     def checkInheritedTasks[A](task: ScalaNativeModule => T[A], expected: A) =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Right(mainResult) = eval(task(HelloNativeWorld.inherited)): @unchecked
-        val Right(testResult) = eval(task(HelloNativeWorld.inherited.test)): @unchecked
+        val Right(mainResult) = eval(task(HelloNativeWorld.inherited)).runtimeChecked
+        val Right(testResult) = eval(task(HelloNativeWorld.inherited.test)).runtimeChecked
         assert(mainResult.value == expected)
         assert(testResult.value == expected)
       }

@@ -27,7 +27,7 @@ object SourceMapTests extends TestSuite {
     test("should disable source maps") {
       UnitTester(SourceMapModule, millSourcePath).scoped { evaluator =>
         val Right(result) =
-          evaluator(SourceMapModule.build.fastLinkJS): @unchecked
+          evaluator(SourceMapModule.build.fastLinkJS).runtimeChecked
         val publicModules = result.value.publicModules.toSeq
         assert(publicModules.length == 1)
         val main = publicModules.head

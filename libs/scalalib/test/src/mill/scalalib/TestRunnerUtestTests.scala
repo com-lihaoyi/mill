@@ -10,7 +10,7 @@ object TestRunnerUtestTests extends TestSuite {
   import TestRunnerTestUtils.*
   override def tests: Tests = Tests {
     test("test case lookup") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(testrunner.utest.testForked()): @unchecked
+      val Right(result) = eval.apply(testrunner.utest.testForked()).runtimeChecked
       val test = result.value.asInstanceOf[(String, Seq[TestResult])]
       assert(
         test._2.size == 3
@@ -18,7 +18,7 @@ object TestRunnerUtestTests extends TestSuite {
       junitReportIn(eval.outPath, "utest").shouldHave(3 -> Status.Success)
     }
     test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(testrunner.utest.discoveredTestClasses): @unchecked
+      val Right(result) = eval.apply(testrunner.utest.discoveredTestClasses).runtimeChecked
       val expected = Seq(
         "mill.scalalib.BarTests",
         "mill.scalalib.FooTests",
@@ -110,7 +110,7 @@ object TestRunnerUtestTests extends TestSuite {
         // noMatch
         tester.testOnly0 { (eval, mod) =>
           val Left(ExecResult.Failure(msg = msg)) =
-            eval.apply(mod.utest.testOnly("noMatch", "noMatch*2")): @unchecked
+            eval.apply(mod.utest.testOnly("noMatch", "noMatch*2")).runtimeChecked
           assert(
             msg == "Test selector does not match any test: noMatch noMatch*2\nRun discoveredTestClasses to see available tests"
           )

@@ -3,15 +3,21 @@ package mill.exec
 import mill.api.ExecResult.{OuterStack, Success}
 import mill.api.*
 import mill.api.internal.{Appendable, Cached, Located}
-import mill.internal.MultiLogger
-import mill.internal.FileLogger
+import mill.internal.{CodeSigUtils, FileLogger, MultiLogger}
 
 import java.lang.reflect.Method
 import java.util.concurrent.ThreadPoolExecutor
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+import mill.api.daemon.internal.{
+  BaseModuleApi,
+  CompileProblemReporter,
+  EvaluatorApi,
+  TaskApi,
+  TestReporter
+}
+import mill.internal.SpanningForest
 import upickle.core.BufferedValue
 
 import java.io.ByteArrayOutputStream
@@ -29,9 +35,23 @@ trait GroupExecution {
   def classLoaderIdentityHash: Int
 
   /**
-   * `String` is the worker name, `Int` is the worker hash, `Val` is the result of the worker invocation.
+   * Tracks tasks invalidated due to version/classloader mismatch, with the reason string.
+   * Populated by loadCachedJson, used by ExecutionLogs.logInvalidationTree.
    */
-  def workerCache: mutable.Map[String, (Int, Val)]
+  def versionMismatchReasons: java.util.concurrent.ConcurrentHashMap[Task[?], String]
+
+  /**
+   * `String` is the worker name, `Int` is the worker hash, `Val` is the worker instance,
+   * `TaskApi[?]` is the worker's Task (for traversing dependencies during ordered closure).
+   */
+  def workerCache: mutable.Map[String, (Int, Val, TaskApi[?])]
+
+  /**
+   * Lazily computed worker dependency graph and its reverse, for efficient worker closure ordering.
+   */
+  def workerDeps: Seq[(TaskApi[?], Seq[TaskApi[?]])]
+  def reverseDeps: Map[TaskApi[?], Seq[TaskApi[?]]]
+  def workerTopoIndex: Map[TaskApi[?], Int]
 
   def env: Map[String, String]
   def failFast: Boolean
@@ -48,11 +68,18 @@ trait GroupExecution {
       labelled: Task.Named[_]
   ): Either[upickle.core.TraceVisitor.TraceException, Any] = {
     try {
+      val reader = labelled.readWriterOpt.getOrElse {
+        throw new IllegalStateException(
+          s"No ReadWriter registered for task '${labelled.ctx.segments.render}' " +
+            s"in module '${labelled.ctx.enclosingModule.getClass.getName}'. " +
+            s"This task cannot be overridden from YAML configuration."
+        )
+      }
       Right(PathRef.currentOverrideModulePath.withValue(
         labelled.ctx.enclosingModule.moduleCtx.millSourcePath
       ) {
         upickle.read[Any](interpolateEnvVarsInJson(located.value.value))(
-          using labelled.readWriterOpt.get.asInstanceOf[upickle.Reader[Any]]
+          using reader.asInstanceOf[upickle.Reader[Any]]
         )
       })
     } catch {
@@ -566,10 +593,9 @@ trait GroupExecution {
       inputsHash: Int,
       labelled: Task.Named[?]
   ): Seq[PathRef] = {
-    for (w <- labelled.asWorker)
-      workerCache.synchronized {
-        workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
-      }
+    for (w <- labelled.asWorker) workerCache.synchronized {
+      workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v, labelled))
+    }
 
     def normalJson(w: upickle.Writer[?]) = PathRef.withSerializedPaths {
       upickle.writeJs(v.value)(using w.asInstanceOf[upickle.Writer[Any]])
@@ -595,7 +621,17 @@ trait GroupExecution {
   def writeCacheJson(metaPath: os.Path, json: ujson.Value, hashCode: Int, inputsHash: Int) = {
     os.write.over(
       metaPath,
-      upickle.stream(Cached(json, hashCode, inputsHash), indent = 4),
+      upickle.stream(
+        Cached(
+          json,
+          hashCode,
+          inputsHash,
+          millVersion = mill.constants.BuildInfo.millVersion,
+          millJvmVersion = sys.props("java.version"),
+          classLoaderSigHash = classLoaderSigHash
+        ),
+        indent = 4
+      ),
       createFolders = true
     )
   }
@@ -628,31 +664,54 @@ trait GroupExecution {
         catch {
           case NonFatal(_) => None
         }
-    } yield (
-      cached.inputsHash,
-      for {
-        _ <- Option.when(cached.inputsHash == inputsHash)(())
-        reader <- labelled.readWriterOpt
-        (parsed, serializedPaths) <-
-          try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
-              reader
-            )))
-          catch {
-            case e: PathRef.PathRefValidationException =>
-              logger.debug(
-                s"$labelled: re-evaluating; ${e.getMessage}"
-              )
-              None
-            case NonFatal(_) => None
-          }
-      } yield (Val(parsed), serializedPaths),
-      cached.valueHash
-    )
+    } yield {
+      // Check for version/classloader mismatch - treat as cache miss if they differ
+      def checkMatch[T](cachedValue: T, currentValue: T, reasonName: String): Boolean = {
+        val matches = cachedValue == currentValue
+        if (!matches) {
+          versionMismatchReasons.putIfAbsent(labelled, s"$reasonName:$cachedValue->$currentValue")
+        }
+        matches
+      }
+
+      val currentMillVersion = mill.constants.BuildInfo.millVersion
+      val currentJvmVersion = sys.props("java.version")
+      val millVersionMatches =
+        checkMatch(cached.millVersion, currentMillVersion, "mill-version-changed")
+      val jvmVersionMatches =
+        checkMatch(cached.millJvmVersion, currentJvmVersion, "mill-jvm-version-changed")
+      val classLoaderMatches =
+        checkMatch(cached.classLoaderSigHash, classLoaderSigHash, "classpath-changed")
+
+      (
+        cached.inputsHash,
+        for {
+          _ <- Option.when(
+            cached.inputsHash == inputsHash && millVersionMatches && jvmVersionMatches && classLoaderMatches
+          )(())
+          reader <- labelled.readWriterOpt
+          (parsed, serializedPaths) <-
+            try Some(PathRef.withSerializedPaths(upickle.read(cached.value, trace = false)(using
+                reader
+              )))
+            catch {
+              case e: PathRef.PathRefValidationException =>
+                logger.debug(
+                  s"$labelled: re-evaluating; ${e.getMessage}"
+                )
+                None
+              case NonFatal(_) => None
+            }
+        } yield (Val(parsed), serializedPaths),
+        cached.valueHash
+      )
+    }
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
     if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.## + invalidateAllHashes
   }
+
   private def loadUpToDateWorker(
       logger: Logger,
       inputsHash: Int,
@@ -674,47 +733,42 @@ trait GroupExecution {
         }
       }
       .flatMap {
-        case (cachedHash, upToDate)
+        case (cachedHash, upToDate, _)
             if cachedHash == workerCacheHash(inputsHash) && !forceDiscard =>
-          Some(upToDate) // worker cached and up-to-date
+          Some(upToDate)
 
-        case (_, Val(obsolete: AutoCloseable)) =>
-          // worker cached but obsolete, needs to be closed
-          try {
-            logger.debug(s"Closing previous worker: $labelled")
-            GroupExecution.wrap(
-              workspace = workspace,
-              deps = deps,
-              outPath = outPath,
-              paths = paths,
-              upstreamPathRefs = upstreamPathRefs,
-              exclusive = exclusive,
-              multiLogger = multiLogger,
-              logger = logger,
-              exclusiveSystemStreams = exclusiveSystemStreams,
-              counterMsg = counterMsg,
-              destCreator = destCreator,
-              evaluator = getEvaluator().asInstanceOf[Evaluator],
-              terminal = terminal,
-              classLoader = rootModule.getClass.getClassLoader
-            ) {
-              obsolete.close()
-            }
-          } catch {
-            case NonFatal(e) =>
-              logger.error(
-                s"$labelled: Errors while closing obsolete worker: ${e.getMessage()}"
-              )
-          }
-          // make sure, we can no longer re-use a closed worker
-          labelled.asWorker.foreach { w =>
-            workerCache.synchronized {
-              workerCache.remove(w.ctx.segments.render)
-            }
-          }
+        case (_, Val(_: AutoCloseable), _) =>
+          // Close this worker and all workers that depend on it
+          val allToClose =
+            SpanningForest.breadthFirst(Seq(labelled: TaskApi[?]))(n =>
+              reverseDeps.getOrElse(n, Nil)
+            )
+          GroupExecution.closeWorkersInReverseTopologicalOrder(
+            allToClose,
+            workerCache,
+            workerTopoIndex,
+            closeable =>
+              try GroupExecution.wrap(
+                  workspace,
+                  deps,
+                  outPath,
+                  paths,
+                  upstreamPathRefs,
+                  exclusive,
+                  multiLogger,
+                  logger,
+                  exclusiveSystemStreams,
+                  counterMsg,
+                  destCreator,
+                  getEvaluator().asInstanceOf[Evaluator],
+                  terminal,
+                  rootModule.getClass.getClassLoader
+                )(closeable.close())
+              catch { case NonFatal(e) => logger.error(s"Error closing worker: ${e.getMessage}") }
+          )
           None
 
-        case _ => None // worker not cached or obsolete
+        case _ => None
       }
   }
 }
@@ -847,4 +901,30 @@ object GroupExecution {
       valueHashChanged: Boolean,
       serializedPaths: Seq[PathRef]
   )
+
+  def workerDependencies(
+      workerCache: Map[String, (Int, Val, TaskApi[?])]
+  ): Seq[(TaskApi[?], Seq[TaskApi[?]])] = {
+    // Build worker-to-worker edges only (direct worker inputs)
+    val workers = workerCache.values.map(_._3).toSeq
+    workers.map { worker =>
+      val directWorkerInputs = worker.inputsApi.filter(_.workerNameApi.isDefined)
+      (worker, directWorkerInputs)
+    }
+  }
+
+  def closeWorkersInReverseTopologicalOrder(
+      workersToClose: Iterable[TaskApi[?]],
+      workerCache: mutable.Map[String, (Int, Val, TaskApi[?])],
+      topoIndex: Map[TaskApi[?], Int],
+      closeAction: AutoCloseable => Unit
+  ): Unit = {
+    for (worker <- workersToClose.toSeq.sortBy(w => -topoIndex(w))) {
+      val name = worker.workerNameApi.get
+      workerCache.synchronized(workerCache.remove(name)).foreach {
+        case (_, Val(closeable: AutoCloseable), _) => closeAction(closeable)
+        case _ =>
+      }
+    }
+  }
 }

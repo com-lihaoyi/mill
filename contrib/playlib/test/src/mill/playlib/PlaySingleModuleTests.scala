@@ -21,12 +21,12 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
   def tests: Tests = Tests {
     test("layout") {
       test("fromBuild") - UnitTester(playsingle, resourcePath).scoped { eval =>
-        val Right(conf) = eval.apply(playsingle.conf): @unchecked
-        val Right(app) = eval.apply(playsingle.app): @unchecked
-        val Right(sources) = eval.apply(playsingle.sources): @unchecked
-        val Right(resources) = eval.apply(playsingle.resources): @unchecked
-        val Right(testSources) = eval.apply(playsingle.test.sources): @unchecked
-        val Right(testResources) = eval.apply(playsingle.test.resources): @unchecked
+        val Right(conf) = eval.apply(playsingle.conf).runtimeChecked
+        val Right(app) = eval.apply(playsingle.app).runtimeChecked
+        val Right(sources) = eval.apply(playsingle.sources).runtimeChecked
+        val Right(resources) = eval.apply(playsingle.resources).runtimeChecked
+        val Right(testSources) = eval.apply(playsingle.test.sources).runtimeChecked
+        val Right(testResources) = eval.apply(playsingle.test.resources).runtimeChecked
         assert(
           conf.value.map(_.path.relativeTo(playsingle.moduleDir).toString()) == Seq("conf"),
           app.value.map(_.path.relativeTo(playsingle.moduleDir).toString()) == Seq("app"),
@@ -45,7 +45,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
     }
     test("compile") - UnitTester(playsingle, resourcePath).scoped { eval =>
       val eitherResult = eval.apply(playsingle.compile)
-      val Right(result) = eitherResult: @unchecked
+      val Right(result) = eitherResult.runtimeChecked
       val outputFiles = os.walk(result.value.classes.path).filter(os.isFile)
       val expectedClassfiles = Seq[os.RelPath](
         os.RelPath("controllers/HomeController.class"),
@@ -75,7 +75,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
       )
 
       // don't recompile if nothing changed
-      val Right(_) = eval.apply(playsingle.compile): @unchecked
+      val Right(_) = eval.apply(playsingle.compile).runtimeChecked
       // assert(unchangedEvalCount == 0)
     }
   }

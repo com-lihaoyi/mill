@@ -40,7 +40,7 @@
 //     def checkOpt(optimize: Boolean) = {
 //       UnitTester(MultiModule, sourcePath).scoped { evaluator =>
 //         val task = if (optimize) MultiModule.client.fullLinkJS else MultiModule.client.fastLinkJS
-//         val Right(result) = evaluator(task): @unchecked
+//         val Right(result) = evaluator(task).runtimeChecked
 //         val paths = ExecutionPaths.resolve(evaluator.outPath, task)
 //         val log = os.read(paths.log)
 
@@ -59,7 +59,7 @@
 
 //     test("test") {
 //       UnitTester(MultiModule, sourcePath).scoped { evaluator =>
-//         val Right(result) = evaluator(MultiModule.client.test.testForked()): @unchecked
+//         val Right(result) = evaluator(MultiModule.client.test.testForked()).runtimeChecked
 
 //         assert(
 //           result.evalCount > 0,
@@ -73,7 +73,7 @@
 //       UnitTester(MultiModule, sourcePath).scoped { evaluator =>
 //         val command = MultiModule.client.run()
 
-//         val Right(result) = evaluator(command): @unchecked
+//         val Right(result) = evaluator(command).runtimeChecked
 
 //         val paths = ExecutionPaths.resolve(evaluator.outPath, command)
 //         val log = os.read(paths.log)

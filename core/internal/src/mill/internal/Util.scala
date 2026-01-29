@@ -324,6 +324,46 @@ object Util {
     }
   }
 
+  /**
+   * Parses a config value from the YAML header data.
+   * Returns the parsed value or a default on missing key. Throws on parse failure.
+   */
+  def parseBuildHeaderValue[T: upickle.default.Reader](
+      headerData: String,
+      configKey: String,
+      default: T
+  ): T =
+    parseYaml0(
+      "build header",
+      headerData,
+      upickle.default.reader[Map[String, ujson.Value]]
+    ) match {
+      case Result.Success(conf) =>
+        conf.get(configKey) match {
+          case Some(value) => upickle.default.read[T](value)
+          case None => default
+        }
+      case f: Result.Failure =>
+        throw new mill.api.daemon.MillException(s"Failed parsing build header: ${f.error}")
+    }
+
+  /**
+   * Reads a boolean flag from the root build.mill YAML header.
+   */
+  def readBooleanFromBuildHeader(
+      projectRoot: os.Path,
+      configKey: String,
+      rootBuildFileNames: Seq[String]
+  ): Boolean = {
+    rootBuildFileNames
+      .map(name => projectRoot / name)
+      .find(os.exists)
+      .exists { buildFile =>
+        val headerData = mill.constants.Util.readBuildHeader(buildFile.toNIO, buildFile.last)
+        parseBuildHeaderValue[Boolean](headerData, configKey, default = false)
+      }
+  }
+
   def splitPreserveEOL(bytes: Array[Byte]): Seq[Array[Byte]] = {
     val out = scala.collection.mutable.ArrayBuffer[Array[Byte]]()
     var i = 0
@@ -380,7 +420,7 @@ object Util {
           fs match {
             case f: ExecResult.Failure[_] => convertFailure(f)
             case ex: ExecResult.Exception =>
-              mill.api.daemon.ExecResult.exceptionToFailure(ex.throwable, ex.outerStack).copy(
+              Result.Failure.fromException(ex.throwable, ex.outerStack.value.length).copy(
                 error = key.toString,
                 tickerPrefix = keyPrefix
               )

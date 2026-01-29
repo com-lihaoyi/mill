@@ -1,31 +1,7 @@
-package build
-
-import mill.*, kotlinlib.*
-import kotlinlib.kover.KoverModule
-
-object `package` extends KotlinModule, KoverModule {
-
-  trait KotestTests extends TestModule.Junit5 {
-    override def forkArgs: T[Seq[String]] = Task {
-      super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
-
-    }
-    def mvnDeps = Seq(
-      mvn"io.kotest:kotest-runner-junit5:5.9.1"
-    )
-  }
-
-  def kotlinVersion = "1.9.24"
-
-  override def koverVersion = "0.8.3"
-
-  object test extends KotlinTests, KotestTests, KoverTests
-
-  object bar extends KotlinModule, KoverModule {
-    def kotlinVersion = "1.9.24"
-    object test extends KotlinTests, KotestTests, KoverTests
-  }
-}
+/** See Also: build.mill.yaml */
+/** See Also: test/package.mill.yaml */
+/** See Also: bar/package.mill.yaml */
+/** See Also: bar/test/package.mill.yaml */
 
 // This is a basic Mill build for a single `KotlinModule`, enhanced with
 // Kover module. The root module extends the `KoverModule` and
