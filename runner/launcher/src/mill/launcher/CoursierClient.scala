@@ -58,7 +58,8 @@ object CoursierClient {
       .toSeq
       .flatMap(_.split(File.pathSeparator).toSeq)
 
-    val cacheKey = s"${BuildInfo.millVersion}:${testOverridesRepos.sorted.mkString(":")}:${millRepositories.sorted.mkString(":")}"
+    val cacheKey =
+      s"${BuildInfo.millVersion}:${testOverridesRepos.sorted.mkString(":")}:${millRepositories.sorted.mkString(":")}"
 
     cached[Seq[os.Path]](
       cacheFile = cacheDir(outMode) / "mill-daemon-classpath",
