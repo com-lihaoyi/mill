@@ -78,7 +78,7 @@ object `package` extends mill.Module {
     new mill.util.CachedFactory[Unit, SharedWorkerInfo] {
       def setup(key: Unit): SharedWorkerInfo = {
         val index = counter.getAndIncrement()
-        val res = versionDir / s"fast-$index" / "out"
+        val res = versionDir / s"shared-$index" / "out"
         os.remove.all(res)
         os.makeDir.all(res)
         SharedWorkerInfo(res, 10000 + index)
