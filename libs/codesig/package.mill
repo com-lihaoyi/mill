@@ -1,4 +1,4 @@
-package build.runner.codesig
+package build.libs.codesig
 import mill.*
 import mill.scalalib.*
 import millbuild.*

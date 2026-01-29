@@ -24,7 +24,7 @@ object `package` extends MillStableScalaModule {
       build.libs.rpc,
       build.libs.javalib.api,
       build.libs.javalib.testrunner,
-      build.runner.codesig
+      build.libs.codesig
     )
   def mvnDeps =
     Seq(Deps.scalaXml) ++
