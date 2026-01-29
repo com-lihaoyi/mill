@@ -136,7 +136,7 @@ final class TestModuleUtil(
 
     val argsFile = baseFolder / "testargs"
     val sandbox = baseFolder / "sandbox"
-    os.write(argsFile, upickle.write(testArgs), createFolders = true)
+    os.write.over(argsFile, upickle.write(testArgs), createFolders = true)
 
     os.makeDir.all(sandbox)
 
