@@ -70,8 +70,9 @@ object `package` extends mill.Module {
   case class FastWorkerInfo(outPath: os.Path, port: Int)
 
   def fastOutFolder = Task.Worker {
+
     // Include millVersion in the worker path to invalidate when Mill version changes
-    val versionDir = Task.dest / mill.constants.BuildInfo.millVersion
+    val versionDir = Task.dest / build.millVersion()
     val counter = new java.util.concurrent.atomic.AtomicInteger(0)
     new mill.util.CachedFactory[Unit, FastWorkerInfo] {
       def setup(key: Unit): FastWorkerInfo = {
