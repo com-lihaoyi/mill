@@ -111,11 +111,13 @@ object MillMain0 {
       daemonDir: os.Path,
       outLock: Lock,
       launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
-      serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]]
+      serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]],
+      millRepositories: Seq[String] = Seq.empty
   ): (Boolean, RunnerState) = {
     mill.api.daemon.LauncherSubprocess.withValue(launcherSubprocessRunner) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
-        os.SubProcess.env.withValue(env) {
+        BuildCtx.millRepositories0.withValue(millRepositories) {
+          os.SubProcess.env.withValue(env) {
           val parserResult = MillCliConfig.parse(args)
           // Detect when we're running in BSP mode as early as possible,
           // and ensure we don't log to the default stdout or use the default
@@ -513,6 +515,7 @@ object MillMain0 {
 
             }
           }
+        }
         }
       }
     }

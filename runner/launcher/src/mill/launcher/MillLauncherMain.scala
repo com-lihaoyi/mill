@@ -54,7 +54,10 @@ object MillLauncherMain {
 
     coursier.Resolve.proxySetup()
 
-    val runnerClasspath = CoursierClient.resolveMillDaemon(outMode)
+    // Read the mill-repositories config
+    val millRepositories = MillProcessLauncher.loadMillConfig(ConfigConstants.millRepositories, workDir)
+
+    val runnerClasspath = CoursierClient.resolveMillDaemon(outMode, millRepositories)
     try {
       val optsArgs = MillProcessLauncher.loadMillConfig(ConfigConstants.millOpts, workDir) ++ args
       if (runNoDaemon) {
@@ -66,7 +69,8 @@ object MillLauncherMain {
           mainClass,
           useFileLocks,
           workDir,
-          env
+          env,
+          millRepositories
         )
       } else { // start in client-server mode
         val jvmOpts = MillProcessLauncher.computeJvmOpts(workDir, env)
@@ -85,14 +89,16 @@ object MillLauncherMain {
                 runnerClasspath,
                 useFileLocks,
                 workDir,
-                env
+                env,
+                millRepositories
               ).wrapped.toHandle
             ),
-          jvmOpts = jvmOpts
+          jvmOpts = jvmOpts,
+          millRepositories = millRepositories
         )
 
         val daemonDir = os.Path(outDir, workDir) / OutFiles.OutFiles.millDaemon
-        val javaHome = MillProcessLauncher.javaHome(outMode, workDir)
+        val javaHome = MillProcessLauncher.javaHome(outMode, workDir, millRepositories)
 
         MillProcessLauncher.prepareMillRunFolder(daemonDir)
         var exitCode = launcher.run(daemonDir, javaHome, log)

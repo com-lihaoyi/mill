@@ -150,7 +150,8 @@ abstract class MillDaemonServer[State](
           userSpecifiedProperties = init.userSpecifiedProperties,
           initialSystemProperties = connectionData.initialSystemProperties,
           stopServer = deferredStopServer,
-          serverToClient = serverToClient
+          serverToClient = serverToClient,
+          millRepositories = init.millRepositories
         )
 
         stateCache = newStateCache
@@ -228,7 +229,8 @@ abstract class MillDaemonServer[State](
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
       stopServer: Server.StopServer,
-      serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient]
+      serverToClient: mill.rpc.MillRpcChannel[DaemonRpc.ServerToClient],
+      millRepositories: Seq[String] = Seq.empty
   ): (Boolean, State)
 }
 

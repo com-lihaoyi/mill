@@ -71,7 +71,8 @@ trait ClientServerTestsBase extends TestSuite {
         systemProperties: Map[String, String],
         initialSystemProperties: Map[String, String],
         stopServer: Server.StopServer,
-        serverToClient: MillRpcChannel[DaemonRpc.ServerToClient]
+        serverToClient: MillRpcChannel[DaemonRpc.ServerToClient],
+        millRepositories: Seq[String]
     ) = {
       Thread.sleep(commandSleepMillis)
       if (!runCompleted) {
