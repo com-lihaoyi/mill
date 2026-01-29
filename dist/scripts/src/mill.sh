@@ -79,7 +79,7 @@ check_glibc_version() {
   fi
 }
 
-set_artifact_suffix(){
+set_artifact_suffix() {
   if [ "$(uname -s 2>/dev/null | cut -c 1-5)" = "Linux" ]; then
     # Native binaries require new enough GLIBC; fall back to JVM launcher if older
     if ! check_glibc_version; then
@@ -91,39 +91,30 @@ set_artifact_suffix(){
     if [ "$(uname -m)" = "arm64" ]; then ARTIFACT_SUFFIX="-native-mac-aarch64"
     else ARTIFACT_SUFFIX="-native-mac-amd64"; fi
   else
-     echo "This native mill launcher supports only Linux and macOS." 1>&2
-     exit 1
+    echo "This native mill launcher supports only Linux and macOS." 1>&2
+    exit 1
   fi
 }
 
 case "$MILL_VERSION" in
-    *"$MILL_NATIVE_SUFFIX")
-  MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
-  set_artifact_suffix
-  ;;
+  *"$MILL_NATIVE_SUFFIX")
+    MILL_VERSION=${MILL_VERSION%"$MILL_NATIVE_SUFFIX"}
+    set_artifact_suffix
+    ;;
 
-    *"$MILL_JVM_SUFFIX")
+  *"$MILL_JVM_SUFFIX")
     MILL_VERSION=${MILL_VERSION%"$MILL_JVM_SUFFIX"}
-  ;;
+    ;;
 
-    *)
-  case "$MILL_VERSION" in
-    0.1.*) ;;
-    0.2.*) ;;
-    0.3.*) ;;
-    0.4.*) ;;
-    0.5.*) ;;
-    0.6.*) ;;
-    0.7.*) ;;
-    0.8.*) ;;
-    0.9.*) ;;
-    0.10.*) ;;
-    0.11.*) ;;
-    0.12.*) ;;
-    *)
-      set_artifact_suffix
-  esac
-  ;;
+  *)
+    case "$MILL_VERSION" in
+      0.1.* | 0.2.* | 0.3.* | 0.4.* | 0.5.* | 0.6.* | 0.7.* | 0.8.* | 0.9.* | 0.10.* | 0.11.* | 0.12.*)
+        ;;
+      *)
+        set_artifact_suffix
+        ;;
+    esac
+    ;;
 esac
 
 MILL="${MILL_FINAL_DOWNLOAD_FOLDER}/$MILL_VERSION$ARTIFACT_SUFFIX"
@@ -131,11 +122,11 @@ MILL="${MILL_FINAL_DOWNLOAD_FOLDER}/$MILL_VERSION$ARTIFACT_SUFFIX"
 # If not already downloaded, download it
 if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   case $MILL_VERSION in
-    0.0.* | 0.1.* | 0.2.* | 0.3.* | 0.4.* )
+    0.0.* | 0.1.* | 0.2.* | 0.3.* | 0.4.*)
       MILL_DOWNLOAD_SUFFIX=""
       MILL_DOWNLOAD_FROM_MAVEN=0
       ;;
-    0.5.* | 0.6.* | 0.7.* | 0.8.* | 0.9.* | 0.10.* | 0.11.0-M* )
+    0.5.* | 0.6.* | 0.7.* | 0.8.* | 0.9.* | 0.10.* | 0.11.0-M*)
       MILL_DOWNLOAD_SUFFIX="-assembly"
       MILL_DOWNLOAD_FROM_MAVEN=0
       ;;
@@ -145,13 +136,13 @@ if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
       ;;
   esac
   case $MILL_VERSION in
-    0.12.0 | 0.12.1 | 0.12.2 | 0.12.3 | 0.12.4 | 0.12.5 | 0.12.6 | 0.12.7 | 0.12.8 | 0.12.9 | 0.12.10 | 0.12.11 )
+    0.12.0 | 0.12.1 | 0.12.2 | 0.12.3 | 0.12.4 | 0.12.5 | 0.12.6 | 0.12.7 | 0.12.8 | 0.12.9 | 0.12.10 | 0.12.11)
       MILL_DOWNLOAD_EXT="jar"
       ;;
-    0.12.* )
+    0.12.*)
       MILL_DOWNLOAD_EXT="exe"
       ;;
-    0.* )
+    0.*)
       MILL_DOWNLOAD_EXT="jar"
       ;;
     *)
