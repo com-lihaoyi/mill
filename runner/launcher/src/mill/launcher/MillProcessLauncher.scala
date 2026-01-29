@@ -108,7 +108,7 @@ object MillProcessLauncher {
     )
   }
 
-  def loadMillConfig(key: String, workDir: os.Path = os.pwd): Seq[String] = {
+  def loadMillConfig(key: String, workDir: os.Path): Seq[String] = {
     val configFile = workDir / s".$key"
     val env = mill.internal.Util.envForInterpolation(workDir)
 
