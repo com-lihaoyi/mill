@@ -250,20 +250,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     // resolve the bridge using this module's resolver so that custom repositories
     // (e.g., for nightly builds) are respected.
     if (JvmWorkerUtil.isBinaryBridgeAvailable(sv)) {
-      val (bridgeDep, bridgeName, bridgeVersion) =
-        if (JvmWorkerUtil.isDottyOrScala3(sv)) {
-          val name =
-            if (JvmWorkerUtil.isDotty(sv)) "dotty-sbt-bridge"
-            else "scala3-sbt-bridge"
-          (mvn"$so:$name:$sv", name, sv)
-        } else if (JvmWorkerUtil.millCompilerBridgeScalaVersions.contains(sv)) {
-          val name = s"mill-scala-compiler-bridge_$sv"
-          (mvn"com.lihaoyi:$name:${Versions.millCompilerBridgeVersion}", name, Versions.millCompilerBridgeVersion)
-        } else {
-          val scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
-          val name = s"compiler-bridge_$scalaBinaryVersion"
-          (mvn"org.scala-sbt:$name:${Versions.zinc}", name, Versions.zinc)
-        }
+      val (bridgeDep0, bridgeName, bridgeVersion) = JvmWorkerUtil.scalaCompilerBridgeDep(sv, so)
+      val bridgeDep = Dep.parse(bridgeDep0)
 
       val deps = defaultResolver().classpath(
         Seq(bridgeDep),

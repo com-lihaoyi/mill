@@ -11,9 +11,10 @@ include::partial$example/scalalib/dependencies/1-dependencies.adoc[]
 
 === Repository Configuration
 
-include::partial$example/scalalib/dependencies/6-mill-repositories.adoc[]
 
 include::partial$example/scalalib/dependencies/5-repository-config.adoc[]
+
+include::partial$example/scalalib/dependencies/6-scala-nightly.adoc[]
 
 === Unmanaged Jars
 
