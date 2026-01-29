@@ -22,24 +22,29 @@ object Assembly {
 
   implicit val assemblyJsonRW: upickle.ReadWriter[Assembly] = upickle.macroRW
 
-  implicit val ruleRW: upickle.ReadWriter[Rule] = upickle.default.readwriter[ujson.Value].bimap[Rule](
-    {
-      case r: Rule.Append => upickle.default.writeJs(r)
-      case r: Rule.Exclude => upickle.default.writeJs(r)
-      case r: Rule.Relocate => upickle.default.writeJs(r)
-      case r: Rule.AppendPattern => upickle.default.writeJs(r)
-      case r: Rule.ExcludePattern => upickle.default.writeJs(r)
-    },
-    json => {
-      val t = json.obj.get("$type").map(_.str)
-      if (t.contains("mill.javalib.Assembly.Rule.Append")) upickle.default.read[Rule.Append](json)
-      else if (t.contains("mill.javalib.Assembly.Rule.Exclude")) upickle.default.read[Rule.Exclude](json)
-      else if (t.contains("mill.javalib.Assembly.Rule.Relocate")) upickle.default.read[Rule.Relocate](json)
-      else if (t.contains("mill.javalib.Assembly.Rule.AppendPattern")) upickle.default.read[Rule.AppendPattern](json)
-      else if (t.contains("mill.javalib.Assembly.Rule.ExcludePattern")) upickle.default.read[Rule.ExcludePattern](json)
-      else throw new IllegalArgumentException(s"Unknown Rule type: $t")
-    }
-  )
+  implicit val ruleRW: upickle.ReadWriter[Rule] =
+    upickle.default.readwriter[ujson.Value].bimap[Rule](
+      {
+        case r: Rule.Append => upickle.default.writeJs(r)
+        case r: Rule.Exclude => upickle.default.writeJs(r)
+        case r: Rule.Relocate => upickle.default.writeJs(r)
+        case r: Rule.AppendPattern => upickle.default.writeJs(r)
+        case r: Rule.ExcludePattern => upickle.default.writeJs(r)
+      },
+      json => {
+        val t = json.obj.get("$type").map(_.str)
+        if (t.contains("mill.javalib.Assembly.Rule.Append")) upickle.default.read[Rule.Append](json)
+        else if (t.contains("mill.javalib.Assembly.Rule.Exclude"))
+          upickle.default.read[Rule.Exclude](json)
+        else if (t.contains("mill.javalib.Assembly.Rule.Relocate"))
+          upickle.default.read[Rule.Relocate](json)
+        else if (t.contains("mill.javalib.Assembly.Rule.AppendPattern"))
+          upickle.default.read[Rule.AppendPattern](json)
+        else if (t.contains("mill.javalib.Assembly.Rule.ExcludePattern"))
+          upickle.default.read[Rule.ExcludePattern](json)
+        else throw new IllegalArgumentException(s"Unknown Rule type: $t")
+      }
+    )
 
   val defaultRules: Seq[Rule] = Seq(
     Rule.Append("reference.conf", separator = "\n"),
@@ -62,7 +67,8 @@ object Assembly {
     case class Append(path: String, separator: String = defaultSeparator) extends Rule
 
     object AppendPattern {
-      def apply(pattern: Pattern): AppendPattern = new AppendPattern(pattern.pattern(), defaultSeparator)
+      def apply(pattern: Pattern): AppendPattern =
+        new AppendPattern(pattern.pattern(), defaultSeparator)
       def apply(pattern: String): AppendPattern = apply(pattern, defaultSeparator)
     }
     case class AppendPattern(path: String, separator: String) extends Rule {

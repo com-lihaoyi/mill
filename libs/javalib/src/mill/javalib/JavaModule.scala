@@ -339,8 +339,6 @@ trait JavaModule
    */
   def shadeRules: T[Seq[Assembly.Rule]] = Task { Seq.empty }
 
-
-
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
