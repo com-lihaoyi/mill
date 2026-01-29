@@ -46,9 +46,9 @@ object foo extends ScalaModule {
 //
 // You can also set the environment variable `COURSIER_MIRRORS` or the jvm property `coursier.mirrors` to specify config file location.
 //
-// To configure repositories for the entire build including Mill's own internal dependency
-// downloads, use xref:cli/build-header.adoc#_mill_repositories[mill-repositories] in the
-// build header instead.
+// To configure repositories for the entire build, e.g. to make all artifact downloads
+// go through a mirror rather than the public Maven Central, use
+// xref:cli/build-header.adoc#_mill_repositories[mill-repositories] in the build header instead.
 
 /** Usage
 
