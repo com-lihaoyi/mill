@@ -88,11 +88,11 @@ trait CoursierConfigModule extends Module {
   /** Default repositories for dependency resolution */
   def defaultRepositories: Task[Seq[Repository]] = Task.Anon {
     val (env, props) = coursierEnv()
-    val envRepos = CoursierEnv.defaultRepositories(
-      CoursierEnv.repositories.readFrom(env, props),
-      CoursierEnv.scalaCliConfig.readFrom(env, props)
-    )
-    mill.util.Jvm.reposFromStrings(mill.api.BuildCtx.millRepositories).get ++ envRepos
+    mill.util.Jvm.reposFromStrings(mill.api.BuildCtx.millRepositories).get ++
+      CoursierEnv.defaultRepositories(
+        CoursierEnv.repositories.readFrom(env, props),
+        CoursierEnv.scalaCliConfig.readFrom(env, props)
+      )
   }
 
   /** Default JSON configuration files to be used by coursier */

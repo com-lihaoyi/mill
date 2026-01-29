@@ -181,9 +181,9 @@ object MillProcessLauncher {
     // Handle "system" specially - return None to use PATH-based Java lookup
     // (javaExe returns "java" when javaHome is None, using PATH lookup)
     if (jvmVersion == "system") None
-    else if (jvmVersion != null)
-      Some(CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion, outMode, millRepositories))
-    else None
+    else Option.when (jvmVersion != null){
+      CoursierClient.resolveJavaHome(jvmVersion, jvmIndexVersion, outMode, millRepositories)
+    }
   }
 
   def javaExe(
