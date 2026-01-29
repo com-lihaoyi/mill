@@ -330,6 +330,18 @@ trait JavaModule
   def moduleDeps: Seq[JavaModule] = Seq()
 
   /**
+   * Dependencies that should be shaded into the final jar.
+   */
+  def shadedIvyDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+
+  /**
+   * Shading rules to apply to the final jar.
+   */
+  def shadeRules: T[Seq[Assembly.Rule]] = Task { Seq.empty }
+
+
+
+  /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
@@ -1102,7 +1114,15 @@ trait JavaModule
         if (warn.nonEmpty) Task.log.warn(warn.mkString("\n"))
       )
     }
-    resolvedMvnDeps0(sources = false)()
+    resolvedMvnDeps0(sources = false)() ++
+      millResolver().classpath(
+        deps = shadedIvyDeps().map(bindDependency()),
+        sources = false,
+        artifactTypes = Some(artifactTypes()),
+        resolutionParamsMapOpt = None,
+        mapDependencies = None,
+        boms = Nil
+      )
   }
 
   /**
@@ -1174,10 +1194,15 @@ trait JavaModule
   }
 
   override def runClasspath: T[Seq[PathRef]] = Task {
-    super.runClasspath() ++
+    val common = super.runClasspath() ++
       resolvedRunMvnDeps().toSeq ++
-      transitiveLocalClasspath() ++
-      localClasspath()
+      transitiveLocalClasspath()
+
+    if (shadedIvyDeps().isEmpty && shadeRules().isEmpty) {
+      common ++ localClasspath()
+    } else {
+      common ++ Seq(jar())
+    }
   }
 
   /**
@@ -1185,9 +1210,30 @@ trait JavaModule
    * without those from upstream modules and dependencies
    */
   def jar: T[PathRef] = Task {
-    val jar = Task.dest / "out.jar"
-    Jvm.createJar(jar, localClasspath().map(_.path).filter(os.exists), manifest())
-    PathRef(jar)
+    if (shadedIvyDeps().isEmpty && shadeRules().isEmpty) {
+      val jar = Task.dest / "out.jar"
+      Jvm.createJar(jar, localClasspath().map(_.path).filter(os.exists), manifest())
+      PathRef(jar)
+    } else {
+      val shadedDeps = millResolver().classpath(
+        deps = shadedIvyDeps().map(bindDependency()),
+        sources = false,
+        artifactTypes = Some(artifactTypes()),
+        resolutionParamsMapOpt = None,
+        mapDependencies = None,
+        boms = Nil
+      )
+      val shadeRules0 = shadeRules()
+      val inputPaths = localClasspath().map(_.path).filter(os.exists) ++ shadedDeps.map(_.path)
+
+      Assembly.create(
+        destJar = Task.dest / "out.jar",
+        inputPaths = inputPaths,
+        manifest = manifest(),
+        assemblyRules = shadeRules0,
+        shader = AssemblyModule.jarjarabramsWorker()
+      ).pathRef
+    }
   }
 
   /**

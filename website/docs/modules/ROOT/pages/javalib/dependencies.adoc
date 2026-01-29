@@ -24,6 +24,31 @@ include::partial$example/javalib/dependencies/3-unmanaged-jars.adoc[]
 
 include::partial$example/javalib/dependencies/4-downloading-unmanaged-jars.adoc[]
 
+=== Shading / Relocating Dependencies
+
+Mill supports shading (relocating) dependencies to avoid classpath conflicts.
+You can use `shadedIvyDeps` to specify dependencies to be shaded, and `shadeRules` to define the relocation rules.
+Note that `shadedIvyDeps` are included in the compile classpath but not the published maven dependencies (since they are bundled into the jar).
+
+[source,scala]
+----
+import mill._, javalib._
+
+object foo extends JavaModule {
+  def ivyDeps = Agg(
+    // Normal dependencies
+    ivy"com.example:lib:1.0.0"
+  )
+  def shadedIvyDeps = Task { Seq(
+    // Dependencies to be shaded
+    ivy"com.example:shaded-lib:1.0.0"
+  ) }
+  def shadeRules = Seq(
+    Assembly.Rule.Relocate("com.example.shaded.**", "foo.shaded.@1")
+  )
+}
+----
+
 == Dependency Management
 
 Mill has support for dependency management, see the

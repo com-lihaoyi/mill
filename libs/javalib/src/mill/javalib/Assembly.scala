@@ -21,6 +21,16 @@ case class Assembly(pathRef: PathRef, entries: Int)
 object Assembly {
 
   implicit val assemblyJsonRW: upickle.ReadWriter[Assembly] = upickle.macroRW
+  implicit val patternRW: upickle.ReadWriter[Pattern] = upickle.default.readwriter[String].bimap[Pattern](_.pattern(), Pattern.compile)
+  implicit val appendPatternRW: upickle.ReadWriter[Rule.AppendPattern] = upickle.default.readwriter[String].bimap[Rule.AppendPattern](_.pattern.pattern(), Rule.AppendPattern.apply)
+  implicit val excludePatternRW: upickle.ReadWriter[Rule.ExcludePattern] = upickle.default.readwriter[String].bimap[Rule.ExcludePattern](_.pattern.pattern(), Rule.ExcludePattern.apply)
+  implicit val ruleRW: upickle.ReadWriter[Rule] = upickle.default.ReadWriter.merge(
+    upickle.macroRW[Rule.Append],
+    upickle.macroRW[Rule.Exclude],
+    upickle.macroRW[Rule.Relocate],
+    appendPatternRW,
+    excludePatternRW
+  )
 
   val defaultRules: Seq[Rule] = Seq(
     Rule.Append("reference.conf", separator = "\n"),
