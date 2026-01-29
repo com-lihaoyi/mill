@@ -138,6 +138,34 @@ xref:fundamentals/configuring-jvm-versions.adoc[Configuring JVM Versions].
 
 include::partial$example/cli/header/4-jvm-index-version.adoc[]
 
+== mill-repositories
+
+You can configure additional Maven repositories that Mill uses for resolving
+dependencies by setting `mill-repositories` in the build header:
+
+_build.mill_
+[source,scala]
+----
+//| mill-repositories: ["https://oss.sonatype.org/content/repositories/releases"]
+----
+
+Or in `build.mill.yaml`:
+[source,yaml]
+----
+mill-repositories:
+  - https://oss.sonatype.org/content/repositories/releases
+----
+
+These repositories are used for:
+
+1. Resolving Mill's own daemon JARs
+2. Resolving the JVM index for `mill-jvm-version`
+3. As the default repositories for all modules extending `CoursierModule`
+
+The configured repositories are prepended to (take precedence over) the default
+Maven Central repository. For configuring repositories on individual modules, see
+xref:javalib/dependencies.adoc#_repository_configuration[Repository Configuration].
+
 == mill-jvm-opts
 
 Mill supports `mill-jvm-opts` to set JVM-level flags.

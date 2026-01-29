@@ -113,7 +113,7 @@ object MillMain0 {
       launcherSubprocessRunner: mill.api.daemon.LauncherSubprocess.Runner,
       serverToClientOpt: Option[mill.rpc.MillRpcChannel[mill.launcher.DaemonRpc.ServerToClient]],
       millRepositories: Seq[String]
-  ): (Boolean, RunnerState) = BuildCtx.millRepositories0.withValue(millRepositories) {
+  ): (Boolean, RunnerState) = mill.api.daemon.MillRepositories.withValue(millRepositories) {
     mill.api.daemon.LauncherSubprocess.withValue(launcherSubprocessRunner) {
       mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
         os.SubProcess.env.withValue(env) {

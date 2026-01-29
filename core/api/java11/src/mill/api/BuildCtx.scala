@@ -28,10 +28,7 @@ object BuildCtx {
    * `.mill-repositories` config file. These are used for resolving Mill's own dependencies
    * (daemon jars, JVM index) and as default repositories for `CoursierModule`.
    */
-  def millRepositories: Seq[String] = millRepositories0.value
-
-  private[mill] val millRepositories0: scala.util.DynamicVariable[Seq[String]] =
-    DynamicVariable(Seq.empty)
+  def millRepositories: Seq[String] = mill.api.daemon.MillRepositories.get
 
   /**
    * Disable Mill's filesystem read/write checker, which normally enforces best practices
