@@ -1,5 +1,0 @@
-package build
-
-import mill._, javalib._
-
-object foo extends JavaModule
