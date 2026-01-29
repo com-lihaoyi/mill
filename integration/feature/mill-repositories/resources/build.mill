@@ -1,3 +1,5 @@
+//| mill-repositories: [$PWD_URI/custom-local-repo/]
+
 package build
 
 import mill._, javalib._
