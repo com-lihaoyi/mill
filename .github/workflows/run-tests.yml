@@ -160,7 +160,7 @@ jobs:
           - millargs: "example.thirdparty.android-compose-samples.packaged.daemon"
             setup-android: true
 
-          - millargs: "example.migrating.scalalib._._.testForked"
+          - millargs: "example.migrating.scalalib._.testForked"
             install-sbt: true
 
           - millargs: "'example.{groovylib,pythonlib,javascriptlib}._._.testForked'"
@@ -202,7 +202,7 @@ jobs:
           - millargs: "integration.multimode._.testForked"
 
           - # turn of parallelism since it sometimes causes issues with concurrent migrations
-            millargs: "example.migrating.javalib._._.packaged.daemon"
+            millargs: "example.migrating.javalib._.packaged.daemon"
             extra: "--jobs=1"
 
           - millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
