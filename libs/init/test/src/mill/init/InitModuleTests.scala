@@ -90,12 +90,13 @@ object InitModuleTests extends TestSuite {
         errStream = new PrintStream(OutputStream.nullOutputStream(), true)
       ).scoped { evaluator =>
 
-        val results = evaluator.evaluator.execute(
-          Seq(initmodule.init(Some("scalalib/basic/3-simple")))
-        ).executionResults
+        val results = evaluator
+          .evaluator
+          .execute(Seq(initmodule.init(Some("scalalib/basic/1-simple"))))
+          .executionResults
 
         val expected =
-          "Downloading example from https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/SNAPSHOT/mill-dist-SNAPSHOT-example-scalalib-basic-3-simple.zip."
+          "Downloading example from https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/SNAPSHOT/mill-dist-SNAPSHOT-example-scalalib-basic-1-simple.zip."
 
         // Make sure the download URL logged to the terminal looks reasonable
         assert(outStream.toString().contains(expected))
