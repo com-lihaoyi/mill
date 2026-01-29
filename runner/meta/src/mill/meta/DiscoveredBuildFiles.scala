@@ -168,7 +168,7 @@ object DiscoveredBuildFiles {
           )
         )
 
-      buildFiles ++ adjacentScripts
+      (buildFiles ++ adjacentScripts).distinct
     }
   }
 
