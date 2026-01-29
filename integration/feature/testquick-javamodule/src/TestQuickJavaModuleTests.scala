@@ -6,7 +6,6 @@ import utest.*
 
 object TestQuickJavaModuleTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
-    
 
     test("testQuick") - integrationTest { tester =>
       import tester.*
