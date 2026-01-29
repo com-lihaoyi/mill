@@ -21,15 +21,24 @@ case class Assembly(pathRef: PathRef, entries: Int)
 object Assembly {
 
   implicit val assemblyJsonRW: upickle.ReadWriter[Assembly] = upickle.macroRW
-  implicit val patternRW: upickle.ReadWriter[Pattern] = upickle.default.readwriter[String].bimap[Pattern](_.pattern(), Pattern.compile)
-  implicit val appendPatternRW: upickle.ReadWriter[Rule.AppendPattern] = upickle.default.readwriter[String].bimap[Rule.AppendPattern](_.pattern.pattern(), Rule.AppendPattern.apply)
-  implicit val excludePatternRW: upickle.ReadWriter[Rule.ExcludePattern] = upickle.default.readwriter[String].bimap[Rule.ExcludePattern](_.pattern.pattern(), Rule.ExcludePattern.apply)
-  implicit val ruleRW: upickle.ReadWriter[Rule] = upickle.default.ReadWriter.merge(
-    upickle.macroRW[Rule.Append],
-    upickle.macroRW[Rule.Exclude],
-    upickle.macroRW[Rule.Relocate],
-    appendPatternRW,
-    excludePatternRW
+
+  implicit val ruleRW: upickle.ReadWriter[Rule] = upickle.default.readwriter[ujson.Value].bimap[Rule](
+    {
+      case r: Rule.Append => upickle.default.writeJs(r)
+      case r: Rule.Exclude => upickle.default.writeJs(r)
+      case r: Rule.Relocate => upickle.default.writeJs(r)
+      case r: Rule.AppendPattern => upickle.default.writeJs(r)
+      case r: Rule.ExcludePattern => upickle.default.writeJs(r)
+    },
+    json => {
+      val t = json.obj.get("$type").map(_.str)
+      if (t.contains("mill.javalib.Assembly.Rule.Append")) upickle.default.read[Rule.Append](json)
+      else if (t.contains("mill.javalib.Assembly.Rule.Exclude")) upickle.default.read[Rule.Exclude](json)
+      else if (t.contains("mill.javalib.Assembly.Rule.Relocate")) upickle.default.read[Rule.Relocate](json)
+      else if (t.contains("mill.javalib.Assembly.Rule.AppendPattern")) upickle.default.read[Rule.AppendPattern](json)
+      else if (t.contains("mill.javalib.Assembly.Rule.ExcludePattern")) upickle.default.read[Rule.ExcludePattern](json)
+      else throw new IllegalArgumentException(s"Unknown Rule type: $t")
+    }
   )
 
   val defaultRules: Seq[Rule] = Seq(
@@ -44,32 +53,20 @@ object Assembly {
 
   sealed trait Rule extends Product with Serializable
   object Rule {
+    implicit val appendRW: upickle.ReadWriter[Append] = upickle.macroRW
+    implicit val excludeRW: upickle.ReadWriter[Exclude] = upickle.macroRW
+    implicit val relocateRW: upickle.ReadWriter[Relocate] = upickle.macroRW
+    implicit val appendPatternRW: upickle.ReadWriter[AppendPattern] = upickle.macroRW
+    implicit val excludePatternRW: upickle.ReadWriter[ExcludePattern] = upickle.macroRW
+
     case class Append(path: String, separator: String = defaultSeparator) extends Rule
 
     object AppendPattern {
-      def apply(pattern: Pattern): AppendPattern = new AppendPattern(pattern, defaultSeparator)
+      def apply(pattern: Pattern): AppendPattern = new AppendPattern(pattern.pattern(), defaultSeparator)
       def apply(pattern: String): AppendPattern = apply(pattern, defaultSeparator)
-      def apply(pattern: String, separator: String): AppendPattern =
-        new AppendPattern(Pattern.compile(pattern), separator)
-
     }
-    class AppendPattern private (val pattern: Pattern, val separator: String) extends Rule {
-
-      override def productPrefix: String = "AppendPattern"
-      override def productArity: Int = 2
-      override def productElement(n: Int): Any = n match {
-        case 0 => pattern
-        case 1 => separator
-        case _ => throw new IndexOutOfBoundsException(n.toString)
-      }
-      override def canEqual(that: Any): Boolean = that.isInstanceOf[AppendPattern]
-      override def hashCode(): Int = scala.runtime.ScalaRunTime._hashCode(this)
-      override def equals(obj: Any): Boolean = obj match {
-        case that: AppendPattern => this.pattern == that.pattern && this.separator == that.separator
-        case _ => false
-      }
-      override def toString: String = scala.runtime.ScalaRunTime._toString(this)
-
+    case class AppendPattern(path: String, separator: String) extends Rule {
+      def pattern = Pattern.compile(path)
     }
 
     case class Exclude(path: String) extends Rule
@@ -77,9 +74,11 @@ object Assembly {
     case class Relocate(from: String, to: String) extends Rule
 
     object ExcludePattern {
-      def apply(pattern: String): ExcludePattern = ExcludePattern(Pattern.compile(pattern))
+      def apply(pattern: Pattern): ExcludePattern = ExcludePattern(pattern.pattern())
     }
-    case class ExcludePattern(pattern: Pattern) extends Rule
+    case class ExcludePattern(path: String) extends Rule {
+      def pattern = Pattern.compile(path)
+    }
   }
 
   def groupAssemblyEntries(
@@ -93,7 +92,7 @@ object Assembly {
 
     val matchPatterns = assemblyRules.collect {
       case r: Rule.AppendPattern => r.pattern.asPredicate() -> r
-      case r @ Rule.ExcludePattern(pattern) => pattern.asPredicate() -> r
+      case r: Rule.ExcludePattern => r.pattern.asPredicate() -> r
     }
 
     mappings.foldLeft(Map.empty[String, GroupedEntry]) {
