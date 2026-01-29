@@ -1,0 +1,13 @@
+// To use Scala 3 nightly releases, you need to add the Scala 3 nightly repository
+// to your build. The `mill-repositories` configuration in the build header applies
+// to all modules in your build, including Mill's own internal dependency resolution.
+
+/** See Also: build.mill.yaml */
+/** See Also: src/Foo.scala */
+
+/** Usage
+
+> ./mill run --text hello
+text: hello, Scala version: version 3.8.3-RC1-bin-20260128-3882481-NIGHTLY
+
+*/

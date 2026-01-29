@@ -1,0 +1,7 @@
+mill-repositories:
+  - https://repo.scala-lang.org/artifactory/maven-nightlies/
+
+extends: ScalaModule
+scalaVersion: 3.8.3-RC1-bin-20260128-3882481-NIGHTLY
+mvnDeps:
+  - com.lihaoyi::mainargs:0.7.8
