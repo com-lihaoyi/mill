@@ -728,7 +728,7 @@ for <code>ScalaModule</code>.</p>
 related to declaring dependencies in <code>.mill.yaml</code> files:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-13-aac209/mill-dist-1.1.0-example-scalalib-dependencies-1-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/1-dependencies/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-scalalib-dependencies-1-dependencies.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/1-dependencies/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
 scalaVersion: 3.8.1
@@ -816,115 +816,6 @@ Key: age, Value: 30
 </div>
 </div>
 <div class="sect2">
-<h3 id="_unmanaged_jars"><a class="anchor" href="#_unmanaged_jars"></a>Unmanaged Jars</h3>
-<div class="paragraph">
-<p>In most scenarios you should rely on <code>mvnDeps</code>/<code>moduleDeps</code> and let Mill manage
-the compilation/downloading/caching of classpath jars for you, as Mill will
-automatically pull in transitive dependencies which are generally needed for things
-to work, and avoids including different versions of the same classfiles or jar which
-can cause confusion. But in the rare case you receive a jar or folder-full-of-classfiles
-from somewhere and need to include it in your project, <code>unmanagedClasspath</code> is the
-way to do it.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-13-aac209/mill-dist-1.1.0-example-scalalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/3-unmanaged-jars/build.mill.yaml">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
-scalaVersion: 3.8.1
-unmanagedClasspath:
-- lib/nanojson-1.8.jar</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can override <code>unmanagedClasspath</code> to point it at any jars you place on the
-filesystem, e.g. in the above snippet any jars that happen to live in the
-<code>lib/</code> folder.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run '{"name":"John","age":30}'     # mac/linux
-Key: name, Value: John
-Key: age, Value: 30</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_programmable_dependencies_configuration"><a class="anchor" href="#_programmable_dependencies_configuration"></a>Programmable Dependencies Configuration</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="_downloading_unmanaged_jars"><a class="anchor" href="#_downloading_unmanaged_jars"></a>Downloading Unmanaged Jars</h3>
-<div class="paragraph">
-<p>You can also override <code>unmanagedClasspath</code> to point it at jars that you want to
-download from arbitrary URLs.
-<code>requests.get</code> comes from the <a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a>
-library, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-13-aac209/mill-dist-1.1.0-example-scalalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*
-
-object `package` extends ScalaModule {
-  def scalaVersion = "3.8.1"
-  def unmanagedClasspath = Task {
-    if (Task.offline) Task.fail("Cannot download classpath when in offline-mode") <i class="conum" data-value="1"></i><b>(1)</b>
-    else {
-      os.write(
-        Task.dest / "fastjavaio.jar",
-        requests.get.stream(
-          "https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar"
-        )
-      )
-      Seq(PathRef(Task.dest / "fastjavaio.jar"))
-    }
-  }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run "textfile.txt" # mac/linux
-I am cow
-hear me moo
-I weigh twice as much as you</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Tasks like <code>unmanagedClasspath</code> are
-cached, so your jar is downloaded only once and re-used indefinitely after that.
-This is usually not a problem, because usually URLs follow the rule that
-<a href="https://www.w3.org/Provider/Style/URI">Cool URIs don&#8217;t change</a>, and so jars
-downloaded from the same URL will always contain the same contents.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --offline run "textfile.txt"
-I am cow
-hear me moo
-I weigh twice as much as you</code></pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-An unmanaged jar downloaded via <code>requests.get</code> is still unmanaged: even
-though you downloaded it from somewhere, it <code>requests.get</code> does not know how to
-pull in transitive dependencies or de-duplicate different versions on the classpath
-All the same caveats you need to worry about when dealing with <a href="#_unmanaged_jars">unmanaged jars</a>
-apply here as well.
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
 <h3 id="_repository_configuration"><a class="anchor" href="#_repository_configuration"></a>Repository Configuration</h3>
 <div class="paragraph">
 <p>By default, dependencies are resolved from <a href="https://central.sonatype.com/">Maven Central</a>,
@@ -932,11 +823,10 @@ the standard package repository for JVM languages like Java, Kotlin, or Scala. Y
 can also add your own resolvers by overriding the <code>repositories</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-13-aac209/mill-dist-1.1.0-example-scalalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/5-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-scalalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
-import mill.api.ModuleRef
 
 object foo extends ScalaModule {
   def scalaVersion = "3.8.1"
@@ -997,36 +887,155 @@ central.to=http://example.com:8080/nexus/content/groups/public</code></pre>
 <p>You can also set the environment variable <code>COURSIER_MIRRORS</code> or the jvm property <code>coursier.mirrors</code> to specify config file location.</p>
 </div>
 <div class="paragraph">
-<p>To add custom resolvers to the initial bootstrap of the build, you can create a
-custom <code>JvmWorkerModule</code> (named after the <a href="https://github.com/sbt/zinc">Zinc Incremental compiler</a>
-used to compile the <code>build.mill</code> files) and override the <code>jvmWorker</code> method in your
-<code>Module</code> by pointing it to that custom object:</p>
+<p>To configure repositories for the entire build, e.g. to make all artifact downloads
+go through a mirror rather than the public Maven Central, use
+<a href="../cli/build-header.html#_mill_repositories" class="xref page">mill-repositories</a> in the build header instead.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
-}
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --text hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To use Scala 3 nightly releases, you need to add the Scala 3 nightly repository
+to your module&#8217;s <code>repositories</code>. This allows the Scala compiler and library
+to be resolved from the nightly repository.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-scalalib-dependencies-6-scala-nightly.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/6-scala-nightly/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
+scalaVersion: 3.8.3-RC1-bin-20260128-3882481-NIGHTLY
+repositories:
+- https://repo.scala-lang.org/artifactory/maven-nightlies/</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/Foo.scala (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-scalalib-dependencies-6-scala-nightly.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/6-scala-nightly/src/Foo.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 
-object bar extends ScalaModule {
-  def scalaVersion = "3.8.1"
-  def jvmWorker = ModuleRef(CustomJvmWorkerModule)
-  // ... rest of your build definitions
-
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
+object Foo {
+  def main(args: Array[String]): Unit = {
+    println(s"Scala version: ${scala.util.Properties.versionString}")
+  }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --text hello
-
-&gt; ./mill bar.compile</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
+Scala version: version 3.8.3-RC1-bin-20260128-3882481-NIGHTLY</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_unmanaged_jars"><a class="anchor" href="#_unmanaged_jars"></a>Unmanaged Jars</h3>
+<div class="paragraph">
+<p>In most scenarios you should rely on <code>mvnDeps</code>/<code>moduleDeps</code> and let Mill manage
+the compilation/downloading/caching of classpath jars for you, as Mill will
+automatically pull in transitive dependencies which are generally needed for things
+to work, and avoids including different versions of the same classfiles or jar which
+can cause confusion. But in the rare case you receive a jar or folder-full-of-classfiles
+from somewhere and need to include it in your project, <code>unmanagedClasspath</code> is the
+way to do it.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-scalalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/3-unmanaged-jars/build.mill.yaml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: ScalaModule
+scalaVersion: 3.8.1
+unmanagedClasspath:
+- lib/nanojson-1.8.jar</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>See <a href="../extending/import-mvn-plugins.html" class="xref page">Import Libraries and Plugins</a> for customizing repositories used to resolve
-<code>//| mvnDeps</code> used in your <code>build.mill</code> file</p>
+<p>You can override <code>unmanagedClasspath</code> to point it at any jars you place on the
+filesystem, e.g. in the above snippet any jars that happen to live in the
+<code>lib/</code> folder.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run '{"name":"John","age":30}'     # mac/linux
+Key: name, Value: John
+Key: age, Value: 30</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_programmable_dependencies_configuration"><a class="anchor" href="#_programmable_dependencies_configuration"></a>Programmable Dependencies Configuration</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_downloading_unmanaged_jars"><a class="anchor" href="#_downloading_unmanaged_jars"></a>Downloading Unmanaged Jars</h3>
+<div class="paragraph">
+<p>You can also override <code>unmanagedClasspath</code> to point it at jars that you want to
+download from arbitrary URLs.
+<code>requests.get</code> comes from the <a href="https://github.com/com-lihaoyi/requests-scala">Requests-Scala</a>
+library, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-scalalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/scalalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+
+object `package` extends ScalaModule {
+  def scalaVersion = "3.8.1"
+  def unmanagedClasspath = Task {
+    if (Task.offline) Task.fail("Cannot download classpath when in offline-mode") <i class="conum" data-value="1"></i><b>(1)</b>
+    else {
+      os.write(
+        Task.dest / "fastjavaio.jar",
+        requests.get.stream(
+          "https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar"
+        )
+      )
+      Seq(PathRef(Task.dest / "fastjavaio.jar"))
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run "textfile.txt" # mac/linux
+I am cow
+hear me moo
+I weigh twice as much as you</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Tasks like <code>unmanagedClasspath</code> are
+cached, so your jar is downloaded only once and re-used indefinitely after that.
+This is usually not a problem, because usually URLs follow the rule that
+<a href="https://www.w3.org/Provider/Style/URI">Cool URIs don&#8217;t change</a>, and so jars
+downloaded from the same URL will always contain the same contents.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --offline run "textfile.txt"
+I am cow
+hear me moo
+I weigh twice as much as you</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+An unmanaged jar downloaded via <code>requests.get</code> is still unmanaged: even
+though you downloaded it from somewhere, it <code>requests.get</code> does not know how to
+pull in transitive dependencies or de-duplicate different versions on the classpath
+All the same caveats you need to worry about when dealing with <a href="#_unmanaged_jars">unmanaged jars</a>
+apply here as well.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>

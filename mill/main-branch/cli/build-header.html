@@ -863,7 +863,7 @@ version used for any JVMs spawned by Mill to <code>run</code> or <code>test</cod
 YAML key:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-13-aac209/mill-dist-1.1.0-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-cli-header-3-jvm-version-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/3-jvm-version-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-jvm-version: temurin:17.0.6
 
@@ -926,7 +926,7 @@ in Mill&#8217;s jvm index version) or an older JVM index.</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-13-aac209/mill-dist-1.1.0-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/4-jvm-index-version">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-cli-header-4-jvm-index-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/4-jvm-index-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-jvm-index-version: 0.0.4-88-f9ba3d
 //| mill-jvm-version: temurin:17
@@ -950,6 +950,53 @@ to <code>17.0.14</code> (the version of <code>17.x</code> available when the JVM
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill printJavaVersion
 Java version: 17.0.14</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mill_repositories"><a class="anchor" href="#_mill_repositories"></a>mill-repositories</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can configure additional Maven repositories that Mill uses for resolving
+dependencies by setting <code>mill-repositories</code> in the build header:</p>
+</div>
+<div class="paragraph">
+<p><em>build.mill</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-repositories: ["https://oss.sonatype.org/content/repositories/releases"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or in <code>build.mill.yaml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-repositories:
+  - https://oss.sonatype.org/content/repositories/releases</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These repositories are used for:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Resolving Mill&#8217;s own daemon JARs</p>
+</li>
+<li>
+<p>Resolving the JVM index for <code>mill-jvm-version</code></p>
+</li>
+<li>
+<p>As the default repositories for all modules extending <code>CoursierModule</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The configured repositories are prepended to (take precedence over) the default
+Maven Central repository. For configuring repositories on individual modules, see
+<a href="../javalib/dependencies.html#_repository_configuration" class="xref page">Repository Configuration</a>.</p>
 </div>
 </div>
 </div>
@@ -1005,7 +1052,7 @@ you can also override other tasks such as <code>scalacOptions</code> which in th
 is used to turn on fatal warnings for unused private methods:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-13-aac209/mill-dist-1.1.0-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/1-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/1-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: ["-Wunused:privates", "-Xfatal-warnings"]
 
@@ -1029,7 +1076,7 @@ For simple projects defined with a <code>build.mill.yaml</code> file, meta-build
 is put in the <code>mill-build:</code> key of the <code>build.mill.yaml</code> file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-13-aac209/mill-dist-1.1.0-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-14-601c19/mill-dist-1.1.0-example-cli-header-2-tasks-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/cli/header/2-tasks-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">mill-build:
   scalacOptions: ["-verbose"]</code></pre>
