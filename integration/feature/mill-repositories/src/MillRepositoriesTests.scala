@@ -28,6 +28,8 @@ object MillRepositoriesTests extends UtestIntegrationTestSuite {
         .filter(_.contains("mill-core-constants"))
         .map(_.split(os.pwd.toString).last)
 
+      // Make sure the various Mill jars all get resolved from `custom-local-repo` rather
+      // han the `localRepo.dest` that would be normally be used in the integration tests
       assertGoldenLiteral(
         findConstants(vs),
         List(
