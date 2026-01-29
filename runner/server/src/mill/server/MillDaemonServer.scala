@@ -103,7 +103,8 @@ abstract class MillDaemonServer[State](
         val clientConfig = ServerLauncher.DaemonConfig(
           millVersion = init.clientMillVersion,
           javaVersion = init.clientJavaVersion,
-          jvmOpts = init.clientJvmOpts
+          jvmOpts = init.clientJvmOpts,
+          millRepositories = init.millRepositories
         )
 
         lastConfig.foreach { stored =>

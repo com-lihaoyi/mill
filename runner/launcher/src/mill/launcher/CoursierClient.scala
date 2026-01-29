@@ -2,10 +2,8 @@ package mill.launcher
 
 import coursier.{Artifacts, Dependency, ModuleName, Organization, Resolve, VersionConstraint}
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.core.Repository
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.maven.MavenRepository
-import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.core.Module
 import mill.constants.{BuildInfo, OutFiles, OutFolderMode}
@@ -20,28 +18,6 @@ object CoursierClient {
   // Compute the cache directory based on outMode, respecting MILL_OUTPUT_DIR
   private def cacheDir(outMode: OutFolderMode): os.Path =
     os.Path(OutFiles.OutFiles.outFor(outMode), os.pwd) / "mill-daemon" / "cache"
-
-  /**
-   * Parse repository strings into Coursier Repository objects.
-   * Uses Coursier's RepositoryParser which supports formats like:
-   * - Maven: https://repo1.maven.org/maven2
-   * - Ivy: ivy:https://...
-   * - Local: file:///path/to/repo
-   */
-  private def reposFromStrings(repoList: Seq[String]): Seq[Repository] = {
-    if (repoList.isEmpty) Seq.empty
-    else {
-      RepositoryParser.repositories(repoList).either match {
-        case Left(errs) =>
-          System.err.println(
-            s"Invalid repository string in mill-repositories:" + System.lineSeparator() +
-              errs.map("  " + _ + System.lineSeparator()).mkString
-          )
-          Seq.empty
-        case Right(repos) => repos
-      }
-    }
-  }
 
   /**
    * Single-entry disk cache for expensive Coursier resolutions, as even when everything
@@ -97,7 +73,7 @@ object CoursierClient {
         MavenRepository(os.Path(path).toURI.toASCIIString)
       }
 
-      val configuredRepos = reposFromStrings(millRepositories)
+      val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
 
       val artifactsResultOrError = {
         // Configured repos prepend to (take precedence over) defaults, but don't replace them
@@ -144,7 +120,7 @@ object CoursierClient {
       val coursierCache0 = FileCache[Task]()
         .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
-      val configuredRepos = reposFromStrings(millRepositories)
+      val configuredRepos = mill.util.Jvm.reposFromStrings(millRepositories).get
       // Configured repos prepend to (take precedence over) defaults, but don't replace them
       val repos = configuredRepos ++ Resolve.defaultRepositories
 

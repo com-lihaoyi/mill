@@ -19,7 +19,8 @@ object ServerLauncher {
   case class DaemonConfig(
       millVersion: String,
       javaVersion: String,
-      jvmOpts: Seq[String]
+      jvmOpts: Seq[String],
+      millRepositories: Seq[String] = Seq.empty
   ) derives upickle.ReadWriter {
 
     /**
@@ -36,6 +37,9 @@ object ServerLauncher {
           } ++
           Option.when(jvmOpts != other.jvmOpts) {
             s"JVM options changed ($jvmOpts -> ${other.jvmOpts})"
+          } ++
+          Option.when(millRepositories != other.millRepositories) {
+            s"Mill repositories changed ($millRepositories -> ${other.millRepositories})"
           }
 
       results.toSeq
@@ -44,7 +48,7 @@ object ServerLauncher {
   object DaemonConfig {
 
     /** Empty config for cases where config tracking is not needed (e.g., zinc workers) */
-    def empty: DaemonConfig = DaemonConfig("", "", Seq.empty)
+    def empty: DaemonConfig = DaemonConfig("", "", Seq.empty, Seq.empty)
   }
 
   case class Launched(port: Int, socket: Option[Socket], launchedServer: LaunchedServer)

@@ -32,7 +32,8 @@ class MillServerLauncher(
     val config = ServerLauncher.DaemonConfig(
       millVersion = millVersion,
       javaVersion = javaHome.map(_.toString).getOrElse(""),
-      jvmOpts = jvmOpts
+      jvmOpts = jvmOpts,
+      millRepositories = millRepositories
     )
 
     val launched = ServerLauncher.launchOrConnectToServer(
