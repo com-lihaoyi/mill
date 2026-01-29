@@ -70,11 +70,15 @@ object `package` extends mill.Module {
   case class SharedWorkerInfo(outPath: os.Path, port: Int)
 
   def sharedOutFolder = Task.Worker {
+
+    // Include millVersion in the worker path to invalidate when Mill version changes
+    os.list(Task.dest).foreach(os.remove.all(_))
+    val versionDir = Task.dest / build.millVersion()
     val counter = new java.util.concurrent.atomic.AtomicInteger(0)
     new mill.util.CachedFactory[Unit, SharedWorkerInfo] {
       def setup(key: Unit): SharedWorkerInfo = {
         val index = counter.getAndIncrement()
-        val res = Task.dest / s"shared-$index" / "out"
+        val res = versionDir / s"shared-$index" / "out"
         os.remove.all(res)
         os.makeDir.all(res)
         SharedWorkerInfo(res, 10000 + index)
@@ -170,14 +174,14 @@ object `package` extends mill.Module {
 
     }
 
-    // Set `packaged.daemon` as the default way to run integration and example tests
+    // Set `fast.daemon` as the default way to run integration and example tests
     override def defaultTask(): String = "testForked"
     def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
       Task.Command {
-        packaged.daemon.testForked0(args*)()
+        fast.daemon.testForked0(args*)()
       }
 
-    object shared extends IntegrationLauncherModule {
+    object fast extends IntegrationLauncherModule {
       override def useSharedOut = true
       def millIntegrationLauncher = build.dist.raw.launcher()
       def millIntegrationIsPackagedLauncher = Task(false)
@@ -219,12 +223,27 @@ object `package` extends mill.Module {
 
   object failure extends Cross[IntegrationCrossModule](build.listCross)
   object feature extends Cross[IntegrationCrossModule](build.listCross)
-  object dedicated extends Cross[IntegrationCrossModule](build.listCross)
-  object multimode extends Cross[IntegrationCrossModule](build.listCross)
-  object bootstrap extends Cross[IntegrationCrossModule](build.listCross)
+  object dedicated extends Cross[DedicatedIntegrationCrossModule](build.listCross)
+  object multimode extends Cross[MultimodeIntegrationCrossModule](build.listCross)
+  object bootstrap extends Cross[BootstrapIntegrationCrossModule](build.listCross)
   object migrating extends Cross[MigrationIntegrationCrossModule](build.listCross)
   object manual extends Cross[IntegrationCrossModule](build.listCross)
+
+  trait DedicatedIntegrationCrossModule extends IntegrationCrossModule {
+    override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+      Task.Command { proguard.daemon.testForked0(args*)() }
+  }
+  trait MultimodeIntegrationCrossModule extends IntegrationCrossModule {
+    override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+      Task.Command { packaged.daemon.testForked0(args*)() }
+  }
+  trait BootstrapIntegrationCrossModule extends IntegrationCrossModule {
+    override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+      Task.Command { native.daemon.testForked0(args*)() }
+  }
   trait MigrationIntegrationCrossModule extends IntegrationCrossModule {
+    override def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+      Task.Command { packaged.daemon.testForked0(args*)() }
     def forkEnv = super.forkEnv() ++ initRepos.all().map { case (name, path) =>
       s"MILL_INIT_REPO_$name" -> path
     }
