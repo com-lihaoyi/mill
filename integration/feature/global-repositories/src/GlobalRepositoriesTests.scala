@@ -23,15 +23,7 @@ object GlobalRepositoriesTests extends UtestIntegrationTestSuite {
         os.makeDir.all(customRepo)
 
         for (localRepoPath <- localRepoPaths if os.exists(localRepoPath)) {
-          os.walk(localRepoPath).foreach { src =>
-            val rel = src.relativeTo(localRepoPath)
-            val dest = customRepo / rel
-            if (os.isDir(src)) {
-              os.makeDir.all(dest)
-            } else if (os.isFile(src) && !os.exists(dest)) {
-              os.copy(src, dest, createFolders = true)
-            }
-          }
+          os.copy(localRepoPath, customRepo, mergeFolders = true, createFolders = true)
         }
 
         val buildFile = workspacePath / "build.mill"
