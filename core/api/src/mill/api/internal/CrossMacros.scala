@@ -99,12 +99,13 @@ private[mill] object CrossMacros {
       elems0 match {
         case '[
             type elems <: Tuple; `elems`] =>
-          val wrappedElems = wrappedT.asExprOf[Seq[elems]]
           (
             if isNamedTuple then
-              '{ $wrappedElems.map(v => v.asInstanceOf[Product].productIterator.toList) }
-            else
-              '{ $wrappedElems.map(_.productIterator.toList) },
+              '{ $wrappedT.map(v => v.asInstanceOf[Product].productIterator.toList) }
+            else {
+              val wrappedElems = wrappedT.asExprOf[Seq[elems]]
+              '{ $wrappedElems.map(_.productIterator.toList) }
+            },
             asSeq(elems0Repr, 0)
           )
         case '[t] =>
