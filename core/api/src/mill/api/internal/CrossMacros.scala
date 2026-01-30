@@ -45,9 +45,7 @@ private[mill] object CrossMacros {
     def normalizedWrappedElems[elems: Type]: Expr[Seq[elems]] =
       if isNamedTuple then
         '{
-          $wrappedT.map(v =>
-            scala.Tuple.fromProductTyped(v.asInstanceOf[Product]).asInstanceOf[elems]
-          )
+          $wrappedT.map(v => scala.Tuple.fromProduct(v.asInstanceOf[Product]).asInstanceOf[elems])
         }
       else
         wrappedT.asExprOf[Seq[elems]]
@@ -290,7 +288,7 @@ private[mill] object CrossMacros {
     // `object` and `class`es.
     elems0 match {
       case '[elems] =>
-        val wrappedElems = wrappedT.asExprOf[Seq[elems]]
+        val wrappedElems = normalizedWrappedElems[elems]
         val ref = '{
           new mill.api.Cross.Factory[T](
             makeList = $wrappedElems.map((v2: elems) =>

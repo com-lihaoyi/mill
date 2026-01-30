@@ -9,6 +9,7 @@ import mill.api.TestGraphs.{
   crossResolved,
   doubleCross,
   namedTupleCross,
+  namedTupleCrossVarargs,
   nestedCrosses,
   nonStringCross,
   singleCross
