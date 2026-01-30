@@ -158,6 +158,14 @@ object CrossTests extends TestSuite {
           check(namedTupleCross.cross("3.3", "js").suffix).runtimeChecked
       }
     }
+    test("namedTupleCrossVarargs") {
+      UnitTester(namedTupleCrossVarargs, null).scoped { check =>
+        val Right(Result("2.12_jvm", 1)) =
+          check(namedTupleCrossVarargs.cross("2.12", "jvm").suffix).runtimeChecked
+        val Right(Result("3.5_native", 1)) =
+          check(namedTupleCrossVarargs.cross("3.5", "native").suffix).runtimeChecked
+      }
+    }
 
     test("innerCrossModule") {
       UnitTester(innerCrossModule, null).scoped { check =>

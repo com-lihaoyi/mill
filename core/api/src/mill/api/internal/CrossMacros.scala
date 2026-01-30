@@ -24,55 +24,41 @@ private[mill] object CrossMacros {
 
     def crossName(n: Int): String = s"crossValue${if n > 0 then (n + 1).toString else ""}"
 
-    val elems0Repr: TypeRepr = t match {
+    val elems0Repr0: TypeRepr = t match {
       case '{ ${ _ }: Seq[elems] } => TypeRepr.of[elems].widen
       case '{ ${ _ }: elems } => TypeRepr.of[elems].widen
     }
+    val namedTupleElemsReprOpt: Option[TypeRepr] = elems0Repr0.dealias match {
+      case AppliedType(namedTuple, List(_, types))
+          if {
+            val fullName = namedTuple.typeSymbol.fullName
+            namedTuple.typeSymbol.name == "NamedTuple" && fullName.startsWith("scala.NamedTuple")
+          } =>
+        Some(types.dealias)
+      case _ =>
+        None
+    }
+    val elems0Repr = namedTupleElemsReprOpt.getOrElse(elems0Repr0)
     val elems0: Type[?] = elems0Repr.asType
+    val isNamedTuple = namedTupleElemsReprOpt.nonEmpty
 
-    def tupleElemsReprOpt(tpe: TypeRepr): Option[TypeRepr] = {
-      val t0 = tpe.dealias
-      t0 match {
-        case AppliedType(namedTuple, List(_, types))
-            if {
-              val fullName = namedTuple.typeSymbol.fullName
-              fullName == "scala.NamedTuple$.NamedTuple" ||
-              fullName == "scala.NamedTuple.NamedTuple"
-            } =>
-          Some(types.dealias)
-        case _ if t0 <:< TypeRepr.of[Tuple] =>
-          Some(t0)
-        case _ =>
-          None
-      }
+    def tupleToList[T: Type](acc: List[Type[?]]): List[Type[?]] = Type.of[T] match {
+      case '[t *: ts] => tupleToList[ts](Type.of[t] :: acc)
+      case '[EmptyTuple] => acc.reverse
     }
 
-    def tupleElemsListOpt(tpe: TypeRepr): Option[List[Type[?]]] = {
-      def tupleToList(tpe: TypeRepr, acc: List[Type[?]]): List[Type[?]] = tpe.asType match {
-        case '[t *: ts] => tupleToList(TypeRepr.of[ts], Type.of[t] :: acc)
-        case '[EmptyTuple] => acc.reverse
-        case _ => acc.reverse
-      }
-      tupleElemsReprOpt(tpe).map(tupleToList(_, Nil))
-    }
-
-    val tupleElemsReprOpt0 = tupleElemsReprOpt(elems0Repr)
-    val tupleElemsListOpt0 = tupleElemsListOpt(elems0Repr)
-
-    lazy val (elemsStr, posStr) = tupleElemsListOpt0 match {
-      case Some(tupleElemsList) =>
+    lazy val (elemsStr, posStr) = elems0 match {
+      case '[
+          type elems1 <: NonEmptyTuple; `elems1`] =>
         (
-          tupleElemsList.map({ case '[t] => Type.show[t] }).mkString("(", ", ", ")"),
+          tupleToList[elems1](Nil).map({ case '[t] => Type.show[t] }).mkString("(", ", ", ")"),
           (n: Int) => s" at index $n"
         )
-      case None =>
-        elems0 match {
-          case '[elems1] =>
-            (
-              Type.show[elems1],
-              (_: Int) => ""
-            )
-        }
+      case '[elems1] =>
+        (
+          Type.show[elems1],
+          (_: Int) => ""
+        )
     }
     val elemTypes: (Expr[Seq[Seq[Any]]], Seq[(Type[?], (Expr[?], Type[?]) => Expr[?])]) = {
       def select[E: Type](n: Int): (Expr[?], Type[?]) => Expr[?] = {
@@ -83,16 +69,24 @@ private[mill] object CrossMacros {
             else
               '{ ??? : e0 } // We will have already reported an error so we can return a placeholder
         }
-        tupleElemsReprOpt0 match {
-          case Some(_) =>
-            (arg, tpe) =>
-              check(tpe) {
-                '{ $arg.asInstanceOf[Product].productElement(${ Expr(n) }).asInstanceOf[E] }
-              }
-          case None =>
-            require(n == 0, "non-tuple type should only have 1 element")
-            (arg, tpe) => check(tpe)(arg.asExprOf[E])
-        }
+        if isNamedTuple then
+          (arg, tpe) =>
+            check(tpe) {
+              '{ $arg.asInstanceOf[Product].productElement(${ Expr(n) }).asInstanceOf[E] }
+            }
+        else
+          elems0 match {
+            case '[
+                type elems1 <: NonEmptyTuple; `elems1`] =>
+              (arg, tpe) =>
+                arg match {
+                  case '{ $arg: `elems1` } =>
+                    check(tpe)('{ $arg.apply(${ Expr(n) }) }.asExprOf[E])
+                }
+            case '[elems1] =>
+              require(n == 0, "non-tuple type should only have 1 element")
+              (arg, tpe) => check(tpe)(arg.asExprOf[E])
+          }
       }
       def asSeq(
           tpe: TypeRepr,
@@ -102,23 +96,22 @@ private[mill] object CrossMacros {
         case '[EmptyTuple] => Nil
         case _ => Nil
       }
-      tupleElemsReprOpt0 match {
-        case Some(tupleElemsRepr) =>
-          val wrappedElems = elems0 match {
-            case '[elems] => wrappedT.asExprOf[Seq[elems]]
-          }
+      elems0 match {
+        case '[
+            type elems <: Tuple; `elems`] =>
+          val wrappedElems = wrappedT.asExprOf[Seq[elems]]
           (
-            '{ $wrappedElems.map(v => v.asInstanceOf[Product].productIterator.toList) },
-            asSeq(tupleElemsRepr, 0)
+            if isNamedTuple then
+              '{ $wrappedElems.map(v => v.asInstanceOf[Product].productIterator.toList) }
+            else
+              '{ $wrappedElems.map(_.productIterator.toList) },
+            asSeq(elems0Repr, 0)
           )
-        case None =>
-          elems0 match {
-            case '[t] =>
-              (
-                '{ $wrappedT.map(List(_)) },
-                List((Type.of[t], select[t](0)))
-              )
-          }
+        case '[t] =>
+          (
+            '{ $wrappedT.map(List(_)) },
+            List((Type.of[t], select[t](0)))
+          )
       }
     }
 
