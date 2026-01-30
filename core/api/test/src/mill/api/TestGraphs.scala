@@ -231,18 +231,6 @@ object TestGraphs {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object namedTupleCrossVarargs extends TestRootModule {
-    object cross extends mill.Cross[Cross](
-      (scalaVersion = "2.12", platform = "jvm"),
-      (scalaVersion = "3.5", platform = "native")
-    )
-    trait Cross extends Cross.Module2[String, String] {
-      val (scalaVersion, platform) = (crossValue, crossValue2)
-      def suffix = Task { scalaVersion + "_" + platform }
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
-
   object nestedCrosses extends TestRootModule {
     object cross extends mill.Cross[Cross]("210", "211", "212") {
       override def defaultCrossSegments: Seq[String] = Seq("212")

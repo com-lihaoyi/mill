@@ -82,8 +82,7 @@ private[mill] object CrossMacros {
               type elems1 <: NonEmptyTuple; `elems1`] =>
             (arg, tpe) =>
               arg match {
-                case '{ $arg: `elems1` } =>
-                  check(tpe)('{ $arg.apply(${ Expr(n) }) }.asExprOf[E])
+                case '{ $arg: `elems1` } => check(tpe)('{ $arg.apply(${ Expr(n) }) }.asExprOf[E])
               }
           case '[elems1] =>
             require(n == 0, "non-tuple type should only have 1 element")
