@@ -38,7 +38,7 @@ import mill.api.daemon.internal.{TestReporter, internal}
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise,
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
-      os.write(testArgs.outputPath, upickle.stream(result))
+      os.write.over(testArgs.outputPath, upickle.stream(result))
     } catch {
       case e: Throwable =>
         println(e)
