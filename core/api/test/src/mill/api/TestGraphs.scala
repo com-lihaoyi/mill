@@ -221,9 +221,9 @@ object TestGraphs {
 
   object namedTupleCrossVarargs extends TestRootModule {
     object cross extends mill.Cross[Cross](
-      (scalaVersion = "2.12", platform = "jvm"),
-      (scalaVersion = "3.5", platform = "native")
-    )
+          (scalaVersion = "2.12", platform = "jvm"),
+          (scalaVersion = "3.5", platform = "native")
+        )
     trait Cross extends Cross.Module2[String, String] {
       val (scalaVersion, platform) = (crossValue, crossValue2)
       def suffix = Task { scalaVersion + "_" + platform }
