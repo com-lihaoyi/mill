@@ -11,7 +11,6 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, ThreadFactory}
-import scala.annotation.unused
 import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
