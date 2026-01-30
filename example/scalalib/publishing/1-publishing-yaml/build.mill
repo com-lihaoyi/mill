@@ -23,3 +23,13 @@ Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...
 //
 // For more details on packaging and publishing in Mill, see
 // xref:{language-small}lib/publishing.adoc[{language} Packaging & Publishing]
+//
+
+// `publishLocal` also accepts options like `--doc=false` and `--sources=false`,
+// to disable publishing javadoc JARs and source JARs, which are generated and
+// published by default. This can be helpful if you're not interested in javadoc JARs,
+// as compiling these docjars can slow down the local publishing workflow
+
+// `publishLocal` also accepts `--transitive=true`, to also publish locally the
+// transitive dependencies of the module being published. This ensures the module
+// can be resolved from the local repository, with no missing dependencies.

@@ -1,8 +1,11 @@
 //// SNIPPET:BUILD
 package build
-import mill.*, javalib.*, publish.*
+import mill.*, kotlinlib.*, publish.*
 
-object foo extends JavaModule, PublishModule {
+object foo extends KotlinModule, PublishModule {
+
+  def kotlinVersion = "1.9.24"
+
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -14,12 +17,6 @@ object foo extends JavaModule, PublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }
-
-// This is an example `JavaModule` with added publishing capabilities via
-// `PublishModule`. This requires that you define an additional
-// `publishVersion` and `pomSettings` with the relevant metadata, and provides
-// the `.publishLocal` and `publishSigned` tasks for publishing locally to the
-// machine or to the central maven repository
 
 /** Usage
 
