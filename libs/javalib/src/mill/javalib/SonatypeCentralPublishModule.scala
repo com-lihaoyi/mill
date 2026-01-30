@@ -52,9 +52,9 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       @unroll sources: Boolean = true,
       @unroll docs: Boolean = true
   ): Task.Command[Unit] = Task.Command {
-    val payloadSeq = publishArtifactsPayload(sources = sources, docs = docs)().iterator.map {
-      case (name, pathRef) => pathRef -> name.toString
-    }.toSeq
+    val payloadSeq = PublishModule.payloadMapToSeq(
+      publishArtifactsPayload(sources = sources, docs = docs)()
+    )
     val publishData = PublishModule.PublishData(
       meta = artifactMetadata(),
       payload = payloadSeq,

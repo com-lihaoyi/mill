@@ -302,7 +302,8 @@ trait PublishModule extends JavaModule { outer =>
       val mainInfos = defaultMainPublishInfos()
       val includeSourcesAndDocs = pomPackagingType != PackagingType.Pom
       val sourcesInfo =
-        if (sources && includeSourcesAndDocs) Seq(PublishInfo.sourcesJar(sourceJar())) else Seq.empty
+        if (sources && includeSourcesAndDocs) Seq(PublishInfo.sourcesJar(sourceJar()))
+        else Seq.empty
       val docsInfo =
         if (docs && includeSourcesAndDocs) Seq(PublishInfo.docJar(docJar())) else Seq.empty
       mainInfos ++ sourcesInfo ++ docsInfo
@@ -496,9 +497,7 @@ trait PublishModule extends JavaModule { outer =>
     "Mill 1.0.1"
   )
   def publishArtifacts: T[PublishModule.PublishData] = Task {
-    val payloadSeq = publishArtifactsPayload()().iterator.map { case (name, pathRef) =>
-      pathRef -> name.toString
-    }.toSeq
+    val payloadSeq = PublishModule.payloadMapToSeq(publishArtifactsPayload()())
     PublishModule.PublishData(
       meta = artifactMetadata(),
       payload = payloadSeq,
@@ -677,21 +676,27 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   }
 
   private[mill] def payloadFromPublishInfos(
-                                             baseName: String,
-                                             pom: PathRef,
-                                             publishInfos: Seq[mill.javalib.publish.PublishInfo]
-                                           ): Map[os.SubPath, PathRef] = {
+      baseName: String,
+      pom: PathRef,
+      publishInfos: Seq[mill.javalib.publish.PublishInfo]
+  ): Map[os.SubPath, PathRef] = {
     Map(os.SubPath(s"$baseName.pom") -> pom) ++
       publishInfos.iterator.map { info =>
         os.SubPath(s"$baseName${info.classifierPart}.${info.ext}") -> info.file
       }.toMap
   }
+
+  private[mill] def payloadMapToSeq(
+      payload: Map[os.SubPath, PathRef]
+  ): Seq[(PathRef, String)] =
+    payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
   object PublishData {
     implicit def jsonify: upickle.ReadWriter[PublishData] = {
       import mill.javalib.publish.JsonFormatters.artifactFormat
       upickle.macroRW
     }
 
+    // Use a different Scala name to avoid unroll macro arity issues while keeping JVM name "apply".
     @scala.annotation.targetName("apply")
     def applyFromMap(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =
       apply(meta, mapToSeq(payload))
@@ -700,7 +705,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       payload.iterator.map { case (pathRef, name) => os.SubPath(name) -> pathRef }.toMap
 
     private def mapToSeq(payload: Map[os.SubPath, PathRef]): Seq[(PathRef, String)] =
-      payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
+      PublishModule.payloadMapToSeq(payload)
 
     /** Maps the path reference to an actual path. */
     private[mill] def withConcretePath(payload: Map[os.SubPath, PathRef])
