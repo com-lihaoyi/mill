@@ -1,8 +1,0 @@
-extends: [JavaModule, PublishModule, VcsVersionModule]
-pomSettings:
-  description: Hello
-  organization: com.lihaoyi
-  url: https://github.com/lihaoyi/example
-  licenses: [MIT]
-  versionControl: https://github.com/lihaoyi/example
-  developers: [{name: Li Haoyi, email: example@example.com}]

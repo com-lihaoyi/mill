@@ -1,4 +1,4 @@
-== Instructions for Publishing to Maven Central via Central Portal
+== Publishing to Maven Central
 
 Once you've mixed in `PublishModule`, apart from publishing locally, you can also publish
 your project's modules to maven central
@@ -143,7 +143,7 @@ on Git Tags], then the `publishVersion` will be configured to the git tag versio
 for tagged versions, and a longer `0.1.0-<commits-since-last-tag>-<commit-sha>` version
 (e.g. `1.1.0-10-fec938`) if manually publishing un-tagged released.
 
-== Instructions for Publishing to Generic Maven Repositories
+== Publishing to Generic Maven Repositories
 
 Apart from publishing your project's modules to Maven Central, you may also want to publish them to a generic
 Maven repository (such as a privately hosted one).

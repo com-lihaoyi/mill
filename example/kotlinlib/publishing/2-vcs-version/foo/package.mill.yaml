@@ -1,9 +1,0 @@
-extends: [KotlinModule, PublishModule, VcsVersionModule]
-kotlinVersion: 2.0.20
-pomSettings:
-  description: Hello
-  organization: com.lihaoyi
-  url: https://github.com/lihaoyi/example
-  licenses: [MIT]
-  versionControl: https://github.com/lihaoyi/example
-  developers: [{name: Li Haoyi, email: example@example.com}]

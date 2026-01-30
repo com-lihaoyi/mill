@@ -13,7 +13,7 @@ include::partial$example/kotlinlib/publishing/1-publishing-yaml.adoc[]
 
 include::partial$example/kotlinlib/publishing/2-vcs-version.adoc[]
 
-== Programmatic Publishing Configuration
+== Programmable Publishing Configuration
 
 include::partial$example/kotlinlib/publishing/3-publishing.adoc[]
 

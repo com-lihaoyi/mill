@@ -18,11 +18,6 @@ object foo extends KotlinModule, PublishModule {
   )
 }
 
-// This is an example `KotlinModule` with added publishing capabilities via
-// `PublishModule`. This requires that you define an additional
-// `publishVersion` and `pomSettings` with the relevant metadata, and provides
-// the `.publishLocal` and `publishSigned` tasks for publishing locally to the
-// machine or to the central maven repository
 
 /** Usage
 
