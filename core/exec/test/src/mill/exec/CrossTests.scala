@@ -5,7 +5,14 @@ import mill.{Cross, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.testkit.UnitTester.Result
 import mill.api.TestGraphs
-import mill.api.TestGraphs.{crossResolved, doubleCross, nestedCrosses, nonStringCross, singleCross}
+import mill.api.TestGraphs.{
+  crossResolved,
+  doubleCross,
+  namedTupleCross,
+  nestedCrosses,
+  nonStringCross,
+  singleCross
+}
 import utest.*
 
 object CrossTests extends TestSuite {
@@ -141,6 +148,14 @@ object CrossTests extends TestSuite {
         val Right(Result("212_js", 1)) = check(doubleCross.cross("212", "js").suffix).runtimeChecked
         val Right(Result("212_native", 1)) =
           check(doubleCross.cross("212", "native").suffix).runtimeChecked
+      }
+    }
+    test("namedTupleCross") {
+      UnitTester(namedTupleCross, null).scoped { check =>
+        val Right(Result("2.13_jvm", 1)) =
+          check(namedTupleCross.cross("2.13", "jvm").suffix).runtimeChecked
+        val Right(Result("3.3_js", 1)) =
+          check(namedTupleCross.cross("3.3", "js").suffix).runtimeChecked
       }
     }
 

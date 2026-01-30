@@ -24,27 +24,50 @@ private[mill] object CrossMacros {
 
     def crossName(n: Int): String = s"crossValue${if n > 0 then (n + 1).toString else ""}"
 
-    val elems0: Type[?] = t match {
-      case '{ ${ _ }: Seq[elems] } => TypeRepr.of[elems].widen.asType
-      case '{ ${ _ }: elems } => TypeRepr.of[elems].widen.asType
+    val elems0Repr: TypeRepr = t match {
+      case '{ ${ _ }: Seq[elems] } => TypeRepr.of[elems].widen
+      case '{ ${ _ }: elems } => TypeRepr.of[elems].widen
     }
-    def tupleToList[T: Type](acc: List[Type[?]]): List[Type[?]] = Type.of[T] match {
-      case '[t *: ts] => tupleToList[ts](Type.of[t] :: acc)
-      case '[EmptyTuple] => acc.reverse
+    val elems0: Type[?] = elems0Repr.asType
+
+    def tupleElemsReprOpt(tpe: TypeRepr): Option[TypeRepr] = {
+      val t0 = tpe.dealias
+      t0 match {
+        case AppliedType(namedTuple, List(_, types))
+            if {
+              val fullName = namedTuple.typeSymbol.fullName
+              fullName == "scala.NamedTuple$.NamedTuple" ||
+              fullName == "scala.NamedTuple.NamedTuple"
+            } =>
+          Some(types.dealias)
+        case _ if t0 <:< TypeRepr.of[Tuple] =>
+          Some(t0)
+        case _ =>
+          None
+      }
     }
 
-    lazy val (elemsStr, posStr) = elems0 match {
-      case '[
-          type elems1 <: NonEmptyTuple; `elems1`] =>
+    def tupleToList(tpe: TypeRepr, acc: List[Type[?]]): List[Type[?]] = tpe.asType match {
+      case '[t *: ts] => tupleToList(TypeRepr.of[ts], Type.of[t] :: acc)
+      case '[EmptyTuple] => acc.reverse
+      case _ => acc.reverse
+    }
+
+    lazy val (elemsStr, posStr) = tupleElemsReprOpt(elems0Repr) match {
+      case Some(tupleElemsRepr) =>
         (
-          tupleToList[elems1](Nil).map({ case '[t] => Type.show[t] }).mkString("(", ", ", ")"),
+          tupleToList(tupleElemsRepr, Nil).map({ case '[t] => Type.show[t] })
+            .mkString("(", ", ", ")"),
           (n: Int) => s" at index $n"
         )
-      case '[elems1] =>
-        (
-          Type.show[elems1],
-          (_: Int) => ""
-        )
+      case None =>
+        elems0 match {
+          case '[elems1] =>
+            (
+              Type.show[elems1],
+              (_: Int) => ""
+            )
+        }
     }
     val elemTypes: (Expr[Seq[Seq[Any]]], Seq[(Type[?], (Expr[?], Type[?]) => Expr[?])]) = {
       def select[E: Type](n: Int): (Expr[?], Type[?]) => Expr[?] = {
@@ -55,35 +78,42 @@ private[mill] object CrossMacros {
             else
               '{ ??? : e0 } // We will have already reported an error so we can return a placeholder
         }
-        elems0 match {
-          case '[
-              type elems1 <: NonEmptyTuple; `elems1`] =>
+        tupleElemsReprOpt(elems0Repr) match {
+          case Some(_) =>
             (arg, tpe) =>
-              arg match {
-                case '{ $arg: `elems1` } => check(tpe)('{ $arg.apply(${ Expr(n) }) }.asExprOf[E])
+              check(tpe) {
+                '{ $arg.asInstanceOf[Product].productElement(${ Expr(n) }).asInstanceOf[E] }
               }
-          case '[elems1] =>
+          case None =>
             require(n == 0, "non-tuple type should only have 1 element")
             (arg, tpe) => check(tpe)(arg.asExprOf[E])
         }
       }
-      def asSeq(tpe: Type[?], n: Int): Seq[(Type[?], (Expr[?], Type[?]) => Expr[?])] = tpe match {
-        case '[e *: es] => (Type.of[e], select[e](n)) +: asSeq(Type.of[es], n + 1)
+      def asSeq(
+          tpe: TypeRepr,
+          n: Int
+      ): Seq[(Type[?], (Expr[?], Type[?]) => Expr[?])] = tpe.asType match {
+        case '[e *: es] => (Type.of[e], select[e](n)) +: asSeq(TypeRepr.of[es], n + 1)
         case '[EmptyTuple] => Nil
+        case _ => Nil
       }
-      elems0 match {
-        case '[
-            type elems <: Tuple; `elems`] =>
-          val wrappedElems = wrappedT.asExprOf[Seq[elems]]
+      tupleElemsReprOpt(elems0Repr) match {
+        case Some(tupleElemsRepr) =>
+          val wrappedElems = elems0 match {
+            case '[elems] => wrappedT.asExprOf[Seq[elems]]
+          }
           (
-            '{ $wrappedElems.map(_.productIterator.toList) },
-            asSeq(elems0, 0)
+            '{ $wrappedElems.map(v => v.asInstanceOf[Product].productIterator.toList) },
+            asSeq(tupleElemsRepr, 0)
           )
-        case '[t] =>
-          (
-            '{ $wrappedT.map(List(_)) },
-            List((Type.of[t], select[t](0)))
-          )
+        case None =>
+          elems0 match {
+            case '[t] =>
+              (
+                '{ $wrappedT.map(List(_)) },
+                List((Type.of[t], select[t](0)))
+              )
+          }
       }
     }
 
