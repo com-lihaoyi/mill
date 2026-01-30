@@ -42,6 +42,16 @@ private[mill] object CrossMacros {
     val elems0: Type[?] = elems0Repr.asType
     val isNamedTuple = namedTupleElemsReprOpt.nonEmpty
 
+    def normalizedWrappedElems[elems: Type]: Expr[Seq[elems]] =
+      if isNamedTuple then
+        '{
+          $wrappedT.map(v =>
+            scala.Tuple.fromProductTyped(v.asInstanceOf[Product]).asInstanceOf[elems]
+          )
+        }
+      else
+        wrappedT.asExprOf[Seq[elems]]
+
     def tupleToList[T: Type](acc: List[Type[?]]): List[Type[?]] = Type.of[T] match {
       case '[t *: ts] => tupleToList[ts](Type.of[t] :: acc)
       case '[EmptyTuple] => acc.reverse
@@ -69,24 +79,18 @@ private[mill] object CrossMacros {
             else
               '{ ??? : e0 } // We will have already reported an error so we can return a placeholder
         }
-        if isNamedTuple then
-          (arg, tpe) =>
-            check(tpe) {
-              '{ $arg.asInstanceOf[Product].productElement(${ Expr(n) }).asInstanceOf[E] }
-            }
-        else
-          elems0 match {
-            case '[
-                type elems1 <: NonEmptyTuple; `elems1`] =>
-              (arg, tpe) =>
-                arg match {
-                  case '{ $arg: `elems1` } =>
-                    check(tpe)('{ $arg.apply(${ Expr(n) }) }.asExprOf[E])
-                }
-            case '[elems1] =>
-              require(n == 0, "non-tuple type should only have 1 element")
-              (arg, tpe) => check(tpe)(arg.asExprOf[E])
-          }
+        elems0 match {
+          case '[
+              type elems1 <: NonEmptyTuple; `elems1`] =>
+            (arg, tpe) =>
+              arg match {
+                case '{ $arg: `elems1` } =>
+                  check(tpe)('{ $arg.apply(${ Expr(n) }) }.asExprOf[E])
+              }
+          case '[elems1] =>
+            require(n == 0, "non-tuple type should only have 1 element")
+            (arg, tpe) => check(tpe)(arg.asExprOf[E])
+        }
       }
       def asSeq(
           tpe: TypeRepr,
@@ -99,13 +103,9 @@ private[mill] object CrossMacros {
       elems0 match {
         case '[
             type elems <: Tuple; `elems`] =>
+          val wrappedElems = normalizedWrappedElems[elems]
           (
-            if isNamedTuple then
-              '{ $wrappedT.map(v => v.asInstanceOf[Product].productIterator.toList) }
-            else {
-              val wrappedElems = wrappedT.asExprOf[Seq[elems]]
-              '{ $wrappedElems.map(_.productIterator.toList) }
-            },
+            '{ $wrappedElems.map(_.productIterator.toList) },
             asSeq(elems0Repr, 0)
           )
         case '[t] =>
