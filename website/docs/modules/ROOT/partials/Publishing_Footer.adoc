@@ -189,101 +189,6 @@ When you do not provide the username and password parameters, Mill will instead 
 `MILL_MAVEN_PASSWORD` environment variables. Providing the credentials via environment variables is the recommended
 approach due to security considerations.
 
-== Instructions for Publishing to Maven Central via Legacy OSSRH (Deprecated)
-
-[NOTE]
---
-Publishing via the legacy OSSRH (OSS Repository Hosting) is deprecated and will reach end-of-life on June 30, 2025,
-due to the retirement of https://help.sonatype.com/en/sonatype-nexus-repository-2-sunsetting-information.html[Sonatype’s Nexus Repository Manager v2]. Sonatype now recommends using the https://central.sonatype.org/publish/publish-portal-guide/[Central Portal] for all new publishing.
-Migration is strongly encouraged to avoid disruptions. For full details, see the https://central.sonatype.org/news/20250326_ossrh_sunset/[OSSRH Sunset Announcement].
---
-
-Just like publishing via the Central Portal requires a GPG key and publish secrets, 
-publishing via the legacy OSSRH (OSS Repository Hosting) also requires them.
-
-=== Publishing
-
-You can publish all eligible modules in your Mill project using
-the xref:fundamentals/modules.adoc#_default_tasks[Default Task] of the
-xref:fundamentals/modules.adoc#_external_modules[External Module] `mill.scalalib.PublishModule`:
-
-[source,console]
-----
-> mill mill.scalalib.PublishModule/
-----
-
-You can also specify individual modules you want to publish via a selector:
-
-[source,console]
-----
-> mill mill.scalalib.PublishModule/ --publishArtifacts foo.publishArtifacts
-----
-
-The default URL for publishing to sonatype's Maven Central is `oss.sonatype.org`.
-Newer projects registered on sonatype may need to publish using `s01.oss.sonatype.org`.
-In that case, you can pass in a `--sonatypeUri`:
-
-[source,console]
-----
-> mill mill.scalalib.PublishModule/ \
-        --sonatypeUri https://s01.oss.sonatype.org/service/local
-----
-
-This also allows you to publish to your own internal corporate sonatype deployment,
-by passing in `--sonatypeUri example.company.com` instead.
-
-[NOTE]
---
-Since Feb. 2021 any new Sonatype accounts have been created on
-`s01.oss.sonatype.org`, so you'll want to ensure you set the relevant URIs to match.
-
-The symptom of using the "wrong" URL for publishing is typically a 403 error code, in response to the publish request.
-
-See https://central.sonatype.org/publish/publish-guide/#releasing-to-central
-
-Typically
-
-* `https://s01.oss.sonatype.org/service/local` - for the `--sonatypeUri`
-* `https://s01.oss.sonatype.org/content/repositories/snapshots` - for `sonatypeSnapshotUri`
-
---
-=== Publishing Using Github Actions
-
-
-To publish on Github Actions, you can use something like this:
-
-[,yaml]
-----
-# .github/workflows/publish-artifacts.yml
-name: Publish Artifacts
-on:
-  push:
-    tags:
-      - '**'
-  workflow_dispatch:
-jobs:
-  publish-artifacts:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-      - run: ./mill mill.scalalib.PublishModule/
-        env:
-          MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
-          MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
-          MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
-          MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}
-----
-
-Where `MILL_PGP_PASSPHRASE`, `MILL_PGP_SECRET_BASE64`, `MILL_SONATYPE_PASSWORD`, and
-`MILL_SONATYPE_USERNAME` configured for the repository's or organization's Github Actions
-workflows. See
-https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions[Using Secrets in Github Actions]
-for more details.
-
 === Non-Staging Releases (classic Maven uploads)
 
 If the site does not support staging releases as `oss.sonatype.org` and `s01.oss.sonatype.org` do (for
@@ -305,25 +210,6 @@ maven path under `sonatypeUri` instead of staging path.
 
 This module provides settings and a CLI interface for publishing artifacts to Sonatype Maven Central.
 You can configure it through your `build.mill` file or by passing command-line options to it.
-
-=== Module-Level Settings
-You can override default publishing settings in your build.mill like this:
-
-[source,scala]
-----
-object mymodule extends SonatypeCentralPublishModule {
-  override def sonatypeCentralGpgArgs: T[String] = "--batch, --yes, -a, -b"
-
-  override def sonatypeCentralConnectTimeout: T[Int] = 5000
-
-  override def sonatypeCentralReadTimeout: T[Int] = 60000
-
-  override def sonatypeCentralAwaitTimeout: T[Int] = 120 * 1000
-
-  override def sonatypeCentralShouldRelease: T[Boolean] = true
-  ...
-}
-----
 
 === Argument Reference
 
