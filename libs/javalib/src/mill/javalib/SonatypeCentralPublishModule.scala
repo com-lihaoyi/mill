@@ -224,6 +224,144 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     if (shouldRelease) PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
   }
 
+  /**
+   * Interactive task to create GPG keys for publishing to Sonatype Central.
+   *
+   * This task will:
+   * 1. Generate a new GPG key pair (interactively prompting for name, email, and passphrase)
+   * 2. Upload the public key to keyserver.ubuntu.com
+   * 3. Verify the key was uploaded successfully
+   * 4. Print the environment variables needed for publishing
+   *
+   * After running this task, copy the printed environment variables to your CI secrets
+   * or shell configuration.
+   *
+   * See https://central.sonatype.org/publish/requirements/gpg/ for more details.
+   */
+  def initGpgKeys(): Task.Command[Unit] = Task.Command {
+    val log = Task.log
+
+    log.info("=== GPG Key Setup for Sonatype Central Publishing ===")
+    log.info("")
+    log.info("This will create a new GPG key pair for signing your artifacts.")
+    log.info("You will be prompted to enter:")
+    log.info("  - Your real name")
+    log.info("  - Your email address")
+    log.info("  - A passphrase to protect your key")
+    log.info("")
+
+    // Step 1: Generate GPG key
+    log.info("Step 1: Generating GPG key pair...")
+    val genKeyResult = mill.util.Jvm.runInteractiveCommand(
+      cmd = Seq("gpg", "--gen-key"),
+      env = Map.empty,
+      cwd = os.pwd
+    )
+
+    if (genKeyResult != 0) {
+      throw new Exception(s"GPG key generation failed with exit code $genKeyResult")
+    }
+
+    log.info("")
+    log.info("GPG key generated successfully!")
+    log.info("")
+
+    // Step 2: Get the key ID of the most recently created key
+    log.info("Step 2: Finding your new key ID...")
+    val listKeysResult = os.proc("gpg", "--list-keys", "--keyid-format", "long")
+      .call(stderr = os.Pipe)
+
+    // Parse the key ID from output - look for lines like "pub   rsa3072/KEYID 2024-01-01"
+    val keyIdPattern = """pub\s+\w+/([A-F0-9]+)\s+""".r
+    val keyIds = keyIdPattern.findAllMatchIn(listKeysResult.out.text()).map(_.group(1)).toList
+
+    if (keyIds.isEmpty) {
+      throw new Exception("Could not find any GPG keys. Please check your GPG configuration.")
+    }
+
+    val keyId = keyIds.last // Use the most recently listed key
+    log.info(s"Found key ID: $keyId")
+    log.info("")
+
+    // Step 3: Upload public key to keyserver
+    log.info("Step 3: Uploading public key to keyserver.ubuntu.com...")
+    val sendKeysResult = os.proc("gpg", "--keyserver", "keyserver.ubuntu.com", "--send-keys", keyId)
+      .call(stderr = os.Pipe, check = false)
+
+    if (sendKeysResult.exitCode != 0) {
+      log.error(s"Warning: Failed to upload key to keyserver: ${sendKeysResult.err.text()}")
+      log.error("You may need to upload manually: gpg --keyserver keyserver.ubuntu.com --send-keys " + keyId)
+    } else {
+      log.info("Public key uploaded successfully!")
+    }
+    log.info("")
+
+    // Step 4: Verify key was uploaded
+    log.info("Step 4: Verifying key upload...")
+    // Small delay to allow keyserver to propagate
+    Thread.sleep(2000)
+    val recvKeysResult = os.proc("gpg", "--keyserver", "keyserver.ubuntu.com", "--recv-keys", keyId)
+      .call(stderr = os.Pipe, check = false)
+
+    if (recvKeysResult.exitCode != 0) {
+      log.error(s"Warning: Could not verify key on keyserver: ${recvKeysResult.err.text()}")
+      log.error("This may be due to keyserver propagation delay. Try again later with:")
+      log.error(s"  gpg --keyserver keyserver.ubuntu.com --recv-keys $keyId")
+    } else {
+      log.info("Key verified on keyserver!")
+    }
+    log.info("")
+
+    // Step 5: Ask for passphrase
+    log.info("Step 5: Please enter the passphrase you used when creating the key.")
+    log.info("(This is needed to generate the environment variable for CI)")
+    log.info("")
+
+    // Use interactive command to read passphrase securely
+    print("Enter passphrase: ")
+    System.out.flush()
+    val console = System.console()
+    val passphrase = if (console != null) {
+      new String(console.readPassword())
+    } else {
+      // Fallback for non-terminal environments
+      scala.io.StdIn.readLine()
+    }
+
+    if (passphrase == null || passphrase.isEmpty) {
+      log.error("Warning: Empty passphrase provided")
+    }
+    log.info("")
+
+    // Step 6: Export secret key as base64
+    log.info("Step 6: Exporting secret key...")
+    val exportResult = os.proc("gpg", "--export-secret-key", "-a", keyId)
+      .call(stderr = os.Pipe)
+
+    val secretKeyArmored = exportResult.out.text()
+
+    // Base64 encode the key (without newlines for environment variable)
+    val secretKeyBase64 = java.util.Base64.getEncoder.encodeToString(secretKeyArmored.getBytes("UTF-8"))
+
+    log.info("")
+    log.info("=== Setup Complete! ===")
+    log.info("")
+    log.info("Add these environment variables to your CI configuration or shell:")
+    log.info("")
+    log.info("─" * 72)
+    println(s"export MILL_PGP_SECRET_BASE64=$secretKeyBase64")
+    println(s"export MILL_PGP_PASSPHRASE=$passphrase")
+    log.info("─" * 72)
+    log.info("")
+    log.info("For GitHub Actions, add these as repository secrets:")
+    log.info("  - MILL_PGP_SECRET_BASE64")
+    log.info("  - MILL_PGP_PASSPHRASE")
+    log.info("")
+    log.info(s"Your key ID is: $keyId")
+    log.info("")
+    log.info("See https://central.sonatype.org/publish/requirements/gpg/ for more details.")
+  }
+
   // TODO: make protected
   lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 }
