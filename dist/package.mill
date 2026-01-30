@@ -351,8 +351,45 @@ object `package` extends MillJavaModule with Proguard with DistModule {
     }
   }
 
+  private def shellcheckExe: T[PathRef] = Task {
+    val system = if (scala.util.Properties.isLinux) {
+      "linux"
+    } else if (scala.util.Properties.isMac) {
+      "macos"
+    } else if (scala.util.Properties.isWin) {
+      "windows"
+    } else {
+      sys.error(s"Unsupported platform for ShellCheck: ${scala.util.Properties.osName}")
+    }
+
+    val arch = System.getProperty("os.arch") match {
+      case "x86_64" | "amd64" => "x86_64"
+      case "aarch64" | "arm64" => "aarch64"
+      case other => sys.error(s"Unsupported architecture for ShellCheck: $other")
+    }
+
+    val version = "v0.11.0"
+    val link =
+      s"https://github.com/koalaman/shellcheck/releases/download/$version/shellcheck-$version.$system.$arch.tar.xz"
+
+    val archive = Task.dest / "ShellCheck.tar.xz"
+    os.write(archive, requests.get.stream(link))
+
+    val unpacked = Task.dest / "unpacked"
+    os.makeDir(unpacked)
+    os.proc("tar", "-xJf", archive, "-C", unpacked).call()
+
+    val binary = unpacked / s"shellcheck-$version" / "shellcheck"
+    os.perms.set(binary, "rwxr-xr-x")
+
+    PathRef(binary)
+  }
+
   def bootstrapLauncher = Task {
-    build.dist.scripts.millSh.compile0()
+    val millSh = build.dist.scripts.millSh.compile0()
+    val shellCheck = shellcheckExe()
+    os.proc(shellCheck.path, "--color=always", millSh.path).call()
+    millSh
   }
 
   def bootstrapLauncherBat = Task {
