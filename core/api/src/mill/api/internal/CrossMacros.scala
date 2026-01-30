@@ -24,11 +24,11 @@ private[mill] object CrossMacros {
 
     def crossName(n: Int): String = s"crossValue${if n > 0 then (n + 1).toString else ""}"
 
-    val elems0Repr0: TypeRepr = t match {
+    val elems0Repr: TypeRepr = t match {
       case '{ ${ _ }: Seq[elems] } => TypeRepr.of[elems].widen
       case '{ ${ _ }: elems } => TypeRepr.of[elems].widen
     }
-    val namedTupleElemsReprOpt: Option[TypeRepr] = elems0Repr0.dealias match {
+    val namedTupleElemsReprOpt: Option[TypeRepr] = elems0Repr.dealias match {
       case AppliedType(namedTuple, List(_, types))
           if {
             val fullName = namedTuple.typeSymbol.fullName
@@ -38,8 +38,8 @@ private[mill] object CrossMacros {
       case _ =>
         None
     }
-    val elems0Repr = namedTupleElemsReprOpt.getOrElse(elems0Repr0)
-    val elems0: Type[?] = elems0Repr.asType
+    val elems0ReprNormalized = namedTupleElemsReprOpt.getOrElse(elems0Repr)
+    val elems0: Type[?] = elems0ReprNormalized.asType
     val isNamedTuple = namedTupleElemsReprOpt.nonEmpty
 
     def normalizedWrappedElems[elems: Type]: Expr[Seq[elems]] =
