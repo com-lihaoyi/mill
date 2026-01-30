@@ -47,17 +47,22 @@ private[mill] object CrossMacros {
       }
     }
 
-    def tupleToList(tpe: TypeRepr, acc: List[Type[?]]): List[Type[?]] = tpe.asType match {
-      case '[t *: ts] => tupleToList(TypeRepr.of[ts], Type.of[t] :: acc)
-      case '[EmptyTuple] => acc.reverse
-      case _ => acc.reverse
+    def tupleElemsListOpt(tpe: TypeRepr): Option[List[Type[?]]] = {
+      def tupleToList(tpe: TypeRepr, acc: List[Type[?]]): List[Type[?]] = tpe.asType match {
+        case '[t *: ts] => tupleToList(TypeRepr.of[ts], Type.of[t] :: acc)
+        case '[EmptyTuple] => acc.reverse
+        case _ => acc.reverse
+      }
+      tupleElemsReprOpt(tpe).map(tupleToList(_, Nil))
     }
 
-    lazy val (elemsStr, posStr) = tupleElemsReprOpt(elems0Repr) match {
-      case Some(tupleElemsRepr) =>
+    val tupleElemsReprOpt0 = tupleElemsReprOpt(elems0Repr)
+    val tupleElemsListOpt0 = tupleElemsListOpt(elems0Repr)
+
+    lazy val (elemsStr, posStr) = tupleElemsListOpt0 match {
+      case Some(tupleElemsList) =>
         (
-          tupleToList(tupleElemsRepr, Nil).map({ case '[t] => Type.show[t] })
-            .mkString("(", ", ", ")"),
+          tupleElemsList.map({ case '[t] => Type.show[t] }).mkString("(", ", ", ")"),
           (n: Int) => s" at index $n"
         )
       case None =>
@@ -78,7 +83,7 @@ private[mill] object CrossMacros {
             else
               '{ ??? : e0 } // We will have already reported an error so we can return a placeholder
         }
-        tupleElemsReprOpt(elems0Repr) match {
+        tupleElemsReprOpt0 match {
           case Some(_) =>
             (arg, tpe) =>
               check(tpe) {
@@ -97,7 +102,7 @@ private[mill] object CrossMacros {
         case '[EmptyTuple] => Nil
         case _ => Nil
       }
-      tupleElemsReprOpt(elems0Repr) match {
+      tupleElemsReprOpt0 match {
         case Some(tupleElemsRepr) =>
           val wrappedElems = elems0 match {
             case '[elems] => wrappedT.asExprOf[Seq[elems]]
