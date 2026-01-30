@@ -62,7 +62,7 @@ object ArtifactoryPublishModule extends ExternalModule {
   ): Command[Unit] = Task.Command {
 
     val artifacts = Task.sequence(publishArtifacts.value)().map {
-      case data @ PublishModule.PublishData(_, _) => data.withConcretePath
+      case data: PublishModule.PublishData => data.withConcretePath
     }
     new ArtifactoryPublisher(
       artifactoryUri,

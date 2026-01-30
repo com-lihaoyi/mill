@@ -661,6 +661,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       pom: PathRef = null,
       publishInfos: Seq[mill.javalib.publish.PublishInfo] = Nil
   ) {
+    def this(meta: Artifact, payload: Seq[(PathRef, String)]) =
+      this(meta, payload, null, Nil)
+
     def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 
     /** Maps the path reference to an actual path. */
@@ -668,6 +671,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       (PublishData.withConcretePath(payloadAsMap), meta)
 
     private[mill] def pomPath: Option[os.Path] = Option(pom).map(_.path)
+
+    def copy(meta: Artifact, payload: Seq[(PathRef, String)]): PublishData =
+      new PublishData(meta, payload, pom, publishInfos)
   }
 
   private[mill] def payloadFromPublishInfos(
@@ -688,6 +694,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
 
     def apply(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =
       apply(meta, mapToSeq(payload), null, Nil)
+
+    def apply(meta: Artifact, payload: Seq[(PathRef, String)]): PublishData =
+      new PublishData(meta, payload, null, Nil)
 
     def apply(
         meta: Artifact,

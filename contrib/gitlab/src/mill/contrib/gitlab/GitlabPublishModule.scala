@@ -64,7 +64,7 @@ object GitlabPublishModule extends ExternalModule {
     val auth = GitlabAuthHeaders.privateToken(personalToken)
 
     val artifacts = Task.sequence(publishArtifacts.value)().map {
-      case data @ PublishModule.PublishData(_, _) => data.withConcretePath
+      case data: PublishModule.PublishData => data.withConcretePath
     }
     val uploader = new GitlabUploader(auth, readTimeout, connectTimeout)
 
