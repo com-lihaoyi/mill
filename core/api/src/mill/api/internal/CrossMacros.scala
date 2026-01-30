@@ -24,10 +24,32 @@ private[mill] object CrossMacros {
 
     def crossName(n: Int): String = s"crossValue${if n > 0 then (n + 1).toString else ""}"
 
-    val elems0: Type[?] = t match {
-      case '{ ${ _ }: Seq[elems] } => TypeRepr.of[elems].widen.asType
-      case '{ ${ _ }: elems } => TypeRepr.of[elems].widen.asType
+    val elems0Repr: TypeRepr = t match {
+      case '{ ${ _ }: Seq[elems] } => TypeRepr.of[elems].widen
+      case '{ ${ _ }: elems } => TypeRepr.of[elems].widen
     }
+    val namedTupleElemsReprOpt: Option[TypeRepr] = elems0Repr.dealias match {
+      case AppliedType(namedTuple, List(_, types))
+          if {
+            val fullName = namedTuple.typeSymbol.fullName
+            namedTuple.typeSymbol.name == "NamedTuple" && fullName.startsWith("scala.NamedTuple")
+          } =>
+        Some(types.dealias)
+      case _ =>
+        None
+    }
+    val elems0ReprNormalized = namedTupleElemsReprOpt.getOrElse(elems0Repr)
+    val elems0: Type[?] = elems0ReprNormalized.asType
+    val isNamedTuple = namedTupleElemsReprOpt.nonEmpty
+
+    def normalizedWrappedElems[elems: Type]: Expr[Seq[elems]] =
+      if isNamedTuple then
+        '{
+          $wrappedT.map(v => scala.Tuple.fromProduct(v.asInstanceOf[Product]).asInstanceOf[elems])
+        }
+      else
+        wrappedT.asExprOf[Seq[elems]]
+
     def tupleToList[T: Type](acc: List[Type[?]]): List[Type[?]] = Type.of[T] match {
       case '[t *: ts] => tupleToList[ts](Type.of[t] :: acc)
       case '[EmptyTuple] => acc.reverse
@@ -67,17 +89,21 @@ private[mill] object CrossMacros {
             (arg, tpe) => check(tpe)(arg.asExprOf[E])
         }
       }
-      def asSeq(tpe: Type[?], n: Int): Seq[(Type[?], (Expr[?], Type[?]) => Expr[?])] = tpe match {
-        case '[e *: es] => (Type.of[e], select[e](n)) +: asSeq(Type.of[es], n + 1)
+      def asSeq(
+          tpe: TypeRepr,
+          n: Int
+      ): Seq[(Type[?], (Expr[?], Type[?]) => Expr[?])] = tpe.asType match {
+        case '[e *: es] => (Type.of[e], select[e](n)) +: asSeq(TypeRepr.of[es], n + 1)
         case '[EmptyTuple] => Nil
+        case _ => Nil
       }
       elems0 match {
         case '[
             type elems <: Tuple; `elems`] =>
-          val wrappedElems = wrappedT.asExprOf[Seq[elems]]
+          val wrappedElems = normalizedWrappedElems[elems]
           (
             '{ $wrappedElems.map(_.productIterator.toList) },
-            asSeq(elems0, 0)
+            asSeq(elems0ReprNormalized, 0)
           )
         case '[t] =>
           (
@@ -261,7 +287,7 @@ private[mill] object CrossMacros {
     // `object` and `class`es.
     elems0 match {
       case '[elems] =>
-        val wrappedElems = wrappedT.asExprOf[Seq[elems]]
+        val wrappedElems = normalizedWrappedElems[elems]
         val ref = '{
           new mill.api.Cross.Factory[T](
             makeList = $wrappedElems.map((v2: elems) =>
