@@ -89,10 +89,10 @@ trait MillJavaModule extends JavaModule {
     Deps.jna
   )
 
-  def isCI: T[Boolean] = Task.Input { Task.env.contains("CI") }
+  def isFatalWarnings: T[Boolean] = Task.Input { Task.env.contains("FATAL_WARNINGS") }
 
   def ciJavacOptions: Task[Seq[String]] = Task {
-    if (isCI()) Seq(
+    if (isFatalWarnings()) Seq(
       // When in CI make the warnings fatal
       "-Werror"
     )

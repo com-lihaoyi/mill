@@ -27,7 +27,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
   override def mapDependencies = super[MillJavaModule].mapDependencies
 
   def ciScalacOptions: T[Seq[String]] = Task {
-    if (isCI()) {
+    if (isFatalWarnings()) {
       // Turn warnings into errors on CI
       if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
     } else Nil
