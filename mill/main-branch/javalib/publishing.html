@@ -728,7 +728,7 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-18-cb3585/mill-dist-1.1.0-example-javalib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-19-cf3f3a/mill-dist-1.1.0-example-javalib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule]
 publishVersion: 0.0.1
@@ -781,7 +781,7 @@ can be resolved from the local repository, with no missing dependencies.</p>
 <h2 id="_versioning_based_on_git_tags"><a class="anchor" href="#_versioning_based_on_git_tags"></a>Versioning Based on Git Tags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-18-cb3585/mill-dist-1.1.0-example-javalib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-19-cf3f3a/mill-dist-1.1.0-example-javalib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule, mill.util.VcsVersionModule]
 artifactName: example
@@ -821,7 +821,7 @@ Publishing Artifact(com.lihaoyi,example...,0.1.0...) to ivy repo...</code></pre>
 <h2 id="_programmable_publishing_configuration"><a class="anchor" href="#_programmable_publishing_configuration"></a>Programmable Publishing Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-18-cb3585/mill-dist-1.1.0-example-javalib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/3-publishing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-19-cf3f3a/mill-dist-1.1.0-example-javalib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/3-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -860,6 +860,31 @@ Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...</code></pre>
 <div class="paragraph">
 <p>Once you&#8217;ve mixed in <code>PublishModule</code>, apart from publishing locally, you can also publish
 your project&#8217;s modules to maven central</p>
+</div>
+<div class="sect2">
+<h3 id="_verifying_your_maven_central_namespace"><a class="anchor" href="#_verifying_your_maven_central_namespace"></a>Verifying your Maven Central Namespace</h3>
+<div class="paragraph">
+<p>Everyone who publishes to Maven Central needs to register their organization&#8217;s namespace
+(e.g. <code>com.lihaoyi</code>) and verify that they own it as a security measure. To do so, please
+create an account at:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://central.sonatype.com/" class="bare">https://central.sonatype.com/</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>And register and verify your namespace by following the instructions at:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://central.sonatype.org/register/namespace/" class="bare">https://central.sonatype.org/register/namespace/</a></p>
+</li>
+</ul>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_gpg"><a class="anchor" href="#_gpg"></a>GPG</h3>
@@ -1163,7 +1188,7 @@ there are also others that you can use. Mill supports these largely through cont
 <p>Mill provides the ability to check API changes with the <a href="https://revapi.org/revapi-site/main/index.html">Revapi</a> analysis and change tracking tool.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-18-cb3585/mill-dist-1.1.0-example-javalib-publishing-4-revapi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/4-revapi">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-19-cf3f3a/mill-dist-1.1.0-example-javalib-publishing-4-revapi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/4-revapi">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, publish.*, revapi.*
