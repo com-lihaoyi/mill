@@ -9,7 +9,7 @@ If you've never created a keypair before that can be used to sign your artifacts
 you'll need to do this. https://central.sonatype.org/publish/requirements/gpg/[Sonatype's GPG Documentation]
 has the instructions on how to do this
 
-=== Publishing Secrets
+=== Secrets
 
 Mill uses the following environment variables as a way to pass the necessary secrets
 for publishing to Maven Central:
