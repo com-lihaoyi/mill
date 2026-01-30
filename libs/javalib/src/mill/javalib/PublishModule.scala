@@ -660,9 +660,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       //
       // So instead we convert back and forth.
       payload: Seq[(PathRef, String)],
-      // Optional, for richer publishing metadata; legacy producers may leave these empty.
       @com.lihaoyi.unroll pom: PathRef = null,
-      // Optional, for richer publishing metadata; legacy producers may leave these empty.
       @com.lihaoyi.unroll publishInfos: Seq[mill.javalib.publish.PublishInfo] = Nil
   ) {
     def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
