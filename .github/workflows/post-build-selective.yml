@@ -69,7 +69,7 @@ jobs:
           echo "DISPLAY=:99" >> $GITHUB_ENV
         if: ${{ inputs.install-xvfb }}
 
-      - run: ./mill -i -k selective.resolveTree ${{ inputs.millargs }}
+      - run: ./mill -k selective.resolveTree ${{ inputs.millargs }}
 
       - uses: ./.github/actions/post-build-selective
         with:

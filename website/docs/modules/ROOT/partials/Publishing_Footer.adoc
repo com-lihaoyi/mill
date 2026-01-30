@@ -72,39 +72,6 @@ You can also specify individual modules you want to publish in two ways:
 > mill mill.javalib.SonatypeCentralPublishModule/ --publishArtifacts foo.publishArtifacts
 ----
 
-=== SNAPSHOT versions
-
-To publish SNAPSHOT versions (that is any version that ends with `-SNAPSHOT`), you need to enable support for them in
-your Sonatype Central namespace. To do that, go to the
-https://central.sonatype.com/publishing/namespaces[Sonatype Central portal], click on the "three dots" next to the
-namespace name, and click on "Enable SNAPSHOTs".
-
-SNAPSHOT versions do not have same semantics as regular versions: they are not signed and are not kept forever in the
-repository.
-
-See https://central.sonatype.org/publish/publish-portal-snapshots/[Sonatype Central documentation] for more information.
-
-Your build file should look like:
-
-[source,yaml]
-----
-extends: JavaModule
-publishVersion: 0.0.1-SNAPSHOT
-----
-
-Running any of the publishing tasks will now publish SNAPSHOT versions. When running them you should see a note from
-Mill that it has detected a SNAPSHOT version.
-
-To consume SNAPSHOT versions in your project, make sure to add the snapshot repository to your build file:
-
-[source,yaml]
-----
-extends: JavaModule
-repositories: ["https://central.sonatype.com/repository/maven-snapshots"]
-mvnDeps:
-- com.example:mymodule:1.0.0-SNAPSHOT
-----
-
 === Publishing Using Github Actions
 
 To publish on Github Actions, you can use something like this:
@@ -143,12 +110,93 @@ on Git Tags], then the `publishVersion` will be configured to the git tag versio
 for tagged versions, and a longer `0.1.0-<commits-since-last-tag>-<commit-sha>` version
 (e.g. `1.1.0-10-fec938`) if manually publishing un-tagged released.
 
+=== SNAPSHOT versions
+
+To publish SNAPSHOT versions (that is any version that ends with `-SNAPSHOT`), you need to enable support for them in
+your Sonatype Central namespace. To do that, go to the
+https://central.sonatype.com/publishing/namespaces[Sonatype Central portal], click on the "three dots" next to the
+namespace name, and click on "Enable SNAPSHOTs".
+
+SNAPSHOT versions do not have same semantics as regular versions: they are not signed and are not kept forever in the
+repository.
+
+See https://central.sonatype.org/publish/publish-portal-snapshots/[Sonatype Central documentation] for more information.
+
+Your build file should look like:
+
+[source,yaml]
+----
+extends: JavaModule
+publishVersion: 0.0.1-SNAPSHOT
+----
+
+Running any of the publishing tasks will now publish SNAPSHOT versions. When running them you should see a note from
+Mill that it has detected a SNAPSHOT version.
+
+To consume SNAPSHOT versions in your project, make sure to add the snapshot repository to your build file:
+
+[source,yaml]
+----
+extends: JavaModule
+repositories: ["https://central.sonatype.com/repository/maven-snapshots"]
+mvnDeps:
+- com.example:mymodule:1.0.0-SNAPSHOT
+----
+
+=== `SonatypeCentralPublishModule` Argument Reference
+
+
+The `publishAll` task can be called from the CLI. If a required value is not provided via the CLI option,
+it will fall back to an environment variable (if available) or raise an error if missing.
+
+The `./mill mill.javalib.SonatypeCentralPublishModule/publishAll` takes the following options:
+
+- `username`: The username for calling the Sonatype Central publishing api. Defaults to the `SONATYPE_USERNAME` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
+
+- `password`: The password for calling the Sonatype Central publishing api. Defaults to the `SONATYPE_PASSWORD` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
+
+- `gpgArgs`: Arguments to pass to the gpg package for signing artifacts. Uses the `MILL_PGP_PASSPHRASE` environment variable if set. _Default: `[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign`._ +
+
+- `publishArtifacts`: The command for generating all publishable artifacts (ex. `__.publishArtifacts`). Required. +
+
+- `readTimeout`:  The timeout for receiving a response from Sonatype Central after the initial connection has occurred. _Default: 60000._ +
+
+- `awaitTimeout`: The overall timeout for all retries (including exponential backoff) of the bundle upload. _Default: 120 * 1000._ +
+
+- `connectTimeout`: The timeout for the initial connection to Sonatype Central if there is no response. _Default: 5000._ +
+
+- `shouldRelease`: Whether the bundle should be automatically released when uploaded to Sonatype Central. If `false`, the bundle will still be uploaded, but users will need to manually log in to Sonatype Central and publish the bundle from the portal. _Default: true_ +
+
+- `bundleName`: If set, all packages will be uploaded in a single bundle with the given name. If unset, packages will be uploaded separately. Recommended bundle name syntax: groupName-artifactId-versionNumber. As an example, if publishing the `com.lihaoyi` `requests` package, without the bundle name, four different bundles will be uploaded, one for each scala version supported. With a bundle name of `com.lihaoyi-requests-<new_version>`, a single bundle will be uploaded that contains all packages across scala versions. It is recommended to set the bundle name, so that packages can be verified and deployed together. _Default: No bundle name is set and packages will be uploaded separately_
+
+For example, you may call `mill.javalib.SonatypeCentralPublishModule/` via:
+
+[,console]
+----
+$ mill \
+mill.javalib.SonatypeCentralPublishModule/publishAll \
+--username myusername \
+--password mypassword \
+--gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,--armor,--detach-sign \
+--publishArtifacts __.publishArtifacts \
+--readTimeout  36000 \
+--awaitTimeout 36000 \
+--connectTimeout 36000 \
+--shouldRelease false \
+--bundleName com.lihaoyi-requests:1.0.0
+----
+
+==== publishSonatypeCentral
+
+The `__.publishSonatypeCentral` command takes the `username` and `password` arguments, documented above.
+
+
 == Publishing to Generic Maven Repositories
 
 Apart from publishing your project's modules to Maven Central, you may also want to publish them to a generic
 Maven repository (such as a privately hosted one).
 
-=== Publishing Secrets
+**Publishing Secrets**
 
 Mill uses the following environment variables as a way to pass the necessary secrets for publishing:
 
@@ -159,7 +207,7 @@ export MILL_MAVEN_USERNAME=...
 export MILL_MAVEN_PASSWORD=...
 ----
 
-=== Publishing
+**Publishing**
 
 You can publish all eligible modules in your Mill project using the
 xref:fundamentals/modules.adoc#_default_tasks[Default Task] of the
@@ -178,7 +226,7 @@ When you do not provide the username and password parameters, Mill will instead 
 `MILL_MAVEN_PASSWORD` environment variables. Providing the credentials via environment variables is the recommended
 approach due to security considerations.
 
-=== Non-Staging Releases (classic Maven uploads)
+**Non-Staging Releases (classic Maven uploads)**
 
 If the site does not support staging releases as `oss.sonatype.org` and `s01.oss.sonatype.org` do (for
 example, a self-hosted OSS nexus site), you can pass in the
@@ -194,59 +242,6 @@ maven path under `sonatypeUri` instead of staging path.
         --stagingRelease false
 ----
 
-
-== `SonatypeCentralPublishModule` Configurations
-
-This module provides settings and a CLI interface for publishing artifacts to Sonatype Maven Central.
-You can configure it through your `build.mill` file or by passing command-line options to it.
-
-=== Argument Reference
-
-==== publishAll
-
-The `publishAll` task can be called from the CLI. If a required value is not provided via the CLI option,
-it will fall back to an environment variable (if available) or raise an error if missing.
-
-The `./mill mill.javalib.SonatypeCentralPublishModule/publishAll` takes the following options:
-
-`username`: The username for calling the Sonatype Central publishing api. Defaults to the `SONATYPE_USERNAME` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
-
-`password`: The password for calling the Sonatype Central publishing api. Defaults to the `SONATYPE_PASSWORD` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
-
-`gpgArgs`: Arguments to pass to the gpg package for signing artifacts. Uses the `MILL_PGP_PASSPHRASE` environment variable if set. _Default: `[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign`._ +
-
-`publishArtifacts`: The command for generating all publishable artifacts (ex. `__.publishArtifacts`). Required. +
-
-`readTimeout`:  The timeout for receiving a response from Sonatype Central after the initial connection has occurred. _Default: 60000._ +
-
-`awaitTimeout`: The overall timeout for all retries (including exponential backoff) of the bundle upload. _Default: 120 * 1000._ +
-
-`connectTimeout`: The timeout for the initial connection to Sonatype Central if there is no response. _Default: 5000._ +
-
-`shouldRelease`: Whether the bundle should be automatically released when uploaded to Sonatype Central. If `false`, the bundle will still be uploaded, but users will need to manually log in to Sonatype Central and publish the bundle from the portal. _Default: true_ +
-
-`bundleName`: If set, all packages will be uploaded in a single bundle with the given name. If unset, packages will be uploaded separately. Recommended bundle name syntax: groupName-artifactId-versionNumber. As an example, if publishing the `com.lihaoyi` `requests` package, without the bundle name, four different bundles will be uploaded, one for each scala version supported. With a bundle name of `com.lihaoyi-requests-<new_version>`, a single bundle will be uploaded that contains all packages across scala versions. It is recommended to set the bundle name, so that packages can be verified and deployed together. _Default: No bundle name is set and packages will be uploaded separately_
-
-==== Example command
-
-[,console]
-----
-$ mill -i \
-mill.javalib.SonatypeCentralPublishModule/publishAll \
---username myusername \
---password mypassword \
---gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,--armor,--detach-sign \
---publishArtifacts __.publishArtifacts \
---readTimeout  36000 \
---awaitTimeout 36000 \
---connectTimeout 36000 \
---shouldRelease false \
---bundleName com.lihaoyi-requests:1.0.0
-----
-
-==== publishSonatypeCentral
-
-The `__.publishSonatypeCentral` command takes the `username` and `password` arguments, documented above.
 
 
 == Publishing to other repositories

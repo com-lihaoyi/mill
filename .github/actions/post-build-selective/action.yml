@@ -33,10 +33,10 @@ runs:
 
     # Comment this out because it can be very verbose when broad codesig
     # invalidation results in all tasks being counted as changed inputs
-    #- run: ./mill -i -k selective.resolveChanged ${{ inputs.millargs }}
+    #- run: ./mill -k selective.resolveChanged ${{ inputs.millargs }}
     #  shell: ${{ inputs.shell }}
 
-    - run: ./mill -i -k ${{ inputs.extra }} selective.run ${{ inputs.millargs }}
+    - run: ./mill -k ${{ inputs.extra }} selective.run ${{ inputs.millargs }}
       shell: ${{ inputs.shell }}
 
     - name: Clean-up Test Reports

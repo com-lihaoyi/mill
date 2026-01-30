@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@v5
         with: { fetch-depth: 1 }
 
-      - run: ./mill -i website.fastPages + website.checkBrokenLinks
+      - run: ./mill website.fastPages + website.checkBrokenLinks
 
   cross-plat:
     if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
@@ -122,7 +122,7 @@ jobs:
           os: ${{ matrix.os }}
 
 
-      - run: ./mill -i -k selective.resolveTree ${{ matrix.millargs }}
+      - run: ./mill -k selective.resolveTree ${{ matrix.millargs }}
         shell: bash
 
       - uses: ./.github/actions/post-build-selective
@@ -245,7 +245,7 @@ jobs:
       java-version: '17'
       buildcmd: |
         set -eux
-        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+        ./mill mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
   mima:
     needs: build-linux
     uses: ./.github/workflows/post-build-raw.yml
@@ -253,4 +253,4 @@ jobs:
       java-version: '17'
       buildcmd: |
         set -eux
-        ./mill -i __.mimaReportBinaryIssues
+        ./mill __.mimaReportBinaryIssues
