@@ -18,6 +18,7 @@ import mill.internal.{
   PromptLogger,
   BspLogger
 }
+import scala.annotation.unused
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.api
@@ -579,7 +580,7 @@ object MillMain0 {
       streams: SystemStreams,
       config: MillCliConfig,
       enableTicker: Boolean,
-      daemonDir: os.Path,
+      @unused daemonDir: os.Path,
       colored: Boolean,
       colors: Colors,
       out: os.Path,

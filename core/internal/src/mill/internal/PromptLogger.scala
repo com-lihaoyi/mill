@@ -216,7 +216,7 @@ class PromptLogger(
         // Synchronize this whole block on the stream manager output pipe to avoid
         // interleaving with other writes to the streams.
         logStream.synchronized {
-          for ((keySuffix, message) <- res) {
+          for ((_, message) <- res) {
             val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
             val prefix = Logger.formatPrefix0(key)
 

@@ -5,6 +5,7 @@ import mill.api.daemon.internal.internal
 
 import scala.quoted.*
 import scala.reflect.ClassTag
+import scala.annotation.nowarn
 
 /**
  * Helper object for resolving module deps from string identifiers at runtime.
@@ -86,6 +87,7 @@ import scala.reflect.ClassTag
       default: => Seq[T]
   )(implicit ct: ClassTag[T]): Seq[T] = {
     val classLoader = rootModule.getClass.getClassLoader
+    @nowarn("msg=Implicit parameters should be provided with a `using` clause")
     val content = os.read(os.resource(classLoader) / "mill/module-deps-config.json")
     val configFromClasspath = upickle.default.read[Map[String, ModuleDepsConfig]](content)
 

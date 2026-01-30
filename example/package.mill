@@ -292,7 +292,7 @@ object `package` extends Module {
       var seenCode = false
       var seenFrontMatter = false
       val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
-      val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).map {
+      val frontMatter = parsed().takeWhile(_.isInstanceOf[Chunk.Yaml]).collect {
         case Chunk.Yaml(lines) => lines.mkString("\n")
       }.mkString("\n")
       val withoutFrontMatter = parsed().dropWhile(_.isInstanceOf[Chunk.Yaml])

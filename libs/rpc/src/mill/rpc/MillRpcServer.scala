@@ -60,6 +60,8 @@ trait MillRpcServer[
         case None => continue = false
         case Some(MillRpcClientToServer.Ask(message)) =>
           continue = onAsk()(() => onClientMessage(message))
+        case Some(MillRpcClientToServer.Response(_)) =>
+          logLocal("Ignoring unexpected response from client.")
       }
     }
   }

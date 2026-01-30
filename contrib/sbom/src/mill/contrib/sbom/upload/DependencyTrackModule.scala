@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets
 import mill.*
 import mill.contrib.sbom.CycloneDXModule
 import upickle.default.{ReadWriter, macroRW}
+import scala.annotation.{nowarn, unused}
 
 object DependencyTrackModule {
   case class Payload(project: String, bom: String)
@@ -34,6 +35,7 @@ trait DependencyTrackModule extends CycloneDXModule {
       )
     )
     val body = upickle.default.stream[Payload](payload)
+    @nowarn("msg=Implicit parameters should be provided with a `using` clause")
     val bodyBytes = requests.RequestBlob.ByteSourceRequestBlob(body)(identity)
     val r = requests.put(
       s"$url/api/v1/bom",
@@ -46,6 +48,6 @@ trait DependencyTrackModule extends CycloneDXModule {
     assert(r.is2xx)
   }
 
-  def myCmdC(test: String) = Task.Command { println("hi above"); 34 }
+  def myCmdC(@unused test: String) = Task.Command { println("hi above"); 34 }
 
 }

@@ -2,12 +2,14 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
+import scala.annotation.nowarn
 
 /**
  * Make sure that it correctly impacts the daemon classpath, the meta-build
  * classpath, and the classpath of foo and any other individual modules
  */
 object MillRepositoriesTests extends UtestIntegrationTestSuite {
+  @nowarn("msg=unused pattern variable")
   val tests: Tests = Tests {
     integrationTest { tester =>
       import tester._
@@ -21,7 +23,7 @@ object MillRepositoriesTests extends UtestIntegrationTestSuite {
       val initialize = eval(("version"))
       assert(initialize.isSuccess) // initialize daemon
 
-      val (k, vs) = upickle.read[(String, Seq[String])](
+      val (_, vs) = upickle.read[(String, Seq[String])](
         os.read(workspacePath / "out/mill-daemon/cache/mill-daemon-classpath")
       )
       def findConstants(vs: Seq[String]) = vs

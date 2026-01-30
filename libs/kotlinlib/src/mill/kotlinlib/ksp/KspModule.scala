@@ -10,6 +10,7 @@ import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.util.{Jvm, Version}
 
 import java.io.File
+import scala.annotation.nowarn
 
 /**
  * Trait for KSP (Kotlin Symbol Processing) modules.
@@ -406,6 +407,7 @@ trait KspModule extends KotlinModule { outer =>
    * parent of [[kotlinSymbolProcessorClassloader]] as classes are shared between the [[ksp2ToolsDeps]]
    * and [[kotlinSymbolProcessors]] (symbol processors depend on the KSP API).
    */
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   def ksp2WorkerClassloader: Worker[ClassLoader] = Task.Worker {
     Jvm.createClassLoader(
       classPath = ksp2InProgramToolsClasspath().map(_.path),
@@ -429,6 +431,7 @@ trait KspModule extends KotlinModule { outer =>
    *
    * For more info see reference implementation: [[https://github.com/google/ksp/blob/main/docs/ksp2entrypoints.md]]
    */
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   def kotlinSymbolProcessorClassloader: Worker[ClassLoader] = Task.Worker {
     Jvm.createClassLoader(
       kotlinSymbolProcessorsResolved().map(_.path),

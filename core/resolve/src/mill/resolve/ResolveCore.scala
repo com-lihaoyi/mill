@@ -656,6 +656,7 @@ private object ResolveCore {
             else None
           }
         }
+      case mill.api.Result.Success(_) => None
     }
   }
 

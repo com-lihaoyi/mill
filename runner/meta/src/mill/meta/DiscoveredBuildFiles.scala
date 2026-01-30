@@ -9,6 +9,7 @@ import mill.api.daemon.internal.MillScalaParser
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.internal.Util.backtickWrap
+import scala.annotation.unused
 
 /**
  * @param seenScripts Map of script paths to their processed content
@@ -34,7 +35,7 @@ object DiscoveredBuildFiles {
   def parseBuildFiles(
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
-      output: os.Path,
+      @unused output: os.Path,
       parser: MillScalaParser,
       walked: Seq[os.Path],
       colored: Boolean

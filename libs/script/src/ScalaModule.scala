@@ -4,6 +4,7 @@ import mill.api.{Discover, ExternalModule, PathRef, ScriptModule}
 import mill.javalib.{TestModule, DepSyntax, Dep}
 import mill.javalib.api.CompilationResult
 import mill.util.Jvm
+import scala.annotation.nowarn
 
 class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scriptConfig) {
   override lazy val millDiscover = Discover[this.type]
@@ -38,6 +39,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     defaultResolver().classpath(Seq(Dep.millProjectModule("mill-libs-script-asm-worker")))
   }
 
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   private def asmWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
     Jvm.createClassLoader(classPath = asmWorkerClasspath().map(_.path), parent = null)
   }

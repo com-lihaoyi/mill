@@ -90,7 +90,10 @@ trait MillJavaModule extends JavaModule {
   )
 
   def isCI: T[Boolean] = Task.Input {
-    Task.env.get("CI").contains("1")
+    Task.env.get("CI").exists { value =>
+      val normalized = value.trim.toLowerCase(java.util.Locale.ROOT)
+      normalized == "1" || normalized == "true" || normalized == "yes"
+    }
   }
 
   def ciJavacOptions: Task[Seq[String]] = Task {
@@ -105,7 +108,8 @@ trait MillJavaModule extends JavaModule {
     super.javacOptions() ++ ciJavacOptions() ++ Seq(
       "-Xlint",
       "-Xlint:-serial", // we don't care about java serialization
-      "-Xlint:-try" // TODO: a bunch of code needs reviewing with this lint)
+      "-Xlint:-try", // TODO: a bunch of code needs reviewing with this lint)
+      "-Xlint:-processing" // avoid "no processor claimed" warnings for marker annotations
     )
   }
 

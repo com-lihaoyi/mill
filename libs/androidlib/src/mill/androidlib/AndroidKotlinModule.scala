@@ -12,6 +12,7 @@ import mill.androidlib.databinding.{
   AndroidDataBindingWorkerModule
 }
 import mill.util.Jvm
+import scala.annotation.nowarn
 
 // TODO expose Compose configuration options
 // https://kotlinlang.org/docs/compose-compiler-options.html possible options
@@ -65,6 +66,7 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
     )
   }
 
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   def androidDataBindingWorkerClassloader: Worker[ClassLoader] = Task.Worker {
     Jvm.createClassLoader(
       classPath = androidDataBindingCompilerClasspath().map(_.path),

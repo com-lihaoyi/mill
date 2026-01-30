@@ -4,6 +4,7 @@ import pprint.{TPrint, TPrintColors}
 import upickle.{Reader, Writer}
 
 import java.io.{BufferedReader, PrintStream}
+import scala.annotation.unused
 import scala.annotation.tailrec
 class MillRpcWireTransport(
     val name: String,
@@ -59,7 +60,7 @@ class MillRpcWireTransport(
   }
 
   /** Helper that writes a message to the wire, logging along the way. */
-  def writeSerialized[A: Writer](message: A, log: String => Unit): Unit = {
+  def writeSerialized[A: Writer](message: A, @unused log: String => Unit): Unit = {
     write(upickle.write(message))
   }
 }

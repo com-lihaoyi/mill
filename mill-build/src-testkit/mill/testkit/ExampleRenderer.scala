@@ -20,7 +20,7 @@ object ExampleRenderer {
     var seenCode = false
     var seenFrontMatter = false
 
-    val frontMatter = parsed.takeWhile(_.isInstanceOf[Chunk.Yaml]).map {
+    val frontMatter = parsed.takeWhile(_.isInstanceOf[Chunk.Yaml]).collect {
       case Chunk.Yaml(lines) => lines.mkString("\n")
     }.mkString("\n")
 

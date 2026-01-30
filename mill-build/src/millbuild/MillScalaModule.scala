@@ -24,6 +24,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   def isScala3: T[Boolean] = Task { JvmWorkerUtil.isScala3(scalaVersion()) }
 
+  override def mapDependencies = super[MillJavaModule].mapDependencies
+
   def ciScalacOptions: T[Seq[String]] = Task {
     if (isCI()) {
       // Turn warnings into errors on CI
@@ -94,5 +96,11 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
     def moduleDeps = outer.testModuleDeps
     def mvnDeps = super.mvnDeps() ++ outer.testMvnDeps()
     def forkEnv = super.forkEnv() ++ outer.testForkEnv()
+    override def repositoriesTask = super[MillJavaModule].repositoriesTask
+    override def mapDependencies = super[MillJavaModule].mapDependencies
+    override def scalacOptions = Task {
+      // Tests frequently use unused-pattern bindings for assertions; keep those warnings off.
+      super.scalacOptions().filterNot(_ == "-Wunused:all")
+    }
   }
 }

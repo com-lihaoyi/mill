@@ -7,6 +7,7 @@ import mill.api.{Discover, ExternalModule}
 import mill.javalib.classgraph.ClassgraphWorker
 import mill.javalib.{CoursierModule, Dep, OfflineSupportModule}
 import mill.util.Jvm
+import scala.annotation.nowarn
 
 trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
 
@@ -23,6 +24,7 @@ trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
     ).distinct
   }
 
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   private def classgraphWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
     Jvm.createClassLoader(
       classPath = classgraphWorkerClasspath().map(_.path),
