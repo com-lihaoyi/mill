@@ -1,7 +1,6 @@
 package mill.script.asm
 
 import org.objectweb.asm
-import scala.annotation.nowarn
 
 object AsmWorkerImpl {
 
@@ -89,9 +88,8 @@ object AsmWorkerImpl {
       targetClassName: String
   ): Unit = {
     val templateClassName = if (multiMain) "TemplateMultiMainClass" else "TemplateSingleMainClass"
-    @nowarn("msg=Implicit parameters should be provided with a `using` clause")
     val templateBytes = os.read.bytes(
-      os.resource(getClass().getClassLoader()) / os.SubPath(
+      os.resource(using getClass().getClassLoader()) / os.SubPath(
         s"mill/script/asm/$templateClassName.class"
       )
     )

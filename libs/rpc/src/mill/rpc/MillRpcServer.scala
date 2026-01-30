@@ -114,7 +114,7 @@ trait MillRpcServer[
     wireTransport.readAndTryToParse(logLocal)
 
   private def sendToClient[A: Writer](message: MillRpcServerToClient[A]): Unit =
-    wireTransport.writeSerialized(message, logLocal)
+    wireTransport.writeSerialized(message)
 
   /** Logs a message locally in the RPC server. */
   private def logLocal(message: String): Unit = {

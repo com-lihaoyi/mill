@@ -35,7 +35,6 @@ object DiscoveredBuildFiles {
   def parseBuildFiles(
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
-      @unused output: os.Path,
       parser: MillScalaParser,
       walked: Seq[os.Path],
       colored: Boolean

@@ -6,7 +6,6 @@ import mill.api.{Discover, ExternalModule}
 import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
 import mill.javalib.api.Versions
 import mill.javalib.spring.boot.worker.SpringBootTools
-import scala.annotation.nowarn
 
 trait SpringBootToolsModule extends CoursierModule, OfflineSupportModule {
 
@@ -33,8 +32,7 @@ trait SpringBootToolsModule extends CoursierModule, OfflineSupportModule {
     defaultResolver().classpath(fullWorkerDeps())
   }
 
-  @nowarn("msg=.*Workers should implement AutoCloseable.*")
-  def springBootToolsClassLoader: Worker[ClassLoader] = Task.Worker {
+  def springBootToolsClassLoader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
     mill.util.Jvm.createClassLoader(
       springBootToolsClasspath().map(_.path),
       getClass().getClassLoader()

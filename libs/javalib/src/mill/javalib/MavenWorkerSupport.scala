@@ -18,8 +18,7 @@ private[mill] trait MavenWorkerSupport extends CoursierModule with OfflineSuppor
     (super.prepareOffline(all)() ++ mavenWorkerClasspath()).distinct
   }
 
-  @nowarn("msg=.*Workers should implement AutoCloseable.*")
-  private def mavenWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
+  private def mavenWorkerClassloader: Task.Worker[ClassLoader & AutoCloseable] = Task.Worker {
     val classPath = mavenWorkerClasspath().map(_.path)
     Jvm.createClassLoader(classPath = classPath, parent = getClass.getClassLoader)
   }

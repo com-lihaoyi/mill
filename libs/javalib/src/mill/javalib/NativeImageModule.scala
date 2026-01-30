@@ -10,7 +10,6 @@ import mill.javalib.graalvm.{GraalVMMetadataWorker, MetadataQuery, MetadataResul
 
 import java.io.File
 import scala.util.Properties
-import scala.annotation.nowarn
 
 /**
  * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].
@@ -178,8 +177,7 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   /**
    * Classloader with [[nativeGraalVMReachabilityMetadataClasspath]]
    */
-  @nowarn("msg=.*Workers should implement AutoCloseable.*")
-  def nativeGraalVMReachabilityMetadataClassloader: Worker[ClassLoader] = Task.Worker {
+  def nativeGraalVMReachabilityMetadataClassloader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
     mill.util.Jvm.createClassLoader(
       classPath = nativeGraalVMReachabilityMetadataClasspath().map(_.path),
       parent = getClass.getClassLoader

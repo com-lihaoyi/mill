@@ -175,8 +175,7 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
     ).distinct
   }
 
-  @nowarn("msg=.*Workers should implement AutoCloseable.*")
-  private[mill] def jarjarabramsWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
+  private[mill] def jarjarabramsWorkerClassloader: Task.Worker[ClassLoader & AutoCloseable] = Task.Worker {
     Jvm.createClassLoader(
       classPath = jarjarabramsWorkerClasspath().map(_.path),
       parent = getClass().getClassLoader()
