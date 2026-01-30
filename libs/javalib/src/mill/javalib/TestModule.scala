@@ -181,10 +181,35 @@ trait TestModule
    *
    * @param args Optional arguments passed to the test framework
    */
+
+  /**
+   * Collect all method code hash signatures from both this test module
+   * AND its module dependencies (production code). This is used by testQuick
+   * to detect changes in production code that should trigger re-running tests.
+   */
+  private def allMethodCodeHashSignatures: T[Map[String, Int]] = {
+    // First, get the list of module dependencies (if we are a JavaModule)
+    val deps: Seq[JavaModule] = this match {
+      case jm: JavaModule => jm.moduleDepsChecked
+      case _ => Seq.empty
+    }
+
+    Task {
+      // Get test module's own signatures
+      val testSignatures = methodCodeHashSignatures()
+
+      // Get signatures from module dependencies using Task.traverse
+      val depSignaturesList = Task.traverse(deps)(_.methodCodeHashSignatures)()
+      val depSignatures: Map[String, Int] = depSignaturesList.flatten.toMap
+
+      testSignatures ++ depSignatures
+    }
+  }
+
   def testQuick(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] = {
     Task.Command(persistent = true) {
       val stateFile = Task.dest / "testQuick-state.json"
-      val currentSignatures = methodCodeHashSignatures()
+      val currentSignatures = allMethodCodeHashSignatures()
 
       // Load previous state
       case class TestQuickState(
