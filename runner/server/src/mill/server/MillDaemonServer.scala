@@ -199,7 +199,7 @@ abstract class MillDaemonServer[State](
         val response = MillRpcServerToClient.Response(
           Right(DaemonRpc.RunCommandResult(exitCode))
         )
-        d.rpcTransport.writeSerialized(response, serverLog)
+        d.rpcTransport.writeSerialized(response)
       } catch {
         case _: Exception => // Ignore errors, connection might already be broken
       }
