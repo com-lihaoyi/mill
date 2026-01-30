@@ -728,7 +728,7 @@ do so, your module must extend <code>mill.scalalib.PublishModule</code>, and con
 publishing metadata shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-17-cfadb9/mill-dist-1.1.0-example-javalib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-18-cb3585/mill-dist-1.1.0-example-javalib-publishing-1-publishing-yaml.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/1-publishing-yaml/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule]
 publishVersion: 0.0.1
@@ -781,7 +781,7 @@ can be resolved from the local repository, with no missing dependencies.</p>
 <h2 id="_versioning_based_on_git_tags"><a class="anchor" href="#_versioning_based_on_git_tags"></a>Versioning Based on Git Tags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-17-cfadb9/mill-dist-1.1.0-example-javalib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
+<div class="title">build.mill.yaml (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-18-cb3585/mill-dist-1.1.0-example-javalib-publishing-2-vcs-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/2-vcs-version/build.mill.yaml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">extends: [JavaModule, PublishModule, mill.util.VcsVersionModule]
 artifactName: example
@@ -821,7 +821,7 @@ Publishing Artifact(com.lihaoyi,example...,0.1.0...) to ivy repo...</code></pre>
 <h2 id="_programmable_publishing_configuration"><a class="anchor" href="#_programmable_publishing_configuration"></a>Programmable Publishing Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-17-cfadb9/mill-dist-1.1.0-example-javalib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/3-publishing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-18-cb3585/mill-dist-1.1.0-example-javalib-publishing-3-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/3-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -851,119 +851,6 @@ Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...</code></pre>
 <p>This is an example <code>JavaModule</code> with added publishing capabilities via
 <code>PublishModule</code> using Mill&#8217;s
 <a href="intro.html#_programmable_configuration" class="xref page">programmable build.mill</a> syntax</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_checking_api_compatibility"><a class="anchor" href="#_checking_api_compatibility"></a>Checking API compatibility</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill provides the ability to check API changes with the <a href="https://revapi.org/revapi-site/main/index.html">Revapi</a> analysis and change tracking tool.</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-17-cfadb9/mill-dist-1.1.0-example-javalib-publishing-4-revapi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/4-revapi">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*, publish.*, revapi.*
-
-object bar extends JavaModule, RevapiModule {
-  def publishVersion = "0.0.1"
-
-  def pomSettings = PomSettings(
-    description = "Hello",
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/example",
-    licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "example"),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-  )
-
-  // add Revapi config JSON file(s)
-  override def revapiConfigFiles: T[Seq[PathRef]] = Task.Sources("conf/revapi.json")
-
-  // add folder containing logback.xml
-  override def revapiClasspath = Task { super.revapiClasspath() ++ confClasspath() }
-  def confClasspath = Task.Sources("conf")
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This example uses the <code>revapi</code> task, provided by the <code>RevapiModule</code>, to run an
-analysis on old and new archives of a module to identify incompatibilities.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-For demonstration purposes, an archive, to compare against, is published locally.
-In real usage, the old version would be downloaded from the publish repository.
-</td>
-</tr>
-</table>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.publishLocal
-Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
-
-&gt; cp dev/src/Visibility.java bar/src/Visibility.java
-
-&gt; ./mill bar.revapi
-Starting analysis
-Analysis results
-----------------
-old: field Visibility.SuperClass.f @ Visibility.SubClass
-new: &lt;none&gt;
-java.field.removed: Field removed from class.
-... BREAKING
-old: field Visibility.f
-new: field Visibility.f
-java.field.visibilityReduced: Visibility was reduced from 'public' to 'protected'.
-... BREAKING
-Analysis took ...ms.</code></pre>
-</div>
-</div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-The <code>revapi</code> task does not fail if incompatibilities are reported. You should fix these, and verify by re-running <code>revapi</code>, before a release.
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>The <code>revapi</code> task returns the path to a directory that can be used to resolve the relative path to any extension configuration output.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
-  {
-    "extension": "revapi.reporter.text",
-    "configuration": {
-      "minSeverity": "BREAKING",
-      "output": "report.txt"
-    }
-  }
-]</code></pre>
-</div>
-</div>
-</td>
-</tr>
-</table>
 </div>
 </div>
 </div>
@@ -1266,6 +1153,119 @@ there are also others that you can use. Mill supports these largely through cont
 <p><a href="../contrib/artifactory.html" class="xref page">Artifactory</a></p>
 </li>
 </ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_checking_api_compatibility"><a class="anchor" href="#_checking_api_compatibility"></a>Checking API compatibility</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill provides the ability to check API changes with the <a href="https://revapi.org/revapi-site/main/index.html">Revapi</a> analysis and change tracking tool.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.1.0-18-cb3585/mill-dist-1.1.0-example-javalib-publishing-4-revapi.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.1.0/example/javalib/publishing/4-revapi">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, javalib.*, publish.*, revapi.*
+
+object bar extends JavaModule, RevapiModule {
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  // add Revapi config JSON file(s)
+  override def revapiConfigFiles: T[Seq[PathRef]] = Task.Sources("conf/revapi.json")
+
+  // add folder containing logback.xml
+  override def revapiClasspath = Task { super.revapiClasspath() ++ confClasspath() }
+  def confClasspath = Task.Sources("conf")
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example uses the <code>revapi</code> task, provided by the <code>RevapiModule</code>, to run an
+analysis on old and new archives of a module to identify incompatibilities.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For demonstration purposes, an archive, to compare against, is published locally.
+In real usage, the old version would be downloaded from the publish repository.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.publishLocal
+Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
+
+&gt; cp dev/src/Visibility.java bar/src/Visibility.java
+
+&gt; ./mill bar.revapi
+Starting analysis
+Analysis results
+----------------
+old: field Visibility.SuperClass.f @ Visibility.SubClass
+new: &lt;none&gt;
+java.field.removed: Field removed from class.
+... BREAKING
+old: field Visibility.f
+new: field Visibility.f
+java.field.visibilityReduced: Visibility was reduced from 'public' to 'protected'.
+... BREAKING
+Analysis took ...ms.</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The <code>revapi</code> task does not fail if incompatibilities are reported. You should fix these, and verify by re-running <code>revapi</code>, before a release.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <code>revapi</code> task returns the path to a directory that can be used to resolve the relative path to any extension configuration output.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">[
+  {
+    "extension": "revapi.reporter.text",
+    "configuration": {
+      "minSeverity": "BREAKING",
+      "output": "report.txt"
+    }
+  }
+]</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
