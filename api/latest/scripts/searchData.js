@@ -5526,6 +5526,8 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/util/VcsVersion.html#vcsBasePath-0","e":false,"i":"","n":"vcsBasePath","t":"vcsBasePath: Path","d":"mill.util.VcsVersion","k":"def","x":""},
 {"l":"mill/util/VcsVersion.html#vcsState-0","e":false,"i":"","n":"vcsState","t":"vcsState: Simple[State]","d":"mill.util.VcsVersion","k":"def","x":""},
 {"l":"mill/util/VcsVersion.html#vcsStateInput-0","e":false,"i":"","n":"vcsStateInput","t":"vcsStateInput: Simple[State]","d":"mill.util.VcsVersion","k":"def","x":""},
+{"l":"mill/util/VcsVersionModule.html#","e":false,"i":"","n":"VcsVersionModule","t":"VcsVersionModule extends Module","d":"mill.util","k":"trait","x":""},
+{"l":"mill/util/VcsVersionModule.html#publishVersion-0","e":false,"i":"","n":"publishVersion","t":"publishVersion: Simple[String]","d":"mill.util.VcsVersionModule","k":"def","x":""},
 {"l":"mill/util/Version.html#","e":false,"i":"","n":"Version","t":"Version","d":"mill.util","k":"class","x":""},
 {"l":"mill/util/Version.html#asIgnoreQualifierVersion-0","e":false,"i":"","n":"asIgnoreQualifierVersion","t":"asIgnoreQualifierVersion: IgnoreQualifierVersion","d":"mill.util.Version","k":"def","x":""},
 {"l":"mill/util/Version.html#asMaven-0","e":false,"i":"","n":"asMaven","t":"asMaven: MavenVersion","d":"mill.util.Version","k":"def","x":""},

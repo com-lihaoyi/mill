@@ -750,8 +750,7 @@ object mymodule extends SonatypeCentralPublishModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>$ mill -i \
-mill.contrib.sonatypecentral/publishAll \
+<pre>$ mill mill.contrib.sonatypecentral/publishAll \
 --username myusername \
 --password mypassword \
 --gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,--armor,--detach-sign \
