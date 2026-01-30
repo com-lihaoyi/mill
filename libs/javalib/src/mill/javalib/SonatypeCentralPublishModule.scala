@@ -8,7 +8,7 @@ import mill.api.{BuildCtx, DefaultTaskModule, ExternalModule, Result, Task}
 import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.publish.SonatypeHelpers.CREDENTIALS_ENV_VARIABLE_PREFIX
-import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
+import mill.javalib.publish.{PublishingType, SonatypeCredentials}
 import mill.util.Tasks
 
 trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
@@ -52,9 +52,13 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       @unroll sources: Boolean = true,
       @unroll docs: Boolean = true
   ): Task.Command[Unit] = Task.Command {
-    val artifact = artifactMetadata()
+    val publishData = PublishModule.PublishData(
+      meta = artifactMetadata(),
+      payload = publishArtifactsPayload(sources = sources, docs = docs)(),
+      pom = pom(),
+      publishInfos = allPublishInfos(sources = sources, docs = docs)()
+    )
     val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
-    val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
     val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
 
     val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
@@ -67,7 +71,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       )))
 
     SonatypeCentralPublishModule.publishAll(
-      Seq(PublishData(artifact, publishData)),
+      Seq(publishData),
       bundleName = None,
       credentials,
       publishingType,

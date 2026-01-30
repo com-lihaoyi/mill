@@ -51,25 +51,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       sources: Boolean = true,
       docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] =
-    (pomPackagingType, this) match {
-      case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
-          val baseName = publishArtifactsBaseName()
-          val baseContent = Map(
-            os.SubPath(s"$baseName.pom") -> pom(),
-            os.SubPath(s"$baseName.aar") -> androidLib.androidAar()
-          )
-          val sourcesOpt =
-            if (sources) Map(os.SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
-          val docsOpt =
-            if (docs) Map(os.SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
-          baseContent ++ sourcesOpt ++ docsOpt
-        }
-
-      case (otherPackagingType, otherModuleType) =>
-        throw new IllegalArgumentException(
-          s"Packaging type $otherPackagingType not supported with $otherModuleType"
-        )
-    }
+    super.publishArtifactsDefaultPayload(sources = sources, docs = docs)
 
   override def defaultMainPublishInfos: Task[Seq[PublishInfo]] = {
     pomPackagingType match {

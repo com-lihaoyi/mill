@@ -298,15 +298,15 @@ trait PublishModule extends JavaModule { outer =>
 
   /** The [[PublishInfo]] of the [[defaultMainPublishInfos]] and optionally the [[sourcesJar]] and [[docJar]]. */
   final def defaultPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = {
-    val sourcesJarOpt =
-      if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
-      else Task.Anon(None)
-
-    val docJarOpt =
-      if (docs) Task.Anon(Some(PublishInfo.docJar(docJar())))
-      else Task.Anon(None)
-
-    Task.Anon(defaultMainPublishInfos() ++ sourcesJarOpt() ++ docJarOpt())
+    Task.Anon {
+      val mainInfos = defaultMainPublishInfos()
+      val includeSourcesAndDocs = pomPackagingType != PackagingType.Pom
+      val sourcesInfo =
+        if (sources && includeSourcesAndDocs) Seq(PublishInfo.sourcesJar(sourceJar())) else Seq.empty
+      val docsInfo =
+        if (docs && includeSourcesAndDocs) Seq(PublishInfo.docJar(docJar())) else Seq.empty
+      mainInfos ++ sourcesInfo ++ docsInfo
+    }
   }
 
   /** The [[PublishInfo]] of the main artifact, which can have multiple files. */
@@ -496,7 +496,12 @@ trait PublishModule extends JavaModule { outer =>
     "Mill 1.0.1"
   )
   def publishArtifacts: T[PublishModule.PublishData] = Task {
-    PublishModule.PublishData(artifactMetadata(), publishArtifactsPayload()())
+    PublishModule.PublishData(
+      meta = artifactMetadata(),
+      payload = publishArtifactsPayload()(),
+      pom = pom(),
+      publishInfos = allPublishInfos(sources = true, docs = true)()
+    )
   }
 
   /** [[publishArtifactsDefaultPayload]] with [[extraPublish]]. */
@@ -504,16 +509,9 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean = true,
       docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] = Task.Anon {
-    val defaultPayload = publishArtifactsDefaultPayload(sources = sources, docs = docs)()
     val baseName = publishArtifactsBaseName()
-    val extraPayload = extraPublishPayload()(baseName)
-    defaultPayload ++ extraPayload
-  }
-
-  private def extraPublishPayload = Task.Anon { (baseName: String) =>
-    extraPublish().iterator.map(p =>
-      os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
-    ).toMap
+    val publishInfos = allPublishInfos(sources = sources, docs = docs)()
+    PublishModule.payloadFromPublishInfos(baseName, pom(), publishInfos)
   }
 
   /** The base name for the published artifacts. */
@@ -530,26 +528,10 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean = true,
       docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] = {
-    pomPackagingType match {
-      case PackagingType.Pom => Task.Anon {
-          val baseName = publishArtifactsBaseName()
-          Map(
-            os.SubPath(s"$baseName.pom") -> pom()
-          )
-        }
-
-      case _ => Task.Anon {
-          val baseName = publishArtifactsBaseName()
-          val baseContent = Map(
-            os.SubPath(s"$baseName.pom") -> pom(),
-            os.SubPath(s"$baseName.jar") -> jar()
-          )
-          val sourcesOpt =
-            if (sources) Map(os.SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
-          val docsOpt =
-            if (docs) Map(os.SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
-          baseContent ++ sourcesOpt ++ docsOpt
-        }
+    Task.Anon {
+      val baseName = publishArtifactsBaseName()
+      val publishInfos = defaultPublishInfos(sources = sources, docs = docs)()
+      PublishModule.payloadFromPublishInfos(baseName, pom(), publishInfos)
     }
   }
 
@@ -577,7 +559,7 @@ trait PublishModule extends JavaModule { outer =>
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Task.Command[Unit] = Task.Command {
-    val (contents, artifact) = publishArtifacts().withConcretePath
+    val (contents, artifact) = publishArtifacts()().withConcretePath
     val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
@@ -675,13 +657,28 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       // while preserving binary compatibility.
       //
       // So instead we convert back and forth.
-      payload: Seq[(PathRef, String)]
+      payload: Seq[(PathRef, String)],
+      @com.lihaoyi.unroll pom: PathRef = null,
+      @com.lihaoyi.unroll publishInfos: Seq[mill.javalib.publish.PublishInfo] = Nil
   ) {
     def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 
     /** Maps the path reference to an actual path. */
     private[mill] def withConcretePath: (Map[os.SubPath, os.Path], Artifact) =
       (PublishData.withConcretePath(payloadAsMap), meta)
+
+    private[mill] def pomPath: Option[os.Path] = Option(pom).map(_.path)
+  }
+
+  private[mill] def payloadFromPublishInfos(
+      baseName: String,
+      pom: PathRef,
+      publishInfos: Seq[mill.javalib.publish.PublishInfo]
+  ): Map[os.SubPath, PathRef] = {
+    Map(os.SubPath(s"$baseName.pom") -> pom) ++
+      publishInfos.iterator.map { info =>
+        os.SubPath(s"$baseName${info.classifierPart}.${info.ext}") -> info.file
+      }.toMap
   }
   object PublishData {
     implicit def jsonify: upickle.ReadWriter[PublishData] = {
@@ -690,7 +687,15 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
     }
 
     def apply(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =
-      apply(meta, mapToSeq(payload))
+      apply(meta, mapToSeq(payload), null, Nil)
+
+    def apply(
+        meta: Artifact,
+        payload: Map[os.SubPath, PathRef],
+        pom: PathRef,
+        publishInfos: Seq[mill.javalib.publish.PublishInfo]
+    ): PublishData =
+      apply(meta, mapToSeq(payload), pom, publishInfos)
 
     private def seqToMap(payload: Seq[(PathRef, String)]): Map[os.SubPath, PathRef] =
       payload.iterator.map { case (pathRef, name) => os.SubPath(name) -> pathRef }.toMap

@@ -47,10 +47,38 @@ private[mill] trait MavenPublish {
       worker: InternalMavenWorkerSupport.Api
   ): Unit = {
     val uri = if (isSnapshot) snapshotUri else releaseUri
-    val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
-      publishData.meta,
-      publishData.payloadAsMap
-    )
+    val payloadAsMap = publishData.payloadAsMap
+    val publishInfos =
+      if (publishData.publishInfos.nonEmpty) publishData.publishInfos
+      else {
+        payloadAsMap.iterator.map { case (name, pathRef) =>
+          val publishInfo = mill.javalib.publish.PublishInfo.IvyMetadata.parseFromFile(
+            fileName = name.toString,
+            artifactId = publishData.meta.id,
+            artifactVersion = publishData.meta.version
+          ).toPublishInfo(pathRef)
+          publishInfo
+        }.toList
+      }
+    val pomPath =
+      publishData.pomPath.orElse {
+        payloadAsMap.iterator.collectFirst {
+          case (name, pathRef) if name.toString.endsWith(".pom") => pathRef.path
+        }
+      }
+    val artifacts = pomPath match {
+      case Some(path) =>
+        MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(
+          pom = path,
+          artifact = publishData.meta,
+          publishInfos = publishInfos
+        )
+      case None =>
+        MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
+          publishData.meta,
+          payloadAsMap
+        )
+    }
 
     if (isSnapshot) {
       log.info(

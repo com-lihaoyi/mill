@@ -5,7 +5,7 @@ import mill.PathRef
 import java.util.regex.Pattern
 
 /**
- * An extra resource artifact to publish.
+ * A publishable artifact file with its publishing metadata.
  *
  * @param file The artifact file
  * @param classifier An Optional classifier to be used when publishing the file
