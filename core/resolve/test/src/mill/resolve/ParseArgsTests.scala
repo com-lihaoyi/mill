@@ -229,8 +229,7 @@ object ParseArgsTests extends TestSuite {
         val actual = (ParseArgs(input, selectMode).runtimeChecked).map {
           case Result.Success((selectors, args)) =>
             (selectors.map { case (k, v) => (k, v.value) }, args)
-          case failure: Result.Failure =>
-            throw new Exception(s"Unexpected parse failure: ${failure}")
+          case failure: Result.Failure => ???
         }
         assert(
           actual == expectedSelectorArgPairs

@@ -252,8 +252,7 @@ object BspServerTestUtil {
   def normalizeLocalValuesForTesting(
       workspacePath: os.Path,
       coursierCache: os.Path = os.Path(CacheDefaults.location),
-      javaHome: os.Path = os.Path(sys.props("java.home")),
-      @unused javaVersion: String = sys.props("java.version")
+      javaHome: os.Path = os.Path(sys.props("java.home"))
   ): Seq[(String, String)] =
     Seq(
       workspacePath.toURI.toASCIIString.stripSuffix("/") -> "file:///workspace",

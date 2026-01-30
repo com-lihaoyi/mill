@@ -2,7 +2,6 @@ package mill.internal
 
 import java.io.OutputStream
 import scala.annotation.switch
-import scala.annotation.unused
 
 private object PromptLoggerUtil {
 
@@ -92,7 +91,6 @@ private object PromptLoggerUtil {
       titleText: fansi.Str,
       statuses: Iterable[(String, Status)],
       interactive: Boolean,
-      @unused infoColor: fansi.Attrs
   ): List[fansi.Str] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1
