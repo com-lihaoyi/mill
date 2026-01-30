@@ -89,12 +89,7 @@ trait MillJavaModule extends JavaModule {
     Deps.jna
   )
 
-  def isCI: T[Boolean] = Task.Input {
-    Task.env.get("CI").exists { value =>
-      val normalized = value.trim.toLowerCase(java.util.Locale.ROOT)
-      normalized == "1" || normalized == "true" || normalized == "yes"
-    }
-  }
+  def isCI: T[Boolean] = Task.Input { Task.env.contains("CI") }
 
   def ciJavacOptions: Task[Seq[String]] = Task {
     if (isCI()) Seq(
