@@ -68,7 +68,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           Map(
             "mill.javalib.JvmWorkerModule#internalWorkerClassLoader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 1
+            "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 1,
+            "mill.javalib.AssemblyModule.jarjarabramsWorkerClassloader" -> 1,
+            "mill.javalib.classgraph.ClassgraphWorkerModule#classgraphWorkerClassloader" -> 1
           ).toSeq.sorted
         )
         checkThreads(tester)(
@@ -96,7 +98,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "mill.kotlinlib.KotlinWorkerManager" -> 1,
               "mill.javalib.JvmWorkerModule#internalWorkerClassLoader" -> 2,
               "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-              "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2
+              "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2,
+              "mill.javalib.AssemblyModule.jarjarabramsWorkerClassloader" -> 1,
+              "mill.javalib.classgraph.ClassgraphWorkerModule#classgraphWorkerClassloader" -> 1
             ).toSeq.sorted
           )
           checkThreads(tester)(
@@ -126,7 +130,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
               "mill.kotlinlib.KotlinWorkerManager" -> 1,
               "mill.javalib.JvmWorkerModule#internalWorkerClassLoader" -> 2,
               "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-              "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2
+              "mill.javalib.zinc.ZincWorker#scalaCompilerCache $anon#setup classLoader" -> 2,
+              "mill.javalib.AssemblyModule.jarjarabramsWorkerClassloader" -> 1,
+              "mill.javalib.classgraph.ClassgraphWorkerModule#classgraphWorkerClassloader" -> 1
             ).toSeq.sorted
           )
           checkThreads(tester)(

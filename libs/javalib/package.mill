@@ -54,8 +54,8 @@ object `package` extends MillStableScalaModule {
       ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings"),
       ProblemFilter.exclude[Problem]("mill.javalib.publish.PublishInfo.parseFromFile"),
       // Shading support refactoring (converted to case class for upickle support)
-      ProblemFilter.exclude[Problem]("mill.javalib.Assembly$Rule$AppendPattern*"),
-      ProblemFilter.exclude[Problem]("mill.javalib.Assembly$Rule$ExcludePattern*")
+      ProblemFilter.exclude[Problem]("mill.javalib.Assembly#Rule#AppendPattern*"),
+      ProblemFilter.exclude[Problem]("mill.javalib.Assembly#Rule#ExcludePattern*")
     )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
