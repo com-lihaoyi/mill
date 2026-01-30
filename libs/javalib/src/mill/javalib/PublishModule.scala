@@ -559,7 +559,7 @@ trait PublishModule extends JavaModule { outer =>
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Task.Command[Unit] = Task.Command {
-    val (contents, artifact) = publishArtifacts()().withConcretePath
+    val (contents, artifact) = publishArtifacts().withConcretePath
     val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
@@ -658,8 +658,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       //
       // So instead we convert back and forth.
       payload: Seq[(PathRef, String)],
-      @com.lihaoyi.unroll pom: PathRef = null,
-      @com.lihaoyi.unroll publishInfos: Seq[mill.javalib.publish.PublishInfo] = Nil
+      pom: PathRef = null,
+      publishInfos: Seq[mill.javalib.publish.PublishInfo] = Nil
   ) {
     def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 
