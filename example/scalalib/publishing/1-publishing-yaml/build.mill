@@ -33,4 +33,3 @@ Publishing Artifact(com.lihaoyi,example...,0.0.1) to ivy repo ...
 // `publishLocal` also accepts `--transitive=true`, to also publish locally the
 // transitive dependencies of the module being published. This ensures the module
 // can be resolved from the local repository, with no missing dependencies.
-
