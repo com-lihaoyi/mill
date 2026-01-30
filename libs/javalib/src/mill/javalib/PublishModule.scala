@@ -496,9 +496,12 @@ trait PublishModule extends JavaModule { outer =>
     "Mill 1.0.1"
   )
   def publishArtifacts: T[PublishModule.PublishData] = Task {
+    val payloadSeq = publishArtifactsPayload()().iterator.map { case (name, pathRef) =>
+      pathRef -> name.toString
+    }.toSeq
     PublishModule.PublishData(
       meta = artifactMetadata(),
-      payload = publishArtifactsPayload()(),
+      payload = payloadSeq,
       pom = pom(),
       publishInfos = allPublishInfos(sources = true, docs = true)()
     )
@@ -658,12 +661,11 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       //
       // So instead we convert back and forth.
       payload: Seq[(PathRef, String)],
-      pom: PathRef = null,
-      publishInfos: Seq[mill.javalib.publish.PublishInfo] = Nil
+      // Optional, for richer publishing metadata; legacy producers may leave these empty.
+      @com.lihaoyi.unroll pom: PathRef = null,
+      // Optional, for richer publishing metadata; legacy producers may leave these empty.
+      @com.lihaoyi.unroll publishInfos: Seq[mill.javalib.publish.PublishInfo] = Nil
   ) {
-    def this(meta: Artifact, payload: Seq[(PathRef, String)]) =
-      this(meta, payload, null, Nil)
-
     def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 
     /** Maps the path reference to an actual path. */
@@ -672,15 +674,13 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
 
     private[mill] def pomPath: Option[os.Path] = Option(pom).map(_.path)
 
-    def copy(meta: Artifact, payload: Seq[(PathRef, String)]): PublishData =
-      new PublishData(meta, payload, pom, publishInfos)
   }
 
   private[mill] def payloadFromPublishInfos(
-      baseName: String,
-      pom: PathRef,
-      publishInfos: Seq[mill.javalib.publish.PublishInfo]
-  ): Map[os.SubPath, PathRef] = {
+                                             baseName: String,
+                                             pom: PathRef,
+                                             publishInfos: Seq[mill.javalib.publish.PublishInfo]
+                                           ): Map[os.SubPath, PathRef] = {
     Map(os.SubPath(s"$baseName.pom") -> pom) ++
       publishInfos.iterator.map { info =>
         os.SubPath(s"$baseName${info.classifierPart}.${info.ext}") -> info.file
@@ -692,19 +692,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       upickle.macroRW
     }
 
-    def apply(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =
-      apply(meta, mapToSeq(payload), null, Nil)
-
-    def apply(meta: Artifact, payload: Seq[(PathRef, String)]): PublishData =
-      new PublishData(meta, payload, null, Nil)
-
-    def apply(
-        meta: Artifact,
-        payload: Map[os.SubPath, PathRef],
-        pom: PathRef,
-        publishInfos: Seq[mill.javalib.publish.PublishInfo]
-    ): PublishData =
-      apply(meta, mapToSeq(payload), pom, publishInfos)
+    @scala.annotation.targetName("apply")
+    def applyFromMap(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =
+      apply(meta, mapToSeq(payload))
 
     private def seqToMap(payload: Seq[(PathRef, String)]): Map[os.SubPath, PathRef] =
       payload.iterator.map { case (pathRef, name) => os.SubPath(name) -> pathRef }.toMap
