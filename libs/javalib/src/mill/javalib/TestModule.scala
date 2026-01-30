@@ -270,7 +270,7 @@ trait TestModule
       }
 
       // Run the selected tests using TestModuleUtil directly
-      val (msg, results) = if (testsToRun.isEmpty) {
+      val (msg, results): (String, Seq[TestResult]) = if (testsToRun.isEmpty) {
         ("No tests to run - all tests passed and no changes detected", Seq.empty[TestResult])
       } else {
         val testModuleUtil = new TestModuleUtil(
@@ -295,7 +295,10 @@ trait TestModule
           propagateEnv(),
           jvmWorker().internalWorker()
         )
-        testModuleUtil.runTests()
+        testModuleUtil.runTests() match {
+          case Result.Success((m, r)) => (m, r)
+          case f: Result.Failure => throw new Result.Exception(f.error, Some(f))
+        }
       }
 
       // Save new state
