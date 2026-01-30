@@ -13,6 +13,8 @@
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-<version>" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
+        <orderEntry type="library" name="asm-<version>.jar" level="project"/>
+        <orderEntry type="library" name="asm-tree-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="cache-util-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-compress-<version>.jar" level="project"/>
@@ -57,11 +59,12 @@
         <orderEntry type="library" name="mill-core-constants-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal-cli_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-internal-cli_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-internal_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib-databinding_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-codesig_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-daemon-client_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-daemon-server_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-groovylib-api_3-SNAPSHOT.jar" level="project"/>
@@ -109,7 +112,7 @@
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="scala3-library_3-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="slf4j-api-<version>.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-<version>.jar" level="project"/>
+        <orderEntry type="library" name="snakeyaml-engine-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-requests_3-<version>.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-<version>.jar" level="project"/>

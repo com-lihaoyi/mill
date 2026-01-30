@@ -68,6 +68,7 @@
         <orderEntry type="library" name="mill-core-resolve_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib-databinding_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib_3-SNAPSHOT.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-codesig_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-daemon-client_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-daemon-server_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-groovylib-api_3-SNAPSHOT.jar" level="project"/>
@@ -95,7 +96,6 @@
         <orderEntry type="library" name="mill-libs_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-<version>.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-autooverride-api_3-SNAPSHOT.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-codesig_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-meta_3-SNAPSHOT.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-<version>.jar" level="project"/>
