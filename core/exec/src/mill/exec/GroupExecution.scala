@@ -116,13 +116,17 @@ trait GroupExecution {
             segments: Seq[String],
             bufValue: upickle.core.BufferedValue
         ): Seq[(String, Located[Appendable[BufferedValue]])] = {
-          val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue
+          val upickle.core.BufferedValue.Obj(kvs, _, _) = bufValue.runtimeChecked
           val (rawKvs, nested) = kvs.partitionMap {
             case (upickle.core.BufferedValue.Str(k, i), v) =>
               k.toString.split(" +") match {
                 case Array(k) => Left((k, i, v))
                 case Array("object", k) => Right(rec(segments ++ Seq(k), v))
               }
+            case (key, _) =>
+              throw new IllegalArgumentException(
+                s"Expected string key in static build overrides, got ${key.getClass.getSimpleName}"
+              )
           }
 
           val currentResults: Seq[(String, Located[Appendable[BufferedValue]])] =
@@ -278,7 +282,7 @@ trait GroupExecution {
           val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
           // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
-          val (multiLogger, fileLoggerOpt) = resolveLogger(Some(paths).map(_.log), logger)
+          val (multiLogger, _) = resolveLogger(Some(paths).map(_.log), logger)
           val upToDateWorker = loadUpToDateWorker(
             logger = logger,
             inputsHash = inputsHash,

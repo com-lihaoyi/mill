@@ -4,7 +4,7 @@ import mill.api.PathRef
 import mill.api.daemon.Result
 import mill.api.daemon.internal.CompileProblemReporter
 
-import scala.annotation.nowarn
+import scala.annotation.unused
 
 object JvmWorkerApi {
   type Ctx = mill.api.TaskCtx.Dest & mill.api.TaskCtx.Log & mill.api.TaskCtx.Env
@@ -21,7 +21,7 @@ trait JvmWorkerApi {
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
-      workDir: os.Path
+      @unused workDir: os.Path
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
     // default-impl for bin-compat
     compileJava(
@@ -33,7 +33,7 @@ trait JvmWorkerApi {
       reporter = reporter,
       reportCachedProblems = reportCachedProblems,
       incrementalCompilation = incrementalCompilation
-    ): @nowarn("cat=unused")
+    )
 
   /** Compile a mixed Scala/Java or Scala-only project */
   def compileMixed(
@@ -47,12 +47,12 @@ trait JvmWorkerApi {
       scalacOptions: Seq[String],
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
-      compilerBridgeOpt: Option[PathRef],
+      @unused compilerBridgeOpt: Option[PathRef],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
-      workDir: os.Path
+      @unused workDir: os.Path
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] =
     // default-impl for bin-compat
     compileMixed(
@@ -70,7 +70,7 @@ trait JvmWorkerApi {
       reportCachedProblems = reportCachedProblems,
       incrementalCompilation = incrementalCompilation,
       auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
-    ): @nowarn("cat=unused")
+    )
 
   /** Compiles a Scaladoc jar. */
   def docJar(
@@ -78,10 +78,10 @@ trait JvmWorkerApi {
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
-      compilerBridgeOpt: Option[PathRef],
+      @unused compilerBridgeOpt: Option[PathRef],
       javaHome: Option[os.Path],
       args: Seq[String],
-      workDir: os.Path
+      @unused workDir: os.Path
   )(using ctx: JvmWorkerApi.Ctx): Boolean =
     // default-impl for bin-compat
     docJar(
@@ -91,7 +91,7 @@ trait JvmWorkerApi {
       scalacPluginClasspath = scalacPluginClasspath,
       javaHome = javaHome,
       args = args
-    ): @nowarn("cat=unused")
+    )
 
   // Bin compat shims below
 

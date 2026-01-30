@@ -9,6 +9,7 @@ import mill.javalib.api.JvmWorkerUtil.isBinaryBridgeAvailable
 import mill.javalib.api.internal.InternalJvmWorkerApi
 import mill.javalib.api.{CompilationResult, JvmWorkerApi, JvmWorkerArgs, JvmWorkerUtil, Versions}
 import mill.javalib.api.internal.ZincCompilerBridgeProvider
+import scala.annotation.nowarn
 
 /**
  * A default implementation of [[JvmWorkerModule]]
@@ -56,6 +57,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   /** Whether to use file-based locking instead of PID-based locking. */
   def useFileLocks: T[Boolean] = Task.Input(Task.ctx().useFileLocks)
 
+  @nowarn("msg=.*Workers should implement AutoCloseable.*")
   def worker: Worker[JvmWorkerApi] = Task.Worker {
     // don't know why we have `worker` and `internalWorker`,
     // but we can't share the same instance, as we risk to run `close` on one,

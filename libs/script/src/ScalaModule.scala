@@ -47,7 +47,7 @@ class ScalaModule(scriptConfig: ScriptModule.Config) extends ScalaModule.Raw(scr
     defaultResolver().classpath(Seq(Dep.millProjectModule("mill-libs-script-asm-worker")))
   }
 
-  private def asmWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
+  private def asmWorkerClassloader: Task.Worker[ClassLoader & AutoCloseable] = Task.Worker {
     Jvm.createClassLoader(classPath = asmWorkerClasspath().map(_.path), parent = null)
   }
 

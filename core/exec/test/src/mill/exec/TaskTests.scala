@@ -8,6 +8,7 @@ import mill.testkit.UnitTester.Result
 import mill.testkit.TestRootModule
 import utest.framework.TestPath
 import mill.api.ExecResult
+import scala.annotation.nowarn
 
 trait TaskTests extends TestSuite {
   trait SuperBuild extends TestRootModule {
@@ -34,16 +35,19 @@ trait TaskTests extends TestSuite {
     var workerCloseCount = 0
     // Explicitly instantiate `Function1` objects to make sure we get
     // different instances each time
+    @nowarn("msg=.*Workers should implement AutoCloseable.*")
     def staticWorker: Worker[Int => Int] = Task.Worker {
       new Function1[Int, Int] {
         def apply(v1: Int) = v1 + 1
       }
     }
+    @nowarn("msg=.*Workers should implement AutoCloseable.*")
     def changeOnceWorker: Worker[Int => Int] = Task.Worker {
       new Function1[Int, Int] {
         def apply(v1: Int): Int = changeOnceInput() + v1
       }
     }
+    @nowarn("msg=.*Workers should implement AutoCloseable.*")
     def noisyWorker: Worker[Int => Int] = Task.Worker {
       new Function1[Int, Int] {
         def apply(v1: Int) = input() + v1
@@ -278,7 +282,8 @@ trait TaskTests extends TestSuite {
         check(build.sometimesFailing(false)) ==> Right(Result("Success", 0))
       }
       test("failure") - withEnv { (build, check) =>
-        val Left(ExecResult.Failure(msg = "Failure")) = check(build.sometimesFailing(true))
+        val Left(ExecResult.Failure(msg = "Failure")) =
+          check(build.sometimesFailing(true)).runtimeChecked
       }
     }
     test("sometimeFailingWithException") {
@@ -287,7 +292,7 @@ trait TaskTests extends TestSuite {
       }
       test("failure") - withEnv { (build, check) =>
         val Left(ExecResult.Failure(msg = "Failure")) =
-          check(build.sometimesFailingWithException(true))
+          check(build.sometimesFailingWithException(true)).runtimeChecked
       }
     }
   }

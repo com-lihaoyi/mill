@@ -51,7 +51,6 @@ class PromptLogger(
         currentTimeMillis(),
         () => termDimensions,
         currentTimeMillis,
-        infoColor,
         highlightColor
       )
 
@@ -216,7 +215,7 @@ class PromptLogger(
         // Synchronize this whole block on the stream manager output pipe to avoid
         // interleaving with other writes to the streams.
         logStream.synchronized {
-          for ((keySuffix, message) <- res) {
+          for ((_, message) <- res) {
             val longPrefix = Logger.formatPrefix0(key) + spaceNonEmpty(message)
             val prefix = Logger.formatPrefix0(key)
 
@@ -509,7 +508,6 @@ object PromptLogger {
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
       currentTimeMillis: () => Long,
-      infoColor: fansi.Attrs,
       highlightColor: fansi.Attrs
   ) {
     private val statuses = collection.mutable.SortedMap
@@ -547,8 +545,7 @@ object PromptLogger {
         if (headerPrefix.isEmpty) "" else s"$headerPrefix]",
         if (ending) titleText else highlightColor(titleText),
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
-        interactive = interactive,
-        infoColor = infoColor
+        interactive = interactive
       )
 
       val oldPromptBytes = currentPromptBytes

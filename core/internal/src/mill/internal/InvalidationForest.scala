@@ -125,7 +125,7 @@ object InvalidationForest {
     case None => (ujson.Obj(), Map.empty)
     case Some(json) =>
       val jsonTree = ujson.read(json)
-      val (methodEdges, nodes) = extractMethodEdges(jsonTree.obj)
+      val (_, nodes) = extractMethodEdges(jsonTree.obj)
 
       val (classToTransitiveClasses, allTransitiveClassMethods) =
         CodeSigUtils.precomputeMethodNamesPerClass(transitiveNamed)

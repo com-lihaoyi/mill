@@ -3,6 +3,7 @@ package mill.playlib
 import mill.Task
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, *}
+import scala.annotation.nowarn
 import mill.api.Discover
 import mill.util.TokenReaders.*
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
@@ -18,6 +19,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
   val resourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "playsingleapi"
 
+  @nowarn("msg=unused pattern variable")
   def tests: Tests = Tests {
     test("playVersion") {
       test("fromBuild") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
