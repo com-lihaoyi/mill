@@ -90,7 +90,7 @@ private object PromptLoggerUtil {
       headerPrefix: fansi.Str,
       titleText: fansi.Str,
       statuses: Iterable[(String, Status)],
-      interactive: Boolean,
+      interactive: Boolean
   ): List[fansi.Str] = {
     // -1 to leave a bit of buffer
     val maxWidth = consoleWidth - 1

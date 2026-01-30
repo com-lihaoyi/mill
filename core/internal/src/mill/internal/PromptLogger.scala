@@ -545,7 +545,7 @@ object PromptLogger {
         if (headerPrefix.isEmpty) "" else s"$headerPrefix]",
         if (ending) titleText else highlightColor(titleText),
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
-        interactive = interactive,
+        interactive = interactive
       )
 
       val oldPromptBytes = currentPromptBytes

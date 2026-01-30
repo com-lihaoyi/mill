@@ -177,12 +177,13 @@ trait NativeImageModule extends WithJvmWorkerModule, OfflineSupportModule {
   /**
    * Classloader with [[nativeGraalVMReachabilityMetadataClasspath]]
    */
-  def nativeGraalVMReachabilityMetadataClassloader: Worker[ClassLoader & AutoCloseable] = Task.Worker {
-    mill.util.Jvm.createClassLoader(
-      classPath = nativeGraalVMReachabilityMetadataClasspath().map(_.path),
-      parent = getClass.getClassLoader
-    )
-  }
+  def nativeGraalVMReachabilityMetadataClassloader: Worker[ClassLoader & AutoCloseable] =
+    Task.Worker {
+      mill.util.Jvm.createClassLoader(
+        classPath = nativeGraalVMReachabilityMetadataClasspath().map(_.path),
+        parent = getClass.getClassLoader
+      )
+    }
 
   /**
    * Worker that fetches the graalvm-reachability-metadata and collects any relevant

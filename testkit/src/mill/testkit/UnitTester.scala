@@ -70,7 +70,7 @@ class UnitTester(
   val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
-    mill.util.Retry(){ // Retry because this is flaky on windows due to file locking
+    mill.util.Retry() { // Retry because this is flaky on windows due to file locking
       os.remove.all(module.moduleDir)
     }
     os.makeDir.all(module.moduleDir)
