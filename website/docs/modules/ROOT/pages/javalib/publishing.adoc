@@ -9,7 +9,7 @@ This page will discuss common topics around publishing your Java projects for ot
 
 include::partial$example/javalib/publishing/1-publishing-yaml.adoc[]
 
-== VCS Version Publishing
+== Versioning Based on Git Tags
 
 include::partial$example/javalib/publishing/2-vcs-version.adoc[]
 

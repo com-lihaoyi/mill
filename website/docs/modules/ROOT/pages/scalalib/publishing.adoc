@@ -9,7 +9,7 @@ This page will discuss common topics around publishing your Scala projects for o
 
 include::partial$example/scalalib/publishing/1-publishing-yaml.adoc[]
 
-== VCS Version Publishing
+== Versioning Based on Git Tags
 
 include::partial$example/scalalib/publishing/2-vcs-version.adoc[]
 

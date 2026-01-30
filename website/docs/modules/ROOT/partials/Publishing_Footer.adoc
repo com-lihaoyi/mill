@@ -86,11 +86,10 @@ See https://central.sonatype.org/publish/publish-portal-snapshots/[Sonatype Cent
 
 Your build file should look like:
 
-[source,scala]
+[source,yaml]
 ----
-object mymodule extends JavaModule {
-  def publishVersion = "0.0.1-SNAPSHOT"
-}
+extends: JavaModule
+publishVersion: 0.0.1-SNAPSHOT
 ----
 
 Running any of the publishing tasks will now publish SNAPSHOT versions. When running them you should see a note from
@@ -98,31 +97,15 @@ Mill that it has detected a SNAPSHOT version.
 
 To consume SNAPSHOT versions in your project, make sure to add the snapshot repository to your build file:
 
-[source,scala]
+[source,yaml]
 ----
-object myModule extends JavaModule {
-  def repositories = Seq("https://central.sonatype.com/repository/maven-snapshots")
-
-  def mvnDeps = Seq(mvn"com.example:mymodule:1.0.0-SNAPSHOT")
-}
-----
-
-Note that if you have downstream modules that depend on this module, they will need to add the snapshot repository
-to their definition as well, at least until https://github.com/com-lihaoyi/mill/issues/5573[this issue] is fixed.
-
-[source,scala]
-----
-
-object myDownstreamModule extends JavaModule {
-  def moduleDeps = Seq(myModule)
-
-  // This is also needed.
-  def repositories = Seq("https://central.sonatype.com/repository/maven-snapshots")
-}
+extends: JavaModule
+repositories: ["https://central.sonatype.com/repository/maven-snapshots"]
+mvnDeps:
+- com.example:mymodule:1.0.0-SNAPSHOT
 ----
 
 === Publishing Using Github Actions
-
 
 To publish on Github Actions, you can use something like this:
 
@@ -153,6 +136,12 @@ Where `MILL_PGP_PASSPHRASE`, `MILL_PGP_SECRET_BASE64`, `MILL_SONATYPE_PASSWORD`,
 workflows. See
 https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions[Using Secrets in Github Actions]
 for more details.
+
+This will set up a Github Actions workflow that will be run automatically when any tag is pushed,
+and can also be run manually. If you set up xref:#_versioning_based_on_git_tags[Versioning Based
+on Git Tags], then the `publishVersion` will be configured to the git tag version (e.g. `1.1.0`)
+for tagged versions, and a longer `0.1.0-<commits-since-last-tag>-<commit-sha>` version
+(e.g. `1.1.0-10-fec938`) if manually publishing un-tagged released.
 
 == Instructions for Publishing to Generic Maven Repositories
 

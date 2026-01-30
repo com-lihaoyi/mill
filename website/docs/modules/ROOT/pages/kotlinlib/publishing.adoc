@@ -9,7 +9,7 @@ This page will discuss common topics around publishing your Kotlin projects for 
 
 include::partial$example/kotlinlib/publishing/1-publishing-yaml.adoc[]
 
-== VCS Version Publishing
+== Versioning Based on Git Tags
 
 include::partial$example/kotlinlib/publishing/2-vcs-version.adoc[]
 
