@@ -1,4 +1,4 @@
-extends: [ScalaModule, PublishModule, VcsVersionModule]
+extends: [ScalaModule, PublishModule, mill.util.VcsVersionModule]
 scalaVersion: 3.8.1
 artifactName: example
 pomSettings:

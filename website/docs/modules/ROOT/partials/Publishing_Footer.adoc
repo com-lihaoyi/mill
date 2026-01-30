@@ -52,19 +52,12 @@ export MILL_PGP_PASSPHRASE=...
 
 === Publishing
 
-You can publish all eligible modules in your Mill project using 
-`mill.javalib.SonatypeCentralPublishModule/`:
+Once you have the various secrets `export`ed as above, you can publish all
+eligible modules in your Mill project using `mill.javalib.SonatypeCentralPublishModule/`:
 
 [,console]
 ----
 > mill mill.javalib.SonatypeCentralPublishModule/
-----
-
-You can also specify individual modules you want to publish in two ways:
-
-[source,console]
-----
-> mill foo.publishSonatypeCentral
 ----
 
 [,console]
@@ -106,9 +99,7 @@ for more details.
 
 This will set up a Github Actions workflow that will be run automatically when any tag is pushed,
 and can also be run manually. If you set up xref:#_versioning_based_on_git_tags[Versioning Based
-on Git Tags], then the `publishVersion` will be configured to the git tag version (e.g. `1.1.0`)
-for tagged versions, and a longer `0.1.0-<commits-since-last-tag>-<commit-sha>` version
-(e.g. `1.1.0-10-fec938`) if manually publishing un-tagged released.
+on Git Tags], then the `publishVersion` will be configured to the git tag version.
 
 === SNAPSHOT versions
 

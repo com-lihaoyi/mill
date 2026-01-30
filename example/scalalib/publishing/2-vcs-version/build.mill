@@ -20,3 +20,16 @@ Initialized empty Git repository in...
 Publishing Artifact(com.lihaoyi,example...,0.1.0) to ivy repo...
 
 */
+
+// Note that the `publishVersion` will be configured to the git tag version (e.g. `1.1.0`)
+// for tagged versions, and a longer `0.1.0-<commits-since-last-tag>-<commit-sha>` version
+// (e.g. `1.1.0-10-fec938`) if manually publishing un-tagged released.
+
+/** Usage
+> git commit -m "untagged commit" --allow-empty
+
+> git commit -m "2nd untagged commit" --allow-empty
+
+> ./mill publishLocal
+Publishing Artifact(com.lihaoyi,example...,0.1.0-2-...) to ivy repo...
+*/

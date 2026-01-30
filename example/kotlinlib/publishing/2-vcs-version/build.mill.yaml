@@ -1,4 +1,4 @@
-extends: [KotlinModule, PublishModule, VcsVersionModule]
+extends: [KotlinModule, PublishModule, mill.util.VcsVersionModule]
 kotlinVersion: 2.0.20
 artifactName: example
 pomSettings:

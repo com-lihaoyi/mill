@@ -94,9 +94,11 @@ object VcsVersion extends ExternalModule with VcsVersion {
  * A module trait that provides a `publishVersion` based on the git version.
  */
 trait VcsVersionModule extends Module {
-  def publishVersion: mill.api.Task[String] = mill.api.Task.Anon {
-    VcsVersion.vcsState().format()
+  private def publishVersion0: T[String] = Task.Input{
+    VcsVersion.calcVcsState(Task.log).format()
   }
+
+  def publishVersion: T[String] = Task{ publishVersion0() }
 }
 
 trait VcsVersion extends Module {

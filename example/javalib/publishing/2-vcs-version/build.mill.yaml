@@ -1,4 +1,4 @@
-extends: [JavaModule, PublishModule, VcsVersionModule]
+extends: [JavaModule, PublishModule, mill.util.VcsVersionModule]
 artifactName: example
 pomSettings:
   description: Example
