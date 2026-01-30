@@ -3,11 +3,11 @@ import mill._, javalib._
 import mill.javalib.Assembly
 
 object hello extends JavaModule {
-  def ivyDeps = mill.api.Agg(
+  def ivyDeps = Seq(
     ivy"commons-io:commons-io:2.11.0"
   )
 
-  def shadedIvyDeps = mill.api.Agg(
+  def shadedIvyDeps = Seq(
     ivy"com.google.code.gson:gson:2.10.1"
   )
 
