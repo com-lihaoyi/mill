@@ -103,7 +103,7 @@ private[mill] object CrossMacros {
           val wrappedElems = normalizedWrappedElems[elems]
           (
             '{ $wrappedElems.map(_.productIterator.toList) },
-            asSeq(elems0Repr, 0)
+            asSeq(elems0ReprNormalized, 0)
           )
         case '[t] =>
           (
