@@ -51,7 +51,6 @@ class PromptLogger(
         currentTimeMillis(),
         () => termDimensions,
         currentTimeMillis,
-        infoColor,
         highlightColor
       )
 
@@ -509,7 +508,6 @@ object PromptLogger {
       startTimeMillis: Long,
       consoleDims: () => (Option[Int], Option[Int]),
       currentTimeMillis: () => Long,
-      infoColor: fansi.Attrs,
       highlightColor: fansi.Attrs
   ) {
     private val statuses = collection.mutable.SortedMap
@@ -548,7 +546,6 @@ object PromptLogger {
         if (ending) titleText else highlightColor(titleText),
         statuses.toSeq.map { case (k, v) => (k.mkString("-"), v) },
         interactive = interactive,
-        infoColor = infoColor
       )
 
       val oldPromptBytes = currentPromptBytes
