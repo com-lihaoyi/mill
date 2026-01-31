@@ -7,13 +7,15 @@ import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.publish.SonatypeHelpers
 
+import scala.annotation.unused
+
 private[mill] abstract class SonatypeCentralPublisherBase private[mill] (
     credentials: SonatypeCredentials,
-    gpgArgs: GpgArgs,
+    @unused gpgArgs: GpgArgs,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
-    env: Map[String, String],
+    @unused env: Map[String, String],
     awaitTimeout: Int
 ) {
   protected final val sonatypeCentralClient: SyncSonatypeClient =

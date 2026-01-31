@@ -71,7 +71,12 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     // Moved to the upstream mill-constants artifact, but should still be on classpath so it's OK
     ProblemFilter.exclude[MissingClassProblem](
       "mill.api.daemon.MillException"
+    ),
+    // Private class
+    ProblemFilter.exclude[MissingClassProblem](
+      "mill.javalib.SonatypeCentralPublisher$PreparedArtifacts*"
     )
+
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions

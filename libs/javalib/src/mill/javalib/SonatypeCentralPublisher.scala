@@ -7,7 +7,7 @@ import mill.javalib.internal.PublishModule.GpgArgs.UserProvided
 import mill.javalib.publish.SonatypeHelpers
 import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
 
-import scala.annotation.targetName
+import scala.annotation.{unused, targetName}
 
 /**
  * Publishing logic for the standard Sonatype Central repository `central.sonatype.org`
@@ -18,7 +18,7 @@ class SonatypeCentralPublisher(
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
-    workspace: os.Path,
+    @unused workspace: os.Path,
     env: Map[String, String],
     awaitTimeout: Int
 ) extends SonatypeCentralPublisherBase(

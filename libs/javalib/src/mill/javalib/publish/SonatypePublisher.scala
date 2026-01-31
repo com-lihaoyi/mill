@@ -4,7 +4,7 @@ import mill.api.Logger
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.publish.SonatypeHelpers
 
-import scala.annotation.targetName
+import scala.annotation.{targetName, unused}
 
 /**
  * The publisher for the end-of-life OSSRH Sonatype publishing.
@@ -23,7 +23,7 @@ class SonatypePublisher(
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
-    workspace: os.Path,
+    @unused workspace: os.Path,
     env: Map[String, String],
     awaitTimeout: Int,
     stagingRelease: Boolean
