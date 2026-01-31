@@ -504,7 +504,7 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean,
       docs: Boolean
   ): Task[PublishModule.PublishData] = Task.Anon {
-    val payloadSeq = PublishModule.payloadMapToSeq(
+    val payloadSeq = PublishModule.PublishData.mapToSeq(
       publishArtifactsPayload(sources = sources, docs = docs)()
     )
     PublishModule.PublishData(
@@ -688,15 +688,11 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       publishInfos: Seq[mill.javalib.publish.PublishInfo]
   ): Map[os.SubPath, PathRef] = {
     Map(os.SubPath(s"$baseName.pom") -> pom) ++
-      publishInfos.iterator.map { info =>
-        os.SubPath(s"$baseName${info.classifierPart}.${info.ext}") -> info.file
-      }.toMap
+      publishInfos.iterator
+        .map { info => os.SubPath(s"$baseName${info.classifierPart}.${info.ext}") -> info.file }
+        .toMap
   }
 
-  private[mill] def payloadMapToSeq(
-      payload: Map[os.SubPath, PathRef]
-  ): Seq[(PathRef, String)] =
-    payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
   object PublishData {
     implicit def jsonify: upickle.ReadWriter[PublishData] = {
       import mill.javalib.publish.JsonFormatters.artifactFormat
@@ -712,8 +708,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
     private def seqToMap(payload: Seq[(PathRef, String)]): Map[os.SubPath, PathRef] =
       payload.iterator.map { case (pathRef, name) => os.SubPath(name) -> pathRef }.toMap
 
-    private def mapToSeq(payload: Map[os.SubPath, PathRef]): Seq[(PathRef, String)] =
-      PublishModule.payloadMapToSeq(payload)
+    private[mill] def mapToSeq(payload: Map[os.SubPath, PathRef]): Seq[(PathRef, String)] =
+      payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
 
     /** Maps the path reference to an actual path. */
     private[mill] def withConcretePath(payload: Map[os.SubPath, PathRef])
