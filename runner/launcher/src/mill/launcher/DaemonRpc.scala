@@ -64,7 +64,7 @@ object DaemonRpc {
       clientToServer: PrintStream,
       stdout: RpcConsole.Message => Unit,
       stderr: RpcConsole.Message => Unit,
-      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult, 
+      runSubprocess: ServerToClient.RunSubprocess => SubprocessResult,
       pollStdin: ServerToClient.PollStdin => StdinResult = defaultPollStdin,
       getTerminalDims: ServerToClient.GetTerminalDims => TerminalDimsResult = defaultGetTerminalDims
   ): MillRpcClient[ClientToServer, ServerToClient] = {
@@ -98,7 +98,7 @@ object DaemonRpc {
   }
 
   def defaultRunSubprocessWithStreams(
-                                     stdin: InputStream,
+      stdin: InputStream,
       stdout: OutputStream,
       stderr: OutputStream
   ): ServerToClient.RunSubprocess => SubprocessResult = { req =>

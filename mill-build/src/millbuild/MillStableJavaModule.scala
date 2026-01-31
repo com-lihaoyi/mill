@@ -76,7 +76,6 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
     ProblemFilter.exclude[MissingClassProblem](
       "mill.javalib.SonatypeCentralPublisher$PreparedArtifacts*"
     )
-
   )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions

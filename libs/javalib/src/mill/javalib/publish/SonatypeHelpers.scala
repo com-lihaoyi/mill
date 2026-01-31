@@ -65,8 +65,10 @@ object SonatypeHelpers {
           Artifact
       )] => Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
       log: Logger
-  ): (Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
-      Vector[(zipFile: java.io.File, deploymentName: DeploymentName)]) = {
+  ): (
+      Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
+      Vector[(zipFile: java.io.File, deploymentName: DeploymentName)]
+  ) = {
     val releases = mapArtifacts(artifacts)
 
     val releaseGroups = releases.groupBy(_.artifact.group)
@@ -119,7 +121,8 @@ object SonatypeHelpers {
       )] => Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
       log: Logger
   )(publishFile: (java.io.File, DeploymentName) => Unit): Unit = {
-    val (mappings, deployments) = prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
+    val (mappings, deployments) =
+      prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
     log.info(mappingsString(mappings))
     deployments.foreach { case (zipFile, deploymentName) =>
       publishFile(zipFile, deploymentName)
@@ -136,7 +139,8 @@ object SonatypeHelpers {
       publishTo: os.Path,
       log: Logger
   ): Unit = {
-    val (mappings, deployments) = prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
+    val (mappings, deployments) =
+      prepareToPublishAll(singleBundleName, artifacts, mapArtifacts, log)
     log.info(mappingsString(mappings))
     deployments.foreach { case (zipFile, deploymentName) =>
       val target = publishTo / deploymentName.unapply
