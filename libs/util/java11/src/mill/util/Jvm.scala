@@ -252,7 +252,7 @@ object Jvm {
       cpPassingJarPath,
       cwd
     )
-    pprint.log(commandArgs)
+
     ctx.log.debug(
       s"Running interactive: ${commandArgs.map(arg => "'" + arg.replace("'", "'\"'\"'") + "'").mkString(" ")}"
     )
