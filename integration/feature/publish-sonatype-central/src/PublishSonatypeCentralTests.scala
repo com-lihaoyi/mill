@@ -138,7 +138,7 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
     test("dryRun") {
       test("module") - dryRun(PublishTaskName, PublishDirName)
       test("externalModule") - dryRun(PublishAllTaskName, PublishAllDirName)
+      test("initGpgKeys") - initGpgKeysSmokeTest()
     }
-    test("initGpgKeys") - initGpgKeysSmokeTest()
   }
 }
