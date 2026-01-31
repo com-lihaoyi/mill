@@ -671,9 +671,11 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       //
       // So instead we convert back and forth.
       payload: Seq[(PathRef, String)],
+      // TODO 2.0.0: Remove defaults and require explicit metadata in constructors.
       @com.lihaoyi.unroll pom: PathRef = null,
-      @com.lihaoyi.unroll publishInfos: Seq[mill.javalib.publish.PublishInfo] = Nil
+      publishInfos: Seq[mill.javalib.publish.PublishInfo] = Nil
   ) {
+    // TODO 2.0.0: Replace payload Seq with a structured payload model and drop filename parsing.
     def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 
     /** Maps the path reference to an actual path. */
@@ -701,7 +703,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       upickle.macroRW
     }
 
-    // Use a different Scala name to avoid unroll macro arity issues while keeping JVM name "apply".
+    // TODO 2.0.0: Restore a normal Scala-level apply once unroll macro constraints can change.
     @scala.annotation.targetName("apply")
     @deprecated("Use PublishData with explicit pom and publishInfos instead.", "Mill 1.0.1")
     def applyFromMap(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =

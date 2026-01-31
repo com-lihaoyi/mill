@@ -48,21 +48,24 @@ private[mill] trait MavenPublish {
   ): Unit = {
     val uri = if (isSnapshot) snapshotUri else releaseUri
     val payloadAsMap = publishData.payloadAsMap
+    // TODO 2.0.0: Remove filename-based metadata inference once PublishData always carries publishInfos.
     val publishInfos =
       if (publishData.publishInfos.nonEmpty) publishData.publishInfos
       else {
-        payloadAsMap.iterator.map { case (name, pathRef) =>
-          publish.PublishInfo.IvyMetadata
-            .parseFromFile(name.toString, publishData.meta.id, publishData.meta.version)
-            .toPublishInfo(pathRef)
-        }.toList
+        payloadAsMap
+          .map { case (name, pathRef) =>
+            publish.PublishInfo.IvyMetadata
+              .parseFromFile(name.toString, publishData.meta.id, publishData.meta.version)
+              .toPublishInfo(pathRef)
+          }
+          .toList
       }
 
+    // TODO 2.0.0: Require PublishData.pom instead of scanning payload for a .pom file.
     val pomPath =
       publishData.pomPath.orElse {
-        payloadAsMap.iterator.collectFirst {
-          case (name, pathRef) if name.toString.endsWith(".pom") => pathRef.path
-        }
+        payloadAsMap.iterator
+          .collectFirst { case (name, pathRef) if name.toString.endsWith(".pom") => pathRef.path }
       }
 
     val artifacts = pomPath match {
