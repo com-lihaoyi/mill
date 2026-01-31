@@ -1,3 +1,5 @@
+package mill.javalib
+
 object PublishSonatypeCentralTestUtils {
   def assertChecksumMatches(
       file: os.Path,

@@ -1,10 +1,8 @@
 package build
 
-import mill._, scalalib._, publish.*
+import mill._, javalib._, publish.*
 
-object testProject extends ScalaModule with SonatypeCentralPublishModule {
-  def scalaVersion = "3.3.6"
-
+object testProject extends JavaModule with SonatypeCentralPublishModule {
   def publishOrganization = Task.Input {
     Task.env.get("MILL_TESTS_PUBLISH_ORG").getOrElse("io.github.lihaoyi")
   }
