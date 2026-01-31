@@ -298,16 +298,16 @@ trait PublishModule extends JavaModule { outer =>
 
   /** The [[PublishInfo]] of the [[defaultMainPublishInfos]] and optionally the [[sourcesJar]] and [[docJar]]. */
   final def defaultPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = {
-    Task.Anon {
-      val mainInfos = defaultMainPublishInfos()
-      val includeSourcesAndDocs = pomPackagingType != PackagingType.Pom
-      val sourcesInfo =
-        if (sources && includeSourcesAndDocs) Seq(PublishInfo.sourcesJar(sourceJar()))
-        else Seq.empty
-      val docsInfo =
-        if (docs && includeSourcesAndDocs) Seq(PublishInfo.docJar(docJar())) else Seq.empty
-      mainInfos ++ sourcesInfo ++ docsInfo
-    }
+    val includeSourcesAndDocs = pomPackagingType != PackagingType.Pom
+    val sourcesJarOpt =
+      if (sources && includeSourcesAndDocs) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
+      else Task.Anon(None)
+
+    val docJarOpt =
+      if (docs && includeSourcesAndDocs) Task.Anon(Some(PublishInfo.docJar(docJar())))
+      else Task.Anon(None)
+
+    Task.Anon(defaultMainPublishInfos() ++ sourcesJarOpt() ++ docJarOpt())
   }
 
   /** The [[PublishInfo]] of the main artifact, which can have multiple files. */
@@ -696,6 +696,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
 
     // Use a different Scala name to avoid unroll macro arity issues while keeping JVM name "apply".
     @scala.annotation.targetName("apply")
+    @deprecated("Use PublishData with explicit pom and publishInfos instead.", "Mill 1.0.1")
     def applyFromMap(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =
       apply(meta, mapToSeq(payload))
 
