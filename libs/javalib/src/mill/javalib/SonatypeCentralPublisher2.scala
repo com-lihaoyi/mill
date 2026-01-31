@@ -7,6 +7,7 @@ import com.lumidion.sonatype.central.client.core.{
 }
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
+import mill.javalib.api.PgpWorkerApi
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.internal.PublishModule.GpgArgs.UserProvided
 import mill.javalib.publish.SonatypeHelpers
@@ -15,11 +16,14 @@ import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
 import scala.annotation.targetName
 
 /**
- * Publishing logic for the standard Sonatype Central repository `central.sonatype.org`
+ * Publishing logic for the standard Sonatype Central repository `central.sonatype.org`.
+ *
+ * Uses the PGP worker for signing.
  */
-class SonatypeCentralPublisher(
+class SonatypeCentralPublisher2(
     credentials: SonatypeCredentials,
     gpgArgs: GpgArgs,
+    pgpWorker: PgpWorkerApi,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
@@ -31,6 +35,7 @@ class SonatypeCentralPublisher(
   def this(
       credentials: SonatypeCredentials,
       gpgArgs: Seq[String],
+      pgpWorker: PgpWorkerApi,
       readTimeout: Int,
       connectTimeout: Int,
       log: Logger,
@@ -40,46 +45,7 @@ class SonatypeCentralPublisher(
   ) = this(
     credentials = credentials,
     gpgArgs = UserProvided(gpgArgs),
-    readTimeout = readTimeout,
-    connectTimeout = connectTimeout,
-    log = log,
-    workspace = workspace,
-    env = env,
-    awaitTimeout = awaitTimeout
-  )
-
-  def this(
-      credentials: STCreds,
-      gpgArgs: GpgArgs,
-      readTimeout: Int,
-      connectTimeout: Int,
-      log: Logger,
-      workspace: os.Path,
-      env: Map[String, String],
-      awaitTimeout: Int
-  ) = this(
-    credentials = SonatypeCredentials(credentials.username, credentials.password),
-    gpgArgs = gpgArgs,
-    readTimeout = readTimeout,
-    connectTimeout = connectTimeout,
-    log = log,
-    workspace = workspace,
-    env = env,
-    awaitTimeout = awaitTimeout
-  )
-
-  def this(
-      credentials: STCreds,
-      gpgArgs: Seq[String],
-      readTimeout: Int,
-      connectTimeout: Int,
-      log: Logger,
-      workspace: os.Path,
-      env: Map[String, String],
-      awaitTimeout: Int
-  ) = this(
-    credentials = SonatypeCredentials(credentials.username, credentials.password),
-    gpgArgs = UserProvided(gpgArgs),
+    pgpWorker = pgpWorker,
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     log = log,
@@ -133,7 +99,7 @@ class SonatypeCentralPublisher(
     val prepared = SonatypeCentralPublisherSupport.prepareToPublishAll(
       singleBundleName,
       artifacts.toSeq,
-      mapArtifacts = SonatypeHelpers.getArtifactMappings(isSigned = true, gpgArgs, env, _),
+      mapArtifacts = SonatypeHelpers.getArtifactMappings(isSigned = true, gpgArgs, env, pgpWorker, _),
       log = log
     )
     log.info(prepared.mappingsString)
@@ -151,7 +117,7 @@ class SonatypeCentralPublisher(
     val prepared = SonatypeCentralPublisherSupport.prepareToPublishAll(
       singleBundleName,
       artifacts.toSeq,
-      mapArtifacts = SonatypeHelpers.getArtifactMappings(isSigned = true, gpgArgs, env, _),
+      mapArtifacts = SonatypeHelpers.getArtifactMappings(isSigned = true, gpgArgs, env, pgpWorker, _),
       log = log
     )
     log.info(prepared.mappingsString)

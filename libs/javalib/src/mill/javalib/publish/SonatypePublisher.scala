@@ -1,9 +1,8 @@
 package mill.javalib.publish
 
 import mill.api.Logger
-import mill.javalib.api.PgpWorkerApi
 import mill.javalib.internal.PublishModule.GpgArgs
-import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
+import mill.javalib.publish.SonatypeHelpers
 
 import scala.annotation.targetName
 
@@ -21,7 +20,6 @@ class SonatypePublisher(
     credentials: String,
     signed: Boolean,
     gpgArgs: GpgArgs,
-    pgpWorker: PgpWorkerApi,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
@@ -37,7 +35,6 @@ class SonatypePublisher(
       credentials: String,
       signed: Boolean,
       gpgArgs: Seq[String],
-      pgpWorker: PgpWorkerApi,
       readTimeout: Int,
       connectTimeout: Int,
       log: Logger,
@@ -51,7 +48,6 @@ class SonatypePublisher(
     credentials = credentials,
     signed = signed,
     gpgArgs = GpgArgs.UserProvided(gpgArgs),
-    pgpWorker = pgpWorker,
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     log = log,
@@ -72,7 +68,7 @@ class SonatypePublisher(
   def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact, release: Boolean): Unit =
     publishAll(
       release,
-      fileMapping.iterator.map { case (path, name) => os.SubPath(name) -> path }.toMap -> artifact
+      SonatypeHelpers.toSubPathMap(fileMapping) -> artifact
     )
 
   def publish(fileMapping: Map[os.SubPath, os.Path], artifact: Artifact, release: Boolean): Unit =
@@ -80,16 +76,13 @@ class SonatypePublisher(
 
   // binary compatibility forwarder
   def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
-    val mappedArtifacts = artifacts.iterator.map { case (fileMapping, artifact) =>
-      val mapping = fileMapping.iterator.map { case (path, name) => os.SubPath(name) -> path }.toMap
-      mapping -> artifact
-    }.toArray
+    val mappedArtifacts = SonatypeHelpers.mapArtifacts(artifacts*)
     publishAll(release, mappedArtifacts*)
   }
 
   @targetName("publishAllByMap")
   def publishAll(release: Boolean, artifacts: (Map[os.SubPath, os.Path], Artifact)*): Unit = {
-    val mappings = getArtifactMappings(signed, gpgArgs, env, pgpWorker, artifacts)
+    val mappings = SonatypeHelpers.getArtifactMappings(signed, gpgArgs, env, artifacts)
 
     val (snapshots, releases) = mappings.partition(_.artifact.isSnapshot)
     if (snapshots.nonEmpty) {

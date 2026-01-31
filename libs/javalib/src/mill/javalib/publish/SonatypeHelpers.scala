@@ -57,7 +57,52 @@ object SonatypeHelpers {
     }
   }
 
-  // signing is delegated to the PGP worker
+  private[mill] def toSubPathMap(fileMapping: Seq[(os.Path, String)]): Map[os.SubPath, os.Path] =
+    fileMapping.iterator.map { case (path, name) => os.SubPath(name) -> path }.toMap
+
+  private[mill] def mapArtifacts(
+      artifacts: (Seq[(os.Path, String)], Artifact)*
+  ): Array[(Map[os.SubPath, os.Path], Artifact)] =
+    artifacts.iterator.map { case (fileMapping, artifact) =>
+      toSubPathMap(fileMapping) -> artifact
+    }.toArray
+
+  private[mill] def getArtifactMappings(
+      isSigned: Boolean,
+      gpgArgs: GpgArgs,
+      env: Map[String, String],
+      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
+  ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
+    val _ = env
+    val gpgArgs0 = gpgArgs.asCommandArgs
+    for ((fileMapping0, artifact) <- artifacts) yield {
+      val publishPath =
+        os.SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
+      val fileMapping = fileMapping0.map { case (name, contents) => publishPath / name -> contents }
+
+      val signedArtifacts =
+        if (isSigned) {
+          fileMapping.map { case (name, file) =>
+            val signatureFile = signWithGpg(file, gpgArgs0)
+            os.SubPath(s"$name.asc") -> signatureFile
+          }
+        } else Map.empty
+
+      val allFiles = (fileMapping ++ signedArtifacts).flatMap { case (name, file) =>
+        val content = os.read.bytes(file)
+
+        Map(
+          name -> content,
+          os.SubPath(s"$name.md5") -> md5hex(content),
+          os.SubPath(s"$name.sha1") -> sha1hex(content)
+        )
+      }
+
+      artifact -> allFiles
+    }
+  }
+
+  // signing is delegated to the PGP worker or legacy gpg CLI
 
   private def md5hex(bytes: Array[Byte]): Array[Byte] =
     hexArray(md5.digest(bytes)).getBytes
@@ -71,4 +116,11 @@ object SonatypeHelpers {
 
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
+
+  private def signWithGpg(file: os.Path, gpgArgs: Seq[String]): os.Path = {
+    val signatureFile = os.temp(dir = file / os.up, prefix = file.last + "-", suffix = ".asc")
+    val cmd = Seq("gpg") ++ gpgArgs ++ Seq("--output", signatureFile.toString, file.toString)
+    os.proc(cmd).call(stdout = os.Pipe, stderr = os.Pipe)
+    signatureFile
+  }
 }

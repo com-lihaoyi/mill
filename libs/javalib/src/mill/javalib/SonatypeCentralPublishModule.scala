@@ -177,7 +177,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     }
 
     def publishReleases(artifacts: Seq[PublishData], gpgArgs: GpgArgs): Unit = {
-      val publisher = new SonatypeCentralPublisher(
+      val publisher = new SonatypeCentralPublisher2(
         credentials = SonatypeCredentials(credentials.username, credentials.password),
         gpgArgs = gpgArgs,
         pgpWorker = pgpWorker,

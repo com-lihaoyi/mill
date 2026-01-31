@@ -589,7 +589,6 @@ trait PublishModule extends JavaModule with PgpWorkerSupport { outer =>
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
       gpgArgs0,
-      pgpWorker(),
       readTimeout,
       connectTimeout,
       Task.log,
@@ -640,6 +639,7 @@ trait PublishModule extends JavaModule with PgpWorkerSupport { outer =>
     )
     PathRef(Task.dest)
   }
+
 }
 
 object PublishModule extends ExternalModule with DefaultTaskModule with PgpWorkerSupport {
@@ -648,9 +648,13 @@ object PublishModule extends ExternalModule with DefaultTaskModule with PgpWorke
   val defaultGpgArgs: Seq[String] = internal.PublishModule.defaultGpgArgs
 
   @deprecated("This API should have been internal and is not guaranteed to stay.", "Mill 1.0.1")
-  def pgpImportSecretIfProvided(env: Map[String, String]): Task.Command[Unit] = Task.Command {
-    internal.PublishModule.pgpImportSecretIfProvidedOrThrow(env, pgpWorker())
-  }
+  def pgpImportSecretIfProvided(env: Map[String, String]): Unit =
+    env.get(internal.PublishModule.EnvVarPgpSecretBase64).foreach { secret =>
+      val secretBytes = java.util.Base64.getDecoder.decode(secret)
+      val tmpKey = os.temp(suffix = ".asc")
+      os.write.over(tmpKey, secretBytes)
+      os.proc("gpg", "--batch", "--import", tmpKey.toString).call(stdout = os.Pipe, stderr = os.Pipe)
+    }
 
   @deprecated("This API should have been internal and is not guaranteed to stay.", "Mill 1.0.1")
   def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] =
@@ -761,7 +765,6 @@ object PublishModule extends ExternalModule with DefaultTaskModule with PgpWorke
       internal.PublishModule.checkSonatypeCreds(sonatypeCreds)(),
       signed,
       gpgArgs0,
-      pgpWorker(),
       readTimeout,
       connectTimeout,
       Task.log,
