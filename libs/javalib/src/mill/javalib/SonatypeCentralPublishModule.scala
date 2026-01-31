@@ -7,12 +7,12 @@ import mill.api.daemon.Logger
 import mill.api.{BuildCtx, DefaultTaskModule, ExternalModule, Result, Task}
 import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
+import mill.javalib.api.PgpKeyMaterial
 import mill.javalib.publish.SonatypeHelpers.CREDENTIALS_ENV_VARIABLE_PREFIX
 import mill.javalib.publish.{Artifact, PublishingType, SonatypeCredentials}
 import mill.util.Tasks
 
-trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
-      PublishCredentialsModule {
+trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport, PublishCredentialsModule {
   import SonatypeCentralPublishModule.*
 
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "Mill 1.0.1")
@@ -57,7 +57,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
     val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
     val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
 
-    val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
+    val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env, pgpWorker())
 
     def makeGpgArgs() =
       sonatypeCentralGpgArgsForKey()(maybeKeyId.getOrElse(throw new IllegalArgumentException(
@@ -79,7 +79,8 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
       taskDest = Task.dest,
       log = Task.log,
       env = Task.env,
-      worker = mavenWorker()
+      worker = mavenWorker(),
+      pgpWorker = pgpWorker()
     )
   }
 }
@@ -88,7 +89,7 @@ trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport,
  * External module to publish artifacts to `central.sonatype.org`
  */
 object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, MavenWorkerSupport,
-      PublishCredentialsModule, MavenPublish {
+      PgpWorkerSupport, PublishCredentialsModule, MavenPublish {
   private final val sonatypeCentralGpgArgsSentinelValue = "<user did not override this method>"
 
   def self = this
@@ -120,7 +121,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
     val credentials = getPublishCredentials(CREDENTIALS_ENV_VARIABLE_PREFIX, username, password)()
     def makeGpgArgs() = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
-      GpgArgs.fromUserProvided(gpgArgs)
+      GpgArgs.fromUserProvided(gpgArgs),
+      pgpWorker()
     )
     val publishingType = getPublishingTypeFromReleaseFlag(shouldRelease)
 
@@ -137,7 +139,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       taskDest = Task.dest,
       log = Task.log,
       env = Task.env,
-      worker = mavenWorker()
+      worker = mavenWorker(),
+      pgpWorker = pgpWorker()
     )
   }
 
@@ -154,7 +157,8 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       taskDest: os.Path,
       log: Logger,
       env: Map[String, String],
-      worker: internal.MavenWorkerSupport.Api
+      worker: internal.MavenWorkerSupport.Api,
+      pgpWorker: mill.javalib.api.PgpWorkerApi
   ): Unit = {
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
@@ -176,6 +180,7 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
       val publisher = new SonatypeCentralPublisher(
         credentials = SonatypeCredentials(credentials.username, credentials.password),
         gpgArgs = gpgArgs,
+        pgpWorker = pgpWorker,
         connectTimeout = connectTimeout,
         readTimeout = readTimeout,
         log = log,
@@ -225,10 +230,10 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
   }
 
   /**
-   * Interactive task to create GPG keys for publishing to Sonatype Central.
+   * Interactive task to create PGP keys for publishing to Sonatype Central.
    *
    * This task will:
-   * 1. Generate a new GPG key pair (interactively prompting for name, email, and passphrase)
+   * 1. Generate a new PGP key pair (interactively prompting for name, email, and passphrase)
    * 2. Upload the public key to keyserver.ubuntu.com
    * 3. Verify the key was uploaded successfully
    * 4. Print the environment variables needed for publishing
@@ -241,107 +246,87 @@ object SonatypeCentralPublishModule extends ExternalModule, DefaultTaskModule, M
   def initGpgKeys(): Task.Command[Unit] = Task.Command {
     val log = Task.log
 
-    log.info("=== GPG Key Setup for Sonatype Central Publishing ===")
+    log.info("=== PGP Key Setup for Sonatype Central Publishing ===")
     log.info("")
-    log.info("This will create a new GPG key pair for signing your artifacts.")
+    log.info("This will create a new PGP key pair for signing your artifacts.")
     log.info("You will be prompted to enter:")
     log.info("  - Your real name")
     log.info("  - Your email address")
     log.info("  - A passphrase to protect your key")
     log.info("")
 
-    // Step 1: Generate GPG key
-    log.info("Step 1: Generating GPG key pair...")
-    val genKeyResult = mill.util.Jvm.runInteractiveCommand(
-      cmd = Seq("gpg", "--gen-key"),
-      env = Map.empty,
-      cwd = os.pwd
+    def prompt(label: String): String = {
+      print(label)
+      System.out.flush()
+      scala.io.StdIn.readLine()
+    }
+
+    val name = prompt("Enter your name: ")
+    val email = prompt("Enter your email: ")
+
+    log.info("")
+    log.info("Step 1: Generating PGP key pair...")
+    val passphrase = {
+      print("Enter passphrase (leave empty for no passphrase): ")
+      System.out.flush()
+      val console = System.console()
+      if (console != null) new String(console.readPassword())
+      else scala.io.StdIn.readLine()
+    }
+    if (passphrase == null || passphrase.isEmpty) {
+      log.error("Warning: Empty passphrase provided")
+    }
+    val userId = s"$name <$email>"
+    val generated: PgpKeyMaterial = pgpWorker().generateKeyPair(
+      userId = userId,
+      passphrase = Option(passphrase).filter(_.nonEmpty)
     )
 
-    if (genKeyResult != 0) {
-      throw new Exception(s"GPG key generation failed with exit code $genKeyResult")
-    }
-
     log.info("")
-    log.info("GPG key generated successfully!")
+    log.info("PGP key generated successfully!")
     log.info("")
 
-    // Step 2: Get the key ID of the most recently created key
-    log.info("Step 2: Finding your new key ID...")
-    val listKeysResult = os.proc("gpg", "--list-keys", "--keyid-format", "long")
-      .call(stderr = os.Pipe)
-
-    // Parse the key ID from output - look for lines like "pub   rsa3072/KEYID 2024-01-01"
-    val keyIdPattern = """pub\s+\w+/([A-F0-9]+)\s+""".r
-    val keyIds = keyIdPattern.findAllMatchIn(listKeysResult.out.text()).map(_.group(1)).toList
-
-    if (keyIds.isEmpty) {
-      throw new Exception("Could not find any GPG keys. Please check your GPG configuration.")
-    }
-
-    val keyId = keyIds.last // Use the most recently listed key
-    log.info(s"Found key ID: $keyId")
+    val keyId = generated.keyIdHex
+    log.info(s"Generated key ID: $keyId")
     log.info("")
 
-    // Step 3: Upload public key to keyserver
-    log.info("Step 3: Uploading public key to keyserver.ubuntu.com...")
-    val sendKeysResult = os.proc("gpg", "--keyserver", "keyserver.ubuntu.com", "--send-keys", keyId)
-      .call(stderr = os.Pipe, check = false)
-
-    if (sendKeysResult.exitCode != 0) {
-      log.error(s"Warning: Failed to upload key to keyserver: ${sendKeysResult.err.text()}")
-      log.error("You may need to upload manually: gpg --keyserver keyserver.ubuntu.com --send-keys " + keyId)
+    // Step 2: Upload public key to keyserver
+    log.info("Step 2: Uploading public key to keyserver.ubuntu.com...")
+    val uploadResult = requests.post(
+      url = "https://keyserver.ubuntu.com/pks/add",
+      data = Map("keytext" -> generated.publicKeyArmored)
+    )
+    if (!uploadResult.is2xx) {
+      log.error(
+        s"Warning: Failed to upload key to keyserver (status ${uploadResult.statusCode})."
+      )
+      log.error(
+        "You may need to upload manually via https://keyserver.ubuntu.com/pks/add"
+      )
     } else {
       log.info("Public key uploaded successfully!")
     }
     log.info("")
 
-    // Step 4: Verify key was uploaded
-    log.info("Step 4: Verifying key upload...")
-    // Small delay to allow keyserver to propagate
+    // Step 3: Verify key was uploaded
+    log.info("Step 3: Verifying key upload...")
     Thread.sleep(2000)
-    val recvKeysResult = os.proc("gpg", "--keyserver", "keyserver.ubuntu.com", "--recv-keys", keyId)
-      .call(stderr = os.Pipe, check = false)
-
-    if (recvKeysResult.exitCode != 0) {
-      log.error(s"Warning: Could not verify key on keyserver: ${recvKeysResult.err.text()}")
+    val verifyResult = requests.get(
+      url = "https://keyserver.ubuntu.com/pks/lookup",
+      params = Map("op" -> "get", "search" -> s"0x$keyId")
+    )
+    if (!verifyResult.is2xx || !verifyResult.text().contains("BEGIN PGP PUBLIC KEY BLOCK")) {
+      log.error("Warning: Could not verify key on keyserver.")
       log.error("This may be due to keyserver propagation delay. Try again later with:")
-      log.error(s"  gpg --keyserver keyserver.ubuntu.com --recv-keys $keyId")
+      log.error(s"  https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x$keyId")
     } else {
       log.info("Key verified on keyserver!")
     }
     log.info("")
 
-    // Step 5: Ask for passphrase
-    log.info("Step 5: Please enter the passphrase you used when creating the key.")
-    log.info("(This is needed to generate the environment variable for CI)")
-    log.info("")
-
-    // Use interactive command to read passphrase securely
-    print("Enter passphrase: ")
-    System.out.flush()
-    val console = System.console()
-    val passphrase = if (console != null) {
-      new String(console.readPassword())
-    } else {
-      // Fallback for non-terminal environments
-      scala.io.StdIn.readLine()
-    }
-
-    if (passphrase == null || passphrase.isEmpty) {
-      log.error("Warning: Empty passphrase provided")
-    }
-    log.info("")
-
-    // Step 6: Export secret key as base64
-    log.info("Step 6: Exporting secret key...")
-    val exportResult = os.proc("gpg", "--export-secret-key", "-a", keyId)
-      .call(stderr = os.Pipe)
-
-    val secretKeyArmored = exportResult.out.text()
-
     // Base64 encode the key (without newlines for environment variable)
-    val secretKeyBase64 = java.util.Base64.getEncoder.encodeToString(secretKeyArmored.getBytes("UTF-8"))
+    val secretKeyBase64 =
+      java.util.Base64.getEncoder.encodeToString(generated.secretKeyArmored.getBytes("UTF-8"))
 
     log.info("")
     log.info("=== Setup Complete! ===")

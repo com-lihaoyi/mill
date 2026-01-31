@@ -2,6 +2,7 @@ package mill.javalib.internal
 
 import mill.api.Task
 import mill.api.daemon.internal.internal
+import mill.javalib.api.PgpWorkerApi
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.util.{PossiblySecret, Secret}
 
@@ -14,10 +15,13 @@ private[mill] object PublishModule {
    * @return Some(Right(the key ID of the imported secret)), Some(Left(error message)) if the import failed, None if
    *         the environment variable is not set.
    */
-  def pgpImportSecretIfProvided(env: Map[String, String]): Option[Either[String, String]] = {
+  def pgpImportSecretIfProvided(
+      env: Map[String, String],
+      pgpWorker: PgpWorkerApi
+  ): Option[Either[String, String]] = {
     for (secret <- env.get(EnvVarPgpSecretBase64)) yield {
-      pgpImportSecret(secret).left.map { errorLines =>
-        s"""Could not import PGP secret from environment variable '$EnvVarPgpSecretBase64'. gpg output:
+      pgpImportSecret(secret, pgpWorker).left.map { errorLines =>
+        s"""Could not import PGP secret from environment variable '$EnvVarPgpSecretBase64':
            |
            |${errorLines.mkString("\n")}""".stripMargin
       }
@@ -25,8 +29,11 @@ private[mill] object PublishModule {
   }
 
   /** Imports a Base64 encoded GPG secret, if one is provided in the environment. Throws if the import fails. */
-  def pgpImportSecretIfProvidedOrThrow(env: Map[String, String]): Option[String] =
-    pgpImportSecretIfProvided(env).map(_.fold(
+  def pgpImportSecretIfProvidedOrThrow(
+      env: Map[String, String],
+      pgpWorker: PgpWorkerApi
+  ): Option[String] =
+    pgpImportSecretIfProvided(env, pgpWorker).map(_.fold(
       err => throw new IllegalArgumentException(err),
       identity
     ))
@@ -36,24 +43,14 @@ private[mill] object PublishModule {
    *
    * @return Right(the key ID of the imported secret), or Left(gnupg output) if the import failed.
    */
-  def pgpImportSecret(secretBase64: String): Either[Vector[String], String] = {
-    val cmd = Seq(
-      "gpg",
-      "--import",
-      "--no-tty",
-      "--batch",
-      "--yes",
-      // Use the machine parseable output format and send it to stdout.
-      "--with-colons",
-      "--status-fd",
-      "1"
-    )
-    println(s"Running ${cmd.iterator.map(pprint.Util.literalize(_)).mkString(" ")}")
-    val res = os.call(cmd, stdin = java.util.Base64.getDecoder.decode(secretBase64))
-    val outLines = res.out.lines()
-    val importRegex = """^\[GNUPG:\] IMPORT_OK \d+ (\w+)""".r
-    outLines.collectFirst { case importRegex(key) => key }.toRight(outLines)
-  }
+  def pgpImportSecret(
+      secretBase64: String,
+      pgpWorker: PgpWorkerApi
+  ): Either[Vector[String], String] =
+    try Right(pgpWorker.extractSigningKeyId(secretBase64))
+    catch {
+      case e: Exception => Left(Vector(Option(e.getMessage).getOrElse("Failed to load PGP key.")))
+    }
 
   def defaultGpgArgs: Seq[String] = Seq(
     "--no-tty",
@@ -73,12 +70,13 @@ private[mill] object PublishModule {
 
   def pgpImportSecretIfProvidedAndMakeGpgArgs(
       env: Map[String, String],
-      providedGpgArgs: GpgArgs.UserProvided
+      providedGpgArgs: GpgArgs.UserProvided,
+      pgpWorker: PgpWorkerApi
   ): GpgArgs = {
-    val maybeKeyId = pgpImportSecretIfProvidedOrThrow(env)
+    val maybeKeyId = pgpImportSecretIfProvidedOrThrow(env, pgpWorker)
     println(maybeKeyId match {
-      case Some(keyId) => s"Imported GPG key with ID '$keyId'"
-      case None => "No GPG key was imported."
+      case Some(keyId) => s"Imported PGP key with ID '$keyId'"
+      case None => "No PGP key was imported."
     })
     makeGpgArgs(env, maybeKeyId, providedGpgArgs)
   }
@@ -96,6 +94,28 @@ private[mill] object PublishModule {
       )
       GpgArgs.MillGenerated(defaultGpgArgsForKey(maybePassphrase))
     }
+  }
+
+  final case class PgpSigningConfig(
+      secretKeyBase64: String,
+      keyIdHint: Option[String],
+      passphrase: Option[String]
+  )
+
+  def resolveSigningConfig(
+      env: Map[String, String],
+      gpgArgs: GpgArgs
+  ): PgpSigningConfig = {
+    val secretKeyBase64 = env.getOrElse(
+      EnvVarPgpSecretBase64,
+      throw new IllegalArgumentException(
+        s"'$EnvVarPgpSecretBase64' must be set when signing because the gpg CLI is no longer used."
+      )
+    )
+    val args = gpgArgs.asCommandArgs
+    val passphrase = extractPassphrase(args).orElse(env.get(EnvVarPgpPassphrase))
+    val keyIdHint = extractKeyId(args)
+    PgpSigningConfig(secretKeyBase64, keyIdHint, passphrase)
   }
 
   val EnvVarPgpPassphrase = "MILL_PGP_PASSPHRASE"
@@ -168,6 +188,23 @@ private[mill] object PublishModule {
      */
     def fromUserProvided(args: String)(using sourcecode.File, sourcecode.Line): UserProvided =
       UserProvided(if (args.isBlank) Seq.empty else args.split(','))
+  }
+
+  private def extractPassphrase(args: Seq[String]): Option[String] =
+    extractArgValue(args, Set("--passphrase"))
+
+  private def extractKeyId(args: Seq[String]): Option[String] =
+    extractArgValue(args, Set("--local-user", "--default-key", "-u"))
+
+  private def extractArgValue(args: Seq[String], flags: Set[String]): Option[String] = {
+    args.zipWithIndex.iterator.collectFirst {
+      case (arg, idx) if flags.exists(flag => arg.startsWith(flag + "=")) =>
+        arg.split("=", 2).lastOption.getOrElse("")
+      case (arg, idx) if flags.contains(arg) =>
+        args.lift(idx + 1).getOrElse("")
+      case (arg, _) if flags.contains("-u") && arg.startsWith("-u") && arg.length > 2 =>
+        arg.drop(2)
+    }.filter(_.nonEmpty)
   }
 
   def getSonatypeCredsFromEnv: Task[(String, String)] = Task.Anon {

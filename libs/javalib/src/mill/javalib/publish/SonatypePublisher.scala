@@ -1,6 +1,7 @@
 package mill.javalib.publish
 
 import mill.api.Logger
+import mill.javalib.api.PgpWorkerApi
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 
@@ -20,6 +21,7 @@ class SonatypePublisher(
     credentials: String,
     signed: Boolean,
     gpgArgs: GpgArgs,
+    pgpWorker: PgpWorkerApi,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
@@ -35,6 +37,7 @@ class SonatypePublisher(
       credentials: String,
       signed: Boolean,
       gpgArgs: Seq[String],
+      pgpWorker: PgpWorkerApi,
       readTimeout: Int,
       connectTimeout: Int,
       log: Logger,
@@ -48,6 +51,7 @@ class SonatypePublisher(
     credentials = credentials,
     signed = signed,
     gpgArgs = GpgArgs.UserProvided(gpgArgs),
+    pgpWorker = pgpWorker,
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     log = log,
@@ -85,7 +89,7 @@ class SonatypePublisher(
 
   @targetName("publishAllByMap")
   def publishAll(release: Boolean, artifacts: (Map[os.SubPath, os.Path], Artifact)*): Unit = {
-    val mappings = getArtifactMappings(signed, gpgArgs, workspace, env, artifacts)
+    val mappings = getArtifactMappings(signed, gpgArgs, env, pgpWorker, artifacts)
 
     val (snapshots, releases) = mappings.partition(_.artifact.isSnapshot)
     if (snapshots.nonEmpty) {

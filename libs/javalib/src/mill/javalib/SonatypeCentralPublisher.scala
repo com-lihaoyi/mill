@@ -7,6 +7,7 @@ import com.lumidion.sonatype.central.client.core.{
 }
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
+import mill.javalib.api.PgpWorkerApi
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.internal.PublishModule.GpgArgs.UserProvided
 import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
@@ -24,6 +25,7 @@ import scala.annotation.targetName
 class SonatypeCentralPublisher(
     credentials: SonatypeCredentials,
     gpgArgs: GpgArgs,
+    pgpWorker: PgpWorkerApi,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
@@ -35,6 +37,7 @@ class SonatypeCentralPublisher(
   def this(
       credentials: SonatypeCredentials,
       gpgArgs: Seq[String],
+      pgpWorker: PgpWorkerApi,
       readTimeout: Int,
       connectTimeout: Int,
       log: Logger,
@@ -44,6 +47,7 @@ class SonatypeCentralPublisher(
   ) = this(
     credentials = credentials,
     gpgArgs = UserProvided(gpgArgs),
+    pgpWorker = pgpWorker,
     readTimeout = readTimeout,
     connectTimeout = connectTimeout,
     log = log,
@@ -137,7 +141,7 @@ class SonatypeCentralPublisher(
       singleBundleName: Option[String],
       artifacts: (Map[os.SubPath, os.Path], Artifact)*
   ): PreparedArtifacts = {
-    val releases = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
+    val releases = getArtifactMappings(isSigned = true, gpgArgs, env, pgpWorker, artifacts)
 
     val releaseGroups = releases.groupBy(_.artifact.group)
     val wd = os.pwd / "out/publish-central"

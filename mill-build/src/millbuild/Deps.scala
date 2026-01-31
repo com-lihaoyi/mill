@@ -357,5 +357,7 @@ object Deps {
     mvn"org.bouncycastle:bcprov-jdk18on:1.83",
     mvn"org.bouncycastle:bcutil-jdk18on:1.83"
   )
+  val bouncyCastleProv = mvn"org.bouncycastle:bcprov-jdk18on:1.83"
+  val bouncyCastlePgp = mvn"org.bouncycastle:bcpg-jdk18on:1.83"
 
 }

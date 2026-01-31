@@ -1,6 +1,8 @@
 package mill.javalib.publish
 
+import mill.javalib.api.PgpWorkerApi
 import mill.javalib.internal.PublishModule.GpgArgs
+import mill.javalib.internal.PublishModule
 
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -15,23 +17,31 @@ object SonatypeHelpers {
   private[mill] def getArtifactMappings(
       isSigned: Boolean,
       gpgArgs: GpgArgs,
-      workspace: os.Path,
       env: Map[String, String],
+      pgpWorker: PgpWorkerApi,
       artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
   ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
+    val signingConfig =
+      if (isSigned) Some(PublishModule.resolveSigningConfig(env, gpgArgs)) else None
     for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath =
         os.SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
       val fileMapping = fileMapping0.map { case (name, contents) => publishPath / name -> contents }
 
       val signedArtifacts =
-        if (isSigned) fileMapping.map {
-          case (name, file) =>
-            val signatureFile =
-              gpgSigned(file = file, args = gpgArgs, workspace = workspace, env = env)
-            os.SubPath(s"$name.asc") -> signatureFile
+        signingConfig match {
+          case Some(config) =>
+            fileMapping.map { case (name, file) =>
+              val signatureFile = pgpWorker.signDetached(
+                file = file,
+                secretKeyBase64 = config.secretKeyBase64,
+                keyIdHint = config.keyIdHint,
+                passphrase = config.passphrase
+              )
+              os.SubPath(s"$name.asc") -> signatureFile
+            }
+          case None => Map.empty
         }
-        else Map.empty
 
       val allFiles = (fileMapping ++ signedArtifacts).flatMap { case (name, file) =>
         val content = os.read.bytes(file)
@@ -47,37 +57,7 @@ object SonatypeHelpers {
     }
   }
 
-  /**
-   * Signs a file with GPG.
-   *
-   * @return The path of the signature file.
-   */
-  private def gpgSigned(
-      file: os.Path,
-      args: GpgArgs,
-      workspace: os.Path,
-      env: Map[String, String]
-  ): os.Path = {
-    val fileName = file.toString
-    val logArgs = args match {
-      case GpgArgs.MillGenerated(args) => args.map(_.toString)
-      case fromUser: GpgArgs.UserProvided =>
-        Seq(s"<${fromUser.args.size} user provided args @ ${fromUser.file}:${fromUser.line}>")
-    }
-    def mkCommand(args: Seq[String]) = "gpg" +: args :+ fileName
-    mkCommand(logArgs)
-    val command = mkCommand(args.asCommandArgs)
-
-    os.call(
-      command,
-      env,
-      workspace,
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
-    )
-    os.Path(fileName + ".asc")
-  }
+  // signing is delegated to the PGP worker
 
   private def md5hex(bytes: Array[Byte]): Array[Byte] =
     hexArray(md5.digest(bytes)).getBytes
