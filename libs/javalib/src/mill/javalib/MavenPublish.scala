@@ -52,12 +52,9 @@ private[mill] trait MavenPublish {
       if (publishData.publishInfos.nonEmpty) publishData.publishInfos
       else {
         payloadAsMap.iterator.map { case (name, pathRef) =>
-          val publishInfo = mill.javalib.publish.PublishInfo.IvyMetadata.parseFromFile(
-            fileName = name.toString,
-            artifactId = publishData.meta.id,
-            artifactVersion = publishData.meta.version
-          ).toPublishInfo(pathRef)
-          publishInfo
+          publish.PublishInfo.IvyMetadata
+            .parseFromFile(name.toString, publishData.meta.id, publishData.meta.version)
+            .toPublishInfo(pathRef)
         }.toList
       }
     val pomPath =
