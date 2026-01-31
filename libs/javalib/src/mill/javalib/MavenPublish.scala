@@ -57,21 +57,21 @@ private[mill] trait MavenPublish {
             .toPublishInfo(pathRef)
         }.toList
       }
+
     val pomPath =
       publishData.pomPath.orElse {
         payloadAsMap.iterator.collectFirst {
           case (name, pathRef) if name.toString.endsWith(".pom") => pathRef.path
         }
       }
+
     val artifacts = pomPath match {
       case Some(path) =>
         MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(path, publishData.meta, publishInfos)
-      
+
       case None =>
-        MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
-          publishData.meta,
-          payloadAsMap
-        )
+        MavenWorkerSupport.RemoteM2Publisher
+          .asM2ArtifactsFromPublishDatas(publishData.meta, payloadAsMap)
     }
 
     if (isSnapshot) {
