@@ -454,6 +454,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /** Use `repl` instead */
   def console(@com.lihaoyi.unroll args: mill.api.Args = mill.api.Args()): Command[Unit] =
     repl(args.value*)
+
   /**
    * The classpath used to run the Scala console with [[console]].
    */
