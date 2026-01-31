@@ -519,9 +519,7 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean = true,
       docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] = Task.Anon {
-    val baseName = publishArtifactsBaseName()
-    val publishInfos = allPublishInfos(sources = sources, docs = docs)()
-    PublishModule.payloadFromPublishInfos(baseName, pom(), publishInfos)
+    publishArtifactsPayloadFrom(allPublishInfos(sources = sources, docs = docs))()
   }
 
   /** The base name for the published artifacts. */
@@ -539,10 +537,15 @@ trait PublishModule extends JavaModule { outer =>
       docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] = {
     Task.Anon {
-      val baseName = publishArtifactsBaseName()
-      val publishInfos = defaultPublishInfos(sources = sources, docs = docs)()
-      PublishModule.payloadFromPublishInfos(baseName, pom(), publishInfos)
+      publishArtifactsPayloadFrom(defaultPublishInfos(sources = sources, docs = docs))()
     }
+  }
+
+  private def publishArtifactsPayloadFrom(
+      publishInfos: Task[Seq[PublishInfo]]
+  ): Task[Map[os.SubPath, PathRef]] = Task.Anon {
+    val baseName = publishArtifactsBaseName()
+    PublishModule.payloadFromPublishInfos(baseName, pom(), publishInfos())
   }
 
   /**
