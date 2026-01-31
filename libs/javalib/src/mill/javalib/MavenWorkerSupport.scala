@@ -51,7 +51,7 @@ object MavenWorkerSupport {
         publishInfos: IterableOnce[PublishInfo]
     ): List[M2Artifact] =
       List(M2Artifact.POM(pom, artifact)) ++
-        publishInfos.iterator.map(M2Artifact.Default(_, artifact)).toList
+        publishInfos.iterator.map(M2Artifact.Default(_, artifact))
 
     private[mill] def asM2ArtifactsFromPublishDatas(
         artifact: Artifact,
